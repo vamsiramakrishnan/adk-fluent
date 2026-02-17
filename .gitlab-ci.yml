@@ -91,7 +91,7 @@ publish-pypi:
   script:
     - export TWINE_USERNAME=__token__
     - export TWINE_PASSWORD=$PYPI_TOKEN
-    - twine upload dist/*
+    - twine upload --verbose dist/*
   environment:
     name: pypi
     url: https://pypi.org/p/adk-fluent
