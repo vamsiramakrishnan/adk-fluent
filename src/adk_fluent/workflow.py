@@ -17,7 +17,7 @@ class Loop:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -34,15 +34,31 @@ class Loop:
 
     # --- Additive callback methods ---
 
-    def after_agent(self, fn: Callable) -> Self:
-        """Append a callback to `after_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["after_agent_callback"].append(fn)
+    def after_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_agent_callback"].append(fn)
         return self
 
 
-    def before_agent(self, fn: Callable) -> Self:
-        """Append a callback to `before_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["before_agent_callback"].append(fn)
+    def after_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_agent_callback"].append(fn)
         return self
 
     # --- Extra methods ---
@@ -52,6 +68,12 @@ class Loop:
         item = agent.build() if hasattr(agent, "build") else agent
         self._lists["sub_agents"].append(item)
         return self
+
+
+    def clone(self, new_name: str) -> Self:
+        """Deep-copy this builder with a new name."""
+        from adk_fluent._helpers import deep_clone_builder
+        return deep_clone_builder(self, new_name)
 
     # --- Dynamic field forwarding ---
 
@@ -129,7 +151,7 @@ class FanOut:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -146,15 +168,31 @@ class FanOut:
 
     # --- Additive callback methods ---
 
-    def after_agent(self, fn: Callable) -> Self:
-        """Append a callback to `after_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["after_agent_callback"].append(fn)
+    def after_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_agent_callback"].append(fn)
         return self
 
 
-    def before_agent(self, fn: Callable) -> Self:
-        """Append a callback to `before_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["before_agent_callback"].append(fn)
+    def after_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_agent_callback"].append(fn)
         return self
 
     # --- Extra methods ---
@@ -164,6 +202,12 @@ class FanOut:
         item = agent.build() if hasattr(agent, "build") else agent
         self._lists["sub_agents"].append(item)
         return self
+
+
+    def clone(self, new_name: str) -> Self:
+        """Deep-copy this builder with a new name."""
+        from adk_fluent._helpers import deep_clone_builder
+        return deep_clone_builder(self, new_name)
 
     # --- Dynamic field forwarding ---
 
@@ -241,7 +285,7 @@ class Pipeline:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -258,15 +302,31 @@ class Pipeline:
 
     # --- Additive callback methods ---
 
-    def after_agent(self, fn: Callable) -> Self:
-        """Append a callback to `after_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["after_agent_callback"].append(fn)
+    def after_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_agent_callback"].append(fn)
         return self
 
 
-    def before_agent(self, fn: Callable) -> Self:
-        """Append a callback to `before_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["before_agent_callback"].append(fn)
+    def after_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_agent_callback"].append(fn)
         return self
 
     # --- Extra methods ---
@@ -276,6 +336,12 @@ class Pipeline:
         item = agent.build() if hasattr(agent, "build") else agent
         self._lists["sub_agents"].append(item)
         return self
+
+
+    def clone(self, new_name: str) -> Self:
+        """Deep-copy this builder with a new name."""
+        from adk_fluent._helpers import deep_clone_builder
+        return deep_clone_builder(self, new_name)
 
     # --- Dynamic field forwarding ---
 

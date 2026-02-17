@@ -108,7 +108,7 @@ class InMemoryRunner:
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'plugins', 'app', 'app_name', 'plugin_close_timeout', 'agent'}
+    _KNOWN_PARAMS: set[str] = {'app_name', 'plugins', 'app', 'plugin_close_timeout', 'agent'}
 
 
     def __init__(self, ) -> None:
@@ -200,7 +200,7 @@ class Runner:
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'plugins', 'app', 'auto_create_session', 'app_name', 'credential_service', 'memory_service', 'artifact_service', 'plugin_close_timeout', 'session_service', 'agent'}
+    _KNOWN_PARAMS: set[str] = {'app_name', 'artifact_service', 'plugins', 'auto_create_session', 'app', 'session_service', 'plugin_close_timeout', 'agent', 'memory_service', 'credential_service'}
 
 
     def __init__(self, session_service: str) -> None:

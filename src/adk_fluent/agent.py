@@ -16,7 +16,7 @@ class BaseAgent:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -33,15 +33,31 @@ class BaseAgent:
 
     # --- Additive callback methods ---
 
-    def after_agent(self, fn: Callable) -> Self:
-        """Append a callback to `after_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["after_agent_callback"].append(fn)
+    def after_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_agent_callback"].append(fn)
         return self
 
 
-    def before_agent(self, fn: Callable) -> Self:
-        """Append a callback to `before_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["before_agent_callback"].append(fn)
+    def after_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+
+    def before_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_agent_callback"].append(fn)
         return self
 
     # --- Extra methods ---
@@ -122,7 +138,7 @@ class Agent:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'before_tool_callback', 'after_tool_callback', 'before_model_callback', 'after_agent_callback', 'before_agent_callback', 'on_model_error_callback', 'after_model_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'after_tool_callback', 'after_model_callback', 'after_agent_callback', 'on_model_error_callback', 'before_tool_callback', 'before_model_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -151,51 +167,115 @@ class Agent:
 
     # --- Additive callback methods ---
 
-    def after_agent(self, fn: Callable) -> Self:
-        """Append a callback to `after_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["after_agent_callback"].append(fn)
+    def after_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_agent_callback"].append(fn)
         return self
 
 
-    def after_model(self, fn: Callable) -> Self:
-        """Append a callback to `after_model_callback`. Multiple calls accumulate."""
-        self._callbacks["after_model_callback"].append(fn)
+    def after_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_agent_callback"].append(fn)
         return self
 
 
-    def after_tool(self, fn: Callable) -> Self:
-        """Append a callback to `after_tool_callback`. Multiple calls accumulate."""
-        self._callbacks["after_tool_callback"].append(fn)
+    def after_model(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_model_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_model_callback"].append(fn)
         return self
 
 
-    def before_agent(self, fn: Callable) -> Self:
-        """Append a callback to `before_agent_callback`. Multiple calls accumulate."""
-        self._callbacks["before_agent_callback"].append(fn)
+    def after_model_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_model_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_model_callback"].append(fn)
         return self
 
 
-    def before_model(self, fn: Callable) -> Self:
-        """Append a callback to `before_model_callback`. Multiple calls accumulate."""
-        self._callbacks["before_model_callback"].append(fn)
+    def after_tool(self, *fns: Callable) -> Self:
+        """Append callback(s) to `after_tool_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["after_tool_callback"].append(fn)
         return self
 
 
-    def before_tool(self, fn: Callable) -> Self:
-        """Append a callback to `before_tool_callback`. Multiple calls accumulate."""
-        self._callbacks["before_tool_callback"].append(fn)
+    def after_tool_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `after_tool_callback` only if condition is True."""
+        if condition:
+            self._callbacks["after_tool_callback"].append(fn)
         return self
 
 
-    def on_model_error(self, fn: Callable) -> Self:
-        """Append a callback to `on_model_error_callback`. Multiple calls accumulate."""
-        self._callbacks["on_model_error_callback"].append(fn)
+    def before_agent(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_agent_callback"].append(fn)
         return self
 
 
-    def on_tool_error(self, fn: Callable) -> Self:
-        """Append a callback to `on_tool_error_callback`. Multiple calls accumulate."""
-        self._callbacks["on_tool_error_callback"].append(fn)
+    def before_agent_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_agent_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+
+    def before_model(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_model_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_model_callback"].append(fn)
+        return self
+
+
+    def before_model_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_model_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_model_callback"].append(fn)
+        return self
+
+
+    def before_tool(self, *fns: Callable) -> Self:
+        """Append callback(s) to `before_tool_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["before_tool_callback"].append(fn)
+        return self
+
+
+    def before_tool_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `before_tool_callback` only if condition is True."""
+        if condition:
+            self._callbacks["before_tool_callback"].append(fn)
+        return self
+
+
+    def on_model_error(self, *fns: Callable) -> Self:
+        """Append callback(s) to `on_model_error_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["on_model_error_callback"].append(fn)
+        return self
+
+
+    def on_model_error_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `on_model_error_callback` only if condition is True."""
+        if condition:
+            self._callbacks["on_model_error_callback"].append(fn)
+        return self
+
+
+    def on_tool_error(self, *fns: Callable) -> Self:
+        """Append callback(s) to `on_tool_error_callback`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["on_tool_error_callback"].append(fn)
+        return self
+
+
+    def on_tool_error_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `on_tool_error_callback` only if condition is True."""
+        if condition:
+            self._callbacks["on_tool_error_callback"].append(fn)
         return self
 
     # --- Extra methods ---
@@ -216,6 +296,19 @@ class Agent:
         item = agent.build() if hasattr(agent, "build") else agent
         self._lists["sub_agents"].append(item)
         return self
+
+
+    def guardrail(self, fn: Callable) -> Self:
+        """Attach a guardrail function as both before_model and after_model callback."""
+        self._callbacks["before_model_callback"].append(fn)
+        self._callbacks["after_model_callback"].append(fn)
+        return self
+
+
+    def clone(self, new_name: str) -> Self:
+        """Deep-copy this builder with a new name. Independent config/callbacks/lists."""
+        from adk_fluent._helpers import deep_clone_builder
+        return deep_clone_builder(self, new_name)
 
     # --- Dynamic field forwarding ---
 

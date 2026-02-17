@@ -172,6 +172,19 @@ doc = "Add a member agent for coordinator pattern."
 behavior = "list_append"
 target_field = "sub_agents"
 
+[[builders.Agent.extras]]
+name = "guardrail"
+signature = "(self, fn: Callable) -> Self"
+doc = "Attach a guardrail function as both before_model and after_model callback."
+behavior = "dual_callback"
+target_fields = ["before_model_callback", "after_model_callback"]
+
+[[builders.Agent.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name. Independent config/callbacks/lists."
+behavior = "deep_copy"
+
 [builders.LlmAgentConfig]
 source_class = "google.adk.agents.llm_agent_config.LlmAgentConfig"
 output_module = "config"
@@ -216,6 +229,12 @@ doc = "Append an agent as the next step."
 behavior = "list_append"
 target_field = "sub_agents"
 
+[[builders.Loop.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name."
+behavior = "deep_copy"
+
 [builders.LoopAgentConfig]
 source_class = "google.adk.agents.loop_agent_config.LoopAgentConfig"
 output_module = "config"
@@ -258,6 +277,12 @@ signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
 doc = "Add a parallel branch agent."
 behavior = "list_append"
 target_field = "sub_agents"
+
+[[builders.FanOut.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name."
+behavior = "deep_copy"
 
 [builders.ParallelAgentConfig]
 source_class = "google.adk.agents.parallel_agent_config.ParallelAgentConfig"
@@ -327,6 +352,12 @@ signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
 doc = "Append an agent as the next step."
 behavior = "list_append"
 target_field = "sub_agents"
+
+[[builders.Pipeline.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name."
+behavior = "deep_copy"
 
 [builders.SequentialAgentConfig]
 source_class = "google.adk.agents.sequential_agent_config.SequentialAgentConfig"

@@ -1344,7 +1344,7 @@ class FeatureConfig:
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'stage', 'default_on'}
+    _KNOWN_PARAMS: set[str] = {'default_on', 'stage'}
 
 
     def __init__(self, stage: str) -> None:
@@ -1436,7 +1436,7 @@ class AudioCacheConfig:
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_cache_size_bytes', 'auto_flush_threshold', 'max_cache_duration_seconds'}
+    _KNOWN_PARAMS: set[str] = {'auto_flush_threshold', 'max_cache_duration_seconds', 'max_cache_size_bytes'}
 
 
     def __init__(self, ) -> None:
@@ -1618,7 +1618,7 @@ class BigQueryLoggerConfig:
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'content_formatter', 'clustering_fields', 'enabled', 'table_id', 'custom_tags', 'max_content_length', 'shutdown_timeout', 'gcs_bucket_name', 'event_allowlist', 'log_multi_modal_content', 'batch_size', 'queue_max_size', 'retry_config', 'connection_id', 'batch_flush_interval', 'event_denylist', 'log_session_metadata'}
+    _KNOWN_PARAMS: set[str] = {'custom_tags', 'event_allowlist', 'log_multi_modal_content', 'shutdown_timeout', 'max_content_length', 'batch_flush_interval', 'clustering_fields', 'gcs_bucket_name', 'enabled', 'table_id', 'retry_config', 'log_session_metadata', 'connection_id', 'event_denylist', 'batch_size', 'queue_max_size', 'content_formatter'}
 
 
     def __init__(self, ) -> None:
@@ -1710,7 +1710,7 @@ class RetryConfig:
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_delay', 'max_retries', 'initial_delay', 'multiplier'}
+    _KNOWN_PARAMS: set[str] = {'initial_delay', 'multiplier', 'max_retries', 'max_delay'}
 
 
     def __init__(self, ) -> None:

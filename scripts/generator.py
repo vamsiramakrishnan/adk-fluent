@@ -285,17 +285,27 @@ def gen_alias_methods(spec: BuilderSpec) -> str:
 
 
 def gen_callback_methods(spec: BuilderSpec) -> str:
-    """Generate additive callback methods."""
+    """Generate additive callback methods with variadic and conditional support."""
     methods = []
-    
+
     for short_name, full_name in spec.callback_aliases.items():
+        # Variadic version
         methods.append(f'''
-    def {short_name}(self, fn: Callable) -> Self:
-        """Append a callback to `{full_name}`. Multiple calls accumulate."""
-        self._callbacks["{full_name}"].append(fn)
+    def {short_name}(self, *fns: Callable) -> Self:
+        """Append callback(s) to `{full_name}`. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["{full_name}"].append(fn)
         return self
 ''')
-    
+        # Conditional version
+        methods.append(f'''
+    def {short_name}_if(self, condition: bool, fn: Callable) -> Self:
+        """Append callback to `{full_name}` only if condition is True."""
+        if condition:
+            self._callbacks["{full_name}"].append(fn)
+        return self
+''')
+
     return "\n".join(methods)
 
 
@@ -329,6 +339,29 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
             body = f'''
         self._config["{target}"] = {param_name}
         return self'''
+        elif behavior == "dual_callback":
+            target_fields = extra.get("target_fields", [])
+            # Extract param name from signature
+            if "self, " in sig:
+                param_name = sig.split("self, ")[1].split(":")[0].strip()
+            else:
+                param_name = "fn"
+            append_lines = "\n        ".join(
+                f'self._callbacks["{tf}"].append({param_name})'
+                for tf in target_fields
+            )
+            body = f'''
+        {append_lines}
+        return self'''
+        elif behavior == "deep_copy":
+            # Extract param name from signature
+            if "self, " in sig:
+                param_name = sig.split("self, ")[1].split(":")[0].strip()
+            else:
+                param_name = "new_name"
+            body = f'''
+        from adk_fluent._helpers import deep_clone_builder
+        return deep_clone_builder(self, {param_name})'''
         else:
             body = '''
         raise NotImplementedError("Implement in hand-written layer")'''
