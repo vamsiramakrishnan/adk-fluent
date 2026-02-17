@@ -82,15 +82,38 @@ class BuilderBase:
     def __rshift__(self, other) -> BuilderBase:
         """Create or extend a Pipeline: a >> b >> c.
 
-        Special case: a >> {"key": agent, ...} creates conditional routing.
-        The left side should have .outputs() set. A coordinator agent is created
-        that routes to the appropriate sub-agent based on the state value.
+        Special cases:
+        - a >> Route("key").eq(...) -- deterministic branching
+        - a >> {"key": agent, ...} -- dict shorthand for Route (deterministic)
         """
         from adk_fluent.workflow import Pipeline
+        from adk_fluent._routing import Route
 
-        # Dict operand: conditional routing via coordinator
+        # Dict operand: convert to deterministic Route
         if isinstance(other, dict):
-            return self._build_conditional_route(other)
+            output_key = self._config.get("output_key")
+            if not output_key:
+                raise ValueError(
+                    "Left side of >> dict must have .outputs() or .output_key() set "
+                    "so the router knows which state key to check."
+                )
+            route = Route(output_key)
+            for value, agent_builder in other.items():
+                route.eq(value, agent_builder)
+            other = route  # Fall through to Route handling
+
+        # Route operand: build route agent and create pipeline
+        if isinstance(other, Route):
+            route_agent = other.build()
+            my_name = self._config.get("name", "")
+            p = Pipeline(f"{my_name}_routed")
+            if isinstance(self, Pipeline):
+                for item in self._lists.get("sub_agents", []):
+                    p._lists["sub_agents"].append(item)
+            else:
+                p._lists["sub_agents"].append(self)
+            p._lists["sub_agents"].append(route_agent)  # Already built
+            return p
 
         my_name = self._config.get("name", "")
         other_name = other._config.get("name", "") if hasattr(other, '_config') else ""
@@ -105,59 +128,6 @@ class BuilderBase:
             p.step(self)
             p.step(other)
             return p
-
-    def _build_conditional_route(self, routes: dict) -> BuilderBase:
-        """Build conditional routing from dict operand.
-
-        Creates a Pipeline where:
-        1. Self runs first (should have .outputs() set)
-        2. A coordinator Agent reads the state key and routes to the matching sub-agent
-
-        Uses native ADK LLM-driven routing (transfer_to_agent via sub_agents).
-        """
-        from adk_fluent.workflow import Pipeline
-        from adk_fluent.agent import Agent
-
-        output_key = self._config.get("output_key")
-        if not output_key:
-            raise ValueError(
-                "Left side of >> dict must have .outputs() or .output_key() set "
-                "so the router knows which state key to check."
-            )
-
-        # Build route descriptions for the coordinator instruction
-        route_descriptions = []
-        sub_agents = []
-        for value, agent_builder in routes.items():
-            if hasattr(agent_builder, '_config'):
-                agent_name = agent_builder._config.get("name", value)
-                agent_desc = agent_builder._config.get("description", "")
-                if not agent_desc:
-                    # Auto-set description for routing
-                    agent_builder._config["description"] = f"Handles the '{value}' case."
-            else:
-                agent_name = getattr(agent_builder, 'name', value)
-            route_descriptions.append(f"- If {{{output_key}}} is '{value}', transfer to '{agent_name}'")
-            sub_agents.append(agent_builder)
-
-        routes_text = "\n".join(route_descriptions)
-        coordinator = Agent(f"route_{output_key}")
-        coordinator._config["model"] = self._config.get("model", "gemini-2.5-flash")
-        coordinator._config["instruction"] = (
-            f"You are a router. Based on the value of {{{output_key}}}, "
-            f"transfer to the appropriate agent:\n{routes_text}\n\n"
-            f"Do not generate any other response. Just transfer immediately."
-        )
-        for agent_builder in sub_agents:
-            coordinator._lists.setdefault("sub_agents", []).append(agent_builder)
-
-        # Create pipeline: self >> coordinator
-        # Append as builders (not eagerly built) so tests can inspect structure
-        my_name = self._config.get("name", "")
-        p = Pipeline(f"{my_name}_routed")
-        p._lists["sub_agents"].append(self)
-        p._lists["sub_agents"].append(coordinator)
-        return p
 
     def __or__(self, other: BuilderBase) -> BuilderBase:
         """Create or extend a FanOut: a | b | c."""
@@ -329,6 +299,9 @@ class BuilderBase:
 
     def _prepare_build_config(self) -> dict[str, Any]:
         """Prepare config dict for building: strip internal fields, auto-build sub-builders, merge callbacks and lists."""
+        # Extract internal directives before stripping
+        until_pred = self._config.get("_until_predicate")
+
         config = {k: v for k, v in self._config.items() if not k.startswith("_")}
 
         # Auto-build any BuilderBase values in config
@@ -354,6 +327,12 @@ class BuilderBase:
                 config[field] = existing + resolved
             else:
                 config[field] = resolved
+
+        # Inject checkpoint agent for loop_until predicate
+        if until_pred:
+            from adk_fluent._routing import _make_checkpoint_agent
+            checkpoint = _make_checkpoint_agent("_until_check", until_pred)
+            config.setdefault("sub_agents", []).append(checkpoint)
 
         return config
 
@@ -401,6 +380,58 @@ class BuilderBase:
         """Enable or disable debug tracing to stderr."""
         self._config["_debug"] = enabled
         return self
+
+    # ------------------------------------------------------------------
+    # Control Flow: proceed_if, loop_until, until
+    # ------------------------------------------------------------------
+
+    def proceed_if(self, predicate: Callable) -> Self:
+        """Only run this agent if predicate(state) is truthy.
+
+        Uses ADK's before_agent_callback mechanism. If the predicate returns
+        False, the agent is skipped and the pipeline continues to the next step.
+
+        Usage:
+            enricher.proceed_if(lambda s: s.get("valid") == "yes")
+        """
+        def _gate_cb(callback_context):
+            state = callback_context.state
+            try:
+                if not predicate(state):
+                    from google.genai import types
+                    return types.Content(role="model", parts=[])
+            except (KeyError, TypeError, ValueError):
+                from google.genai import types
+                return types.Content(role="model", parts=[])
+            return None
+        self._callbacks["before_agent_callback"].append(_gate_cb)
+        return self
+
+    def loop_until(self, predicate: Callable, *, max_iterations: int = 10) -> BuilderBase:
+        """Wrap in a loop that exits when predicate(state) is satisfied.
+
+        Uses ADK's native escalate mechanism via an internal checkpoint agent.
+
+        Usage:
+            (writer >> reviewer.outputs("quality")).loop_until(
+                lambda s: s.get("quality") == "good", max_iterations=5
+            )
+        """
+        loop = self.__mul__(max_iterations)
+        loop._config["_until_predicate"] = predicate
+        return loop
+
+    def until(self, predicate: Callable) -> Self:
+        """Set exit predicate on a loop. If not already a Loop, wraps in one.
+
+        Usage:
+            Loop("refine").step(writer).step(reviewer).until(lambda s: ...).max_iterations(5)
+        """
+        from adk_fluent.workflow import Loop
+        if isinstance(self, Loop):
+            self._config["_until_predicate"] = predicate
+            return self
+        return self.loop_until(predicate)
 
     # ------------------------------------------------------------------
     # Task 7: Presets (.use())
