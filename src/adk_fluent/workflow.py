@@ -17,7 +17,7 @@ class Loop:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -151,7 +151,7 @@ class FanOut:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -285,7 +285,7 @@ class Pipeline:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:

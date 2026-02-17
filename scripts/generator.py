@@ -309,6 +309,37 @@ def gen_callback_methods(spec: BuilderSpec) -> str:
     return "\n".join(methods)
 
 
+def _extract_forwarding_args(sig: str) -> str:
+    """Extract parameter names from a signature and build a forwarding argument string.
+
+    Handles keyword-only parameters (those after ``*``) by forwarding them
+    as ``name=name`` so the target helper receives them correctly.
+    """
+    if "self, " in sig:
+        params_str = sig.split("(self, ", 1)[1].rsplit(")", 1)[0]
+    elif "(self)" in sig:
+        return ""
+    else:
+        params_str = ""
+    parts = []
+    kw_only = False
+    for p in params_str.split(","):
+        p = p.strip()
+        if not p:
+            continue
+        if p == "*":
+            kw_only = True
+            continue
+        pname = p.split(":")[0].strip().split("=")[0].strip().lstrip("*")
+        if not pname:
+            continue
+        if kw_only:
+            parts.append(f"{pname}={pname}")
+        else:
+            parts.append(pname)
+    return ", ".join(parts)
+
+
 def gen_extra_methods(spec: BuilderSpec) -> str:
     """Generate extra methods defined in the seed."""
     methods = []
@@ -362,12 +393,38 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
             body = f'''
         from adk_fluent._helpers import deep_clone_builder
         return deep_clone_builder(self, {param_name})'''
+        elif behavior == "runtime_helper":
+            helper_func = extra.get("helper_func", name)
+            args_fwd = _extract_forwarding_args(sig)
+            body = f'''
+        from adk_fluent._helpers import {helper_func}
+        return {helper_func}(self, {args_fwd})'''
+        elif behavior == "runtime_helper_async":
+            helper_func = extra.get("helper_func", name)
+            args_fwd = _extract_forwarding_args(sig)
+            body = f'''
+        from adk_fluent._helpers import {helper_func}
+        return await {helper_func}(self, {args_fwd})'''
+        elif behavior == "runtime_helper_async_gen":
+            helper_func = extra.get("helper_func", name)
+            args_fwd = _extract_forwarding_args(sig)
+            body = f'''
+        from adk_fluent._helpers import {helper_func}
+        async for chunk in {helper_func}(self, {args_fwd}):
+            yield chunk'''
+        elif behavior == "runtime_helper_ctx":
+            helper_func = extra.get("helper_func", name)
+            body = f'''
+        from adk_fluent._helpers import {helper_func}
+        return {helper_func}(self)'''
         else:
             body = '''
         raise NotImplementedError("Implement in hand-written layer")'''
-        
+
+        is_async = behavior in ("runtime_helper_async", "runtime_helper_async_gen")
+        async_prefix = "async " if is_async else ""
         methods.append(f'''
-    def {name}{sig.replace("(self", "(self")}:
+    {async_prefix}def {name}{sig.replace("(self", "(self")}:
         """{doc}"""
         {body.strip()}
 ''')
@@ -586,7 +643,11 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
     # Callback methods
     for short_name in spec.callback_aliases:
         lines.append(f"    def {short_name}(self, fn: Callable) -> Self: ...")
-    
+
+    # Conditional callback stubs
+    for short_name in spec.callback_aliases:
+        lines.append(f"    def {short_name}_if(self, condition: bool, fn: Callable) -> Self: ...")
+
     # All remaining fields (not aliased, not skipped)
     aliased_fields = set(spec.aliases.values())
     callback_fields = set(spec.callback_aliases.values())
@@ -629,7 +690,9 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
     # Extra methods
     for extra in spec.extras:
         sig = extra.get("signature", "(self) -> Self")
-        lines.append(f"    def {extra['name']}{sig}: ...")
+        behavior = extra.get("behavior", "")
+        prefix = "async " if behavior in ("runtime_helper_async", "runtime_helper_async_gen") else ""
+        lines.append(f"    {prefix}def {extra['name']}{sig}: ...")
     
     # Terminal methods
     for terminal in spec.terminals:

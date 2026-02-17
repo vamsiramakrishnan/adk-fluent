@@ -16,7 +16,7 @@ class BaseAgent:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -138,7 +138,7 @@ class Agent:
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'after_tool_callback', 'after_model_callback', 'after_agent_callback', 'on_model_error_callback', 'before_tool_callback', 'before_model_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'on_model_error_callback', 'on_tool_error_callback', 'before_tool_callback', 'after_tool_callback', 'after_model_callback', 'after_agent_callback', 'before_agent_callback', 'before_model_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -309,6 +309,37 @@ class Agent:
         """Deep-copy this builder with a new name. Independent config/callbacks/lists."""
         from adk_fluent._helpers import deep_clone_builder
         return deep_clone_builder(self, new_name)
+
+
+    def ask(self, prompt: str) -> str:
+        """One-shot execution. Build agent, send prompt, return response text."""
+        from adk_fluent._helpers import run_one_shot
+        return run_one_shot(self, prompt)
+
+
+    async def ask_async(self, prompt: str) -> str:
+        """Async one-shot execution."""
+        from adk_fluent._helpers import run_one_shot_async
+        return await run_one_shot_async(self, prompt)
+
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        """Streaming execution. Yields response text chunks."""
+        from adk_fluent._helpers import run_stream
+        async for chunk in run_stream(self, prompt):
+            yield chunk
+
+
+    def test(self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self:
+        """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
+        from adk_fluent._helpers import run_inline_test
+        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
+
+
+    def session(self):
+        """Create an interactive session context manager. Use with 'async with'."""
+        from adk_fluent._helpers import create_session
+        return create_session(self)
 
     # --- Dynamic field forwarding ---
 
