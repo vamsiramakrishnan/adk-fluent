@@ -107,17 +107,17 @@ class TestGenApiReferenceForBuilder:
     def test_alias_methods_section(self):
         spec = _make_spec()
         md = gen_api_reference_for_builder(spec)
-        assert "## Methods" in md
-        assert ".instruct(value)" in md
-        assert ".describe(value)" in md
+        assert "### Methods" in md
+        assert ".instruct(value: str) -> Self" in md
+        assert ".describe(value: str) -> Self" in md
         assert "`instruction`" in md
 
     def test_callback_section(self):
         spec = _make_spec()
         md = gen_api_reference_for_builder(spec)
-        assert "## Callbacks" in md
-        assert ".before_agent(*fns)" in md
-        assert ".before_agent_if(condition, fn)" in md
+        assert "### Callbacks" in md
+        assert ".before_agent(*fns: Callable) -> Self" in md
+        assert ".before_agent_if(condition: bool, fn: Callable) -> Self" in md
 
     def test_extra_methods_section(self):
         spec = _make_spec()
@@ -238,8 +238,9 @@ class TestCookbookToMarkdown:
         md = cookbook_to_markdown(parsed)
 
         assert "# Simple Agent" in md
-        assert "## Native ADK" in md
-        assert "## adk-fluent" in md
+        # New format uses sphinx-design tab-set instead of ## headers
+        assert "tab-item} Native ADK" in md
+        assert "tab-item} adk-fluent" in md
         assert "## Equivalence" in md
         assert "```python" in md
         assert "01_simple.py" in md
@@ -254,8 +255,8 @@ class TestCookbookToMarkdown:
         }
         md = cookbook_to_markdown(parsed)
 
-        assert "## Native ADK" in md
-        assert "## adk-fluent" not in md
+        assert "tab-item} Native ADK" in md
+        assert "tab-item} adk-fluent" not in md
         assert "## Equivalence" not in md
 
 
@@ -264,19 +265,29 @@ class TestCookbookToMarkdown:
 # ---------------------------------------------------------------------------
 
 class TestGenMigrationGuide:
+    @staticmethod
+    def _by_module(specs):
+        """Build a by_module dict from a list of specs."""
+        from collections import defaultdict
+        bm = defaultdict(list)
+        for s in specs:
+            bm[s.output_module].append(s)
+        return bm
+
     def test_class_mapping_table(self):
         specs = [_make_spec(), _make_simple_spec()]
-        md = gen_migration_guide(specs)
+        md = gen_migration_guide(specs, self._by_module(specs))
 
         assert "# Migration Guide" in md
         assert "## Class Mapping" in md
-        assert "| `LlmAgent` | `Agent` |" in md
-        assert "| `Runner` | `Runner` |" in md
+        # New format uses cross-ref links: [Agent](../api/agent.md#builder-Agent)
+        assert "Agent" in md
+        assert "Runner" in md
         assert "`from adk_fluent import Agent`" in md
 
     def test_field_mapping_table(self):
         specs = [_make_spec()]
-        md = gen_migration_guide(specs)
+        md = gen_migration_guide(specs, self._by_module(specs))
 
         assert "## Field Mappings" in md
         assert "### Agent" in md
@@ -285,12 +296,12 @@ class TestGenMigrationGuide:
 
     def test_no_field_mapping_for_no_aliases(self):
         specs = [_make_simple_spec()]
-        md = gen_migration_guide(specs)
+        md = gen_migration_guide(specs, self._by_module(specs))
 
         # Runner has no aliases, so it should not have a field mapping section
         assert "### Runner" not in md
 
     def test_composite_in_class_mapping(self):
         spec = _make_spec(name="Composite", is_composite=True, source_class="__composite__")
-        md = gen_migration_guide([spec])
+        md = gen_migration_guide([spec], self._by_module([spec]))
         assert "_(composite)_" in md
