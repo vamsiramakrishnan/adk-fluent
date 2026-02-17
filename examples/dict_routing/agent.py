@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent, Pipeline
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # Step 1: Classifier outputs a key to session state
 classifier = (

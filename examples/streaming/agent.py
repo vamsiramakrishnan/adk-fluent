@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # Streaming in one line:
 # async for chunk in Agent("s").model("gemini-2.5-flash").instruct("Tell stories.").stream("Once upon a time"):

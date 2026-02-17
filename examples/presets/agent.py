@@ -10,6 +10,9 @@ Usage:
 
 from adk_fluent import Agent
 from adk_fluent.presets import Preset
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 
 def log_before(callback_context, llm_request):

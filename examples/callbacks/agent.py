@@ -18,6 +18,9 @@ def log_after(callback_context, llm_response):
     print("after model")
 
 from adk_fluent import Agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 agent_fluent = (
     Agent("observed")

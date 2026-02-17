@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 math = Agent("math_expert").model("gemini-2.5-flash").instruct("You solve math problems step by step.")
 code = Agent("code_expert").model("gemini-2.5-flash").instruct("You write Python code.")

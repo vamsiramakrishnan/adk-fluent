@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent, Loop
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # loop_until: wraps in a loop that exits when predicate is satisfied
 writer = Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").outputs("quality")

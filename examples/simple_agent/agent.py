@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 agent_fluent = (
     Agent("helper")

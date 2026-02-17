@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent.decorators import agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 
 @agent("weather_bot", model="gemini-2.5-flash")

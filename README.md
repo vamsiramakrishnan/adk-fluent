@@ -235,7 +235,22 @@ print(agent.to_yaml())  # Serialize to YAML
 
 ## Run with `adk web`
 
-Every example has a standalone agent folder:
+### Environment Setup
+
+Before running any example, copy the `.env.example` and fill in your Google Cloud credentials:
+
+```bash
+cd examples
+cp .env.example .env
+# Edit .env with your values:
+#   GOOGLE_CLOUD_PROJECT=your-project-id
+#   GOOGLE_CLOUD_LOCATION=us-central1
+#   GOOGLE_GENAI_USE_VERTEXAI=TRUE
+```
+
+Every agent loads these variables automatically via `load_dotenv()`.
+
+### Run an Example
 
 ```bash
 cd examples

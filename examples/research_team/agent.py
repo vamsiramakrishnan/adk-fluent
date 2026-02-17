@@ -10,6 +10,9 @@ Usage:
 """
 
 from adk_fluent import Agent, Pipeline, FanOut, Loop
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 
 # --- Tools ---

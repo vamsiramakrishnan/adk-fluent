@@ -142,8 +142,18 @@ def generate_agent_py(parsed: dict) -> str | None:
         lines.append(native_defs)
         lines.append("")
 
-    # Add the fluent code
-    lines.append(fluent_code)
+    # Add the fluent code — inject dotenv after the last import line
+    fluent_lines = fluent_code.split("\n")
+    last_import_idx = -1
+    for i, fl in enumerate(fluent_lines):
+        stripped = fl.strip()
+        if stripped.startswith("from ") or stripped.startswith("import "):
+            last_import_idx = i
+    if last_import_idx >= 0:
+        fluent_lines.insert(last_import_idx + 1, "from dotenv import load_dotenv")
+        fluent_lines.insert(last_import_idx + 2, "")
+        fluent_lines.insert(last_import_idx + 3, "load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)")
+    lines.append("\n".join(fluent_lines))
     lines.append("")
 
     # Assign root_agent

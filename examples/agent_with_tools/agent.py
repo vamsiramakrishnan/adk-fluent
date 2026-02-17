@@ -20,6 +20,9 @@ def get_time(timezone: str) -> str:
     return f"3:00 PM in {timezone}"
 
 from adk_fluent import Agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 agent_fluent = (
     Agent("assistant")

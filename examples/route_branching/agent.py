@@ -10,6 +10,9 @@ Usage:
 
 from adk_fluent import Agent
 from adk_fluent._routing import Route
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 booker = Agent("booker").model("gemini-2.5-flash").instruct("Book flights.")
 info = Agent("info").model("gemini-2.5-flash").instruct("Provide info.")

@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # Context manager handles everything:
 # async with Agent("chat").model("gemini-2.5-flash").instruct("Tutor.").session() as chat:

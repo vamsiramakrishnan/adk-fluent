@@ -9,6 +9,9 @@ Usage:
 """
 
 from adk_fluent import Agent, Loop
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 loop_fluent = (
     Loop("refine")

@@ -11,6 +11,9 @@ Usage:
 from adk_fluent import Agent, Pipeline
 from adk_fluent._routing import Route
 from adk_fluent.presets import Preset
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # Shared production preset
 def audit_log(callback_context, llm_response):

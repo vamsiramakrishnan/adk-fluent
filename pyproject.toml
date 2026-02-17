@@ -32,6 +32,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+examples = [
+    "python-dotenv>=1.0",
+]
 dev = [
     "pytest>=7.0",
     "pyright>=1.1",
