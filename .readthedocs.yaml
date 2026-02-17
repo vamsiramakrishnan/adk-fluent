@@ -1,0 +1,24 @@
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+  jobs:
+    pre_build:
+      - pip install google-adk
+      - pip install -e ".[docs]"
+      - python scripts/scanner.py -o manifest.json
+      - python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
+      - python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
+      - python scripts/doc_generator.py seeds/seed.toml manifest.json --output-dir docs/generated --cookbook-dir examples/cookbook
+
+sphinx:
+  configuration: docs/conf.py
+
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs

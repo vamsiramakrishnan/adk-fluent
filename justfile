@@ -29,10 +29,11 @@ GENERATOR     := "scripts/generator.py"
 DOC_GEN       := "scripts/doc_generator.py"
 COOKBOOK_GEN   := "scripts/cookbook_generator.py"
 DOC_DIR       := "docs/generated"
+SPHINX_OUT    := "docs/_build/html"
 COOKBOOK_DIR   := "examples/cookbook"
 
 # --- Full pipeline ---
-all: scan seed generate docs
+all: scan seed generate docs docs-build
     @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/ and docs in {{DOC_DIR}}/"
 
 # --- Scan ADK ---
@@ -96,6 +97,17 @@ docs-migration: _require-manifest _require-seed
         --output-dir {{DOC_DIR}} \
         --migration-only
 
+# --- Sphinx build ---
+docs-build: docs
+    @echo "Building Sphinx documentation..."
+    @uv run sphinx-build -W --keep-going -b html docs/ {{SPHINX_OUT}}
+
+# --- Sphinx live preview ---
+docs-serve: docs
+    @echo "Building and serving docs at http://localhost:8000..."
+    @uv run sphinx-build -b html docs/ {{SPHINX_OUT}}
+    @cd {{SPHINX_OUT}} && python -m http.server 8000
+
 # --- Cookbook generation ---
 cookbook-gen: _require-manifest _require-seed
     @echo "Generating cookbook example stubs..."
@@ -152,6 +164,7 @@ clean:
     @rm -rf {{OUTPUT_DIR}}/*.py {{OUTPUT_DIR}}/*.pyi
     @rm -rf {{TEST_DIR}}/
     @rm -rf {{DOC_DIR}}/
+    @rm -rf docs/_build/
     @rm -f {{MANIFEST}}
     @echo "Done."
 
@@ -170,6 +183,8 @@ help:
     @echo "  just docs-api       Generate API reference only"
     @echo "  just docs-cookbook   Generate cookbook only"
     @echo "  just docs-migration Generate migration guide only"
+    @echo "  just docs-build     Build Sphinx HTML documentation"
+    @echo "  just docs-serve     Build and serve docs at localhost:8000"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"

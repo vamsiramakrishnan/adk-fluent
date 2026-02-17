@@ -1,5 +1,6 @@
 stages:
   - test
+  - docs
   - build
   - publish
 
@@ -38,6 +39,38 @@ test-3.12:
 test-3.13:
   extends: .test-template
   image: python:3.13
+
+# ---------------------------------------------------------------------------
+# DOCS — build and validate documentation
+# ---------------------------------------------------------------------------
+
+docs:
+  stage: docs
+  image: python:3.12
+  before_script:
+    - pip install google-adk
+    - pip install -e ".[docs,dev]"
+  script:
+    - python scripts/scanner.py -o manifest.json
+    - python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
+    - python scripts/generator.py seeds/seed.toml manifest.json
+        --output-dir src/adk_fluent
+        --test-dir tests/generated
+    - python scripts/doc_generator.py seeds/seed.toml manifest.json
+        --output-dir docs/generated
+        --cookbook-dir examples/cookbook
+    - sphinx-build -W --keep-going -b html docs/ docs/_build/html
+  artifacts:
+    paths:
+      - docs/_build/html/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - changes:
+        - docs/**/*
+        - scripts/doc_generator.py
+        - seeds/**/*
 
 # ---------------------------------------------------------------------------
 # BUILD — produces the wheel and sdist
