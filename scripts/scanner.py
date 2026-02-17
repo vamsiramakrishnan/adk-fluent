@@ -21,6 +21,7 @@ import argparse
 import importlib
 import inspect
 import json
+import pkgutil
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field, asdict
@@ -29,28 +30,28 @@ from pathlib import Path
 from typing import Any, get_type_hints
 
 # ---------------------------------------------------------------------------
-# CONFIGURATION: Which ADK modules to scan
+# CONFIGURATION: Which ADK modules to scan (legacy, kept for reference)
 # ---------------------------------------------------------------------------
-SCAN_TARGETS = [
-    # (module_path, class_names_to_extract)
-    # None for class_names means "extract all BaseModel subclasses"
-    ("google.adk.agents", [
-        "BaseAgent", "LlmAgent", "SequentialAgent", "ParallelAgent",
-        "LoopAgent", "RunConfig", "InvocationContext",
-    ]),
-    ("google.adk.apps", ["App", "ResumabilityConfig"]),
-    ("google.adk.runners", ["Runner"]),
-    ("google.adk.artifacts", [
-        "BaseArtifactService", "InMemoryArtifactService",
-        "GcsArtifactService", "FileArtifactService",
-    ]),
-    ("google.adk.sessions", [
-        "InMemorySessionService",
-    ]),
-    ("google.adk.tools.base_tool", ["BaseTool"]),
-    ("google.adk.tools.function_tool", ["FunctionTool"]),
-    ("google.adk.events", ["Event"]),
-]
+# SCAN_TARGETS = [
+#     # (module_path, class_names_to_extract)
+#     # None for class_names means "extract all BaseModel subclasses"
+#     ("google.adk.agents", [
+#         "BaseAgent", "LlmAgent", "SequentialAgent", "ParallelAgent",
+#         "LoopAgent", "RunConfig", "InvocationContext",
+#     ]),
+#     ("google.adk.apps", ["App", "ResumabilityConfig"]),
+#     ("google.adk.runners", ["Runner"]),
+#     ("google.adk.artifacts", [
+#         "BaseArtifactService", "InMemoryArtifactService",
+#         "GcsArtifactService", "FileArtifactService",
+#     ]),
+#     ("google.adk.sessions", [
+#         "InMemorySessionService",
+#     ]),
+#     ("google.adk.tools.base_tool", ["BaseTool"]),
+#     ("google.adk.tools.function_tool", ["FunctionTool"]),
+#     ("google.adk.events", ["Event"]),
+# ]
 
 # ---------------------------------------------------------------------------
 # DATA STRUCTURES
@@ -71,6 +72,15 @@ class FieldInfo:
     validators: list[str]            # Names of validators that apply
 
 @dataclass
+class InitParam:
+    """Describes a single __init__ parameter for non-Pydantic classes."""
+    name: str
+    type_str: str
+    default: str | None              # None means required
+    required: bool
+    position: int                    # 0-indexed, excluding self
+
+@dataclass
 class ClassInfo:
     """Describes a single ADK class."""
     name: str
@@ -83,6 +93,8 @@ class ClassInfo:
     own_fields: list[str]            # Field names defined on THIS class only
     methods: list[str]               # Public method names (non-field)
     doc: str                         # Class docstring
+    inspection_mode: str = "pydantic"          # "pydantic" or "init_signature"
+    init_params: list[InitParam] = field(default_factory=list)  # For non-Pydantic classes
 
 @dataclass
 class Manifest:
@@ -95,6 +107,62 @@ class Manifest:
     total_classes: int = 0
     total_fields: int = 0
     total_callbacks: int = 0
+
+# ---------------------------------------------------------------------------
+# AUTO-DISCOVERY
+# ---------------------------------------------------------------------------
+
+def discover_modules() -> list[str]:
+    """Walk google.adk package tree and return sorted list of all submodule paths.
+
+    Gracefully handles missing optional dependencies (a2a, docker, kubernetes, etc.).
+    """
+    import google.adk
+
+    modules: list[str] = []
+    for importer, modname, ispkg in pkgutil.walk_packages(
+        google.adk.__path__, prefix="google.adk."
+    ):
+        try:
+            importlib.import_module(modname)
+            modules.append(modname)
+        except Exception:
+            # Skip modules with missing optional deps
+            pass
+    return sorted(modules)
+
+
+def discover_classes(modules: list[str]) -> list[tuple[type, str]]:
+    """Import each module and find all public classes defined in it.
+
+    Returns list of (class, module_path) tuples.
+    Only includes classes where cls.__module__ == modname (avoids re-export duplicates).
+    Skips private classes (name starts with '_').
+    """
+    result: list[tuple[type, str]] = []
+    seen: set[int] = set()  # Track by id to avoid duplicates
+
+    for modname in modules:
+        try:
+            mod = importlib.import_module(modname)
+        except Exception:
+            continue
+
+        for attr_name in dir(mod):
+            if attr_name.startswith("_"):
+                continue
+            obj = getattr(mod, attr_name, None)
+            if obj is None or not isinstance(obj, type):
+                continue
+            if obj.__module__ != modname:
+                continue
+            if id(obj) in seen:
+                continue
+            seen.add(id(obj))
+            result.append((obj, modname))
+
+    return result
+
 
 # ---------------------------------------------------------------------------
 # INTROSPECTION ENGINE
@@ -179,6 +247,44 @@ def _find_field_origin(cls, field_name: str, mro: list[type]) -> str | None:
     return None
 
 
+def _scan_init_signature(cls) -> list[InitParam]:
+    """Extract __init__ parameters using inspect.signature for non-Pydantic classes."""
+    params: list[InitParam] = []
+    try:
+        sig = inspect.signature(cls.__init__)
+    except (ValueError, TypeError):
+        return params
+
+    position = 0
+    for name, param in sig.parameters.items():
+        if name == "self":
+            continue
+        if name.startswith("_"):
+            continue
+
+        # Type annotation
+        type_str = _type_to_str(param.annotation)
+
+        # Default value
+        if param.default is inspect.Parameter.empty:
+            default = None
+            required = True
+        else:
+            default = repr(param.default)
+            required = False
+
+        params.append(InitParam(
+            name=name,
+            type_str=type_str,
+            default=default,
+            required=required,
+            position=position,
+        ))
+        position += 1
+
+    return params
+
+
 def scan_class(cls) -> ClassInfo:
     """Introspect a single class and produce ClassInfo."""
     module = cls.__module__
@@ -235,6 +341,12 @@ def scan_class(cls) -> ClassInfo:
             if inherited_from is None:
                 own_field_names.append(field_name)
     
+    # Non-Pydantic: extract init params
+    inspection_mode = "pydantic" if is_pydantic else "init_signature"
+    init_params: list[InitParam] = []
+    if not is_pydantic:
+        init_params = _scan_init_signature(cls)
+
     # Public methods (non-dunder, non-private)
     methods = []
     for name, member in inspect.getmembers(cls):
@@ -244,7 +356,7 @@ def scan_class(cls) -> ClassInfo:
             continue  # Skip fields
         if callable(member) or isinstance(member, (property, classmethod, staticmethod)):
             methods.append(name)
-    
+
     return ClassInfo(
         name=cls.__name__,
         qualname=qualname,
@@ -256,49 +368,37 @@ def scan_class(cls) -> ClassInfo:
         own_fields=own_field_names,
         methods=sorted(methods),
         doc=(cls.__doc__ or "").strip().split("\n")[0],  # First line only
+        inspection_mode=inspection_mode,
+        init_params=init_params,
     )
 
 
 def scan_all() -> Manifest:
-    """Scan all configured ADK modules and produce a Manifest."""
+    """Scan all ADK modules using auto-discovery and produce a Manifest."""
+    modules = discover_modules()
+    class_tuples = discover_classes(modules)
+
     classes = []
-    
-    for module_path, class_names in SCAN_TARGETS:
+    for cls, modpath in class_tuples:
         try:
-            module = importlib.import_module(module_path)
-        except ImportError as e:
-            print(f"WARNING: Could not import {module_path}: {e}", file=sys.stderr)
-            continue
-        
-        for class_name in class_names:
-            cls = getattr(module, class_name, None)
-            if cls is None:
-                # Try submodule import
-                try:
-                    submod = importlib.import_module(f"{module_path}.{class_name.lower()}")
-                    cls = getattr(submod, class_name, None)
-                except ImportError:
-                    pass
-            
-            if cls is None:
-                print(f"WARNING: {class_name} not found in {module_path}", file=sys.stderr)
-                continue
-            
             info = scan_class(cls)
             classes.append(info)
-    
+        except Exception as e:
+            print(f"WARNING: Could not scan {cls.__name__} from {modpath}: {e}",
+                  file=sys.stderr)
+
     # Get ADK version
     try:
         from importlib.metadata import version
         adk_version = version("google-adk")
     except Exception:
         adk_version = "unknown"
-    
+
     total_fields = sum(len(c.fields) for c in classes)
     total_callbacks = sum(
         sum(1 for f in c.fields if f.is_callback) for c in classes
     )
-    
+
     return Manifest(
         adk_version=adk_version,
         scan_timestamp=datetime.now(timezone.utc).isoformat(),
@@ -393,11 +493,14 @@ def main():
         print(f"Callback fields: {manifest.total_callbacks}")
         print(f"\nClasses:")
         for c in manifest.classes:
-            own = len(c.own_fields)
-            total = len(c.fields)
-            cbs = sum(1 for f in c.fields if f.is_callback)
-            pydantic_tag = " [Pydantic]" if c.is_pydantic else ""
-            print(f"  {c.name:25s} {total:3d} fields ({own} own, {cbs} callbacks){pydantic_tag}")
+            if c.inspection_mode == "pydantic":
+                own = len(c.own_fields)
+                total = len(c.fields)
+                cbs = sum(1 for f in c.fields if f.is_callback)
+                print(f"  {c.name:30s} {total:3d} fields ({own} own, {cbs} callbacks) [Pydantic]")
+            else:
+                n_params = len(c.init_params)
+                print(f"  {c.name:30s} {n_params:3d} init params [init_signature]")
         return
     
     data = manifest_to_dict(manifest)
