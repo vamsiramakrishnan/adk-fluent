@@ -295,14 +295,13 @@ class EscalationChecker(BaseAgent):
 
 import datetime
 
-from adk_fluent import Agent, Loop, Pipeline
+from adk_fluent import Agent, until
 from dotenv import load_dotenv
 from google.adk.planners import BuiltInPlanner
 from google.adk.tools import google_search
 from google.genai import types as genai_types
 
 from .prompt import (
-    EscalationChecker,
     Feedback,
     ENHANCED_SEARCH_PROMPT,
     INTERACTIVE_PLANNER_PROMPT,
@@ -355,11 +354,10 @@ research_evaluator = (
     Agent("research_evaluator", MODEL)
     .describe("Critically evaluates research quality.")
     .instruct(RESEARCH_EVALUATOR_PROMPT.format(today=TODAY))
-    .output_schema(Feedback)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .outputs("research_evaluation")
-)
+) @ Feedback
 
 enhanced_search = (
     Agent("enhanced_search_executor", MODEL)
@@ -381,22 +379,22 @@ report_composer = (
 )
 
 # --- Composition ---
+#
+# >> creates Pipeline (SequentialAgent)
+# * until(...) creates Loop that exits when predicate is satisfied,
+#   replacing the manual EscalationChecker BaseAgent entirely
 
 refinement_loop = (
-    Loop("iterative_refinement_loop")
-    .max_iterations(MAX_ITERATIONS)
-    .step(research_evaluator)
-    .step(EscalationChecker(name="escalation_checker"))
-    .step(enhanced_search)
+    research_evaluator >> enhanced_search
+) * until(
+    lambda s: s.get("research_evaluation", {}).get("grade") == "pass",
+    max=MAX_ITERATIONS,
 )
 
 research_pipeline = (
-    Pipeline("research_pipeline")
-    .describe("Executes research with iterative refinement and composes cited report.")
-    .step(section_planner)
-    .step(section_researcher)
-    .step(refinement_loop)
-    .step(report_composer)
+    section_planner >> section_researcher >> refinement_loop >> report_composer
+).name("research_pipeline").describe(
+    "Executes research with iterative refinement and composes cited report."
 )
 
 root_agent = (
@@ -412,10 +410,10 @@ root_agent = (
 
 ## What Changed
 
-### Pipeline and Loop composition
+### Pipeline operator `>>`
 
 Native ADK requires nesting `SequentialAgent` and `LoopAgent` constructors
-with explicit `sub_agents=` lists:
+with explicit `sub_agents=` lists. The `>>` operator replaces all of this:
 
 ```python
 # Native — nested constructors with keyword arguments
@@ -439,46 +437,59 @@ research_pipeline = SequentialAgent(
 ```
 
 ```python
-# Fluent — declarative step chaining
+# Fluent — >> operator chains, * until() replaces EscalationChecker
 refinement_loop = (
-    Loop("iterative_refinement_loop")
-    .max_iterations(MAX_ITERATIONS)
-    .step(research_evaluator)
-    .step(EscalationChecker(name="escalation_checker"))
-    .step(enhanced_search)
+    research_evaluator >> enhanced_search
+) * until(
+    lambda s: s.get("research_evaluation", {}).get("grade") == "pass",
+    max=MAX_ITERATIONS,
 )
 
 research_pipeline = (
-    Pipeline("research_pipeline")
-    .describe("Executes research with iterative refinement.")
-    .step(section_planner)
-    .step(section_researcher)
-    .step(refinement_loop)
-    .step(report_composer)
+    section_planner >> section_researcher >> refinement_loop >> report_composer
+).name("research_pipeline")
+```
+
+### Loop with `* until()` — eliminates custom BaseAgent
+
+The original requires a 30-line `EscalationChecker(BaseAgent)` subclass that
+checks `state["research_evaluation"]["grade"] == "pass"` and emits
+`EventActions(escalate=True)`. The `* until()` operator replaces this entirely
+with a one-line predicate:
+
+```python
+# Native — 30+ lines of custom BaseAgent code
+class EscalationChecker(BaseAgent):
+    async def _run_async_impl(self, ctx):
+        evaluation_result = ctx.session.state.get("research_evaluation")
+        if evaluation_result and evaluation_result.get("grade") == "pass":
+            yield Event(author=self.name, actions=EventActions(escalate=True))
+        else:
+            yield Event(author=self.name)
+
+# Fluent — one-line predicate, no custom code
+refinement_loop = (evaluator >> search) * until(
+    lambda s: s.get("research_evaluation", {}).get("grade") == "pass",
+    max=5,
 )
 ```
 
-### Structured output
+### Typed output with `@` operator
 
 ```python
 # Native
 research_evaluator = LlmAgent(
     ...,
     output_schema=Feedback,
-    disallow_transfer_to_parent=True,
-    disallow_transfer_to_peers=True,
     output_key="research_evaluation",
 )
 
-# Fluent
+# Fluent — @ binds the Pydantic schema
 research_evaluator = (
     Agent("research_evaluator", MODEL)
     ...
-    .output_schema(Feedback)
-    .disallow_transfer_to_parent(True)
-    .disallow_transfer_to_peers(True)
     .outputs("research_evaluation")
-)
+) @ Feedback
 ```
 
 ### Include contents / history
@@ -506,21 +517,6 @@ after_agent_callback=collect_research_sources_callback
 
 # Fluent
 .after_agent(collect_research_sources_callback)
-```
-
-### Custom BaseAgent in fluent workflows
-
-The `EscalationChecker` custom `BaseAgent` works **unchanged** in fluent
-`Pipeline` and `Loop` steps. The `.step()` method accepts both fluent
-builders and native ADK agents:
-
-```python
-refinement_loop = (
-    Loop("iterative_refinement_loop")
-    .step(research_evaluator)           # fluent builder
-    .step(EscalationChecker(name=...))  # native BaseAgent — works as-is
-    .step(enhanced_search)              # fluent builder
-)
 ```
 
 ### Planner and thinking config
@@ -551,7 +547,8 @@ section_researcher = (
 | Metric | Native | Fluent | Reduction |
 | ------ | ------ | ------ | --------- |
 | Agent definition files | 1 (250+ lines) | 2 (prompt.py + agent.py) | Separated concerns |
-| Nesting depth (constructors) | 4 levels | 1 level | 75% |
-| `import` statements (agent file) | 13 | 10 | 23% |
+| Nesting depth (constructors) | 4 levels | 0 (flat operators) | 100% |
+| `import` statements (agent file) | 13 | 9 | 31% |
 | Boilerplate keywords (`name=`, `model=`, `sub_agents=`) | 30+ | 0 | 100% |
-| Lines for pipeline composition | 18 | 10 | 44% |
+| Lines for pipeline composition | 18 | 7 | 61% |
+| Custom `BaseAgent` code for loop control | 30+ lines | 0 (replaced by `until()`) | 100% |

@@ -12,14 +12,13 @@ Usage:
 
 import datetime
 
-from adk_fluent import Agent, Loop, Pipeline
+from adk_fluent import Agent, until
 from dotenv import load_dotenv
 from google.adk.planners import BuiltInPlanner
 from google.adk.tools import google_search
 from google.genai import types as genai_types
 
 from .prompt import (
-    EscalationChecker,
     Feedback,
     ENHANCED_SEARCH_PROMPT,
     INTERACTIVE_PLANNER_PROMPT,
@@ -72,11 +71,10 @@ research_evaluator = (
     Agent("research_evaluator", MODEL)
     .describe("Critically evaluates research quality.")
     .instruct(RESEARCH_EVALUATOR_PROMPT.format(today=TODAY))
-    .output_schema(Feedback)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .outputs("research_evaluation")
-)
+) @ Feedback
 
 enhanced_search = (
     Agent("enhanced_search_executor", MODEL)
@@ -98,22 +96,22 @@ report_composer = (
 )
 
 # --- Composition ---
+#
+# >> creates Pipeline (SequentialAgent)
+# * until(...) creates Loop that exits when predicate is satisfied,
+#   replacing the manual EscalationChecker BaseAgent entirely
 
 refinement_loop = (
-    Loop("iterative_refinement_loop")
-    .max_iterations(MAX_ITERATIONS)
-    .step(research_evaluator)
-    .step(EscalationChecker(name="escalation_checker"))
-    .step(enhanced_search)
+    research_evaluator >> enhanced_search
+) * until(
+    lambda s: s.get("research_evaluation", {}).get("grade") == "pass",
+    max=MAX_ITERATIONS,
 )
 
 research_pipeline = (
-    Pipeline("research_pipeline")
-    .describe("Executes research with iterative refinement and composes cited report.")
-    .step(section_planner)
-    .step(section_researcher)
-    .step(refinement_loop)
-    .step(report_composer)
+    section_planner >> section_researcher >> refinement_loop >> report_composer
+).name("research_pipeline").describe(
+    "Executes research with iterative refinement and composes cited report."
 )
 
 root_agent = (
