@@ -89,8 +89,8 @@ publish-pypi:
   before_script:
     - pip install id twine
   script:
-    - TWINE_USERNAME=__token__
-    - TWINE_PASSWORD=$(python -m id pypi)
+    - export TWINE_USERNAME=__token__
+    - export TWINE_PASSWORD=$(python -m id pypi)
     - twine upload dist/*
   environment:
     name: pypi
@@ -111,8 +111,8 @@ publish-testpypi:
   before_script:
     - pip install id twine
   script:
-    - TWINE_USERNAME=__token__
-    - TWINE_PASSWORD=$(python -m id testpypi)
+    - export TWINE_USERNAME=__token__
+    - export TWINE_PASSWORD=$(python -m id testpypi)
     - twine upload --repository testpypi dist/*
   environment:
     name: testpypi
