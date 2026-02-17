@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "adk-fluent"
-version = "0.1.0"
+version = "0.1.1"
 description = "Fluent builder API for Google's Agent Development Kit (ADK)"
 readme = "README.md"
 license = "MIT"
@@ -47,6 +47,17 @@ fluent = "adk_fluent"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/adk_fluent"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    ".venv/",
+    "dist/",
+    ".git/",
+    ".pytest_cache/",
+    "__pycache__/",
+    "*.egg-info/",
+    "manifest.json",
+]
 
 [tool.pyright]
 include = ["src"]
