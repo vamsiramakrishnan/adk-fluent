@@ -29,7 +29,7 @@ intersphinx_mapping = {
 html_theme = "furo"
 html_title = "adk-fluent"
 html_theme_options = {
-    "source_repository": "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent",
+    "source_repository": "https://github.com/vamsiramakrishnan/adk-fluent",
     "source_branch": "master",
     "source_directory": "docs/",
 }

@@ -51,11 +51,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
-Repository = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
-Issues = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/issues"
+Homepage = "https://github.com/vamsiramakrishnan/adk-fluent"
+Repository = "https://github.com/vamsiramakrishnan/adk-fluent"
+Issues = "https://github.com/vamsiramakrishnan/adk-fluent/issues"
 Documentation = "https://vamsiramakrishnan.github.io/adk-fluent/"
-Changelog = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/vamsiramakrishnan/adk-fluent/blob/master/CHANGELOG.md"
 
 [project.entry-points."adk_extensions"]
 fluent = "adk_fluent"
