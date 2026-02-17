@@ -107,6 +107,11 @@ cookbook-gen-dry: _require-manifest _require-seed
     @uv run python {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
         --cookbook-dir {{COOKBOOK_DIR}} --dry-run
 
+# --- Convert cookbook to adk-web agent folders ---
+agents:
+    @echo "Converting cookbook examples to adk-web agent folders..."
+    @uv run python scripts/cookbook_to_agents.py --force
+
 # --- Diff against previous ---
 diff:
     #!/usr/bin/env bash
@@ -167,6 +172,7 @@ help:
     @echo "  just docs-migration Generate migration guide only"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
+    @echo "  just agents         Convert cookbook -> adk web folders"
     @echo "  just diff           Show changes since last scan"
     @echo "  just build          Build pip package"
     @echo "  just publish        Publish to PyPI"
