@@ -10,6 +10,7 @@ from typing import Any, AsyncIterator
 
 __all__ = [
     "deep_clone_builder",
+    "delegate_agent",
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",
@@ -22,6 +23,21 @@ __all__ = [
     "StateKey",
     "Artifact",
 ]
+
+def delegate_agent(builder, agent):
+    """Wrap an agent (or builder) as an AgentTool and add it to the builder's tools list.
+
+    This enables the coordinator pattern: the parent agent's LLM can decide
+    to delegate tasks to the wrapped agent via transfer_to_agent.
+    """
+    from google.adk.tools.agent_tool import AgentTool
+
+    # Auto-build if it's a builder
+    built = agent.build() if hasattr(agent, 'build') and hasattr(agent, '_config') else agent
+    tool = AgentTool(agent=built)
+    builder._lists.setdefault("tools", []).append(tool)
+    return builder
+
 
 def _debug_log(agent_name: str, msg: str):
     """Emit a debug trace line to stderr."""

@@ -271,6 +271,7 @@ __all__ = [
 
 # --- Manual module exports (auto-discovered from __all__) ---
 from ._helpers import deep_clone_builder
+from ._helpers import delegate_agent
 from ._helpers import run_one_shot
 from ._helpers import run_one_shot_async
 from ._helpers import run_stream

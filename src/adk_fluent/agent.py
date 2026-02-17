@@ -123,9 +123,9 @@ class Agent(BuilderBase):
     """LLM-based Agent."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
+    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback', 'before_model_callback', 'on_model_error_callback', 'after_tool_callback', 'on_tool_error_callback', 'after_model_callback', 'before_tool_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_model_callback', 'after_agent_callback', 'before_agent_callback', 'on_model_error_callback', 'on_tool_error_callback', 'after_model_callback', 'after_tool_callback', 'before_tool_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -147,9 +147,21 @@ class Agent(BuilderBase):
         return self
 
 
+    def history(self, value: Literal[default, none]) -> Self:
+        """Set the `include_contents` field."""
+        self._config["include_contents"] = value
+        return self
+
+
     def instruct(self, value: Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]) -> Self:
         """Set the `instruction` field."""
         self._config["instruction"] = value
+        return self
+
+
+    def outputs(self, value: Union[str, NoneType]) -> Self:
+        """Set the `output_key` field."""
+        self._config["output_key"] = value
         return self
 
     # --- Additive callback methods ---
@@ -283,6 +295,12 @@ class Agent(BuilderBase):
         item = agent.build() if hasattr(agent, "build") else agent
         self._lists["sub_agents"].append(item)
         return self
+
+
+    def delegate(self, agent) -> Self:
+        """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
+        from adk_fluent._helpers import delegate_agent
+        return delegate_agent(self, agent)
 
 
     def guardrail(self, fn: Callable) -> Self:

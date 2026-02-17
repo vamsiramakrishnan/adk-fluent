@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-17T08:07:23.934400+00:00"
+generated_at = "2026-02-17T08:21:08.388798+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -136,7 +136,9 @@ extra_skip_fields = []
 [builders.Agent.aliases]
 describe = "description"
 global_instruct = "global_instruction"
+history = "include_contents"
 instruct = "instruction"
+outputs = "output_key"
 
 [builders.Agent.callback_aliases]
 after_agent = "after_agent_callback"
@@ -171,6 +173,13 @@ signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
 doc = "Add a member agent for coordinator pattern."
 behavior = "list_append"
 target_field = "sub_agents"
+
+[[builders.Agent.extras]]
+name = "delegate"
+signature = "(self, agent) -> Self"
+doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
+behavior = "runtime_helper"
+helper_func = "delegate_agent"
 
 [[builders.Agent.extras]]
 name = "guardrail"
@@ -245,7 +254,9 @@ extra_skip_fields = []
 
 [builders.LlmAgentConfig.aliases]
 describe = "description"
+history = "include_contents"
 instruct = "instruction"
+outputs = "output_key"
 
 [[builders.LlmAgentConfig.terminals]]
 name = "build"

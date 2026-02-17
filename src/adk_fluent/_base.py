@@ -79,11 +79,21 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
-    def __rshift__(self, other: BuilderBase) -> BuilderBase:
-        """Create or extend a Pipeline: a >> b >> c."""
+    def __rshift__(self, other) -> BuilderBase:
+        """Create or extend a Pipeline: a >> b >> c.
+
+        Special case: a >> {"key": agent, ...} creates conditional routing.
+        The left side should have .outputs() set. A coordinator agent is created
+        that routes to the appropriate sub-agent based on the state value.
+        """
         from adk_fluent.workflow import Pipeline
+
+        # Dict operand: conditional routing via coordinator
+        if isinstance(other, dict):
+            return self._build_conditional_route(other)
+
         my_name = self._config.get("name", "")
-        other_name = other._config.get("name", "")
+        other_name = other._config.get("name", "") if hasattr(other, '_config') else ""
         if isinstance(self, Pipeline):
             # Append to existing Pipeline
             self.step(other)
@@ -95,6 +105,59 @@ class BuilderBase:
             p.step(self)
             p.step(other)
             return p
+
+    def _build_conditional_route(self, routes: dict) -> BuilderBase:
+        """Build conditional routing from dict operand.
+
+        Creates a Pipeline where:
+        1. Self runs first (should have .outputs() set)
+        2. A coordinator Agent reads the state key and routes to the matching sub-agent
+
+        Uses native ADK LLM-driven routing (transfer_to_agent via sub_agents).
+        """
+        from adk_fluent.workflow import Pipeline
+        from adk_fluent.agent import Agent
+
+        output_key = self._config.get("output_key")
+        if not output_key:
+            raise ValueError(
+                "Left side of >> dict must have .outputs() or .output_key() set "
+                "so the router knows which state key to check."
+            )
+
+        # Build route descriptions for the coordinator instruction
+        route_descriptions = []
+        sub_agents = []
+        for value, agent_builder in routes.items():
+            if hasattr(agent_builder, '_config'):
+                agent_name = agent_builder._config.get("name", value)
+                agent_desc = agent_builder._config.get("description", "")
+                if not agent_desc:
+                    # Auto-set description for routing
+                    agent_builder._config["description"] = f"Handles the '{value}' case."
+            else:
+                agent_name = getattr(agent_builder, 'name', value)
+            route_descriptions.append(f"- If {{{output_key}}} is '{value}', transfer to '{agent_name}'")
+            sub_agents.append(agent_builder)
+
+        routes_text = "\n".join(route_descriptions)
+        coordinator = Agent(f"route_{output_key}")
+        coordinator._config["model"] = self._config.get("model", "gemini-2.5-flash")
+        coordinator._config["instruction"] = (
+            f"You are a router. Based on the value of {{{output_key}}}, "
+            f"transfer to the appropriate agent:\n{routes_text}\n\n"
+            f"Do not generate any other response. Just transfer immediately."
+        )
+        for agent_builder in sub_agents:
+            coordinator._lists.setdefault("sub_agents", []).append(agent_builder)
+
+        # Create pipeline: self >> coordinator
+        # Append as builders (not eagerly built) so tests can inspect structure
+        my_name = self._config.get("name", "")
+        p = Pipeline(f"{my_name}_routed")
+        p._lists["sub_agents"].append(self)
+        p._lists["sub_agents"].append(coordinator)
+        return p
 
     def __or__(self, other: BuilderBase) -> BuilderBase:
         """Create or extend a FanOut: a | b | c."""

@@ -115,6 +115,8 @@ _FIELD_ALIAS_TABLE = {
     "instruction": "instruct",
     "description": "describe",
     "global_instruction": "global_instruct",
+    "output_key": "outputs",
+    "include_contents": "history",
 }
 
 
@@ -233,6 +235,13 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
             "doc": "Add a member agent for coordinator pattern.",
             "behavior": "list_append",
             "target_field": "sub_agents",
+        })
+        extras.append({
+            "name": "delegate",
+            "signature": "(self, agent) -> Self",
+            "doc": "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.",
+            "behavior": "runtime_helper",
+            "helper_func": "delegate_agent",
         })
 
     # Non-agent classes get no extras

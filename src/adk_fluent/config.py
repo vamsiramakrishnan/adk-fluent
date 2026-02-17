@@ -512,7 +512,7 @@ class LlmAgentConfig(BuilderBase):
     """The config for the YAML schema of a LlmAgent."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {'describe': 'description', 'instruct': 'instruction'}
+    _ALIASES: dict[str, str] = {'describe': 'description', 'history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key'}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
 
@@ -530,9 +530,21 @@ class LlmAgentConfig(BuilderBase):
         return self
 
 
+    def history(self, value: Literal[default, none]) -> Self:
+        """Optional. LlmAgent.include_contents."""
+        self._config["include_contents"] = value
+        return self
+
+
     def instruct(self, value: str) -> Self:
         """Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content."""
         self._config["instruction"] = value
+        return self
+
+
+    def outputs(self, value: Union[str, NoneType]) -> Self:
+        """Optional. LlmAgent.output_key."""
+        self._config["output_key"] = value
         return self
 
     # --- Additive callback methods ---
@@ -1381,7 +1393,7 @@ class BigQueryLoggerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'batch_flush_interval', 'connection_id', 'custom_tags', 'queue_max_size', 'log_session_metadata', 'shutdown_timeout', 'table_id', 'retry_config', 'batch_size', 'enabled', 'clustering_fields', 'max_content_length', 'content_formatter', 'event_denylist', 'event_allowlist', 'log_multi_modal_content', 'gcs_bucket_name'}
+    _KNOWN_PARAMS: set[str] = {'retry_config', 'table_id', 'gcs_bucket_name', 'connection_id', 'content_formatter', 'batch_flush_interval', 'clustering_fields', 'batch_size', 'log_multi_modal_content', 'queue_max_size', 'custom_tags', 'enabled', 'max_content_length', 'event_allowlist', 'shutdown_timeout', 'log_session_metadata', 'event_denylist'}
 
 
     def __init__(self, ) -> None:
@@ -1459,7 +1471,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'initial_delay', 'multiplier', 'max_delay', 'max_retries'}
+    _KNOWN_PARAMS: set[str] = {'multiplier', 'max_delay', 'max_retries', 'initial_delay'}
 
 
     def __init__(self, ) -> None:
