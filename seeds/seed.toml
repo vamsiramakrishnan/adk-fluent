@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-17T08:49:17.670945+00:00"
+generated_at = "2026-02-17T10:18:35.150482+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -286,7 +286,7 @@ doc = "Resolve into a native ADK LoopAgent."
 [[builders.Loop.extras]]
 name = "step"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Append an agent as the next step."
+doc = "Append an agent as the next step (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
@@ -329,7 +329,7 @@ doc = "Resolve into a native ADK ParallelAgent."
 [[builders.FanOut.extras]]
 name = "branch"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Add a parallel branch agent."
+doc = "Add a parallel branch agent (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
@@ -398,7 +398,7 @@ doc = "Resolve into a native ADK SequentialAgent."
 [[builders.Pipeline.extras]]
 name = "step"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Append an agent as the next step."
+doc = "Append an agent as the next step (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
@@ -1899,4 +1899,5 @@ extra_skip_fields = []
 name = "build"
 returns = "VertexAiSearchTool"
 doc = "Resolve into a native ADK VertexAiSearchTool."
+
 

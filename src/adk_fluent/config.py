@@ -1393,7 +1393,7 @@ class BigQueryLoggerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'content_formatter', 'enabled', 'log_multi_modal_content', 'log_session_metadata', 'max_content_length', 'batch_size', 'gcs_bucket_name', 'clustering_fields', 'retry_config', 'queue_max_size', 'shutdown_timeout', 'table_id', 'event_denylist', 'batch_flush_interval', 'custom_tags', 'event_allowlist', 'connection_id'}
+    _KNOWN_PARAMS: set[str] = {'retry_config', 'clustering_fields', 'custom_tags', 'batch_flush_interval', 'queue_max_size', 'table_id', 'log_multi_modal_content', 'gcs_bucket_name', 'content_formatter', 'event_denylist', 'connection_id', 'log_session_metadata', 'event_allowlist', 'enabled', 'batch_size', 'max_content_length', 'shutdown_timeout'}
 
 
     def __init__(self, ) -> None:
@@ -1471,7 +1471,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'multiplier', 'initial_delay', 'max_retries', 'max_delay'}
+    _KNOWN_PARAMS: set[str] = {'max_delay', 'multiplier', 'max_retries', 'initial_delay'}
 
 
     def __init__(self, ) -> None:

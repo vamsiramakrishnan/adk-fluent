@@ -79,15 +79,104 @@ Every `.build()` returns a real ADK object (`LlmAgent`, `SequentialAgent`, etc.)
 
 ## Expression Language
 
-Five operators compose any agent topology:
+Nine operators compose any agent topology:
 
 | Operator | Meaning | ADK Type |
 |----------|---------|----------|
 | `a >> b` | Sequence | `SequentialAgent` |
+| `a >> fn` | Function step | Zero-cost transform |
 | `a \| b` | Parallel | `ParallelAgent` |
-| `a * 3` | Loop | `LoopAgent` |
+| `a * 3` | Loop (fixed) | `LoopAgent` |
+| `a * until(pred)` | Loop (conditional) | `LoopAgent` + checkpoint |
+| `a @ Schema` | Typed output | `output_schema` |
+| `a // b` | Fallback | First-success chain |
 | `Route("key").eq(...)` | Branch | Deterministic routing |
-| `.proceed_if(...)` | Gate | Conditional skip |
+| `S.pick(...)`, `S.rename(...)` | State transforms | Dict operations via `>>` |
+
+All operators are **immutable** -- sub-expressions can be safely reused:
+
+```python
+review = agent_a >> agent_b
+pipeline_1 = review >> agent_c  # Independent
+pipeline_2 = review >> agent_d  # Independent
+```
+
+### Function Steps
+
+Plain Python functions compose with `>>` as zero-cost workflow nodes (no LLM call):
+
+```python
+def merge_research(state):
+    return {"research": state["web"] + "\n" + state["papers"]}
+
+pipeline = web_agent >> merge_research >> writer_agent
+```
+
+### Typed Output
+
+`@` binds a Pydantic schema as the agent's output contract:
+
+```python
+from pydantic import BaseModel
+
+class Report(BaseModel):
+    title: str
+    body: str
+
+agent = Agent("writer").model("gemini-2.5-flash").instruct("Write.") @ Report
+```
+
+### Fallback Chains
+
+`//` tries each agent in order -- first success wins:
+
+```python
+answer = (
+    Agent("fast").model("gemini-2.0-flash").instruct("Quick answer.")
+    // Agent("thorough").model("gemini-2.5-pro").instruct("Detailed answer.")
+)
+```
+
+### Conditional Loops
+
+`* until(pred)` loops until a predicate on session state is satisfied:
+
+```python
+from adk_fluent import until
+
+loop = (
+    Agent("writer").model("gemini-2.5-flash").instruct("Write.").outputs("quality")
+    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review.")
+) * until(lambda s: s.get("quality") == "good", max=5)
+```
+
+### State Transforms
+
+`S` factories return dict transforms that compose with `>>`:
+
+```python
+from adk_fluent import S
+
+pipeline = (
+    (web_agent | scholar_agent)
+    >> S.merge("web", "scholar", into="research")
+    >> S.default(confidence=0.0)
+    >> S.rename(research="input")
+    >> writer_agent
+)
+```
+
+| Factory | Purpose |
+|---------|---------|
+| `S.pick(*keys)` | Keep only specified keys |
+| `S.drop(*keys)` | Remove specified keys |
+| `S.rename(**kw)` | Rename keys |
+| `S.default(**kw)` | Fill missing keys |
+| `S.merge(*keys, into=)` | Combine keys |
+| `S.transform(key, fn)` | Map a single value |
+| `S.compute(**fns)` | Derive new keys |
+| `S.guard(pred)` | Assert invariant |
+| `S.log(*keys)` | Debug-print |
 
 ### Deterministic Routing
 
@@ -120,14 +209,31 @@ enricher = (
 )
 ```
 
-### Conditional Loop Exit
+### Full Composition
+
+All operators compose into a single expression:
 
 ```python
-# Loop exits when predicate is satisfied
-refinement = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write.").outputs("quality")
-    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review.")
-).loop_until(lambda s: s.get("quality") == "good", max_iterations=5)
+from pydantic import BaseModel
+from adk_fluent import Agent, S, until
+
+class Report(BaseModel):
+    title: str
+    body: str
+    confidence: float
+
+pipeline = (
+    (   Agent("web").model("gemini-2.5-flash").instruct("Search web.")
+      | Agent("scholar").model("gemini-2.5-flash").instruct("Search papers.")
+    )
+    >> S.merge("web", "scholar", into="research")
+    >> Agent("writer").model("gemini-2.5-flash").instruct("Write.") @ Report
+       // Agent("writer_b").model("gemini-2.5-pro").instruct("Write.") @ Report
+    >> (
+        Agent("critic").model("gemini-2.5-flash").instruct("Score.").outputs("confidence")
+        >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve.")
+    ) * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
+)
 ```
 
 ## Fluent API
@@ -261,13 +367,19 @@ adk web real_world_pipeline   # Full expression language
 adk web route_branching       # Deterministic routing
 adk web delegate_pattern      # LLM-driven delegation
 adk web operator_composition  # >> | * operators
+adk web function_steps        # >> fn (function nodes)
+adk web until_operator        # * until(pred)
+adk web typed_output          # @ Schema
+adk web fallback_operator     # // fallback
+adk web state_transforms      # S.pick, S.rename, ...
+adk web full_algebra          # All operators together
 ```
 
-29 runnable examples covering all features. See [`examples/`](examples/) for the full list.
+35 runnable examples covering all features. See [`examples/`](examples/) for the full list.
 
 ## Cookbook
 
-28 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
+34 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
 
 ```bash
 pytest examples/cookbook/ -v
@@ -303,6 +415,12 @@ pytest examples/cookbook/ -v
 | 26 | Serialization | `to_dict` / `to_yaml` |
 | 27 | Delegate Pattern | `.delegate()` |
 | 28 | Real-World Pipeline | Full composition |
+| 29 | Function Steps | `>> fn` zero-cost transforms |
+| 30 | Until Operator | `* until(pred)` conditional loops |
+| 31 | Typed Output | `@ Schema` output contracts |
+| 32 | Fallback Operator | `//` first-success chains |
+| 33 | State Transforms | `S.pick`, `S.rename`, `S.merge`, ... |
+| 34 | Full Algebra | All operators composed together |
 
 ## How It Works
 
@@ -344,7 +462,8 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 ## Features
 
 - **130+ builders** covering agents, tools, configs, services, plugins, planners, executors
-- **Expression language**: `>>` (sequence), `|` (parallel), `*` (loop), `Route` (branch), `proceed_if` (gate)
+- **Expression algebra**: `>>` (sequence), `|` (parallel), `*` (loop), `@` (typed output), `//` (fallback), `>> fn` (transforms), `S` (state ops), `Route` (branch)
+- **State transforms**: `S.pick`, `S.drop`, `S.rename`, `S.default`, `S.merge`, `S.transform`, `S.compute`, `S.guard`
 - **Full IDE autocomplete** via `.pyi` type stubs
 - **Zero-maintenance** `__getattr__` forwarding for any ADK field
 - **Callback accumulation**: multiple `.before_model()` calls append, not replace
@@ -368,7 +487,7 @@ uv pip install google-adk pytest pyright
 # Full pipeline: scan -> seed -> generate -> docs
 just all
 
-# Run tests (700+ tests)
+# Run tests (750+ tests)
 just test
 
 # Type check generated stubs

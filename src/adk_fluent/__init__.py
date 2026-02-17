@@ -270,6 +270,7 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._base import until
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot
@@ -284,5 +285,6 @@ from ._helpers import run_map_async
 from ._helpers import StateKey
 from ._helpers import Artifact
 from ._routing import Route
+from ._transforms import S
 from .decorators import agent
 from .presets import Preset

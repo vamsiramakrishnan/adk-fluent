@@ -204,7 +204,7 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
         extras.append({
             "name": "step",
             "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Append an agent as the next step.",
+            "doc": "Append an agent as the next step (lazy — built at .build() time).",
             "behavior": "list_append",
             "target_field": "sub_agents",
         })
@@ -212,7 +212,7 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
         extras.append({
             "name": "branch",
             "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Add a parallel branch agent.",
+            "doc": "Add a parallel branch agent (lazy — built at .build() time).",
             "behavior": "list_append",
             "target_field": "sub_agents",
         })

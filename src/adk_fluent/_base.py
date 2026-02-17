@@ -2,6 +2,40 @@
 from __future__ import annotations
 from typing import Any, Callable, Self
 
+__all__ = ["until"]
+
+
+# ======================================================================
+# Expression language primitives (defined before BuilderBase, no deps)
+# ======================================================================
+
+class _UntilSpec:
+    """Specifies conditional loop exit for the * operator.
+
+    Usage:
+        from adk_fluent import until
+        quality_ok = until(lambda s: s["quality"] == "good", max=5)
+        pipeline = (writer >> reviewer) * quality_ok
+    """
+    __slots__ = ("predicate", "max")
+
+    def __init__(self, predicate: Callable, *, max: int = 10):
+        self.predicate = predicate
+        self.max = max
+
+    def __repr__(self) -> str:
+        return f"until({self.predicate}, max={self.max})"
+
+
+def until(predicate: Callable, *, max: int = 10) -> _UntilSpec:
+    """Create a conditional loop exit spec for the * operator.
+
+    Usage:
+        quality_ok = until(lambda s: s["quality"] == "good", max=5)
+        pipeline = (writer >> reviewer) * quality_ok
+    """
+    return _UntilSpec(predicate, max=max)
+
 
 class BuilderBase:
     """Mixin base class providing shared builder capabilities.
@@ -23,6 +57,8 @@ class BuilderBase:
             if len(v) > 80:
                 v = v[:77] + "..."
             return repr(v)
+        if isinstance(v, BuilderBase):
+            return v._config.get("name", repr(v))
         if callable(v):
             return getattr(v, "__name__", getattr(v, "__qualname__", repr(v)))
         if hasattr(v, "name"):
@@ -79,15 +115,34 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
+    def _clone_shallow(self) -> BuilderBase:
+        """Shallow-clone this builder for immutable operator results."""
+        import copy
+        new = object.__new__(type(self))
+        new._config = dict(self._config)
+        new._callbacks = {k: list(v) for k, v in self._callbacks.items()}
+        new._lists = {k: list(v) for k, v in self._lists.items()}
+        return new
+
     def __rshift__(self, other) -> BuilderBase:
         """Create or extend a Pipeline: a >> b >> c.
 
-        Special cases:
-        - a >> Route("key").eq(...) -- deterministic branching
-        - a >> {"key": agent, ...} -- dict shorthand for Route (deterministic)
+        Accepts:
+        - BuilderBase (agents, pipelines, etc.)
+        - callable (pure function, wrapped as zero-cost step)
+        - dict (shorthand for deterministic Route)
+        - Route (deterministic branching)
         """
         from adk_fluent.workflow import Pipeline
         from adk_fluent._routing import Route
+
+        # Callable operand: wrap as zero-cost FnStep
+        if callable(other) and not isinstance(other, (BuilderBase, Route, type)):
+            other = _fn_step(other)
+
+        # Reject unsupported operands (e.g. raw types like int)
+        if not isinstance(other, (BuilderBase, Route, dict)) and not hasattr(other, 'build'):
+            return NotImplemented
 
         # Dict operand: convert to deterministic Route
         if isinstance(other, dict):
@@ -118,10 +173,11 @@ class BuilderBase:
         my_name = self._config.get("name", "")
         other_name = other._config.get("name", "") if hasattr(other, '_config') else ""
         if isinstance(self, Pipeline):
-            # Append to existing Pipeline
-            self.step(other)
-            self._config["name"] = f"{my_name}_then_{other_name}"
-            return self
+            # Clone, then append — original Pipeline unchanged
+            clone = self._clone_shallow()
+            clone.step(other)
+            clone._config["name"] = f"{my_name}_then_{other_name}"
+            return clone
         else:
             name = f"{my_name}_then_{other_name}"
             p = Pipeline(name)
@@ -129,15 +185,24 @@ class BuilderBase:
             p.step(other)
             return p
 
+    def __rrshift__(self, other) -> BuilderBase:
+        """Support callable >> agent syntax."""
+        if callable(other) and not isinstance(other, (BuilderBase, type)):
+            left = _fn_step(other)
+            return left >> self
+        return NotImplemented
+
     def __or__(self, other: BuilderBase) -> BuilderBase:
         """Create or extend a FanOut: a | b | c."""
         from adk_fluent.workflow import FanOut
         my_name = self._config.get("name", "")
         other_name = other._config.get("name", "")
         if isinstance(self, FanOut):
-            self.branch(other)
-            self._config["name"] = f"{my_name}_and_{other_name}"
-            return self
+            # Clone, then add branch — original FanOut unchanged
+            clone = self._clone_shallow()
+            clone.branch(other)
+            clone._config["name"] = f"{my_name}_and_{other_name}"
+            return clone
         else:
             name = f"{my_name}_and_{other_name}"
             f = FanOut(name)
@@ -145,9 +210,17 @@ class BuilderBase:
             f.branch(other)
             return f
 
-    def __mul__(self, iterations: int) -> BuilderBase:
-        """Create a Loop: agent * 3."""
+    def __mul__(self, other) -> BuilderBase:
+        """Create a Loop: agent * 3 or agent * until(pred)."""
         from adk_fluent.workflow import Loop, Pipeline
+
+        # Handle until() spec: agent * until(pred)
+        if isinstance(other, _UntilSpec):
+            loop = self.__mul__(other.max)
+            loop._config["_until_predicate"] = other.predicate
+            return loop
+
+        iterations = other
         my_name = self._config.get("name", "")
         name = f"{my_name}_x{iterations}"
         loop = Loop(name)
@@ -163,6 +236,36 @@ class BuilderBase:
     def __rmul__(self, iterations: int) -> BuilderBase:
         """Support int * agent syntax."""
         return self.__mul__(iterations)
+
+    def __matmul__(self, schema: type) -> BuilderBase:
+        """Bind a Pydantic model as the typed output contract: agent @ Schema."""
+        clone = self._clone_shallow()
+        clone._config["_output_schema"] = schema
+        return clone
+
+    def __floordiv__(self, other) -> BuilderBase:
+        """Create a fallback chain: agent_a // agent_b.
+
+        Tries each agent in order. First success wins.
+        """
+        from adk_fluent._routing import _make_fallback_builder
+
+        # Callable on right side: wrap it
+        if callable(other) and not isinstance(other, (BuilderBase, type)):
+            other = _fn_step(other)
+
+        # Collect children from existing fallback chains
+        children = []
+        if isinstance(self, _FallbackBuilder):
+            children.extend(self._children)
+        else:
+            children.append(self)
+        if isinstance(other, _FallbackBuilder):
+            children.extend(other._children)
+        else:
+            children.append(other)
+
+        return _make_fallback_builder(children)
 
     # ------------------------------------------------------------------
     # Task 4: validate() and explain()
@@ -301,8 +404,13 @@ class BuilderBase:
         """Prepare config dict for building: strip internal fields, auto-build sub-builders, merge callbacks and lists."""
         # Extract internal directives before stripping
         until_pred = self._config.get("_until_predicate")
+        output_schema = self._config.get("_output_schema")
 
         config = {k: v for k, v in self._config.items() if not k.startswith("_")}
+
+        # Wire @-operator output schema into ADK's native output_schema field
+        if output_schema is not None:
+            config["output_schema"] = output_schema
 
         # Auto-build any BuilderBase values in config
         for key, value in list(config.items()):
@@ -455,3 +563,117 @@ class BuilderBase:
                 self._callbacks[cb_field].append(fn)
 
         return self
+
+
+# ======================================================================
+# Post-BuilderBase primitives (depend on BuilderBase)
+# ======================================================================
+
+_fn_step_counter = 0
+
+
+def _fn_step(fn: Callable) -> BuilderBase:
+    """Wrap a pure function as a zero-cost workflow step.
+
+    The function receives a dict (snapshot of session state) and returns
+    a dict of updates to merge back into state:
+
+        def trim(state):
+            return {"summary": state["findings"][:500]}
+
+    If the function returns None, it is assumed to have no state updates.
+    """
+    global _fn_step_counter
+    name = getattr(fn, "__name__", "_transform")
+    # Sanitize: ADK requires valid Python identifiers for agent names
+    if not name.isidentifier():
+        _fn_step_counter += 1
+        name = f"fn_step_{_fn_step_counter}"
+
+    builder = _FnStepBuilder(fn, name)
+    return builder
+
+
+class _FnStepBuilder(BuilderBase):
+    """Builder wrapper for a pure function in the expression language."""
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, fn_ref: Callable, step_name: str):
+        self._config: dict[str, Any] = {"name": step_name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._fn = fn_ref
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._fn = self._fn
+        return clone
+
+    def build(self):
+        from google.adk.agents.base_agent import BaseAgent
+
+        fn_ref = self._fn
+
+        class _FnAgent(BaseAgent):
+            """Zero-cost function agent. No LLM call."""
+            async def _run_async_impl(self, ctx):
+                result = fn_ref(dict(ctx.session.state))
+                if isinstance(result, dict):
+                    for k, v in result.items():
+                        ctx.session.state[k] = v
+                # yield nothing — pure transform, no events
+
+        return _FnAgent(name=self._config["name"])
+
+
+class _FallbackBuilder(BuilderBase):
+    """Builder for a fallback chain: a // b // c.
+
+    Tries each child in order. First success wins.
+    """
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, name: str, children: list):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._children = children
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._children = list(self._children)
+        return clone
+
+    def build(self):
+        from google.adk.agents.base_agent import BaseAgent
+
+        built_children = []
+        for child in self._children:
+            if isinstance(child, BuilderBase):
+                built_children.append(child.build())
+            else:
+                built_children.append(child)
+
+        class _FallbackAgent(BaseAgent):
+            """Tries each child agent in order. First success wins."""
+            async def _run_async_impl(self, ctx):
+                last_exc = None
+                for child in self.sub_agents:
+                    try:
+                        async for event in child.run_async(ctx):
+                            yield event
+                        return  # success — stop trying
+                    except Exception as exc:
+                        last_exc = exc
+                        continue
+                if last_exc is not None:
+                    raise last_exc
+
+        return _FallbackAgent(
+            name=self._config["name"],
+            sub_agents=built_children,
+        )

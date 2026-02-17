@@ -354,9 +354,10 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
         target = extra.get("target_field", "")
         
         if behavior == "list_append":
+            # Lazy append — building deferred to _prepare_build_config()
+            # This allows sub-expression reuse in operators (>> | *)
             body = f'''
-        item = agent.build() if hasattr(agent, "build") else agent
-        self._lists["{target}"].append(item)
+        self._lists["{target}"].append(agent)
         return self'''
             # Rewrite signature param name for list_append on tools
             if "fn_or_tool" in sig:

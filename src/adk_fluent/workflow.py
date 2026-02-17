@@ -65,9 +65,8 @@ class Loop(BuilderBase):
     # --- Extra methods ---
 
     def step(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Append an agent as the next step."""
-        item = agent.build() if hasattr(agent, "build") else agent
-        self._lists["sub_agents"].append(item)
+        """Append an agent as the next step (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(agent)
         return self
 
     # --- Dynamic field forwarding ---
@@ -179,9 +178,8 @@ class FanOut(BuilderBase):
     # --- Extra methods ---
 
     def branch(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Add a parallel branch agent."""
-        item = agent.build() if hasattr(agent, "build") else agent
-        self._lists["sub_agents"].append(item)
+        """Add a parallel branch agent (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(agent)
         return self
 
     # --- Dynamic field forwarding ---
@@ -293,9 +291,8 @@ class Pipeline(BuilderBase):
     # --- Extra methods ---
 
     def step(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Append an agent as the next step."""
-        item = agent.build() if hasattr(agent, "build") else agent
-        self._lists["sub_agents"].append(item)
+        """Append an agent as the next step (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(agent)
         return self
 
     # --- Dynamic field forwarding ---

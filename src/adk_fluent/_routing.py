@@ -5,6 +5,21 @@ from typing import Any, Callable
 __all__ = ["Route"]
 
 
+def _make_fallback_builder(children: list):
+    """Create a _FallbackBuilder from a list of children."""
+    from adk_fluent._base import _FallbackBuilder
+    names = []
+    for c in children:
+        if hasattr(c, '_config'):
+            names.append(c._config.get("name", "?"))
+        elif hasattr(c, 'name'):
+            names.append(c.name)
+        else:
+            names.append("?")
+    name = "_or_".join(names)
+    return _FallbackBuilder(name, children)
+
+
 class Route:
     """Deterministic state-based routing. No LLM call -- evaluates predicates against session state.
 
