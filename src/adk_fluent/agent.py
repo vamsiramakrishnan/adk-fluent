@@ -17,7 +17,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -125,7 +125,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_tool_callback', 'on_model_error_callback', 'on_tool_error_callback', 'after_model_callback', 'before_agent_callback', 'after_agent_callback', 'before_model_callback', 'after_tool_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback', 'before_model_callback', 'on_model_error_callback', 'after_tool_callback', 'on_tool_error_callback', 'after_model_callback', 'before_tool_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -333,6 +333,13 @@ class Agent(BuilderBase):
         """Async batch execution against multiple prompts."""
         from adk_fluent._helpers import run_map_async
         return await run_map_async(self, prompts, concurrency=concurrency)
+
+
+    async def events(self, prompt: str) -> AsyncIterator:
+        """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
+        from adk_fluent._helpers import run_events
+        async for chunk in run_events(self, prompt):
+            yield chunk
 
     # --- Dynamic field forwarding ---
 

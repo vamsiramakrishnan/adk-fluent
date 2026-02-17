@@ -13,11 +13,14 @@ __all__ = [
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",
+    "run_events",
     "run_inline_test",
     "ChatSession",
     "create_session",
     "run_map",
     "run_map_async",
+    "StateKey",
+    "Artifact",
 ]
 
 def _debug_log(agent_name: str, msg: str):
@@ -287,3 +290,196 @@ async def create_session(builder):
         yield ChatSession(runner, session, user_id)
     finally:
         pass  # InMemoryRunner has no cleanup needed
+
+
+# ======================================================================
+# StateKey — typed state descriptor
+# ======================================================================
+
+class StateKey:
+    """Typed state key descriptor for ergonomic state access in callbacks and tools.
+
+    Usage:
+        call_count = StateKey("call_count", scope="temp", type=int, default=0)
+
+        # In a callback or tool:
+        current = call_count.get(ctx)  # Returns int, not Any
+        call_count.set(ctx, current + 1)
+        call_count.increment(ctx)  # Convenience for numeric types
+    """
+
+    _VALID_SCOPES = frozenset({"temp", "user", "app", "session"})
+
+    def __init__(self, name: str, *, scope: str = "session", type: type = str, default: Any = None):
+        if scope not in self._VALID_SCOPES:
+            raise ValueError(f"Invalid scope '{scope}'. Must be one of: {', '.join(sorted(self._VALID_SCOPES))}")
+        self._name = name
+        self._scope = scope
+        self._type = type
+        self._default = default
+        # Build the full key with prefix
+        if scope == "session":
+            self._full_key = name
+        else:
+            self._full_key = f"{scope}:{name}"
+
+    @property
+    def key(self) -> str:
+        """The full state key including scope prefix."""
+        return self._full_key
+
+    @property
+    def name(self) -> str:
+        """The bare name without scope prefix."""
+        return self._name
+
+    @property
+    def scope(self) -> str:
+        """The scope: 'temp', 'user', 'app', or 'session'."""
+        return self._scope
+
+    def get(self, ctx) -> Any:
+        """Get the value from context state. Returns default if not set.
+
+        Works with CallbackContext, ToolContext, or any object with a .state dict-like attribute.
+        """
+        state = ctx.state if hasattr(ctx, 'state') else ctx
+        if callable(state) and not isinstance(state, dict):
+            state = state()  # ReadonlyContext.state() is a method
+        return state.get(self._full_key, self._default)
+
+    def set(self, ctx, value: Any) -> None:
+        """Set the value in context state.
+
+        Works with CallbackContext, ToolContext, or any object with a .state dict-like attribute.
+        """
+        state = ctx.state if hasattr(ctx, 'state') else ctx
+        if callable(state) and not isinstance(state, dict):
+            state = state()
+        state[self._full_key] = value
+
+    def increment(self, ctx, amount: int = 1) -> Any:
+        """Increment a numeric state value. Returns the new value."""
+        current = self.get(ctx)
+        if current is None:
+            current = self._default if self._default is not None else 0
+        new_value = current + amount
+        self.set(ctx, new_value)
+        return new_value
+
+    def append(self, ctx, item: Any) -> None:
+        """Append to a list state value. Creates the list if not set."""
+        current = self.get(ctx)
+        if current is None:
+            current = []
+        if not isinstance(current, list):
+            current = [current]
+        current.append(item)
+        self.set(ctx, current)
+
+    def __repr__(self) -> str:
+        return f"StateKey('{self._name}', scope='{self._scope}', type={self._type.__name__})"
+
+
+# ======================================================================
+# Artifact — fluent artifact descriptor
+# ======================================================================
+
+class Artifact:
+    """Fluent artifact descriptor for ergonomic artifact operations in tools and callbacks.
+
+    Usage:
+        report = Artifact("quarterly_report")
+
+        # In a tool:
+        await report.save(ctx, "Report content here")
+        content = await report.load(ctx)
+        versions = await report.list_versions(ctx)
+    """
+
+    def __init__(self, filename: str):
+        self._filename = filename
+
+    @property
+    def filename(self) -> str:
+        """The artifact filename."""
+        return self._filename
+
+    async def save(self, ctx, content: str | bytes) -> int:
+        """Save content as an artifact. Returns the version number.
+
+        Automatically wraps string/bytes content in a genai Part.
+        Works with CallbackContext or ToolContext.
+        """
+        from google.genai import types
+        if isinstance(content, bytes):
+            part = types.Part.from_data(data=content, mime_type="application/octet-stream")
+        else:
+            part = types.Part.from_text(text=str(content))
+        version = await ctx.save_artifact(self._filename, part)
+        return version
+
+    async def load(self, ctx, *, version: int | None = None) -> str | None:
+        """Load artifact content. Returns text string or None if not found.
+
+        Automatically extracts text from the Part wrapper.
+        Works with CallbackContext or ToolContext.
+        """
+        part = await ctx.load_artifact(self._filename, version=version)
+        if part is None:
+            return None
+        if hasattr(part, 'text') and part.text:
+            return part.text
+        if hasattr(part, 'inline_data') and part.inline_data:
+            return part.inline_data.data
+        return str(part)
+
+    async def list_versions(self, ctx) -> list[int]:
+        """List available version numbers for this artifact.
+
+        Works with ToolContext (which has list_artifacts).
+        """
+        if hasattr(ctx, 'list_artifacts'):
+            all_artifacts = await ctx.list_artifacts()
+            # Filter for this filename — ADK returns all artifact keys
+            return [i for i, name in enumerate(all_artifacts) if name == self._filename]
+        return []
+
+    def __repr__(self) -> str:
+        return f"Artifact('{self._filename}')"
+
+
+# ======================================================================
+# run_events — raw event streaming
+# ======================================================================
+
+async def run_events(builder, prompt: str):
+    """Stream raw ADK Event objects from a one-shot agent execution.
+
+    Unlike .ask() which returns only the final text, this yields every
+    Event including state deltas, function calls, tool results, etc.
+
+    Usage:
+        async for event in agent.events("What is 2+2?"):
+            if event.is_final_response():
+                print(event.content.parts[0].text)
+            if event.actions and event.actions.state_delta:
+                print(f"State changed: {event.actions.state_delta}")
+    """
+    from google.adk.runners import InMemoryRunner
+    from google.genai import types
+
+    agent = builder.build()
+    app_name = f"_events_{agent.name}"
+    runner = InMemoryRunner(agent=agent, app_name=app_name)
+    session = await runner.session_service.create_session(
+        app_name=app_name, user_id="_events_user"
+    )
+    content = types.Content(
+        role="user", parts=[types.Part(text=prompt)]
+    )
+
+    async for event in runner.run_async(
+        user_id="_events_user", session_id=session.id, new_message=content
+    ):
+        yield event

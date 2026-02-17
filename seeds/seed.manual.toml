@@ -81,3 +81,10 @@ doc = "Async batch execution against multiple prompts."
 behavior = "runtime_helper_async"
 helper_func = "run_map_async"
 
+[[builders.Agent.extras]]
+name = "events"
+signature = "(self, prompt: str) -> AsyncIterator"
+doc = "Stream raw ADK Event objects. Yields every event including state deltas and function calls."
+behavior = "runtime_helper_async_gen"
+helper_func = "run_events"
+
