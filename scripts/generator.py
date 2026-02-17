@@ -448,6 +448,88 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
     return "\n".join(methods)
 
 
+def gen_field_methods(spec: BuilderSpec) -> str:
+    """Generate explicit setter methods for all remaining fields.
+
+    Covers every Pydantic field (or init param) NOT already handled by:
+    - constructor args (skip_fields)
+    - alias methods
+    - callback alias methods
+    - extra methods
+
+    This eliminates the need for __getattr__ on the common path while
+    keeping __getattr__ as a safety net for fields added after codegen.
+    """
+    if spec.is_composite or spec.is_standalone:
+        return ""
+
+    # Collect names already covered by explicit methods
+    aliased_fields = set(spec.aliases.values())
+    callback_fields = set(spec.callback_aliases.values())
+    extra_names = {e["name"] for e in spec.extras}
+    # Aliases are also method names -- don't generate a method that shadows them
+    alias_method_names = set(spec.aliases.keys())
+    callback_method_names = set(spec.callback_aliases.keys())
+    # _if variants too
+    callback_if_names = {f"{n}_if" for n in spec.callback_aliases.keys()}
+
+    covered = (
+        spec.skip_fields
+        | aliased_fields
+        | callback_fields
+        | extra_names
+        | alias_method_names
+        | callback_method_names
+        | callback_if_names
+    )
+
+    methods = []
+
+    if spec.inspection_mode == "init_signature" and spec.init_params:
+        for param in spec.init_params:
+            pname = param["name"]
+            if pname in ("self", "args", "kwargs", "kwds"):
+                continue
+            if pname in covered:
+                continue
+            if pname in spec.constructor_args:
+                continue
+            type_str = param.get("type_str", "Any")
+            methods.append(f'''
+    def {pname}(self, value: {type_str}) -> Self:
+        """Set the ``{pname}`` field."""
+        self._config["{pname}"] = value
+        return self
+''')
+    else:
+        for field in spec.fields:
+            fname = field["name"]
+            if fname in covered:
+                continue
+            if fname in spec.constructor_args:
+                continue
+            if field.get("is_callback") and fname in spec.additive_fields:
+                # Additive callback not aliased -- generate append method
+                methods.append(f'''
+    def {fname}(self, *fns: Callable) -> Self:
+        """Append callback(s) to ``{fname}``. Multiple calls accumulate."""
+        for fn in fns:
+            self._callbacks["{fname}"].append(fn)
+        return self
+''')
+            else:
+                type_str = field["type_str"]
+                doc = spec.field_docs.get(fname, field.get("description", ""))
+                methods.append(f'''
+    def {fname}(self, value: {type_str}) -> Self:
+        """{doc or f'Set the ``{fname}`` field.'}"""
+        self._config["{fname}"] = value
+        return self
+''')
+
+    return "\n".join(methods)
+
+
 def gen_getattr_method(spec: BuilderSpec) -> str:
     """Generate the __getattr__ forwarding method."""
     if spec.is_composite or spec.is_standalone:
@@ -576,9 +658,11 @@ def gen_runtime_class(spec: BuilderSpec) -> str:
         gen_alias_methods(spec),
         "    # --- Additive callback methods ---",
         gen_callback_methods(spec),
+        "    # --- Explicit field methods ---",
+        gen_field_methods(spec),
         "    # --- Extra methods ---",
         gen_extra_methods(spec),
-        "    # --- Dynamic field forwarding ---",
+        "    # --- Dynamic field forwarding (safety net) ---",
         gen_getattr_method(spec),
         "    # --- Terminal methods ---",
         gen_build_method(spec),

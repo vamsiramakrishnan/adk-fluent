@@ -1,6 +1,7 @@
-"""Tests for serialization: to_dict, from_dict, to_yaml, from_yaml."""
+"""Tests for serialization: to_dict, to_yaml (inspection-only, no round-trip)."""
 from adk_fluent.agent import Agent
 from adk_fluent.workflow import Pipeline
+import pytest
 
 
 def _my_callback(ctx):
@@ -37,28 +38,21 @@ class TestToDict:
         result = agent.to_dict()
         assert "_internal" not in result["config"]
 
-
-class TestFromDict:
-    def test_roundtrip_config(self):
-        agent = Agent("math").model("gemini-2.5-flash").instruct("Do math.")
-        data = agent.to_dict()
-        restored = Agent.from_dict(data)
-        assert restored._config["name"] == "math"
-        assert restored._config["model"] == "gemini-2.5-flash"
-        assert restored._config["instruction"] == "Do math."
-
-    def test_type_matches(self):
-        agent = Agent("math").model("gemini-2.5-flash")
-        data = agent.to_dict()
-        restored = Agent.from_dict(data)
-        assert isinstance(restored, Agent)
-
-    def test_pipeline_roundtrip(self):
+    def test_pipeline_to_dict(self):
         p = Pipeline("pipe")
-        data = p.to_dict()
-        restored = Pipeline.from_dict(data)
-        assert isinstance(restored, Pipeline)
-        assert restored._config["name"] == "pipe"
+        result = p.to_dict()
+        assert result["_type"] == "Pipeline"
+        assert result["config"]["name"] == "pipe"
+
+
+class TestFromDictRemoved:
+    """from_dict and from_yaml were removed: they can't round-trip callables."""
+
+    def test_from_dict_not_available(self):
+        assert not hasattr(Agent, "from_dict")
+
+    def test_from_yaml_not_available(self):
+        assert not hasattr(Agent, "from_yaml")
 
 
 class TestYaml:
@@ -68,10 +62,8 @@ class TestYaml:
         assert isinstance(result, str)
         assert "math" in result
 
-    def test_yaml_roundtrip(self):
+    def test_to_yaml_includes_config(self):
         agent = Agent("math").model("gemini-2.5-flash").instruct("Do math.")
-        yaml_str = agent.to_yaml()
-        restored = Agent.from_yaml(yaml_str)
-        assert restored._config["name"] == "math"
-        assert restored._config["model"] == "gemini-2.5-flash"
-        assert restored._config["instruction"] == "Do math."
+        result = agent.to_yaml()
+        assert "gemini-2.5-flash" in result
+        assert "Do math." in result

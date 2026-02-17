@@ -40,9 +40,16 @@ class RecordingsPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_RecordingsPlugin init params for zero-maintenance compatibility."""
@@ -118,9 +125,16 @@ class ReplayPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ReplayPlugin init params for zero-maintenance compatibility."""
@@ -196,9 +210,11 @@ class BasePlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BasePlugin init params for zero-maintenance compatibility."""
@@ -262,7 +278,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'dataset_id', 'project_id', 'config', 'location', 'table_id'}
+    _KNOWN_PARAMS: set[str] = {'table_id', 'dataset_id', 'location', 'project_id', 'config'}
 
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
@@ -274,9 +290,28 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def table_id(self, value: Optional[str]) -> Self:
+        """Set the ``table_id`` field."""
+        self._config["table_id"] = value
+        return self
+
+
+    def config(self, value: Optional[BigQueryLoggerConfig]) -> Self:
+        """Set the ``config`` field."""
+        self._config["config"] = value
+        return self
+
+
+    def location(self, value: str) -> Self:
+        """Set the ``location`` field."""
+        self._config["location"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BigQueryAgentAnalyticsPlugin init params for zero-maintenance compatibility."""
@@ -340,7 +375,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'custom_filter', 'name', 'num_invocations_to_keep'}
+    _KNOWN_PARAMS: set[str] = {'name', 'custom_filter', 'num_invocations_to_keep'}
 
 
     def __init__(self, ) -> None:
@@ -352,9 +387,28 @@ class ContextFilterPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def num_invocations_to_keep(self, value: Optional[int]) -> Self:
+        """Set the ``num_invocations_to_keep`` field."""
+        self._config["num_invocations_to_keep"] = value
+        return self
+
+
+    def custom_filter(self, value: Optional[Callable[[list[types.Content]], list[types.Content]]]) -> Self:
+        """Set the ``custom_filter`` field."""
+        self._config["custom_filter"] = value
+        return self
+
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ContextFilterPlugin init params for zero-maintenance compatibility."""
@@ -418,7 +472,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'output_path', 'name', 'include_system_instruction', 'include_session_state'}
+    _KNOWN_PARAMS: set[str] = {'name', 'include_system_instruction', 'output_path', 'include_session_state'}
 
 
     def __init__(self, ) -> None:
@@ -430,9 +484,34 @@ class DebugLoggingPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
+
+    def output_path(self, value: str) -> Self:
+        """Set the ``output_path`` field."""
+        self._config["output_path"] = value
+        return self
+
+
+    def include_session_state(self, value: bool) -> Self:
+        """Set the ``include_session_state`` field."""
+        self._config["include_session_state"] = value
+        return self
+
+
+    def include_system_instruction(self, value: bool) -> Self:
+        """Set the ``include_system_instruction`` field."""
+        self._config["include_system_instruction"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_DebugLoggingPlugin init params for zero-maintenance compatibility."""
@@ -496,7 +575,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name', 'global_instruction'}
+    _KNOWN_PARAMS: set[str] = {'global_instruction', 'name'}
 
 
     def __init__(self, ) -> None:
@@ -508,9 +587,22 @@ class GlobalInstructionPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def global_instruction(self, value: Union[str, InstructionProvider]) -> Self:
+        """Set the ``global_instruction`` field."""
+        self._config["global_instruction"] = value
+        return self
+
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GlobalInstructionPlugin init params for zero-maintenance compatibility."""
@@ -586,9 +678,16 @@ class LoggingPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LoggingPlugin init params for zero-maintenance compatibility."""
@@ -664,9 +763,16 @@ class MultimodalToolResultsPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_MultimodalToolResultsPlugin init params for zero-maintenance compatibility."""
@@ -730,7 +836,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_retries', 'tracking_scope', 'name', 'throw_exception_if_retry_exceeded'}
+    _KNOWN_PARAMS: set[str] = {'name', 'throw_exception_if_retry_exceeded', 'tracking_scope', 'max_retries'}
 
 
     def __init__(self, ) -> None:
@@ -742,9 +848,34 @@ class ReflectAndRetryToolPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
+
+    def max_retries(self, value: int) -> Self:
+        """Set the ``max_retries`` field."""
+        self._config["max_retries"] = value
+        return self
+
+
+    def throw_exception_if_retry_exceeded(self, value: bool) -> Self:
+        """Set the ``throw_exception_if_retry_exceeded`` field."""
+        self._config["throw_exception_if_retry_exceeded"] = value
+        return self
+
+
+    def tracking_scope(self, value: TrackingScope) -> Self:
+        """Set the ``tracking_scope`` field."""
+        self._config["tracking_scope"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ReflectAndRetryToolPlugin init params for zero-maintenance compatibility."""
@@ -820,9 +951,16 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SaveFilesAsArtifactsPlugin init params for zero-maintenance compatibility."""
@@ -898,9 +1036,11 @@ class AgentSimulatorPlugin(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_AgentSimulatorPlugin init params for zero-maintenance compatibility."""

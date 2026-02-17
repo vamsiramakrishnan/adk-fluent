@@ -43,9 +43,11 @@ class BaseArtifactService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseArtifactService init params for zero-maintenance compatibility."""
@@ -121,9 +123,11 @@ class FileArtifactService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_FileArtifactService init params for zero-maintenance compatibility."""
@@ -199,9 +203,11 @@ class GcsArtifactService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GcsArtifactService init params for zero-maintenance compatibility."""
@@ -276,9 +282,16 @@ class InMemoryArtifactService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def artifacts(self, value: dict[str, list[_ArtifactEntry]]) -> Self:
+        """Set the ``artifacts`` field."""
+        self._config["artifacts"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_InMemoryArtifactService.model_fields for zero-maintenance compatibility."""
@@ -341,7 +354,7 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'app_name_to_dir', 'agents_root'}
+    _KNOWN_PARAMS: set[str] = {'agents_root', 'app_name_to_dir'}
 
 
     def __init__(self, agents_root: str) -> None:
@@ -353,9 +366,16 @@ class PerAgentDatabaseSessionService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def app_name_to_dir(self, value: Optional[Mapping[str, str]]) -> Self:
+        """Set the ``app_name_to_dir`` field."""
+        self._config["app_name_to_dir"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_PerAgentDatabaseSessionService init params for zero-maintenance compatibility."""
@@ -431,9 +451,11 @@ class BaseMemoryService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseMemoryService init params for zero-maintenance compatibility."""
@@ -509,9 +531,11 @@ class InMemoryMemoryService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_InMemoryMemoryService init params for zero-maintenance compatibility."""
@@ -575,7 +599,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'project', 'express_mode_api_key', 'agent_engine_id', 'location'}
+    _KNOWN_PARAMS: set[str] = {'express_mode_api_key', 'project', 'location', 'agent_engine_id'}
 
 
     def __init__(self, ) -> None:
@@ -587,9 +611,34 @@ class VertexAiMemoryBankService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def project(self, value: Optional[str]) -> Self:
+        """Set the ``project`` field."""
+        self._config["project"] = value
+        return self
+
+
+    def location(self, value: Optional[str]) -> Self:
+        """Set the ``location`` field."""
+        self._config["location"] = value
+        return self
+
+
+    def agent_engine_id(self, value: Optional[str]) -> Self:
+        """Set the ``agent_engine_id`` field."""
+        self._config["agent_engine_id"] = value
+        return self
+
+
+    def express_mode_api_key(self, value: Optional[str]) -> Self:
+        """Set the ``express_mode_api_key`` field."""
+        self._config["express_mode_api_key"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_VertexAiMemoryBankService init params for zero-maintenance compatibility."""
@@ -665,9 +714,28 @@ class VertexAiRagMemoryService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def rag_corpus(self, value: Optional[str]) -> Self:
+        """Set the ``rag_corpus`` field."""
+        self._config["rag_corpus"] = value
+        return self
+
+
+    def similarity_top_k(self, value: Optional[int]) -> Self:
+        """Set the ``similarity_top_k`` field."""
+        self._config["similarity_top_k"] = value
+        return self
+
+
+    def vector_distance_threshold(self, value: float) -> Self:
+        """Set the ``vector_distance_threshold`` field."""
+        self._config["vector_distance_threshold"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_VertexAiRagMemoryService init params for zero-maintenance compatibility."""
@@ -743,9 +811,11 @@ class BaseSessionService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseSessionService init params for zero-maintenance compatibility."""
@@ -821,9 +891,11 @@ class DatabaseSessionService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_DatabaseSessionService init params for zero-maintenance compatibility."""
@@ -899,9 +971,11 @@ class InMemorySessionService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_InMemorySessionService init params for zero-maintenance compatibility."""
@@ -977,9 +1051,11 @@ class SqliteSessionService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SqliteSessionService init params for zero-maintenance compatibility."""
@@ -1043,7 +1119,7 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'project', 'express_mode_api_key', 'agent_engine_id', 'location'}
+    _KNOWN_PARAMS: set[str] = {'express_mode_api_key', 'project', 'location', 'agent_engine_id'}
 
 
     def __init__(self, ) -> None:
@@ -1055,9 +1131,34 @@ class VertexAiSessionService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def project(self, value: Optional[str]) -> Self:
+        """Set the ``project`` field."""
+        self._config["project"] = value
+        return self
+
+
+    def location(self, value: Optional[str]) -> Self:
+        """Set the ``location`` field."""
+        self._config["location"] = value
+        return self
+
+
+    def agent_engine_id(self, value: Optional[str]) -> Self:
+        """Set the ``agent_engine_id`` field."""
+        self._config["agent_engine_id"] = value
+        return self
+
+
+    def express_mode_api_key(self, value: Optional[str]) -> Self:
+        """Set the ``express_mode_api_key`` field."""
+        self._config["express_mode_api_key"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_VertexAiSessionService init params for zero-maintenance compatibility."""
@@ -1133,9 +1234,11 @@ class ForwardingArtifactService(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ForwardingArtifactService init params for zero-maintenance compatibility."""

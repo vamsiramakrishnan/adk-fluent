@@ -61,9 +61,16 @@ class BaseAgent(BuilderBase):
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
+    # --- Explicit field methods ---
+
+    def sub_agents(self, value: list[BaseAgent]) -> Self:
+        """Set the ``sub_agents`` field."""
+        self._config["sub_agents"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseAgent.model_fields for zero-maintenance compatibility."""
@@ -125,7 +132,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_tool_callback', 'after_agent_callback', 'before_model_callback', 'after_model_callback', 'before_agent_callback', 'after_tool_callback', 'on_model_error_callback', 'on_tool_error_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'before_model_callback', 'before_agent_callback', 'on_model_error_callback', 'before_tool_callback', 'after_model_callback', 'after_tool_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str, model: str | None = None) -> None:
@@ -285,6 +292,67 @@ class Agent(BuilderBase):
             self._callbacks["on_tool_error_callback"].append(fn)
         return self
 
+    # --- Explicit field methods ---
+
+    def sub_agents(self, value: list[BaseAgent]) -> Self:
+        """Set the ``sub_agents`` field."""
+        self._config["sub_agents"] = value
+        return self
+
+
+    def model(self, value: Union[str, BaseLlm]) -> Self:
+        """Set the ``model`` field."""
+        self._config["model"] = value
+        return self
+
+
+    def tools(self, value: list[Union[Callable, BaseTool, BaseToolset]]) -> Self:
+        """Set the ``tools`` field."""
+        self._config["tools"] = value
+        return self
+
+
+    def generate_content_config(self, value: Union[GenerateContentConfig, NoneType]) -> Self:
+        """Set the ``generate_content_config`` field."""
+        self._config["generate_content_config"] = value
+        return self
+
+
+    def disallow_transfer_to_parent(self, value: bool) -> Self:
+        """Set the ``disallow_transfer_to_parent`` field."""
+        self._config["disallow_transfer_to_parent"] = value
+        return self
+
+
+    def disallow_transfer_to_peers(self, value: bool) -> Self:
+        """Set the ``disallow_transfer_to_peers`` field."""
+        self._config["disallow_transfer_to_peers"] = value
+        return self
+
+
+    def input_schema(self, value: Union[type[BaseModel], NoneType]) -> Self:
+        """Set the ``input_schema`` field."""
+        self._config["input_schema"] = value
+        return self
+
+
+    def output_schema(self, value: Union[type[BaseModel], NoneType]) -> Self:
+        """Set the ``output_schema`` field."""
+        self._config["output_schema"] = value
+        return self
+
+
+    def planner(self, value: Union[BasePlanner, NoneType]) -> Self:
+        """Set the ``planner`` field."""
+        self._config["planner"] = value
+        return self
+
+
+    def code_executor(self, value: Union[BaseCodeExecutor, NoneType]) -> Self:
+        """Set the ``code_executor`` field."""
+        self._config["code_executor"] = value
+        return self
+
     # --- Extra methods ---
 
     def tool(self, fn_or_tool: Callable | BaseTool) -> Self:
@@ -366,7 +434,7 @@ class Agent(BuilderBase):
         async for chunk in run_events(self, prompt):
             yield chunk
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to LlmAgent.model_fields for zero-maintenance compatibility."""

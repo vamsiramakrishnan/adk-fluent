@@ -78,9 +78,22 @@ class ActiveStreamingTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def task(self, value: Union[Task, NoneType]) -> Self:
+        """Set the ``task`` field."""
+        self._config["task"] = value
+        return self
+
+
+    def stream(self, value: Union[LiveRequestQueue, NoneType]) -> Self:
+        """Set the ``stream`` field."""
+        self._config["stream"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ActiveStreamingTool.model_fields for zero-maintenance compatibility."""
@@ -143,7 +156,7 @@ class AgentTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'include_plugins', 'agent', 'skip_summarization'}
+    _KNOWN_PARAMS: set[str] = {'skip_summarization', 'agent', 'include_plugins'}
 
 
     def __init__(self, agent: str) -> None:
@@ -155,9 +168,22 @@ class AgentTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def skip_summarization(self, value: bool) -> Self:
+        """Set the ``skip_summarization`` field."""
+        self._config["skip_summarization"] = value
+        return self
+
+
+    def include_plugins(self, value: bool) -> Self:
+        """Set the ``include_plugins`` field."""
+        self._config["include_plugins"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_AgentTool init params for zero-maintenance compatibility."""
@@ -221,7 +247,7 @@ class APIHubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'apihub_resource_name', 'tool_filter', 'auth_credential', 'service_account_json', 'name', 'access_token', 'lazy_load_spec', 'description', 'auth_scheme', 'apihub_client'}
+    _KNOWN_PARAMS: set[str] = {'auth_credential', 'apihub_client', 'description', 'service_account_json', 'lazy_load_spec', 'tool_filter', 'apihub_resource_name', 'name', 'access_token', 'auth_scheme'}
 
 
     def __init__(self, apihub_resource_name: str) -> None:
@@ -233,9 +259,64 @@ class APIHubToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def access_token(self, value: Optional[str]) -> Self:
+        """Set the ``access_token`` field."""
+        self._config["access_token"] = value
+        return self
+
+
+    def service_account_json(self, value: Optional[str]) -> Self:
+        """Set the ``service_account_json`` field."""
+        self._config["service_account_json"] = value
+        return self
+
+
+    def name(self, value: str) -> Self:
+        """Set the ``name`` field."""
+        self._config["name"] = value
+        return self
+
+
+    def description(self, value: str) -> Self:
+        """Set the ``description`` field."""
+        self._config["description"] = value
+        return self
+
+
+    def lazy_load_spec(self, value: Any) -> Self:
+        """Set the ``lazy_load_spec`` field."""
+        self._config["lazy_load_spec"] = value
+        return self
+
+
+    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
+
+    def apihub_client(self, value: Optional[APIHubClient]) -> Self:
+        """Set the ``apihub_client`` field."""
+        self._config["apihub_client"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_APIHubToolset init params for zero-maintenance compatibility."""
@@ -299,7 +380,7 @@ class ApplicationIntegrationToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'project', 'tool_filter', 'tool_instructions', 'connection', 'connection_template_override', 'auth_credential', 'integration', 'tool_name_prefix', 'triggers', 'service_account_json', 'actions', 'location', 'auth_scheme', 'entity_operations'}
+    _KNOWN_PARAMS: set[str] = {'auth_credential', 'integration', 'triggers', 'connection', 'service_account_json', 'actions', 'tool_instructions', 'tool_filter', 'connection_template_override', 'location', 'project', 'entity_operations', 'tool_name_prefix', 'auth_scheme'}
 
 
     def __init__(self, project: str, location: str) -> None:
@@ -311,9 +392,82 @@ class ApplicationIntegrationToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def connection_template_override(self, value: Optional[str]) -> Self:
+        """Set the ``connection_template_override`` field."""
+        self._config["connection_template_override"] = value
+        return self
+
+
+    def integration(self, value: Optional[str]) -> Self:
+        """Set the ``integration`` field."""
+        self._config["integration"] = value
+        return self
+
+
+    def triggers(self, value: Optional[List[str]]) -> Self:
+        """Set the ``triggers`` field."""
+        self._config["triggers"] = value
+        return self
+
+
+    def connection(self, value: Optional[str]) -> Self:
+        """Set the ``connection`` field."""
+        self._config["connection"] = value
+        return self
+
+
+    def entity_operations(self, value: Optional[str]) -> Self:
+        """Set the ``entity_operations`` field."""
+        self._config["entity_operations"] = value
+        return self
+
+
+    def actions(self, value: Optional[list[str]]) -> Self:
+        """Set the ``actions`` field."""
+        self._config["actions"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
+
+    def tool_instructions(self, value: Optional[str]) -> Self:
+        """Set the ``tool_instructions`` field."""
+        self._config["tool_instructions"] = value
+        return self
+
+
+    def service_account_json(self, value: Optional[str]) -> Self:
+        """Set the ``service_account_json`` field."""
+        self._config["service_account_json"] = value
+        return self
+
+
+    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ApplicationIntegrationToolset init params for zero-maintenance compatibility."""
@@ -377,7 +531,7 @@ class IntegrationConnectorTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'connection_host', 'operation', 'action', 'connection_service_name', 'rest_api_tool', 'auth_credential', 'entity', 'name', 'description', 'auth_scheme', 'connection_name'}
+    _KNOWN_PARAMS: set[str] = {'auth_credential', 'connection_service_name', 'operation', 'description', 'connection_host', 'action', 'entity', 'name', 'connection_name', 'auth_scheme', 'rest_api_tool'}
 
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
@@ -389,9 +543,58 @@ class IntegrationConnectorTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def connection_host(self, value: str) -> Self:
+        """Set the ``connection_host`` field."""
+        self._config["connection_host"] = value
+        return self
+
+
+    def connection_service_name(self, value: str) -> Self:
+        """Set the ``connection_service_name`` field."""
+        self._config["connection_service_name"] = value
+        return self
+
+
+    def entity(self, value: str) -> Self:
+        """Set the ``entity`` field."""
+        self._config["entity"] = value
+        return self
+
+
+    def operation(self, value: str) -> Self:
+        """Set the ``operation`` field."""
+        self._config["operation"] = value
+        return self
+
+
+    def action(self, value: str) -> Self:
+        """Set the ``action`` field."""
+        self._config["action"] = value
+        return self
+
+
+    def rest_api_tool(self, value: RestApiTool) -> Self:
+        """Set the ``rest_api_tool`` field."""
+        self._config["rest_api_tool"] = value
+        return self
+
+
+    def auth_scheme(self, value: Optional[Union[AuthScheme, str]]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[Union[AuthCredential, str]]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_IntegrationConnectorTool init params for zero-maintenance compatibility."""
@@ -455,7 +658,7 @@ class BaseAuthenticatedTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'auth_config', 'response_for_auth_required', 'name'}
+    _KNOWN_PARAMS: set[str] = {'name', 'description', 'response_for_auth_required', 'auth_config'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -467,9 +670,22 @@ class BaseAuthenticatedTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def auth_config(self, value: AuthConfig) -> Self:
+        """Set the ``auth_config`` field."""
+        self._config["auth_config"] = value
+        return self
+
+
+    def response_for_auth_required(self, value: Optional[Union[dict[str, Any], str]]) -> Self:
+        """Set the ``response_for_auth_required`` field."""
+        self._config["response_for_auth_required"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseAuthenticatedTool init params for zero-maintenance compatibility."""
@@ -533,7 +749,7 @@ class BaseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'custom_metadata', 'name', 'is_long_running'}
+    _KNOWN_PARAMS: set[str] = {'custom_metadata', 'description', 'is_long_running', 'name'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -545,9 +761,22 @@ class BaseTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def is_long_running(self, value: bool) -> Self:
+        """Set the ``is_long_running`` field."""
+        self._config["is_long_running"] = value
+        return self
+
+
+    def custom_metadata(self, value: Optional[dict[str, Any]]) -> Self:
+        """Set the ``custom_metadata`` field."""
+        self._config["custom_metadata"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseTool init params for zero-maintenance compatibility."""
@@ -611,7 +840,7 @@ class BaseToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -623,9 +852,22 @@ class BaseToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseToolset init params for zero-maintenance compatibility."""
@@ -689,7 +931,7 @@ class BigQueryToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'bigquery_tool_config', 'tool_filter', 'credentials_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'bigquery_tool_config'}
 
 
     def __init__(self, ) -> None:
@@ -701,9 +943,28 @@ class BigQueryToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def credentials_config(self, value: Optional[BigQueryCredentialsConfig]) -> Self:
+        """Set the ``credentials_config`` field."""
+        self._config["credentials_config"] = value
+        return self
+
+
+    def bigquery_tool_config(self, value: Optional[BigQueryToolConfig]) -> Self:
+        """Set the ``bigquery_tool_config`` field."""
+        self._config["bigquery_tool_config"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BigQueryToolset init params for zero-maintenance compatibility."""
@@ -767,7 +1028,7 @@ class BigtableToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'bigtable_tool_settings'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'bigtable_tool_settings', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -779,9 +1040,28 @@ class BigtableToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def credentials_config(self, value: Optional[BigtableCredentialsConfig]) -> Self:
+        """Set the ``credentials_config`` field."""
+        self._config["credentials_config"] = value
+        return self
+
+
+    def bigtable_tool_settings(self, value: Optional[BigtableToolSettings]) -> Self:
+        """Set the ``bigtable_tool_settings`` field."""
+        self._config["bigtable_tool_settings"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BigtableToolset init params for zero-maintenance compatibility."""
@@ -845,7 +1125,7 @@ class ComputerUseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'screen_size', 'virtual_screen_size', 'func'}
+    _KNOWN_PARAMS: set[str] = {'func', 'screen_size', 'virtual_screen_size'}
 
 
     def __init__(self, func: str, screen_size: str) -> None:
@@ -857,9 +1137,16 @@ class ComputerUseTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def virtual_screen_size(self, value: tuple[int, int]) -> Self:
+        """Set the ``virtual_screen_size`` field."""
+        self._config["virtual_screen_size"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ComputerUseTool init params for zero-maintenance compatibility."""
@@ -935,9 +1222,11 @@ class ComputerUseToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ComputerUseToolset init params for zero-maintenance compatibility."""
@@ -1001,7 +1290,7 @@ class DataAgentToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'data_agent_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'data_agent_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -1013,9 +1302,28 @@ class DataAgentToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def credentials_config(self, value: Optional[DataAgentCredentialsConfig]) -> Self:
+        """Set the ``credentials_config`` field."""
+        self._config["credentials_config"] = value
+        return self
+
+
+    def data_agent_tool_config(self, value: Optional[DataAgentToolConfig]) -> Self:
+        """Set the ``data_agent_tool_config`` field."""
+        self._config["data_agent_tool_config"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_DataAgentToolset init params for zero-maintenance compatibility."""
@@ -1079,7 +1387,7 @@ class DiscoveryEngineSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_results', 'filter', 'search_engine_id', 'data_store_id', 'data_store_specs'}
+    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'filter', 'max_results', 'data_store_id', 'data_store_specs'}
 
 
     def __init__(self, ) -> None:
@@ -1091,9 +1399,40 @@ class DiscoveryEngineSearchTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def data_store_id(self, value: Optional[str]) -> Self:
+        """Set the ``data_store_id`` field."""
+        self._config["data_store_id"] = value
+        return self
+
+
+    def data_store_specs(self, value: Optional[list[types.VertexAISearchDataStoreSpec]]) -> Self:
+        """Set the ``data_store_specs`` field."""
+        self._config["data_store_specs"] = value
+        return self
+
+
+    def search_engine_id(self, value: Optional[str]) -> Self:
+        """Set the ``search_engine_id`` field."""
+        self._config["search_engine_id"] = value
+        return self
+
+
+    def filter(self, value: Optional[str]) -> Self:
+        """Set the ``filter`` field."""
+        self._config["filter"] = value
+        return self
+
+
+    def max_results(self, value: Optional[int]) -> Self:
+        """Set the ``max_results`` field."""
+        self._config["max_results"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_DiscoveryEngineSearchTool init params for zero-maintenance compatibility."""
@@ -1169,9 +1508,11 @@ class EnterpriseWebSearchTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_EnterpriseWebSearchTool init params for zero-maintenance compatibility."""
@@ -1247,9 +1588,11 @@ class ExampleTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ExampleTool init params for zero-maintenance compatibility."""
@@ -1313,7 +1656,7 @@ class FunctionTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'require_confirmation', 'func'}
+    _KNOWN_PARAMS: set[str] = {'func', 'require_confirmation'}
 
 
     def __init__(self, func: str) -> None:
@@ -1325,9 +1668,16 @@ class FunctionTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def require_confirmation(self, value: Union[bool, Callable[..., bool]]) -> Self:
+        """Set the ``require_confirmation`` field."""
+        self._config["require_confirmation"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_FunctionTool init params for zero-maintenance compatibility."""
@@ -1391,7 +1741,7 @@ class GoogleApiTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'service_account', 'additional_headers', 'rest_api_tool', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'additional_headers', 'client_id', 'service_account', 'client_secret', 'rest_api_tool'}
 
 
     def __init__(self, rest_api_tool: str) -> None:
@@ -1403,9 +1753,34 @@ class GoogleApiTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def additional_headers(self, value: Optional[Dict[str, str]]) -> Self:
+        """Set the ``additional_headers`` field."""
+        self._config["additional_headers"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GoogleApiTool init params for zero-maintenance compatibility."""
@@ -1469,7 +1844,7 @@ class GoogleApiToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'additional_headers', 'tool_name_prefix', 'client_secret', 'client_id', 'api_name', 'api_version'}
+    _KNOWN_PARAMS: set[str] = {'additional_headers', 'api_version', 'client_id', 'api_name', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, api_name: str, api_version: str) -> None:
@@ -1481,9 +1856,46 @@ class GoogleApiToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
+
+    def additional_headers(self, value: Optional[Dict[str, str]]) -> Self:
+        """Set the ``additional_headers`` field."""
+        self._config["additional_headers"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GoogleApiToolset init params for zero-maintenance compatibility."""
@@ -1547,7 +1959,7 @@ class CalendarToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1559,9 +1971,40 @@ class CalendarToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_CalendarToolset init params for zero-maintenance compatibility."""
@@ -1625,7 +2068,7 @@ class DocsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1637,9 +2080,40 @@ class DocsToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_DocsToolset init params for zero-maintenance compatibility."""
@@ -1703,7 +2177,7 @@ class GmailToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1715,9 +2189,40 @@ class GmailToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GmailToolset init params for zero-maintenance compatibility."""
@@ -1781,7 +2286,7 @@ class SheetsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1793,9 +2298,40 @@ class SheetsToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SheetsToolset init params for zero-maintenance compatibility."""
@@ -1859,7 +2395,7 @@ class SlidesToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1871,9 +2407,40 @@ class SlidesToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SlidesToolset init params for zero-maintenance compatibility."""
@@ -1937,7 +2504,7 @@ class YoutubeToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret', 'client_id'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'service_account', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1949,9 +2516,40 @@ class YoutubeToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def client_id(self, value: Optional[str]) -> Self:
+        """Set the ``client_id`` field."""
+        self._config["client_id"] = value
+        return self
+
+
+    def client_secret(self, value: Optional[str]) -> Self:
+        """Set the ``client_secret`` field."""
+        self._config["client_secret"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+        """Set the ``service_account`` field."""
+        self._config["service_account"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_YoutubeToolset init params for zero-maintenance compatibility."""
@@ -2027,9 +2625,11 @@ class GoogleMapsGroundingTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GoogleMapsGroundingTool init params for zero-maintenance compatibility."""
@@ -2105,9 +2705,11 @@ class GoogleSearchAgentTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GoogleSearchAgentTool init params for zero-maintenance compatibility."""
@@ -2183,9 +2785,22 @@ class GoogleSearchTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def bypass_multi_tools_limit(self, value: bool) -> Self:
+        """Set the ``bypass_multi_tools_limit`` field."""
+        self._config["bypass_multi_tools_limit"] = value
+        return self
+
+
+    def model(self, value: str | None) -> Self:
+        """Set the ``model`` field."""
+        self._config["model"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GoogleSearchTool init params for zero-maintenance compatibility."""
@@ -2249,7 +2864,7 @@ class GoogleTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'credentials_config', 'func', 'tool_settings'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_settings', 'func'}
 
 
     def __init__(self, func: str) -> None:
@@ -2261,9 +2876,22 @@ class GoogleTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def credentials_config(self, value: Optional[BaseGoogleCredentialsConfig]) -> Self:
+        """Set the ``credentials_config`` field."""
+        self._config["credentials_config"] = value
+        return self
+
+
+    def tool_settings(self, value: Optional[BaseModel]) -> Self:
+        """Set the ``tool_settings`` field."""
+        self._config["tool_settings"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_GoogleTool init params for zero-maintenance compatibility."""
@@ -2339,9 +2967,11 @@ class LoadArtifactsTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LoadArtifactsTool init params for zero-maintenance compatibility."""
@@ -2417,9 +3047,11 @@ class LoadMcpResourceTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LoadMcpResourceTool init params for zero-maintenance compatibility."""
@@ -2495,9 +3127,11 @@ class LoadMemoryTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LoadMemoryTool init params for zero-maintenance compatibility."""
@@ -2573,9 +3207,11 @@ class LongRunningFunctionTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LongRunningFunctionTool init params for zero-maintenance compatibility."""
@@ -2651,9 +3287,11 @@ class MCPTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_MCPTool init params for zero-maintenance compatibility."""
@@ -2717,7 +3355,7 @@ class McpTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'header_provider', 'progress_callback', 'auth_credential', 'require_confirmation', 'mcp_session_manager', 'auth_scheme', 'mcp_tool'}
+    _KNOWN_PARAMS: set[str] = {'mcp_tool', 'require_confirmation', 'auth_credential', 'header_provider', 'mcp_session_manager', 'progress_callback', 'auth_scheme'}
 
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
@@ -2729,9 +3367,40 @@ class McpTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
+
+    def require_confirmation(self, value: Union[bool, Callable[..., bool]]) -> Self:
+        """Set the ``require_confirmation`` field."""
+        self._config["require_confirmation"] = value
+        return self
+
+
+    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+        """Set the ``header_provider`` field."""
+        self._config["header_provider"] = value
+        return self
+
+
+    def progress_callback(self, value: Optional[Union[ProgressFnT, ProgressCallbackFactory]]) -> Self:
+        """Set the ``progress_callback`` field."""
+        self._config["progress_callback"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_McpTool init params for zero-maintenance compatibility."""
@@ -2807,9 +3476,11 @@ class MCPToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_MCPToolset init params for zero-maintenance compatibility."""
@@ -2873,7 +3544,7 @@ class McpToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'header_provider', 'progress_callback', 'auth_credential', 'require_confirmation', 'tool_name_prefix', 'use_mcp_resources', 'connection_params', 'errlog', 'auth_scheme'}
+    _KNOWN_PARAMS: set[str] = {'require_confirmation', 'auth_credential', 'errlog', 'header_provider', 'use_mcp_resources', 'tool_filter', 'connection_params', 'progress_callback', 'tool_name_prefix', 'auth_scheme'}
 
 
     def __init__(self, connection_params: str) -> None:
@@ -2885,9 +3556,64 @@ class McpToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
+
+    def errlog(self, value: TextIO) -> Self:
+        """Set the ``errlog`` field."""
+        self._config["errlog"] = value
+        return self
+
+
+    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
+
+    def require_confirmation(self, value: Union[bool, Callable[..., bool]]) -> Self:
+        """Set the ``require_confirmation`` field."""
+        self._config["require_confirmation"] = value
+        return self
+
+
+    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+        """Set the ``header_provider`` field."""
+        self._config["header_provider"] = value
+        return self
+
+
+    def progress_callback(self, value: Optional[Union[ProgressFnT, ProgressCallbackFactory]]) -> Self:
+        """Set the ``progress_callback`` field."""
+        self._config["progress_callback"] = value
+        return self
+
+
+    def use_mcp_resources(self, value: Optional[bool]) -> Self:
+        """Set the ``use_mcp_resources`` field."""
+        self._config["use_mcp_resources"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_McpToolset init params for zero-maintenance compatibility."""
@@ -2951,7 +3677,7 @@ class OpenAPIToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'ssl_verify', 'tool_filter', 'header_provider', 'auth_credential', 'tool_name_prefix', 'spec_str_type', 'spec_str', 'credential_key', 'auth_scheme', 'spec_dict'}
+    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'auth_credential', 'ssl_verify', 'spec_str', 'header_provider', 'credential_key', 'tool_filter', 'spec_dict', 'auth_scheme', 'spec_str_type'}
 
 
     def __init__(self, ) -> None:
@@ -2963,9 +3689,70 @@ class OpenAPIToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def spec_dict(self, value: Optional[Dict[str, Any]]) -> Self:
+        """Set the ``spec_dict`` field."""
+        self._config["spec_dict"] = value
+        return self
+
+
+    def spec_str(self, value: Optional[str]) -> Self:
+        """Set the ``spec_str`` field."""
+        self._config["spec_str"] = value
+        return self
+
+
+    def spec_str_type(self, value: Literal['json', 'yaml']) -> Self:
+        """Set the ``spec_str_type`` field."""
+        self._config["spec_str_type"] = value
+        return self
+
+
+    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
+
+    def credential_key(self, value: Optional[str]) -> Self:
+        """Set the ``credential_key`` field."""
+        self._config["credential_key"] = value
+        return self
+
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def tool_name_prefix(self, value: Optional[str]) -> Self:
+        """Set the ``tool_name_prefix`` field."""
+        self._config["tool_name_prefix"] = value
+        return self
+
+
+    def ssl_verify(self, value: Optional[Union[bool, str, ssl.SSLContext]]) -> Self:
+        """Set the ``ssl_verify`` field."""
+        self._config["ssl_verify"] = value
+        return self
+
+
+    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+        """Set the ``header_provider`` field."""
+        self._config["header_provider"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_OpenAPIToolset init params for zero-maintenance compatibility."""
@@ -3029,7 +3816,7 @@ class RestApiTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'operation', 'ssl_verify', 'header_provider', 'auth_credential', 'should_parse_operation', 'name', 'description', 'credential_key', 'endpoint', 'auth_scheme'}
+    _KNOWN_PARAMS: set[str] = {'should_parse_operation', 'auth_credential', 'operation', 'description', 'ssl_verify', 'header_provider', 'credential_key', 'endpoint', 'name', 'auth_scheme'}
 
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
@@ -3041,9 +3828,52 @@ class RestApiTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def operation(self, value: Union[Operation, str]) -> Self:
+        """Set the ``operation`` field."""
+        self._config["operation"] = value
+        return self
+
+
+    def auth_scheme(self, value: Optional[Union[AuthScheme, str]]) -> Self:
+        """Set the ``auth_scheme`` field."""
+        self._config["auth_scheme"] = value
+        return self
+
+
+    def auth_credential(self, value: Optional[Union[AuthCredential, str]]) -> Self:
+        """Set the ``auth_credential`` field."""
+        self._config["auth_credential"] = value
+        return self
+
+
+    def should_parse_operation(self, value: Any) -> Self:
+        """Set the ``should_parse_operation`` field."""
+        self._config["should_parse_operation"] = value
+        return self
+
+
+    def ssl_verify(self, value: Optional[Union[bool, str, ssl.SSLContext]]) -> Self:
+        """Set the ``ssl_verify`` field."""
+        self._config["ssl_verify"] = value
+        return self
+
+
+    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+        """Set the ``header_provider`` field."""
+        self._config["header_provider"] = value
+        return self
+
+
+    def credential_key(self, value: Optional[str]) -> Self:
+        """Set the ``credential_key`` field."""
+        self._config["credential_key"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_RestApiTool init params for zero-maintenance compatibility."""
@@ -3119,9 +3949,11 @@ class PreloadMemoryTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_PreloadMemoryTool init params for zero-maintenance compatibility."""
@@ -3185,7 +4017,7 @@ class PubSubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'pubsub_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'pubsub_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -3197,9 +4029,28 @@ class PubSubToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def credentials_config(self, value: PubSubCredentialsConfig | None) -> Self:
+        """Set the ``credentials_config`` field."""
+        self._config["credentials_config"] = value
+        return self
+
+
+    def pubsub_tool_config(self, value: PubSubToolConfig | None) -> Self:
+        """Set the ``pubsub_tool_config`` field."""
+        self._config["pubsub_tool_config"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_PubSubToolset init params for zero-maintenance compatibility."""
@@ -3263,7 +4114,7 @@ class BaseRetrievalTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'custom_metadata', 'name', 'is_long_running'}
+    _KNOWN_PARAMS: set[str] = {'custom_metadata', 'description', 'is_long_running', 'name'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -3275,9 +4126,22 @@ class BaseRetrievalTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def is_long_running(self, value: bool) -> Self:
+        """Set the ``is_long_running`` field."""
+        self._config["is_long_running"] = value
+        return self
+
+
+    def custom_metadata(self, value: Optional[dict[str, Any]]) -> Self:
+        """Set the ``custom_metadata`` field."""
+        self._config["custom_metadata"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseRetrievalTool init params for zero-maintenance compatibility."""
@@ -3353,9 +4217,11 @@ class SetModelResponseTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SetModelResponseTool init params for zero-maintenance compatibility."""
@@ -3431,9 +4297,11 @@ class LoadSkillResourceTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LoadSkillResourceTool init params for zero-maintenance compatibility."""
@@ -3509,9 +4377,11 @@ class LoadSkillTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_LoadSkillTool init params for zero-maintenance compatibility."""
@@ -3587,9 +4457,11 @@ class SkillToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SkillToolset init params for zero-maintenance compatibility."""
@@ -3665,9 +4537,28 @@ class SpannerToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+        """Set the ``tool_filter`` field."""
+        self._config["tool_filter"] = value
+        return self
+
+
+    def credentials_config(self, value: Optional[SpannerCredentialsConfig]) -> Self:
+        """Set the ``credentials_config`` field."""
+        self._config["credentials_config"] = value
+        return self
+
+
+    def spanner_tool_settings(self, value: Optional[SpannerToolSettings]) -> Self:
+        """Set the ``spanner_tool_settings`` field."""
+        self._config["spanner_tool_settings"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_SpannerToolset init params for zero-maintenance compatibility."""
@@ -3731,7 +4622,7 @@ class ToolboxToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_names', 'server_url', 'additional_headers', 'toolset_name', 'credentials', 'auth_token_getters', 'bound_params'}
+    _KNOWN_PARAMS: set[str] = {'auth_token_getters', 'additional_headers', 'toolset_name', 'credentials', 'server_url', 'bound_params', 'tool_names'}
 
 
     def __init__(self, server_url: str, kwargs: str) -> None:
@@ -3743,9 +4634,46 @@ class ToolboxToolset(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def toolset_name(self, value: Optional[str]) -> Self:
+        """Set the ``toolset_name`` field."""
+        self._config["toolset_name"] = value
+        return self
+
+
+    def tool_names(self, value: Optional[List[str]]) -> Self:
+        """Set the ``tool_names`` field."""
+        self._config["tool_names"] = value
+        return self
+
+
+    def auth_token_getters(self, value: Optional[Mapping[str, Callable[[], str]]]) -> Self:
+        """Set the ``auth_token_getters`` field."""
+        self._config["auth_token_getters"] = value
+        return self
+
+
+    def bound_params(self, value: Optional[Mapping[str, Union[Callable[[], Any], Any]]]) -> Self:
+        """Set the ``bound_params`` field."""
+        self._config["bound_params"] = value
+        return self
+
+
+    def credentials(self, value: Optional[CredentialConfig]) -> Self:
+        """Set the ``credentials`` field."""
+        self._config["credentials"] = value
+        return self
+
+
+    def additional_headers(self, value: Optional[Mapping[str, str]]) -> Self:
+        """Set the ``additional_headers`` field."""
+        self._config["additional_headers"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_ToolboxToolset init params for zero-maintenance compatibility."""
@@ -3821,9 +4749,11 @@ class TransferToAgentTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_TransferToAgentTool init params for zero-maintenance compatibility."""
@@ -3899,9 +4829,11 @@ class UrlContextTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_UrlContextTool init params for zero-maintenance compatibility."""
@@ -3965,7 +4897,7 @@ class VertexAiSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'bypass_multi_tools_limit', 'max_results', 'filter', 'search_engine_id', 'data_store_id', 'data_store_specs'}
+    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'filter', 'bypass_multi_tools_limit', 'data_store_id', 'data_store_specs', 'max_results'}
 
 
     def __init__(self, ) -> None:
@@ -3977,9 +4909,46 @@ class VertexAiSearchTool(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def data_store_id(self, value: Optional[str]) -> Self:
+        """Set the ``data_store_id`` field."""
+        self._config["data_store_id"] = value
+        return self
+
+
+    def data_store_specs(self, value: Optional[list[types.VertexAISearchDataStoreSpec]]) -> Self:
+        """Set the ``data_store_specs`` field."""
+        self._config["data_store_specs"] = value
+        return self
+
+
+    def search_engine_id(self, value: Optional[str]) -> Self:
+        """Set the ``search_engine_id`` field."""
+        self._config["search_engine_id"] = value
+        return self
+
+
+    def filter(self, value: Optional[str]) -> Self:
+        """Set the ``filter`` field."""
+        self._config["filter"] = value
+        return self
+
+
+    def max_results(self, value: Optional[int]) -> Self:
+        """Set the ``max_results`` field."""
+        self._config["max_results"] = value
+        return self
+
+
+    def bypass_multi_tools_limit(self, value: bool) -> Self:
+        """Set the ``bypass_multi_tools_limit`` field."""
+        self._config["bypass_multi_tools_limit"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_VertexAiSearchTool init params for zero-maintenance compatibility."""

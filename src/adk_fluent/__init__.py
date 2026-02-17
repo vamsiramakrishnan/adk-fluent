@@ -271,6 +271,11 @@ __all__ = [
 
 # --- Manual module exports (auto-discovered from __all__) ---
 from ._base import until
+from ._base import tap
+from ._base import expect
+from ._base import map_over
+from ._base import gate
+from ._base import race
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot

@@ -152,6 +152,19 @@ Nine operators compose any agent topology:
 | `Route("key").eq(...)` | Branch | Deterministic routing |
 | `S.pick(...)`, `S.rename(...)` | State transforms | Dict operations via `>>` |
 
+Eight control loop primitives for agent orchestration:
+
+| Primitive | Purpose | ADK Mechanism |
+|-----------|---------|---------------|
+| `tap(fn)` | Observe state without mutating | Custom `BaseAgent` (no LLM) |
+| `expect(pred, msg)` | Assert state contract | Raises `ValueError` on failure |
+| `.mock(responses)` | Bypass LLM for testing | `before_model_callback` → `LlmResponse` |
+| `.retry_if(pred)` | Retry while condition holds | `LoopAgent` + checkpoint escalate |
+| `map_over(key, agent)` | Iterate agent over list | Custom `BaseAgent` loop |
+| `.timeout(seconds)` | Time-bound execution | `asyncio` deadline + cancel |
+| `gate(pred, msg)` | Human-in-the-loop approval | `EventActions(escalate=True)` |
+| `race(a, b, ...)` | First-to-finish wins | `asyncio.wait(FIRST_COMPLETED)` |
+
 All operators are **immutable** -- sub-expressions can be safely reused:
 
 ```python
@@ -265,6 +278,110 @@ enricher = (
     .model("gemini-2.5-flash")
     .instruct("Enrich the data.")
     .proceed_if(lambda s: s.get("valid") == "yes")
+)
+```
+
+### Tap (Observe Without Mutating)
+
+`tap(fn)` creates a zero-cost observation step. It reads state but never writes back -- perfect for logging, metrics, and debugging:
+
+```python
+from adk_fluent import tap
+
+pipeline = (
+    writer
+    >> tap(lambda s: print("Draft:", s.get("draft", "")[:50]))
+    >> reviewer
+)
+
+# Also available as a method
+pipeline = writer.tap(lambda s: log_metrics(s)) >> reviewer
+```
+
+### Expect (State Assertions)
+
+`expect(pred, msg)` asserts a state contract at a pipeline step. Raises `ValueError` if the predicate fails:
+
+```python
+from adk_fluent import expect
+
+pipeline = (
+    writer
+    >> expect(lambda s: "draft" in s, "Writer must produce a draft")
+    >> reviewer
+)
+```
+
+### Mock (Testing Without LLM)
+
+`.mock(responses)` bypasses LLM calls with canned responses. Uses the same `before_model_callback` mechanism as ADK's `ReplayPlugin`, but scoped to a single agent:
+
+```python
+# List of responses (cycles when exhausted)
+agent = Agent("writer").model("gemini-2.5-flash").instruct("Write.").mock(["Draft 1", "Draft 2"])
+
+# Callable for dynamic mocking
+agent = Agent("echo").model("gemini-2.5-flash").mock(lambda req: "Mocked response")
+```
+
+### Retry If
+
+`.retry_if(pred)` retries agent execution while the predicate returns True. Thin wrapper over `loop_until` with inverted logic:
+
+```python
+agent = (
+    Agent("writer").model("gemini-2.5-flash")
+    .instruct("Write a high-quality draft.").outputs("quality")
+    .retry_if(lambda s: s.get("quality") != "good", max_retries=3)
+)
+```
+
+### Map Over
+
+`map_over(key, agent)` iterates an agent over each item in a state list:
+
+```python
+from adk_fluent import map_over
+
+pipeline = (
+    fetcher
+    >> map_over("documents", summarizer, output_key="summaries")
+    >> compiler
+)
+```
+
+### Timeout
+
+`.timeout(seconds)` wraps an agent with a time limit. Raises `asyncio.TimeoutError` if exceeded:
+
+```python
+agent = Agent("researcher").model("gemini-2.5-pro").instruct("Deep research.").timeout(60)
+```
+
+### Gate (Human-in-the-Loop)
+
+`gate(pred, msg)` pauses the pipeline for human approval when the condition is met. Uses ADK's `escalate` mechanism:
+
+```python
+from adk_fluent import gate
+
+pipeline = (
+    analyzer
+    >> gate(lambda s: s.get("risk") == "high", message="Approve high-risk action?")
+    >> executor
+)
+```
+
+### Race (First-to-Finish)
+
+`race(a, b, ...)` runs agents concurrently and keeps only the first to finish:
+
+```python
+from adk_fluent import race
+
+winner = race(
+    Agent("fast").model("gemini-2.0-flash").instruct("Quick answer."),
+    Agent("thorough").model("gemini-2.5-pro").instruct("Detailed answer."),
 )
 ```
 
@@ -448,6 +565,10 @@ agent = (
 |--------|-------------|
 | `.proceed_if(pred)` | Only run this agent if `pred(state)` is truthy. Uses `before_agent_callback` |
 | `.loop_until(pred, max_iterations=N)` | Wrap in a loop that exits when `pred(state)` is satisfied |
+| `.retry_if(pred, max_retries=3)` | Retry while `pred(state)` returns True. Inverse of `loop_until` |
+| `.mock(responses)` | Bypass LLM with canned responses (list or callable). For testing |
+| `.tap(fn)` | Append observation step: `self >> tap(fn)`. Returns Pipeline |
+| `.timeout(seconds)` | Wrap with time limit. Raises `asyncio.TimeoutError` on expiry |
 
 #### Delegation (LLM-Driven Routing)
 
@@ -496,8 +617,7 @@ creative = base.with_(name="creative", model="gemini-2.5-pro")
 |--------|-------------|
 | `.validate()` | Try `.build()` and raise `ValueError` with clear message on failure. Returns `self` |
 | `.explain()` | Multi-line summary of builder state (config fields, callbacks, lists) |
-| `.to_dict()` / `.to_yaml()` | Serialize builder state |
-| `.from_dict(data)` / `.from_yaml(text)` | Reconstruct builder from serialized state |
+| `.to_dict()` / `.to_yaml()` | Serialize builder state (inspection only, no round-trip) |
 
 #### Dynamic Field Forwarding
 
@@ -714,13 +834,16 @@ adk web typed_output          # @ Schema
 adk web fallback_operator     # // fallback
 adk web state_transforms      # S.pick, S.rename, ...
 adk web full_algebra          # All operators together
+adk web tap_observation       # tap() observation steps
+adk web mock_testing          # .mock() for testing
+adk web race                  # race() first-to-finish
 ```
 
-35 runnable examples covering all features. See [`examples/`](examples/) for the full list.
+43 runnable examples covering all features. See [`examples/`](examples/) for the full list.
 
 ## Cookbook
 
-34 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
+42 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
 
 ```bash
 pytest examples/cookbook/ -v
@@ -762,6 +885,14 @@ pytest examples/cookbook/ -v
 | 32 | Fallback Operator | `//` first-success chains |
 | 33 | State Transforms | `S.pick`, `S.rename`, `S.merge`, ... |
 | 34 | Full Algebra | All operators composed together |
+| 35 | Tap Observation | `tap()` pure observation steps |
+| 36 | Expect Assertions | `expect()` state contract checks |
+| 37 | Mock Testing | `.mock()` bypass LLM for tests |
+| 38 | Retry If | `.retry_if()` conditional retry |
+| 39 | Map Over | `map_over()` iterate agent over list |
+| 40 | Timeout | `.timeout()` time-bound execution |
+| 41 | Gate Approval | `gate()` human-in-the-loop |
+| 42 | Race | `race()` first-to-finish wins |
 
 ## How It Works
 

@@ -31,9 +31,11 @@ class BasePlanner(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BasePlanner init params for zero-maintenance compatibility."""
@@ -109,9 +111,11 @@ class BuiltInPlanner(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BuiltInPlanner init params for zero-maintenance compatibility."""
@@ -187,9 +191,11 @@ class PlanReActPlanner(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_PlanReActPlanner init params for zero-maintenance compatibility."""

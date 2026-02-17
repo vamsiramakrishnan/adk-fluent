@@ -160,7 +160,12 @@ async def run_one_shot_async(builder, prompt: str) -> str:
                 data = _json.loads(last_text)
                 return schema.model_validate(data)
             except Exception:
-                pass
+                raise ValueError(
+                    f"Structured output parsing failed for schema "
+                    f"{schema.__name__}. The LLM returned text that could "
+                    f"not be parsed as the requested type.\n"
+                    f"Raw response:\n{last_text}"
+                )
 
     return last_text
 
@@ -174,34 +179,39 @@ async def run_map_async(builder, prompts, *, concurrency=5):
     return await asyncio.gather(*[_one(p) for p in prompts])
 
 
-def run_map(builder, prompts, *, concurrency=5):
-    """Synchronous batch execution against multiple prompts."""
+def _run_sync(coro):
+    """Run a coroutine synchronously. Raises RuntimeError inside async contexts."""
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = None
 
     if loop and loop.is_running():
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            return pool.submit(asyncio.run, run_map_async(builder, prompts, concurrency=concurrency)).result()
-    else:
-        return asyncio.run(run_map_async(builder, prompts, concurrency=concurrency))
+        raise RuntimeError(
+            "Cannot use synchronous methods (.ask(), .map(), run_one_shot(), "
+            "run_map()) inside an already-running event loop (e.g. Jupyter, "
+            "async frameworks). Use the async variants instead: "
+            ".ask_async(), .map_async(), run_one_shot_async(), run_map_async()."
+        )
+    return asyncio.run(coro)
+
+
+def run_map(builder, prompts, *, concurrency=5):
+    """Synchronous batch execution against multiple prompts.
+
+    Raises RuntimeError if called inside an already-running event loop.
+    Use run_map_async() in async contexts.
+    """
+    return _run_sync(run_map_async(builder, prompts, concurrency=concurrency))
 
 
 def run_one_shot(builder, prompt: str) -> str:
-    """Synchronous wrapper around run_one_shot_async."""
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = None
+    """Synchronous wrapper around run_one_shot_async.
 
-    if loop and loop.is_running():
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            return pool.submit(asyncio.run, run_one_shot_async(builder, prompt)).result()
-    else:
-        return asyncio.run(run_one_shot_async(builder, prompt))
+    Raises RuntimeError if called inside an already-running event loop.
+    Use run_one_shot_async() in async contexts.
+    """
+    return _run_sync(run_one_shot_async(builder, prompt))
 
 
 async def run_stream(builder, prompt: str):

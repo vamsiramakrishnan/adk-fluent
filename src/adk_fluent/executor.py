@@ -32,9 +32,46 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def optimize_data_file(self, value: bool) -> Self:
+        """Set the ``optimize_data_file`` field."""
+        self._config["optimize_data_file"] = value
+        return self
+
+
+    def stateful(self, value: bool) -> Self:
+        """Set the ``stateful`` field."""
+        self._config["stateful"] = value
+        return self
+
+
+    def error_retry_attempts(self, value: int) -> Self:
+        """Set the ``error_retry_attempts`` field."""
+        self._config["error_retry_attempts"] = value
+        return self
+
+
+    def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
+        """Set the ``code_block_delimiters`` field."""
+        self._config["code_block_delimiters"] = value
+        return self
+
+
+    def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
+        """Set the ``execution_result_delimiters`` field."""
+        self._config["execution_result_delimiters"] = value
+        return self
+
+
+    def sandbox_resource_name(self, value: str) -> Self:
+        """Set the ``sandbox_resource_name`` field."""
+        self._config["sandbox_resource_name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_AgentEngineSandboxCodeExecutor.model_fields for zero-maintenance compatibility."""
@@ -108,9 +145,40 @@ class BaseCodeExecutor(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def optimize_data_file(self, value: bool) -> Self:
+        """Set the ``optimize_data_file`` field."""
+        self._config["optimize_data_file"] = value
+        return self
+
+
+    def stateful(self, value: bool) -> Self:
+        """Set the ``stateful`` field."""
+        self._config["stateful"] = value
+        return self
+
+
+    def error_retry_attempts(self, value: int) -> Self:
+        """Set the ``error_retry_attempts`` field."""
+        self._config["error_retry_attempts"] = value
+        return self
+
+
+    def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
+        """Set the ``code_block_delimiters`` field."""
+        self._config["code_block_delimiters"] = value
+        return self
+
+
+    def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
+        """Set the ``execution_result_delimiters`` field."""
+        self._config["execution_result_delimiters"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BaseCodeExecutor.model_fields for zero-maintenance compatibility."""
@@ -184,9 +252,40 @@ class BuiltInCodeExecutor(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def optimize_data_file(self, value: bool) -> Self:
+        """Set the ``optimize_data_file`` field."""
+        self._config["optimize_data_file"] = value
+        return self
+
+
+    def stateful(self, value: bool) -> Self:
+        """Set the ``stateful`` field."""
+        self._config["stateful"] = value
+        return self
+
+
+    def error_retry_attempts(self, value: int) -> Self:
+        """Set the ``error_retry_attempts`` field."""
+        self._config["error_retry_attempts"] = value
+        return self
+
+
+    def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
+        """Set the ``code_block_delimiters`` field."""
+        self._config["code_block_delimiters"] = value
+        return self
+
+
+    def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
+        """Set the ``execution_result_delimiters`` field."""
+        self._config["execution_result_delimiters"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_BuiltInCodeExecutor.model_fields for zero-maintenance compatibility."""
@@ -260,9 +359,40 @@ class UnsafeLocalCodeExecutor(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def optimize_data_file(self, value: bool) -> Self:
+        """Set the ``optimize_data_file`` field."""
+        self._config["optimize_data_file"] = value
+        return self
+
+
+    def stateful(self, value: bool) -> Self:
+        """Set the ``stateful`` field."""
+        self._config["stateful"] = value
+        return self
+
+
+    def error_retry_attempts(self, value: int) -> Self:
+        """Set the ``error_retry_attempts`` field."""
+        self._config["error_retry_attempts"] = value
+        return self
+
+
+    def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
+        """Set the ``code_block_delimiters`` field."""
+        self._config["code_block_delimiters"] = value
+        return self
+
+
+    def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
+        """Set the ``execution_result_delimiters`` field."""
+        self._config["execution_result_delimiters"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_UnsafeLocalCodeExecutor.model_fields for zero-maintenance compatibility."""
@@ -336,9 +466,46 @@ class VertexAiCodeExecutor(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def optimize_data_file(self, value: Any) -> Self:
+        """Set the ``optimize_data_file`` field."""
+        self._config["optimize_data_file"] = value
+        return self
+
+
+    def stateful(self, value: Any) -> Self:
+        """Set the ``stateful`` field."""
+        self._config["stateful"] = value
+        return self
+
+
+    def error_retry_attempts(self, value: Any) -> Self:
+        """Set the ``error_retry_attempts`` field."""
+        self._config["error_retry_attempts"] = value
+        return self
+
+
+    def code_block_delimiters(self, value: Any) -> Self:
+        """Set the ``code_block_delimiters`` field."""
+        self._config["code_block_delimiters"] = value
+        return self
+
+
+    def execution_result_delimiters(self, value: Any) -> Self:
+        """Set the ``execution_result_delimiters`` field."""
+        self._config["execution_result_delimiters"] = value
+        return self
+
+
+    def resource_name(self, value: Any) -> Self:
+        """Set the ``resource_name`` field."""
+        self._config["resource_name"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_VertexAiCodeExecutor.model_fields for zero-maintenance compatibility."""

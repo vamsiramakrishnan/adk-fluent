@@ -1,8 +1,9 @@
 """BuilderBase mixin -- shared capabilities for all generated fluent builders."""
 from __future__ import annotations
+import itertools
 from typing import Any, Callable, Self
 
-__all__ = ["until"]
+__all__ = ["until", "tap", "expect", "map_over", "gate", "race"]
 
 
 # ======================================================================
@@ -346,39 +347,19 @@ class BuilderBase:
             "lists": lists,
         }
 
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> BuilderBase:
-        """Reconstruct a builder from a dict. Only restores config (not callables)."""
-        import inspect
-        config = data.get("config", {})
-        # Determine constructor args via inspect
-        sig = inspect.signature(cls.__init__)
-        params = list(sig.parameters.keys())
-        # Skip 'self'
-        params = [p for p in params if p != "self"]
-        # Build constructor kwargs from config
-        ctor_kwargs = {}
-        remaining = dict(config)
-        for p in params:
-            if p in remaining:
-                ctor_kwargs[p] = remaining.pop(p)
-        builder = cls(**ctor_kwargs)
-        # Apply remaining config fields
-        for k, v in remaining.items():
-            builder._config[k] = v
-        return builder
-
     def to_yaml(self) -> str:
-        """Serialize builder state to YAML string."""
-        import yaml
-        return yaml.dump(self.to_dict(), default_flow_style=False)
+        """Serialize builder state to YAML string.
 
-    @classmethod
-    def from_yaml(cls, yaml_str: str) -> BuilderBase:
-        """Reconstruct a builder from a YAML string."""
-        import yaml
-        data = yaml.safe_load(yaml_str)
-        return cls.from_dict(data)
+        Requires the ``pyyaml`` package (``pip install pyyaml``).
+        """
+        try:
+            import yaml
+        except ImportError:
+            raise ImportError(
+                "to_yaml() requires the 'pyyaml' package. "
+                "Install it with: pip install pyyaml"
+            )
+        return yaml.dump(self.to_dict(), default_flow_style=False)
 
     # ------------------------------------------------------------------
     # Task 6: with_() — Immutable Variants
@@ -569,6 +550,88 @@ class BuilderBase:
         return self.loop_until(predicate)
 
     # ------------------------------------------------------------------
+    # New Primitives: tap, mock, retry_if, timeout (methods)
+    # ------------------------------------------------------------------
+
+    def tap(self, fn: Callable) -> BuilderBase:
+        """Append a pure observation step. Reads state, runs side-effect, never mutates.
+
+        Returns a Pipeline (self >> tap_step), not self.
+
+        Usage:
+            agent.tap(lambda s: print(s["draft"]))
+        """
+        return self >> tap(fn)
+
+    def mock(self, responses) -> Self:
+        """Replace LLM calls with canned responses for testing.
+
+        Injects a before_model_callback that returns LlmResponse directly,
+        bypassing the LLM entirely. Same mechanism as ADK's ReplayPlugin,
+        but scoped to this builder instead of globally.
+
+        Args:
+            responses: Either a list of response strings (cycles when
+                       exhausted), or a callable(llm_request) -> str.
+
+        Usage:
+            agent.mock(["Hello!", "World!"])
+            agent.mock(lambda req: "Fixed response")
+        """
+        if callable(responses) and not isinstance(responses, list):
+            fn = responses
+            def _mock_cb(callback_context, llm_request):
+                from google.adk.models.llm_response import LlmResponse
+                from google.genai import types
+                text = fn(llm_request)
+                return LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text=str(text))]
+                    )
+                )
+        else:
+            response_iter = itertools.cycle(responses)
+            def _mock_cb(callback_context, llm_request):
+                from google.adk.models.llm_response import LlmResponse
+                from google.genai import types
+                text = next(response_iter)
+                return LlmResponse(
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text=str(text))]
+                    )
+                )
+
+        self._callbacks.setdefault("before_model_callback", []).append(_mock_cb)
+        return self
+
+    def retry_if(self, predicate: Callable, *, max_retries: int = 3) -> BuilderBase:
+        """Retry agent execution while predicate(state) returns True.
+
+        Wraps in a LoopAgent + checkpoint that exits when the predicate
+        becomes False. Thin wrapper over loop_until() with inverted predicate.
+
+        Args:
+            predicate: Receives state dict. Retry while this returns True.
+            max_retries: Maximum number of retries (default 3).
+
+        Usage:
+            agent.retry_if(lambda s: s.get("quality") != "good", max_retries=3)
+        """
+        return self.loop_until(lambda s: not predicate(s), max_iterations=max_retries)
+
+    def timeout(self, seconds: float) -> BuilderBase:
+        """Wrap this agent with a time limit. Raises asyncio.TimeoutError if exceeded.
+
+        Usage:
+            agent.timeout(30)
+        """
+        my_name = self._config.get("name", "")
+        name = f"{my_name}_timeout_{next(_timeout_counter)}"
+        return _TimeoutBuilder(name, self, seconds)
+
+    # ------------------------------------------------------------------
     # Task 7: Presets (.use())
     # ------------------------------------------------------------------
 
@@ -596,7 +659,7 @@ class BuilderBase:
 # Post-BuilderBase primitives (depend on BuilderBase)
 # ======================================================================
 
-_fn_step_counter = 0
+_fn_step_counter = itertools.count(1)
 
 
 def _fn_step(fn: Callable) -> BuilderBase:
@@ -610,12 +673,10 @@ def _fn_step(fn: Callable) -> BuilderBase:
 
     If the function returns None, it is assumed to have no state updates.
     """
-    global _fn_step_counter
     name = getattr(fn, "__name__", "_transform")
     # Sanitize: ADK requires valid Python identifiers for agent names
     if not name.isidentifier():
-        _fn_step_counter += 1
-        name = f"fn_step_{_fn_step_counter}"
+        name = f"fn_step_{next(_fn_step_counter)}"
 
     builder = _FnStepBuilder(fn, name)
     return builder
@@ -703,4 +764,404 @@ class _FallbackBuilder(BuilderBase):
         return _FallbackAgent(
             name=self._config["name"],
             sub_agents=built_children,
+        )
+
+
+# ======================================================================
+# Primitive: tap (observe without mutating)
+# ======================================================================
+
+_tap_counter = itertools.count(1)
+
+
+def tap(fn: Callable) -> BuilderBase:
+    """Create a pure observation step. Reads state, runs side-effect, never mutates.
+
+    Usage:
+        pipeline = writer >> tap(lambda s: print(s["draft"])) >> reviewer
+    """
+    name = getattr(fn, "__name__", "_tap")
+    if not name.isidentifier():
+        name = f"tap_{next(_tap_counter)}"
+    return _TapBuilder(fn, name)
+
+
+class _TapBuilder(BuilderBase):
+    """Builder for a pure observation step. No state mutation, no LLM."""
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, fn_ref: Callable, step_name: str):
+        self._config: dict[str, Any] = {"name": step_name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._fn = fn_ref
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._fn = self._fn
+        return clone
+
+    def build(self):
+        from google.adk.agents.base_agent import BaseAgent
+
+        fn_ref = self._fn
+
+        class _TapAgent(BaseAgent):
+            """Zero-cost observation agent. No LLM call, no state mutation."""
+            async def _run_async_impl(self, ctx):
+                fn_ref(dict(ctx.session.state))
+                # Explicitly yield nothing — pure observation
+
+        return _TapAgent(name=self._config["name"])
+
+
+# ======================================================================
+# Primitive: expect (typed state assertion)
+# ======================================================================
+
+_expect_counter = itertools.count(1)
+
+
+def expect(predicate: Callable, message: str = "State assertion failed") -> BuilderBase:
+    """Assert a state contract at this pipeline step. Raises ValueError if not met.
+
+    Usage:
+        pipeline = writer >> expect(lambda s: "draft" in s, "Draft must exist") >> reviewer
+    """
+    name = f"expect_{next(_expect_counter)}"
+
+    def _assert_fn(state: dict) -> dict:
+        if not predicate(state):
+            raise ValueError(message)
+        return {}
+
+    _assert_fn.__name__ = name
+    return _FnStepBuilder(_assert_fn, name)
+
+
+# ======================================================================
+# Primitive: map_over (iterate agent over list items)
+# ======================================================================
+
+_map_over_counter = itertools.count(1)
+
+
+def map_over(key: str, agent, *, item_key: str = "_item", output_key: str = "summaries") -> BuilderBase:
+    """Iterate over a list in session state, running an agent for each item.
+
+    For each item in state[key], sets state[item_key] = item, runs the agent,
+    and collects results into state[output_key].
+
+    Usage:
+        map_over("items", summarizer, output_key="summaries")
+    """
+    name = f"map_over_{key}_{next(_map_over_counter)}"
+    return _MapOverBuilder(name, agent, key, item_key, output_key)
+
+
+class _MapOverBuilder(BuilderBase):
+    """Builder for iterating an agent over list items in state."""
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, name: str, agent, list_key: str, item_key: str, output_key: str):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._agent = agent
+        self._list_key = list_key
+        self._item_key = item_key
+        self._output_key = output_key
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._agent = self._agent
+        clone._list_key = self._list_key
+        clone._item_key = self._item_key
+        clone._output_key = self._output_key
+        return clone
+
+    def build(self):
+        from google.adk.agents.base_agent import BaseAgent
+
+        sub_agent = self._agent
+        if isinstance(sub_agent, BuilderBase):
+            sub_agent = sub_agent.build()
+
+        list_key = self._list_key
+        item_key = self._item_key
+        output_key = self._output_key
+
+        class _MapOverAgent(BaseAgent):
+            """Iterates sub-agent over each item in a state list."""
+            async def _run_async_impl(self, ctx):
+                items = ctx.session.state.get(list_key, [])
+                results = []
+                for item in items:
+                    ctx.session.state[item_key] = item
+                    async for event in self.sub_agents[0].run_async(ctx):
+                        yield event
+                    # Collect result after sub-agent runs
+                    result_val = ctx.session.state.get(item_key, None)
+                    results.append(result_val)
+                ctx.session.state[output_key] = results
+
+        return _MapOverAgent(
+            name=self._config["name"],
+            sub_agents=[sub_agent],
+        )
+
+
+# ======================================================================
+# Primitive: timeout (time-bound agent execution)
+# ======================================================================
+
+_timeout_counter = itertools.count(1)
+
+
+class _TimeoutBuilder(BuilderBase):
+    """Builder that wraps an agent with a time limit."""
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, name: str, agent, seconds: float):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._agent = agent
+        self._seconds = seconds
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._agent = self._agent
+        clone._seconds = self._seconds
+        return clone
+
+    def build(self):
+        import asyncio
+        from google.adk.agents.base_agent import BaseAgent
+
+        sub_agent = self._agent
+        if isinstance(sub_agent, BuilderBase):
+            sub_agent = sub_agent.build()
+
+        seconds = self._seconds
+
+        class _TimeoutAgent(BaseAgent):
+            """Wraps a sub-agent with a time limit."""
+            async def _run_async_impl(self, ctx):
+                import asyncio
+                queue = asyncio.Queue()
+                sentinel = object()
+
+                async def _consume():
+                    async for event in self.sub_agents[0].run_async(ctx):
+                        await queue.put(event)
+                    await queue.put(sentinel)
+
+                task = asyncio.create_task(_consume())
+                try:
+                    deadline = asyncio.get_event_loop().time() + seconds
+                    while True:
+                        remaining = deadline - asyncio.get_event_loop().time()
+                        if remaining <= 0:
+                            raise asyncio.TimeoutError(
+                                f"Agent '{self.sub_agents[0].name}' exceeded {seconds}s timeout"
+                            )
+                        item = await asyncio.wait_for(queue.get(), timeout=remaining)
+                        if item is sentinel:
+                            break
+                        yield item
+                except asyncio.TimeoutError:
+                    task.cancel()
+                    raise
+                finally:
+                    if not task.done():
+                        task.cancel()
+
+        return _TimeoutAgent(
+            name=self._config["name"],
+            sub_agents=[sub_agent],
+        )
+
+
+# ======================================================================
+# Primitive: gate (human-in-the-loop approval)
+# ======================================================================
+
+_gate_counter = itertools.count(1)
+
+
+def gate(predicate: Callable, *, message: str = "Approval required", gate_key: str | None = None) -> BuilderBase:
+    """Create a human-in-the-loop approval gate.
+
+    When predicate(state) is True, pauses the pipeline by escalating.
+    Sets state flags so the outer runner knows approval is pending.
+    On re-run with state[gate_key + '_approved'] = True, proceeds.
+
+    Usage:
+        gate(lambda s: s.get("risk") == "high", message="Approve high-risk action?")
+    """
+    name = f"gate_{next(_gate_counter)}"
+    if gate_key is None:
+        gate_key = f"_{name}"
+    return _GateBuilder(name, predicate, message, gate_key)
+
+
+class _GateBuilder(BuilderBase):
+    """Builder for a human-in-the-loop approval gate."""
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, name: str, predicate: Callable, message: str, gate_key: str):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._predicate = predicate
+        self._message = message
+        self._gate_key = gate_key
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._predicate = self._predicate
+        clone._message = self._message
+        clone._gate_key = self._gate_key
+        return clone
+
+    def build(self):
+        from google.adk.agents.base_agent import BaseAgent
+        from google.adk.events.event import Event
+        from google.adk.events.event_actions import EventActions
+        from google.genai import types
+
+        predicate = self._predicate
+        message = self._message
+        gate_key = self._gate_key
+        approved_key = f"{gate_key}_approved"
+
+        class _GateAgent(BaseAgent):
+            """Human-in-the-loop approval gate."""
+            async def _run_async_impl(self, ctx):
+                state = ctx.session.state
+                try:
+                    needs_gate = predicate(state)
+                except (KeyError, TypeError, ValueError):
+                    needs_gate = False
+
+                if not needs_gate:
+                    return  # Condition not met, proceed
+
+                if state.get(approved_key):
+                    # Already approved, clear and proceed
+                    state[approved_key] = False
+                    state[gate_key] = False
+                    return
+
+                # Need approval: set flag and escalate
+                state[gate_key] = True
+                state[f"{gate_key}_message"] = message
+                yield Event(
+                    invocation_id=ctx.invocation_id,
+                    author=self.name,
+                    branch=ctx.branch,
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text=message)]
+                    ),
+                    actions=EventActions(escalate=True),
+                )
+
+        return _GateAgent(name=self._config["name"])
+
+
+# ======================================================================
+# Primitive: race (first-to-finish wins)
+# ======================================================================
+
+
+def race(*agents) -> BuilderBase:
+    """Run agents concurrently, keep only the first to finish.
+
+    Usage:
+        result = race(fast_agent, slow_agent, alternative_agent)
+    """
+    names = []
+    for a in agents:
+        if hasattr(a, '_config'):
+            names.append(a._config.get("name", "?"))
+        else:
+            names.append("?")
+    name = "race_" + "_".join(names)
+    return _RaceBuilder(name, list(agents))
+
+
+class _RaceBuilder(BuilderBase):
+    """Builder for a race: first sub-agent to finish wins."""
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, name: str, agents: list):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._agents = agents
+
+    def _clone_shallow(self) -> BuilderBase:
+        clone = super()._clone_shallow()
+        clone._agents = list(self._agents)
+        return clone
+
+    def build(self):
+        import asyncio
+        from google.adk.agents.base_agent import BaseAgent
+
+        built_agents = []
+        for a in self._agents:
+            if isinstance(a, BuilderBase):
+                built_agents.append(a.build())
+            else:
+                built_agents.append(a)
+
+        class _RaceAgent(BaseAgent):
+            """Runs sub-agents concurrently, keeps first to finish."""
+            async def _run_async_impl(self, ctx):
+                import asyncio
+
+                async def _run_one(agent):
+                    events = []
+                    async for event in agent.run_async(ctx):
+                        events.append(event)
+                    return events
+
+                tasks = {
+                    asyncio.create_task(_run_one(agent)): i
+                    for i, agent in enumerate(self.sub_agents)
+                }
+
+                try:
+                    done, pending = await asyncio.wait(
+                        tasks.keys(), return_when=asyncio.FIRST_COMPLETED
+                    )
+                    # Cancel remaining
+                    for task in pending:
+                        task.cancel()
+
+                    # Yield events from the winner
+                    winner = done.pop()
+                    for event in winner.result():
+                        yield event
+                finally:
+                    for task in tasks:
+                        if not task.done():
+                            task.cancel()
+
+        return _RaceAgent(
+            name=self._config["name"],
+            sub_agents=built_agents,
         )

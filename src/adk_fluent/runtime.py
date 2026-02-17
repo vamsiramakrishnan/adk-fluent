@@ -30,9 +30,34 @@ class App(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def plugins(self, value: list[BasePlugin]) -> Self:
+        """Set the ``plugins`` field."""
+        self._config["plugins"] = value
+        return self
+
+
+    def events_compaction_config(self, value: Union[EventsCompactionConfig, NoneType]) -> Self:
+        """Set the ``events_compaction_config`` field."""
+        self._config["events_compaction_config"] = value
+        return self
+
+
+    def context_cache_config(self, value: Union[ContextCacheConfig, NoneType]) -> Self:
+        """Set the ``context_cache_config`` field."""
+        self._config["context_cache_config"] = value
+        return self
+
+
+    def resumability_config(self, value: Union[ResumabilityConfig, NoneType]) -> Self:
+        """Set the ``resumability_config`` field."""
+        self._config["resumability_config"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_App.model_fields for zero-maintenance compatibility."""
@@ -95,7 +120,7 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'plugin_close_timeout', 'plugins', 'app_name', 'app', 'agent'}
+    _KNOWN_PARAMS: set[str] = {'agent', 'app', 'plugins', 'plugin_close_timeout', 'app_name'}
 
 
     def __init__(self, ) -> None:
@@ -107,9 +132,40 @@ class InMemoryRunner(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def agent(self, value: Optional[BaseAgent]) -> Self:
+        """Set the ``agent`` field."""
+        self._config["agent"] = value
+        return self
+
+
+    def app_name(self, value: Optional[str]) -> Self:
+        """Set the ``app_name`` field."""
+        self._config["app_name"] = value
+        return self
+
+
+    def plugins(self, value: Optional[list[BasePlugin]]) -> Self:
+        """Set the ``plugins`` field."""
+        self._config["plugins"] = value
+        return self
+
+
+    def app(self, value: Optional[App]) -> Self:
+        """Set the ``app`` field."""
+        self._config["app"] = value
+        return self
+
+
+    def plugin_close_timeout(self, value: float) -> Self:
+        """Set the ``plugin_close_timeout`` field."""
+        self._config["plugin_close_timeout"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_InMemoryRunner init params for zero-maintenance compatibility."""
@@ -173,7 +229,7 @@ class Runner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'session_service', 'credential_service', 'plugin_close_timeout', 'plugins', 'app_name', 'artifact_service', 'memory_service', 'auto_create_session', 'app', 'agent'}
+    _KNOWN_PARAMS: set[str] = {'agent', 'artifact_service', 'session_service', 'credential_service', 'app', 'memory_service', 'auto_create_session', 'plugins', 'plugin_close_timeout', 'app_name'}
 
 
     def __init__(self, session_service: str) -> None:
@@ -185,9 +241,64 @@ class Runner(BuilderBase):
 
     # --- Additive callback methods ---
 
+    # --- Explicit field methods ---
+
+    def app(self, value: Optional[App]) -> Self:
+        """Set the ``app`` field."""
+        self._config["app"] = value
+        return self
+
+
+    def app_name(self, value: Optional[str]) -> Self:
+        """Set the ``app_name`` field."""
+        self._config["app_name"] = value
+        return self
+
+
+    def agent(self, value: Optional[BaseAgent]) -> Self:
+        """Set the ``agent`` field."""
+        self._config["agent"] = value
+        return self
+
+
+    def plugins(self, value: Optional[List[BasePlugin]]) -> Self:
+        """Set the ``plugins`` field."""
+        self._config["plugins"] = value
+        return self
+
+
+    def artifact_service(self, value: Optional[BaseArtifactService]) -> Self:
+        """Set the ``artifact_service`` field."""
+        self._config["artifact_service"] = value
+        return self
+
+
+    def memory_service(self, value: Optional[BaseMemoryService]) -> Self:
+        """Set the ``memory_service`` field."""
+        self._config["memory_service"] = value
+        return self
+
+
+    def credential_service(self, value: Optional[BaseCredentialService]) -> Self:
+        """Set the ``credential_service`` field."""
+        self._config["credential_service"] = value
+        return self
+
+
+    def plugin_close_timeout(self, value: float) -> Self:
+        """Set the ``plugin_close_timeout`` field."""
+        self._config["plugin_close_timeout"] = value
+        return self
+
+
+    def auto_create_session(self, value: bool) -> Self:
+        """Set the ``auto_create_session`` field."""
+        self._config["auto_create_session"] = value
+        return self
+
     # --- Extra methods ---
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to _ADK_Runner init params for zero-maintenance compatibility."""

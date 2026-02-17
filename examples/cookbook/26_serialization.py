@@ -1,4 +1,4 @@
-"""Serialization: to_dict, from_dict, to_yaml"""
+"""Serialization: to_dict, to_yaml (Inspection Only)"""
 
 # --- NATIVE ---
 # Native ADK agents are Pydantic models with model_dump(), but this
@@ -15,17 +15,11 @@ agent = (
     .output_key("category")
 )
 
-# Serialize to dict
+# Serialize to dict (inspection only -- callables can't round-trip)
 data = agent.to_dict()
-
-# Reconstruct from dict (config only, not callables)
-restored = Agent.from_dict(data)
 
 # Serialize to YAML
 yaml_str = agent.to_yaml()
-
-# Reconstruct from YAML
-from_yaml = Agent.from_yaml(yaml_str)
 
 # --- ASSERT ---
 # to_dict produces expected structure
@@ -35,11 +29,15 @@ assert data["config"]["model"] == "gemini-2.5-flash"
 assert data["config"]["instruction"] == "Classify inputs into categories."
 assert data["config"]["output_key"] == "category"
 
-# from_dict restores config
-assert restored._config["name"] == "classifier"
-assert restored._config["model"] == "gemini-2.5-flash"
+# Internal fields are excluded
+agent._config["_internal"] = "secret"
+clean = agent.to_dict()
+assert "_internal" not in clean["config"]
 
-# YAML roundtrip
+# YAML contains the config
 assert "classifier" in yaml_str
 assert "gemini-2.5-flash" in yaml_str
-assert from_yaml._config["name"] == "classifier"
+
+# from_dict and from_yaml were removed: callables can't round-trip
+assert not hasattr(Agent, "from_dict")
+assert not hasattr(Agent, "from_yaml")

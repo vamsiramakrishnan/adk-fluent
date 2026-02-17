@@ -1,5 +1,5 @@
 """
-Serialization: to_dict, from_dict, to_yaml
+Serialization: to_dict, to_yaml (Inspection Only)
 
 Converted from cookbook example: 26_serialization.py
 
@@ -20,16 +20,10 @@ agent = (
     .output_key("category")
 )
 
-# Serialize to dict
+# Serialize to dict (inspection only -- callables can't round-trip)
 data = agent.to_dict()
-
-# Reconstruct from dict (config only, not callables)
-restored = Agent.from_dict(data)
 
 # Serialize to YAML
 yaml_str = agent.to_yaml()
-
-# Reconstruct from YAML
-from_yaml = Agent.from_yaml(yaml_str)
 
 root_agent = agent.build()

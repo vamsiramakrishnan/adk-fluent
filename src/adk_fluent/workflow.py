@@ -62,6 +62,19 @@ class Loop(BuilderBase):
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
+    # --- Explicit field methods ---
+
+    def sub_agents(self, value: list[BaseAgent]) -> Self:
+        """Set the ``sub_agents`` field."""
+        self._config["sub_agents"] = value
+        return self
+
+
+    def max_iterations(self, value: Union[int, NoneType]) -> Self:
+        """Set the ``max_iterations`` field."""
+        self._config["max_iterations"] = value
+        return self
+
     # --- Extra methods ---
 
     def step(self, agent: BaseAgent | AgentBuilder) -> Self:
@@ -69,7 +82,7 @@ class Loop(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to LoopAgent.model_fields for zero-maintenance compatibility."""
@@ -175,6 +188,13 @@ class FanOut(BuilderBase):
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
+    # --- Explicit field methods ---
+
+    def sub_agents(self, value: list[BaseAgent]) -> Self:
+        """Set the ``sub_agents`` field."""
+        self._config["sub_agents"] = value
+        return self
+
     # --- Extra methods ---
 
     def branch(self, agent: BaseAgent | AgentBuilder) -> Self:
@@ -182,7 +202,7 @@ class FanOut(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to ParallelAgent.model_fields for zero-maintenance compatibility."""
@@ -288,6 +308,13 @@ class Pipeline(BuilderBase):
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
+    # --- Explicit field methods ---
+
+    def sub_agents(self, value: list[BaseAgent]) -> Self:
+        """Set the ``sub_agents`` field."""
+        self._config["sub_agents"] = value
+        return self
+
     # --- Extra methods ---
 
     def step(self, agent: BaseAgent | AgentBuilder) -> Self:
@@ -295,7 +322,7 @@ class Pipeline(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
-    # --- Dynamic field forwarding ---
+    # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):
         """Forward unknown methods to SequentialAgent.model_fields for zero-maintenance compatibility."""
