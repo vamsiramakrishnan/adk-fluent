@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.agents.active_streaming_tool import ActiveStreamingTool as _ADK_ActiveStreamingTool
 from google.adk.tools.agent_tool import AgentTool as _ADK_AgentTool
 from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset as _ADK_APIHubToolset
@@ -59,7 +60,7 @@ from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool as _ADK_Ve
 # Builder: ActiveStreamingTool
 # ======================================================================
 
-class ActiveStreamingTool:
+class ActiveStreamingTool(BuilderBase):
     """Manages streaming tool related resources during invocation."""
 
     # --- Class-level alias / field maps ---
@@ -149,7 +150,7 @@ class ActiveStreamingTool:
 # Builder: AgentTool
 # ======================================================================
 
-class AgentTool:
+class AgentTool(BuilderBase):
     """A tool that wraps an agent."""
 
     # --- Class-level alias / field maps ---
@@ -241,14 +242,14 @@ class AgentTool:
 # Builder: APIHubToolset
 # ======================================================================
 
-class APIHubToolset:
+class APIHubToolset(BuilderBase):
     """APIHubTool generates tools from a given API Hub resource."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'access_token', 'description', 'auth_credential', 'auth_scheme', 'apihub_resource_name', 'name', 'tool_filter', 'lazy_load_spec', 'apihub_client', 'service_account_json'}
+    _KNOWN_PARAMS: set[str] = {'name', 'access_token', 'apihub_client', 'auth_credential', 'apihub_resource_name', 'tool_filter', 'service_account_json', 'description', 'auth_scheme', 'lazy_load_spec'}
 
 
     def __init__(self, apihub_resource_name: str) -> None:
@@ -333,14 +334,14 @@ class APIHubToolset:
 # Builder: ApplicationIntegrationToolset
 # ======================================================================
 
-class ApplicationIntegrationToolset:
+class ApplicationIntegrationToolset(BuilderBase):
     """ApplicationIntegrationToolset generates tools from a given Application."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'project', 'location', 'tool_instructions', 'auth_credential', 'auth_scheme', 'connection', 'tool_filter', 'actions', 'connection_template_override', 'entity_operations', 'tool_name_prefix', 'triggers', 'service_account_json', 'integration'}
+    _KNOWN_PARAMS: set[str] = {'connection', 'connection_template_override', 'entity_operations', 'tool_instructions', 'project', 'auth_credential', 'actions', 'integration', 'service_account_json', 'tool_filter', 'triggers', 'location', 'auth_scheme', 'tool_name_prefix'}
 
 
     def __init__(self, project: str, location: str) -> None:
@@ -425,14 +426,14 @@ class ApplicationIntegrationToolset:
 # Builder: IntegrationConnectorTool
 # ======================================================================
 
-class IntegrationConnectorTool:
+class IntegrationConnectorTool(BuilderBase):
     """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'rest_api_tool', 'entity', 'description', 'auth_credential', 'auth_scheme', 'connection_service_name', 'name', 'action', 'connection_host', 'operation', 'connection_name'}
+    _KNOWN_PARAMS: set[str] = {'entity', 'rest_api_tool', 'connection_host', 'name', 'operation', 'auth_credential', 'action', 'connection_service_name', 'description', 'auth_scheme', 'connection_name'}
 
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
@@ -517,14 +518,14 @@ class IntegrationConnectorTool:
 # Builder: BaseAuthenticatedTool
 # ======================================================================
 
-class BaseAuthenticatedTool:
+class BaseAuthenticatedTool(BuilderBase):
     """A base tool class that handles authentication before the actual tool logic."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'response_for_auth_required', 'auth_config', 'name', 'description'}
+    _KNOWN_PARAMS: set[str] = {'name', 'description', 'auth_config', 'response_for_auth_required'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -609,14 +610,14 @@ class BaseAuthenticatedTool:
 # Builder: BaseTool
 # ======================================================================
 
-class BaseTool:
+class BaseTool(BuilderBase):
     """The base class for all tools."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'custom_metadata', 'name', 'is_long_running', 'description'}
+    _KNOWN_PARAMS: set[str] = {'name', 'description', 'is_long_running', 'custom_metadata'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -701,7 +702,7 @@ class BaseTool:
 # Builder: BaseToolset
 # ======================================================================
 
-class BaseToolset:
+class BaseToolset(BuilderBase):
     """Base class for toolset."""
 
     # --- Class-level alias / field maps ---
@@ -793,14 +794,14 @@ class BaseToolset:
 # Builder: BigQueryToolset
 # ======================================================================
 
-class BigQueryToolset:
+class BigQueryToolset(BuilderBase):
     """BigQuery Toolset contains tools for interacting with BigQuery data and metadata."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'bigquery_tool_config', 'tool_filter', 'credentials_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'bigquery_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -885,14 +886,14 @@ class BigQueryToolset:
 # Builder: BigtableToolset
 # ======================================================================
 
-class BigtableToolset:
+class BigtableToolset(BuilderBase):
     """Bigtable Toolset contains tools for interacting with Bigtable data and metadata."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'bigtable_tool_settings', 'tool_filter', 'credentials_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'bigtable_tool_settings'}
 
 
     def __init__(self, ) -> None:
@@ -977,14 +978,14 @@ class BigtableToolset:
 # Builder: ComputerUseTool
 # ======================================================================
 
-class ComputerUseTool:
+class ComputerUseTool(BuilderBase):
     """A tool that wraps computer control functions for use with LLMs."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'func', 'screen_size', 'virtual_screen_size'}
+    _KNOWN_PARAMS: set[str] = {'screen_size', 'virtual_screen_size', 'func'}
 
 
     def __init__(self, func: str, screen_size: str) -> None:
@@ -1069,7 +1070,7 @@ class ComputerUseTool:
 # Builder: ComputerUseToolset
 # ======================================================================
 
-class ComputerUseToolset:
+class ComputerUseToolset(BuilderBase):
     """Fluent builder for ComputerUseToolset."""
 
     # --- Class-level alias / field maps ---
@@ -1161,14 +1162,14 @@ class ComputerUseToolset:
 # Builder: DataAgentToolset
 # ======================================================================
 
-class DataAgentToolset:
+class DataAgentToolset(BuilderBase):
     """Data Agent Toolset contains tools for interacting with data agents."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'data_agent_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'data_agent_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -1253,14 +1254,14 @@ class DataAgentToolset:
 # Builder: DiscoveryEngineSearchTool
 # ======================================================================
 
-class DiscoveryEngineSearchTool:
+class DiscoveryEngineSearchTool(BuilderBase):
     """Tool for searching the discovery engine."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'max_results', 'filter', 'data_store_id', 'data_store_specs'}
+    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'filter', 'data_store_id', 'data_store_specs', 'max_results'}
 
 
     def __init__(self, ) -> None:
@@ -1345,7 +1346,7 @@ class DiscoveryEngineSearchTool:
 # Builder: EnterpriseWebSearchTool
 # ======================================================================
 
-class EnterpriseWebSearchTool:
+class EnterpriseWebSearchTool(BuilderBase):
     """A Gemini 2+ built-in tool using web grounding for Enterprise compliance."""
 
     # --- Class-level alias / field maps ---
@@ -1437,7 +1438,7 @@ class EnterpriseWebSearchTool:
 # Builder: ExampleTool
 # ======================================================================
 
-class ExampleTool:
+class ExampleTool(BuilderBase):
     """A tool that adds (few-shot) examples to the LLM request."""
 
     # --- Class-level alias / field maps ---
@@ -1529,7 +1530,7 @@ class ExampleTool:
 # Builder: FunctionTool
 # ======================================================================
 
-class FunctionTool:
+class FunctionTool(BuilderBase):
     """A tool that wraps a user-defined Python function."""
 
     # --- Class-level alias / field maps ---
@@ -1621,14 +1622,14 @@ class FunctionTool:
 # Builder: GoogleApiTool
 # ======================================================================
 
-class GoogleApiTool:
+class GoogleApiTool(BuilderBase):
     """Fluent builder for GoogleApiTool."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'rest_api_tool', 'additional_headers', 'client_id', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'rest_api_tool', 'additional_headers', 'client_secret', 'service_account', 'client_id'}
 
 
     def __init__(self, rest_api_tool: str) -> None:
@@ -1713,14 +1714,14 @@ class GoogleApiTool:
 # Builder: GoogleApiToolset
 # ======================================================================
 
-class GoogleApiToolset:
+class GoogleApiToolset(BuilderBase):
     """Google API Toolset contains tools for interacting with Google APIs."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'api_name', 'additional_headers', 'client_id', 'tool_filter', 'client_secret', 'service_account', 'tool_name_prefix', 'api_version'}
+    _KNOWN_PARAMS: set[str] = {'api_version', 'additional_headers', 'tool_filter', 'client_secret', 'service_account', 'api_name', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, api_name: str, api_version: str) -> None:
@@ -1805,14 +1806,14 @@ class GoogleApiToolset:
 # Builder: CalendarToolset
 # ======================================================================
 
-class CalendarToolset:
+class CalendarToolset(BuilderBase):
     """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'client_id', 'tool_filter', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'client_secret', 'service_account', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -1897,14 +1898,14 @@ class CalendarToolset:
 # Builder: DocsToolset
 # ======================================================================
 
-class DocsToolset:
+class DocsToolset(BuilderBase):
     """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'client_id', 'tool_filter', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'client_secret', 'service_account', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -1989,14 +1990,14 @@ class DocsToolset:
 # Builder: GmailToolset
 # ======================================================================
 
-class GmailToolset:
+class GmailToolset(BuilderBase):
     """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'client_id', 'tool_filter', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'client_secret', 'service_account', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -2081,14 +2082,14 @@ class GmailToolset:
 # Builder: SheetsToolset
 # ======================================================================
 
-class SheetsToolset:
+class SheetsToolset(BuilderBase):
     """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'client_id', 'tool_filter', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'client_secret', 'service_account', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -2173,14 +2174,14 @@ class SheetsToolset:
 # Builder: SlidesToolset
 # ======================================================================
 
-class SlidesToolset:
+class SlidesToolset(BuilderBase):
     """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'client_id', 'tool_filter', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'client_secret', 'service_account', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -2265,14 +2266,14 @@ class SlidesToolset:
 # Builder: YoutubeToolset
 # ======================================================================
 
-class YoutubeToolset:
+class YoutubeToolset(BuilderBase):
     """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'client_id', 'tool_filter', 'client_secret', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'client_secret', 'service_account', 'client_id', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -2357,7 +2358,7 @@ class YoutubeToolset:
 # Builder: GoogleMapsGroundingTool
 # ======================================================================
 
-class GoogleMapsGroundingTool:
+class GoogleMapsGroundingTool(BuilderBase):
     """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps."""
 
     # --- Class-level alias / field maps ---
@@ -2449,7 +2450,7 @@ class GoogleMapsGroundingTool:
 # Builder: GoogleSearchAgentTool
 # ======================================================================
 
-class GoogleSearchAgentTool:
+class GoogleSearchAgentTool(BuilderBase):
     """A tool that wraps a sub-agent that only uses google_search tool."""
 
     # --- Class-level alias / field maps ---
@@ -2541,7 +2542,7 @@ class GoogleSearchAgentTool:
 # Builder: GoogleSearchTool
 # ======================================================================
 
-class GoogleSearchTool:
+class GoogleSearchTool(BuilderBase):
     """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search."""
 
     # --- Class-level alias / field maps ---
@@ -2633,14 +2634,14 @@ class GoogleSearchTool:
 # Builder: GoogleTool
 # ======================================================================
 
-class GoogleTool:
+class GoogleTool(BuilderBase):
     """GoogleTool class for tools that call Google APIs."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'func', 'credentials_config', 'tool_settings'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_settings', 'func'}
 
 
     def __init__(self, func: str) -> None:
@@ -2725,7 +2726,7 @@ class GoogleTool:
 # Builder: LoadArtifactsTool
 # ======================================================================
 
-class LoadArtifactsTool:
+class LoadArtifactsTool(BuilderBase):
     """A tool that loads the artifacts and adds them to the session."""
 
     # --- Class-level alias / field maps ---
@@ -2817,7 +2818,7 @@ class LoadArtifactsTool:
 # Builder: LoadMcpResourceTool
 # ======================================================================
 
-class LoadMcpResourceTool:
+class LoadMcpResourceTool(BuilderBase):
     """A tool that loads the MCP resources and adds them to the session."""
 
     # --- Class-level alias / field maps ---
@@ -2909,7 +2910,7 @@ class LoadMcpResourceTool:
 # Builder: LoadMemoryTool
 # ======================================================================
 
-class LoadMemoryTool:
+class LoadMemoryTool(BuilderBase):
     """A tool that loads the memory for the current user."""
 
     # --- Class-level alias / field maps ---
@@ -3001,7 +3002,7 @@ class LoadMemoryTool:
 # Builder: LongRunningFunctionTool
 # ======================================================================
 
-class LongRunningFunctionTool:
+class LongRunningFunctionTool(BuilderBase):
     """A function tool that returns the result asynchronously."""
 
     # --- Class-level alias / field maps ---
@@ -3093,7 +3094,7 @@ class LongRunningFunctionTool:
 # Builder: MCPTool
 # ======================================================================
 
-class MCPTool:
+class MCPTool(BuilderBase):
     """Deprecated name, use `McpTool` instead."""
 
     # --- Class-level alias / field maps ---
@@ -3185,14 +3186,14 @@ class MCPTool:
 # Builder: McpTool
 # ======================================================================
 
-class McpTool:
+class McpTool(BuilderBase):
     """Turns an MCP Tool into an ADK Tool."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auth_credential', 'auth_scheme', 'mcp_tool', 'header_provider', 'progress_callback', 'require_confirmation', 'mcp_session_manager'}
+    _KNOWN_PARAMS: set[str] = {'mcp_session_manager', 'auth_credential', 'progress_callback', 'header_provider', 'mcp_tool', 'require_confirmation', 'auth_scheme'}
 
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
@@ -3277,7 +3278,7 @@ class McpTool:
 # Builder: MCPToolset
 # ======================================================================
 
-class MCPToolset:
+class MCPToolset(BuilderBase):
     """Deprecated name, use `McpToolset` instead."""
 
     # --- Class-level alias / field maps ---
@@ -3369,14 +3370,14 @@ class MCPToolset:
 # Builder: McpToolset
 # ======================================================================
 
-class McpToolset:
+class McpToolset(BuilderBase):
     """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auth_credential', 'auth_scheme', 'tool_name_prefix', 'tool_filter', 'header_provider', 'progress_callback', 'require_confirmation', 'use_mcp_resources', 'connection_params', 'errlog'}
+    _KNOWN_PARAMS: set[str] = {'use_mcp_resources', 'auth_credential', 'tool_filter', 'progress_callback', 'header_provider', 'errlog', 'connection_params', 'require_confirmation', 'auth_scheme', 'tool_name_prefix'}
 
 
     def __init__(self, connection_params: str) -> None:
@@ -3461,14 +3462,14 @@ class McpToolset:
 # Builder: OpenAPIToolset
 # ======================================================================
 
-class OpenAPIToolset:
+class OpenAPIToolset(BuilderBase):
     """Class for parsing OpenAPI spec into a list of RestApiTool."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'spec_str', 'auth_credential', 'credential_key', 'auth_scheme', 'spec_str_type', 'tool_filter', 'tool_name_prefix', 'header_provider', 'spec_dict', 'ssl_verify'}
+    _KNOWN_PARAMS: set[str] = {'spec_dict', 'auth_credential', 'credential_key', 'spec_str', 'spec_str_type', 'tool_filter', 'ssl_verify', 'header_provider', 'auth_scheme', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -3553,14 +3554,14 @@ class OpenAPIToolset:
 # Builder: RestApiTool
 # ======================================================================
 
-class RestApiTool:
+class RestApiTool(BuilderBase):
     """A generic tool that interacts with a REST API."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'should_parse_operation', 'description', 'auth_credential', 'credential_key', 'auth_scheme', 'name', 'endpoint', 'header_provider', 'operation', 'ssl_verify'}
+    _KNOWN_PARAMS: set[str] = {'name', 'endpoint', 'operation', 'auth_credential', 'credential_key', 'ssl_verify', 'should_parse_operation', 'header_provider', 'description', 'auth_scheme'}
 
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
@@ -3645,7 +3646,7 @@ class RestApiTool:
 # Builder: PreloadMemoryTool
 # ======================================================================
 
-class PreloadMemoryTool:
+class PreloadMemoryTool(BuilderBase):
     """A tool that preloads the memory for the current user."""
 
     # --- Class-level alias / field maps ---
@@ -3737,14 +3738,14 @@ class PreloadMemoryTool:
 # Builder: PubSubToolset
 # ======================================================================
 
-class PubSubToolset:
+class PubSubToolset(BuilderBase):
     """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'pubsub_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'pubsub_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -3829,14 +3830,14 @@ class PubSubToolset:
 # Builder: BaseRetrievalTool
 # ======================================================================
 
-class BaseRetrievalTool:
+class BaseRetrievalTool(BuilderBase):
     """Fluent builder for BaseRetrievalTool."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'custom_metadata', 'name', 'is_long_running', 'description'}
+    _KNOWN_PARAMS: set[str] = {'name', 'description', 'is_long_running', 'custom_metadata'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -3921,7 +3922,7 @@ class BaseRetrievalTool:
 # Builder: SetModelResponseTool
 # ======================================================================
 
-class SetModelResponseTool:
+class SetModelResponseTool(BuilderBase):
     """Internal tool used for output schema workaround."""
 
     # --- Class-level alias / field maps ---
@@ -4013,7 +4014,7 @@ class SetModelResponseTool:
 # Builder: LoadSkillResourceTool
 # ======================================================================
 
-class LoadSkillResourceTool:
+class LoadSkillResourceTool(BuilderBase):
     """Tool to load resources (references or assets) from a skill."""
 
     # --- Class-level alias / field maps ---
@@ -4105,7 +4106,7 @@ class LoadSkillResourceTool:
 # Builder: LoadSkillTool
 # ======================================================================
 
-class LoadSkillTool:
+class LoadSkillTool(BuilderBase):
     """Tool to load a skill's instructions."""
 
     # --- Class-level alias / field maps ---
@@ -4197,7 +4198,7 @@ class LoadSkillTool:
 # Builder: SkillToolset
 # ======================================================================
 
-class SkillToolset:
+class SkillToolset(BuilderBase):
     """A toolset for managing and interacting with agent skills."""
 
     # --- Class-level alias / field maps ---
@@ -4289,14 +4290,14 @@ class SkillToolset:
 # Builder: SpannerToolset
 # ======================================================================
 
-class SpannerToolset:
+class SpannerToolset(BuilderBase):
     """Spanner Toolset contains tools for interacting with Spanner data, database and table information."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'spanner_tool_settings', 'tool_filter', 'credentials_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'spanner_tool_settings', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -4381,14 +4382,14 @@ class SpannerToolset:
 # Builder: ToolboxToolset
 # ======================================================================
 
-class ToolboxToolset:
+class ToolboxToolset(BuilderBase):
     """A class that provides access to toolbox toolsets."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'toolset_name', 'bound_params', 'additional_headers', 'server_url', 'tool_names', 'auth_token_getters', 'credentials'}
+    _KNOWN_PARAMS: set[str] = {'auth_token_getters', 'additional_headers', 'server_url', 'bound_params', 'tool_names', 'toolset_name', 'credentials'}
 
 
     def __init__(self, server_url: str, kwargs: str) -> None:
@@ -4473,7 +4474,7 @@ class ToolboxToolset:
 # Builder: TransferToAgentTool
 # ======================================================================
 
-class TransferToAgentTool:
+class TransferToAgentTool(BuilderBase):
     """A specialized FunctionTool for agent transfer with enum constraints."""
 
     # --- Class-level alias / field maps ---
@@ -4565,7 +4566,7 @@ class TransferToAgentTool:
 # Builder: UrlContextTool
 # ======================================================================
 
-class UrlContextTool:
+class UrlContextTool(BuilderBase):
     """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response."""
 
     # --- Class-level alias / field maps ---
@@ -4657,14 +4658,14 @@ class UrlContextTool:
 # Builder: VertexAiSearchTool
 # ======================================================================
 
-class VertexAiSearchTool:
+class VertexAiSearchTool(BuilderBase):
     """A built-in tool using Vertex AI Search."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'bypass_multi_tools_limit', 'search_engine_id', 'max_results', 'filter', 'data_store_id', 'data_store_specs'}
+    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'bypass_multi_tools_limit', 'filter', 'data_store_id', 'data_store_specs', 'max_results'}
 
 
     def __init__(self, ) -> None:

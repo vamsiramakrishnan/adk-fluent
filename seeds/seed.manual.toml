@@ -1,0 +1,113 @@
+# =============================================================================
+# MANUAL SEED OVERRIDES
+# =============================================================================
+# This file contains hand-curated extras and configuration that should NOT be
+# overwritten by `just seed`. The seed_generator merges this file into the
+# auto-generated seed.toml via the --merge flag.
+#
+# Sections:
+#   [renames]         - Builder name overrides (e.g. LlmAgent -> Agent)
+#   [[builders.X.extras]] - Manual extra methods per builder
+#   [[manual_exports]] - Extra imports appended to __init__.py
+#
+
+# ---------------------------------------------------------------------------
+# BUILDER RENAMES
+# ---------------------------------------------------------------------------
+# Maps ADK class names to friendlier builder names.
+[renames]
+LlmAgent = "Agent"
+SequentialAgent = "Pipeline"
+ParallelAgent = "FanOut"
+LoopAgent = "Loop"
+
+# ---------------------------------------------------------------------------
+# AGENT EXTRAS (Phase 1)
+# ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "guardrail"
+signature = "(self, fn: Callable) -> Self"
+doc = "Attach a guardrail function as both before_model and after_model callback."
+behavior = "dual_callback"
+target_fields = ["before_model_callback", "after_model_callback"]
+
+[[builders.Agent.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name. Independent config/callbacks/lists."
+behavior = "deep_copy"
+
+[[builders.Agent.extras]]
+name = "ask"
+signature = "(self, prompt: str) -> str"
+doc = "One-shot execution. Build agent, send prompt, return response text."
+behavior = "runtime_helper"
+helper_func = "run_one_shot"
+
+[[builders.Agent.extras]]
+name = "ask_async"
+signature = "(self, prompt: str) -> str"
+doc = "Async one-shot execution."
+behavior = "runtime_helper_async"
+helper_func = "run_one_shot_async"
+
+[[builders.Agent.extras]]
+name = "stream"
+signature = "(self, prompt: str) -> AsyncIterator[str]"
+doc = "Streaming execution. Yields response text chunks."
+behavior = "runtime_helper_async_gen"
+helper_func = "run_stream"
+
+[[builders.Agent.extras]]
+name = "test"
+signature = "(self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self"
+doc = "Run a smoke test. Calls .ask() internally, asserts output matches condition."
+behavior = "runtime_helper"
+helper_func = "run_inline_test"
+
+[[builders.Agent.extras]]
+name = "session"
+signature = "(self)"
+doc = "Create an interactive session context manager. Use with 'async with'."
+behavior = "runtime_helper_ctx"
+helper_func = "create_session"
+
+# ---------------------------------------------------------------------------
+# PIPELINE EXTRAS
+# ---------------------------------------------------------------------------
+
+[[builders.Pipeline.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name."
+behavior = "deep_copy"
+
+# ---------------------------------------------------------------------------
+# FANOUT EXTRAS
+# ---------------------------------------------------------------------------
+
+[[builders.FanOut.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name."
+behavior = "deep_copy"
+
+# ---------------------------------------------------------------------------
+# LOOP EXTRAS
+# ---------------------------------------------------------------------------
+
+[[builders.Loop.extras]]
+name = "clone"
+signature = "(self, new_name: str) -> Self"
+doc = "Deep-copy this builder with a new name."
+behavior = "deep_copy"
+
+# ---------------------------------------------------------------------------
+# MANUAL EXPORTS (appended to __init__.py)
+# ---------------------------------------------------------------------------
+
+[[manual_exports]]
+module = "._helpers"
+names = ["deep_clone_builder", "run_one_shot", "run_one_shot_async", "run_stream", "run_inline_test", "ChatSession", "create_session"]
+public = false

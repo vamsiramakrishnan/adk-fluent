@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.agents.loop_agent import LoopAgent
 from google.adk.agents.parallel_agent import ParallelAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -11,13 +12,13 @@ from google.adk.agents.sequential_agent import SequentialAgent
 # Builder: Loop
 # ======================================================================
 
-class Loop:
+class Loop(BuilderBase):
     """A shell agent that run its sub-agents in a loop."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -145,13 +146,13 @@ class Loop:
 # Builder: FanOut
 # ======================================================================
 
-class FanOut:
+class FanOut(BuilderBase):
     """A shell agent that runs its sub-agents in parallel in an isolated manner."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -279,13 +280,13 @@ class FanOut:
 # Builder: Pipeline
 # ======================================================================
 
-class Pipeline:
+class Pipeline(BuilderBase):
     """A shell agent that runs its sub-agents in sequence."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:

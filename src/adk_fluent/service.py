@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
 from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
 from google.adk.artifacts.gcs_artifact_service import GcsArtifactService as _ADK_GcsArtifactService
@@ -23,7 +24,7 @@ from google.adk.tools._forwarding_artifact_service import ForwardingArtifactServ
 # Builder: BaseArtifactService
 # ======================================================================
 
-class BaseArtifactService:
+class BaseArtifactService(BuilderBase):
     """Abstract base class for artifact services."""
 
     # --- Class-level alias / field maps ---
@@ -115,7 +116,7 @@ class BaseArtifactService:
 # Builder: FileArtifactService
 # ======================================================================
 
-class FileArtifactService:
+class FileArtifactService(BuilderBase):
     """Stores filesystem-backed artifacts beneath a configurable root directory."""
 
     # --- Class-level alias / field maps ---
@@ -207,7 +208,7 @@ class FileArtifactService:
 # Builder: GcsArtifactService
 # ======================================================================
 
-class GcsArtifactService:
+class GcsArtifactService(BuilderBase):
     """An artifact service implementation using Google Cloud Storage (GCS)."""
 
     # --- Class-level alias / field maps ---
@@ -299,7 +300,7 @@ class GcsArtifactService:
 # Builder: InMemoryArtifactService
 # ======================================================================
 
-class InMemoryArtifactService:
+class InMemoryArtifactService(BuilderBase):
     """An in-memory implementation of the artifact service."""
 
     # --- Class-level alias / field maps ---
@@ -389,7 +390,7 @@ class InMemoryArtifactService:
 # Builder: PerAgentDatabaseSessionService
 # ======================================================================
 
-class PerAgentDatabaseSessionService:
+class PerAgentDatabaseSessionService(BuilderBase):
     """Routes session storage to per-agent `.adk/session.db` files."""
 
     # --- Class-level alias / field maps ---
@@ -481,7 +482,7 @@ class PerAgentDatabaseSessionService:
 # Builder: BaseMemoryService
 # ======================================================================
 
-class BaseMemoryService:
+class BaseMemoryService(BuilderBase):
     """Base class for memory services."""
 
     # --- Class-level alias / field maps ---
@@ -573,7 +574,7 @@ class BaseMemoryService:
 # Builder: InMemoryMemoryService
 # ======================================================================
 
-class InMemoryMemoryService:
+class InMemoryMemoryService(BuilderBase):
     """An in-memory memory service for prototyping purpose only."""
 
     # --- Class-level alias / field maps ---
@@ -665,14 +666,14 @@ class InMemoryMemoryService:
 # Builder: VertexAiMemoryBankService
 # ======================================================================
 
-class VertexAiMemoryBankService:
+class VertexAiMemoryBankService(BuilderBase):
     """Implementation of the BaseMemoryService using Vertex AI Memory Bank."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'express_mode_api_key', 'location', 'project'}
+    _KNOWN_PARAMS: set[str] = {'express_mode_api_key', 'project', 'location', 'agent_engine_id'}
 
 
     def __init__(self, ) -> None:
@@ -757,14 +758,14 @@ class VertexAiMemoryBankService:
 # Builder: VertexAiRagMemoryService
 # ======================================================================
 
-class VertexAiRagMemoryService:
+class VertexAiRagMemoryService(BuilderBase):
     """A memory service that uses Vertex AI RAG for storage and retrieval."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'rag_corpus', 'similarity_top_k', 'vector_distance_threshold'}
+    _KNOWN_PARAMS: set[str] = {'rag_corpus', 'vector_distance_threshold', 'similarity_top_k'}
 
 
     def __init__(self, ) -> None:
@@ -849,7 +850,7 @@ class VertexAiRagMemoryService:
 # Builder: BaseSessionService
 # ======================================================================
 
-class BaseSessionService:
+class BaseSessionService(BuilderBase):
     """Base class for session services."""
 
     # --- Class-level alias / field maps ---
@@ -941,7 +942,7 @@ class BaseSessionService:
 # Builder: DatabaseSessionService
 # ======================================================================
 
-class DatabaseSessionService:
+class DatabaseSessionService(BuilderBase):
     """A session service that uses a database for storage."""
 
     # --- Class-level alias / field maps ---
@@ -1033,7 +1034,7 @@ class DatabaseSessionService:
 # Builder: InMemorySessionService
 # ======================================================================
 
-class InMemorySessionService:
+class InMemorySessionService(BuilderBase):
     """An in-memory implementation of the session service."""
 
     # --- Class-level alias / field maps ---
@@ -1125,7 +1126,7 @@ class InMemorySessionService:
 # Builder: SqliteSessionService
 # ======================================================================
 
-class SqliteSessionService:
+class SqliteSessionService(BuilderBase):
     """A session service that uses an SQLite database for storage via aiosqlite."""
 
     # --- Class-level alias / field maps ---
@@ -1217,14 +1218,14 @@ class SqliteSessionService:
 # Builder: VertexAiSessionService
 # ======================================================================
 
-class VertexAiSessionService:
+class VertexAiSessionService(BuilderBase):
     """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'express_mode_api_key', 'location', 'project'}
+    _KNOWN_PARAMS: set[str] = {'express_mode_api_key', 'project', 'location', 'agent_engine_id'}
 
 
     def __init__(self, ) -> None:
@@ -1309,7 +1310,7 @@ class VertexAiSessionService:
 # Builder: ForwardingArtifactService
 # ======================================================================
 
-class ForwardingArtifactService:
+class ForwardingArtifactService(BuilderBase):
     """Artifact service that forwards to the parent tool context."""
 
     # --- Class-level alias / field maps ---

@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.planners.base_planner import BasePlanner as _ADK_BasePlanner
 from google.adk.planners.built_in_planner import BuiltInPlanner as _ADK_BuiltInPlanner
 from google.adk.planners.plan_re_act_planner import PlanReActPlanner as _ADK_PlanReActPlanner
@@ -11,7 +12,7 @@ from google.adk.planners.plan_re_act_planner import PlanReActPlanner as _ADK_Pla
 # Builder: BasePlanner
 # ======================================================================
 
-class BasePlanner:
+class BasePlanner(BuilderBase):
     """Abstract base class for all planners."""
 
     # --- Class-level alias / field maps ---
@@ -103,7 +104,7 @@ class BasePlanner:
 # Builder: BuiltInPlanner
 # ======================================================================
 
-class BuiltInPlanner:
+class BuiltInPlanner(BuilderBase):
     """The built-in planner that uses model's built-in thinking features."""
 
     # --- Class-level alias / field maps ---
@@ -195,7 +196,7 @@ class BuiltInPlanner:
 # Builder: PlanReActPlanner
 # ======================================================================
 
-class PlanReActPlanner:
+class PlanReActPlanner(BuilderBase):
     """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation."""
 
     # --- Class-level alias / field maps ---

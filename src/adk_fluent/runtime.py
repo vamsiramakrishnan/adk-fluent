@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.apps.app import App as _ADK_App
 from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
 from google.adk.runners import Runner as _ADK_Runner
@@ -11,7 +12,7 @@ from google.adk.runners import Runner as _ADK_Runner
 # Builder: App
 # ======================================================================
 
-class App:
+class App(BuilderBase):
     """Represents an LLM-backed agentic application."""
 
     # --- Class-level alias / field maps ---
@@ -101,14 +102,14 @@ class App:
 # Builder: InMemoryRunner
 # ======================================================================
 
-class InMemoryRunner:
+class InMemoryRunner(BuilderBase):
     """An in-memory Runner for testing and development."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agent', 'plugins', 'app_name', 'plugin_close_timeout', 'app'}
+    _KNOWN_PARAMS: set[str] = {'plugin_close_timeout', 'app', 'plugins', 'app_name', 'agent'}
 
 
     def __init__(self, ) -> None:
@@ -193,14 +194,14 @@ class InMemoryRunner:
 # Builder: Runner
 # ======================================================================
 
-class Runner:
+class Runner(BuilderBase):
     """The Runner class is used to run agents."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agent', 'artifact_service', 'auto_create_session', 'memory_service', 'plugins', 'app_name', 'plugin_close_timeout', 'credential_service', 'session_service', 'app'}
+    _KNOWN_PARAMS: set[str] = {'session_service', 'memory_service', 'plugin_close_timeout', 'auto_create_session', 'app', 'plugins', 'artifact_service', 'app_name', 'credential_service', 'agent'}
 
 
     def __init__(self, session_service: str) -> None:

@@ -43,7 +43,7 @@ scan:
 # --- Generate seed.toml from manifest ---
 seed: _require-manifest
     @echo "Generating seed.toml from manifest..."
-    @uv run python {{SEED_GEN}} {{MANIFEST}} -o {{SEED}}
+    @uv run python {{SEED_GEN}} {{MANIFEST}} -o {{SEED}} --merge seeds/seed.manual.toml
 
 # --- Generate code ---
 generate: _require-manifest _require-seed

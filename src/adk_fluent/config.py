@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
 from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
 from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
@@ -46,7 +47,7 @@ from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
 # Builder: AgentConfig
 # ======================================================================
 
-class AgentConfig:
+class AgentConfig(BuilderBase):
     """The config for the YAML schema to create an agent."""
 
     # --- Class-level alias / field maps ---
@@ -136,7 +137,7 @@ class AgentConfig:
 # Builder: BaseAgentConfig
 # ======================================================================
 
-class BaseAgentConfig:
+class BaseAgentConfig(BuilderBase):
     """The config for the YAML schema of a BaseAgent."""
 
     # --- Class-level alias / field maps ---
@@ -231,7 +232,7 @@ class BaseAgentConfig:
 # Builder: AgentRefConfig
 # ======================================================================
 
-class AgentRefConfig:
+class AgentRefConfig(BuilderBase):
     """The config for the reference to another agent."""
 
     # --- Class-level alias / field maps ---
@@ -321,7 +322,7 @@ class AgentRefConfig:
 # Builder: ArgumentConfig
 # ======================================================================
 
-class ArgumentConfig:
+class ArgumentConfig(BuilderBase):
     """An argument passed to a function or a class's constructor."""
 
     # --- Class-level alias / field maps ---
@@ -411,7 +412,7 @@ class ArgumentConfig:
 # Builder: CodeConfig
 # ======================================================================
 
-class CodeConfig:
+class CodeConfig(BuilderBase):
     """Code reference config for a variable, a function, or a class."""
 
     # --- Class-level alias / field maps ---
@@ -501,7 +502,7 @@ class CodeConfig:
 # Builder: ContextCacheConfig
 # ======================================================================
 
-class ContextCacheConfig:
+class ContextCacheConfig(BuilderBase):
     """Configuration for context caching across all agents in an app."""
 
     # --- Class-level alias / field maps ---
@@ -591,7 +592,7 @@ class ContextCacheConfig:
 # Builder: LlmAgentConfig
 # ======================================================================
 
-class LlmAgentConfig:
+class LlmAgentConfig(BuilderBase):
     """The config for the YAML schema of a LlmAgent."""
 
     # --- Class-level alias / field maps ---
@@ -692,7 +693,7 @@ class LlmAgentConfig:
 # Builder: LoopAgentConfig
 # ======================================================================
 
-class LoopAgentConfig:
+class LoopAgentConfig(BuilderBase):
     """The config for the YAML schema of a LoopAgent."""
 
     # --- Class-level alias / field maps ---
@@ -787,7 +788,7 @@ class LoopAgentConfig:
 # Builder: ParallelAgentConfig
 # ======================================================================
 
-class ParallelAgentConfig:
+class ParallelAgentConfig(BuilderBase):
     """The config for the YAML schema of a ParallelAgent."""
 
     # --- Class-level alias / field maps ---
@@ -882,7 +883,7 @@ class ParallelAgentConfig:
 # Builder: RunConfig
 # ======================================================================
 
-class RunConfig:
+class RunConfig(BuilderBase):
     """Configs for runtime behavior of agents."""
 
     # --- Class-level alias / field maps ---
@@ -972,7 +973,7 @@ class RunConfig:
 # Builder: ToolThreadPoolConfig
 # ======================================================================
 
-class ToolThreadPoolConfig:
+class ToolThreadPoolConfig(BuilderBase):
     """Configuration for the tool thread pool executor."""
 
     # --- Class-level alias / field maps ---
@@ -1062,7 +1063,7 @@ class ToolThreadPoolConfig:
 # Builder: SequentialAgentConfig
 # ======================================================================
 
-class SequentialAgentConfig:
+class SequentialAgentConfig(BuilderBase):
     """The config for the YAML schema of a SequentialAgent."""
 
     # --- Class-level alias / field maps ---
@@ -1157,7 +1158,7 @@ class SequentialAgentConfig:
 # Builder: EventsCompactionConfig
 # ======================================================================
 
-class EventsCompactionConfig:
+class EventsCompactionConfig(BuilderBase):
     """The config of event compaction for an application."""
 
     # --- Class-level alias / field maps ---
@@ -1247,7 +1248,7 @@ class EventsCompactionConfig:
 # Builder: ResumabilityConfig
 # ======================================================================
 
-class ResumabilityConfig:
+class ResumabilityConfig(BuilderBase):
     """The config of the resumability for an application."""
 
     # --- Class-level alias / field maps ---
@@ -1337,14 +1338,14 @@ class ResumabilityConfig:
 # Builder: FeatureConfig
 # ======================================================================
 
-class FeatureConfig:
+class FeatureConfig(BuilderBase):
     """Feature configuration."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'stage', 'default_on'}
+    _KNOWN_PARAMS: set[str] = {'default_on', 'stage'}
 
 
     def __init__(self, stage: str) -> None:
@@ -1429,14 +1430,14 @@ class FeatureConfig:
 # Builder: AudioCacheConfig
 # ======================================================================
 
-class AudioCacheConfig:
+class AudioCacheConfig(BuilderBase):
     """Configuration for audio caching behavior."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auto_flush_threshold', 'max_cache_size_bytes', 'max_cache_duration_seconds'}
+    _KNOWN_PARAMS: set[str] = {'max_cache_size_bytes', 'auto_flush_threshold', 'max_cache_duration_seconds'}
 
 
     def __init__(self, ) -> None:
@@ -1521,7 +1522,7 @@ class AudioCacheConfig:
 # Builder: SimplePromptOptimizerConfig
 # ======================================================================
 
-class SimplePromptOptimizerConfig:
+class SimplePromptOptimizerConfig(BuilderBase):
     """Configuration for the IterativePromptOptimizer."""
 
     # --- Class-level alias / field maps ---
@@ -1611,14 +1612,14 @@ class SimplePromptOptimizerConfig:
 # Builder: BigQueryLoggerConfig
 # ======================================================================
 
-class BigQueryLoggerConfig:
+class BigQueryLoggerConfig(BuilderBase):
     """Configuration for the BigQueryAgentAnalyticsPlugin."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'batch_size', 'max_content_length', 'connection_id', 'content_formatter', 'custom_tags', 'table_id', 'event_denylist', 'retry_config', 'event_allowlist', 'enabled', 'shutdown_timeout', 'gcs_bucket_name', 'queue_max_size', 'log_session_metadata', 'clustering_fields', 'batch_flush_interval', 'log_multi_modal_content'}
+    _KNOWN_PARAMS: set[str] = {'shutdown_timeout', 'content_formatter', 'event_denylist', 'enabled', 'queue_max_size', 'gcs_bucket_name', 'event_allowlist', 'log_multi_modal_content', 'custom_tags', 'log_session_metadata', 'max_content_length', 'clustering_fields', 'batch_flush_interval', 'table_id', 'retry_config', 'batch_size', 'connection_id'}
 
 
     def __init__(self, ) -> None:
@@ -1703,14 +1704,14 @@ class BigQueryLoggerConfig:
 # Builder: RetryConfig
 # ======================================================================
 
-class RetryConfig:
+class RetryConfig(BuilderBase):
     """Configuration for retrying failed BigQuery write operations."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'initial_delay', 'multiplier', 'max_retries', 'max_delay'}
+    _KNOWN_PARAMS: set[str] = {'initial_delay', 'max_retries', 'max_delay', 'multiplier'}
 
 
     def __init__(self, ) -> None:
@@ -1795,7 +1796,7 @@ class RetryConfig:
 # Builder: GetSessionConfig
 # ======================================================================
 
-class GetSessionConfig:
+class GetSessionConfig(BuilderBase):
     """The configuration of getting a session."""
 
     # --- Class-level alias / field maps ---
@@ -1885,7 +1886,7 @@ class GetSessionConfig:
 # Builder: BaseGoogleCredentialsConfig
 # ======================================================================
 
-class BaseGoogleCredentialsConfig:
+class BaseGoogleCredentialsConfig(BuilderBase):
     """Base Google Credentials Configuration for Google API tools (Experimental)."""
 
     # --- Class-level alias / field maps ---
@@ -1975,7 +1976,7 @@ class BaseGoogleCredentialsConfig:
 # Builder: AgentSimulatorConfig
 # ======================================================================
 
-class AgentSimulatorConfig:
+class AgentSimulatorConfig(BuilderBase):
     """Configuration for AgentSimulator."""
 
     # --- Class-level alias / field maps ---
@@ -2065,7 +2066,7 @@ class AgentSimulatorConfig:
 # Builder: InjectionConfig
 # ======================================================================
 
-class InjectionConfig:
+class InjectionConfig(BuilderBase):
     """Injection configuration for a tool."""
 
     # --- Class-level alias / field maps ---
@@ -2155,7 +2156,7 @@ class InjectionConfig:
 # Builder: ToolSimulationConfig
 # ======================================================================
 
-class ToolSimulationConfig:
+class ToolSimulationConfig(BuilderBase):
     """Simulation configuration for a single tool."""
 
     # --- Class-level alias / field maps ---
@@ -2245,7 +2246,7 @@ class ToolSimulationConfig:
 # Builder: AgentToolConfig
 # ======================================================================
 
-class AgentToolConfig:
+class AgentToolConfig(BuilderBase):
     """The config for the AgentTool."""
 
     # --- Class-level alias / field maps ---
@@ -2335,7 +2336,7 @@ class AgentToolConfig:
 # Builder: BigQueryCredentialsConfig
 # ======================================================================
 
-class BigQueryCredentialsConfig:
+class BigQueryCredentialsConfig(BuilderBase):
     """BigQuery Credentials Configuration for Google API tools (Experimental)."""
 
     # --- Class-level alias / field maps ---
@@ -2425,7 +2426,7 @@ class BigQueryCredentialsConfig:
 # Builder: BigQueryToolConfig
 # ======================================================================
 
-class BigQueryToolConfig:
+class BigQueryToolConfig(BuilderBase):
     """Configuration for BigQuery tools."""
 
     # --- Class-level alias / field maps ---
@@ -2515,7 +2516,7 @@ class BigQueryToolConfig:
 # Builder: BigtableCredentialsConfig
 # ======================================================================
 
-class BigtableCredentialsConfig:
+class BigtableCredentialsConfig(BuilderBase):
     """Bigtable Credentials Configuration for Google API tools (Experimental)."""
 
     # --- Class-level alias / field maps ---
@@ -2605,7 +2606,7 @@ class BigtableCredentialsConfig:
 # Builder: DataAgentToolConfig
 # ======================================================================
 
-class DataAgentToolConfig:
+class DataAgentToolConfig(BuilderBase):
     """Configuration for Data Agent tools."""
 
     # --- Class-level alias / field maps ---
@@ -2695,7 +2696,7 @@ class DataAgentToolConfig:
 # Builder: DataAgentCredentialsConfig
 # ======================================================================
 
-class DataAgentCredentialsConfig:
+class DataAgentCredentialsConfig(BuilderBase):
     """Data Agent Credentials Configuration for Google API tools."""
 
     # --- Class-level alias / field maps ---
@@ -2785,7 +2786,7 @@ class DataAgentCredentialsConfig:
 # Builder: ExampleToolConfig
 # ======================================================================
 
-class ExampleToolConfig:
+class ExampleToolConfig(BuilderBase):
     """Fluent builder for ExampleToolConfig."""
 
     # --- Class-level alias / field maps ---
@@ -2875,7 +2876,7 @@ class ExampleToolConfig:
 # Builder: McpToolsetConfig
 # ======================================================================
 
-class McpToolsetConfig:
+class McpToolsetConfig(BuilderBase):
     """The config for McpToolset."""
 
     # --- Class-level alias / field maps ---
@@ -2965,7 +2966,7 @@ class McpToolsetConfig:
 # Builder: PubSubToolConfig
 # ======================================================================
 
-class PubSubToolConfig:
+class PubSubToolConfig(BuilderBase):
     """Configuration for Pub/Sub tools."""
 
     # --- Class-level alias / field maps ---
@@ -3055,7 +3056,7 @@ class PubSubToolConfig:
 # Builder: PubSubCredentialsConfig
 # ======================================================================
 
-class PubSubCredentialsConfig:
+class PubSubCredentialsConfig(BuilderBase):
     """Pub/Sub Credentials Configuration for Google API tools (Experimental)."""
 
     # --- Class-level alias / field maps ---
@@ -3145,7 +3146,7 @@ class PubSubCredentialsConfig:
 # Builder: SpannerCredentialsConfig
 # ======================================================================
 
-class SpannerCredentialsConfig:
+class SpannerCredentialsConfig(BuilderBase):
     """Spanner Credentials Configuration for Google API tools (Experimental)."""
 
     # --- Class-level alias / field maps ---
@@ -3235,7 +3236,7 @@ class SpannerCredentialsConfig:
 # Builder: BaseToolConfig
 # ======================================================================
 
-class BaseToolConfig:
+class BaseToolConfig(BuilderBase):
     """The base class for all tool configs."""
 
     # --- Class-level alias / field maps ---
@@ -3325,7 +3326,7 @@ class BaseToolConfig:
 # Builder: ToolArgsConfig
 # ======================================================================
 
-class ToolArgsConfig:
+class ToolArgsConfig(BuilderBase):
     """Config to host free key-value pairs for the args in ToolConfig."""
 
     # --- Class-level alias / field maps ---
@@ -3415,7 +3416,7 @@ class ToolArgsConfig:
 # Builder: ToolConfig
 # ======================================================================
 
-class ToolConfig:
+class ToolConfig(BuilderBase):
     """The configuration for a tool."""
 
     # --- Class-level alias / field maps ---

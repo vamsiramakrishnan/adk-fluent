@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.code_executors.agent_engine_sandbox_code_executor import AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor
 from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
 from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
@@ -13,7 +14,7 @@ from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecut
 # Builder: AgentEngineSandboxCodeExecutor
 # ======================================================================
 
-class AgentEngineSandboxCodeExecutor:
+class AgentEngineSandboxCodeExecutor(BuilderBase):
     """A code executor that uses Agent Engine Code Execution Sandbox to execute code."""
 
     # --- Class-level alias / field maps ---
@@ -103,7 +104,7 @@ class AgentEngineSandboxCodeExecutor:
 # Builder: BaseCodeExecutor
 # ======================================================================
 
-class BaseCodeExecutor:
+class BaseCodeExecutor(BuilderBase):
     """Abstract base class for all code executors."""
 
     # --- Class-level alias / field maps ---
@@ -193,7 +194,7 @@ class BaseCodeExecutor:
 # Builder: BuiltInCodeExecutor
 # ======================================================================
 
-class BuiltInCodeExecutor:
+class BuiltInCodeExecutor(BuilderBase):
     """A code executor that uses the Model's built-in code executor."""
 
     # --- Class-level alias / field maps ---
@@ -283,7 +284,7 @@ class BuiltInCodeExecutor:
 # Builder: UnsafeLocalCodeExecutor
 # ======================================================================
 
-class UnsafeLocalCodeExecutor:
+class UnsafeLocalCodeExecutor(BuilderBase):
     """A code executor that unsafely execute code in the current local context."""
 
     # --- Class-level alias / field maps ---
@@ -373,7 +374,7 @@ class UnsafeLocalCodeExecutor:
 # Builder: VertexAiCodeExecutor
 # ======================================================================
 
-class VertexAiCodeExecutor:
+class VertexAiCodeExecutor(BuilderBase):
     """A code executor that uses Vertex Code Interpreter Extension to execute code."""
 
     # --- Class-level alias / field maps ---

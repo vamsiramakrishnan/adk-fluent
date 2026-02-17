@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-17T02:10:40.182794+00:00"
+generated_at = "2026-02-17T07:24:44.347777+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -15,7 +15,7 @@ list_extend_fields = ["plugins", "sub_agents", "tools"]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
 output_module = "tool"
 doc = "Manages streaming tool related resources during invocation."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -28,7 +28,7 @@ doc = "Resolve into a native ADK ActiveStreamingTool."
 source_class = "google.adk.agents.agent_config.AgentConfig"
 output_module = "config"
 doc = "The config for the YAML schema to create an agent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["root"]
 extra_skip_fields = []
 
@@ -41,7 +41,7 @@ doc = "Resolve into a native ADK AgentConfig."
 source_class = "google.adk.agents.base_agent.BaseAgent"
 output_module = "agent"
 doc = "Base class for all agents in Agent Development Kit."
-auto_tag = "agent"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -61,7 +61,7 @@ doc = "Resolve into a native ADK BaseAgent."
 source_class = "google.adk.agents.base_agent_config.BaseAgentConfig"
 output_module = "config"
 doc = "The config for the YAML schema of a BaseAgent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -77,7 +77,7 @@ doc = "Resolve into a native ADK BaseAgentConfig."
 source_class = "google.adk.agents.common_configs.AgentRefConfig"
 output_module = "config"
 doc = "The config for the reference to another agent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -90,7 +90,7 @@ doc = "Resolve into a native ADK AgentRefConfig."
 source_class = "google.adk.agents.common_configs.ArgumentConfig"
 output_module = "config"
 doc = "An argument passed to a function or a class's constructor."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["value"]
 extra_skip_fields = []
 
@@ -103,7 +103,7 @@ doc = "Resolve into a native ADK ArgumentConfig."
 source_class = "google.adk.agents.common_configs.CodeConfig"
 output_module = "config"
 doc = "Code reference config for a variable, a function, or a class."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -116,7 +116,7 @@ doc = "Resolve into a native ADK CodeConfig."
 source_class = "google.adk.agents.context_cache_config.ContextCacheConfig"
 output_module = "config"
 doc = "Configuration for context caching across all agents in an app."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -129,7 +129,7 @@ doc = "Resolve into a native ADK ContextCacheConfig."
 source_class = "google.adk.agents.llm_agent.LlmAgent"
 output_module = "agent"
 doc = "LLM-based Agent."
-auto_tag = "agent"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -224,7 +224,7 @@ helper_func = "create_session"
 source_class = "google.adk.agents.llm_agent_config.LlmAgentConfig"
 output_module = "config"
 doc = "The config for the YAML schema of a LlmAgent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name", "instruction"]
 extra_skip_fields = []
 
@@ -241,7 +241,7 @@ doc = "Resolve into a native ADK LlmAgentConfig."
 source_class = "google.adk.agents.loop_agent.LoopAgent"
 output_module = "workflow"
 doc = "A shell agent that run its sub-agents in a loop."
-auto_tag = "agent"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -274,7 +274,7 @@ behavior = "deep_copy"
 source_class = "google.adk.agents.loop_agent_config.LoopAgentConfig"
 output_module = "config"
 doc = "The config for the YAML schema of a LoopAgent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -290,7 +290,7 @@ doc = "Resolve into a native ADK LoopAgentConfig."
 source_class = "google.adk.agents.parallel_agent.ParallelAgent"
 output_module = "workflow"
 doc = "A shell agent that runs its sub-agents in parallel in an isolated manner."
-auto_tag = "agent"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -323,7 +323,7 @@ behavior = "deep_copy"
 source_class = "google.adk.agents.parallel_agent_config.ParallelAgentConfig"
 output_module = "config"
 doc = "The config for the YAML schema of a ParallelAgent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -339,7 +339,7 @@ doc = "Resolve into a native ADK ParallelAgentConfig."
 source_class = "google.adk.agents.run_config.RunConfig"
 output_module = "config"
 doc = "Configs for runtime behavior of agents."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -352,7 +352,7 @@ doc = "Resolve into a native ADK RunConfig."
 source_class = "google.adk.agents.run_config.ToolThreadPoolConfig"
 output_module = "config"
 doc = "Configuration for the tool thread pool executor."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -365,7 +365,7 @@ doc = "Resolve into a native ADK ToolThreadPoolConfig."
 source_class = "google.adk.agents.sequential_agent.SequentialAgent"
 output_module = "workflow"
 doc = "A shell agent that runs its sub-agents in sequence."
-auto_tag = "agent"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -398,7 +398,7 @@ behavior = "deep_copy"
 source_class = "google.adk.agents.sequential_agent_config.SequentialAgentConfig"
 output_module = "config"
 doc = "The config for the YAML schema of a SequentialAgent."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -414,7 +414,7 @@ doc = "Resolve into a native ADK SequentialAgentConfig."
 source_class = "google.adk.apps.app.App"
 output_module = "runtime"
 doc = "Represents an LLM-backed agentic application."
-auto_tag = "runtime"
+auto_tag = "data"
 constructor_args = ["name", "root_agent"]
 extra_skip_fields = []
 
@@ -427,7 +427,7 @@ doc = "Resolve into a native ADK App."
 source_class = "google.adk.apps.app.EventsCompactionConfig"
 output_module = "config"
 doc = "The config of event compaction for an application."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["compaction_interval", "overlap_size"]
 extra_skip_fields = []
 
@@ -440,7 +440,7 @@ doc = "Resolve into a native ADK EventsCompactionConfig."
 source_class = "google.adk.apps.app.ResumabilityConfig"
 output_module = "config"
 doc = "The config of the resumability for an application."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -453,7 +453,7 @@ doc = "Resolve into a native ADK ResumabilityConfig."
 source_class = "google.adk.artifacts.base_artifact_service.BaseArtifactService"
 output_module = "service"
 doc = "Abstract base class for artifact services."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -466,7 +466,7 @@ doc = "Resolve into a native ADK BaseArtifactService."
 source_class = "google.adk.artifacts.file_artifact_service.FileArtifactService"
 output_module = "service"
 doc = "Stores filesystem-backed artifacts beneath a configurable root directory."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["root_dir"]
 extra_skip_fields = []
 
@@ -479,7 +479,7 @@ doc = "Resolve into a native ADK FileArtifactService."
 source_class = "google.adk.artifacts.gcs_artifact_service.GcsArtifactService"
 output_module = "service"
 doc = "An artifact service implementation using Google Cloud Storage (GCS)."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["bucket_name", "kwargs"]
 extra_skip_fields = []
 
@@ -492,7 +492,7 @@ doc = "Resolve into a native ADK GcsArtifactService."
 source_class = "google.adk.artifacts.in_memory_artifact_service.InMemoryArtifactService"
 output_module = "service"
 doc = "An in-memory implementation of the artifact service."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -505,7 +505,7 @@ doc = "Resolve into a native ADK InMemoryArtifactService."
 source_class = "google.adk.cli.plugins.recordings_plugin.RecordingsPlugin"
 output_module = "plugin"
 doc = "Plugin for recording ADK agent interactions."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -518,7 +518,7 @@ doc = "Resolve into a native ADK RecordingsPlugin."
 source_class = "google.adk.cli.plugins.replay_plugin.ReplayPlugin"
 output_module = "plugin"
 doc = "Plugin for replaying ADK agent interactions from recordings."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -531,7 +531,7 @@ doc = "Resolve into a native ADK ReplayPlugin."
 source_class = "google.adk.cli.utils.local_storage.PerAgentDatabaseSessionService"
 output_module = "service"
 doc = "Routes session storage to per-agent `.adk/session.db` files."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["agents_root"]
 extra_skip_fields = []
 
@@ -544,7 +544,7 @@ doc = "Resolve into a native ADK PerAgentDatabaseSessionService."
 source_class = "google.adk.code_executors.agent_engine_sandbox_code_executor.AgentEngineSandboxCodeExecutor"
 output_module = "executor"
 doc = "A code executor that uses Agent Engine Code Execution Sandbox to execute code."
-auto_tag = "executor"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -557,7 +557,7 @@ doc = "Resolve into a native ADK AgentEngineSandboxCodeExecutor."
 source_class = "google.adk.code_executors.base_code_executor.BaseCodeExecutor"
 output_module = "executor"
 doc = "Abstract base class for all code executors."
-auto_tag = "executor"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -570,7 +570,7 @@ doc = "Resolve into a native ADK BaseCodeExecutor."
 source_class = "google.adk.code_executors.built_in_code_executor.BuiltInCodeExecutor"
 output_module = "executor"
 doc = "A code executor that uses the Model's built-in code executor."
-auto_tag = "executor"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -583,7 +583,7 @@ doc = "Resolve into a native ADK BuiltInCodeExecutor."
 source_class = "google.adk.code_executors.unsafe_local_code_executor.UnsafeLocalCodeExecutor"
 output_module = "executor"
 doc = "A code executor that unsafely execute code in the current local context."
-auto_tag = "executor"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -596,7 +596,7 @@ doc = "Resolve into a native ADK UnsafeLocalCodeExecutor."
 source_class = "google.adk.code_executors.vertex_ai_code_executor.VertexAiCodeExecutor"
 output_module = "executor"
 doc = "A code executor that uses Vertex Code Interpreter Extension to execute code."
-auto_tag = "executor"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -609,7 +609,7 @@ doc = "Resolve into a native ADK VertexAiCodeExecutor."
 source_class = "google.adk.features._feature_registry.FeatureConfig"
 output_module = "config"
 doc = "Feature configuration."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["stage"]
 extra_skip_fields = []
 
@@ -622,7 +622,7 @@ doc = "Resolve into a native ADK FeatureConfig."
 source_class = "google.adk.flows.llm_flows.audio_cache_manager.AudioCacheConfig"
 output_module = "config"
 doc = "Configuration for audio caching behavior."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -635,7 +635,7 @@ doc = "Resolve into a native ADK AudioCacheConfig."
 source_class = "google.adk.memory.base_memory_service.BaseMemoryService"
 output_module = "service"
 doc = "Base class for memory services."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -648,7 +648,7 @@ doc = "Resolve into a native ADK BaseMemoryService."
 source_class = "google.adk.memory.in_memory_memory_service.InMemoryMemoryService"
 output_module = "service"
 doc = "An in-memory memory service for prototyping purpose only."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -661,7 +661,7 @@ doc = "Resolve into a native ADK InMemoryMemoryService."
 source_class = "google.adk.memory.vertex_ai_memory_bank_service.VertexAiMemoryBankService"
 output_module = "service"
 doc = "Implementation of the BaseMemoryService using Vertex AI Memory Bank."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -674,7 +674,7 @@ doc = "Resolve into a native ADK VertexAiMemoryBankService."
 source_class = "google.adk.memory.vertex_ai_rag_memory_service.VertexAiRagMemoryService"
 output_module = "service"
 doc = "A memory service that uses Vertex AI RAG for storage and retrieval."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -687,7 +687,7 @@ doc = "Resolve into a native ADK VertexAiRagMemoryService."
 source_class = "google.adk.optimization.simple_prompt_optimizer.SimplePromptOptimizerConfig"
 output_module = "config"
 doc = "Configuration for the IterativePromptOptimizer."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -700,7 +700,7 @@ doc = "Resolve into a native ADK SimplePromptOptimizerConfig."
 source_class = "google.adk.planners.base_planner.BasePlanner"
 output_module = "planner"
 doc = "Abstract base class for all planners."
-auto_tag = "planner"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -713,7 +713,7 @@ doc = "Resolve into a native ADK BasePlanner."
 source_class = "google.adk.planners.built_in_planner.BuiltInPlanner"
 output_module = "planner"
 doc = "The built-in planner that uses model's built-in thinking features."
-auto_tag = "planner"
+auto_tag = "data"
 constructor_args = ["thinking_config"]
 extra_skip_fields = []
 
@@ -726,7 +726,7 @@ doc = "Resolve into a native ADK BuiltInPlanner."
 source_class = "google.adk.planners.plan_re_act_planner.PlanReActPlanner"
 output_module = "planner"
 doc = "Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation."
-auto_tag = "planner"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -739,7 +739,7 @@ doc = "Resolve into a native ADK PlanReActPlanner."
 source_class = "google.adk.plugins.base_plugin.BasePlugin"
 output_module = "plugin"
 doc = "Base class for creating plugins."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -752,7 +752,7 @@ doc = "Resolve into a native ADK BasePlugin."
 source_class = "google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryAgentAnalyticsPlugin"
 output_module = "plugin"
 doc = "BigQuery Agent Analytics Plugin (v2.0 using Write API)."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = ["project_id", "dataset_id", "kwargs"]
 extra_skip_fields = []
 
@@ -765,7 +765,7 @@ doc = "Resolve into a native ADK BigQueryAgentAnalyticsPlugin."
 source_class = "google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryLoggerConfig"
 output_module = "config"
 doc = "Configuration for the BigQueryAgentAnalyticsPlugin."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -778,7 +778,7 @@ doc = "Resolve into a native ADK BigQueryLoggerConfig."
 source_class = "google.adk.plugins.bigquery_agent_analytics_plugin.RetryConfig"
 output_module = "config"
 doc = "Configuration for retrying failed BigQuery write operations."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -791,7 +791,7 @@ doc = "Resolve into a native ADK RetryConfig."
 source_class = "google.adk.plugins.context_filter_plugin.ContextFilterPlugin"
 output_module = "plugin"
 doc = "A plugin that filters the LLM context to reduce its size."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -804,7 +804,7 @@ doc = "Resolve into a native ADK ContextFilterPlugin."
 source_class = "google.adk.plugins.debug_logging_plugin.DebugLoggingPlugin"
 output_module = "plugin"
 doc = "A plugin that captures complete debug information to a file."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -817,7 +817,7 @@ doc = "Resolve into a native ADK DebugLoggingPlugin."
 source_class = "google.adk.plugins.global_instruction_plugin.GlobalInstructionPlugin"
 output_module = "plugin"
 doc = "Plugin that provides global instructions functionality at the App level."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -830,7 +830,7 @@ doc = "Resolve into a native ADK GlobalInstructionPlugin."
 source_class = "google.adk.plugins.logging_plugin.LoggingPlugin"
 output_module = "plugin"
 doc = "A plugin that logs important information at each callback point."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -843,7 +843,7 @@ doc = "Resolve into a native ADK LoggingPlugin."
 source_class = "google.adk.plugins.multimodal_tool_results_plugin.MultimodalToolResultsPlugin"
 output_module = "plugin"
 doc = "A plugin that modifies function tool responses to support returning list of parts directly."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -856,7 +856,7 @@ doc = "Resolve into a native ADK MultimodalToolResultsPlugin."
 source_class = "google.adk.plugins.reflect_retry_tool_plugin.ReflectAndRetryToolPlugin"
 output_module = "plugin"
 doc = "Provides self-healing, concurrent-safe error recovery for tool failures."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -869,7 +869,7 @@ doc = "Resolve into a native ADK ReflectAndRetryToolPlugin."
 source_class = "google.adk.plugins.save_files_as_artifacts_plugin.SaveFilesAsArtifactsPlugin"
 output_module = "plugin"
 doc = "A plugin that saves files embedded in user messages as artifacts."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -882,7 +882,7 @@ doc = "Resolve into a native ADK SaveFilesAsArtifactsPlugin."
 source_class = "google.adk.runners.InMemoryRunner"
 output_module = "runtime"
 doc = "An in-memory Runner for testing and development."
-auto_tag = "runtime"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -895,7 +895,7 @@ doc = "Resolve into a native ADK InMemoryRunner."
 source_class = "google.adk.runners.Runner"
 output_module = "runtime"
 doc = "The Runner class is used to run agents."
-auto_tag = "runtime"
+auto_tag = "data"
 constructor_args = ["session_service"]
 extra_skip_fields = []
 
@@ -908,7 +908,7 @@ doc = "Resolve into a native ADK Runner."
 source_class = "google.adk.sessions.base_session_service.BaseSessionService"
 output_module = "service"
 doc = "Base class for session services."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -921,7 +921,7 @@ doc = "Resolve into a native ADK BaseSessionService."
 source_class = "google.adk.sessions.base_session_service.GetSessionConfig"
 output_module = "config"
 doc = "The configuration of getting a session."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -934,7 +934,7 @@ doc = "Resolve into a native ADK GetSessionConfig."
 source_class = "google.adk.sessions.database_session_service.DatabaseSessionService"
 output_module = "service"
 doc = "A session service that uses a database for storage."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["db_url", "kwargs"]
 extra_skip_fields = []
 
@@ -947,7 +947,7 @@ doc = "Resolve into a native ADK DatabaseSessionService."
 source_class = "google.adk.sessions.in_memory_session_service.InMemorySessionService"
 output_module = "service"
 doc = "An in-memory implementation of the session service."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -960,7 +960,7 @@ doc = "Resolve into a native ADK InMemorySessionService."
 source_class = "google.adk.sessions.sqlite_session_service.SqliteSessionService"
 output_module = "service"
 doc = "A session service that uses an SQLite database for storage via aiosqlite."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["db_path"]
 extra_skip_fields = []
 
@@ -973,7 +973,7 @@ doc = "Resolve into a native ADK SqliteSessionService."
 source_class = "google.adk.sessions.vertex_ai_session_service.VertexAiSessionService"
 output_module = "service"
 doc = "Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -986,7 +986,7 @@ doc = "Resolve into a native ADK VertexAiSessionService."
 source_class = "google.adk.tools._forwarding_artifact_service.ForwardingArtifactService"
 output_module = "service"
 doc = "Artifact service that forwards to the parent tool context."
-auto_tag = "service"
+auto_tag = "data"
 constructor_args = ["tool_context"]
 extra_skip_fields = []
 
@@ -999,7 +999,7 @@ doc = "Resolve into a native ADK ForwardingArtifactService."
 source_class = "google.adk.tools._google_credentials.BaseGoogleCredentialsConfig"
 output_module = "config"
 doc = "Base Google Credentials Configuration for Google API tools (Experimental)."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1012,7 +1012,7 @@ doc = "Resolve into a native ADK BaseGoogleCredentialsConfig."
 source_class = "google.adk.tools.agent_simulator.agent_simulator_config.AgentSimulatorConfig"
 output_module = "config"
 doc = "Configuration for AgentSimulator."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1025,7 +1025,7 @@ doc = "Resolve into a native ADK AgentSimulatorConfig."
 source_class = "google.adk.tools.agent_simulator.agent_simulator_config.InjectionConfig"
 output_module = "config"
 doc = "Injection configuration for a tool."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1038,7 +1038,7 @@ doc = "Resolve into a native ADK InjectionConfig."
 source_class = "google.adk.tools.agent_simulator.agent_simulator_config.ToolSimulationConfig"
 output_module = "config"
 doc = "Simulation configuration for a single tool."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["tool_name"]
 extra_skip_fields = []
 
@@ -1051,7 +1051,7 @@ doc = "Resolve into a native ADK ToolSimulationConfig."
 source_class = "google.adk.tools.agent_simulator.agent_simulator_plugin.AgentSimulatorPlugin"
 output_module = "plugin"
 doc = "ADK Plugin for AgentSimulator."
-auto_tag = "plugin"
+auto_tag = "data"
 constructor_args = ["simulator_engine"]
 extra_skip_fields = []
 
@@ -1064,7 +1064,7 @@ doc = "Resolve into a native ADK AgentSimulatorPlugin."
 source_class = "google.adk.tools.agent_tool.AgentTool"
 output_module = "tool"
 doc = "A tool that wraps an agent."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["agent"]
 extra_skip_fields = []
 
@@ -1077,7 +1077,7 @@ doc = "Resolve into a native ADK AgentTool."
 source_class = "google.adk.tools.agent_tool.AgentToolConfig"
 output_module = "config"
 doc = "The config for the AgentTool."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["agent"]
 extra_skip_fields = []
 
@@ -1090,7 +1090,7 @@ doc = "Resolve into a native ADK AgentToolConfig."
 source_class = "google.adk.tools.apihub_tool.apihub_toolset.APIHubToolset"
 output_module = "tool"
 doc = "APIHubTool generates tools from a given API Hub resource."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["apihub_resource_name"]
 extra_skip_fields = []
 
@@ -1103,7 +1103,7 @@ doc = "Resolve into a native ADK APIHubToolset."
 source_class = "google.adk.tools.application_integration_tool.application_integration_toolset.ApplicationIntegrationToolset"
 output_module = "tool"
 doc = "ApplicationIntegrationToolset generates tools from a given Application."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["project", "location"]
 extra_skip_fields = []
 
@@ -1116,7 +1116,7 @@ doc = "Resolve into a native ADK ApplicationIntegrationToolset."
 source_class = "google.adk.tools.application_integration_tool.integration_connector_tool.IntegrationConnectorTool"
 output_module = "tool"
 doc = "A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["name", "description", "connection_name"]
 extra_skip_fields = []
 
@@ -1129,7 +1129,7 @@ doc = "Resolve into a native ADK IntegrationConnectorTool."
 source_class = "google.adk.tools.base_authenticated_tool.BaseAuthenticatedTool"
 output_module = "tool"
 doc = "A base tool class that handles authentication before the actual tool logic."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["name", "description"]
 extra_skip_fields = []
 
@@ -1142,7 +1142,7 @@ doc = "Resolve into a native ADK BaseAuthenticatedTool."
 source_class = "google.adk.tools.base_tool.BaseTool"
 output_module = "tool"
 doc = "The base class for all tools."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["name", "description"]
 extra_skip_fields = []
 
@@ -1155,7 +1155,7 @@ doc = "Resolve into a native ADK BaseTool."
 source_class = "google.adk.tools.base_toolset.BaseToolset"
 output_module = "tool"
 doc = "Base class for toolset."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1168,7 +1168,7 @@ doc = "Resolve into a native ADK BaseToolset."
 source_class = "google.adk.tools.bigquery.bigquery_credentials.BigQueryCredentialsConfig"
 output_module = "config"
 doc = "BigQuery Credentials Configuration for Google API tools (Experimental)."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1181,7 +1181,7 @@ doc = "Resolve into a native ADK BigQueryCredentialsConfig."
 source_class = "google.adk.tools.bigquery.bigquery_toolset.BigQueryToolset"
 output_module = "tool"
 doc = "BigQuery Toolset contains tools for interacting with BigQuery data and metadata."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1194,7 +1194,7 @@ doc = "Resolve into a native ADK BigQueryToolset."
 source_class = "google.adk.tools.bigquery.config.BigQueryToolConfig"
 output_module = "config"
 doc = "Configuration for BigQuery tools."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1207,7 +1207,7 @@ doc = "Resolve into a native ADK BigQueryToolConfig."
 source_class = "google.adk.tools.bigtable.bigtable_credentials.BigtableCredentialsConfig"
 output_module = "config"
 doc = "Bigtable Credentials Configuration for Google API tools (Experimental)."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1220,7 +1220,7 @@ doc = "Resolve into a native ADK BigtableCredentialsConfig."
 source_class = "google.adk.tools.bigtable.bigtable_toolset.BigtableToolset"
 output_module = "tool"
 doc = "Bigtable Toolset contains tools for interacting with Bigtable data and metadata."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1233,7 +1233,7 @@ doc = "Resolve into a native ADK BigtableToolset."
 source_class = "google.adk.tools.computer_use.computer_use_tool.ComputerUseTool"
 output_module = "tool"
 doc = "A tool that wraps computer control functions for use with LLMs."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["func", "screen_size"]
 extra_skip_fields = []
 
@@ -1246,7 +1246,7 @@ doc = "Resolve into a native ADK ComputerUseTool."
 source_class = "google.adk.tools.computer_use.computer_use_toolset.ComputerUseToolset"
 output_module = "tool"
 doc = "Fluent builder for ComputerUseToolset."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["computer"]
 extra_skip_fields = []
 
@@ -1259,7 +1259,7 @@ doc = "Resolve into a native ADK ComputerUseToolset."
 source_class = "google.adk.tools.data_agent.config.DataAgentToolConfig"
 output_module = "config"
 doc = "Configuration for Data Agent tools."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1272,7 +1272,7 @@ doc = "Resolve into a native ADK DataAgentToolConfig."
 source_class = "google.adk.tools.data_agent.credentials.DataAgentCredentialsConfig"
 output_module = "config"
 doc = "Data Agent Credentials Configuration for Google API tools."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1285,7 +1285,7 @@ doc = "Resolve into a native ADK DataAgentCredentialsConfig."
 source_class = "google.adk.tools.data_agent.data_agent_toolset.DataAgentToolset"
 output_module = "tool"
 doc = "Data Agent Toolset contains tools for interacting with data agents."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1298,7 +1298,7 @@ doc = "Resolve into a native ADK DataAgentToolset."
 source_class = "google.adk.tools.discovery_engine_search_tool.DiscoveryEngineSearchTool"
 output_module = "tool"
 doc = "Tool for searching the discovery engine."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1311,7 +1311,7 @@ doc = "Resolve into a native ADK DiscoveryEngineSearchTool."
 source_class = "google.adk.tools.enterprise_search_tool.EnterpriseWebSearchTool"
 output_module = "tool"
 doc = "A Gemini 2+ built-in tool using web grounding for Enterprise compliance."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1324,7 +1324,7 @@ doc = "Resolve into a native ADK EnterpriseWebSearchTool."
 source_class = "google.adk.tools.example_tool.ExampleTool"
 output_module = "tool"
 doc = "A tool that adds (few-shot) examples to the LLM request."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["examples"]
 extra_skip_fields = []
 
@@ -1337,7 +1337,7 @@ doc = "Resolve into a native ADK ExampleTool."
 source_class = "google.adk.tools.example_tool.ExampleToolConfig"
 output_module = "config"
 doc = "Fluent builder for ExampleToolConfig."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["examples"]
 extra_skip_fields = []
 
@@ -1350,7 +1350,7 @@ doc = "Resolve into a native ADK ExampleToolConfig."
 source_class = "google.adk.tools.function_tool.FunctionTool"
 output_module = "tool"
 doc = "A tool that wraps a user-defined Python function."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["func"]
 extra_skip_fields = []
 
@@ -1363,7 +1363,7 @@ doc = "Resolve into a native ADK FunctionTool."
 source_class = "google.adk.tools.google_api_tool.google_api_tool.GoogleApiTool"
 output_module = "tool"
 doc = "Fluent builder for GoogleApiTool."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["rest_api_tool"]
 extra_skip_fields = []
 
@@ -1376,7 +1376,7 @@ doc = "Resolve into a native ADK GoogleApiTool."
 source_class = "google.adk.tools.google_api_tool.google_api_toolset.GoogleApiToolset"
 output_module = "tool"
 doc = "Google API Toolset contains tools for interacting with Google APIs."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["api_name", "api_version"]
 extra_skip_fields = []
 
@@ -1389,7 +1389,7 @@ doc = "Resolve into a native ADK GoogleApiToolset."
 source_class = "google.adk.tools.google_api_tool.google_api_toolsets.CalendarToolset"
 output_module = "tool"
 doc = "Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1402,7 +1402,7 @@ doc = "Resolve into a native ADK CalendarToolset."
 source_class = "google.adk.tools.google_api_tool.google_api_toolsets.DocsToolset"
 output_module = "tool"
 doc = "Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1415,7 +1415,7 @@ doc = "Resolve into a native ADK DocsToolset."
 source_class = "google.adk.tools.google_api_tool.google_api_toolsets.GmailToolset"
 output_module = "tool"
 doc = "Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1428,7 +1428,7 @@ doc = "Resolve into a native ADK GmailToolset."
 source_class = "google.adk.tools.google_api_tool.google_api_toolsets.SheetsToolset"
 output_module = "tool"
 doc = "Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1441,7 +1441,7 @@ doc = "Resolve into a native ADK SheetsToolset."
 source_class = "google.adk.tools.google_api_tool.google_api_toolsets.SlidesToolset"
 output_module = "tool"
 doc = "Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1454,7 +1454,7 @@ doc = "Resolve into a native ADK SlidesToolset."
 source_class = "google.adk.tools.google_api_tool.google_api_toolsets.YoutubeToolset"
 output_module = "tool"
 doc = "Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1467,7 +1467,7 @@ doc = "Resolve into a native ADK YoutubeToolset."
 source_class = "google.adk.tools.google_maps_grounding_tool.GoogleMapsGroundingTool"
 output_module = "tool"
 doc = "A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1480,7 +1480,7 @@ doc = "Resolve into a native ADK GoogleMapsGroundingTool."
 source_class = "google.adk.tools.google_search_agent_tool.GoogleSearchAgentTool"
 output_module = "tool"
 doc = "A tool that wraps a sub-agent that only uses google_search tool."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["agent"]
 extra_skip_fields = []
 
@@ -1493,7 +1493,7 @@ doc = "Resolve into a native ADK GoogleSearchAgentTool."
 source_class = "google.adk.tools.google_search_tool.GoogleSearchTool"
 output_module = "tool"
 doc = "A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1506,7 +1506,7 @@ doc = "Resolve into a native ADK GoogleSearchTool."
 source_class = "google.adk.tools.google_tool.GoogleTool"
 output_module = "tool"
 doc = "GoogleTool class for tools that call Google APIs."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["func"]
 extra_skip_fields = []
 
@@ -1519,7 +1519,7 @@ doc = "Resolve into a native ADK GoogleTool."
 source_class = "google.adk.tools.load_artifacts_tool.LoadArtifactsTool"
 output_module = "tool"
 doc = "A tool that loads the artifacts and adds them to the session."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1532,7 +1532,7 @@ doc = "Resolve into a native ADK LoadArtifactsTool."
 source_class = "google.adk.tools.load_mcp_resource_tool.LoadMcpResourceTool"
 output_module = "tool"
 doc = "A tool that loads the MCP resources and adds them to the session."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["mcp_toolset"]
 extra_skip_fields = []
 
@@ -1545,7 +1545,7 @@ doc = "Resolve into a native ADK LoadMcpResourceTool."
 source_class = "google.adk.tools.load_memory_tool.LoadMemoryTool"
 output_module = "tool"
 doc = "A tool that loads the memory for the current user."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1558,7 +1558,7 @@ doc = "Resolve into a native ADK LoadMemoryTool."
 source_class = "google.adk.tools.long_running_tool.LongRunningFunctionTool"
 output_module = "tool"
 doc = "A function tool that returns the result asynchronously."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["func"]
 extra_skip_fields = []
 
@@ -1571,7 +1571,7 @@ doc = "Resolve into a native ADK LongRunningFunctionTool."
 source_class = "google.adk.tools.mcp_tool.mcp_tool.MCPTool"
 output_module = "tool"
 doc = "Deprecated name, use `McpTool` instead."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -1584,7 +1584,7 @@ doc = "Resolve into a native ADK MCPTool."
 source_class = "google.adk.tools.mcp_tool.mcp_tool.McpTool"
 output_module = "tool"
 doc = "Turns an MCP Tool into an ADK Tool."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["mcp_tool", "mcp_session_manager"]
 extra_skip_fields = []
 
@@ -1597,7 +1597,7 @@ doc = "Resolve into a native ADK McpTool."
 source_class = "google.adk.tools.mcp_tool.mcp_toolset.MCPToolset"
 output_module = "tool"
 doc = "Deprecated name, use `McpToolset` instead."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["args", "kwargs"]
 extra_skip_fields = []
 
@@ -1610,7 +1610,7 @@ doc = "Resolve into a native ADK MCPToolset."
 source_class = "google.adk.tools.mcp_tool.mcp_toolset.McpToolset"
 output_module = "tool"
 doc = "Connects to a MCP Server, and retrieves MCP Tools into ADK Tools."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["connection_params"]
 extra_skip_fields = []
 
@@ -1623,7 +1623,7 @@ doc = "Resolve into a native ADK McpToolset."
 source_class = "google.adk.tools.mcp_tool.mcp_toolset.McpToolsetConfig"
 output_module = "config"
 doc = "The config for McpToolset."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1636,7 +1636,7 @@ doc = "Resolve into a native ADK McpToolsetConfig."
 source_class = "google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset.OpenAPIToolset"
 output_module = "tool"
 doc = "Class for parsing OpenAPI spec into a list of RestApiTool."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1649,7 +1649,7 @@ doc = "Resolve into a native ADK OpenAPIToolset."
 source_class = "google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool.RestApiTool"
 output_module = "tool"
 doc = "A generic tool that interacts with a REST API."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["name", "description", "endpoint"]
 extra_skip_fields = []
 
@@ -1662,7 +1662,7 @@ doc = "Resolve into a native ADK RestApiTool."
 source_class = "google.adk.tools.preload_memory_tool.PreloadMemoryTool"
 output_module = "tool"
 doc = "A tool that preloads the memory for the current user."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1675,7 +1675,7 @@ doc = "Resolve into a native ADK PreloadMemoryTool."
 source_class = "google.adk.tools.pubsub.config.PubSubToolConfig"
 output_module = "config"
 doc = "Configuration for Pub/Sub tools."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1688,7 +1688,7 @@ doc = "Resolve into a native ADK PubSubToolConfig."
 source_class = "google.adk.tools.pubsub.pubsub_credentials.PubSubCredentialsConfig"
 output_module = "config"
 doc = "Pub/Sub Credentials Configuration for Google API tools (Experimental)."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1701,7 +1701,7 @@ doc = "Resolve into a native ADK PubSubCredentialsConfig."
 source_class = "google.adk.tools.pubsub.pubsub_toolset.PubSubToolset"
 output_module = "tool"
 doc = "Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1714,7 +1714,7 @@ doc = "Resolve into a native ADK PubSubToolset."
 source_class = "google.adk.tools.retrieval.base_retrieval_tool.BaseRetrievalTool"
 output_module = "tool"
 doc = "Fluent builder for BaseRetrievalTool."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["name", "description"]
 extra_skip_fields = []
 
@@ -1727,7 +1727,7 @@ doc = "Resolve into a native ADK BaseRetrievalTool."
 source_class = "google.adk.tools.set_model_response_tool.SetModelResponseTool"
 output_module = "tool"
 doc = "Internal tool used for output schema workaround."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["output_schema"]
 extra_skip_fields = []
 
@@ -1740,7 +1740,7 @@ doc = "Resolve into a native ADK SetModelResponseTool."
 source_class = "google.adk.tools.skill_toolset.LoadSkillResourceTool"
 output_module = "tool"
 doc = "Tool to load resources (references or assets) from a skill."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["toolset"]
 extra_skip_fields = []
 
@@ -1753,7 +1753,7 @@ doc = "Resolve into a native ADK LoadSkillResourceTool."
 source_class = "google.adk.tools.skill_toolset.LoadSkillTool"
 output_module = "tool"
 doc = "Tool to load a skill's instructions."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["toolset"]
 extra_skip_fields = []
 
@@ -1766,7 +1766,7 @@ doc = "Resolve into a native ADK LoadSkillTool."
 source_class = "google.adk.tools.skill_toolset.SkillToolset"
 output_module = "tool"
 doc = "A toolset for managing and interacting with agent skills."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["skills"]
 extra_skip_fields = []
 
@@ -1779,7 +1779,7 @@ doc = "Resolve into a native ADK SkillToolset."
 source_class = "google.adk.tools.spanner.spanner_credentials.SpannerCredentialsConfig"
 output_module = "config"
 doc = "Spanner Credentials Configuration for Google API tools (Experimental)."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1792,7 +1792,7 @@ doc = "Resolve into a native ADK SpannerCredentialsConfig."
 source_class = "google.adk.tools.spanner.spanner_toolset.SpannerToolset"
 output_module = "tool"
 doc = "Spanner Toolset contains tools for interacting with Spanner data, database and table information."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1805,7 +1805,7 @@ doc = "Resolve into a native ADK SpannerToolset."
 source_class = "google.adk.tools.tool_configs.BaseToolConfig"
 output_module = "config"
 doc = "The base class for all tool configs."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1818,7 +1818,7 @@ doc = "Resolve into a native ADK BaseToolConfig."
 source_class = "google.adk.tools.tool_configs.ToolArgsConfig"
 output_module = "config"
 doc = "Config to host free key-value pairs for the args in ToolConfig."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1831,7 +1831,7 @@ doc = "Resolve into a native ADK ToolArgsConfig."
 source_class = "google.adk.tools.tool_configs.ToolConfig"
 output_module = "config"
 doc = "The configuration for a tool."
-auto_tag = "config"
+auto_tag = "data"
 constructor_args = ["name"]
 extra_skip_fields = []
 
@@ -1844,7 +1844,7 @@ doc = "Resolve into a native ADK ToolConfig."
 source_class = "google.adk.tools.toolbox_toolset.ToolboxToolset"
 output_module = "tool"
 doc = "A class that provides access to toolbox toolsets."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["server_url", "kwargs"]
 extra_skip_fields = []
 
@@ -1857,7 +1857,7 @@ doc = "Resolve into a native ADK ToolboxToolset."
 source_class = "google.adk.tools.transfer_to_agent_tool.TransferToAgentTool"
 output_module = "tool"
 doc = "A specialized FunctionTool for agent transfer with enum constraints."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = ["agent_names"]
 extra_skip_fields = []
 
@@ -1870,7 +1870,7 @@ doc = "Resolve into a native ADK TransferToAgentTool."
 source_class = "google.adk.tools.url_context_tool.UrlContextTool"
 output_module = "tool"
 doc = "A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
@@ -1883,7 +1883,7 @@ doc = "Resolve into a native ADK UrlContextTool."
 source_class = "google.adk.tools.vertex_ai_search_tool.VertexAiSearchTool"
 output_module = "tool"
 doc = "A built-in tool using Vertex AI Search."
-auto_tag = "tool"
+auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 

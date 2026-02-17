@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
 from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
 from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
@@ -20,7 +21,7 @@ from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulat
 # Builder: RecordingsPlugin
 # ======================================================================
 
-class RecordingsPlugin:
+class RecordingsPlugin(BuilderBase):
     """Plugin for recording ADK agent interactions."""
 
     # --- Class-level alias / field maps ---
@@ -112,7 +113,7 @@ class RecordingsPlugin:
 # Builder: ReplayPlugin
 # ======================================================================
 
-class ReplayPlugin:
+class ReplayPlugin(BuilderBase):
     """Plugin for replaying ADK agent interactions from recordings."""
 
     # --- Class-level alias / field maps ---
@@ -204,7 +205,7 @@ class ReplayPlugin:
 # Builder: BasePlugin
 # ======================================================================
 
-class BasePlugin:
+class BasePlugin(BuilderBase):
     """Base class for creating plugins."""
 
     # --- Class-level alias / field maps ---
@@ -296,14 +297,14 @@ class BasePlugin:
 # Builder: BigQueryAgentAnalyticsPlugin
 # ======================================================================
 
-class BigQueryAgentAnalyticsPlugin:
+class BigQueryAgentAnalyticsPlugin(BuilderBase):
     """BigQuery Agent Analytics Plugin (v2.0 using Write API)."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'location', 'dataset_id', 'table_id', 'config', 'project_id'}
+    _KNOWN_PARAMS: set[str] = {'project_id', 'config', 'table_id', 'location', 'dataset_id'}
 
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
@@ -388,14 +389,14 @@ class BigQueryAgentAnalyticsPlugin:
 # Builder: ContextFilterPlugin
 # ======================================================================
 
-class ContextFilterPlugin:
+class ContextFilterPlugin(BuilderBase):
     """A plugin that filters the LLM context to reduce its size."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'num_invocations_to_keep', 'name', 'custom_filter'}
+    _KNOWN_PARAMS: set[str] = {'custom_filter', 'name', 'num_invocations_to_keep'}
 
 
     def __init__(self, ) -> None:
@@ -480,7 +481,7 @@ class ContextFilterPlugin:
 # Builder: DebugLoggingPlugin
 # ======================================================================
 
-class DebugLoggingPlugin:
+class DebugLoggingPlugin(BuilderBase):
     """A plugin that captures complete debug information to a file."""
 
     # --- Class-level alias / field maps ---
@@ -572,7 +573,7 @@ class DebugLoggingPlugin:
 # Builder: GlobalInstructionPlugin
 # ======================================================================
 
-class GlobalInstructionPlugin:
+class GlobalInstructionPlugin(BuilderBase):
     """Plugin that provides global instructions functionality at the App level."""
 
     # --- Class-level alias / field maps ---
@@ -664,7 +665,7 @@ class GlobalInstructionPlugin:
 # Builder: LoggingPlugin
 # ======================================================================
 
-class LoggingPlugin:
+class LoggingPlugin(BuilderBase):
     """A plugin that logs important information at each callback point."""
 
     # --- Class-level alias / field maps ---
@@ -756,7 +757,7 @@ class LoggingPlugin:
 # Builder: MultimodalToolResultsPlugin
 # ======================================================================
 
-class MultimodalToolResultsPlugin:
+class MultimodalToolResultsPlugin(BuilderBase):
     """A plugin that modifies function tool responses to support returning list of parts directly."""
 
     # --- Class-level alias / field maps ---
@@ -848,14 +849,14 @@ class MultimodalToolResultsPlugin:
 # Builder: ReflectAndRetryToolPlugin
 # ======================================================================
 
-class ReflectAndRetryToolPlugin:
+class ReflectAndRetryToolPlugin(BuilderBase):
     """Provides self-healing, concurrent-safe error recovery for tool failures."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tracking_scope', 'max_retries', 'name', 'throw_exception_if_retry_exceeded'}
+    _KNOWN_PARAMS: set[str] = {'max_retries', 'name', 'throw_exception_if_retry_exceeded', 'tracking_scope'}
 
 
     def __init__(self, ) -> None:
@@ -940,7 +941,7 @@ class ReflectAndRetryToolPlugin:
 # Builder: SaveFilesAsArtifactsPlugin
 # ======================================================================
 
-class SaveFilesAsArtifactsPlugin:
+class SaveFilesAsArtifactsPlugin(BuilderBase):
     """A plugin that saves files embedded in user messages as artifacts."""
 
     # --- Class-level alias / field maps ---
@@ -1032,7 +1033,7 @@ class SaveFilesAsArtifactsPlugin:
 # Builder: AgentSimulatorPlugin
 # ======================================================================
 
-class AgentSimulatorPlugin:
+class AgentSimulatorPlugin(BuilderBase):
     """ADK Plugin for AgentSimulator."""
 
     # --- Class-level alias / field maps ---

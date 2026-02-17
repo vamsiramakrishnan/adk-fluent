@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 ADK-FLUENT GENERATOR
@@ -187,6 +188,7 @@ def gen_runtime_imports(spec: BuilderSpec) -> str:
         "from collections import defaultdict",
         "from typing import Any, Callable, Self",
         "",
+        "from adk_fluent._base import BuilderBase",
     ]
 
     if not spec.is_composite and not spec.is_standalone:
@@ -563,7 +565,7 @@ def gen_build_method(spec: BuilderSpec) -> str:
 def gen_runtime_class(spec: BuilderSpec) -> str:
     """Generate complete runtime class code."""
     sections = [
-        f'\nclass {spec.name}:',
+        f'\nclass {spec.name}(BuilderBase):',
         f'    """{spec.doc}"""',
         "",
         "    # --- Class-level alias / field maps ---",
@@ -626,7 +628,7 @@ def gen_stub_method(method_name: str, type_hint: str, doc: str = "") -> str:
 def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
     """Generate .pyi stub for a single builder."""
     lines = [
-        f"class {spec.name}:",
+        f"class {spec.name}(BuilderBase):",
         f'    """{spec.doc}"""',
     ]
     
@@ -712,6 +714,8 @@ def gen_stub_module(specs_for_module: list[BuilderSpec], adk_version: str) -> st
         f"# Timestamp: {datetime.now(timezone.utc).isoformat()}",
         "",
         "from typing import Any, AsyncGenerator, Callable, Self",
+        "",
+        "from adk_fluent._base import BuilderBase",
         "",
     ]
     
@@ -914,6 +918,23 @@ def _test_value_for_type(type_str: str) -> str:
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
 
+def _load_manual_exports(seed_path: str) -> list[dict]:
+    """Load manual_exports from seed.manual.toml adjacent to the seed file.
+
+    Looks for a seed.manual.toml in the same directory as seed_path.
+    Returns a list of dicts with keys: module, names, public.
+    """
+    seed_dir = Path(seed_path).parent
+    manual_path = seed_dir / "seed.manual.toml"
+    if not manual_path.exists():
+        return []
+
+    with open(manual_path, "rb") as f:
+        manual = tomllib.load(f)
+
+    return manual.get("manual_exports", [])
+
+
 def generate_all(seed_path: str, manifest_path: str, output_dir: str,
                  test_dir: str | None = None,
                  stubs_only: bool = False, tests_only: bool = False):
@@ -921,17 +942,17 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
     seed = parse_seed(seed_path)
     manifest = parse_manifest(manifest_path)
     specs = resolve_builder_specs(seed, manifest)
-    
+
     adk_version = manifest.get("adk_version", "unknown")
-    
+
     # Group specs by output module
     by_module: dict[str, list[BuilderSpec]] = defaultdict(list)
     for spec in specs:
         by_module[spec.output_module].append(spec)
-    
+
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     # --- Generate runtime .py files ---
     if not stubs_only and not tests_only:
         for module_name, module_specs in by_module.items():
@@ -939,7 +960,7 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
             filepath = output_path / f"{module_name}.py"
             filepath.write_text(code)
             print(f"  Generated: {filepath}")
-        
+
         # Generate __init__.py with re-exports
         init_lines = [
             '"""adk-fluent: Fluent builder API for Google ADK."""',
@@ -948,13 +969,24 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
         ]
         for spec in specs:
             init_lines.append(f"from .{spec.output_module} import {spec.name}")
-        
+
         init_lines.append("")
         init_lines.append("__all__ = [")
         for spec in specs:
             init_lines.append(f'    "{spec.name}",')
         init_lines.append("]")
-        
+
+        # Append manual exports from seed.manual.toml
+        manual_exports = _load_manual_exports(seed_path)
+        if manual_exports:
+            init_lines.append("")
+            init_lines.append("# --- Manual exports (from seed.manual.toml) ---")
+            for export in manual_exports:
+                module = export["module"]
+                names = export["names"]
+                for name in names:
+                    init_lines.append(f"from {module} import {name}")
+
         init_path = output_path / "__init__.py"
         init_path.write_text("\n".join(init_lines))
         print(f"  Generated: {init_path}")

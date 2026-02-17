@@ -21,6 +21,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    import tomli as tomllib  # Fallback
+
 
 # ---------------------------------------------------------------------------
 # TASK 5: CLASSIFICATION ENGINE
@@ -339,6 +344,10 @@ def emit_seed_toml(
                 lines.append(f'behavior = "{extra["behavior"]}"')
             if "target_field" in extra:
                 lines.append(f'target_field = "{extra["target_field"]}"')
+            if "target_fields" in extra:
+                lines.append(f'target_fields = {_emit_string_list(extra["target_fields"])}')
+            if "helper_func" in extra:
+                lines.append(f'helper_func = "{extra["helper_func"]}"')
             lines.append("")
 
     return "\n".join(lines) + "\n"
@@ -348,7 +357,7 @@ def emit_seed_toml(
 # TASK 12: ORCHESTRATOR
 # ---------------------------------------------------------------------------
 
-_BUILDER_RENAMES = {
+_DEFAULT_BUILDER_RENAMES = {
     "LlmAgent": "Agent",
     "SequentialAgent": "Pipeline",
     "ParallelAgent": "FanOut",
@@ -356,12 +365,13 @@ _BUILDER_RENAMES = {
 }
 
 
-def _builder_name_for_class(class_name: str, tag: str) -> str:
+def _builder_name_for_class(class_name: str, tag: str, renames: dict[str, str] | None = None) -> str:
     """Determine the builder name for a class, applying renames for well-known types."""
-    return _BUILDER_RENAMES.get(class_name, class_name)
+    rename_map = renames if renames is not None else _DEFAULT_BUILDER_RENAMES
+    return rename_map.get(class_name, class_name)
 
 
-def generate_seed_from_manifest(manifest: dict) -> str:
+def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None = None) -> str:
     """Main pipeline: transform a manifest dict into a seed.toml string.
 
     Steps:
@@ -431,7 +441,7 @@ def generate_seed_from_manifest(manifest: dict) -> str:
         extras = generate_extras(name, tag, source_class)
 
         # Step 5: Builder name
-        builder_name = _builder_name_for_class(name, tag)
+        builder_name = _builder_name_for_class(name, tag, renames)
 
         # Step 6: Terminal
         terminals = [{"name": "build", "returns": name, "doc": f"Resolve into a native ADK {name}."}]
@@ -479,6 +489,86 @@ def generate_seed_from_manifest(manifest: dict) -> str:
 
 
 # ---------------------------------------------------------------------------
+# MANUAL SEED MERGING
+# ---------------------------------------------------------------------------
+
+_MANUAL_EXTRA_BEHAVIORS = frozenset({
+    "dual_callback", "deep_copy",
+    "runtime_helper", "runtime_helper_async",
+    "runtime_helper_async_gen", "runtime_helper_ctx",
+})
+
+
+def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
+    """Merge a manual seed.toml overlay into auto-generated TOML output.
+
+    1. Parse the auto-generated TOML string.
+    2. Load the manual TOML file.
+    3. Apply builder renames from [renames] in the manual file.
+    4. Append manual extras to the corresponding builder's extras list.
+    5. Return the merged TOML string.
+    """
+    import io
+
+    # Parse auto-generated TOML
+    auto = tomllib.loads(auto_toml)
+
+    # Load manual TOML
+    manual_file = Path(manual_path)
+    if not manual_file.exists():
+        print(f"WARNING: manual seed {manual_path} not found, skipping merge", file=sys.stderr)
+        return auto_toml
+
+    with open(manual_file, "rb") as f:
+        manual = tomllib.load(f)
+
+    # Step 1: Extract renames from manual [renames] section
+    renames = manual.get("renames", {})
+
+    # Step 2: Apply renames to builder names in the auto dict
+    if renames and "builders" in auto:
+        old_builders = auto["builders"]
+        new_builders = {}
+        for builder_name, builder_config in old_builders.items():
+            # Check if this builder was generated from a class that should be renamed
+            source_class_short = builder_config.get("source_class", "").split(".")[-1]
+            new_name = renames.get(source_class_short)
+            if new_name and builder_name == source_class_short:
+                # Rename this builder
+                new_builders[new_name] = builder_config
+            else:
+                new_builders[builder_name] = builder_config
+        auto["builders"] = new_builders
+
+    # Step 3: Merge manual extras into matching builders
+    manual_builders = manual.get("builders", {})
+    for builder_name, manual_config in manual_builders.items():
+        manual_extras = manual_config.get("extras", [])
+        if not manual_extras:
+            continue
+
+        if builder_name in auto.get("builders", {}):
+            existing_extras = auto["builders"][builder_name].get("extras", [])
+            # Get names of existing extras to avoid duplicates
+            existing_names = {e["name"] for e in existing_extras}
+            for extra in manual_extras:
+                if extra["name"] not in existing_names:
+                    existing_extras.append(extra)
+            auto["builders"][builder_name]["extras"] = existing_extras
+
+    # Re-emit the merged TOML
+    builders_list = []
+    for name, config in auto.get("builders", {}).items():
+        builder = {**config, "name": name}
+        builders_list.append(builder)
+
+    global_config = auto.get("global", {})
+    adk_version = auto.get("meta", {}).get("adk_version", "unknown")
+
+    return emit_seed_toml(builders_list, global_config, adk_version=adk_version)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -488,6 +578,7 @@ def main():
     )
     parser.add_argument("manifest", help="Path to manifest.json")
     parser.add_argument("-o", "--output", help="Output file (default: stdout)")
+    parser.add_argument("--merge", help="Path to manual seed.toml overlay to merge")
     args = parser.parse_args()
 
     # Load manifest
@@ -499,8 +590,21 @@ def main():
     with open(manifest_path) as f:
         manifest = json.load(f)
 
-    # Generate seed
-    toml_str = generate_seed_from_manifest(manifest)
+    # Load renames from manual file if --merge is specified
+    renames = None
+    if args.merge:
+        merge_path = Path(args.merge)
+        if merge_path.exists():
+            with open(merge_path, "rb") as f:
+                manual = tomllib.load(f)
+            renames = manual.get("renames", None)
+
+    # Generate seed (pass renames so builder names are correct before merge)
+    toml_str = generate_seed_from_manifest(manifest, renames=renames)
+
+    # Merge manual extras if --merge is specified
+    if args.merge:
+        toml_str = merge_manual_seed(toml_str, args.merge)
 
     # Write output
     if args.output:

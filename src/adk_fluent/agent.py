@@ -3,6 +3,7 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
+from adk_fluent._base import BuilderBase
 from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -10,13 +11,13 @@ from google.adk.agents.llm_agent import LlmAgent
 # Builder: BaseAgent
 # ======================================================================
 
-class BaseAgent:
+class BaseAgent(BuilderBase):
     """Base class for all agents in Agent Development Kit."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -132,13 +133,13 @@ class BaseAgent:
 # Builder: Agent
 # ======================================================================
 
-class Agent:
+class Agent(BuilderBase):
     """LLM-based Agent."""
 
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'on_model_error_callback', 'on_tool_error_callback', 'before_tool_callback', 'after_tool_callback', 'after_model_callback', 'after_agent_callback', 'before_agent_callback', 'before_model_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'after_agent_callback', 'after_model_callback', 'before_tool_callback', 'after_tool_callback', 'before_model_callback', 'on_model_error_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
