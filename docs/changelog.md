@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1
+
+- Migrated CI/CD from GitLab to GitHub Actions (test matrix, build, PyPI publish via OIDC)
+- Updated all project URLs to GitHub
+- Removed `.gitlab-ci.yml` and `.readthedocs.yaml`
+
 ## v0.3.0
 
 - Sphinx documentation site with Furo theme, deployed to GitHub Pages
