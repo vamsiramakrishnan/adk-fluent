@@ -2,10 +2,11 @@
 # ADK-FLUENT DEVELOPMENT WORKFLOW
 # ============================================================================
 #
-#   just all        → Full pipeline: scan → seed → generate
+#   just all        → Full pipeline: scan → seed → generate → docs
 #   just scan       → Introspect installed ADK, produce manifest.json
 #   just seed       → Generate seed.toml from manifest.json
 #   just generate   → Combine seed.toml + manifest.json → code + stubs + tests
+#   just docs       → Generate all documentation
 #   just test       → Run all tests
 #   just typecheck  → Run pyright on generated stubs
 #   just diff       → Show what changed since last scan
@@ -25,59 +26,88 @@ TEST_DIR      := "tests/generated"
 SCANNER       := "scripts/scanner.py"
 SEED_GEN      := "scripts/seed_generator.py"
 GENERATOR     := "scripts/generator.py"
+DOC_GEN       := "scripts/doc_generator.py"
+DOC_DIR       := "docs/generated"
+COOKBOOK_DIR   := "examples/cookbook"
 
 # --- Full pipeline ---
-all: scan seed generate
-    @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/"
+all: scan seed generate docs
+    @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/ and docs in {{DOC_DIR}}/"
 
 # --- Scan ADK ---
 scan:
     @echo "Scanning installed google-adk..."
-    @python {{SCANNER}} -o {{MANIFEST}}
-    @python {{SCANNER}} --summary
+    @uv run python {{SCANNER}} -o {{MANIFEST}}
+    @uv run python {{SCANNER}} --summary
 
 # --- Generate seed.toml from manifest ---
 seed: _require-manifest
     @echo "Generating seed.toml from manifest..."
-    @python {{SEED_GEN}} {{MANIFEST}} -o {{SEED}}
+    @uv run python {{SEED_GEN}} {{MANIFEST}} -o {{SEED}}
 
 # --- Generate code ---
 generate: _require-manifest _require-seed
     @echo "Generating code from seed + manifest..."
-    @python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
+    @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed
     @echo "Regenerating .pyi stubs only..."
-    @python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
+    @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --stubs-only
 
 # --- Tests ---
 test:
     @echo "Running tests..."
-    @pytest tests/ -v --tb=short
+    @uv run pytest tests/ -v --tb=short
 
 # --- Type checking ---
 typecheck:
     @echo "Type-checking generated stubs..."
-    @pyright {{OUTPUT_DIR}}/ --pythonversion 3.12
+    @uv run pyright {{OUTPUT_DIR}}/ --pythonversion 3.12
+
+# --- Documentation ---
+docs: _require-manifest _require-seed
+    @echo "Generating documentation..."
+    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+        --output-dir {{DOC_DIR}} \
+        --cookbook-dir {{COOKBOOK_DIR}}
+
+docs-api: _require-manifest _require-seed
+    @echo "Generating API reference..."
+    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+        --output-dir {{DOC_DIR}} \
+        --api-only
+
+docs-cookbook: _require-manifest _require-seed
+    @echo "Generating cookbook..."
+    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+        --output-dir {{DOC_DIR}} \
+        --cookbook-dir {{COOKBOOK_DIR}} \
+        --cookbook-only
+
+docs-migration: _require-manifest _require-seed
+    @echo "Generating migration guide..."
+    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+        --output-dir {{DOC_DIR}} \
+        --migration-only
 
 # --- Diff against previous ---
 diff:
     #!/usr/bin/env bash
     if [ -f {{PREV_MANIFEST}} ]; then
         echo "Changes since last scan:"
-        python {{SCANNER}} --diff {{PREV_MANIFEST}}
+        uv run python {{SCANNER}} --diff {{PREV_MANIFEST}}
     else
         echo "No previous manifest found. Run 'just scan' first."
     fi
 
 # --- Summary ---
 summary:
-    @python {{SCANNER}} --summary
+    @uv run python {{SCANNER}} --summary
 
 # --- Archive current manifest ---
 archive:
@@ -87,23 +117,24 @@ archive:
 # --- Package build ---
 build: all
     @echo "Building package..."
-    @hatch build
+    @uv run hatch build
 
 # --- Publish to TestPyPI ---
 publish-test: build
     @echo "Publishing to TestPyPI..."
-    @hatch publish -r test
+    @uv run hatch publish -r test
 
 # --- Publish to PyPI ---
 publish: build
     @echo "Publishing to PyPI..."
-    @hatch publish
+    @uv run hatch publish
 
 # --- Clean ---
 clean:
     @echo "Cleaning generated files..."
     @rm -rf {{OUTPUT_DIR}}/*.py {{OUTPUT_DIR}}/*.pyi
     @rm -rf {{TEST_DIR}}/
+    @rm -rf {{DOC_DIR}}/
     @rm -f {{MANIFEST}}
     @echo "Done."
 
@@ -111,17 +142,21 @@ clean:
 help:
     @echo "ADK-FLUENT Development Commands:"
     @echo ""
-    @echo "  just all        Full pipeline: scan -> seed -> generate"
-    @echo "  just scan       Introspect ADK -> manifest.json"
-    @echo "  just seed       manifest.json -> seed.toml"
-    @echo "  just generate   seed.toml + manifest.json -> code"
-    @echo "  just stubs      Regenerate .pyi stubs only"
-    @echo "  just test       Run pytest suite"
-    @echo "  just typecheck  Run pyright type-check"
-    @echo "  just diff       Show changes since last scan"
-    @echo "  just build      Build pip package"
-    @echo "  just publish    Publish to PyPI"
-    @echo "  just clean      Remove generated files"
+    @echo "  just all            Full pipeline: scan -> seed -> generate -> docs"
+    @echo "  just scan           Introspect ADK -> manifest.json"
+    @echo "  just seed           manifest.json -> seed.toml"
+    @echo "  just generate       seed.toml + manifest.json -> code"
+    @echo "  just stubs          Regenerate .pyi stubs only"
+    @echo "  just test           Run pytest suite"
+    @echo "  just typecheck      Run pyright type-check"
+    @echo "  just docs           Generate all documentation"
+    @echo "  just docs-api       Generate API reference only"
+    @echo "  just docs-cookbook   Generate cookbook only"
+    @echo "  just docs-migration Generate migration guide only"
+    @echo "  just diff           Show changes since last scan"
+    @echo "  just build          Build pip package"
+    @echo "  just publish        Publish to PyPI"
+    @echo "  just clean          Remove generated files"
     @echo ""
     @echo "Workflow: just all -> just test -> commit"
 
