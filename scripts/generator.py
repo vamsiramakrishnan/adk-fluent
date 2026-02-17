@@ -59,6 +59,8 @@ class BuilderSpec:
     is_composite: bool                  # True if __composite__ (no Pydantic class)
     is_standalone: bool                 # True if __standalone__ (no ADK class at all)
     field_docs: dict[str, str]          # Override docstrings
+    inspection_mode: str = "pydantic"   # "pydantic" or "init_signature"
+    init_params: list[dict] | None = None  # __init__ params for init_signature mode
 
 
 # ---------------------------------------------------------------------------
@@ -102,16 +104,20 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
         # Look up manifest data for this class
         fields = []
         source_short = ""
+        inspection_mode = "pydantic"
+        init_params = []
         if not is_composite and not is_standalone:
             cls_data = manifest_classes.get(source_class)
             if cls_data is None:
                 # Try matching by class name only
                 class_name = source_class.split(".")[-1]
                 cls_data = manifest_classes.get(class_name)
-            
+
             if cls_data:
                 fields = cls_data.get("fields", [])
                 source_short = cls_data["name"]
+                inspection_mode = cls_data.get("inspection_mode", "pydantic")
+                init_params = cls_data.get("init_params", [])
             else:
                 print(f"WARNING: {source_class} not found in manifest for builder {builder_name}",
                       file=sys.stderr)
@@ -147,6 +153,8 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
             is_composite=is_composite,
             is_standalone=is_standalone,
             field_docs=field_docs,
+            inspection_mode=inspection_mode,
+            init_params=init_params,
         )
         specs.append(spec)
     
@@ -181,23 +189,34 @@ def gen_runtime_imports(spec: BuilderSpec) -> str:
 def gen_alias_maps(spec: BuilderSpec) -> str:
     """Generate the alias and callback alias constants."""
     lines = []
-    
+
     if spec.aliases:
         lines.append(f"_ALIASES: dict[str, str] = {repr(spec.aliases)}")
     else:
         lines.append("_ALIASES: dict[str, str] = {}")
-    
+
     if spec.callback_aliases:
         lines.append(f"_CALLBACK_ALIASES: dict[str, str] = {repr(spec.callback_aliases)}")
     else:
         lines.append("_CALLBACK_ALIASES: dict[str, str] = {}")
-    
+
     additive = spec.additive_fields & {f["name"] for f in spec.fields}
     if additive:
         lines.append(f"_ADDITIVE_FIELDS: set[str] = {repr(additive)}")
     else:
         lines.append("_ADDITIVE_FIELDS: set[str] = set()")
-    
+
+    # For init_signature mode, emit a static _KNOWN_PARAMS set from the manifest
+    if spec.inspection_mode == "init_signature" and spec.init_params:
+        param_names = sorted({p["name"] for p in spec.init_params
+                              if p["name"] not in ("self", "args", "kwargs", "kwds")})
+        if param_names:
+            lines.append(f"_KNOWN_PARAMS: set[str] = {repr(set(param_names))}")
+        else:
+            lines.append("_KNOWN_PARAMS: set[str] = set()")
+    elif spec.inspection_mode == "init_signature":
+        lines.append("_KNOWN_PARAMS: set[str] = set()")
+
     return "\n".join(lines)
 
 
@@ -306,18 +325,19 @@ def gen_getattr_method(spec: BuilderSpec) -> str:
     """Generate the __getattr__ forwarding method."""
     if spec.is_composite or spec.is_standalone:
         return ""  # No Pydantic introspection for these
-    
+
     class_short = spec.source_class_short
-    
-    return f'''
+
+    if spec.inspection_mode == "init_signature":
+        return f'''
     def __getattr__(self, name: str):
-        """Forward unknown methods to {class_short}.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to {class_short} init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
-        
+
         # Resolve through alias map
         field_name = _ALIASES.get(name, name)
-        
+
         # Check if it's a callback alias
         if name in _CALLBACK_ALIASES:
             cb_field = _CALLBACK_ALIASES[name]
@@ -325,7 +345,48 @@ def gen_getattr_method(spec: BuilderSpec) -> str:
                 self._callbacks[cb_field].append(fn)
                 return self
             return _cb_setter
-        
+
+        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
+        if field_name not in _KNOWN_PARAMS:
+            available = sorted(
+                _KNOWN_PARAMS
+                | set(_ALIASES.keys())
+                | set(_CALLBACK_ALIASES.keys())
+            )
+            raise AttributeError(
+                f"'{{name}}' is not a recognized parameter on {class_short}. "
+                f"Available: {{', '.join(available)}}"
+            )
+
+        # Return a setter that stores value and returns self for chaining
+        def _setter(value: Any) -> Self:
+            if field_name in _ADDITIVE_FIELDS:
+                self._callbacks[field_name].append(value)
+            else:
+                self._config[field_name] = value
+            return self
+
+        return _setter
+'''
+
+    # Default: Pydantic mode
+    return f'''
+    def __getattr__(self, name: str):
+        """Forward unknown methods to {class_short}.model_fields for zero-maintenance compatibility."""
+        if name.startswith("_"):
+            raise AttributeError(name)
+
+        # Resolve through alias map
+        field_name = _ALIASES.get(name, name)
+
+        # Check if it's a callback alias
+        if name in _CALLBACK_ALIASES:
+            cb_field = _CALLBACK_ALIASES[name]
+            def _cb_setter(fn: Callable) -> Self:
+                self._callbacks[cb_field].append(fn)
+                return self
+            return _cb_setter
+
         # Validate against actual Pydantic schema
         if field_name not in {class_short}.model_fields:
             available = sorted(
@@ -337,7 +398,7 @@ def gen_getattr_method(spec: BuilderSpec) -> str:
                 f"'{{name}}' is not a recognized field on {class_short}. "
                 f"Available: {{', '.join(available)}}"
             )
-        
+
         # Return a setter that stores value and returns self for chaining
         def _setter(value: Any) -> Self:
             if field_name in _ADDITIVE_FIELDS:
@@ -345,7 +406,7 @@ def gen_getattr_method(spec: BuilderSpec) -> str:
             else:
                 self._config[field_name] = value
             return self
-        
+
         return _setter
 '''
 
@@ -462,23 +523,44 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
     for short_name in spec.callback_aliases:
         lines.append(f"    def {short_name}(self, fn: Callable) -> Self: ...")
     
-    # All remaining Pydantic fields (not aliased, not skipped)
+    # All remaining fields (not aliased, not skipped)
     aliased_fields = set(spec.aliases.values())
     callback_fields = set(spec.callback_aliases.values())
-    
-    for field in spec.fields:
-        fname = field["name"]
-        if fname in spec.skip_fields:
-            continue
-        if fname in aliased_fields:
-            continue  # Already covered by alias
-        if fname in callback_fields:
-            continue  # Already covered by callback alias
-        if fname in {a["name"] for a in spec.extras}:
-            continue  # Already covered by extra
-        
-        type_str = field["type_str"]
-        lines.append(f"    def {fname}(self, value: {type_str}) -> Self: ...")
+
+    if spec.inspection_mode == "init_signature" and spec.init_params:
+        # For init_signature mode, expose init params as stub methods
+        for param in spec.init_params:
+            pname = param["name"]
+            if pname in ("self", "args", "kwargs", "kwds"):
+                continue
+            if pname in spec.skip_fields:
+                continue
+            if pname in aliased_fields:
+                continue  # Already covered by alias
+            if pname in callback_fields:
+                continue  # Already covered by callback alias
+            if pname in {a["name"] for a in spec.extras}:
+                continue  # Already covered by extra
+            if pname in spec.constructor_args:
+                continue  # Already in constructor
+
+            type_str = param.get("type_str", "Any")
+            lines.append(f"    def {pname}(self, value: {type_str}) -> Self: ...")
+    else:
+        # Pydantic mode: list Pydantic fields
+        for field in spec.fields:
+            fname = field["name"]
+            if fname in spec.skip_fields:
+                continue
+            if fname in aliased_fields:
+                continue  # Already covered by alias
+            if fname in callback_fields:
+                continue  # Already covered by callback alias
+            if fname in {a["name"] for a in spec.extras}:
+                continue  # Already covered by extra
+
+            type_str = field["type_str"]
+            lines.append(f"    def {fname}(self, value: {type_str}) -> Self: ...")
     
     # Extra methods
     for extra in spec.extras:
@@ -572,35 +654,62 @@ class Test{spec.name}Builder:
     # Test __getattr__ forwarding for non-aliased fields
     non_aliased_count = 0
     aliased_fields = set(spec.aliases.values()) | set(spec.callback_aliases.values())
-    
-    for field in spec.fields:
-        fname = field["name"]
-        if fname in spec.skip_fields or fname in aliased_fields:
-            continue
-        if field["is_callback"]:
-            continue
-        if non_aliased_count >= 3:  # Sample 3 fields max
-            break
-        
-        test_value = _test_value_for_type(field["type_str"])
-        if test_value == "...":  # Can't generate a good test value
-            continue
-        
-        lines.append(f'''
+
+    if spec.inspection_mode == "init_signature" and spec.init_params:
+        # For init_signature mode, test against init params
+        for param in spec.init_params:
+            pname = param["name"]
+            if pname in ("self", "args", "kwargs", "kwds"):
+                continue
+            if pname in spec.skip_fields or pname in aliased_fields:
+                continue
+            if pname in spec.constructor_args:
+                continue
+            if non_aliased_count >= 3:
+                break
+
+            test_value = _test_value_for_type(param.get("type_str", "Any"))
+            if test_value == "...":
+                continue
+
+            lines.append(f'''
+    def test_getattr_{pname}(self):
+        """__getattr__ forwarding: .{pname}() sets param correctly."""
+        agent = {spec.name}({constructor_args_str}).{pname}({test_value}).build()
+        assert agent.{pname} == {test_value}
+''')
+            non_aliased_count += 1
+    else:
+        # Pydantic mode
+        for field in spec.fields:
+            fname = field["name"]
+            if fname in spec.skip_fields or fname in aliased_fields:
+                continue
+            if field["is_callback"]:
+                continue
+            if non_aliased_count >= 3:  # Sample 3 fields max
+                break
+
+            test_value = _test_value_for_type(field["type_str"])
+            if test_value == "...":  # Can't generate a good test value
+                continue
+
+            lines.append(f'''
     def test_getattr_{fname}(self):
         """__getattr__ forwarding: .{fname}() sets field correctly."""
         agent = {spec.name}({constructor_args_str}).{fname}({test_value}).build()
         assert agent.{fname} == {test_value}
 ''')
-        non_aliased_count += 1
+            non_aliased_count += 1
     
     # Test typo detection
+    match_str = "not a recognized parameter" if spec.inspection_mode == "init_signature" else "not a recognized field"
     lines.append(f'''
     def test_typo_raises_attribute_error(self):
         """Typos in method names raise clear AttributeError."""
         import pytest
         builder = {spec.name}({constructor_args_str})
-        with pytest.raises(AttributeError, match="not a recognized field"):
+        with pytest.raises(AttributeError, match="{match_str}"):
             builder.instuction("oops")  # intentional typo
 ''')
     
@@ -744,9 +853,15 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
     print(f"    ADK version:    {adk_version}")
     print(f"    Builders:       {len(specs)}")
     print(f"    Modules:        {len(by_module)}")
+    def _count_forwarded(s: BuilderSpec) -> int:
+        if s.inspection_mode == "init_signature" and s.init_params:
+            return len([p for p in s.init_params
+                        if p["name"] not in ("self", "args", "kwargs", "kwds")
+                        and p["name"] not in s.skip_fields])
+        return len([f for f in s.fields if f["name"] not in s.skip_fields])
+
     total_methods = sum(
-        len(s.aliases) + len(s.callback_aliases) + len(s.extras) +
-        len([f for f in s.fields if f['name'] not in s.skip_fields])
+        len(s.aliases) + len(s.callback_aliases) + len(s.extras) + _count_forwarded(s)
         for s in specs if not s.is_composite and not s.is_standalone
     )
     print(f"    Total methods:  ~{total_methods} (aliases + callbacks + forwarded)")
