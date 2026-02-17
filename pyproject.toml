@@ -32,6 +32,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+yaml = [
+    "pyyaml>=6.0",
+]
 examples = [
     "python-dotenv>=1.0",
 ]
@@ -39,12 +42,19 @@ dev = [
     "pytest>=7.0",
     "pyright>=1.1",
 ]
+docs = [
+    "sphinx>=7.0",
+    "myst-parser>=3.0",
+    "sphinx-design>=0.6",
+    "furo>=2024.0",
+    "sphinx-copybutton>=0.5",
+]
 
 [project.urls]
 Homepage = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
 Repository = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
 Issues = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/issues"
-Documentation = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/tree/master/docs/generated"
+Documentation = "https://adk-fluent.readthedocs.io/"
 Changelog = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/blob/master/CHANGELOG.md"
 
 [project.entry-points."adk_extensions"]
