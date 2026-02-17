@@ -506,10 +506,8 @@ def main():
     if args.output:
         Path(args.output).write_text(toml_str)
         print(f"Seed written to {args.output}", file=sys.stderr)
-        # Count builders
-        builder_count = toml_str.count("[builders.")
-        # Rough estimate - count top-level builder sections
-        print(f"  Builders generated: {len([l for l in toml_str.split(chr(10)) if l.startswith('[builders.') and '.' not in l[len('[builders.'):-1]])}", file=sys.stderr)
+        top_level = [line for line in toml_str.split("\n") if line.startswith("[builders.") and "." not in line[len("[builders."):-1]]
+        print(f"  Builders generated: {len(top_level)}", file=sys.stderr)
     else:
         print(toml_str)
 

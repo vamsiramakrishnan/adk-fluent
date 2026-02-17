@@ -3,8 +3,6 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pytest
-
 
 # --- Classification ---
 def test_classify_agent():
@@ -169,7 +167,6 @@ def test_emit_seed_toml():
 
 # --- Integration ---
 def test_generate_seed_from_manifest_end_to_end():
-    import json
     try:
         import tomllib
     except ImportError:
