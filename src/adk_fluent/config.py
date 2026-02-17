@@ -1437,7 +1437,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_cache_size_bytes', 'auto_flush_threshold', 'max_cache_duration_seconds'}
+    _KNOWN_PARAMS: set[str] = {'auto_flush_threshold', 'max_cache_size_bytes', 'max_cache_duration_seconds'}
 
 
     def __init__(self, ) -> None:
@@ -1619,7 +1619,7 @@ class BigQueryLoggerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'shutdown_timeout', 'content_formatter', 'event_denylist', 'enabled', 'queue_max_size', 'gcs_bucket_name', 'event_allowlist', 'log_multi_modal_content', 'custom_tags', 'log_session_metadata', 'max_content_length', 'clustering_fields', 'batch_flush_interval', 'table_id', 'retry_config', 'batch_size', 'connection_id'}
+    _KNOWN_PARAMS: set[str] = {'batch_size', 'retry_config', 'event_allowlist', 'event_denylist', 'log_session_metadata', 'clustering_fields', 'custom_tags', 'log_multi_modal_content', 'queue_max_size', 'gcs_bucket_name', 'content_formatter', 'max_content_length', 'shutdown_timeout', 'batch_flush_interval', 'table_id', 'enabled', 'connection_id'}
 
 
     def __init__(self, ) -> None:
@@ -1711,7 +1711,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'initial_delay', 'max_retries', 'max_delay', 'multiplier'}
+    _KNOWN_PARAMS: set[str] = {'multiplier', 'initial_delay', 'max_retries', 'max_delay'}
 
 
     def __init__(self, ) -> None:

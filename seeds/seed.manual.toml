@@ -73,6 +73,20 @@ doc = "Create an interactive session context manager. Use with 'async with'."
 behavior = "runtime_helper_ctx"
 helper_func = "create_session"
 
+[[builders.Agent.extras]]
+name = "map"
+signature = "(self, prompts: list[str], *, concurrency: int = 5) -> list[str]"
+doc = "Run agent against multiple prompts with bounded concurrency."
+behavior = "runtime_helper"
+helper_func = "run_map"
+
+[[builders.Agent.extras]]
+name = "map_async"
+signature = "(self, prompts: list[str], *, concurrency: int = 5) -> list[str]"
+doc = "Async batch execution against multiple prompts."
+behavior = "runtime_helper_async"
+helper_func = "run_map_async"
+
 # ---------------------------------------------------------------------------
 # PIPELINE EXTRAS
 # ---------------------------------------------------------------------------
@@ -109,5 +123,15 @@ behavior = "deep_copy"
 
 [[manual_exports]]
 module = "._helpers"
-names = ["deep_clone_builder", "run_one_shot", "run_one_shot_async", "run_stream", "run_inline_test", "ChatSession", "create_session"]
+names = ["deep_clone_builder", "run_one_shot", "run_one_shot_async", "run_stream", "run_inline_test", "ChatSession", "create_session", "run_map", "run_map_async"]
+public = false
+
+[[manual_exports]]
+module = ".decorators"
+names = ["agent"]
+public = true
+
+[[manual_exports]]
+module = ".presets"
+names = ["Preset"]
 public = false

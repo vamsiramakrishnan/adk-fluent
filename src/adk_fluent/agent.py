@@ -17,7 +17,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -139,7 +139,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'after_agent_callback', 'after_model_callback', 'before_tool_callback', 'after_tool_callback', 'before_model_callback', 'on_model_error_callback', 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_model_callback', 'on_tool_error_callback', 'after_agent_callback', 'before_model_callback', 'after_tool_callback', 'before_agent_callback', 'on_model_error_callback', 'before_tool_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -341,6 +341,18 @@ class Agent(BuilderBase):
         """Create an interactive session context manager. Use with 'async with'."""
         from adk_fluent._helpers import create_session
         return create_session(self)
+
+
+    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Run agent against multiple prompts with bounded concurrency."""
+        from adk_fluent._helpers import run_map
+        return run_map(self, prompts, concurrency=concurrency)
+
+
+    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Async batch execution against multiple prompts."""
+        from adk_fluent._helpers import run_map_async
+        return await run_map_async(self, prompts, concurrency=concurrency)
 
     # --- Dynamic field forwarding ---
 

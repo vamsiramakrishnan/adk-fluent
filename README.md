@@ -14,21 +14,21 @@ pip install adk-fluent
 from adk_fluent import Agent, Pipeline, FanOut
 
 # Simple agent
-agent = Agent("helper", "gemini-2.0-flash").instruct("You are a helpful assistant.").build()
+agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
 
 # Pipeline (sequential workflow)
 pipeline = (
     Pipeline("research")
-    .step(Agent("searcher", "gemini-2.0-flash").instruct("Search for information."))
-    .step(Agent("writer", "gemini-2.0-flash").instruct("Write a summary."))
+    .step(Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
+    .step(Agent("writer", "gemini-2.5-flash").instruct("Write a summary."))
     .build()
 )
 
 # Fan-out (parallel workflow)
 fanout = (
     FanOut("parallel-research")
-    .branch(Agent("analyst-1", "gemini-2.0-flash"))
-    .branch(Agent("analyst-2", "gemini-2.0-flash"))
+    .branch(Agent("analyst-1", "gemini-2.5-flash"))
+    .branch(Agent("analyst-2", "gemini-2.5-flash"))
     .build()
 )
 ```

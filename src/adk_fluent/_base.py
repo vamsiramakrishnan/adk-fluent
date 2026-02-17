@@ -264,6 +264,42 @@ class BuilderBase:
     # Task 7: Presets (.use())
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Task 8: Structured Output (.output())
+    # ------------------------------------------------------------------
+
+    def output(self, schema: type) -> Self:
+        """Set a Pydantic model as the output schema."""
+        self._config["_output_schema"] = schema
+        return self
+
+    # ------------------------------------------------------------------
+    # Task 10: Retry and Fallback
+    # ------------------------------------------------------------------
+
+    def retry(self, max_attempts: int = 3, backoff: float = 1.0) -> Self:
+        """Configure retry behavior with exponential backoff."""
+        self._config["_retry"] = {"max_attempts": max_attempts, "backoff": backoff}
+        return self
+
+    def fallback(self, model: str) -> Self:
+        """Add a fallback model to try if primary fails."""
+        self._config.setdefault("_fallbacks", []).append(model)
+        return self
+
+    # ------------------------------------------------------------------
+    # Task 11: Debug Trace Mode (.debug())
+    # ------------------------------------------------------------------
+
+    def debug(self, enabled: bool = True) -> Self:
+        """Enable or disable debug tracing to stderr."""
+        self._config["_debug"] = enabled
+        return self
+
+    # ------------------------------------------------------------------
+    # Task 7: Presets (.use())
+    # ------------------------------------------------------------------
+
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
         aliases = getattr(self.__class__, "_ALIASES", {})

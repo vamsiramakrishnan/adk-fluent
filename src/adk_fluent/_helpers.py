@@ -3,8 +3,15 @@ from __future__ import annotations
 import asyncio
 import copy
 import re as _re
+import sys
+import time
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
+
+def _debug_log(agent_name: str, msg: str):
+    """Emit a debug trace line to stderr."""
+    print(f"[{agent_name}] {msg}", file=sys.stderr)
+
 
 def deep_clone_builder(builder: Any, new_name: str) -> Any:
     """Deep-copy a builder's internal state and set a new name."""
@@ -16,31 +23,139 @@ def deep_clone_builder(builder: Any, new_name: str) -> Any:
     return new_builder
 
 
-async def run_one_shot_async(builder, prompt: str) -> str:
-    """Execute a builder as a one-shot agent and return the text response."""
+async def _run_single_attempt(builder, prompt: str, *, model_override: str | None = None) -> str:
+    """Core execution: build agent, send prompt, return raw text."""
     from google.adk.runners import InMemoryRunner
     from google.genai import types
 
-    agent = builder.build()
-    app_name = f"_ask_{agent.name}"
-    runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(
-        app_name=app_name, user_id="_ask_user"
-    )
-    content = types.Content(
-        role="user", parts=[types.Part(text=prompt)]
-    )
+    debug = builder._config.get("_debug", False)
+    agent_name = builder._config.get("name", "?")
 
-    last_text = ""
-    async for event in runner.run_async(
-        user_id="_ask_user", session_id=session.id, new_message=content
-    ):
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if part.text:
-                    last_text = part.text
+    if model_override:
+        # Temporarily override model for fallback
+        original_model = builder._config.get("model")
+        builder._config["model"] = model_override
+        if debug:
+            _debug_log(agent_name, f"Trying fallback model: {model_override}")
+
+    try:
+        agent = builder.build()
+        app_name = f"_ask_{agent.name}"
+        runner = InMemoryRunner(agent=agent, app_name=app_name)
+        session = await runner.session_service.create_session(
+            app_name=app_name, user_id="_ask_user"
+        )
+        content = types.Content(
+            role="user", parts=[types.Part(text=prompt)]
+        )
+
+        if debug:
+            _debug_log(agent_name, f"Sending prompt ({len(prompt)} chars)")
+            t0 = time.monotonic()
+
+        last_text = ""
+        async for event in runner.run_async(
+            user_id="_ask_user", session_id=session.id, new_message=content
+        ):
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.text:
+                        last_text = part.text
+
+        if debug:
+            elapsed = time.monotonic() - t0
+            _debug_log(agent_name, f"Response received ({len(last_text)} chars, {elapsed:.2f}s)")
+
+        return last_text
+    finally:
+        if model_override:
+            # Restore original model
+            if original_model is not None:
+                builder._config["model"] = original_model
+            else:
+                builder._config.pop("model", None)
+
+
+async def run_one_shot_async(builder, prompt: str) -> str:
+    """Execute a builder as a one-shot agent and return the text response.
+
+    Supports retry, fallback, structured output, and debug tracing.
+    """
+    debug = builder._config.get("_debug", False)
+    agent_name = builder._config.get("name", "?")
+    retry_cfg = builder._config.get("_retry")
+    fallbacks = builder._config.get("_fallbacks", [])
+
+    max_attempts = retry_cfg["max_attempts"] if retry_cfg else 1
+    backoff = retry_cfg["backoff"] if retry_cfg else 1.0
+
+    last_exc = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            if debug and attempt > 1:
+                _debug_log(agent_name, f"Retry attempt {attempt}/{max_attempts}")
+            last_text = await _run_single_attempt(builder, prompt)
+            break
+        except Exception as exc:
+            last_exc = exc
+            if debug:
+                _debug_log(agent_name, f"Attempt {attempt} failed: {exc}")
+            if attempt < max_attempts:
+                await asyncio.sleep(backoff * (2 ** (attempt - 1)))
+    else:
+        # All retries exhausted, try fallbacks
+        for fb_model in fallbacks:
+            try:
+                if debug:
+                    _debug_log(agent_name, f"Trying fallback model: {fb_model}")
+                last_text = await _run_single_attempt(builder, prompt, model_override=fb_model)
+                last_exc = None
+                break
+            except Exception as exc:
+                last_exc = exc
+                if debug:
+                    _debug_log(agent_name, f"Fallback {fb_model} failed: {exc}")
+        if last_exc is not None:
+            raise last_exc
+
+    # Structured output parsing
+    schema = builder._config.get("_output_schema")
+    if schema is not None:
+        import json as _json
+        try:
+            return schema.model_validate_json(last_text)
+        except Exception:
+            try:
+                data = _json.loads(last_text)
+                return schema.model_validate(data)
+            except Exception:
+                pass
 
     return last_text
+
+
+async def run_map_async(builder, prompts, *, concurrency=5):
+    """Run agent against multiple prompts concurrently with bounded concurrency."""
+    semaphore = asyncio.Semaphore(concurrency)
+    async def _one(prompt):
+        async with semaphore:
+            return await run_one_shot_async(builder, prompt)
+    return await asyncio.gather(*[_one(p) for p in prompts])
+
+
+def run_map(builder, prompts, *, concurrency=5):
+    """Synchronous batch execution against multiple prompts."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            return pool.submit(asyncio.run, run_map_async(builder, prompts, concurrency=concurrency)).result()
+    else:
+        return asyncio.run(run_map_async(builder, prompts, concurrency=concurrency))
 
 
 def run_one_shot(builder, prompt: str) -> str:

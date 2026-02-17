@@ -277,4 +277,6 @@ from ._helpers import run_stream
 from ._helpers import run_inline_test
 from ._helpers import ChatSession
 from ._helpers import create_session
-from .presets import Preset
+from ._helpers import run_map
+from ._helpers import run_map_async
+from .decorators import agent

@@ -380,13 +380,13 @@ The user-facing API is identical to the original spec. What changes is *how it's
 ### Level 0 — One-Shot
 ```python
 from adk_fluent import Agent
-response = Agent("helper", "gemini-2.0-flash").ask("What is the capital of France?")
+response = Agent("helper", "gemini-2.5-flash").ask("What is the capital of France?")
 ```
 
 ### Level 1 — Tools and Configuration
 ```python
 agent = (
-    Agent("assistant", "gemini-2.0-flash")
+    Agent("assistant", "gemini-2.5-flash")
     .instruct("You help with weather and news.")
     .tools([get_weather, get_news])
     .output_key("response")

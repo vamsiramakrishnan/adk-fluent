@@ -1974,7 +1974,7 @@ pip install adk-fluent
 
 from adk_fluent import Agent
 
-response = Agent("helper", "gemini-2.0-flash").ask("What is the capital of France?")
+response = Agent("helper", "gemini-2.5-flash").ask("What is the capital of France?")
 ```
 
 **Step 3: Create LICENSE file**
