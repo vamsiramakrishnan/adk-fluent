@@ -77,9 +77,8 @@ Every `.build()` returns a real ADK object (`LlmAgent`, `SequentialAgent`, etc.)
 
 Every workflow can be expressed two ways -- the explicit builder API or the expression operators. Both produce identical ADK objects:
 
-````{tab-set}
-
-```{tab-item} Builder Style
+::::{tab-set}
+:::{tab-item} Builder Style
 ```python
 pipeline = (
     Pipeline("research")
@@ -88,18 +87,17 @@ pipeline = (
     .build()
 )
 ```
-```
+:::
 
-```{tab-item} Operator Style
+:::{tab-item} Operator Style
 ```python
 pipeline = (
     Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_data")
     >> Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}.")
 ).build()
 ```
-```
-
-````
+:::
+::::
 
 The builder style shines for complex multi-step workflows where each step is configured with callbacks, tools, and context. The operator style excels at composing reusable sub-expressions:
 

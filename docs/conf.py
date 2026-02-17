@@ -41,5 +41,8 @@ source_suffix = {
 }
 exclude_patterns = ["_build", "plans", "generated/cookbook/conftest.md"]
 
-# Suppress warnings for missing toctree references in auto-generated files
-suppress_warnings = ["myst.header"]
+# Suppress warnings for auto-generated cross-references and duplicate targets
+# - myst.header: heading level warnings in generated docs
+# - myst.xref_missing: cross-references to builder anchors not in seed (optional ADK extensions)
+# - docutils: duplicate target names from case variants (MCPTool vs McpTool)
+suppress_warnings = ["myst.header", "myst.xref_missing", "docutils"]
