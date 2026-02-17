@@ -120,17 +120,27 @@ _FIELD_ALIAS_TABLE = {
     "static_instruction": "static",
 }
 
+# Additional aliases that map to the same field as an existing alias.
+# These are added alongside the primary alias from _FIELD_ALIAS_TABLE.
+_EXTRA_ALIASES = {
+    "include_history": "include_contents",
+}
+
 
 def generate_aliases(field_names: list[str]) -> dict[str, str]:
     """Generate ergonomic aliases for fields.
 
     Returns {alias: field_name} for fields that have an entry
-    in the alias table.
+    in the alias table or extra aliases table.
     """
     aliases: dict[str, str] = {}
     for field_name in field_names:
         if field_name in _FIELD_ALIAS_TABLE:
             aliases[_FIELD_ALIAS_TABLE[field_name]] = field_name
+    # Add extra aliases (secondary short names for the same field)
+    for alias, field_name in _EXTRA_ALIASES.items():
+        if field_name in field_names:
+            aliases[alias] = field_name
     return aliases
 
 
@@ -217,11 +227,18 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
             "behavior": "list_append",
             "target_field": "sub_agents",
         })
+        extras.append({
+            "name": "step",
+            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+            "doc": "Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API.",
+            "behavior": "list_append",
+            "target_field": "sub_agents",
+        })
     elif class_name == "LlmAgent":
         extras.append({
             "name": "tool",
             "signature": "(self, fn_or_tool: Callable | BaseTool) -> Self",
-            "doc": "Add a single tool. Alias for .tools() with append semantics.",
+            "doc": "Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list.",
             "behavior": "list_append",
             "target_field": "tools",
         })
@@ -231,11 +248,18 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
             "doc": "Apply a reusable middleware stack (bulk callback registration).",
         })
         extras.append({
-            "name": "member",
+            "name": "sub_agent",
             "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Add a member agent for coordinator pattern.",
+            "doc": "Add a sub-agent (appends). Multiple .sub_agent() calls accumulate.",
             "behavior": "list_append",
             "target_field": "sub_agents",
+        })
+        extras.append({
+            "name": "member",
+            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+            "doc": "Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern.",
+            "behavior": "deprecation_alias",
+            "target_method": "sub_agent",
         })
         extras.append({
             "name": "delegate",
@@ -305,6 +329,14 @@ def emit_seed_toml(
     lines.append(f"list_extend_fields = {_emit_string_list(global_config.get('list_extend_fields', []))}")
     lines.append("")
 
+    # Field docstring overrides
+    field_docs = global_config.get("field_docs", {})
+    if field_docs:
+        lines.append("[field_docs]")
+        for field_name, doc_str in sorted(field_docs.items()):
+            lines.append(f'{field_name} = {_quote_toml_string(doc_str)}')
+        lines.append("")
+
     # Builder sections
     for builder in builders:
         name = builder["name"]
@@ -361,6 +393,8 @@ def emit_seed_toml(
                 lines.append(f'target_fields = {_emit_string_list(extra["target_fields"])}')
             if "helper_func" in extra:
                 lines.append(f'helper_func = "{extra["helper_func"]}"')
+            if "target_method" in extra:
+                lines.append(f'target_method = "{extra["target_method"]}"')
             lines.append("")
 
     return "\n".join(lines) + "\n"

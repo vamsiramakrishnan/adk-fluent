@@ -130,9 +130,9 @@ class Agent(BuilderBase):
     """LLM-based Agent."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
+    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'include_history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'before_model_callback', 'before_agent_callback', 'on_model_error_callback', 'before_tool_callback', 'after_model_callback', 'after_tool_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_tool_callback', 'before_model_callback', 'on_tool_error_callback', 'after_agent_callback', 'after_tool_callback', 'before_agent_callback', 'after_model_callback', 'on_model_error_callback'}
 
 
     def __init__(self, name: str, model: str | None = None) -> None:
@@ -157,7 +157,13 @@ class Agent(BuilderBase):
 
 
     def history(self, value: Literal[default, none]) -> Self:
-        """Set the `include_contents` field."""
+        """Short alias for include_history(). Set the `include_contents` field."""
+        self._config["include_contents"] = value
+        return self
+
+
+    def include_history(self, value: Literal[default, none]) -> Self:
+        """Set the `include_contents` field. Controls which prior messages the agent sees."""
         self._config["include_contents"] = value
         return self
 
@@ -307,7 +313,7 @@ class Agent(BuilderBase):
 
 
     def tools(self, value: list[Union[Callable, BaseTool, BaseToolset]]) -> Self:
-        """Set the ``tools`` field."""
+        """Set the full tools list (replaces). Use .tool() to append a single tool."""
         self._config["tools"] = value
         return self
 
@@ -337,7 +343,7 @@ class Agent(BuilderBase):
 
 
     def output_schema(self, value: Union[type[BaseModel], NoneType]) -> Self:
-        """Set the ``output_schema`` field."""
+        """Set the typed output schema (Pydantic model). Canonical method; @ operator is the shorthand."""
         self._config["output_schema"] = value
         return self
 
@@ -356,7 +362,7 @@ class Agent(BuilderBase):
     # --- Extra methods ---
 
     def tool(self, fn_or_tool: Callable | BaseTool) -> Self:
-        """Add a single tool. Alias for .tools() with append semantics."""
+        """Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list."""
         self._lists["tools"].append(fn_or_tool)
         return self
 
@@ -366,10 +372,21 @@ class Agent(BuilderBase):
         raise NotImplementedError("Implement in hand-written layer")
 
 
-    def member(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Add a member agent for coordinator pattern."""
+    def sub_agent(self, agent: BaseAgent | AgentBuilder) -> Self:
+        """Add a sub-agent (appends). Multiple .sub_agent() calls accumulate."""
         self._lists["sub_agents"].append(agent)
         return self
+
+
+    def member(self, agent: BaseAgent | AgentBuilder) -> Self:
+        """Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern."""
+        import warnings
+        warnings.warn(
+            ".member() is deprecated, use .sub_agent() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.sub_agent(agent)
 
 
     def delegate(self, agent) -> Self:

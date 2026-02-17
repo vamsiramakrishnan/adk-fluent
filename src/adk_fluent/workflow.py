@@ -202,6 +202,12 @@ class FanOut(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
+
+    def step(self, agent: BaseAgent | AgentBuilder) -> Self:
+        """Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API."""
+        self._lists["sub_agents"].append(agent)
+        return self
+
     # --- Dynamic field forwarding (safety net) ---
 
     def __getattr__(self, name: str):

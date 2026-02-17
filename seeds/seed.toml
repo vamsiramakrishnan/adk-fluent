@@ -11,6 +11,12 @@ skip_fields = ["parent_agent"]
 additive_fields = ["after_agent_callback", "after_model_callback", "after_tool_callback", "before_agent_callback", "before_model_callback", "before_tool_callback", "on_model_error_callback", "on_tool_error_callback"]
 list_extend_fields = ["plugins", "sub_agents", "tools"]
 
+[field_docs]
+tools = "Set the full tools list (replaces). Use .tool() to append a single tool."
+output_schema = "Set the typed output schema (Pydantic model). Canonical method; @ operator is the shorthand."
+history = "Short alias for include_history(). Set the `include_contents` field."
+include_history = "Set the `include_contents` field. Controls which prior messages the agent sees."
+
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
 output_module = "tool"
@@ -138,6 +144,7 @@ extra_skip_fields = []
 describe = "description"
 global_instruct = "global_instruction"
 history = "include_contents"
+include_history = "include_contents"
 instruct = "instruction"
 outputs = "output_key"
 static = "static_instruction"
@@ -160,7 +167,7 @@ doc = "Resolve into a native ADK LlmAgent."
 [[builders.Agent.extras]]
 name = "tool"
 signature = "(self, fn_or_tool: Callable | BaseTool) -> Self"
-doc = "Add a single tool. Alias for .tools() with append semantics."
+doc = "Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list."
 behavior = "list_append"
 target_field = "tools"
 
@@ -170,11 +177,18 @@ signature = "(self, stack: MiddlewareStack) -> Self"
 doc = "Apply a reusable middleware stack (bulk callback registration)."
 
 [[builders.Agent.extras]]
-name = "member"
+name = "sub_agent"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Add a member agent for coordinator pattern."
+doc = "Add a sub-agent (appends). Multiple .sub_agent() calls accumulate."
 behavior = "list_append"
 target_field = "sub_agents"
+
+[[builders.Agent.extras]]
+name = "member"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern."
+behavior = "deprecation_alias"
+target_method = "sub_agent"
 
 [[builders.Agent.extras]]
 name = "delegate"
@@ -333,6 +347,13 @@ doc = "Resolve into a native ADK ParallelAgent."
 name = "branch"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
 doc = "Add a parallel branch agent (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.FanOut.extras]]
+name = "step"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API."
 behavior = "list_append"
 target_field = "sub_agents"
 

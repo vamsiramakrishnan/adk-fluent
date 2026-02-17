@@ -20,8 +20,8 @@ coordinator_fluent = (
     Agent("team_lead")
     .model("gemini-2.5-flash")
     .instruct("Coordinate the team. Delegate to the right member.")
-    .member(Agent("frontend").model("gemini-2.5-flash").instruct("Build UI."))
-    .member(Agent("backend").model("gemini-2.5-flash").instruct("Build APIs."))
+    .sub_agent(Agent("frontend").model("gemini-2.5-flash").instruct("Build UI."))
+    .sub_agent(Agent("backend").model("gemini-2.5-flash").instruct("Build APIs."))
     .build()
 )
 

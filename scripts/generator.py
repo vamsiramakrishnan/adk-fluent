@@ -280,22 +280,25 @@ def gen_init_method(spec: BuilderSpec) -> str:
 def gen_alias_methods(spec: BuilderSpec) -> str:
     """Generate explicit alias methods."""
     methods = []
-    
+
     for fluent_name, field_name in spec.aliases.items():
         # Find field info from manifest
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
         type_hint = field_info["type_str"] if field_info else "Any"
-        doc = spec.field_docs.get(field_name, "")
+        # Per-alias doc takes priority, then per-field doc, then field description
+        doc = spec.field_docs.get(fluent_name, "")
+        if not doc:
+            doc = spec.field_docs.get(field_name, "")
         if not doc and field_info:
             doc = field_info.get("description", "")
-        
+
         methods.append(f'''
     def {fluent_name}(self, value: {type_hint}) -> Self:
         """{doc or f'Set the `{field_name}` field.'}"""
         self._config["{field_name}"] = value
         return self
 ''')
-    
+
     return "\n".join(methods)
 
 
@@ -433,6 +436,16 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
             body = f'''
         from adk_fluent._helpers import {helper_func}
         return {helper_func}(self)'''
+        elif behavior == "deprecation_alias":
+            target_method = extra.get("target_method", name)
+            body = f'''
+        import warnings
+        warnings.warn(
+            ".{name}() is deprecated, use .{target_method}() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.{target_method}(agent)'''
         else:
             body = '''
         raise NotImplementedError("Implement in hand-written layer")'''

@@ -239,7 +239,12 @@ class BuilderBase:
         return self.__mul__(iterations)
 
     def __matmul__(self, schema: type) -> BuilderBase:
-        """Bind a Pydantic model as the typed output contract: agent @ Schema."""
+        """Bind a Pydantic model as the typed output contract: agent @ Schema.
+
+        Expression-language shorthand for .output_schema(Schema).
+        Prefer .output_schema() in explicit builder chains; use @ in
+        operator expressions where brevity matters.
+        """
         clone = self._clone_shallow()
         clone._config["_output_schema"] = schema
         return clone
@@ -556,7 +561,8 @@ class BuilderBase:
     def tap(self, fn: Callable) -> BuilderBase:
         """Append a pure observation step. Reads state, runs side-effect, never mutates.
 
-        Returns a Pipeline (self >> tap_step), not self.
+        .. note:: Returns a new **Pipeline** (self >> tap_step), not self.
+           The builder type changes from Agent to Pipeline after this call.
 
         Usage:
             agent.tap(lambda s: print(s["draft"]))
@@ -623,6 +629,9 @@ class BuilderBase:
 
     def timeout(self, seconds: float) -> BuilderBase:
         """Wrap this agent with a time limit. Raises asyncio.TimeoutError if exceeded.
+
+        .. note:: Returns a new **_TimeoutBuilder**, not self.
+           The builder type changes after this call.
 
         Usage:
             agent.timeout(30)
