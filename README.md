@@ -4,7 +4,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 
 [![PyPI](https://img.shields.io/pypi/v/adk-fluent)](https://pypi.org/project/adk-fluent/)
 [![Python](https://img.shields.io/pypi/pyversions/adk-fluent)](https://pypi.org/project/adk-fluent/)
-[![License](https://img.shields.io/pypi/l/adk-fluent)](https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/blob/master/LICENSE)
+[![License](https://img.shields.io/pypi/l/adk-fluent)](https://github.com/vamsiramakrishnan/adk-fluent/-/blob/master/LICENSE)
 
 ## Install
 
