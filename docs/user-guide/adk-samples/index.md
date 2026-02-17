@@ -24,3 +24,14 @@ Across all 6 ported samples:
 | Total files | 70+ | 18 | 74% |
 | Directories | 35+ | 6 | 83% |
 | `AgentTool(agent=...)` calls | 20+ | 0 | 100% |
+
+```{toctree}
+:maxdepth: 1
+
+llm-auditor
+financial-advisor
+short-movie
+deep-search
+brand-search
+travel-concierge
+```
