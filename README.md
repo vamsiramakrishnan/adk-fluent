@@ -48,34 +48,93 @@ print(dir(agent))  # All methods including forwarded ADK fields
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 
-# Simple agent — builds to a real LlmAgent
-agent = (
-    Agent("helper")
-    .model("gemini-2.5-flash")
-    .instruct("You are a helpful assistant.")
+# Simple agent — model as optional second arg or via .model()
+agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
+
+# Pipeline — build with .step() or >> operator
+pipeline = (
+    Pipeline("research")
+    .step(Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
+    .step(Agent("writer", "gemini-2.5-flash").instruct("Write a summary."))
     .build()
 )
 
-# Pipeline — sequential workflow
-pipeline = (
-    Agent("researcher").model("gemini-2.5-flash").instruct("Research the topic.")
-    >> Agent("writer").model("gemini-2.5-flash").instruct("Write a summary.")
+# Fan-out — build with .branch() or | operator
+fanout = (
+    FanOut("parallel_research")
+    .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web."))
+    .branch(Agent("papers", "gemini-2.5-flash").instruct("Search papers."))
+    .build()
 )
 
-# Parallel — fan-out workflow
-parallel = (
-    Agent("web").model("gemini-2.5-flash").instruct("Search the web.")
-    | Agent("db").model("gemini-2.5-flash").instruct("Search the database.")
-)
-
-# Loop — iterative refinement
+# Loop — build with .step() + .max_iterations() or * operator
 loop = (
-    Agent("critic").model("gemini-2.5-flash").instruct("Critique.")
-    >> Agent("reviser").model("gemini-2.5-flash").instruct("Revise.")
-) * 3
+    Loop("refine")
+    .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft."))
+    .step(Agent("critic", "gemini-2.5-flash").instruct("Critique."))
+    .max_iterations(3)
+    .build()
+)
 ```
 
 Every `.build()` returns a real ADK object (`LlmAgent`, `SequentialAgent`, etc.). Fully compatible with `adk web`, `adk run`, and `adk deploy`.
+
+### Two Styles, Same Result
+
+Every workflow can be expressed two ways -- the explicit builder API or the expression operators. Both produce identical ADK objects:
+
+```python
+# Explicit builder style — readable, IDE-friendly
+pipeline = (
+    Pipeline("research")
+    .step(Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_data"))
+    .step(Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}."))
+    .build()
+)
+
+# Operator style — compact, composable
+pipeline = (
+    Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_data")
+    >> Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}.")
+).build()
+```
+
+The builder style shines for complex multi-step workflows where each step is configured with callbacks, tools, and context. The operator style excels at composing reusable sub-expressions:
+
+```python
+# Complex builder-style pipeline with tools and callbacks
+pipeline = (
+    Pipeline("customer_support")
+    .step(
+        Agent("classifier", "gemini-2.5-flash")
+        .instruct("Classify the customer's intent.")
+        .outputs("intent")
+        .before_model(log_fn)
+    )
+    .step(
+        Agent("resolver", "gemini-2.5-flash")
+        .instruct("Resolve the {intent} issue.")
+        .tool(lookup_customer)
+        .tool(create_ticket)
+        .history("none")
+    )
+    .step(
+        Agent("responder", "gemini-2.5-flash")
+        .instruct("Draft a response to the customer.")
+        .after_model(audit_fn)
+    )
+    .build()
+)
+
+# Same complexity, composed from reusable parts with operators
+classify = Agent("classifier", "gemini-2.5-flash").instruct("Classify intent.").outputs("intent")
+resolve = Agent("resolver", "gemini-2.5-flash").instruct("Resolve {intent}.").tool(lookup_customer)
+respond = Agent("responder", "gemini-2.5-flash").instruct("Draft response.")
+
+support_pipeline = classify >> resolve >> respond
+# Reuse sub-expressions in different pipelines
+escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct("Escalate.")
+```
 
 ## Expression Language
 
@@ -236,28 +295,161 @@ pipeline = (
 )
 ```
 
-## Fluent API
+## Fluent API Reference
 
-### Agent Configuration
+### Agent Builder
+
+The `Agent` builder wraps ADK's `LlmAgent`. Every method returns `self` for chaining.
+
+#### Core Configuration
+
+| Method | Alias for | Description |
+|--------|-----------|-------------|
+| `.model(name)` | `model` | LLM model identifier (`"gemini-2.5-flash"`, `"gemini-2.5-pro"`, etc.) |
+| `.instruct(text_or_fn)` | `instruction` | System instruction. Accepts a string or `Callable[[ReadonlyContext], str]` |
+| `.describe(text)` | `description` | Agent description (used in delegation and tool descriptions) |
+| `.outputs(key)` | `output_key` | Store the agent's final response in session state under this key |
+| `.tool(fn)` | — | Add a tool function or `BaseTool` instance. Multiple calls accumulate |
+| `.build()` | — | Resolve into a native ADK `LlmAgent` |
+
+#### Prompt & Context Control
+
+| Method | Alias for | Description |
+|--------|-----------|-------------|
+| `.instruct(text)` | `instruction` | Dynamic instruction. Supports `{variable}` placeholders auto-resolved from session state |
+| `.instruct(fn)` | `instruction` | Callable receiving `ReadonlyContext`, returns string. Full programmatic control |
+| `.static(content)` | `static_instruction` | Cacheable instruction that never changes. Sent as system instruction for context caching |
+| `.history("none")` | `include_contents` | Control conversation history: `"default"` (full history) or `"none"` (stateless) |
+| `.global_instruct(text)` | `global_instruction` | Instruction inherited by all sub-agents |
+| `.inject_context(fn)` | — | Prepend dynamic context via `before_model_callback`. The function receives callback context, returns a string |
+
+Template variables in string instructions are auto-resolved from session state:
 
 ```python
-agent = (
-    Agent("assistant")
-    .model("gemini-2.5-flash")           # LLM model
-    .instruct("You are helpful.")         # System instruction
-    .describe("A helper agent")           # Description
-    .tool(my_function)                    # Add tools (auto-wrapped)
-    .before_model(log_fn)                 # Callbacks (additive)
-    .after_model(audit_fn)
-    .guardrail(safety_fn)                 # Registers both before+after
-    .output_key("result")                 # Store output in state
-    .outputs("result")                    # Alias for output_key
-    .history("none")                      # Alias for include_contents
-    .build()                              # -> LlmAgent
+# {topic} and {style} are replaced at runtime from session state
+agent = Agent("writer").instruct("Write about {topic} in a {style} tone.")
+```
+
+This composes naturally with the expression algebra:
+
+```python
+pipeline = (
+    Agent("classifier").instruct("Classify.").outputs("topic")
+    >> S.default(style="professional")
+    >> Agent("writer").instruct("Write about {topic} in a {style} tone.")
 )
 ```
 
-### Delegation (LLM-Driven Routing)
+Optional variables use `?` suffix (`{maybe_key?}` returns empty string if missing). Namespaced keys: `{app:setting}`, `{user:pref}`, `{temp:scratch}`.
+
+#### Prompt Builder
+
+For multi-section prompts, the `Prompt` builder provides structured composition:
+
+```python
+from adk_fluent import Prompt
+
+prompt = (
+    Prompt()
+    .role("You are a senior code reviewer.")
+    .context("The codebase uses Python 3.11 with type hints.")
+    .task("Review the code for bugs and security issues.")
+    .constraint("Be concise. Max 5 bullet points.")
+    .constraint("No false positives.")
+    .format("Return markdown with ## sections.")
+    .example("Input: x=eval(input()) | Output: - **Critical**: eval() on user input")
+)
+
+agent = Agent("reviewer").model("gemini-2.5-flash").instruct(prompt).build()
+```
+
+Sections are emitted in a fixed order (role, context, task, constraints, format, examples) regardless of call order. Prompts are composable and reusable:
+
+```python
+base_prompt = Prompt().role("You are a senior engineer.").constraint("Be precise.")
+
+reviewer = Agent("reviewer").instruct(base_prompt + Prompt().task("Review code."))
+writer   = Agent("writer").instruct(base_prompt + Prompt().task("Write documentation."))
+```
+
+| Method | Description |
+|--------|-------------|
+| `.role(text)` | Agent persona (emitted without header) |
+| `.context(text)` | Background information |
+| `.task(text)` | Primary objective |
+| `.constraint(text)` | Rules to follow (multiple calls accumulate) |
+| `.format(text)` | Desired output format |
+| `.example(text)` | Few-shot examples (multiple calls accumulate) |
+| `.section(name, text)` | Custom named section |
+| `.merge(other)` / `+` | Combine two Prompts |
+| `.build()` / `str()` | Compile to instruction string |
+
+#### Static Instructions & Context Caching
+
+Split prompts into cacheable and dynamic parts:
+
+```python
+agent = (
+    Agent("analyst")
+    .model("gemini-2.5-flash")
+    .static("You are a financial analyst. Here is the 50-page annual report: ...")
+    .instruct("Answer the user's question about the report.")
+    .build()
+)
+```
+
+When `.static()` is set, the static content goes as a system instruction (eligible for context caching), while `.instruct()` content goes as user content. This avoids re-processing large static contexts on every turn.
+
+#### Dynamic Context Injection
+
+Prepend runtime context to every LLM call:
+
+```python
+agent = (
+    Agent("support")
+    .model("gemini-2.5-flash")
+    .instruct("Help the customer.")
+    .inject_context(lambda ctx: f"Customer: {ctx.state.get('customer_name', 'unknown')}")
+    .inject_context(lambda ctx: f"Plan: {ctx.state.get('plan', 'free')}")
+)
+```
+
+Each `.inject_context()` call accumulates. The function receives the callback context and returns a string that gets prepended as content before the LLM processes the request.
+
+#### Callbacks
+
+All callback methods are **additive** -- multiple calls accumulate handlers, never replace:
+
+| Method | Alias for | Description |
+|--------|-----------|-------------|
+| `.before_model(fn)` | `before_model_callback` | Runs before each LLM call. Receives `(callback_context, llm_request)` |
+| `.after_model(fn)` | `after_model_callback` | Runs after each LLM call. Receives `(callback_context, llm_response)` |
+| `.before_agent(fn)` | `before_agent_callback` | Runs before agent execution |
+| `.after_agent(fn)` | `after_agent_callback` | Runs after agent execution |
+| `.before_tool(fn)` | `before_tool_callback` | Runs before each tool call |
+| `.after_tool(fn)` | `after_tool_callback` | Runs after each tool call |
+| `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors |
+| `.on_tool_error(fn)` | `on_tool_error_callback` | Handles tool errors |
+| `.guardrail(fn)` | — | Registers `fn` as both `before_model` and `after_model` |
+
+Conditional variants append only when the condition is true:
+
+```python
+agent = (
+    Agent("service")
+    .before_model_if(debug_mode, log_fn)
+    .after_model_if(audit_enabled, audit_fn)
+)
+```
+
+#### Control Flow
+
+| Method | Description |
+|--------|-------------|
+| `.proceed_if(pred)` | Only run this agent if `pred(state)` is truthy. Uses `before_agent_callback` |
+| `.loop_until(pred, max_iterations=N)` | Wrap in a loop that exits when `pred(state)` is satisfied |
+
+#### Delegation (LLM-Driven Routing)
 
 ```python
 # The coordinator's LLM decides when to delegate
@@ -271,19 +463,186 @@ coordinator = (
 )
 ```
 
-### Cloning and Variants
+`.delegate(agent)` wraps the sub-agent in an `AgentTool` so the coordinator's LLM can invoke it by name.
+
+#### One-Shot Execution
+
+| Method | Description |
+|--------|-------------|
+| `.ask(prompt)` | Send a prompt, get response text. No Runner/Session boilerplate |
+| `.ask_async(prompt)` | Async version of `.ask()` |
+| `.stream(prompt)` | Async generator yielding response text chunks |
+| `.events(prompt)` | Async generator yielding raw ADK `Event` objects |
+| `.map(prompts, concurrency=5)` | Batch execution against multiple prompts |
+| `.map_async(prompts, concurrency=5)` | Async batch execution |
+| `.session()` | Create an interactive `async with` session context manager |
+| `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output |
+
+#### Cloning and Variants
 
 ```python
 base = Agent("base").model("gemini-2.5-flash").instruct("Be helpful.")
 
-# Clone — independent copy
+# Clone — independent deep copy with new name
 math_agent = base.clone("math").instruct("Solve math.")
 
-# with_() — immutable variant
+# with_() — immutable variant (original unchanged)
 creative = base.with_(name="creative", model="gemini-2.5-pro")
 ```
 
+#### Validation and Introspection
+
+| Method | Description |
+|--------|-------------|
+| `.validate()` | Try `.build()` and raise `ValueError` with clear message on failure. Returns `self` |
+| `.explain()` | Multi-line summary of builder state (config fields, callbacks, lists) |
+| `.to_dict()` / `.to_yaml()` | Serialize builder state |
+| `.from_dict(data)` / `.from_yaml(text)` | Reconstruct builder from serialized state |
+
+#### Dynamic Field Forwarding
+
+Any ADK `LlmAgent` field can be set through `__getattr__`, even without an explicit method:
+
+```python
+agent = Agent("x").generate_content_config(my_config)  # Works via forwarding
+```
+
+Misspelled names raise `AttributeError` with the closest match suggestion.
+
+### Workflow Builders
+
+All workflow builders accept both built ADK agents and fluent builders as arguments. Builders are auto-built at `.build()` time, enabling safe sub-expression reuse.
+
+#### Pipeline (Sequential)
+
+```python
+from adk_fluent import Pipeline, Agent
+
+# Builder style — full control over each step
+pipeline = (
+    Pipeline("data_processing")
+    .step(Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").outputs("entities"))
+    .step(Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}.").tool(lookup_db))
+    .step(Agent("formatter", "gemini-2.5-flash").instruct("Format output.").history("none"))
+    .build()
+)
+
+# Operator style — same result
+pipeline = (
+    Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").outputs("entities")
+    >> Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}.").tool(lookup_db)
+    >> Agent("formatter", "gemini-2.5-flash").instruct("Format output.").history("none")
+).build()
+```
+
+| Method | Description |
+|--------|-------------|
+| `.step(agent)` | Append an agent as the next step. Lazy -- built at `.build()` time |
+| `.build()` | Resolve into a native ADK `SequentialAgent` |
+
+#### FanOut (Parallel)
+
+```python
+from adk_fluent import FanOut, Agent
+
+# Builder style — named branches with different models
+fanout = (
+    FanOut("research")
+    .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web.").outputs("web_results"))
+    .branch(Agent("papers", "gemini-2.5-pro").instruct("Search academic papers.").outputs("paper_results"))
+    .branch(Agent("internal", "gemini-2.5-flash").instruct("Search internal docs.").outputs("internal_results"))
+    .build()
+)
+
+# Operator style
+fanout = (
+    Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_results")
+    | Agent("papers", "gemini-2.5-pro").instruct("Search papers.").outputs("paper_results")
+    | Agent("internal", "gemini-2.5-flash").instruct("Search internal docs.").outputs("internal_results")
+).build()
+```
+
+| Method | Description |
+|--------|-------------|
+| `.branch(agent)` | Add a parallel branch agent. Lazy -- built at `.build()` time |
+| `.build()` | Resolve into a native ADK `ParallelAgent` |
+
+#### Loop
+
+```python
+from adk_fluent import Loop, Agent, until
+
+# Builder style — explicit loop configuration
+loop = (
+    Loop("quality_loop")
+    .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft.").outputs("quality"))
+    .step(Agent("reviewer", "gemini-2.5-flash").instruct("Review and score."))
+    .max_iterations(5)
+    .until(lambda s: s.get("quality") == "good")
+    .build()
+)
+
+# Operator style
+loop = (
+    Agent("writer", "gemini-2.5-flash").instruct("Write draft.").outputs("quality")
+    >> Agent("reviewer", "gemini-2.5-flash").instruct("Review and score.")
+) * until(lambda s: s.get("quality") == "good", max=5)
+```
+
+| Method | Description |
+|--------|-------------|
+| `.step(agent)` | Append a step agent. Lazy -- built at `.build()` time |
+| `.max_iterations(n)` | Set maximum loop iterations |
+| `.until(pred)` | Set exit predicate. Exits when `pred(state)` is truthy |
+| `.build()` | Resolve into a native ADK `LoopAgent` |
+
+#### Combining Builder and Operator Styles
+
+The styles mix freely. Use builders for complex individual steps and operators for composition:
+
+```python
+from adk_fluent import Agent, Pipeline, FanOut, S, until, Prompt
+
+# Define reusable agents with full builder configuration
+researcher = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct(Prompt().role("You are a research analyst.").task("Find relevant information."))
+    .tool(search_tool)
+    .before_model(log_fn)
+    .outputs("findings")
+)
+
+writer = (
+    Agent("writer", "gemini-2.5-pro")
+    .instruct("Write a report about {findings}.")
+    .static("Company style guide: use formal tone, cite sources...")
+    .outputs("draft")
+)
+
+reviewer = (
+    Agent("reviewer", "gemini-2.5-flash")
+    .instruct("Score the draft 1-10 for quality.")
+    .outputs("quality_score")
+)
+
+# Compose with operators — each sub-expression is reusable
+research_phase = (
+    FanOut("gather")
+    .branch(researcher.clone("web").tool(web_search))
+    .branch(researcher.clone("papers").tool(paper_search))
+)
+
+pipeline = (
+    research_phase
+    >> S.merge("web", "papers", into="findings")
+    >> writer
+    >> (reviewer >> writer) * until(lambda s: int(s.get("quality_score", 0)) >= 8, max=3)
+)
+```
+
 ### Presets
+
+Reusable configuration bundles:
 
 ```python
 from adk_fluent.presets import Preset
@@ -319,24 +678,6 @@ call_count = StateKey("call_count", scope="session", type=int, default=0)
 # In callbacks/tools:
 current = call_count.get(ctx)
 call_count.increment(ctx)
-```
-
-### One-Shot Execution
-
-```python
-# Ask and get response (no Runner/Session boilerplate)
-response = Agent("q").model("gemini-2.5-flash").instruct("Answer concisely.").ask("What is 2+2?")
-
-# Batch execution
-results = Agent("q").model("gemini-2.5-flash").instruct("Translate.").map(["Hello", "Goodbye"])
-```
-
-### Validation and Introspection
-
-```python
-agent = Agent("x").model("gemini-2.5-flash").instruct("Test.").validate()  # Catches errors early
-print(agent.explain())  # Multi-line builder state summary
-print(agent.to_yaml())  # Serialize to YAML
 ```
 
 ## Run with `adk web`
@@ -428,7 +769,7 @@ adk-fluent is **auto-generated** from the installed ADK package:
 
 ```
 scanner.py ──> manifest.json ──> seed_generator.py ──> seed.toml ──> generator.py ──> Python code
-                                      ↑
+                                      ^
                               seed.manual.toml
                               (hand-crafted extras)
 ```
@@ -449,13 +790,13 @@ just test  # Verify
 
 Generated API docs are in [`docs/generated/api/`](docs/generated/api/):
 
-- [`agent.md`](docs/generated/api/agent.md) — Agent, BaseAgent builders
-- [`workflow.md`](docs/generated/api/workflow.md) — Pipeline, FanOut, Loop
-- [`tool.md`](docs/generated/api/tool.md) — 40+ tool builders
-- [`service.md`](docs/generated/api/service.md) — Session, artifact, memory services
-- [`config.md`](docs/generated/api/config.md) — Configuration builders
-- [`plugin.md`](docs/generated/api/plugin.md) — Plugin builders
-- [`runtime.md`](docs/generated/api/runtime.md) — Runner, App builders
+- [`agent.md`](docs/generated/api/agent.md) -- Agent, BaseAgent builders
+- [`workflow.md`](docs/generated/api/workflow.md) -- Pipeline, FanOut, Loop
+- [`tool.md`](docs/generated/api/tool.md) -- 40+ tool builders
+- [`service.md`](docs/generated/api/service.md) -- Session, artifact, memory services
+- [`config.md`](docs/generated/api/config.md) -- Configuration builders
+- [`plugin.md`](docs/generated/api/plugin.md) -- Plugin builders
+- [`runtime.md`](docs/generated/api/runtime.md) -- Runner, App builders
 
 Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/migration/from-native-adk.md)
 
@@ -463,6 +804,9 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 
 - **130+ builders** covering agents, tools, configs, services, plugins, planners, executors
 - **Expression algebra**: `>>` (sequence), `|` (parallel), `*` (loop), `@` (typed output), `//` (fallback), `>> fn` (transforms), `S` (state ops), `Route` (branch)
+- **Prompt builder**: structured multi-section prompt composition via `Prompt`
+- **Template variables**: `{key}` in instructions auto-resolved from session state
+- **Context control**: `.static()` for cacheable context, `.history("none")` for stateless agents, `.inject_context()` for dynamic preambles
 - **State transforms**: `S.pick`, `S.drop`, `S.rename`, `S.default`, `S.merge`, `S.transform`, `S.compute`, `S.guard`
 - **Full IDE autocomplete** via `.pyi` type stubs
 - **Zero-maintenance** `__getattr__` forwarding for any ADK field
@@ -487,7 +831,7 @@ uv pip install google-adk pytest pyright
 # Full pipeline: scan -> seed -> generate -> docs
 just all
 
-# Run tests (750+ tests)
+# Run tests (780+ tests)
 just test
 
 # Type check generated stubs

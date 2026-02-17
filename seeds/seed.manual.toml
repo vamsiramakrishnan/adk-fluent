@@ -22,6 +22,15 @@ ParallelAgent = "FanOut"
 LoopAgent = "Loop"
 
 # ---------------------------------------------------------------------------
+# OPTIONAL CONSTRUCTOR ARGS
+# ---------------------------------------------------------------------------
+# These add optional positional params to __init__:
+#   Agent("name", "model") works alongside Agent("name").model("model")
+
+[builders.Agent]
+optional_constructor_args = ["model"]
+
+# ---------------------------------------------------------------------------
 # AGENT EXTRAS (Phase 1)
 # ---------------------------------------------------------------------------
 

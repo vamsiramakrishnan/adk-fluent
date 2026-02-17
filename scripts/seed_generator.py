@@ -117,6 +117,7 @@ _FIELD_ALIAS_TABLE = {
     "global_instruction": "global_instruct",
     "output_key": "outputs",
     "include_contents": "history",
+    "static_instruction": "static",
 }
 
 
@@ -313,6 +314,9 @@ def emit_seed_toml(
         lines.append(f'doc = {_quote_toml_string(builder.get("doc", ""))}')
         lines.append(f'auto_tag = "{builder.get("tag", "data")}"')
         lines.append(f"constructor_args = {_emit_string_list(builder.get('constructor_args', []))}")
+        opt_args = builder.get("optional_constructor_args")
+        if opt_args:
+            lines.append(f"optional_constructor_args = {_emit_string_list(opt_args)}")
         lines.append(f"extra_skip_fields = {_emit_string_list(builder.get('extra_skip_fields', []))}")
         lines.append("")
 
@@ -549,21 +553,26 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
                 new_builders[builder_name] = builder_config
         auto["builders"] = new_builders
 
-    # Step 3: Merge manual extras into matching builders
+    # Step 3: Merge manual config into matching builders
     manual_builders = manual.get("builders", {})
     for builder_name, manual_config in manual_builders.items():
-        manual_extras = manual_config.get("extras", [])
-        if not manual_extras:
+        if builder_name not in auto.get("builders", {}):
             continue
 
-        if builder_name in auto.get("builders", {}):
+        # Merge extras
+        manual_extras = manual_config.get("extras", [])
+        if manual_extras:
             existing_extras = auto["builders"][builder_name].get("extras", [])
-            # Get names of existing extras to avoid duplicates
             existing_names = {e["name"] for e in existing_extras}
             for extra in manual_extras:
                 if extra["name"] not in existing_names:
                     existing_extras.append(extra)
             auto["builders"][builder_name]["extras"] = existing_extras
+
+        # Merge optional_constructor_args
+        opt_args = manual_config.get("optional_constructor_args")
+        if opt_args:
+            auto["builders"][builder_name]["optional_constructor_args"] = opt_args
 
     # Re-emit the merged TOML
     builders_list = []

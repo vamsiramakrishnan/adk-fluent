@@ -62,6 +62,7 @@ class BuilderSpec:
     field_docs: dict[str, str]          # Override docstrings
     inspection_mode: str = "pydantic"   # "pydantic" or "init_signature"
     init_params: list[dict] | None = None  # __init__ params for init_signature mode
+    optional_constructor_args: list[str] | None = None  # Optional positional args (e.g. model)
 
 
 # ---------------------------------------------------------------------------
@@ -156,6 +157,7 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
             field_docs=field_docs,
             inspection_mode=inspection_mode,
             init_params=init_params,
+            optional_constructor_args=builder_config.get("optional_constructor_args"),
         )
         specs.append(spec)
     
@@ -245,21 +247,32 @@ def gen_alias_maps(spec: BuilderSpec) -> str:
 
 def gen_init_method(spec: BuilderSpec) -> str:
     """Generate __init__."""
-    params = ", ".join(f"{arg}: str" for arg in spec.constructor_args)
+    required_params = [f"{arg}: str" for arg in spec.constructor_args]
+    optional_params = []
+    optional_args = spec.optional_constructor_args or []
+    for arg in optional_args:
+        optional_params.append(f"{arg}: str | None = None")
+    all_params = ", ".join(required_params + optional_params)
+
     body_lines = []
-    
+
     if spec.constructor_args:
         config_init = ", ".join(f'"{arg}": {arg}' for arg in spec.constructor_args)
         body_lines.append(f"self._config: dict[str, Any] = {{{config_init}}}")
     else:
         body_lines.append("self._config: dict[str, Any] = {}")
-    
+
     body_lines.append("self._callbacks: dict[str, list[Callable]] = defaultdict(list)")
     body_lines.append("self._lists: dict[str, list] = defaultdict(list)")
-    
+
+    # Set optional args into config if provided
+    for arg in optional_args:
+        body_lines.append(f"if {arg} is not None:")
+        body_lines.append(f"    self._config[\"{arg}\"] = {arg}")
+
     body = "\n        ".join(body_lines)
     return f"""
-    def __init__(self, {params}) -> None:
+    def __init__(self, {all_params}) -> None:
         {body}
 """
 
@@ -620,8 +633,11 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
     ]
     
     # Constructor
-    params = ", ".join(f"{arg}: str" for arg in spec.constructor_args)
-    lines.append(f"    def __init__(self, {params}) -> None: ...")
+    required_params = [f"{arg}: str" for arg in spec.constructor_args]
+    optional_args = spec.optional_constructor_args or []
+    optional_params = [f"{arg}: str | None = None" for arg in optional_args]
+    all_params = ", ".join(required_params + optional_params)
+    lines.append(f"    def __init__(self, {all_params}) -> None: ...")
     
     # Alias methods (with proper types from manifest)
     for fluent_name, field_name in spec.aliases.items():

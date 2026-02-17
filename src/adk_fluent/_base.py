@@ -412,6 +412,12 @@ class BuilderBase:
         if output_schema is not None:
             config["output_schema"] = output_schema
 
+        # Auto-convert Prompt objects to strings
+        from adk_fluent._prompt import Prompt
+        for key, value in list(config.items()):
+            if isinstance(value, Prompt):
+                config[key] = str(value)
+
         # Auto-build any BuilderBase values in config
         for key, value in list(config.items()):
             if isinstance(value, BuilderBase):
@@ -492,6 +498,27 @@ class BuilderBase:
     # ------------------------------------------------------------------
     # Control Flow: proceed_if, loop_until, until
     # ------------------------------------------------------------------
+
+    def inject_context(self, fn: Callable) -> Self:
+        """Prepend dynamic context to the prompt via before_model_callback.
+
+        The function receives the callback context and returns a string.
+        That string is prepended as a system-level content part before
+        the LLM processes the request.
+
+        Usage:
+            agent.inject_context(lambda ctx: f"User: {ctx.state.get('user')}")
+        """
+        def _inject_cb(callback_context, llm_request):
+            text = fn(callback_context)
+            if text:
+                from google.genai import types
+                part = types.Part.from_text(text=str(text))
+                content = types.Content(role="user", parts=[part])
+                llm_request.contents.insert(0, content)
+            return None
+        self._callbacks["before_model_callback"].append(_inject_cb)
+        return self
 
     def proceed_if(self, predicate: Callable) -> Self:
         """Only run this agent if predicate(state) is truthy.

@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-17T10:18:35.150482+00:00"
+generated_at = "2026-02-17T11:00:38.369321+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -131,6 +131,7 @@ output_module = "agent"
 doc = "LLM-based Agent."
 auto_tag = "data"
 constructor_args = ["name"]
+optional_constructor_args = ["model"]
 extra_skip_fields = []
 
 [builders.Agent.aliases]
@@ -139,6 +140,7 @@ global_instruct = "global_instruction"
 history = "include_contents"
 instruct = "instruction"
 outputs = "output_key"
+static = "static_instruction"
 
 [builders.Agent.callback_aliases]
 after_agent = "after_agent_callback"
@@ -257,6 +259,7 @@ describe = "description"
 history = "include_contents"
 instruct = "instruction"
 outputs = "output_key"
+static = "static_instruction"
 
 [[builders.LlmAgentConfig.terminals]]
 name = "build"
@@ -1899,5 +1902,4 @@ extra_skip_fields = []
 name = "build"
 returns = "VertexAiSearchTool"
 doc = "Resolve into a native ADK VertexAiSearchTool."
-
 

@@ -90,7 +90,7 @@ publish-pypi:
     - pip install id twine
   script:
     - export TWINE_USERNAME=__token__
-    - export TWINE_PASSWORD=$(python -m id pypi)
+    - export TWINE_PASSWORD=$PYPI_TOKEN
     - twine upload dist/*
   environment:
     name: pypi

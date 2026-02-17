@@ -123,15 +123,17 @@ class Agent(BuilderBase):
     """LLM-based Agent."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key'}
+    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_model_callback', 'before_agent_callback', 'after_tool_callback', 'on_model_error_callback', 'after_model_callback', 'before_tool_callback', 'on_tool_error_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_tool_callback', 'after_agent_callback', 'before_model_callback', 'after_model_callback', 'before_agent_callback', 'after_tool_callback', 'on_model_error_callback', 'on_tool_error_callback'}
 
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, model: str | None = None) -> None:
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        if model is not None:
+            self._config["model"] = model
 
     # --- Ergonomic aliases ---
 
@@ -162,6 +164,12 @@ class Agent(BuilderBase):
     def outputs(self, value: Union[str, NoneType]) -> Self:
         """Set the `output_key` field."""
         self._config["output_key"] = value
+        return self
+
+
+    def static(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+        """Set the `static_instruction` field."""
+        self._config["static_instruction"] = value
         return self
 
     # --- Additive callback methods ---
