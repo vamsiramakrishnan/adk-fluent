@@ -2,9 +2,14 @@
 
 Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.github.io/adk-docs/). Reduces agent creation from 22+ lines to 1-3 lines while producing identical native ADK objects.
 
+[![CI](https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/ci.yml/badge.svg)](https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/adk-fluent)](https://pypi.org/project/adk-fluent/)
+[![Downloads](https://img.shields.io/pypi/dm/adk-fluent)](https://pypi.org/project/adk-fluent/)
 [![Python](https://img.shields.io/pypi/pyversions/adk-fluent)](https://pypi.org/project/adk-fluent/)
-[![License](https://img.shields.io/pypi/l/adk-fluent)](https://github.com/vamsiramakrishnan/adk-fluent/-/blob/master/LICENSE)
+[![License](https://img.shields.io/pypi/l/adk-fluent)](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/LICENSE)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://vamsiramakrishnan.github.io/adk-fluent/)
+[![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
+[![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
 
 ## Install
 
@@ -843,7 +848,7 @@ adk web race                  # race() first-to-finish
 
 ## Cookbook
 
-42 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
+43 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
 
 ```bash
 pytest examples/cookbook/ -v
