@@ -1,0 +1,122 @@
+stages:
+  - test
+  - build
+  - publish
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+cache:
+  paths:
+    - .pip-cache/
+
+# ---------------------------------------------------------------------------
+# TEST — runs on every push and MR, across Python versions
+# ---------------------------------------------------------------------------
+
+.test-template:
+  stage: test
+  before_script:
+    - pip install google-adk pytest
+    - pip install -e ".[dev]"
+  script:
+    - python scripts/scanner.py -o manifest.json
+    - python scripts/seed_generator.py manifest.json -o seeds/seed.toml
+    - python scripts/generator.py seeds/seed.toml manifest.json
+        --output-dir src/adk_fluent
+        --test-dir tests/generated
+    - pytest tests/ -v --tb=short
+
+test-3.11:
+  extends: .test-template
+  image: python:3.11
+
+test-3.12:
+  extends: .test-template
+  image: python:3.12
+
+test-3.13:
+  extends: .test-template
+  image: python:3.13
+
+# ---------------------------------------------------------------------------
+# BUILD — produces the wheel and sdist
+# ---------------------------------------------------------------------------
+
+build:
+  stage: build
+  image: python:3.12
+  before_script:
+    - pip install google-adk hatch
+    - pip install -e ".[dev]"
+  script:
+    - python scripts/scanner.py -o manifest.json
+    - python scripts/seed_generator.py manifest.json -o seeds/seed.toml
+    - python scripts/generator.py seeds/seed.toml manifest.json
+        --output-dir src/adk_fluent
+        --test-dir tests/generated
+    - pytest tests/ -v --tb=short
+    - hatch build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# ---------------------------------------------------------------------------
+# PUBLISH — PyPI Trusted Publishing (OIDC, no tokens needed)
+#
+# Setup (one-time):
+#   1. Go to https://pypi.org/manage/project/adk-fluent/settings/publishing/
+#   2. Add a "GitLab CI/CD" trusted publisher:
+#        GitLab instance:  gitlab.com
+#        Project path:     <your-namespace>/adk-fluent
+#        Environment:      pypi          (or testpypi)
+#        Top-level pipeline: ✓
+#   3. That's it — no API tokens or secrets to manage.
+# ---------------------------------------------------------------------------
+
+publish-pypi:
+  stage: publish
+  image: python:3.12
+  id_tokens:
+    PYPI_ID_TOKEN:
+      aud: pypi
+  dependencies:
+    - build
+  before_script:
+    - pip install id twine
+  script:
+    - TWINE_USERNAME=__token__
+    - TWINE_PASSWORD=$(python -m id pypi)
+    - twine upload dist/*
+  environment:
+    name: pypi
+    url: https://pypi.org/p/adk-fluent
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+      when: manual
+      allow_failure: false
+
+publish-testpypi:
+  stage: publish
+  image: python:3.12
+  id_tokens:
+    PYPI_ID_TOKEN:
+      aud: testpypi
+  dependencies:
+    - build
+  before_script:
+    - pip install id twine
+  script:
+    - TWINE_USERNAME=__token__
+    - TWINE_PASSWORD=$(python -m id testpypi)
+    - twine upload --repository testpypi dist/*
+  environment:
+    name: testpypi
+    url: https://test.pypi.org/p/adk-fluent
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual

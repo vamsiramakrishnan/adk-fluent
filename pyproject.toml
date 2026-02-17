@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "adk-fluent"
+version = "0.1.0"
+description = "Fluent builder API for Google's Agent Development Kit (ADK)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "adk-fluent contributors" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Pydantic",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+keywords = ["adk", "google", "agents", "fluent", "builder", "llm"]
+
+dependencies = [
+    "google-adk>=1.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pyright>=1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_ORG/adk-fluent"
+Repository = "https://github.com/YOUR_ORG/adk-fluent"
+Issues = "https://github.com/YOUR_ORG/adk-fluent/issues"
+
+[project.entry-points."adk_extensions"]
+fluent = "adk_fluent"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/adk_fluent"]
+
+[tool.pyright]
+include = ["src"]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

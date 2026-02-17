@@ -1,124 +1,157 @@
-# ============================================================================
-# ADK-FLUENT SEED CONFIGURATION
-# ============================================================================
-#
-# This is the ONLY file a human maintainer edits. Everything else is derived.
-#
-# The seed defines HOW each ADK class maps to a fluent builder. The scanner
-# reads the actual ADK source to discover WHAT fields exist. The generator
-# combines both to produce the runtime code, .pyi stubs, and test scaffolds.
-#
-# ARCHITECTURE:
-#   seed.toml (human intent) + manifest.json (machine truth) → codegen
-#
-# When ADK adds a new field, the manifest picks it up automatically.
-# You only edit this file when you want to:
-#   - Add a new ergonomic alias  (e.g., instruction → instruct)
-#   - Change field behavior       (e.g., make a new callback additive)
-#   - Add a new builder class     (e.g., when ADK adds a new agent type)
-#   - Define terminal methods     (e.g., .ask(), .run())
-#
-# ============================================================================
-
 [meta]
 adk_package = "google-adk"
-min_adk_version = "1.20.0"
+adk_version = "1.25.0"
+generated_at = "2026-02-17T01:36:29.955965+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
 
-# ============================================================================
-# GLOBAL FIELD POLICIES
-# ============================================================================
-# These apply across ALL builders unless overridden per-builder.
-
 [global]
-# Fields that are NEVER exposed as fluent methods (internal/managed by framework)
-skip_fields = [
-    "parent_agent",       # Set automatically by sub_agents assignment
-    "model_config",       # Pydantic internal
-    "model_fields",       # Pydantic internal
-    "model_computed_fields",
-]
+skip_fields = ["parent_agent"]
+additive_fields = ["after_agent_callback", "after_model_callback", "after_tool_callback", "before_agent_callback", "before_model_callback", "before_tool_callback", "on_model_error_callback", "on_tool_error_callback"]
+list_extend_fields = ["plugins", "sub_agents", "tools"]
 
-# Fields where the fluent method APPENDS to a list rather than replacing.
-# Pattern: each .before_model(fn) call adds fn to the list.
-# This is the key semantic difference that requires hand-written methods.
-additive_fields = [
-    "before_agent_callback",
-    "after_agent_callback",
-    "before_model_callback",
-    "after_model_callback",
-    "before_tool_callback",
-    "after_tool_callback",
-    "on_model_error_callback",
-    "on_tool_error_callback",
-]
+[builders.ActiveStreamingTool]
+source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
+output_module = "tool"
+doc = "Manages streaming tool related resources during invocation."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
 
-# Fields where the fluent method APPENDS items to a list (extend, not replace).
-# Unlike additive_fields (which append a single callable), these extend a list.
-list_extend_fields = [
-    "tools",
-    "sub_agents",
-]
+[[builders.ActiveStreamingTool.terminals]]
+name = "build"
+returns = "ActiveStreamingTool"
+doc = "Resolve into a native ADK ActiveStreamingTool."
 
+[builders.AgentConfig]
+source_class = "google.adk.agents.agent_config.AgentConfig"
+output_module = "config"
+doc = "The config for the YAML schema to create an agent."
+auto_tag = "config"
+constructor_args = ["root"]
+extra_skip_fields = []
 
-# ============================================================================
-# BUILDER: Agent (wraps LlmAgent)
-# ============================================================================
-[builders.Agent]
-source_class = "google.adk.agents.LlmAgent"
+[[builders.AgentConfig.terminals]]
+name = "build"
+returns = "AgentConfig"
+doc = "Resolve into a native ADK AgentConfig."
+
+[builders.BaseAgent]
+source_class = "google.adk.agents.base_agent.BaseAgent"
 output_module = "agent"
-doc = "Fluent builder for LlmAgent — the primary thinking agent in ADK."
+doc = "Base class for all agents in Agent Development Kit."
+auto_tag = "agent"
+constructor_args = ["name"]
+extra_skip_fields = []
 
-# Constructor arguments — these go in __init__, not as chainable methods
-constructor_args = ["name", "model"]
+[builders.BaseAgent.aliases]
+describe = "description"
 
-# Ergonomic aliases: fluent_method_name → pydantic_field_name
-# Only define these when the alias genuinely reads better in a chain.
-# All non-aliased fields are available via __getattr__ using their original name.
+[builders.BaseAgent.callback_aliases]
+after_agent = "after_agent_callback"
+before_agent = "before_agent_callback"
+
+[[builders.BaseAgent.terminals]]
+name = "build"
+returns = "BaseAgent"
+doc = "Resolve into a native ADK BaseAgent."
+
+[builders.BaseAgentConfig]
+source_class = "google.adk.agents.base_agent_config.BaseAgentConfig"
+output_module = "config"
+doc = "The config for the YAML schema of a BaseAgent."
+auto_tag = "config"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[builders.BaseAgentConfig.aliases]
+describe = "description"
+
+[[builders.BaseAgentConfig.terminals]]
+name = "build"
+returns = "BaseAgentConfig"
+doc = "Resolve into a native ADK BaseAgentConfig."
+
+[builders.AgentRefConfig]
+source_class = "google.adk.agents.common_configs.AgentRefConfig"
+output_module = "config"
+doc = "The config for the reference to another agent."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.AgentRefConfig.terminals]]
+name = "build"
+returns = "AgentRefConfig"
+doc = "Resolve into a native ADK AgentRefConfig."
+
+[builders.ArgumentConfig]
+source_class = "google.adk.agents.common_configs.ArgumentConfig"
+output_module = "config"
+doc = "An argument passed to a function or a class's constructor."
+auto_tag = "config"
+constructor_args = ["value"]
+extra_skip_fields = []
+
+[[builders.ArgumentConfig.terminals]]
+name = "build"
+returns = "ArgumentConfig"
+doc = "Resolve into a native ADK ArgumentConfig."
+
+[builders.CodeConfig]
+source_class = "google.adk.agents.common_configs.CodeConfig"
+output_module = "config"
+doc = "Code reference config for a variable, a function, or a class."
+auto_tag = "config"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[[builders.CodeConfig.terminals]]
+name = "build"
+returns = "CodeConfig"
+doc = "Resolve into a native ADK CodeConfig."
+
+[builders.ContextCacheConfig]
+source_class = "google.adk.agents.context_cache_config.ContextCacheConfig"
+output_module = "config"
+doc = "Configuration for context caching across all agents in an app."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.ContextCacheConfig.terminals]]
+name = "build"
+returns = "ContextCacheConfig"
+doc = "Resolve into a native ADK ContextCacheConfig."
+
+[builders.Agent]
+source_class = "google.adk.agents.llm_agent.LlmAgent"
+output_module = "agent"
+doc = "LLM-based Agent."
+auto_tag = "agent"
+constructor_args = ["name"]
+extra_skip_fields = []
+
 [builders.Agent.aliases]
-instruct = "instruction"
 describe = "description"
 global_instruct = "global_instruction"
+instruct = "instruction"
 
-# Fluent shorthand for additive callback fields.
-# Maps a short method name → the full callback field name.
-# These methods APPEND to the callback list, not replace.
 [builders.Agent.callback_aliases]
-before_agent = "before_agent_callback"
 after_agent = "after_agent_callback"
-before_model = "before_model_callback"
 after_model = "after_model_callback"
-before_tool = "before_tool_callback"
 after_tool = "after_tool_callback"
+before_agent = "before_agent_callback"
+before_model = "before_model_callback"
+before_tool = "before_tool_callback"
 on_model_error = "on_model_error_callback"
 on_tool_error = "on_tool_error_callback"
 
-# Additional fields to skip (beyond global skip_fields)
-extra_skip_fields = []
-
-# Terminal methods — these resolve the builder into a concrete object or result
 [[builders.Agent.terminals]]
 name = "build"
 returns = "LlmAgent"
-doc = "Resolve builder into a native ADK LlmAgent. The fluent layer vanishes here."
-
-[[builders.Agent.terminals]]
-name = "ask"
-signature = "(self, query: str, *, user_id: str = 'default') -> str"
-doc = "One-shot synchronous query. Creates session, runner, returns response text."
-
-[[builders.Agent.terminals]]
-name = "run"
-signature = "(self, query: str, *, user_id: str = 'default') -> AsyncGenerator[Event, None]"
-doc = "Async generator yielding events. For streaming use cases."
-
-# Extra methods that don't map to fields (middleware application, etc.)
-[[builders.Agent.extras]]
-name = "apply"
-signature = "(self, stack: MiddlewareStack) -> Self"
-doc = "Apply a reusable middleware stack (bulk callback registration)."
+doc = "Resolve into a native ADK LlmAgent."
 
 [[builders.Agent.extras]]
 name = "tool"
@@ -127,58 +160,97 @@ doc = "Add a single tool. Alias for .tools() with append semantics."
 behavior = "list_append"
 target_field = "tools"
 
+[[builders.Agent.extras]]
+name = "apply"
+signature = "(self, stack: MiddlewareStack) -> Self"
+doc = "Apply a reusable middleware stack (bulk callback registration)."
 
-# ============================================================================
-# BUILDER: Pipeline (wraps SequentialAgent)
-# ============================================================================
-[builders.Pipeline]
-source_class = "google.adk.agents.SequentialAgent"
-output_module = "workflow"
-doc = "Fluent builder for SequentialAgent — deterministic step-by-step execution."
-
-constructor_args = ["name"]
-
-[builders.Pipeline.aliases]
-describe = "description"
-
-[builders.Pipeline.callback_aliases]
-before_agent = "before_agent_callback"
-after_agent = "after_agent_callback"
-
-extra_skip_fields = []
-
-# Pipeline-specific methods that compose the step list
-[[builders.Pipeline.extras]]
-name = "step"
+[[builders.Agent.extras]]
+name = "member"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Append an agent as the next step. Accepts built agents or builders."
+doc = "Add a member agent for coordinator pattern."
 behavior = "list_append"
 target_field = "sub_agents"
 
-[[builders.Pipeline.terminals]]
+[builders.LlmAgentConfig]
+source_class = "google.adk.agents.llm_agent_config.LlmAgentConfig"
+output_module = "config"
+doc = "The config for the YAML schema of a LlmAgent."
+auto_tag = "config"
+constructor_args = ["name", "instruction"]
+extra_skip_fields = []
+
+[builders.LlmAgentConfig.aliases]
+describe = "description"
+instruct = "instruction"
+
+[[builders.LlmAgentConfig.terminals]]
 name = "build"
-returns = "SequentialAgent"
-doc = "Resolve into a native ADK SequentialAgent."
+returns = "LlmAgentConfig"
+doc = "Resolve into a native ADK LlmAgentConfig."
 
-
-# ============================================================================
-# BUILDER: FanOut (wraps ParallelAgent)
-# ============================================================================
-[builders.FanOut]
-source_class = "google.adk.agents.ParallelAgent"
+[builders.Loop]
+source_class = "google.adk.agents.loop_agent.LoopAgent"
 output_module = "workflow"
-doc = "Fluent builder for ParallelAgent — run branches concurrently."
-
+doc = "A shell agent that run its sub-agents in a loop."
+auto_tag = "agent"
 constructor_args = ["name"]
+extra_skip_fields = []
+
+[builders.Loop.aliases]
+describe = "description"
+
+[builders.Loop.callback_aliases]
+after_agent = "after_agent_callback"
+before_agent = "before_agent_callback"
+
+[[builders.Loop.terminals]]
+name = "build"
+returns = "LoopAgent"
+doc = "Resolve into a native ADK LoopAgent."
+
+[[builders.Loop.extras]]
+name = "step"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Append an agent as the next step."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[builders.LoopAgentConfig]
+source_class = "google.adk.agents.loop_agent_config.LoopAgentConfig"
+output_module = "config"
+doc = "The config for the YAML schema of a LoopAgent."
+auto_tag = "config"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[builders.LoopAgentConfig.aliases]
+describe = "description"
+
+[[builders.LoopAgentConfig.terminals]]
+name = "build"
+returns = "LoopAgentConfig"
+doc = "Resolve into a native ADK LoopAgentConfig."
+
+[builders.FanOut]
+source_class = "google.adk.agents.parallel_agent.ParallelAgent"
+output_module = "workflow"
+doc = "A shell agent that runs its sub-agents in parallel in an isolated manner."
+auto_tag = "agent"
+constructor_args = ["name"]
+extra_skip_fields = []
 
 [builders.FanOut.aliases]
 describe = "description"
 
 [builders.FanOut.callback_aliases]
-before_agent = "before_agent_callback"
 after_agent = "after_agent_callback"
+before_agent = "before_agent_callback"
 
-extra_skip_fields = []
+[[builders.FanOut.terminals]]
+name = "build"
+returns = "ParallelAgent"
+doc = "Resolve into a native ADK ParallelAgent."
 
 [[builders.FanOut.extras]]
 name = "branch"
@@ -187,183 +259,1570 @@ doc = "Add a parallel branch agent."
 behavior = "list_append"
 target_field = "sub_agents"
 
-[[builders.FanOut.terminals]]
-name = "build"
-returns = "ParallelAgent"
-doc = "Resolve into a native ADK ParallelAgent."
-
-
-# ============================================================================
-# BUILDER: Loop (wraps LoopAgent)
-# ============================================================================
-[builders.Loop]
-source_class = "google.adk.agents.LoopAgent"
-output_module = "workflow"
-doc = "Fluent builder for LoopAgent — repeat until condition or max iterations."
-
+[builders.ParallelAgentConfig]
+source_class = "google.adk.agents.parallel_agent_config.ParallelAgentConfig"
+output_module = "config"
+doc = "The config for the YAML schema of a ParallelAgent."
+auto_tag = "config"
 constructor_args = ["name"]
-
-[builders.Loop.aliases]
-describe = "description"
-
-[builders.Loop.callback_aliases]
-before_agent = "before_agent_callback"
-after_agent = "after_agent_callback"
-
 extra_skip_fields = []
 
-[[builders.Loop.extras]]
+[builders.ParallelAgentConfig.aliases]
+describe = "description"
+
+[[builders.ParallelAgentConfig.terminals]]
+name = "build"
+returns = "ParallelAgentConfig"
+doc = "Resolve into a native ADK ParallelAgentConfig."
+
+[builders.RunConfig]
+source_class = "google.adk.agents.run_config.RunConfig"
+output_module = "config"
+doc = "Configs for runtime behavior of agents."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.RunConfig.terminals]]
+name = "build"
+returns = "RunConfig"
+doc = "Resolve into a native ADK RunConfig."
+
+[builders.ToolThreadPoolConfig]
+source_class = "google.adk.agents.run_config.ToolThreadPoolConfig"
+output_module = "config"
+doc = "Configuration for the tool thread pool executor."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.ToolThreadPoolConfig.terminals]]
+name = "build"
+returns = "ToolThreadPoolConfig"
+doc = "Resolve into a native ADK ToolThreadPoolConfig."
+
+[builders.Pipeline]
+source_class = "google.adk.agents.sequential_agent.SequentialAgent"
+output_module = "workflow"
+doc = "A shell agent that runs its sub-agents in sequence."
+auto_tag = "agent"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[builders.Pipeline.aliases]
+describe = "description"
+
+[builders.Pipeline.callback_aliases]
+after_agent = "after_agent_callback"
+before_agent = "before_agent_callback"
+
+[[builders.Pipeline.terminals]]
+name = "build"
+returns = "SequentialAgent"
+doc = "Resolve into a native ADK SequentialAgent."
+
+[[builders.Pipeline.extras]]
 name = "step"
 signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Add an agent to the loop body."
+doc = "Append an agent as the next step."
 behavior = "list_append"
 target_field = "sub_agents"
 
-[[builders.Loop.terminals]]
-name = "build"
-returns = "LoopAgent"
-doc = "Resolve into a native ADK LoopAgent."
-
-
-# ============================================================================
-# BUILDER: Team (wraps LlmAgent with sub_agents — coordinator pattern)
-# ============================================================================
-[builders.Team]
-source_class = "google.adk.agents.LlmAgent"
-output_module = "multi"
-doc = "Fluent builder for the coordinator pattern — LLM-driven agent delegation."
-
-constructor_args = ["name", "model"]
-
-[builders.Team.aliases]
-instruct = "instruction"
-describe = "description"
-
-[builders.Team.callback_aliases]
-before_agent = "before_agent_callback"
-after_agent = "after_agent_callback"
-before_model = "before_model_callback"
-after_model = "after_model_callback"
-
+[builders.SequentialAgentConfig]
+source_class = "google.adk.agents.sequential_agent_config.SequentialAgentConfig"
+output_module = "config"
+doc = "The config for the YAML schema of a SequentialAgent."
+auto_tag = "config"
+constructor_args = ["name"]
 extra_skip_fields = []
 
-[[builders.Team.extras]]
-name = "member"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Add a member agent that the coordinator can delegate to."
-behavior = "list_append"
-target_field = "sub_agents"
+[builders.SequentialAgentConfig.aliases]
+describe = "description"
 
-[[builders.Team.terminals]]
+[[builders.SequentialAgentConfig.terminals]]
 name = "build"
-returns = "LlmAgent"
-doc = "Resolve into an LlmAgent with sub_agents configured."
+returns = "SequentialAgentConfig"
+doc = "Resolve into a native ADK SequentialAgentConfig."
 
-
-# ============================================================================
-# BUILDER: Runtime (wraps Runner construction + services)
-# ============================================================================
-# NOTE: Runner is NOT a Pydantic BaseModel in all ADK versions.
-# This builder is a custom composition layer, not a direct model wrapper.
-# The scanner handles this via a "composite" source_type.
-
-[builders.Runtime]
-source_class = "__composite__"
+[builders.App]
+source_class = "google.adk.apps.app.App"
 output_module = "runtime"
-doc = "Fluent builder for production runtime — Runner + services + App."
+doc = "Represents an LLM-backed agentic application."
+auto_tag = "runtime"
+constructor_args = ["name", "root_agent"]
+extra_skip_fields = []
 
-constructor_args = ["app_name"]
-
-# These are not Pydantic fields — they're manual compositions.
-# The generator creates explicit methods for these.
-[[builders.Runtime.extras]]
-name = "agent"
-signature = "(self, agent: BaseAgent) -> Self"
-doc = "Set the root agent."
-behavior = "field_set"
-target_field = "_agent"
-
-[[builders.Runtime.extras]]
-name = "session_service"
-signature = "(self, svc: BaseSessionService) -> Self"
-doc = "Set the session service."
-behavior = "field_set"
-target_field = "_session_service"
-
-[[builders.Runtime.extras]]
-name = "artifact_service"
-signature = "(self, svc: BaseArtifactService) -> Self"
-doc = "Set the artifact service."
-behavior = "field_set"
-target_field = "_artifact_service"
-
-[[builders.Runtime.extras]]
-name = "memory_service"
-signature = "(self, svc: BaseMemoryService) -> Self"
-doc = "Set the memory service."
-behavior = "field_set"
-target_field = "_memory_service"
-
-[[builders.Runtime.extras]]
-name = "run_config"
-signature = "(self, config: RunConfig) -> Self"
-doc = "Set the runtime configuration."
-behavior = "field_set"
-target_field = "_run_config"
-
-[[builders.Runtime.extras]]
-name = "plugin"
-signature = "(self, plugin: BasePlugin) -> Self"
-doc = "Register a plugin."
-behavior = "list_append"
-target_field = "_plugins"
-
-[[builders.Runtime.terminals]]
-name = "build_runner"
-returns = "Runner"
-doc = "Build a Runner with configured services."
-
-[[builders.Runtime.terminals]]
-name = "build_app"
+[[builders.App.terminals]]
+name = "build"
 returns = "App"
-doc = "Build a full App object (agent + runner + services + plugins)."
+doc = "Resolve into a native ADK App."
 
+[builders.EventsCompactionConfig]
+source_class = "google.adk.apps.app.EventsCompactionConfig"
+output_module = "config"
+doc = "The config of event compaction for an application."
+auto_tag = "config"
+constructor_args = ["compaction_interval", "overlap_size"]
+extra_skip_fields = []
 
-# ============================================================================
-# BUILDER: MiddlewareStack (not wrapping an ADK class — pure adk-fluent concept)
-# ============================================================================
-[builders.MiddlewareStack]
-source_class = "__standalone__"
-output_module = "middleware"
-doc = "Reusable collection of callbacks that can be applied to any builder."
+[[builders.EventsCompactionConfig.terminals]]
+name = "build"
+returns = "EventsCompactionConfig"
+doc = "Resolve into a native ADK EventsCompactionConfig."
 
+[builders.ResumabilityConfig]
+source_class = "google.adk.apps.app.ResumabilityConfig"
+output_module = "config"
+doc = "The config of the resumability for an application."
+auto_tag = "config"
 constructor_args = []
+extra_skip_fields = []
 
-# MiddlewareStack only has callback methods — no Pydantic introspection needed
-[builders.MiddlewareStack.callback_aliases]
-before_agent = "before_agent_callback"
-after_agent = "after_agent_callback"
-before_model = "before_model_callback"
-after_model = "after_model_callback"
-before_tool = "before_tool_callback"
-after_tool = "after_tool_callback"
-on_model_error = "on_model_error_callback"
-on_tool_error = "on_tool_error_callback"
+[[builders.ResumabilityConfig.terminals]]
+name = "build"
+returns = "ResumabilityConfig"
+doc = "Resolve into a native ADK ResumabilityConfig."
 
+[builders.BaseArtifactService]
+source_class = "google.adk.artifacts.base_artifact_service.BaseArtifactService"
+output_module = "service"
+doc = "Abstract base class for artifact services."
+auto_tag = "service"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
 
-# ============================================================================
-# FIELD DOCUMENTATION OVERRIDES
-# ============================================================================
-# Override or supplement docstrings for generated methods.
-# The scanner pulls docstrings from Pydantic field descriptions where available.
-# These overrides are for cases where the ADK doc is missing or unclear.
+[[builders.BaseArtifactService.terminals]]
+name = "build"
+returns = "BaseArtifactService"
+doc = "Resolve into a native ADK BaseArtifactService."
 
-[field_docs]
-instruction = "The agent's system instruction. Accepts a string or a callable that receives ReadonlyContext."
-description = "One-line description of the agent's capability. Used by parent agents for delegation decisions."
-tools = "List of tools available to the agent. Accepts functions, BaseTool instances, or AgentTool instances."
-output_key = "Session state key where the agent's final response text is stored."
-output_schema = "Pydantic BaseModel subclass for structured output. Disables tool use when set."
-include_contents = "Controls conversation history inclusion: 'default', 'none', or a custom strategy."
-planner = "Planning strategy for the agent (e.g., PlanReActPlanner)."
-generate_content_config = "Low-level Gemini generation config (temperature, top_p, etc.)."
+[builders.FileArtifactService]
+source_class = "google.adk.artifacts.file_artifact_service.FileArtifactService"
+output_module = "service"
+doc = "Stores filesystem-backed artifacts beneath a configurable root directory."
+auto_tag = "service"
+constructor_args = ["root_dir"]
+extra_skip_fields = []
+
+[[builders.FileArtifactService.terminals]]
+name = "build"
+returns = "FileArtifactService"
+doc = "Resolve into a native ADK FileArtifactService."
+
+[builders.GcsArtifactService]
+source_class = "google.adk.artifacts.gcs_artifact_service.GcsArtifactService"
+output_module = "service"
+doc = "An artifact service implementation using Google Cloud Storage (GCS)."
+auto_tag = "service"
+constructor_args = ["bucket_name", "kwargs"]
+extra_skip_fields = []
+
+[[builders.GcsArtifactService.terminals]]
+name = "build"
+returns = "GcsArtifactService"
+doc = "Resolve into a native ADK GcsArtifactService."
+
+[builders.InMemoryArtifactService]
+source_class = "google.adk.artifacts.in_memory_artifact_service.InMemoryArtifactService"
+output_module = "service"
+doc = "An in-memory implementation of the artifact service."
+auto_tag = "service"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.InMemoryArtifactService.terminals]]
+name = "build"
+returns = "InMemoryArtifactService"
+doc = "Resolve into a native ADK InMemoryArtifactService."
+
+[builders.RecordingsPlugin]
+source_class = "google.adk.cli.plugins.recordings_plugin.RecordingsPlugin"
+output_module = "plugin"
+doc = "Plugin for recording ADK agent interactions."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.RecordingsPlugin.terminals]]
+name = "build"
+returns = "RecordingsPlugin"
+doc = "Resolve into a native ADK RecordingsPlugin."
+
+[builders.ReplayPlugin]
+source_class = "google.adk.cli.plugins.replay_plugin.ReplayPlugin"
+output_module = "plugin"
+doc = "Plugin for replaying ADK agent interactions from recordings."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.ReplayPlugin.terminals]]
+name = "build"
+returns = "ReplayPlugin"
+doc = "Resolve into a native ADK ReplayPlugin."
+
+[builders.PerAgentDatabaseSessionService]
+source_class = "google.adk.cli.utils.local_storage.PerAgentDatabaseSessionService"
+output_module = "service"
+doc = "Routes session storage to per-agent `.adk/session.db` files."
+auto_tag = "service"
+constructor_args = ["agents_root"]
+extra_skip_fields = []
+
+[[builders.PerAgentDatabaseSessionService.terminals]]
+name = "build"
+returns = "PerAgentDatabaseSessionService"
+doc = "Resolve into a native ADK PerAgentDatabaseSessionService."
+
+[builders.AgentEngineSandboxCodeExecutor]
+source_class = "google.adk.code_executors.agent_engine_sandbox_code_executor.AgentEngineSandboxCodeExecutor"
+output_module = "executor"
+doc = "A code executor that uses Agent Engine Code Execution Sandbox to execute code."
+auto_tag = "executor"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.AgentEngineSandboxCodeExecutor.terminals]]
+name = "build"
+returns = "AgentEngineSandboxCodeExecutor"
+doc = "Resolve into a native ADK AgentEngineSandboxCodeExecutor."
+
+[builders.BaseCodeExecutor]
+source_class = "google.adk.code_executors.base_code_executor.BaseCodeExecutor"
+output_module = "executor"
+doc = "Abstract base class for all code executors."
+auto_tag = "executor"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BaseCodeExecutor.terminals]]
+name = "build"
+returns = "BaseCodeExecutor"
+doc = "Resolve into a native ADK BaseCodeExecutor."
+
+[builders.BuiltInCodeExecutor]
+source_class = "google.adk.code_executors.built_in_code_executor.BuiltInCodeExecutor"
+output_module = "executor"
+doc = "A code executor that uses the Model's built-in code executor."
+auto_tag = "executor"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BuiltInCodeExecutor.terminals]]
+name = "build"
+returns = "BuiltInCodeExecutor"
+doc = "Resolve into a native ADK BuiltInCodeExecutor."
+
+[builders.UnsafeLocalCodeExecutor]
+source_class = "google.adk.code_executors.unsafe_local_code_executor.UnsafeLocalCodeExecutor"
+output_module = "executor"
+doc = "A code executor that unsafely execute code in the current local context."
+auto_tag = "executor"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.UnsafeLocalCodeExecutor.terminals]]
+name = "build"
+returns = "UnsafeLocalCodeExecutor"
+doc = "Resolve into a native ADK UnsafeLocalCodeExecutor."
+
+[builders.VertexAiCodeExecutor]
+source_class = "google.adk.code_executors.vertex_ai_code_executor.VertexAiCodeExecutor"
+output_module = "executor"
+doc = "A code executor that uses Vertex Code Interpreter Extension to execute code."
+auto_tag = "executor"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.VertexAiCodeExecutor.terminals]]
+name = "build"
+returns = "VertexAiCodeExecutor"
+doc = "Resolve into a native ADK VertexAiCodeExecutor."
+
+[builders.FeatureConfig]
+source_class = "google.adk.features._feature_registry.FeatureConfig"
+output_module = "config"
+doc = "Feature configuration."
+auto_tag = "config"
+constructor_args = ["stage"]
+extra_skip_fields = []
+
+[[builders.FeatureConfig.terminals]]
+name = "build"
+returns = "FeatureConfig"
+doc = "Resolve into a native ADK FeatureConfig."
+
+[builders.AudioCacheConfig]
+source_class = "google.adk.flows.llm_flows.audio_cache_manager.AudioCacheConfig"
+output_module = "config"
+doc = "Configuration for audio caching behavior."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.AudioCacheConfig.terminals]]
+name = "build"
+returns = "AudioCacheConfig"
+doc = "Resolve into a native ADK AudioCacheConfig."
+
+[builders.BaseMemoryService]
+source_class = "google.adk.memory.base_memory_service.BaseMemoryService"
+output_module = "service"
+doc = "Base class for memory services."
+auto_tag = "service"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
+
+[[builders.BaseMemoryService.terminals]]
+name = "build"
+returns = "BaseMemoryService"
+doc = "Resolve into a native ADK BaseMemoryService."
+
+[builders.InMemoryMemoryService]
+source_class = "google.adk.memory.in_memory_memory_service.InMemoryMemoryService"
+output_module = "service"
+doc = "An in-memory memory service for prototyping purpose only."
+auto_tag = "service"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.InMemoryMemoryService.terminals]]
+name = "build"
+returns = "InMemoryMemoryService"
+doc = "Resolve into a native ADK InMemoryMemoryService."
+
+[builders.VertexAiMemoryBankService]
+source_class = "google.adk.memory.vertex_ai_memory_bank_service.VertexAiMemoryBankService"
+output_module = "service"
+doc = "Implementation of the BaseMemoryService using Vertex AI Memory Bank."
+auto_tag = "service"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.VertexAiMemoryBankService.terminals]]
+name = "build"
+returns = "VertexAiMemoryBankService"
+doc = "Resolve into a native ADK VertexAiMemoryBankService."
+
+[builders.VertexAiRagMemoryService]
+source_class = "google.adk.memory.vertex_ai_rag_memory_service.VertexAiRagMemoryService"
+output_module = "service"
+doc = "A memory service that uses Vertex AI RAG for storage and retrieval."
+auto_tag = "service"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.VertexAiRagMemoryService.terminals]]
+name = "build"
+returns = "VertexAiRagMemoryService"
+doc = "Resolve into a native ADK VertexAiRagMemoryService."
+
+[builders.SimplePromptOptimizerConfig]
+source_class = "google.adk.optimization.simple_prompt_optimizer.SimplePromptOptimizerConfig"
+output_module = "config"
+doc = "Configuration for the IterativePromptOptimizer."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.SimplePromptOptimizerConfig.terminals]]
+name = "build"
+returns = "SimplePromptOptimizerConfig"
+doc = "Resolve into a native ADK SimplePromptOptimizerConfig."
+
+[builders.BasePlanner]
+source_class = "google.adk.planners.base_planner.BasePlanner"
+output_module = "planner"
+doc = "Abstract base class for all planners."
+auto_tag = "planner"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
+
+[[builders.BasePlanner.terminals]]
+name = "build"
+returns = "BasePlanner"
+doc = "Resolve into a native ADK BasePlanner."
+
+[builders.BuiltInPlanner]
+source_class = "google.adk.planners.built_in_planner.BuiltInPlanner"
+output_module = "planner"
+doc = "The built-in planner that uses model's built-in thinking features."
+auto_tag = "planner"
+constructor_args = ["thinking_config"]
+extra_skip_fields = []
+
+[[builders.BuiltInPlanner.terminals]]
+name = "build"
+returns = "BuiltInPlanner"
+doc = "Resolve into a native ADK BuiltInPlanner."
+
+[builders.PlanReActPlanner]
+source_class = "google.adk.planners.plan_re_act_planner.PlanReActPlanner"
+output_module = "planner"
+doc = "Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation."
+auto_tag = "planner"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
+
+[[builders.PlanReActPlanner.terminals]]
+name = "build"
+returns = "PlanReActPlanner"
+doc = "Resolve into a native ADK PlanReActPlanner."
+
+[builders.BasePlugin]
+source_class = "google.adk.plugins.base_plugin.BasePlugin"
+output_module = "plugin"
+doc = "Base class for creating plugins."
+auto_tag = "plugin"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[[builders.BasePlugin.terminals]]
+name = "build"
+returns = "BasePlugin"
+doc = "Resolve into a native ADK BasePlugin."
+
+[builders.BigQueryAgentAnalyticsPlugin]
+source_class = "google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryAgentAnalyticsPlugin"
+output_module = "plugin"
+doc = "BigQuery Agent Analytics Plugin (v2.0 using Write API)."
+auto_tag = "plugin"
+constructor_args = ["project_id", "dataset_id", "kwargs"]
+extra_skip_fields = []
+
+[[builders.BigQueryAgentAnalyticsPlugin.terminals]]
+name = "build"
+returns = "BigQueryAgentAnalyticsPlugin"
+doc = "Resolve into a native ADK BigQueryAgentAnalyticsPlugin."
+
+[builders.BigQueryLoggerConfig]
+source_class = "google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryLoggerConfig"
+output_module = "config"
+doc = "Configuration for the BigQueryAgentAnalyticsPlugin."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BigQueryLoggerConfig.terminals]]
+name = "build"
+returns = "BigQueryLoggerConfig"
+doc = "Resolve into a native ADK BigQueryLoggerConfig."
+
+[builders.RetryConfig]
+source_class = "google.adk.plugins.bigquery_agent_analytics_plugin.RetryConfig"
+output_module = "config"
+doc = "Configuration for retrying failed BigQuery write operations."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.RetryConfig.terminals]]
+name = "build"
+returns = "RetryConfig"
+doc = "Resolve into a native ADK RetryConfig."
+
+[builders.ContextFilterPlugin]
+source_class = "google.adk.plugins.context_filter_plugin.ContextFilterPlugin"
+output_module = "plugin"
+doc = "A plugin that filters the LLM context to reduce its size."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.ContextFilterPlugin.terminals]]
+name = "build"
+returns = "ContextFilterPlugin"
+doc = "Resolve into a native ADK ContextFilterPlugin."
+
+[builders.DebugLoggingPlugin]
+source_class = "google.adk.plugins.debug_logging_plugin.DebugLoggingPlugin"
+output_module = "plugin"
+doc = "A plugin that captures complete debug information to a file."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.DebugLoggingPlugin.terminals]]
+name = "build"
+returns = "DebugLoggingPlugin"
+doc = "Resolve into a native ADK DebugLoggingPlugin."
+
+[builders.GlobalInstructionPlugin]
+source_class = "google.adk.plugins.global_instruction_plugin.GlobalInstructionPlugin"
+output_module = "plugin"
+doc = "Plugin that provides global instructions functionality at the App level."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.GlobalInstructionPlugin.terminals]]
+name = "build"
+returns = "GlobalInstructionPlugin"
+doc = "Resolve into a native ADK GlobalInstructionPlugin."
+
+[builders.LoggingPlugin]
+source_class = "google.adk.plugins.logging_plugin.LoggingPlugin"
+output_module = "plugin"
+doc = "A plugin that logs important information at each callback point."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.LoggingPlugin.terminals]]
+name = "build"
+returns = "LoggingPlugin"
+doc = "Resolve into a native ADK LoggingPlugin."
+
+[builders.MultimodalToolResultsPlugin]
+source_class = "google.adk.plugins.multimodal_tool_results_plugin.MultimodalToolResultsPlugin"
+output_module = "plugin"
+doc = "A plugin that modifies function tool responses to support returning list of parts directly."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.MultimodalToolResultsPlugin.terminals]]
+name = "build"
+returns = "MultimodalToolResultsPlugin"
+doc = "Resolve into a native ADK MultimodalToolResultsPlugin."
+
+[builders.ReflectAndRetryToolPlugin]
+source_class = "google.adk.plugins.reflect_retry_tool_plugin.ReflectAndRetryToolPlugin"
+output_module = "plugin"
+doc = "Provides self-healing, concurrent-safe error recovery for tool failures."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.ReflectAndRetryToolPlugin.terminals]]
+name = "build"
+returns = "ReflectAndRetryToolPlugin"
+doc = "Resolve into a native ADK ReflectAndRetryToolPlugin."
+
+[builders.SaveFilesAsArtifactsPlugin]
+source_class = "google.adk.plugins.save_files_as_artifacts_plugin.SaveFilesAsArtifactsPlugin"
+output_module = "plugin"
+doc = "A plugin that saves files embedded in user messages as artifacts."
+auto_tag = "plugin"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.SaveFilesAsArtifactsPlugin.terminals]]
+name = "build"
+returns = "SaveFilesAsArtifactsPlugin"
+doc = "Resolve into a native ADK SaveFilesAsArtifactsPlugin."
+
+[builders.InMemoryRunner]
+source_class = "google.adk.runners.InMemoryRunner"
+output_module = "runtime"
+doc = "An in-memory Runner for testing and development."
+auto_tag = "runtime"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.InMemoryRunner.terminals]]
+name = "build"
+returns = "InMemoryRunner"
+doc = "Resolve into a native ADK InMemoryRunner."
+
+[builders.Runner]
+source_class = "google.adk.runners.Runner"
+output_module = "runtime"
+doc = "The Runner class is used to run agents."
+auto_tag = "runtime"
+constructor_args = ["session_service"]
+extra_skip_fields = []
+
+[[builders.Runner.terminals]]
+name = "build"
+returns = "Runner"
+doc = "Resolve into a native ADK Runner."
+
+[builders.BaseSessionService]
+source_class = "google.adk.sessions.base_session_service.BaseSessionService"
+output_module = "service"
+doc = "Base class for session services."
+auto_tag = "service"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
+
+[[builders.BaseSessionService.terminals]]
+name = "build"
+returns = "BaseSessionService"
+doc = "Resolve into a native ADK BaseSessionService."
+
+[builders.GetSessionConfig]
+source_class = "google.adk.sessions.base_session_service.GetSessionConfig"
+output_module = "config"
+doc = "The configuration of getting a session."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.GetSessionConfig.terminals]]
+name = "build"
+returns = "GetSessionConfig"
+doc = "Resolve into a native ADK GetSessionConfig."
+
+[builders.DatabaseSessionService]
+source_class = "google.adk.sessions.database_session_service.DatabaseSessionService"
+output_module = "service"
+doc = "A session service that uses a database for storage."
+auto_tag = "service"
+constructor_args = ["db_url", "kwargs"]
+extra_skip_fields = []
+
+[[builders.DatabaseSessionService.terminals]]
+name = "build"
+returns = "DatabaseSessionService"
+doc = "Resolve into a native ADK DatabaseSessionService."
+
+[builders.InMemorySessionService]
+source_class = "google.adk.sessions.in_memory_session_service.InMemorySessionService"
+output_module = "service"
+doc = "An in-memory implementation of the session service."
+auto_tag = "service"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.InMemorySessionService.terminals]]
+name = "build"
+returns = "InMemorySessionService"
+doc = "Resolve into a native ADK InMemorySessionService."
+
+[builders.SqliteSessionService]
+source_class = "google.adk.sessions.sqlite_session_service.SqliteSessionService"
+output_module = "service"
+doc = "A session service that uses an SQLite database for storage via aiosqlite."
+auto_tag = "service"
+constructor_args = ["db_path"]
+extra_skip_fields = []
+
+[[builders.SqliteSessionService.terminals]]
+name = "build"
+returns = "SqliteSessionService"
+doc = "Resolve into a native ADK SqliteSessionService."
+
+[builders.VertexAiSessionService]
+source_class = "google.adk.sessions.vertex_ai_session_service.VertexAiSessionService"
+output_module = "service"
+doc = "Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK."
+auto_tag = "service"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.VertexAiSessionService.terminals]]
+name = "build"
+returns = "VertexAiSessionService"
+doc = "Resolve into a native ADK VertexAiSessionService."
+
+[builders.ForwardingArtifactService]
+source_class = "google.adk.tools._forwarding_artifact_service.ForwardingArtifactService"
+output_module = "service"
+doc = "Artifact service that forwards to the parent tool context."
+auto_tag = "service"
+constructor_args = ["tool_context"]
+extra_skip_fields = []
+
+[[builders.ForwardingArtifactService.terminals]]
+name = "build"
+returns = "ForwardingArtifactService"
+doc = "Resolve into a native ADK ForwardingArtifactService."
+
+[builders.BaseGoogleCredentialsConfig]
+source_class = "google.adk.tools._google_credentials.BaseGoogleCredentialsConfig"
+output_module = "config"
+doc = "Base Google Credentials Configuration for Google API tools (Experimental)."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BaseGoogleCredentialsConfig.terminals]]
+name = "build"
+returns = "BaseGoogleCredentialsConfig"
+doc = "Resolve into a native ADK BaseGoogleCredentialsConfig."
+
+[builders.AgentSimulatorConfig]
+source_class = "google.adk.tools.agent_simulator.agent_simulator_config.AgentSimulatorConfig"
+output_module = "config"
+doc = "Configuration for AgentSimulator."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.AgentSimulatorConfig.terminals]]
+name = "build"
+returns = "AgentSimulatorConfig"
+doc = "Resolve into a native ADK AgentSimulatorConfig."
+
+[builders.InjectionConfig]
+source_class = "google.adk.tools.agent_simulator.agent_simulator_config.InjectionConfig"
+output_module = "config"
+doc = "Injection configuration for a tool."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.InjectionConfig.terminals]]
+name = "build"
+returns = "InjectionConfig"
+doc = "Resolve into a native ADK InjectionConfig."
+
+[builders.ToolSimulationConfig]
+source_class = "google.adk.tools.agent_simulator.agent_simulator_config.ToolSimulationConfig"
+output_module = "config"
+doc = "Simulation configuration for a single tool."
+auto_tag = "config"
+constructor_args = ["tool_name"]
+extra_skip_fields = []
+
+[[builders.ToolSimulationConfig.terminals]]
+name = "build"
+returns = "ToolSimulationConfig"
+doc = "Resolve into a native ADK ToolSimulationConfig."
+
+[builders.AgentSimulatorPlugin]
+source_class = "google.adk.tools.agent_simulator.agent_simulator_plugin.AgentSimulatorPlugin"
+output_module = "plugin"
+doc = "ADK Plugin for AgentSimulator."
+auto_tag = "plugin"
+constructor_args = ["simulator_engine"]
+extra_skip_fields = []
+
+[[builders.AgentSimulatorPlugin.terminals]]
+name = "build"
+returns = "AgentSimulatorPlugin"
+doc = "Resolve into a native ADK AgentSimulatorPlugin."
+
+[builders.AgentTool]
+source_class = "google.adk.tools.agent_tool.AgentTool"
+output_module = "tool"
+doc = "A tool that wraps an agent."
+auto_tag = "tool"
+constructor_args = ["agent"]
+extra_skip_fields = []
+
+[[builders.AgentTool.terminals]]
+name = "build"
+returns = "AgentTool"
+doc = "Resolve into a native ADK AgentTool."
+
+[builders.AgentToolConfig]
+source_class = "google.adk.tools.agent_tool.AgentToolConfig"
+output_module = "config"
+doc = "The config for the AgentTool."
+auto_tag = "config"
+constructor_args = ["agent"]
+extra_skip_fields = []
+
+[[builders.AgentToolConfig.terminals]]
+name = "build"
+returns = "AgentToolConfig"
+doc = "Resolve into a native ADK AgentToolConfig."
+
+[builders.APIHubToolset]
+source_class = "google.adk.tools.apihub_tool.apihub_toolset.APIHubToolset"
+output_module = "tool"
+doc = "APIHubTool generates tools from a given API Hub resource."
+auto_tag = "tool"
+constructor_args = ["apihub_resource_name"]
+extra_skip_fields = []
+
+[[builders.APIHubToolset.terminals]]
+name = "build"
+returns = "APIHubToolset"
+doc = "Resolve into a native ADK APIHubToolset."
+
+[builders.ApplicationIntegrationToolset]
+source_class = "google.adk.tools.application_integration_tool.application_integration_toolset.ApplicationIntegrationToolset"
+output_module = "tool"
+doc = "ApplicationIntegrationToolset generates tools from a given Application."
+auto_tag = "tool"
+constructor_args = ["project", "location"]
+extra_skip_fields = []
+
+[[builders.ApplicationIntegrationToolset.terminals]]
+name = "build"
+returns = "ApplicationIntegrationToolset"
+doc = "Resolve into a native ADK ApplicationIntegrationToolset."
+
+[builders.IntegrationConnectorTool]
+source_class = "google.adk.tools.application_integration_tool.integration_connector_tool.IntegrationConnectorTool"
+output_module = "tool"
+doc = "A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint."
+auto_tag = "tool"
+constructor_args = ["name", "description", "connection_name"]
+extra_skip_fields = []
+
+[[builders.IntegrationConnectorTool.terminals]]
+name = "build"
+returns = "IntegrationConnectorTool"
+doc = "Resolve into a native ADK IntegrationConnectorTool."
+
+[builders.BaseAuthenticatedTool]
+source_class = "google.adk.tools.base_authenticated_tool.BaseAuthenticatedTool"
+output_module = "tool"
+doc = "A base tool class that handles authentication before the actual tool logic."
+auto_tag = "tool"
+constructor_args = ["name", "description"]
+extra_skip_fields = []
+
+[[builders.BaseAuthenticatedTool.terminals]]
+name = "build"
+returns = "BaseAuthenticatedTool"
+doc = "Resolve into a native ADK BaseAuthenticatedTool."
+
+[builders.BaseTool]
+source_class = "google.adk.tools.base_tool.BaseTool"
+output_module = "tool"
+doc = "The base class for all tools."
+auto_tag = "tool"
+constructor_args = ["name", "description"]
+extra_skip_fields = []
+
+[[builders.BaseTool.terminals]]
+name = "build"
+returns = "BaseTool"
+doc = "Resolve into a native ADK BaseTool."
+
+[builders.BaseToolset]
+source_class = "google.adk.tools.base_toolset.BaseToolset"
+output_module = "tool"
+doc = "Base class for toolset."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BaseToolset.terminals]]
+name = "build"
+returns = "BaseToolset"
+doc = "Resolve into a native ADK BaseToolset."
+
+[builders.BigQueryCredentialsConfig]
+source_class = "google.adk.tools.bigquery.bigquery_credentials.BigQueryCredentialsConfig"
+output_module = "config"
+doc = "BigQuery Credentials Configuration for Google API tools (Experimental)."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BigQueryCredentialsConfig.terminals]]
+name = "build"
+returns = "BigQueryCredentialsConfig"
+doc = "Resolve into a native ADK BigQueryCredentialsConfig."
+
+[builders.BigQueryToolset]
+source_class = "google.adk.tools.bigquery.bigquery_toolset.BigQueryToolset"
+output_module = "tool"
+doc = "BigQuery Toolset contains tools for interacting with BigQuery data and metadata."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BigQueryToolset.terminals]]
+name = "build"
+returns = "BigQueryToolset"
+doc = "Resolve into a native ADK BigQueryToolset."
+
+[builders.BigQueryToolConfig]
+source_class = "google.adk.tools.bigquery.config.BigQueryToolConfig"
+output_module = "config"
+doc = "Configuration for BigQuery tools."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BigQueryToolConfig.terminals]]
+name = "build"
+returns = "BigQueryToolConfig"
+doc = "Resolve into a native ADK BigQueryToolConfig."
+
+[builders.BigtableCredentialsConfig]
+source_class = "google.adk.tools.bigtable.bigtable_credentials.BigtableCredentialsConfig"
+output_module = "config"
+doc = "Bigtable Credentials Configuration for Google API tools (Experimental)."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BigtableCredentialsConfig.terminals]]
+name = "build"
+returns = "BigtableCredentialsConfig"
+doc = "Resolve into a native ADK BigtableCredentialsConfig."
+
+[builders.BigtableToolset]
+source_class = "google.adk.tools.bigtable.bigtable_toolset.BigtableToolset"
+output_module = "tool"
+doc = "Bigtable Toolset contains tools for interacting with Bigtable data and metadata."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BigtableToolset.terminals]]
+name = "build"
+returns = "BigtableToolset"
+doc = "Resolve into a native ADK BigtableToolset."
+
+[builders.ComputerUseTool]
+source_class = "google.adk.tools.computer_use.computer_use_tool.ComputerUseTool"
+output_module = "tool"
+doc = "A tool that wraps computer control functions for use with LLMs."
+auto_tag = "tool"
+constructor_args = ["func", "screen_size"]
+extra_skip_fields = []
+
+[[builders.ComputerUseTool.terminals]]
+name = "build"
+returns = "ComputerUseTool"
+doc = "Resolve into a native ADK ComputerUseTool."
+
+[builders.ComputerUseToolset]
+source_class = "google.adk.tools.computer_use.computer_use_toolset.ComputerUseToolset"
+output_module = "tool"
+doc = "Fluent builder for ComputerUseToolset."
+auto_tag = "tool"
+constructor_args = ["computer"]
+extra_skip_fields = []
+
+[[builders.ComputerUseToolset.terminals]]
+name = "build"
+returns = "ComputerUseToolset"
+doc = "Resolve into a native ADK ComputerUseToolset."
+
+[builders.DataAgentToolConfig]
+source_class = "google.adk.tools.data_agent.config.DataAgentToolConfig"
+output_module = "config"
+doc = "Configuration for Data Agent tools."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.DataAgentToolConfig.terminals]]
+name = "build"
+returns = "DataAgentToolConfig"
+doc = "Resolve into a native ADK DataAgentToolConfig."
+
+[builders.DataAgentCredentialsConfig]
+source_class = "google.adk.tools.data_agent.credentials.DataAgentCredentialsConfig"
+output_module = "config"
+doc = "Data Agent Credentials Configuration for Google API tools."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.DataAgentCredentialsConfig.terminals]]
+name = "build"
+returns = "DataAgentCredentialsConfig"
+doc = "Resolve into a native ADK DataAgentCredentialsConfig."
+
+[builders.DataAgentToolset]
+source_class = "google.adk.tools.data_agent.data_agent_toolset.DataAgentToolset"
+output_module = "tool"
+doc = "Data Agent Toolset contains tools for interacting with data agents."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.DataAgentToolset.terminals]]
+name = "build"
+returns = "DataAgentToolset"
+doc = "Resolve into a native ADK DataAgentToolset."
+
+[builders.DiscoveryEngineSearchTool]
+source_class = "google.adk.tools.discovery_engine_search_tool.DiscoveryEngineSearchTool"
+output_module = "tool"
+doc = "Tool for searching the discovery engine."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.DiscoveryEngineSearchTool.terminals]]
+name = "build"
+returns = "DiscoveryEngineSearchTool"
+doc = "Resolve into a native ADK DiscoveryEngineSearchTool."
+
+[builders.EnterpriseWebSearchTool]
+source_class = "google.adk.tools.enterprise_search_tool.EnterpriseWebSearchTool"
+output_module = "tool"
+doc = "A Gemini 2+ built-in tool using web grounding for Enterprise compliance."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.EnterpriseWebSearchTool.terminals]]
+name = "build"
+returns = "EnterpriseWebSearchTool"
+doc = "Resolve into a native ADK EnterpriseWebSearchTool."
+
+[builders.ExampleTool]
+source_class = "google.adk.tools.example_tool.ExampleTool"
+output_module = "tool"
+doc = "A tool that adds (few-shot) examples to the LLM request."
+auto_tag = "tool"
+constructor_args = ["examples"]
+extra_skip_fields = []
+
+[[builders.ExampleTool.terminals]]
+name = "build"
+returns = "ExampleTool"
+doc = "Resolve into a native ADK ExampleTool."
+
+[builders.ExampleToolConfig]
+source_class = "google.adk.tools.example_tool.ExampleToolConfig"
+output_module = "config"
+doc = "Fluent builder for ExampleToolConfig."
+auto_tag = "config"
+constructor_args = ["examples"]
+extra_skip_fields = []
+
+[[builders.ExampleToolConfig.terminals]]
+name = "build"
+returns = "ExampleToolConfig"
+doc = "Resolve into a native ADK ExampleToolConfig."
+
+[builders.FunctionTool]
+source_class = "google.adk.tools.function_tool.FunctionTool"
+output_module = "tool"
+doc = "A tool that wraps a user-defined Python function."
+auto_tag = "tool"
+constructor_args = ["func"]
+extra_skip_fields = []
+
+[[builders.FunctionTool.terminals]]
+name = "build"
+returns = "FunctionTool"
+doc = "Resolve into a native ADK FunctionTool."
+
+[builders.GoogleApiTool]
+source_class = "google.adk.tools.google_api_tool.google_api_tool.GoogleApiTool"
+output_module = "tool"
+doc = "Fluent builder for GoogleApiTool."
+auto_tag = "tool"
+constructor_args = ["rest_api_tool"]
+extra_skip_fields = []
+
+[[builders.GoogleApiTool.terminals]]
+name = "build"
+returns = "GoogleApiTool"
+doc = "Resolve into a native ADK GoogleApiTool."
+
+[builders.GoogleApiToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolset.GoogleApiToolset"
+output_module = "tool"
+doc = "Google API Toolset contains tools for interacting with Google APIs."
+auto_tag = "tool"
+constructor_args = ["api_name", "api_version"]
+extra_skip_fields = []
+
+[[builders.GoogleApiToolset.terminals]]
+name = "build"
+returns = "GoogleApiToolset"
+doc = "Resolve into a native ADK GoogleApiToolset."
+
+[builders.CalendarToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolsets.CalendarToolset"
+output_module = "tool"
+doc = "Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.CalendarToolset.terminals]]
+name = "build"
+returns = "CalendarToolset"
+doc = "Resolve into a native ADK CalendarToolset."
+
+[builders.DocsToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolsets.DocsToolset"
+output_module = "tool"
+doc = "Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.DocsToolset.terminals]]
+name = "build"
+returns = "DocsToolset"
+doc = "Resolve into a native ADK DocsToolset."
+
+[builders.GmailToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolsets.GmailToolset"
+output_module = "tool"
+doc = "Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.GmailToolset.terminals]]
+name = "build"
+returns = "GmailToolset"
+doc = "Resolve into a native ADK GmailToolset."
+
+[builders.SheetsToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolsets.SheetsToolset"
+output_module = "tool"
+doc = "Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.SheetsToolset.terminals]]
+name = "build"
+returns = "SheetsToolset"
+doc = "Resolve into a native ADK SheetsToolset."
+
+[builders.SlidesToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolsets.SlidesToolset"
+output_module = "tool"
+doc = "Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.SlidesToolset.terminals]]
+name = "build"
+returns = "SlidesToolset"
+doc = "Resolve into a native ADK SlidesToolset."
+
+[builders.YoutubeToolset]
+source_class = "google.adk.tools.google_api_tool.google_api_toolsets.YoutubeToolset"
+output_module = "tool"
+doc = "Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.YoutubeToolset.terminals]]
+name = "build"
+returns = "YoutubeToolset"
+doc = "Resolve into a native ADK YoutubeToolset."
+
+[builders.GoogleMapsGroundingTool]
+source_class = "google.adk.tools.google_maps_grounding_tool.GoogleMapsGroundingTool"
+output_module = "tool"
+doc = "A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.GoogleMapsGroundingTool.terminals]]
+name = "build"
+returns = "GoogleMapsGroundingTool"
+doc = "Resolve into a native ADK GoogleMapsGroundingTool."
+
+[builders.GoogleSearchAgentTool]
+source_class = "google.adk.tools.google_search_agent_tool.GoogleSearchAgentTool"
+output_module = "tool"
+doc = "A tool that wraps a sub-agent that only uses google_search tool."
+auto_tag = "tool"
+constructor_args = ["agent"]
+extra_skip_fields = []
+
+[[builders.GoogleSearchAgentTool.terminals]]
+name = "build"
+returns = "GoogleSearchAgentTool"
+doc = "Resolve into a native ADK GoogleSearchAgentTool."
+
+[builders.GoogleSearchTool]
+source_class = "google.adk.tools.google_search_tool.GoogleSearchTool"
+output_module = "tool"
+doc = "A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.GoogleSearchTool.terminals]]
+name = "build"
+returns = "GoogleSearchTool"
+doc = "Resolve into a native ADK GoogleSearchTool."
+
+[builders.GoogleTool]
+source_class = "google.adk.tools.google_tool.GoogleTool"
+output_module = "tool"
+doc = "GoogleTool class for tools that call Google APIs."
+auto_tag = "tool"
+constructor_args = ["func"]
+extra_skip_fields = []
+
+[[builders.GoogleTool.terminals]]
+name = "build"
+returns = "GoogleTool"
+doc = "Resolve into a native ADK GoogleTool."
+
+[builders.LoadArtifactsTool]
+source_class = "google.adk.tools.load_artifacts_tool.LoadArtifactsTool"
+output_module = "tool"
+doc = "A tool that loads the artifacts and adds them to the session."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.LoadArtifactsTool.terminals]]
+name = "build"
+returns = "LoadArtifactsTool"
+doc = "Resolve into a native ADK LoadArtifactsTool."
+
+[builders.LoadMcpResourceTool]
+source_class = "google.adk.tools.load_mcp_resource_tool.LoadMcpResourceTool"
+output_module = "tool"
+doc = "A tool that loads the MCP resources and adds them to the session."
+auto_tag = "tool"
+constructor_args = ["mcp_toolset"]
+extra_skip_fields = []
+
+[[builders.LoadMcpResourceTool.terminals]]
+name = "build"
+returns = "LoadMcpResourceTool"
+doc = "Resolve into a native ADK LoadMcpResourceTool."
+
+[builders.LoadMemoryTool]
+source_class = "google.adk.tools.load_memory_tool.LoadMemoryTool"
+output_module = "tool"
+doc = "A tool that loads the memory for the current user."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.LoadMemoryTool.terminals]]
+name = "build"
+returns = "LoadMemoryTool"
+doc = "Resolve into a native ADK LoadMemoryTool."
+
+[builders.LongRunningFunctionTool]
+source_class = "google.adk.tools.long_running_tool.LongRunningFunctionTool"
+output_module = "tool"
+doc = "A function tool that returns the result asynchronously."
+auto_tag = "tool"
+constructor_args = ["func"]
+extra_skip_fields = []
+
+[[builders.LongRunningFunctionTool.terminals]]
+name = "build"
+returns = "LongRunningFunctionTool"
+doc = "Resolve into a native ADK LongRunningFunctionTool."
+
+[builders.MCPTool]
+source_class = "google.adk.tools.mcp_tool.mcp_tool.MCPTool"
+output_module = "tool"
+doc = "Deprecated name, use `McpTool` instead."
+auto_tag = "tool"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
+
+[[builders.MCPTool.terminals]]
+name = "build"
+returns = "MCPTool"
+doc = "Resolve into a native ADK MCPTool."
+
+[builders.McpTool]
+source_class = "google.adk.tools.mcp_tool.mcp_tool.McpTool"
+output_module = "tool"
+doc = "Turns an MCP Tool into an ADK Tool."
+auto_tag = "tool"
+constructor_args = ["mcp_tool", "mcp_session_manager"]
+extra_skip_fields = []
+
+[[builders.McpTool.terminals]]
+name = "build"
+returns = "McpTool"
+doc = "Resolve into a native ADK McpTool."
+
+[builders.MCPToolset]
+source_class = "google.adk.tools.mcp_tool.mcp_toolset.MCPToolset"
+output_module = "tool"
+doc = "Deprecated name, use `McpToolset` instead."
+auto_tag = "tool"
+constructor_args = ["args", "kwargs"]
+extra_skip_fields = []
+
+[[builders.MCPToolset.terminals]]
+name = "build"
+returns = "MCPToolset"
+doc = "Resolve into a native ADK MCPToolset."
+
+[builders.McpToolset]
+source_class = "google.adk.tools.mcp_tool.mcp_toolset.McpToolset"
+output_module = "tool"
+doc = "Connects to a MCP Server, and retrieves MCP Tools into ADK Tools."
+auto_tag = "tool"
+constructor_args = ["connection_params"]
+extra_skip_fields = []
+
+[[builders.McpToolset.terminals]]
+name = "build"
+returns = "McpToolset"
+doc = "Resolve into a native ADK McpToolset."
+
+[builders.McpToolsetConfig]
+source_class = "google.adk.tools.mcp_tool.mcp_toolset.McpToolsetConfig"
+output_module = "config"
+doc = "The config for McpToolset."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.McpToolsetConfig.terminals]]
+name = "build"
+returns = "McpToolsetConfig"
+doc = "Resolve into a native ADK McpToolsetConfig."
+
+[builders.OpenAPIToolset]
+source_class = "google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset.OpenAPIToolset"
+output_module = "tool"
+doc = "Class for parsing OpenAPI spec into a list of RestApiTool."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.OpenAPIToolset.terminals]]
+name = "build"
+returns = "OpenAPIToolset"
+doc = "Resolve into a native ADK OpenAPIToolset."
+
+[builders.RestApiTool]
+source_class = "google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool.RestApiTool"
+output_module = "tool"
+doc = "A generic tool that interacts with a REST API."
+auto_tag = "tool"
+constructor_args = ["name", "description", "endpoint"]
+extra_skip_fields = []
+
+[[builders.RestApiTool.terminals]]
+name = "build"
+returns = "RestApiTool"
+doc = "Resolve into a native ADK RestApiTool."
+
+[builders.PreloadMemoryTool]
+source_class = "google.adk.tools.preload_memory_tool.PreloadMemoryTool"
+output_module = "tool"
+doc = "A tool that preloads the memory for the current user."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.PreloadMemoryTool.terminals]]
+name = "build"
+returns = "PreloadMemoryTool"
+doc = "Resolve into a native ADK PreloadMemoryTool."
+
+[builders.PubSubToolConfig]
+source_class = "google.adk.tools.pubsub.config.PubSubToolConfig"
+output_module = "config"
+doc = "Configuration for Pub/Sub tools."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.PubSubToolConfig.terminals]]
+name = "build"
+returns = "PubSubToolConfig"
+doc = "Resolve into a native ADK PubSubToolConfig."
+
+[builders.PubSubCredentialsConfig]
+source_class = "google.adk.tools.pubsub.pubsub_credentials.PubSubCredentialsConfig"
+output_module = "config"
+doc = "Pub/Sub Credentials Configuration for Google API tools (Experimental)."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.PubSubCredentialsConfig.terminals]]
+name = "build"
+returns = "PubSubCredentialsConfig"
+doc = "Resolve into a native ADK PubSubCredentialsConfig."
+
+[builders.PubSubToolset]
+source_class = "google.adk.tools.pubsub.pubsub_toolset.PubSubToolset"
+output_module = "tool"
+doc = "Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.PubSubToolset.terminals]]
+name = "build"
+returns = "PubSubToolset"
+doc = "Resolve into a native ADK PubSubToolset."
+
+[builders.BaseRetrievalTool]
+source_class = "google.adk.tools.retrieval.base_retrieval_tool.BaseRetrievalTool"
+output_module = "tool"
+doc = "Fluent builder for BaseRetrievalTool."
+auto_tag = "tool"
+constructor_args = ["name", "description"]
+extra_skip_fields = []
+
+[[builders.BaseRetrievalTool.terminals]]
+name = "build"
+returns = "BaseRetrievalTool"
+doc = "Resolve into a native ADK BaseRetrievalTool."
+
+[builders.SetModelResponseTool]
+source_class = "google.adk.tools.set_model_response_tool.SetModelResponseTool"
+output_module = "tool"
+doc = "Internal tool used for output schema workaround."
+auto_tag = "tool"
+constructor_args = ["output_schema"]
+extra_skip_fields = []
+
+[[builders.SetModelResponseTool.terminals]]
+name = "build"
+returns = "SetModelResponseTool"
+doc = "Resolve into a native ADK SetModelResponseTool."
+
+[builders.LoadSkillResourceTool]
+source_class = "google.adk.tools.skill_toolset.LoadSkillResourceTool"
+output_module = "tool"
+doc = "Tool to load resources (references or assets) from a skill."
+auto_tag = "tool"
+constructor_args = ["toolset"]
+extra_skip_fields = []
+
+[[builders.LoadSkillResourceTool.terminals]]
+name = "build"
+returns = "LoadSkillResourceTool"
+doc = "Resolve into a native ADK LoadSkillResourceTool."
+
+[builders.LoadSkillTool]
+source_class = "google.adk.tools.skill_toolset.LoadSkillTool"
+output_module = "tool"
+doc = "Tool to load a skill's instructions."
+auto_tag = "tool"
+constructor_args = ["toolset"]
+extra_skip_fields = []
+
+[[builders.LoadSkillTool.terminals]]
+name = "build"
+returns = "LoadSkillTool"
+doc = "Resolve into a native ADK LoadSkillTool."
+
+[builders.SkillToolset]
+source_class = "google.adk.tools.skill_toolset.SkillToolset"
+output_module = "tool"
+doc = "A toolset for managing and interacting with agent skills."
+auto_tag = "tool"
+constructor_args = ["skills"]
+extra_skip_fields = []
+
+[[builders.SkillToolset.terminals]]
+name = "build"
+returns = "SkillToolset"
+doc = "Resolve into a native ADK SkillToolset."
+
+[builders.SpannerCredentialsConfig]
+source_class = "google.adk.tools.spanner.spanner_credentials.SpannerCredentialsConfig"
+output_module = "config"
+doc = "Spanner Credentials Configuration for Google API tools (Experimental)."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.SpannerCredentialsConfig.terminals]]
+name = "build"
+returns = "SpannerCredentialsConfig"
+doc = "Resolve into a native ADK SpannerCredentialsConfig."
+
+[builders.SpannerToolset]
+source_class = "google.adk.tools.spanner.spanner_toolset.SpannerToolset"
+output_module = "tool"
+doc = "Spanner Toolset contains tools for interacting with Spanner data, database and table information."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.SpannerToolset.terminals]]
+name = "build"
+returns = "SpannerToolset"
+doc = "Resolve into a native ADK SpannerToolset."
+
+[builders.BaseToolConfig]
+source_class = "google.adk.tools.tool_configs.BaseToolConfig"
+output_module = "config"
+doc = "The base class for all tool configs."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.BaseToolConfig.terminals]]
+name = "build"
+returns = "BaseToolConfig"
+doc = "Resolve into a native ADK BaseToolConfig."
+
+[builders.ToolArgsConfig]
+source_class = "google.adk.tools.tool_configs.ToolArgsConfig"
+output_module = "config"
+doc = "Config to host free key-value pairs for the args in ToolConfig."
+auto_tag = "config"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.ToolArgsConfig.terminals]]
+name = "build"
+returns = "ToolArgsConfig"
+doc = "Resolve into a native ADK ToolArgsConfig."
+
+[builders.ToolConfig]
+source_class = "google.adk.tools.tool_configs.ToolConfig"
+output_module = "config"
+doc = "The configuration for a tool."
+auto_tag = "config"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[[builders.ToolConfig.terminals]]
+name = "build"
+returns = "ToolConfig"
+doc = "Resolve into a native ADK ToolConfig."
+
+[builders.ToolboxToolset]
+source_class = "google.adk.tools.toolbox_toolset.ToolboxToolset"
+output_module = "tool"
+doc = "A class that provides access to toolbox toolsets."
+auto_tag = "tool"
+constructor_args = ["server_url", "kwargs"]
+extra_skip_fields = []
+
+[[builders.ToolboxToolset.terminals]]
+name = "build"
+returns = "ToolboxToolset"
+doc = "Resolve into a native ADK ToolboxToolset."
+
+[builders.TransferToAgentTool]
+source_class = "google.adk.tools.transfer_to_agent_tool.TransferToAgentTool"
+output_module = "tool"
+doc = "A specialized FunctionTool for agent transfer with enum constraints."
+auto_tag = "tool"
+constructor_args = ["agent_names"]
+extra_skip_fields = []
+
+[[builders.TransferToAgentTool.terminals]]
+name = "build"
+returns = "TransferToAgentTool"
+doc = "Resolve into a native ADK TransferToAgentTool."
+
+[builders.UrlContextTool]
+source_class = "google.adk.tools.url_context_tool.UrlContextTool"
+output_module = "tool"
+doc = "A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.UrlContextTool.terminals]]
+name = "build"
+returns = "UrlContextTool"
+doc = "Resolve into a native ADK UrlContextTool."
+
+[builders.VertexAiSearchTool]
+source_class = "google.adk.tools.vertex_ai_search_tool.VertexAiSearchTool"
+output_module = "tool"
+doc = "A built-in tool using Vertex AI Search."
+auto_tag = "tool"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.VertexAiSearchTool.terminals]]
+name = "build"
+returns = "VertexAiSearchTool"
+doc = "Resolve into a native ADK VertexAiSearchTool."
+
