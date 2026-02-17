@@ -78,7 +78,7 @@ class ClassInfo:
     module: str                      # e.g., "google.adk.agents"
     is_pydantic: bool                # True if subclass of BaseModel
     bases: list[str]                 # Direct base class names
-    mro: list[str]                   # Full MRO class names
+    mro_chain: list[str]              # Full MRO class names
     fields: list[FieldInfo]          # All Pydantic fields (own + inherited)
     own_fields: list[str]            # Field names defined on THIS class only
     methods: list[str]               # Public method names (non-field)
@@ -251,7 +251,7 @@ def scan_class(cls) -> ClassInfo:
         module=module,
         is_pydantic=is_pydantic,
         bases=base_names,
-        mro=mro_names,
+        mro_chain=mro_names,
         fields=fields,
         own_fields=own_field_names,
         methods=sorted(methods),
