@@ -139,7 +139,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_model_callback', 'on_tool_error_callback', 'after_agent_callback', 'before_model_callback', 'after_tool_callback', 'before_agent_callback', 'on_model_error_callback', 'before_tool_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_model_callback', 'on_model_error_callback', 'after_tool_callback', 'after_agent_callback', 'on_tool_error_callback', 'before_agent_callback', 'before_tool_callback', 'before_model_callback'}
 
 
     def __init__(self, name: str) -> None:

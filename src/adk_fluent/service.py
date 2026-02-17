@@ -397,7 +397,7 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'app_name_to_dir', 'agents_root'}
+    _KNOWN_PARAMS: set[str] = {'agents_root', 'app_name_to_dir'}
 
 
     def __init__(self, agents_root: str) -> None:
@@ -673,7 +673,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'location', 'agent_engine_id', 'express_mode_api_key', 'project'}
+    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'project', 'location', 'express_mode_api_key'}
 
 
     def __init__(self, ) -> None:
@@ -765,7 +765,7 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'vector_distance_threshold', 'similarity_top_k', 'rag_corpus'}
+    _KNOWN_PARAMS: set[str] = {'rag_corpus', 'vector_distance_threshold', 'similarity_top_k'}
 
 
     def __init__(self, ) -> None:
@@ -1225,7 +1225,7 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'location', 'agent_engine_id', 'express_mode_api_key', 'project'}
+    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'project', 'location', 'express_mode_api_key'}
 
 
     def __init__(self, ) -> None:
