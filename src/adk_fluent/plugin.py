@@ -91,21 +91,7 @@ class RecordingsPlugin(BuilderBase):
 
     def build(self) -> _ADK_RecordingsPlugin:
         """Plugin for recording ADK agent interactions. Resolve into a native ADK _ADK_RecordingsPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_RecordingsPlugin(**config)
 
 
@@ -183,21 +169,7 @@ class ReplayPlugin(BuilderBase):
 
     def build(self) -> _ADK_ReplayPlugin:
         """Plugin for replaying ADK agent interactions from recordings. Resolve into a native ADK _ADK_ReplayPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ReplayPlugin(**config)
 
 
@@ -275,21 +247,7 @@ class BasePlugin(BuilderBase):
 
     def build(self) -> _ADK_BasePlugin:
         """Base class for creating plugins. Resolve into a native ADK _ADK_BasePlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BasePlugin(**config)
 
 
@@ -304,7 +262,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'table_id', 'config', 'dataset_id', 'project_id', 'location'}
+    _KNOWN_PARAMS: set[str] = {'project_id', 'config', 'table_id', 'dataset_id', 'location'}
 
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
@@ -367,21 +325,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
 
     def build(self) -> _ADK_BigQueryAgentAnalyticsPlugin:
         """BigQuery Agent Analytics Plugin (v2.0 using Write API). Resolve into a native ADK _ADK_BigQueryAgentAnalyticsPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigQueryAgentAnalyticsPlugin(**config)
 
 
@@ -396,7 +340,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'custom_filter', 'num_invocations_to_keep', 'name'}
+    _KNOWN_PARAMS: set[str] = {'num_invocations_to_keep', 'custom_filter', 'name'}
 
 
     def __init__(self, ) -> None:
@@ -459,21 +403,7 @@ class ContextFilterPlugin(BuilderBase):
 
     def build(self) -> _ADK_ContextFilterPlugin:
         """A plugin that filters the LLM context to reduce its size. Resolve into a native ADK _ADK_ContextFilterPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ContextFilterPlugin(**config)
 
 
@@ -488,7 +418,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'include_system_instruction', 'output_path', 'include_session_state', 'name'}
+    _KNOWN_PARAMS: set[str] = {'include_session_state', 'include_system_instruction', 'name', 'output_path'}
 
 
     def __init__(self, ) -> None:
@@ -551,21 +481,7 @@ class DebugLoggingPlugin(BuilderBase):
 
     def build(self) -> _ADK_DebugLoggingPlugin:
         """A plugin that captures complete debug information to a file. Resolve into a native ADK _ADK_DebugLoggingPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DebugLoggingPlugin(**config)
 
 
@@ -580,7 +496,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'global_instruction', 'name'}
+    _KNOWN_PARAMS: set[str] = {'name', 'global_instruction'}
 
 
     def __init__(self, ) -> None:
@@ -643,21 +559,7 @@ class GlobalInstructionPlugin(BuilderBase):
 
     def build(self) -> _ADK_GlobalInstructionPlugin:
         """Plugin that provides global instructions functionality at the App level. Resolve into a native ADK _ADK_GlobalInstructionPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GlobalInstructionPlugin(**config)
 
 
@@ -735,21 +637,7 @@ class LoggingPlugin(BuilderBase):
 
     def build(self) -> _ADK_LoggingPlugin:
         """A plugin that logs important information at each callback point. Resolve into a native ADK _ADK_LoggingPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoggingPlugin(**config)
 
 
@@ -827,21 +715,7 @@ class MultimodalToolResultsPlugin(BuilderBase):
 
     def build(self) -> _ADK_MultimodalToolResultsPlugin:
         """A plugin that modifies function tool responses to support returning list of parts directly. Resolve into a native ADK _ADK_MultimodalToolResultsPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_MultimodalToolResultsPlugin(**config)
 
 
@@ -856,7 +730,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tracking_scope', 'name', 'max_retries', 'throw_exception_if_retry_exceeded'}
+    _KNOWN_PARAMS: set[str] = {'tracking_scope', 'max_retries', 'throw_exception_if_retry_exceeded', 'name'}
 
 
     def __init__(self, ) -> None:
@@ -919,21 +793,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
 
     def build(self) -> _ADK_ReflectAndRetryToolPlugin:
         """Provides self-healing, concurrent-safe error recovery for tool failures. Resolve into a native ADK _ADK_ReflectAndRetryToolPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ReflectAndRetryToolPlugin(**config)
 
 
@@ -1011,21 +871,7 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
 
     def build(self) -> _ADK_SaveFilesAsArtifactsPlugin:
         """A plugin that saves files embedded in user messages as artifacts. Resolve into a native ADK _ADK_SaveFilesAsArtifactsPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SaveFilesAsArtifactsPlugin(**config)
 
 
@@ -1103,19 +949,5 @@ class AgentSimulatorPlugin(BuilderBase):
 
     def build(self) -> _ADK_AgentSimulatorPlugin:
         """ADK Plugin for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorPlugin."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentSimulatorPlugin(**config)

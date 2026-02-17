@@ -539,25 +539,11 @@ def gen_build_method(spec: BuilderSpec) -> str:
         return ""  # Hand-written in the template layer
 
     class_short = _adk_import_name(spec)
-    
+
     return f'''
     def build(self) -> {class_short}:
         """{spec.doc} Resolve into a native ADK {class_short}."""
-        config = {{**self._config}}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return {class_short}(**config)
 '''
 
@@ -918,21 +904,43 @@ def _test_value_for_type(type_str: str) -> str:
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
 
-def _load_manual_exports(seed_path: str) -> list[dict]:
-    """Load manual_exports from seed.manual.toml adjacent to the seed file.
+def _discover_manual_exports(output_dir: str) -> list[tuple[str, list[str]]]:
+    """Auto-discover manual Python files and their __all__ exports.
 
-    Looks for a seed.manual.toml in the same directory as seed_path.
-    Returns a list of dicts with keys: module, names, public.
+    Scans the output directory for .py files that weren't generated,
+    and extracts their __all__ list using ast.
     """
-    seed_dir = Path(seed_path).parent
-    manual_path = seed_dir / "seed.manual.toml"
-    if not manual_path.exists():
-        return []
+    import ast
 
-    with open(manual_path, "rb") as f:
-        manual = tomllib.load(f)
+    output_path = Path(output_dir)
+    result = []
 
-    return manual.get("manual_exports", [])
+    for py_file in sorted(output_path.glob("*.py")):
+        if py_file.name == "__init__.py":
+            continue
+
+        try:
+            tree = ast.parse(py_file.read_text())
+        except SyntaxError:
+            continue
+
+        # Look for __all__ assignment
+        all_names = None
+        for node in ast.iter_child_nodes(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "__all__":
+                        if isinstance(node.value, ast.List):
+                            all_names = []
+                            for elt in node.value.elts:
+                                if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                                    all_names.append(elt.value)
+
+        if all_names:
+            module_name = f".{py_file.stem}"
+            result.append((module_name, all_names))
+
+    return result
 
 
 def generate_all(seed_path: str, manifest_path: str, output_dir: str,
@@ -976,16 +984,19 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
             init_lines.append(f'    "{spec.name}",')
         init_lines.append("]")
 
-        # Append manual exports from seed.manual.toml
-        manual_exports = _load_manual_exports(seed_path)
+        # Auto-discover manual module exports
+        generated_modules = set(by_module.keys())
+        manual_exports = _discover_manual_exports(output_dir)
         if manual_exports:
             init_lines.append("")
-            init_lines.append("# --- Manual exports (from seed.manual.toml) ---")
-            for export in manual_exports:
-                module = export["module"]
-                names = export["names"]
+            init_lines.append("# --- Manual module exports (auto-discovered from __all__) ---")
+            for module_name, names in manual_exports:
+                # Skip generated modules
+                stem = module_name.lstrip(".")
+                if stem in generated_modules:
+                    continue
                 for name in names:
-                    init_lines.append(f"from {module} import {name}")
+                    init_lines.append(f"from {module_name} import {name}")
 
         init_path = output_path / "__init__.py"
         init_path.write_text("\n".join(init_lines))

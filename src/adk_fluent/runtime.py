@@ -80,21 +80,7 @@ class App(BuilderBase):
 
     def build(self) -> _ADK_App:
         """Represents an LLM-backed agentic application. Resolve into a native ADK _ADK_App."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_App(**config)
 
 
@@ -109,7 +95,7 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'plugin_close_timeout', 'agent', 'app_name', 'plugins', 'app'}
+    _KNOWN_PARAMS: set[str] = {'plugins', 'app_name', 'plugin_close_timeout', 'app', 'agent'}
 
 
     def __init__(self, ) -> None:
@@ -172,21 +158,7 @@ class InMemoryRunner(BuilderBase):
 
     def build(self) -> _ADK_InMemoryRunner:
         """An in-memory Runner for testing and development. Resolve into a native ADK _ADK_InMemoryRunner."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_InMemoryRunner(**config)
 
 
@@ -201,7 +173,7 @@ class Runner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auto_create_session', 'credential_service', 'plugin_close_timeout', 'agent', 'app_name', 'artifact_service', 'memory_service', 'plugins', 'app', 'session_service'}
+    _KNOWN_PARAMS: set[str] = {'plugins', 'app_name', 'artifact_service', 'plugin_close_timeout', 'auto_create_session', 'app', 'memory_service', 'session_service', 'agent', 'credential_service'}
 
 
     def __init__(self, session_service: str) -> None:
@@ -264,19 +236,5 @@ class Runner(BuilderBase):
 
     def build(self) -> _ADK_Runner:
         """The Runner class is used to run agents. Resolve into a native ADK _ADK_Runner."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_Runner(**config)

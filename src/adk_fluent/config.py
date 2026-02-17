@@ -115,21 +115,7 @@ class AgentConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentConfig:
         """The config for the YAML schema to create an agent. Resolve into a native ADK _ADK_AgentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentConfig(**config)
 
 
@@ -210,21 +196,7 @@ class BaseAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_BaseAgentConfig:
         """The config for the YAML schema of a BaseAgent. Resolve into a native ADK _ADK_BaseAgentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseAgentConfig(**config)
 
 
@@ -300,21 +272,7 @@ class AgentRefConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentRefConfig:
         """The config for the reference to another agent. Resolve into a native ADK _ADK_AgentRefConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentRefConfig(**config)
 
 
@@ -390,21 +348,7 @@ class ArgumentConfig(BuilderBase):
 
     def build(self) -> _ADK_ArgumentConfig:
         """An argument passed to a function or a class's constructor. Resolve into a native ADK _ADK_ArgumentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ArgumentConfig(**config)
 
 
@@ -480,21 +424,7 @@ class CodeConfig(BuilderBase):
 
     def build(self) -> _ADK_CodeConfig:
         """Code reference config for a variable, a function, or a class. Resolve into a native ADK _ADK_CodeConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_CodeConfig(**config)
 
 
@@ -570,21 +500,7 @@ class ContextCacheConfig(BuilderBase):
 
     def build(self) -> _ADK_ContextCacheConfig:
         """Configuration for context caching across all agents in an app. Resolve into a native ADK _ADK_ContextCacheConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ContextCacheConfig(**config)
 
 
@@ -671,21 +587,7 @@ class LlmAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_LlmAgentConfig:
         """The config for the YAML schema of a LlmAgent. Resolve into a native ADK _ADK_LlmAgentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LlmAgentConfig(**config)
 
 
@@ -766,21 +668,7 @@ class LoopAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_LoopAgentConfig:
         """The config for the YAML schema of a LoopAgent. Resolve into a native ADK _ADK_LoopAgentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoopAgentConfig(**config)
 
 
@@ -861,21 +749,7 @@ class ParallelAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_ParallelAgentConfig:
         """The config for the YAML schema of a ParallelAgent. Resolve into a native ADK _ADK_ParallelAgentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ParallelAgentConfig(**config)
 
 
@@ -951,21 +825,7 @@ class RunConfig(BuilderBase):
 
     def build(self) -> _ADK_RunConfig:
         """Configs for runtime behavior of agents. Resolve into a native ADK _ADK_RunConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_RunConfig(**config)
 
 
@@ -1041,21 +901,7 @@ class ToolThreadPoolConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolThreadPoolConfig:
         """Configuration for the tool thread pool executor. Resolve into a native ADK _ADK_ToolThreadPoolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ToolThreadPoolConfig(**config)
 
 
@@ -1136,21 +982,7 @@ class SequentialAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_SequentialAgentConfig:
         """The config for the YAML schema of a SequentialAgent. Resolve into a native ADK _ADK_SequentialAgentConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SequentialAgentConfig(**config)
 
 
@@ -1226,21 +1058,7 @@ class EventsCompactionConfig(BuilderBase):
 
     def build(self) -> _ADK_EventsCompactionConfig:
         """The config of event compaction for an application. Resolve into a native ADK _ADK_EventsCompactionConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_EventsCompactionConfig(**config)
 
 
@@ -1316,21 +1134,7 @@ class ResumabilityConfig(BuilderBase):
 
     def build(self) -> _ADK_ResumabilityConfig:
         """The config of the resumability for an application. Resolve into a native ADK _ADK_ResumabilityConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ResumabilityConfig(**config)
 
 
@@ -1408,21 +1212,7 @@ class FeatureConfig(BuilderBase):
 
     def build(self) -> _ADK_FeatureConfig:
         """Feature configuration. Resolve into a native ADK _ADK_FeatureConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_FeatureConfig(**config)
 
 
@@ -1437,7 +1227,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_cache_size_bytes', 'auto_flush_threshold', 'max_cache_duration_seconds'}
+    _KNOWN_PARAMS: set[str] = {'max_cache_duration_seconds', 'max_cache_size_bytes', 'auto_flush_threshold'}
 
 
     def __init__(self, ) -> None:
@@ -1500,21 +1290,7 @@ class AudioCacheConfig(BuilderBase):
 
     def build(self) -> _ADK_AudioCacheConfig:
         """Configuration for audio caching behavior. Resolve into a native ADK _ADK_AudioCacheConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AudioCacheConfig(**config)
 
 
@@ -1590,21 +1366,7 @@ class SimplePromptOptimizerConfig(BuilderBase):
 
     def build(self) -> _ADK_SimplePromptOptimizerConfig:
         """Configuration for the IterativePromptOptimizer. Resolve into a native ADK _ADK_SimplePromptOptimizerConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SimplePromptOptimizerConfig(**config)
 
 
@@ -1619,7 +1381,7 @@ class BigQueryLoggerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'custom_tags', 'log_multi_modal_content', 'max_content_length', 'table_id', 'clustering_fields', 'enabled', 'gcs_bucket_name', 'batch_flush_interval', 'connection_id', 'queue_max_size', 'content_formatter', 'batch_size', 'retry_config', 'log_session_metadata', 'shutdown_timeout', 'event_denylist', 'event_allowlist'}
+    _KNOWN_PARAMS: set[str] = {'event_allowlist', 'max_content_length', 'retry_config', 'log_multi_modal_content', 'clustering_fields', 'batch_size', 'batch_flush_interval', 'table_id', 'content_formatter', 'enabled', 'event_denylist', 'custom_tags', 'gcs_bucket_name', 'queue_max_size', 'shutdown_timeout', 'log_session_metadata', 'connection_id'}
 
 
     def __init__(self, ) -> None:
@@ -1682,21 +1444,7 @@ class BigQueryLoggerConfig(BuilderBase):
 
     def build(self) -> _ADK_BigQueryLoggerConfig:
         """Configuration for the BigQueryAgentAnalyticsPlugin. Resolve into a native ADK _ADK_BigQueryLoggerConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigQueryLoggerConfig(**config)
 
 
@@ -1711,7 +1459,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'multiplier', 'initial_delay', 'max_retries', 'max_delay'}
+    _KNOWN_PARAMS: set[str] = {'max_delay', 'max_retries', 'multiplier', 'initial_delay'}
 
 
     def __init__(self, ) -> None:
@@ -1774,21 +1522,7 @@ class RetryConfig(BuilderBase):
 
     def build(self) -> _ADK_RetryConfig:
         """Configuration for retrying failed BigQuery write operations. Resolve into a native ADK _ADK_RetryConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_RetryConfig(**config)
 
 
@@ -1864,21 +1598,7 @@ class GetSessionConfig(BuilderBase):
 
     def build(self) -> _ADK_GetSessionConfig:
         """The configuration of getting a session. Resolve into a native ADK _ADK_GetSessionConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GetSessionConfig(**config)
 
 
@@ -1954,21 +1674,7 @@ class BaseGoogleCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_BaseGoogleCredentialsConfig:
         """Base Google Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BaseGoogleCredentialsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseGoogleCredentialsConfig(**config)
 
 
@@ -2044,21 +1750,7 @@ class AgentSimulatorConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentSimulatorConfig:
         """Configuration for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentSimulatorConfig(**config)
 
 
@@ -2134,21 +1826,7 @@ class InjectionConfig(BuilderBase):
 
     def build(self) -> _ADK_InjectionConfig:
         """Injection configuration for a tool. Resolve into a native ADK _ADK_InjectionConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_InjectionConfig(**config)
 
 
@@ -2224,21 +1902,7 @@ class ToolSimulationConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolSimulationConfig:
         """Simulation configuration for a single tool. Resolve into a native ADK _ADK_ToolSimulationConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ToolSimulationConfig(**config)
 
 
@@ -2314,21 +1978,7 @@ class AgentToolConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentToolConfig:
         """The config for the AgentTool. Resolve into a native ADK _ADK_AgentToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentToolConfig(**config)
 
 
@@ -2404,21 +2054,7 @@ class BigQueryCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_BigQueryCredentialsConfig:
         """BigQuery Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigQueryCredentialsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigQueryCredentialsConfig(**config)
 
 
@@ -2494,21 +2130,7 @@ class BigQueryToolConfig(BuilderBase):
 
     def build(self) -> _ADK_BigQueryToolConfig:
         """Configuration for BigQuery tools. Resolve into a native ADK _ADK_BigQueryToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigQueryToolConfig(**config)
 
 
@@ -2584,21 +2206,7 @@ class BigtableCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_BigtableCredentialsConfig:
         """Bigtable Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigtableCredentialsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigtableCredentialsConfig(**config)
 
 
@@ -2674,21 +2282,7 @@ class DataAgentToolConfig(BuilderBase):
 
     def build(self) -> _ADK_DataAgentToolConfig:
         """Configuration for Data Agent tools. Resolve into a native ADK _ADK_DataAgentToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DataAgentToolConfig(**config)
 
 
@@ -2764,21 +2358,7 @@ class DataAgentCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_DataAgentCredentialsConfig:
         """Data Agent Credentials Configuration for Google API tools. Resolve into a native ADK _ADK_DataAgentCredentialsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DataAgentCredentialsConfig(**config)
 
 
@@ -2854,21 +2434,7 @@ class ExampleToolConfig(BuilderBase):
 
     def build(self) -> _ADK_ExampleToolConfig:
         """Fluent builder for ExampleToolConfig. Resolve into a native ADK _ADK_ExampleToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ExampleToolConfig(**config)
 
 
@@ -2944,21 +2510,7 @@ class McpToolsetConfig(BuilderBase):
 
     def build(self) -> _ADK_McpToolsetConfig:
         """The config for McpToolset. Resolve into a native ADK _ADK_McpToolsetConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_McpToolsetConfig(**config)
 
 
@@ -3034,21 +2586,7 @@ class PubSubToolConfig(BuilderBase):
 
     def build(self) -> _ADK_PubSubToolConfig:
         """Configuration for Pub/Sub tools. Resolve into a native ADK _ADK_PubSubToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_PubSubToolConfig(**config)
 
 
@@ -3124,21 +2662,7 @@ class PubSubCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_PubSubCredentialsConfig:
         """Pub/Sub Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_PubSubCredentialsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_PubSubCredentialsConfig(**config)
 
 
@@ -3214,21 +2738,7 @@ class SpannerCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_SpannerCredentialsConfig:
         """Spanner Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_SpannerCredentialsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SpannerCredentialsConfig(**config)
 
 
@@ -3304,21 +2814,7 @@ class BaseToolConfig(BuilderBase):
 
     def build(self) -> _ADK_BaseToolConfig:
         """The base class for all tool configs. Resolve into a native ADK _ADK_BaseToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseToolConfig(**config)
 
 
@@ -3394,21 +2890,7 @@ class ToolArgsConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolArgsConfig:
         """Config to host free key-value pairs for the args in ToolConfig. Resolve into a native ADK _ADK_ToolArgsConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ToolArgsConfig(**config)
 
 
@@ -3484,19 +2966,5 @@ class ToolConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolConfig:
         """The configuration for a tool. Resolve into a native ADK _ADK_ToolConfig."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ToolConfig(**config)

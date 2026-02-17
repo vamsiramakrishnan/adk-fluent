@@ -128,21 +128,7 @@ class ActiveStreamingTool(BuilderBase):
 
     def build(self) -> _ADK_ActiveStreamingTool:
         """Manages streaming tool related resources during invocation. Resolve into a native ADK _ADK_ActiveStreamingTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ActiveStreamingTool(**config)
 
 
@@ -157,7 +143,7 @@ class AgentTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'include_plugins', 'skip_summarization', 'agent'}
+    _KNOWN_PARAMS: set[str] = {'agent', 'include_plugins', 'skip_summarization'}
 
 
     def __init__(self, agent: str) -> None:
@@ -220,21 +206,7 @@ class AgentTool(BuilderBase):
 
     def build(self) -> _ADK_AgentTool:
         """A tool that wraps an agent. Resolve into a native ADK _ADK_AgentTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentTool(**config)
 
 
@@ -249,7 +221,7 @@ class APIHubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'auth_credential', 'apihub_client', 'apihub_resource_name', 'auth_scheme', 'name', 'service_account_json', 'lazy_load_spec', 'access_token', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'service_account_json', 'description', 'apihub_client', 'name', 'auth_scheme', 'tool_filter', 'apihub_resource_name', 'auth_credential', 'lazy_load_spec', 'access_token'}
 
 
     def __init__(self, apihub_resource_name: str) -> None:
@@ -312,21 +284,7 @@ class APIHubToolset(BuilderBase):
 
     def build(self) -> _ADK_APIHubToolset:
         """APIHubTool generates tools from a given API Hub resource. Resolve into a native ADK _ADK_APIHubToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_APIHubToolset(**config)
 
 
@@ -341,7 +299,7 @@ class ApplicationIntegrationToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'integration', 'auth_credential', 'connection_template_override', 'project', 'tool_name_prefix', 'auth_scheme', 'tool_instructions', 'connection', 'service_account_json', 'tool_filter', 'triggers', 'location', 'entity_operations', 'actions'}
+    _KNOWN_PARAMS: set[str] = {'service_account_json', 'project', 'actions', 'connection_template_override', 'integration', 'connection', 'tool_instructions', 'auth_scheme', 'tool_filter', 'tool_name_prefix', 'triggers', 'auth_credential', 'location', 'entity_operations'}
 
 
     def __init__(self, project: str, location: str) -> None:
@@ -404,21 +362,7 @@ class ApplicationIntegrationToolset(BuilderBase):
 
     def build(self) -> _ADK_ApplicationIntegrationToolset:
         """ApplicationIntegrationToolset generates tools from a given Application. Resolve into a native ADK _ADK_ApplicationIntegrationToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ApplicationIntegrationToolset(**config)
 
 
@@ -433,7 +377,7 @@ class IntegrationConnectorTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'connection_service_name', 'description', 'auth_credential', 'connection_name', 'auth_scheme', 'rest_api_tool', 'name', 'entity', 'operation', 'connection_host', 'action'}
+    _KNOWN_PARAMS: set[str] = {'description', 'connection_name', 'name', 'operation', 'auth_scheme', 'rest_api_tool', 'connection_host', 'connection_service_name', 'entity', 'auth_credential', 'action'}
 
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
@@ -496,21 +440,7 @@ class IntegrationConnectorTool(BuilderBase):
 
     def build(self) -> _ADK_IntegrationConnectorTool:
         """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint. Resolve into a native ADK _ADK_IntegrationConnectorTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_IntegrationConnectorTool(**config)
 
 
@@ -525,7 +455,7 @@ class BaseAuthenticatedTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'response_for_auth_required', 'description', 'name', 'auth_config'}
+    _KNOWN_PARAMS: set[str] = {'response_for_auth_required', 'description', 'auth_config', 'name'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -588,21 +518,7 @@ class BaseAuthenticatedTool(BuilderBase):
 
     def build(self) -> _ADK_BaseAuthenticatedTool:
         """A base tool class that handles authentication before the actual tool logic. Resolve into a native ADK _ADK_BaseAuthenticatedTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseAuthenticatedTool(**config)
 
 
@@ -617,7 +533,7 @@ class BaseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'name', 'is_long_running', 'custom_metadata'}
+    _KNOWN_PARAMS: set[str] = {'description', 'is_long_running', 'name', 'custom_metadata'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -680,21 +596,7 @@ class BaseTool(BuilderBase):
 
     def build(self) -> _ADK_BaseTool:
         """The base class for all tools. Resolve into a native ADK _ADK_BaseTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseTool(**config)
 
 
@@ -709,7 +611,7 @@ class BaseToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'tool_name_prefix'}
 
 
     def __init__(self, ) -> None:
@@ -772,21 +674,7 @@ class BaseToolset(BuilderBase):
 
     def build(self) -> _ADK_BaseToolset:
         """Base class for toolset. Resolve into a native ADK _ADK_BaseToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseToolset(**config)
 
 
@@ -801,7 +689,7 @@ class BigQueryToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'bigquery_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'bigquery_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -864,21 +752,7 @@ class BigQueryToolset(BuilderBase):
 
     def build(self) -> _ADK_BigQueryToolset:
         """BigQuery Toolset contains tools for interacting with BigQuery data and metadata. Resolve into a native ADK _ADK_BigQueryToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigQueryToolset(**config)
 
 
@@ -893,7 +767,7 @@ class BigtableToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'bigtable_tool_settings'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'bigtable_tool_settings', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -956,21 +830,7 @@ class BigtableToolset(BuilderBase):
 
     def build(self) -> _ADK_BigtableToolset:
         """Bigtable Toolset contains tools for interacting with Bigtable data and metadata. Resolve into a native ADK _ADK_BigtableToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BigtableToolset(**config)
 
 
@@ -985,7 +845,7 @@ class ComputerUseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'screen_size', 'virtual_screen_size', 'func'}
+    _KNOWN_PARAMS: set[str] = {'virtual_screen_size', 'screen_size', 'func'}
 
 
     def __init__(self, func: str, screen_size: str) -> None:
@@ -1048,21 +908,7 @@ class ComputerUseTool(BuilderBase):
 
     def build(self) -> _ADK_ComputerUseTool:
         """A tool that wraps computer control functions for use with LLMs. Resolve into a native ADK _ADK_ComputerUseTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ComputerUseTool(**config)
 
 
@@ -1140,21 +986,7 @@ class ComputerUseToolset(BuilderBase):
 
     def build(self) -> _ADK_ComputerUseToolset:
         """Fluent builder for ComputerUseToolset. Resolve into a native ADK _ADK_ComputerUseToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ComputerUseToolset(**config)
 
 
@@ -1169,7 +1001,7 @@ class DataAgentToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'data_agent_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'data_agent_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -1232,21 +1064,7 @@ class DataAgentToolset(BuilderBase):
 
     def build(self) -> _ADK_DataAgentToolset:
         """Data Agent Toolset contains tools for interacting with data agents. Resolve into a native ADK _ADK_DataAgentToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DataAgentToolset(**config)
 
 
@@ -1261,7 +1079,7 @@ class DiscoveryEngineSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'data_store_id', 'max_results', 'search_engine_id', 'filter', 'data_store_specs'}
+    _KNOWN_PARAMS: set[str] = {'filter', 'search_engine_id', 'max_results', 'data_store_id', 'data_store_specs'}
 
 
     def __init__(self, ) -> None:
@@ -1324,21 +1142,7 @@ class DiscoveryEngineSearchTool(BuilderBase):
 
     def build(self) -> _ADK_DiscoveryEngineSearchTool:
         """Tool for searching the discovery engine. Resolve into a native ADK _ADK_DiscoveryEngineSearchTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DiscoveryEngineSearchTool(**config)
 
 
@@ -1416,21 +1220,7 @@ class EnterpriseWebSearchTool(BuilderBase):
 
     def build(self) -> _ADK_EnterpriseWebSearchTool:
         """A Gemini 2+ built-in tool using web grounding for Enterprise compliance. Resolve into a native ADK _ADK_EnterpriseWebSearchTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_EnterpriseWebSearchTool(**config)
 
 
@@ -1508,21 +1298,7 @@ class ExampleTool(BuilderBase):
 
     def build(self) -> _ADK_ExampleTool:
         """A tool that adds (few-shot) examples to the LLM request. Resolve into a native ADK _ADK_ExampleTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ExampleTool(**config)
 
 
@@ -1600,21 +1376,7 @@ class FunctionTool(BuilderBase):
 
     def build(self) -> _ADK_FunctionTool:
         """A tool that wraps a user-defined Python function. Resolve into a native ADK _ADK_FunctionTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_FunctionTool(**config)
 
 
@@ -1629,7 +1391,7 @@ class GoogleApiTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'rest_api_tool', 'additional_headers', 'service_account'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'additional_headers', 'service_account', 'rest_api_tool', 'client_secret'}
 
 
     def __init__(self, rest_api_tool: str) -> None:
@@ -1692,21 +1454,7 @@ class GoogleApiTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleApiTool:
         """Fluent builder for GoogleApiTool. Resolve into a native ADK _ADK_GoogleApiTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GoogleApiTool(**config)
 
 
@@ -1721,7 +1469,7 @@ class GoogleApiToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_secret', 'tool_name_prefix', 'additional_headers', 'tool_filter', 'api_name', 'service_account', 'client_id', 'api_version'}
+    _KNOWN_PARAMS: set[str] = {'api_version', 'client_id', 'additional_headers', 'service_account', 'tool_filter', 'api_name', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, api_name: str, api_version: str) -> None:
@@ -1784,21 +1532,7 @@ class GoogleApiToolset(BuilderBase):
 
     def build(self) -> _ADK_GoogleApiToolset:
         """Google API Toolset contains tools for interacting with Google APIs. Resolve into a native ADK _ADK_GoogleApiToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GoogleApiToolset(**config)
 
 
@@ -1813,7 +1547,7 @@ class CalendarToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'tool_name_prefix', 'service_account', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'service_account', 'tool_filter', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1876,21 +1610,7 @@ class CalendarToolset(BuilderBase):
 
     def build(self) -> _ADK_CalendarToolset:
         """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_CalendarToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_CalendarToolset(**config)
 
 
@@ -1905,7 +1625,7 @@ class DocsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'tool_name_prefix', 'service_account', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'service_account', 'tool_filter', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -1968,21 +1688,7 @@ class DocsToolset(BuilderBase):
 
     def build(self) -> _ADK_DocsToolset:
         """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_DocsToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DocsToolset(**config)
 
 
@@ -1997,7 +1703,7 @@ class GmailToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'tool_name_prefix', 'service_account', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'service_account', 'tool_filter', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -2060,21 +1766,7 @@ class GmailToolset(BuilderBase):
 
     def build(self) -> _ADK_GmailToolset:
         """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_GmailToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GmailToolset(**config)
 
 
@@ -2089,7 +1781,7 @@ class SheetsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'tool_name_prefix', 'service_account', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'service_account', 'tool_filter', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -2152,21 +1844,7 @@ class SheetsToolset(BuilderBase):
 
     def build(self) -> _ADK_SheetsToolset:
         """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SheetsToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SheetsToolset(**config)
 
 
@@ -2181,7 +1859,7 @@ class SlidesToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'tool_name_prefix', 'service_account', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'service_account', 'tool_filter', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -2244,21 +1922,7 @@ class SlidesToolset(BuilderBase):
 
     def build(self) -> _ADK_SlidesToolset:
         """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SlidesToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SlidesToolset(**config)
 
 
@@ -2273,7 +1937,7 @@ class YoutubeToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'tool_name_prefix', 'service_account', 'tool_filter'}
+    _KNOWN_PARAMS: set[str] = {'client_id', 'service_account', 'tool_filter', 'tool_name_prefix', 'client_secret'}
 
 
     def __init__(self, ) -> None:
@@ -2336,21 +2000,7 @@ class YoutubeToolset(BuilderBase):
 
     def build(self) -> _ADK_YoutubeToolset:
         """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_YoutubeToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_YoutubeToolset(**config)
 
 
@@ -2428,21 +2078,7 @@ class GoogleMapsGroundingTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleMapsGroundingTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. Resolve into a native ADK _ADK_GoogleMapsGroundingTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GoogleMapsGroundingTool(**config)
 
 
@@ -2520,21 +2156,7 @@ class GoogleSearchAgentTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleSearchAgentTool:
         """A tool that wraps a sub-agent that only uses google_search tool. Resolve into a native ADK _ADK_GoogleSearchAgentTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GoogleSearchAgentTool(**config)
 
 
@@ -2612,21 +2234,7 @@ class GoogleSearchTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleSearchTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search. Resolve into a native ADK _ADK_GoogleSearchTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GoogleSearchTool(**config)
 
 
@@ -2641,7 +2249,7 @@ class GoogleTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_settings', 'credentials_config', 'func'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_settings', 'func'}
 
 
     def __init__(self, func: str) -> None:
@@ -2704,21 +2312,7 @@ class GoogleTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleTool:
         """GoogleTool class for tools that call Google APIs. Resolve into a native ADK _ADK_GoogleTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GoogleTool(**config)
 
 
@@ -2796,21 +2390,7 @@ class LoadArtifactsTool(BuilderBase):
 
     def build(self) -> _ADK_LoadArtifactsTool:
         """A tool that loads the artifacts and adds them to the session. Resolve into a native ADK _ADK_LoadArtifactsTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoadArtifactsTool(**config)
 
 
@@ -2888,21 +2468,7 @@ class LoadMcpResourceTool(BuilderBase):
 
     def build(self) -> _ADK_LoadMcpResourceTool:
         """A tool that loads the MCP resources and adds them to the session. Resolve into a native ADK _ADK_LoadMcpResourceTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoadMcpResourceTool(**config)
 
 
@@ -2980,21 +2546,7 @@ class LoadMemoryTool(BuilderBase):
 
     def build(self) -> _ADK_LoadMemoryTool:
         """A tool that loads the memory for the current user. Resolve into a native ADK _ADK_LoadMemoryTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoadMemoryTool(**config)
 
 
@@ -3072,21 +2624,7 @@ class LongRunningFunctionTool(BuilderBase):
 
     def build(self) -> _ADK_LongRunningFunctionTool:
         """A function tool that returns the result asynchronously. Resolve into a native ADK _ADK_LongRunningFunctionTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LongRunningFunctionTool(**config)
 
 
@@ -3164,21 +2702,7 @@ class MCPTool(BuilderBase):
 
     def build(self) -> _ADK_MCPTool:
         """Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_MCPTool(**config)
 
 
@@ -3193,7 +2717,7 @@ class McpTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auth_credential', 'auth_scheme', 'progress_callback', 'mcp_session_manager', 'mcp_tool', 'header_provider', 'require_confirmation'}
+    _KNOWN_PARAMS: set[str] = {'mcp_tool', 'require_confirmation', 'auth_scheme', 'header_provider', 'mcp_session_manager', 'auth_credential', 'progress_callback'}
 
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
@@ -3256,21 +2780,7 @@ class McpTool(BuilderBase):
 
     def build(self) -> _ADK_McpTool:
         """Turns an MCP Tool into an ADK Tool. Resolve into a native ADK _ADK_McpTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_McpTool(**config)
 
 
@@ -3348,21 +2858,7 @@ class MCPToolset(BuilderBase):
 
     def build(self) -> _ADK_MCPToolset:
         """Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_MCPToolset(**config)
 
 
@@ -3377,7 +2873,7 @@ class McpToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auth_credential', 'errlog', 'tool_name_prefix', 'auth_scheme', 'connection_params', 'tool_filter', 'progress_callback', 'use_mcp_resources', 'header_provider', 'require_confirmation'}
+    _KNOWN_PARAMS: set[str] = {'use_mcp_resources', 'require_confirmation', 'auth_scheme', 'header_provider', 'tool_filter', 'tool_name_prefix', 'connection_params', 'errlog', 'auth_credential', 'progress_callback'}
 
 
     def __init__(self, connection_params: str) -> None:
@@ -3440,21 +2936,7 @@ class McpToolset(BuilderBase):
 
     def build(self) -> _ADK_McpToolset:
         """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. Resolve into a native ADK _ADK_McpToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_McpToolset(**config)
 
 
@@ -3469,7 +2951,7 @@ class OpenAPIToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'auth_credential', 'tool_name_prefix', 'auth_scheme', 'spec_str_type', 'spec_dict', 'spec_str', 'ssl_verify', 'credential_key', 'tool_filter', 'header_provider'}
+    _KNOWN_PARAMS: set[str] = {'spec_str', 'spec_dict', 'spec_str_type', 'auth_scheme', 'header_provider', 'ssl_verify', 'tool_filter', 'tool_name_prefix', 'auth_credential', 'credential_key'}
 
 
     def __init__(self, ) -> None:
@@ -3532,21 +3014,7 @@ class OpenAPIToolset(BuilderBase):
 
     def build(self) -> _ADK_OpenAPIToolset:
         """Class for parsing OpenAPI spec into a list of RestApiTool. Resolve into a native ADK _ADK_OpenAPIToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_OpenAPIToolset(**config)
 
 
@@ -3561,7 +3029,7 @@ class RestApiTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'auth_credential', 'auth_scheme', 'name', 'operation', 'endpoint', 'ssl_verify', 'credential_key', 'should_parse_operation', 'header_provider'}
+    _KNOWN_PARAMS: set[str] = {'description', 'name', 'operation', 'auth_scheme', 'endpoint', 'header_provider', 'ssl_verify', 'auth_credential', 'should_parse_operation', 'credential_key'}
 
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
@@ -3624,21 +3092,7 @@ class RestApiTool(BuilderBase):
 
     def build(self) -> _ADK_RestApiTool:
         """A generic tool that interacts with a REST API. Resolve into a native ADK _ADK_RestApiTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_RestApiTool(**config)
 
 
@@ -3716,21 +3170,7 @@ class PreloadMemoryTool(BuilderBase):
 
     def build(self) -> _ADK_PreloadMemoryTool:
         """A tool that preloads the memory for the current user. Resolve into a native ADK _ADK_PreloadMemoryTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_PreloadMemoryTool(**config)
 
 
@@ -3745,7 +3185,7 @@ class PubSubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'pubsub_tool_config'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'pubsub_tool_config', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -3808,21 +3248,7 @@ class PubSubToolset(BuilderBase):
 
     def build(self) -> _ADK_PubSubToolset:
         """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions. Resolve into a native ADK _ADK_PubSubToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_PubSubToolset(**config)
 
 
@@ -3837,7 +3263,7 @@ class BaseRetrievalTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'description', 'name', 'is_long_running', 'custom_metadata'}
+    _KNOWN_PARAMS: set[str] = {'description', 'is_long_running', 'name', 'custom_metadata'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -3900,21 +3326,7 @@ class BaseRetrievalTool(BuilderBase):
 
     def build(self) -> _ADK_BaseRetrievalTool:
         """Fluent builder for BaseRetrievalTool. Resolve into a native ADK _ADK_BaseRetrievalTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseRetrievalTool(**config)
 
 
@@ -3992,21 +3404,7 @@ class SetModelResponseTool(BuilderBase):
 
     def build(self) -> _ADK_SetModelResponseTool:
         """Internal tool used for output schema workaround. Resolve into a native ADK _ADK_SetModelResponseTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SetModelResponseTool(**config)
 
 
@@ -4084,21 +3482,7 @@ class LoadSkillResourceTool(BuilderBase):
 
     def build(self) -> _ADK_LoadSkillResourceTool:
         """Tool to load resources (references or assets) from a skill. Resolve into a native ADK _ADK_LoadSkillResourceTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoadSkillResourceTool(**config)
 
 
@@ -4176,21 +3560,7 @@ class LoadSkillTool(BuilderBase):
 
     def build(self) -> _ADK_LoadSkillTool:
         """Tool to load a skill's instructions. Resolve into a native ADK _ADK_LoadSkillTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_LoadSkillTool(**config)
 
 
@@ -4268,21 +3638,7 @@ class SkillToolset(BuilderBase):
 
     def build(self) -> _ADK_SkillToolset:
         """A toolset for managing and interacting with agent skills. Resolve into a native ADK _ADK_SkillToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SkillToolset(**config)
 
 
@@ -4297,7 +3653,7 @@ class SpannerToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'spanner_tool_settings'}
+    _KNOWN_PARAMS: set[str] = {'credentials_config', 'tool_filter', 'spanner_tool_settings'}
 
 
     def __init__(self, ) -> None:
@@ -4360,21 +3716,7 @@ class SpannerToolset(BuilderBase):
 
     def build(self) -> _ADK_SpannerToolset:
         """Spanner Toolset contains tools for interacting with Spanner data, database and table information. Resolve into a native ADK _ADK_SpannerToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SpannerToolset(**config)
 
 
@@ -4389,7 +3731,7 @@ class ToolboxToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tool_names', 'toolset_name', 'auth_token_getters', 'server_url', 'additional_headers', 'credentials', 'bound_params'}
+    _KNOWN_PARAMS: set[str] = {'credentials', 'toolset_name', 'bound_params', 'additional_headers', 'auth_token_getters', 'tool_names', 'server_url'}
 
 
     def __init__(self, server_url: str, kwargs: str) -> None:
@@ -4452,21 +3794,7 @@ class ToolboxToolset(BuilderBase):
 
     def build(self) -> _ADK_ToolboxToolset:
         """A class that provides access to toolbox toolsets. Resolve into a native ADK _ADK_ToolboxToolset."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ToolboxToolset(**config)
 
 
@@ -4544,21 +3872,7 @@ class TransferToAgentTool(BuilderBase):
 
     def build(self) -> _ADK_TransferToAgentTool:
         """A specialized FunctionTool for agent transfer with enum constraints. Resolve into a native ADK _ADK_TransferToAgentTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_TransferToAgentTool(**config)
 
 
@@ -4636,21 +3950,7 @@ class UrlContextTool(BuilderBase):
 
     def build(self) -> _ADK_UrlContextTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. Resolve into a native ADK _ADK_UrlContextTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_UrlContextTool(**config)
 
 
@@ -4665,7 +3965,7 @@ class VertexAiSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'bypass_multi_tools_limit', 'data_store_id', 'max_results', 'search_engine_id', 'filter', 'data_store_specs'}
+    _KNOWN_PARAMS: set[str] = {'bypass_multi_tools_limit', 'filter', 'search_engine_id', 'max_results', 'data_store_id', 'data_store_specs'}
 
 
     def __init__(self, ) -> None:
@@ -4728,19 +4028,5 @@ class VertexAiSearchTool(BuilderBase):
 
     def build(self) -> _ADK_VertexAiSearchTool:
         """A built-in tool using Vertex AI Search. Resolve into a native ADK _ADK_VertexAiSearchTool."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_VertexAiSearchTool(**config)

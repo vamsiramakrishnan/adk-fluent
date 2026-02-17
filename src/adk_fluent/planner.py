@@ -82,21 +82,7 @@ class BasePlanner(BuilderBase):
 
     def build(self) -> _ADK_BasePlanner:
         """Abstract base class for all planners. Resolve into a native ADK _ADK_BasePlanner."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BasePlanner(**config)
 
 
@@ -174,21 +160,7 @@ class BuiltInPlanner(BuilderBase):
 
     def build(self) -> _ADK_BuiltInPlanner:
         """The built-in planner that uses model's built-in thinking features. Resolve into a native ADK _ADK_BuiltInPlanner."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BuiltInPlanner(**config)
 
 
@@ -266,19 +238,5 @@ class PlanReActPlanner(BuilderBase):
 
     def build(self) -> _ADK_PlanReActPlanner:
         """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. Resolve into a native ADK _ADK_PlanReActPlanner."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_PlanReActPlanner(**config)

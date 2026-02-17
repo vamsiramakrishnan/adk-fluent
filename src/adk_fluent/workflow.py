@@ -18,7 +18,7 @@ class Loop(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -70,12 +70,6 @@ class Loop(BuilderBase):
         self._lists["sub_agents"].append(item)
         return self
 
-
-    def clone(self, new_name: str) -> Self:
-        """Deep-copy this builder with a new name."""
-        from adk_fluent._helpers import deep_clone_builder
-        return deep_clone_builder(self, new_name)
-
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
@@ -124,21 +118,7 @@ class Loop(BuilderBase):
 
     def build(self) -> LoopAgent:
         """A shell agent that run its sub-agents in a loop. Resolve into a native ADK LoopAgent."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return LoopAgent(**config)
 
 
@@ -152,7 +132,7 @@ class FanOut(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -204,12 +184,6 @@ class FanOut(BuilderBase):
         self._lists["sub_agents"].append(item)
         return self
 
-
-    def clone(self, new_name: str) -> Self:
-        """Deep-copy this builder with a new name."""
-        from adk_fluent._helpers import deep_clone_builder
-        return deep_clone_builder(self, new_name)
-
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
@@ -258,21 +232,7 @@ class FanOut(BuilderBase):
 
     def build(self) -> ParallelAgent:
         """A shell agent that runs its sub-agents in parallel in an isolated manner. Resolve into a native ADK ParallelAgent."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return ParallelAgent(**config)
 
 
@@ -286,7 +246,7 @@ class Pipeline(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -338,12 +298,6 @@ class Pipeline(BuilderBase):
         self._lists["sub_agents"].append(item)
         return self
 
-
-    def clone(self, new_name: str) -> Self:
-        """Deep-copy this builder with a new name."""
-        from adk_fluent._helpers import deep_clone_builder
-        return deep_clone_builder(self, new_name)
-
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
@@ -392,19 +346,5 @@ class Pipeline(BuilderBase):
 
     def build(self) -> SequentialAgent:
         """A shell agent that runs its sub-agents in sequence. Resolve into a native ADK SequentialAgent."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return SequentialAgent(**config)

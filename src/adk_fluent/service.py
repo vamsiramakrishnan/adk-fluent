@@ -94,21 +94,7 @@ class BaseArtifactService(BuilderBase):
 
     def build(self) -> _ADK_BaseArtifactService:
         """Abstract base class for artifact services. Resolve into a native ADK _ADK_BaseArtifactService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseArtifactService(**config)
 
 
@@ -186,21 +172,7 @@ class FileArtifactService(BuilderBase):
 
     def build(self) -> _ADK_FileArtifactService:
         """Stores filesystem-backed artifacts beneath a configurable root directory. Resolve into a native ADK _ADK_FileArtifactService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_FileArtifactService(**config)
 
 
@@ -278,21 +250,7 @@ class GcsArtifactService(BuilderBase):
 
     def build(self) -> _ADK_GcsArtifactService:
         """An artifact service implementation using Google Cloud Storage (GCS). Resolve into a native ADK _ADK_GcsArtifactService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_GcsArtifactService(**config)
 
 
@@ -368,21 +326,7 @@ class InMemoryArtifactService(BuilderBase):
 
     def build(self) -> _ADK_InMemoryArtifactService:
         """An in-memory implementation of the artifact service. Resolve into a native ADK _ADK_InMemoryArtifactService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_InMemoryArtifactService(**config)
 
 
@@ -397,7 +341,7 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agents_root', 'app_name_to_dir'}
+    _KNOWN_PARAMS: set[str] = {'app_name_to_dir', 'agents_root'}
 
 
     def __init__(self, agents_root: str) -> None:
@@ -460,21 +404,7 @@ class PerAgentDatabaseSessionService(BuilderBase):
 
     def build(self) -> _ADK_PerAgentDatabaseSessionService:
         """Routes session storage to per-agent `.adk/session.db` files. Resolve into a native ADK _ADK_PerAgentDatabaseSessionService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_PerAgentDatabaseSessionService(**config)
 
 
@@ -552,21 +482,7 @@ class BaseMemoryService(BuilderBase):
 
     def build(self) -> _ADK_BaseMemoryService:
         """Base class for memory services. Resolve into a native ADK _ADK_BaseMemoryService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseMemoryService(**config)
 
 
@@ -644,21 +560,7 @@ class InMemoryMemoryService(BuilderBase):
 
     def build(self) -> _ADK_InMemoryMemoryService:
         """An in-memory memory service for prototyping purpose only. Resolve into a native ADK _ADK_InMemoryMemoryService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_InMemoryMemoryService(**config)
 
 
@@ -673,7 +575,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'project', 'location', 'express_mode_api_key'}
+    _KNOWN_PARAMS: set[str] = {'project', 'express_mode_api_key', 'agent_engine_id', 'location'}
 
 
     def __init__(self, ) -> None:
@@ -736,21 +638,7 @@ class VertexAiMemoryBankService(BuilderBase):
 
     def build(self) -> _ADK_VertexAiMemoryBankService:
         """Implementation of the BaseMemoryService using Vertex AI Memory Bank. Resolve into a native ADK _ADK_VertexAiMemoryBankService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_VertexAiMemoryBankService(**config)
 
 
@@ -765,7 +653,7 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'rag_corpus', 'vector_distance_threshold', 'similarity_top_k'}
+    _KNOWN_PARAMS: set[str] = {'rag_corpus', 'similarity_top_k', 'vector_distance_threshold'}
 
 
     def __init__(self, ) -> None:
@@ -828,21 +716,7 @@ class VertexAiRagMemoryService(BuilderBase):
 
     def build(self) -> _ADK_VertexAiRagMemoryService:
         """A memory service that uses Vertex AI RAG for storage and retrieval. Resolve into a native ADK _ADK_VertexAiRagMemoryService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_VertexAiRagMemoryService(**config)
 
 
@@ -920,21 +794,7 @@ class BaseSessionService(BuilderBase):
 
     def build(self) -> _ADK_BaseSessionService:
         """Base class for session services. Resolve into a native ADK _ADK_BaseSessionService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseSessionService(**config)
 
 
@@ -1012,21 +872,7 @@ class DatabaseSessionService(BuilderBase):
 
     def build(self) -> _ADK_DatabaseSessionService:
         """A session service that uses a database for storage. Resolve into a native ADK _ADK_DatabaseSessionService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_DatabaseSessionService(**config)
 
 
@@ -1104,21 +950,7 @@ class InMemorySessionService(BuilderBase):
 
     def build(self) -> _ADK_InMemorySessionService:
         """An in-memory implementation of the session service. Resolve into a native ADK _ADK_InMemorySessionService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_InMemorySessionService(**config)
 
 
@@ -1196,21 +1028,7 @@ class SqliteSessionService(BuilderBase):
 
     def build(self) -> _ADK_SqliteSessionService:
         """A session service that uses an SQLite database for storage via aiosqlite. Resolve into a native ADK _ADK_SqliteSessionService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_SqliteSessionService(**config)
 
 
@@ -1225,7 +1043,7 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'project', 'location', 'express_mode_api_key'}
+    _KNOWN_PARAMS: set[str] = {'project', 'express_mode_api_key', 'agent_engine_id', 'location'}
 
 
     def __init__(self, ) -> None:
@@ -1288,21 +1106,7 @@ class VertexAiSessionService(BuilderBase):
 
     def build(self) -> _ADK_VertexAiSessionService:
         """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. Resolve into a native ADK _ADK_VertexAiSessionService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_VertexAiSessionService(**config)
 
 
@@ -1380,19 +1184,5 @@ class ForwardingArtifactService(BuilderBase):
 
     def build(self) -> _ADK_ForwardingArtifactService:
         """Artifact service that forwards to the parent tool context. Resolve into a native ADK _ADK_ForwardingArtifactService."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_ForwardingArtifactService(**config)

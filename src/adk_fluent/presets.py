@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable
 
+__all__ = ["Preset"]
+
 
 # Fields that are always treated as config values, never as callbacks,
 # even if they happen to be strings or other non-callable types.

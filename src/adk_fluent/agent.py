@@ -17,7 +17,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -111,21 +111,7 @@ class BaseAgent(BuilderBase):
 
     def build(self) -> _ADK_BaseAgent:
         """Base class for all agents in Agent Development Kit. Resolve into a native ADK _ADK_BaseAgent."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseAgent(**config)
 
 
@@ -139,7 +125,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_model_callback', 'on_model_error_callback', 'after_tool_callback', 'after_agent_callback', 'on_tool_error_callback', 'before_agent_callback', 'before_tool_callback', 'before_model_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_tool_callback', 'on_model_error_callback', 'on_tool_error_callback', 'after_model_callback', 'before_agent_callback', 'after_agent_callback', 'before_model_callback', 'after_tool_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -306,12 +292,6 @@ class Agent(BuilderBase):
         return self
 
 
-    def clone(self, new_name: str) -> Self:
-        """Deep-copy this builder with a new name. Independent config/callbacks/lists."""
-        from adk_fluent._helpers import deep_clone_builder
-        return deep_clone_builder(self, new_name)
-
-
     def ask(self, prompt: str) -> str:
         """One-shot execution. Build agent, send prompt, return response text."""
         from adk_fluent._helpers import run_one_shot
@@ -402,19 +382,5 @@ class Agent(BuilderBase):
 
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return LlmAgent(**config)

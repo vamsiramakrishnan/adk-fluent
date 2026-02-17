@@ -2,6 +2,8 @@
 from __future__ import annotations
 from typing import Any, Callable
 
+__all__ = ["agent"]
+
 
 def agent(name: str, **kwargs: Any) -> Callable:
     """Decorator that creates an Agent builder from a function.

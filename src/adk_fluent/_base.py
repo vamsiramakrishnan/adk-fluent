@@ -261,6 +261,49 @@ class BuilderBase:
         return new_builder
 
     # ------------------------------------------------------------------
+    # _prepare_build_config() — shared build preparation
+    # ------------------------------------------------------------------
+
+    def _prepare_build_config(self) -> dict[str, Any]:
+        """Prepare config dict for building: strip internal fields, auto-build sub-builders, merge callbacks and lists."""
+        config = {k: v for k, v in self._config.items() if not k.startswith("_")}
+
+        # Auto-build any BuilderBase values in config
+        for key, value in list(config.items()):
+            if isinstance(value, BuilderBase):
+                config[key] = value.build()
+
+        # Merge accumulated callbacks
+        for field, fns in self._callbacks.items():
+            if fns:
+                config[field] = fns if len(fns) > 1 else fns[0]
+
+        # Merge accumulated lists (auto-building items)
+        for field, items in self._lists.items():
+            resolved = []
+            for item in items:
+                if isinstance(item, BuilderBase):
+                    resolved.append(item.build())
+                else:
+                    resolved.append(item)
+            existing = config.get(field, [])
+            if isinstance(existing, list):
+                config[field] = existing + resolved
+            else:
+                config[field] = resolved
+
+        return config
+
+    # ------------------------------------------------------------------
+    # clone() — universal deep-copy
+    # ------------------------------------------------------------------
+
+    def clone(self, new_name: str) -> Self:
+        """Deep-copy this builder with a new name. Independent config/callbacks/lists."""
+        from adk_fluent._helpers import deep_clone_builder
+        return deep_clone_builder(self, new_name)
+
+    # ------------------------------------------------------------------
     # Task 7: Presets (.use())
     # ------------------------------------------------------------------
 

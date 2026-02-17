@@ -33,12 +33,6 @@ behavior = "dual_callback"
 target_fields = ["before_model_callback", "after_model_callback"]
 
 [[builders.Agent.extras]]
-name = "clone"
-signature = "(self, new_name: str) -> Self"
-doc = "Deep-copy this builder with a new name. Independent config/callbacks/lists."
-behavior = "deep_copy"
-
-[[builders.Agent.extras]]
 name = "ask"
 signature = "(self, prompt: str) -> str"
 doc = "One-shot execution. Build agent, send prompt, return response text."
@@ -87,51 +81,3 @@ doc = "Async batch execution against multiple prompts."
 behavior = "runtime_helper_async"
 helper_func = "run_map_async"
 
-# ---------------------------------------------------------------------------
-# PIPELINE EXTRAS
-# ---------------------------------------------------------------------------
-
-[[builders.Pipeline.extras]]
-name = "clone"
-signature = "(self, new_name: str) -> Self"
-doc = "Deep-copy this builder with a new name."
-behavior = "deep_copy"
-
-# ---------------------------------------------------------------------------
-# FANOUT EXTRAS
-# ---------------------------------------------------------------------------
-
-[[builders.FanOut.extras]]
-name = "clone"
-signature = "(self, new_name: str) -> Self"
-doc = "Deep-copy this builder with a new name."
-behavior = "deep_copy"
-
-# ---------------------------------------------------------------------------
-# LOOP EXTRAS
-# ---------------------------------------------------------------------------
-
-[[builders.Loop.extras]]
-name = "clone"
-signature = "(self, new_name: str) -> Self"
-doc = "Deep-copy this builder with a new name."
-behavior = "deep_copy"
-
-# ---------------------------------------------------------------------------
-# MANUAL EXPORTS (appended to __init__.py)
-# ---------------------------------------------------------------------------
-
-[[manual_exports]]
-module = "._helpers"
-names = ["deep_clone_builder", "run_one_shot", "run_one_shot_async", "run_stream", "run_inline_test", "ChatSession", "create_session", "run_map", "run_map_async"]
-public = false
-
-[[manual_exports]]
-module = ".decorators"
-names = ["agent"]
-public = true
-
-[[manual_exports]]
-module = ".presets"
-names = ["Preset"]
-public = false

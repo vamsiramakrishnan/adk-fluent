@@ -82,21 +82,7 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_AgentEngineSandboxCodeExecutor:
         """A code executor that uses Agent Engine Code Execution Sandbox to execute code. Resolve into a native ADK _ADK_AgentEngineSandboxCodeExecutor."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_AgentEngineSandboxCodeExecutor(**config)
 
 
@@ -172,21 +158,7 @@ class BaseCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_BaseCodeExecutor:
         """Abstract base class for all code executors. Resolve into a native ADK _ADK_BaseCodeExecutor."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BaseCodeExecutor(**config)
 
 
@@ -262,21 +234,7 @@ class BuiltInCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_BuiltInCodeExecutor:
         """A code executor that uses the Model's built-in code executor. Resolve into a native ADK _ADK_BuiltInCodeExecutor."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_BuiltInCodeExecutor(**config)
 
 
@@ -352,21 +310,7 @@ class UnsafeLocalCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_UnsafeLocalCodeExecutor:
         """A code executor that unsafely execute code in the current local context. Resolve into a native ADK _ADK_UnsafeLocalCodeExecutor."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_UnsafeLocalCodeExecutor(**config)
 
 
@@ -442,19 +386,5 @@ class VertexAiCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_VertexAiCodeExecutor:
         """A code executor that uses Vertex Code Interpreter Extension to execute code. Resolve into a native ADK _ADK_VertexAiCodeExecutor."""
-        config = {**self._config}
-        
-        # Merge accumulated callbacks
-        for field, fns in self._callbacks.items():
-            if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
-        
-        # Merge accumulated lists
-        for field, items in self._lists.items():
-            existing = config.get(field, [])
-            if isinstance(existing, list):
-                config[field] = existing + items
-            else:
-                config[field] = items
-        
+        config = self._prepare_build_config()
         return _ADK_VertexAiCodeExecutor(**config)
