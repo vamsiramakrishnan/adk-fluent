@@ -97,8 +97,6 @@ publish-pypi:
     url: https://pypi.org/p/adk-fluent
   rules:
     - if: $CI_COMMIT_TAG =~ /^v/
-      when: manual
-      allow_failure: false
 
 publish-testpypi:
   stage: publish

@@ -41,6 +41,8 @@ dev = [
 Homepage = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
 Repository = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
 Issues = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/issues"
+Documentation = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/tree/master/docs/generated"
+Changelog = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/blob/master/CHANGELOG.md"
 
 [project.entry-points."adk_extensions"]
 fluent = "adk_fluent"
