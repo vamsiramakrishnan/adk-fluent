@@ -5,3 +5,7 @@ dist/
 .venv/
 .env
 .adk/
+.pip-cache/
+docs/_build/
+manifest.json
+manifest.previous.json
