@@ -1,0 +1,71 @@
+name: Bug Report
+description: Report a bug in adk-fluent
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal code to reproduce the issue.
+      render: python
+      placeholder: |
+        from adk_fluent import Agent
+
+        agent = Agent("test").model("gemini-2.5-flash").instruct("Hello")
+        # Expected: ...
+        # Actual: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened. Include error messages if applicable.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: adk-fluent version
+      placeholder: "0.4.0"
+    validations:
+      required: true
+
+  - type: input
+    id: adk-version
+    attributes:
+      label: google-adk version
+      placeholder: "1.25.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12"
+    validations:
+      required: true

@@ -40,7 +40,10 @@ examples = [
 ]
 dev = [
     "pytest>=7.0",
+    "pytest-cov>=4.0",
     "pyright>=1.1",
+    "ruff>=0.9",
+    "pre-commit>=3.0",
 ]
 docs = [
     "sphinx>=7.0",
@@ -83,6 +86,34 @@ typeCheckingMode = "strict"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line length handled by formatter
+    "B905",   # zip strict — not needed for 3.11+
+    "SIM108", # ternary — readability preference
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["adk_fluent"]
+
+[tool.coverage.run]
+source = ["src/adk_fluent"]
+omit = ["src/adk_fluent/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
 
 [dependency-groups]
 dev = [
