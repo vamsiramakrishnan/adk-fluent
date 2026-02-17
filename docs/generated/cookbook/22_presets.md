@@ -1,9 +1,11 @@
 # Presets: Reusable Configuration Bundles
 
+*How to define and apply reusable configuration presets.*
+
 _Source: `22_presets.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no preset mechanism. Reusing config requires:
 #   base_kwargs = dict(model="gemini-2.5-flash", before_model_callback=my_cb)
@@ -13,9 +15,8 @@ _Source: `22_presets.py`_
 # This breaks down when you need callbacks to accumulate or
 # when different builders have different alias mappings.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 from adk_fluent.presets import Preset
@@ -50,6 +51,8 @@ agent_b = (
     .use(production)
 )
 ```
+:::
+::::
 
 ## Equivalence
 

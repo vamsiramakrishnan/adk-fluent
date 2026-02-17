@@ -1,9 +1,11 @@
 # Typed State Keys with StateKey
 
+*How to work with state keys and state transforms.*
+
 _Source: `21_statekey.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK uses raw string keys and untyped state access:
 #   ctx.state["call_count"] = ctx.state.get("call_count", 0) + 1
@@ -11,9 +13,8 @@ _Source: `21_statekey.py`_
 #
 # Problems: typos are silent, no type hints, scope prefixes are manual.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import StateKey
 
@@ -35,6 +36,8 @@ app_config = StateKey("config_version", scope="app", type=str, default="v1")
 #   items = StateKey("items", type=list, default=[])
 #   items.append(ctx, "new_item")    # List append convenience
 ```
+:::
+::::
 
 ## Equivalence
 

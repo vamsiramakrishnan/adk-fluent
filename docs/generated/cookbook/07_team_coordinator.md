@@ -1,9 +1,11 @@
 # Team Coordinator Pattern
 
+*How to build a team of agents with a coordinator.*
+
 _Source: `07_team_coordinator.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -17,9 +19,8 @@ coordinator_native = LlmAgent(
     ],
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -32,6 +33,8 @@ coordinator_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 

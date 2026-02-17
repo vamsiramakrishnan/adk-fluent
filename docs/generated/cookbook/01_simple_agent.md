@@ -1,9 +1,11 @@
 # Simple Agent Creation
 
+*How to create a basic agent with the fluent API.*
+
 _Source: `01_simple_agent.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -14,9 +16,8 @@ agent_native = LlmAgent(
     description="A simple helper agent",
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -28,6 +29,8 @@ agent_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -37,3 +40,7 @@ assert agent_native.name == agent_fluent.name
 assert agent_native.model == agent_fluent.model
 assert agent_native.instruction == agent_fluent.instruction
 ```
+
+:::{seealso}
+API reference: [Agent](../api/agent.md#builder-Agent)
+:::

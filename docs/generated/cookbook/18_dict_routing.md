@@ -1,18 +1,19 @@
 # Dict >> Routing Shorthand
 
+*How to use dict-based routing.*
+
 _Source: `18_dict_routing.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no concise syntax for intent-based routing.
 # You'd wire up a coordinator LlmAgent with sub_agents,
 # which uses LLM calls to decide routing — slow and expensive
 # for deterministic decisions.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -35,6 +36,8 @@ pipeline = classifier >> {
     "complaint": support,
 }
 ```
+:::
+::::
 
 ## Equivalence
 

@@ -1,9 +1,11 @@
 # Guardrails with .guardrail()
 
+*How to attach guardrails to agent model calls.*
+
 _Source: `12_guardrails.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -22,9 +24,8 @@ agent_native = LlmAgent(
     after_model_callback=pii_filter,
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -36,6 +37,8 @@ builder = (
     .guardrail(pii_filter)
 )
 ```
+:::
+::::
 
 ## Equivalence
 

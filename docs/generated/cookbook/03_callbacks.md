@@ -1,9 +1,11 @@
 # Additive Callbacks
 
+*How to register lifecycle callbacks with accumulation semantics.*
+
 _Source: `03_callbacks.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -24,9 +26,8 @@ agent_native = LlmAgent(
     after_model_callback=log_after,
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -39,6 +40,8 @@ agent_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 

@@ -1,60 +1,90 @@
 # Module: `workflow`
 
-# Loop
+## Builders in this module
+
+| Builder | Description |
+|---------|-------------|
+| [Loop](builder-Loop) | A shell agent that run its sub-agents in a loop. |
+| [FanOut](builder-FanOut) | A shell agent that runs its sub-agents in parallel in an isolated manner. |
+| [Pipeline](builder-Pipeline) | A shell agent that runs its sub-agents in sequence. |
+
+(builder-Loop)=
+## Loop
 
 > Fluent builder for `google.adk.agents.loop_agent.LoopAgent`
 
 A shell agent that run its sub-agents in a loop.
 
-## Constructor
+**Quick start:**
 
 ```python
-Loop(name)
+from adk_fluent import Loop
+
+result = (
+    Loop("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+Loop(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Set the `description` field.
 
-## Callbacks
+### Callbacks
 
-### `.after_agent(*fns)`
+#### `.after_agent(*fns: Callable) -> Self`
 
-Append callback(s) to `after_agent_callback`. Multiple calls accumulate.
+Append callback(s) to `after_agent_callback`.
 
-### `.after_agent_if(condition, fn)`
+:::{note}
+Multiple calls accumulate. Each invocation appends to the callback list
+rather than replacing previous callbacks.
+:::
+
+#### `.after_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
 
-### `.before_agent(*fns)`
+#### `.before_agent(*fns: Callable) -> Self`
 
-Append callback(s) to `before_agent_callback`. Multiple calls accumulate.
+Append callback(s) to `before_agent_callback`.
 
-### `.before_agent_if(condition, fn)`
+:::{note}
+Multiple calls accumulate. Each invocation appends to the callback list
+rather than replacing previous callbacks.
+:::
+
+#### `.before_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-## Extra Methods
+### Extra Methods
 
-### `.step(agent: BaseAgent | AgentBuilder) -> Self`
+#### `.step(agent: BaseAgent | AgentBuilder) -> Self`
 
-Append an agent as the next step.
+Append an agent as the next step (lazy — built at .build() time).
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> LoopAgent`
+#### `.build() -> LoopAgent`
 
 Resolve into a native ADK LoopAgent.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -65,61 +95,83 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# FanOut
+(builder-FanOut)=
+## FanOut
 
 > Fluent builder for `google.adk.agents.parallel_agent.ParallelAgent`
 
 A shell agent that runs its sub-agents in parallel in an isolated manner.
 
-## Constructor
+**Quick start:**
 
 ```python
-FanOut(name)
+from adk_fluent import FanOut
+
+result = (
+    FanOut("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+FanOut(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Set the `description` field.
 
-## Callbacks
+### Callbacks
 
-### `.after_agent(*fns)`
+#### `.after_agent(*fns: Callable) -> Self`
 
-Append callback(s) to `after_agent_callback`. Multiple calls accumulate.
+Append callback(s) to `after_agent_callback`.
 
-### `.after_agent_if(condition, fn)`
+:::{note}
+Multiple calls accumulate. Each invocation appends to the callback list
+rather than replacing previous callbacks.
+:::
+
+#### `.after_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
 
-### `.before_agent(*fns)`
+#### `.before_agent(*fns: Callable) -> Self`
 
-Append callback(s) to `before_agent_callback`. Multiple calls accumulate.
+Append callback(s) to `before_agent_callback`.
 
-### `.before_agent_if(condition, fn)`
+:::{note}
+Multiple calls accumulate. Each invocation appends to the callback list
+rather than replacing previous callbacks.
+:::
+
+#### `.before_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-## Extra Methods
+### Extra Methods
 
-### `.branch(agent: BaseAgent | AgentBuilder) -> Self`
+#### `.branch(agent: BaseAgent | AgentBuilder) -> Self`
 
-Add a parallel branch agent.
+Add a parallel branch agent (lazy — built at .build() time).
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ParallelAgent`
+#### `.build() -> ParallelAgent`
 
 Resolve into a native ADK ParallelAgent.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -129,61 +181,83 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# Pipeline
+(builder-Pipeline)=
+## Pipeline
 
 > Fluent builder for `google.adk.agents.sequential_agent.SequentialAgent`
 
 A shell agent that runs its sub-agents in sequence.
 
-## Constructor
+**Quick start:**
 
 ```python
-Pipeline(name)
+from adk_fluent import Pipeline
+
+result = (
+    Pipeline("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+Pipeline(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Set the `description` field.
 
-## Callbacks
+### Callbacks
 
-### `.after_agent(*fns)`
+#### `.after_agent(*fns: Callable) -> Self`
 
-Append callback(s) to `after_agent_callback`. Multiple calls accumulate.
+Append callback(s) to `after_agent_callback`.
 
-### `.after_agent_if(condition, fn)`
+:::{note}
+Multiple calls accumulate. Each invocation appends to the callback list
+rather than replacing previous callbacks.
+:::
+
+#### `.after_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
 
-### `.before_agent(*fns)`
+#### `.before_agent(*fns: Callable) -> Self`
 
-Append callback(s) to `before_agent_callback`. Multiple calls accumulate.
+Append callback(s) to `before_agent_callback`.
 
-### `.before_agent_if(condition, fn)`
+:::{note}
+Multiple calls accumulate. Each invocation appends to the callback list
+rather than replacing previous callbacks.
+:::
+
+#### `.before_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-## Extra Methods
+### Extra Methods
 
-### `.step(agent: BaseAgent | AgentBuilder) -> Self`
+#### `.step(agent: BaseAgent | AgentBuilder) -> Self`
 
-Append an agent as the next step.
+Append an agent as the next step (lazy — built at .build() time).
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> SequentialAgent`
+#### `.build() -> SequentialAgent`
 
 Resolve into a native ADK SequentialAgent.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 

@@ -1,60 +1,127 @@
 # Module: `config`
 
-# AgentConfig
+## Builders in this module
+
+| Builder | Description |
+|---------|-------------|
+| [AgentConfig](builder-AgentConfig) | The config for the YAML schema to create an agent. |
+| [BaseAgentConfig](builder-BaseAgentConfig) | The config for the YAML schema of a BaseAgent. |
+| [AgentRefConfig](builder-AgentRefConfig) | The config for the reference to another agent. |
+| [ArgumentConfig](builder-ArgumentConfig) | An argument passed to a function or a class's constructor. |
+| [CodeConfig](builder-CodeConfig) | Code reference config for a variable, a function, or a class. |
+| [ContextCacheConfig](builder-ContextCacheConfig) | Configuration for context caching across all agents in an app. |
+| [LlmAgentConfig](builder-LlmAgentConfig) | The config for the YAML schema of a LlmAgent. |
+| [LoopAgentConfig](builder-LoopAgentConfig) | The config for the YAML schema of a LoopAgent. |
+| [ParallelAgentConfig](builder-ParallelAgentConfig) | The config for the YAML schema of a ParallelAgent. |
+| [RunConfig](builder-RunConfig) | Configs for runtime behavior of agents. |
+| [ToolThreadPoolConfig](builder-ToolThreadPoolConfig) | Configuration for the tool thread pool executor. |
+| [SequentialAgentConfig](builder-SequentialAgentConfig) | The config for the YAML schema of a SequentialAgent. |
+| [EventsCompactionConfig](builder-EventsCompactionConfig) | The config of event compaction for an application. |
+| [ResumabilityConfig](builder-ResumabilityConfig) | The config of the resumability for an application. |
+| [FeatureConfig](builder-FeatureConfig) | Feature configuration. |
+| [AudioCacheConfig](builder-AudioCacheConfig) | Configuration for audio caching behavior. |
+| [SimplePromptOptimizerConfig](builder-SimplePromptOptimizerConfig) | Configuration for the IterativePromptOptimizer. |
+| [BigQueryLoggerConfig](builder-BigQueryLoggerConfig) | Configuration for the BigQueryAgentAnalyticsPlugin. |
+| [RetryConfig](builder-RetryConfig) | Configuration for retrying failed BigQuery write operations. |
+| [GetSessionConfig](builder-GetSessionConfig) | The configuration of getting a session. |
+| [BaseGoogleCredentialsConfig](builder-BaseGoogleCredentialsConfig) | Base Google Credentials Configuration for Google API tools (Experimental). |
+| [AgentSimulatorConfig](builder-AgentSimulatorConfig) | Configuration for AgentSimulator. |
+| [InjectionConfig](builder-InjectionConfig) | Injection configuration for a tool. |
+| [ToolSimulationConfig](builder-ToolSimulationConfig) | Simulation configuration for a single tool. |
+| [AgentToolConfig](builder-AgentToolConfig) | The config for the AgentTool. |
+| [BigQueryCredentialsConfig](builder-BigQueryCredentialsConfig) | BigQuery Credentials Configuration for Google API tools (Experimental). |
+| [BigQueryToolConfig](builder-BigQueryToolConfig) | Configuration for BigQuery tools. |
+| [BigtableCredentialsConfig](builder-BigtableCredentialsConfig) | Bigtable Credentials Configuration for Google API tools (Experimental). |
+| [DataAgentToolConfig](builder-DataAgentToolConfig) | Configuration for Data Agent tools. |
+| [DataAgentCredentialsConfig](builder-DataAgentCredentialsConfig) | Data Agent Credentials Configuration for Google API tools. |
+| [ExampleToolConfig](builder-ExampleToolConfig) | Fluent builder for ExampleToolConfig. |
+| [McpToolsetConfig](builder-McpToolsetConfig) | The config for McpToolset. |
+| [PubSubToolConfig](builder-PubSubToolConfig) | Configuration for Pub/Sub tools. |
+| [PubSubCredentialsConfig](builder-PubSubCredentialsConfig) | Pub/Sub Credentials Configuration for Google API tools (Experimental). |
+| [SpannerCredentialsConfig](builder-SpannerCredentialsConfig) | Spanner Credentials Configuration for Google API tools (Experimental). |
+| [BaseToolConfig](builder-BaseToolConfig) | The base class for all tool configs. |
+| [ToolArgsConfig](builder-ToolArgsConfig) | Config to host free key-value pairs for the args in ToolConfig. |
+| [ToolConfig](builder-ToolConfig) | The configuration for a tool. |
+
+(builder-AgentConfig)=
+## AgentConfig
 
 > Fluent builder for `google.adk.agents.agent_config.AgentConfig`
 
 The config for the YAML schema to create an agent.
 
-## Constructor
+**Quick start:**
 
 ```python
-AgentConfig(root)
+from adk_fluent import AgentConfig
+
+result = (
+    AgentConfig("root_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+AgentConfig(root: RootModelRootType)
 ```
 
 | Argument | Type |
 |----------|------|
 | `root` | `RootModelRootType` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> AgentConfig`
+#### `.build() -> AgentConfig`
 
 Resolve into a native ADK AgentConfig.
 
 ---
 
-# BaseAgentConfig
+(builder-BaseAgentConfig)=
+## BaseAgentConfig
 
 > Fluent builder for `google.adk.agents.base_agent_config.BaseAgentConfig`
 
 The config for the YAML schema of a BaseAgent.
 
-## Constructor
+**Quick start:**
 
 ```python
-BaseAgentConfig(name)
+from adk_fluent import BaseAgentConfig
+
+result = (
+    BaseAgentConfig("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BaseAgentConfig(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BaseAgentConfig`
+#### `.build() -> BaseAgentConfig`
 
 Resolve into a native ADK BaseAgentConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -67,19 +134,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# AgentRefConfig
+(builder-AgentRefConfig)=
+## AgentRefConfig
 
 > Fluent builder for `google.adk.agents.common_configs.AgentRefConfig`
 
 The config for the reference to another agent.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> AgentRefConfig`
+```python
+from adk_fluent import AgentRefConfig
+
+result = (
+    AgentRefConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> AgentRefConfig`
 
 Resolve into a native ADK AgentRefConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -90,29 +169,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ArgumentConfig
+(builder-ArgumentConfig)=
+## ArgumentConfig
 
 > Fluent builder for `google.adk.agents.common_configs.ArgumentConfig`
 
 An argument passed to a function or a class's constructor.
 
-## Constructor
+**Quick start:**
 
 ```python
-ArgumentConfig(value)
+from adk_fluent import ArgumentConfig
+
+result = (
+    ArgumentConfig("value_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+ArgumentConfig(value: Any)
 ```
 
 | Argument | Type |
 |----------|------|
 | `value` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ArgumentConfig`
+#### `.build() -> ArgumentConfig`
 
 Resolve into a native ADK ArgumentConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -122,29 +213,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# CodeConfig
+(builder-CodeConfig)=
+## CodeConfig
 
 > Fluent builder for `google.adk.agents.common_configs.CodeConfig`
 
 Code reference config for a variable, a function, or a class.
 
-## Constructor
+**Quick start:**
 
 ```python
-CodeConfig(name)
+from adk_fluent import CodeConfig
+
+result = (
+    CodeConfig("name_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+CodeConfig(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> CodeConfig`
+#### `.build() -> CodeConfig`
 
 Resolve into a native ADK CodeConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -154,19 +257,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ContextCacheConfig
+(builder-ContextCacheConfig)=
+## ContextCacheConfig
 
 > Fluent builder for `google.adk.agents.context_cache_config.ContextCacheConfig`
 
 Configuration for context caching across all agents in an app.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ContextCacheConfig`
+```python
+from adk_fluent import ContextCacheConfig
+
+result = (
+    ContextCacheConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ContextCacheConfig`
 
 Resolve into a native ADK ContextCacheConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -178,16 +293,29 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# LlmAgentConfig
+(builder-LlmAgentConfig)=
+## LlmAgentConfig
 
 > Fluent builder for `google.adk.agents.llm_agent_config.LlmAgentConfig`
 
 The config for the YAML schema of a LlmAgent.
 
-## Constructor
+**Quick start:**
 
 ```python
-LlmAgentConfig(name, instruction)
+from adk_fluent import LlmAgentConfig
+
+result = (
+    LlmAgentConfig("name_value", "instruction_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+LlmAgentConfig(name: str, instruction: str)
 ```
 
 | Argument | Type |
@@ -195,39 +323,40 @@ LlmAgentConfig(name, instruction)
 | `name` | `str` |
 | `instruction` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-### `.history(value)`
+#### `.history(value: Literal[default, none]) -> Self`
 
-- **Type:** `Literal[default, none]`
 - **Maps to:** `include_contents`
 - Optional. LlmAgent.include_contents.
 
-### `.instruct(value)`
+#### `.instruct(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `instruction`
 - Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content.
 
-### `.outputs(value)`
+#### `.outputs(value: Union[str, NoneType]) -> Self`
 
-- **Type:** `Union[str, NoneType]`
 - **Maps to:** `output_key`
 - Optional. LlmAgent.output_key.
 
-## Terminal Methods
+#### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
-### `.build() -> LlmAgentConfig`
+- **Maps to:** `static_instruction`
+- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion]).
+
+### Terminal Methods
+
+#### `.build() -> LlmAgentConfig`
 
 Resolve into a native ADK LlmAgentConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -239,7 +368,6 @@ These fields are available via `__getattr__` forwarding.
 | `.after_agent_callbacks(value)` | `Union[list[CodeConfig], NoneType]` |
 | `.model(value)` | `Union[str, NoneType]` |
 | `.model_code(value)` | `Union[CodeConfig, NoneType]` |
-| `.static_instruction(value)` | `Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]` |
 | `.disallow_transfer_to_parent(value)` | `Union[bool, NoneType]` |
 | `.disallow_transfer_to_peers(value)` | `Union[bool, NoneType]` |
 | `.input_schema(value)` | `Union[CodeConfig, NoneType]` |
@@ -253,37 +381,49 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# LoopAgentConfig
+(builder-LoopAgentConfig)=
+## LoopAgentConfig
 
 > Fluent builder for `google.adk.agents.loop_agent_config.LoopAgentConfig`
 
 The config for the YAML schema of a LoopAgent.
 
-## Constructor
+**Quick start:**
 
 ```python
-LoopAgentConfig(name)
+from adk_fluent import LoopAgentConfig
+
+result = (
+    LoopAgentConfig("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+LoopAgentConfig(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> LoopAgentConfig`
+#### `.build() -> LoopAgentConfig`
 
 Resolve into a native ADK LoopAgentConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -297,37 +437,49 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ParallelAgentConfig
+(builder-ParallelAgentConfig)=
+## ParallelAgentConfig
 
 > Fluent builder for `google.adk.agents.parallel_agent_config.ParallelAgentConfig`
 
 The config for the YAML schema of a ParallelAgent.
 
-## Constructor
+**Quick start:**
 
 ```python
-ParallelAgentConfig(name)
+from adk_fluent import ParallelAgentConfig
+
+result = (
+    ParallelAgentConfig("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+ParallelAgentConfig(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ParallelAgentConfig`
+#### `.build() -> ParallelAgentConfig`
 
 Resolve into a native ADK ParallelAgentConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -340,19 +492,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# RunConfig
+(builder-RunConfig)=
+## RunConfig
 
 > Fluent builder for `google.adk.agents.run_config.RunConfig`
 
 Configs for runtime behavior of agents.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> RunConfig`
+```python
+from adk_fluent import RunConfig
+
+result = (
+    RunConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> RunConfig`
 
 Resolve into a native ADK RunConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -378,19 +542,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ToolThreadPoolConfig
+(builder-ToolThreadPoolConfig)=
+## ToolThreadPoolConfig
 
 > Fluent builder for `google.adk.agents.run_config.ToolThreadPoolConfig`
 
 Configuration for the tool thread pool executor.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ToolThreadPoolConfig`
+```python
+from adk_fluent import ToolThreadPoolConfig
+
+result = (
+    ToolThreadPoolConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ToolThreadPoolConfig`
 
 Resolve into a native ADK ToolThreadPoolConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -400,37 +576,49 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# SequentialAgentConfig
+(builder-SequentialAgentConfig)=
+## SequentialAgentConfig
 
 > Fluent builder for `google.adk.agents.sequential_agent_config.SequentialAgentConfig`
 
 The config for the YAML schema of a SequentialAgent.
 
-## Constructor
+**Quick start:**
 
 ```python
-SequentialAgentConfig(name)
+from adk_fluent import SequentialAgentConfig
+
+result = (
+    SequentialAgentConfig("name_value")
+    .describe("...")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+SequentialAgentConfig(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Methods
+### Methods
 
-### `.describe(value)`
+#### `.describe(value: str) -> Self`
 
-- **Type:** `str`
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> SequentialAgentConfig`
+#### `.build() -> SequentialAgentConfig`
 
 Resolve into a native ADK SequentialAgentConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -443,16 +631,28 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# EventsCompactionConfig
+(builder-EventsCompactionConfig)=
+## EventsCompactionConfig
 
 > Fluent builder for `google.adk.apps.app.EventsCompactionConfig`
 
 The config of event compaction for an application.
 
-## Constructor
+**Quick start:**
 
 ```python
-EventsCompactionConfig(compaction_interval, overlap_size)
+from adk_fluent import EventsCompactionConfig
+
+result = (
+    EventsCompactionConfig("compaction_interval_value", "overlap_size_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+EventsCompactionConfig(compaction_interval: int, overlap_size: int)
 ```
 
 | Argument | Type |
@@ -460,13 +660,13 @@ EventsCompactionConfig(compaction_interval, overlap_size)
 | `compaction_interval` | `int` |
 | `overlap_size` | `int` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> EventsCompactionConfig`
+#### `.build() -> EventsCompactionConfig`
 
 Resolve into a native ADK EventsCompactionConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -478,19 +678,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ResumabilityConfig
+(builder-ResumabilityConfig)=
+## ResumabilityConfig
 
 > Fluent builder for `google.adk.apps.app.ResumabilityConfig`
 
 The config of the resumability for an application.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ResumabilityConfig`
+```python
+from adk_fluent import ResumabilityConfig
+
+result = (
+    ResumabilityConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ResumabilityConfig`
 
 Resolve into a native ADK ResumabilityConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -500,29 +712,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# FeatureConfig
+(builder-FeatureConfig)=
+## FeatureConfig
 
 > Fluent builder for `google.adk.features._feature_registry.FeatureConfig`
 
 Feature configuration.
 
-## Constructor
+**Quick start:**
 
 ```python
-FeatureConfig(stage)
+from adk_fluent import FeatureConfig
+
+result = (
+    FeatureConfig("stage_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+FeatureConfig(stage: FeatureStage)
 ```
 
 | Argument | Type |
 |----------|------|
 | `stage` | `FeatureStage` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> FeatureConfig`
+#### `.build() -> FeatureConfig`
 
 Resolve into a native ADK FeatureConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -532,19 +756,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# AudioCacheConfig
+(builder-AudioCacheConfig)=
+## AudioCacheConfig
 
 > Fluent builder for `google.adk.flows.llm_flows.audio_cache_manager.AudioCacheConfig`
 
 Configuration for audio caching behavior.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> AudioCacheConfig`
+```python
+from adk_fluent import AudioCacheConfig
+
+result = (
+    AudioCacheConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> AudioCacheConfig`
 
 Resolve into a native ADK AudioCacheConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -556,19 +792,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# SimplePromptOptimizerConfig
+(builder-SimplePromptOptimizerConfig)=
+## SimplePromptOptimizerConfig
 
 > Fluent builder for `google.adk.optimization.simple_prompt_optimizer.SimplePromptOptimizerConfig`
 
 Configuration for the IterativePromptOptimizer.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> SimplePromptOptimizerConfig`
+```python
+from adk_fluent import SimplePromptOptimizerConfig
+
+result = (
+    SimplePromptOptimizerConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> SimplePromptOptimizerConfig`
 
 Resolve into a native ADK SimplePromptOptimizerConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -581,19 +829,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BigQueryLoggerConfig
+(builder-BigQueryLoggerConfig)=
+## BigQueryLoggerConfig
 
 > Fluent builder for `google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryLoggerConfig`
 
 Configuration for the BigQueryAgentAnalyticsPlugin.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> BigQueryLoggerConfig`
+```python
+from adk_fluent import BigQueryLoggerConfig
+
+result = (
+    BigQueryLoggerConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> BigQueryLoggerConfig`
 
 Resolve into a native ADK BigQueryLoggerConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -619,19 +879,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# RetryConfig
+(builder-RetryConfig)=
+## RetryConfig
 
 > Fluent builder for `google.adk.plugins.bigquery_agent_analytics_plugin.RetryConfig`
 
 Configuration for retrying failed BigQuery write operations.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> RetryConfig`
+```python
+from adk_fluent import RetryConfig
+
+result = (
+    RetryConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> RetryConfig`
 
 Resolve into a native ADK RetryConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -644,19 +916,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# GetSessionConfig
+(builder-GetSessionConfig)=
+## GetSessionConfig
 
 > Fluent builder for `google.adk.sessions.base_session_service.GetSessionConfig`
 
 The configuration of getting a session.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> GetSessionConfig`
+```python
+from adk_fluent import GetSessionConfig
+
+result = (
+    GetSessionConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> GetSessionConfig`
 
 Resolve into a native ADK GetSessionConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -667,19 +951,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BaseGoogleCredentialsConfig
+(builder-BaseGoogleCredentialsConfig)=
+## BaseGoogleCredentialsConfig
 
 > Fluent builder for `google.adk.tools._google_credentials.BaseGoogleCredentialsConfig`
 
 Base Google Credentials Configuration for Google API tools (Experimental).
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> BaseGoogleCredentialsConfig`
+```python
+from adk_fluent import BaseGoogleCredentialsConfig
+
+result = (
+    BaseGoogleCredentialsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> BaseGoogleCredentialsConfig`
 
 Resolve into a native ADK BaseGoogleCredentialsConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -693,19 +989,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# AgentSimulatorConfig
+(builder-AgentSimulatorConfig)=
+## AgentSimulatorConfig
 
 > Fluent builder for `google.adk.tools.agent_simulator.agent_simulator_config.AgentSimulatorConfig`
 
 Configuration for AgentSimulator.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> AgentSimulatorConfig`
+```python
+from adk_fluent import AgentSimulatorConfig
+
+result = (
+    AgentSimulatorConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> AgentSimulatorConfig`
 
 Resolve into a native ADK AgentSimulatorConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -719,19 +1027,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# InjectionConfig
+(builder-InjectionConfig)=
+## InjectionConfig
 
 > Fluent builder for `google.adk.tools.agent_simulator.agent_simulator_config.InjectionConfig`
 
 Injection configuration for a tool.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> InjectionConfig`
+```python
+from adk_fluent import InjectionConfig
+
+result = (
+    InjectionConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> InjectionConfig`
 
 Resolve into a native ADK InjectionConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -746,29 +1066,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ToolSimulationConfig
+(builder-ToolSimulationConfig)=
+## ToolSimulationConfig
 
 > Fluent builder for `google.adk.tools.agent_simulator.agent_simulator_config.ToolSimulationConfig`
 
 Simulation configuration for a single tool.
 
-## Constructor
+**Quick start:**
 
 ```python
-ToolSimulationConfig(tool_name)
+from adk_fluent import ToolSimulationConfig
+
+result = (
+    ToolSimulationConfig("tool_name_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+ToolSimulationConfig(tool_name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `tool_name` | `str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ToolSimulationConfig`
+#### `.build() -> ToolSimulationConfig`
 
 Resolve into a native ADK ToolSimulationConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -779,29 +1111,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# AgentToolConfig
+(builder-AgentToolConfig)=
+## AgentToolConfig
 
 > Fluent builder for `google.adk.tools.agent_tool.AgentToolConfig`
 
 The config for the AgentTool.
 
-## Constructor
+**Quick start:**
 
 ```python
-AgentToolConfig(agent)
+from adk_fluent import AgentToolConfig
+
+result = (
+    AgentToolConfig("agent_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+AgentToolConfig(agent: AgentRefConfig)
 ```
 
 | Argument | Type |
 |----------|------|
 | `agent` | `AgentRefConfig` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> AgentToolConfig`
+#### `.build() -> AgentToolConfig`
 
 Resolve into a native ADK AgentToolConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -812,19 +1156,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BigQueryCredentialsConfig
+(builder-BigQueryCredentialsConfig)=
+## BigQueryCredentialsConfig
 
 > Fluent builder for `google.adk.tools.bigquery.bigquery_credentials.BigQueryCredentialsConfig`
 
 BigQuery Credentials Configuration for Google API tools (Experimental).
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> BigQueryCredentialsConfig`
+```python
+from adk_fluent import BigQueryCredentialsConfig
+
+result = (
+    BigQueryCredentialsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> BigQueryCredentialsConfig`
 
 Resolve into a native ADK BigQueryCredentialsConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -838,19 +1194,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BigQueryToolConfig
+(builder-BigQueryToolConfig)=
+## BigQueryToolConfig
 
 > Fluent builder for `google.adk.tools.bigquery.config.BigQueryToolConfig`
 
 Configuration for BigQuery tools.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> BigQueryToolConfig`
+```python
+from adk_fluent import BigQueryToolConfig
+
+result = (
+    BigQueryToolConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> BigQueryToolConfig`
 
 Resolve into a native ADK BigQueryToolConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -866,19 +1234,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BigtableCredentialsConfig
+(builder-BigtableCredentialsConfig)=
+## BigtableCredentialsConfig
 
 > Fluent builder for `google.adk.tools.bigtable.bigtable_credentials.BigtableCredentialsConfig`
 
 Bigtable Credentials Configuration for Google API tools (Experimental).
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> BigtableCredentialsConfig`
+```python
+from adk_fluent import BigtableCredentialsConfig
+
+result = (
+    BigtableCredentialsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> BigtableCredentialsConfig`
 
 Resolve into a native ADK BigtableCredentialsConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -892,19 +1272,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# DataAgentToolConfig
+(builder-DataAgentToolConfig)=
+## DataAgentToolConfig
 
 > Fluent builder for `google.adk.tools.data_agent.config.DataAgentToolConfig`
 
 Configuration for Data Agent tools.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> DataAgentToolConfig`
+```python
+from adk_fluent import DataAgentToolConfig
+
+result = (
+    DataAgentToolConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> DataAgentToolConfig`
 
 Resolve into a native ADK DataAgentToolConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -914,19 +1306,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# DataAgentCredentialsConfig
+(builder-DataAgentCredentialsConfig)=
+## DataAgentCredentialsConfig
 
 > Fluent builder for `google.adk.tools.data_agent.credentials.DataAgentCredentialsConfig`
 
 Data Agent Credentials Configuration for Google API tools.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> DataAgentCredentialsConfig`
+```python
+from adk_fluent import DataAgentCredentialsConfig
+
+result = (
+    DataAgentCredentialsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> DataAgentCredentialsConfig`
 
 Resolve into a native ADK DataAgentCredentialsConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -940,43 +1344,67 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ExampleToolConfig
+(builder-ExampleToolConfig)=
+## ExampleToolConfig
 
 > Fluent builder for `google.adk.tools.example_tool.ExampleToolConfig`
 
 Fluent builder for ExampleToolConfig.
 
-## Constructor
+**Quick start:**
 
 ```python
-ExampleToolConfig(examples)
+from adk_fluent import ExampleToolConfig
+
+result = (
+    ExampleToolConfig("examples_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+ExampleToolConfig(examples: Union[list[Example], str])
 ```
 
 | Argument | Type |
 |----------|------|
 | `examples` | `Union[list[Example], str]` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ExampleToolConfig`
+#### `.build() -> ExampleToolConfig`
 
 Resolve into a native ADK ExampleToolConfig.
 
 ---
 
-# McpToolsetConfig
+(builder-McpToolsetConfig)=
+## McpToolsetConfig
 
 > Fluent builder for `google.adk.tools.mcp_tool.mcp_toolset.McpToolsetConfig`
 
 The config for McpToolset.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> McpToolsetConfig`
+```python
+from adk_fluent import McpToolsetConfig
+
+result = (
+    McpToolsetConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> McpToolsetConfig`
 
 Resolve into a native ADK McpToolsetConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -994,19 +1422,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# PubSubToolConfig
+(builder-PubSubToolConfig)=
+## PubSubToolConfig
 
 > Fluent builder for `google.adk.tools.pubsub.config.PubSubToolConfig`
 
 Configuration for Pub/Sub tools.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> PubSubToolConfig`
+```python
+from adk_fluent import PubSubToolConfig
+
+result = (
+    PubSubToolConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> PubSubToolConfig`
 
 Resolve into a native ADK PubSubToolConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -1016,19 +1456,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# PubSubCredentialsConfig
+(builder-PubSubCredentialsConfig)=
+## PubSubCredentialsConfig
 
 > Fluent builder for `google.adk.tools.pubsub.pubsub_credentials.PubSubCredentialsConfig`
 
 Pub/Sub Credentials Configuration for Google API tools (Experimental).
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> PubSubCredentialsConfig`
+```python
+from adk_fluent import PubSubCredentialsConfig
+
+result = (
+    PubSubCredentialsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> PubSubCredentialsConfig`
 
 Resolve into a native ADK PubSubCredentialsConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -1042,19 +1494,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# SpannerCredentialsConfig
+(builder-SpannerCredentialsConfig)=
+## SpannerCredentialsConfig
 
 > Fluent builder for `google.adk.tools.spanner.spanner_credentials.SpannerCredentialsConfig`
 
 Spanner Credentials Configuration for Google API tools (Experimental).
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> SpannerCredentialsConfig`
+```python
+from adk_fluent import SpannerCredentialsConfig
+
+result = (
+    SpannerCredentialsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> SpannerCredentialsConfig`
 
 Resolve into a native ADK SpannerCredentialsConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -1068,57 +1532,93 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BaseToolConfig
+(builder-BaseToolConfig)=
+## BaseToolConfig
 
 > Fluent builder for `google.adk.tools.tool_configs.BaseToolConfig`
 
 The base class for all tool configs.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> BaseToolConfig`
+```python
+from adk_fluent import BaseToolConfig
+
+result = (
+    BaseToolConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> BaseToolConfig`
 
 Resolve into a native ADK BaseToolConfig.
 
 ---
 
-# ToolArgsConfig
+(builder-ToolArgsConfig)=
+## ToolArgsConfig
 
 > Fluent builder for `google.adk.tools.tool_configs.ToolArgsConfig`
 
 Config to host free key-value pairs for the args in ToolConfig.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ToolArgsConfig`
+```python
+from adk_fluent import ToolArgsConfig
+
+result = (
+    ToolArgsConfig()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ToolArgsConfig`
 
 Resolve into a native ADK ToolArgsConfig.
 
 ---
 
-# ToolConfig
+(builder-ToolConfig)=
+## ToolConfig
 
 > Fluent builder for `google.adk.tools.tool_configs.ToolConfig`
 
 The configuration for a tool.
 
-## Constructor
+**Quick start:**
 
 ```python
-ToolConfig(name)
+from adk_fluent import ToolConfig
+
+result = (
+    ToolConfig("name_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+ToolConfig(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ToolConfig`
+#### `.build() -> ToolConfig`
 
 Resolve into a native ADK ToolConfig.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 

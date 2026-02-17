@@ -1,9 +1,11 @@
 # Sequential Pipeline
 
+*How to compose agents into a sequential pipeline.*
+
 _Source: `04_sequential_pipeline.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -24,9 +26,8 @@ pipeline_native = SequentialAgent(
     sub_agents=[researcher, writer],
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -38,6 +39,8 @@ pipeline_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -47,3 +50,7 @@ assert len(pipeline_fluent.sub_agents) == 2
 assert pipeline_fluent.sub_agents[0].name == "researcher"
 assert pipeline_fluent.sub_agents[1].name == "writer"
 ```
+
+:::{seealso}
+API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
+:::

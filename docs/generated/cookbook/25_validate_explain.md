@@ -1,16 +1,17 @@
 # Validate and Explain
 
+*How to validate and explain builder configurations.*
+
 _Source: `25_validate_explain.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in validation or explanation mechanism.
 # Errors surface only at runtime, deep in the call stack.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -25,6 +26,8 @@ agent = (
 # .explain() — inspect builder state for debugging
 explanation = agent.explain()
 ```
+:::
+::::
 
 ## Equivalence
 

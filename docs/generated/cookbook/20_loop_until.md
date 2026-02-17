@@ -1,9 +1,11 @@
 # Conditional Loop Exit with loop_until
 
+*How to create looping agent workflows.*
+
 _Source: `20_loop_until.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in conditional loop exit. You'd need to:
 #   1. Create a custom BaseAgent that evaluates a predicate
@@ -11,9 +13,8 @@ _Source: `20_loop_until.py`_
 #   3. Manually wire it into the LoopAgent's sub_agents
 # This is ~30 lines of boilerplate per loop condition.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -35,6 +36,8 @@ manual_loop = (
     .max_iterations(10)
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -58,3 +61,7 @@ built = refinement.build()
 checkpoint = built.sub_agents[-1]
 assert checkpoint.name == "_until_check"
 ```
+
+:::{seealso}
+API reference: [Loop](../api/workflow.md#builder-Loop)
+:::

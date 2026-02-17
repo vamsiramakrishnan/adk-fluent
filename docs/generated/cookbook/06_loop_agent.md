@@ -1,9 +1,11 @@
 # Loop Agent
 
+*How to create looping agent workflows.*
+
 _Source: `06_loop_agent.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.loop_agent import LoopAgent
@@ -17,9 +19,8 @@ loop_native = LoopAgent(
     ],
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -31,6 +32,8 @@ loop_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -39,3 +42,7 @@ assert type(loop_native) == type(loop_fluent)
 assert loop_fluent.max_iterations == 3
 assert len(loop_fluent.sub_agents) == 2
 ```
+
+:::{seealso}
+API reference: [Agent](../api/agent.md#builder-Agent)
+:::

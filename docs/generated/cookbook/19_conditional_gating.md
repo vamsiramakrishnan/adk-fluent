@@ -1,9 +1,11 @@
 # Conditional Gating with proceed_if
 
+*How to apply conditional gating logic.*
+
 _Source: `19_conditional_gating.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires manually implementing before_agent_callback
 # that returns Content to skip an agent:
@@ -21,9 +23,8 @@ _Source: `19_conditional_gating.py`_
 #       before_agent_callback=gate,
 #   )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -46,6 +47,8 @@ formatter = (
 
 pipeline = validator >> enricher >> formatter
 ```
+:::
+::::
 
 ## Equivalence
 

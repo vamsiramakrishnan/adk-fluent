@@ -1,9 +1,11 @@
 # One-Shot Execution with .ask()
 
+*How to use one-shot execution for quick queries.*
+
 _Source: `08_one_shot_ask.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires 15+ lines:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -23,9 +25,8 @@ _Source: `08_one_shot_ask.py`_
 #
 #   result = asyncio.run(run())
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -35,6 +36,8 @@ from adk_fluent import Agent
 # Builder mechanics verification (no LLM call):
 builder = Agent("q").model("gemini-2.5-flash").instruct("Answer concisely.")
 ```
+:::
+::::
 
 ## Equivalence
 

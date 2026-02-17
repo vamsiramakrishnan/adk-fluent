@@ -1,9 +1,11 @@
 # Parallel FanOut
 
+*How to run agents in parallel using FanOut.*
+
 _Source: `05_parallel_fanout.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.parallel_agent import ParallelAgent
@@ -16,9 +18,8 @@ fanout_native = ParallelAgent(
     ],
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, FanOut
 
@@ -29,6 +30,8 @@ fanout_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -36,3 +39,7 @@ fanout_fluent = (
 assert type(fanout_native) == type(fanout_fluent)
 assert len(fanout_fluent.sub_agents) == 2
 ```
+
+:::{seealso}
+API reference: [FanOut](../api/workflow.md#builder-FanOut)
+:::

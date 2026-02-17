@@ -1,17 +1,18 @@
 # Serialization: to_dict, from_dict, to_yaml
 
+*How to serialize and deserialize builder configurations.*
+
 _Source: `26_serialization.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK agents are Pydantic models with model_dump(), but this
 # serializes the BUILT agent, not the builder configuration.
 # There's no way to reconstruct a builder from a serialized agent.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -34,6 +35,8 @@ yaml_str = agent.to_yaml()
 # Reconstruct from YAML
 from_yaml = Agent.from_yaml(yaml_str)
 ```
+:::
+::::
 
 ## Equivalence
 

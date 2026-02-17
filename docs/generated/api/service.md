@@ -1,15 +1,47 @@
 # Module: `service`
 
-# BaseArtifactService
+## Builders in this module
+
+| Builder | Description |
+|---------|-------------|
+| [BaseArtifactService](builder-BaseArtifactService) | Abstract base class for artifact services. |
+| [FileArtifactService](builder-FileArtifactService) | Stores filesystem-backed artifacts beneath a configurable root directory. |
+| [GcsArtifactService](builder-GcsArtifactService) | An artifact service implementation using Google Cloud Storage (GCS). |
+| [InMemoryArtifactService](builder-InMemoryArtifactService) | An in-memory implementation of the artifact service. |
+| [PerAgentDatabaseSessionService](builder-PerAgentDatabaseSessionService) | Routes session storage to per-agent `. |
+| [BaseMemoryService](builder-BaseMemoryService) | Base class for memory services. |
+| [InMemoryMemoryService](builder-InMemoryMemoryService) | An in-memory memory service for prototyping purpose only. |
+| [VertexAiMemoryBankService](builder-VertexAiMemoryBankService) | Implementation of the BaseMemoryService using Vertex AI Memory Bank. |
+| [VertexAiRagMemoryService](builder-VertexAiRagMemoryService) | A memory service that uses Vertex AI RAG for storage and retrieval. |
+| [BaseSessionService](builder-BaseSessionService) | Base class for session services. |
+| [DatabaseSessionService](builder-DatabaseSessionService) | A session service that uses a database for storage. |
+| [InMemorySessionService](builder-InMemorySessionService) | An in-memory implementation of the session service. |
+| [SqliteSessionService](builder-SqliteSessionService) | A session service that uses an SQLite database for storage via aiosqlite. |
+| [VertexAiSessionService](builder-VertexAiSessionService) | Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. |
+| [ForwardingArtifactService](builder-ForwardingArtifactService) | Artifact service that forwards to the parent tool context. |
+
+(builder-BaseArtifactService)=
+## BaseArtifactService
 
 > Fluent builder for `google.adk.artifacts.base_artifact_service.BaseArtifactService`
 
 Abstract base class for artifact services.
 
-## Constructor
+**Quick start:**
 
 ```python
-BaseArtifactService(args, kwargs)
+from adk_fluent import BaseArtifactService
+
+result = (
+    BaseArtifactService("args_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BaseArtifactService(args: Any, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -17,48 +49,72 @@ BaseArtifactService(args, kwargs)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BaseArtifactService`
+#### `.build() -> BaseArtifactService`
 
 Resolve into a native ADK BaseArtifactService.
 
 ---
 
-# FileArtifactService
+(builder-FileArtifactService)=
+## FileArtifactService
 
 > Fluent builder for `google.adk.artifacts.file_artifact_service.FileArtifactService`
 
 Stores filesystem-backed artifacts beneath a configurable root directory.
 
-## Constructor
+**Quick start:**
 
 ```python
-FileArtifactService(root_dir)
+from adk_fluent import FileArtifactService
+
+result = (
+    FileArtifactService("root_dir_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+FileArtifactService(root_dir: Path | str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `root_dir` | `Path | str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> FileArtifactService`
+#### `.build() -> FileArtifactService`
 
 Resolve into a native ADK FileArtifactService.
 
 ---
 
-# GcsArtifactService
+(builder-GcsArtifactService)=
+## GcsArtifactService
 
 > Fluent builder for `google.adk.artifacts.gcs_artifact_service.GcsArtifactService`
 
 An artifact service implementation using Google Cloud Storage (GCS).
 
-## Constructor
+**Quick start:**
 
 ```python
-GcsArtifactService(bucket_name, kwargs)
+from adk_fluent import GcsArtifactService
+
+result = (
+    GcsArtifactService("bucket_name_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+GcsArtifactService(bucket_name: str, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -66,27 +122,39 @@ GcsArtifactService(bucket_name, kwargs)
 | `bucket_name` | `str` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> GcsArtifactService`
+#### `.build() -> GcsArtifactService`
 
 Resolve into a native ADK GcsArtifactService.
 
 ---
 
-# InMemoryArtifactService
+(builder-InMemoryArtifactService)=
+## InMemoryArtifactService
 
 > Fluent builder for `google.adk.artifacts.in_memory_artifact_service.InMemoryArtifactService`
 
 An in-memory implementation of the artifact service.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> InMemoryArtifactService`
+```python
+from adk_fluent import InMemoryArtifactService
+
+result = (
+    InMemoryArtifactService()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> InMemoryArtifactService`
 
 Resolve into a native ADK InMemoryArtifactService.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -96,29 +164,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# PerAgentDatabaseSessionService
+(builder-PerAgentDatabaseSessionService)=
+## PerAgentDatabaseSessionService
 
 > Fluent builder for `google.adk.cli.utils.local_storage.PerAgentDatabaseSessionService`
 
 Routes session storage to per-agent `.adk/session.db` files.
 
-## Constructor
+**Quick start:**
 
 ```python
-PerAgentDatabaseSessionService(agents_root)
+from adk_fluent import PerAgentDatabaseSessionService
+
+result = (
+    PerAgentDatabaseSessionService("agents_root_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+PerAgentDatabaseSessionService(agents_root: Path | str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `agents_root` | `Path | str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> PerAgentDatabaseSessionService`
+#### `.build() -> PerAgentDatabaseSessionService`
 
 Resolve into a native ADK PerAgentDatabaseSessionService.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -128,16 +208,28 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BaseMemoryService
+(builder-BaseMemoryService)=
+## BaseMemoryService
 
 > Fluent builder for `google.adk.memory.base_memory_service.BaseMemoryService`
 
 Base class for memory services.
 
-## Constructor
+**Quick start:**
 
 ```python
-BaseMemoryService(args, kwargs)
+from adk_fluent import BaseMemoryService
+
+result = (
+    BaseMemoryService("args_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BaseMemoryService(args: Any, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -145,41 +237,65 @@ BaseMemoryService(args, kwargs)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BaseMemoryService`
+#### `.build() -> BaseMemoryService`
 
 Resolve into a native ADK BaseMemoryService.
 
 ---
 
-# InMemoryMemoryService
+(builder-InMemoryMemoryService)=
+## InMemoryMemoryService
 
 > Fluent builder for `google.adk.memory.in_memory_memory_service.InMemoryMemoryService`
 
 An in-memory memory service for prototyping purpose only.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> InMemoryMemoryService`
+```python
+from adk_fluent import InMemoryMemoryService
+
+result = (
+    InMemoryMemoryService()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> InMemoryMemoryService`
 
 Resolve into a native ADK InMemoryMemoryService.
 
 ---
 
-# VertexAiMemoryBankService
+(builder-VertexAiMemoryBankService)=
+## VertexAiMemoryBankService
 
 > Fluent builder for `google.adk.memory.vertex_ai_memory_bank_service.VertexAiMemoryBankService`
 
 Implementation of the BaseMemoryService using Vertex AI Memory Bank.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> VertexAiMemoryBankService`
+```python
+from adk_fluent import VertexAiMemoryBankService
+
+result = (
+    VertexAiMemoryBankService()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> VertexAiMemoryBankService`
 
 Resolve into a native ADK VertexAiMemoryBankService.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -192,19 +308,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# VertexAiRagMemoryService
+(builder-VertexAiRagMemoryService)=
+## VertexAiRagMemoryService
 
 > Fluent builder for `google.adk.memory.vertex_ai_rag_memory_service.VertexAiRagMemoryService`
 
 A memory service that uses Vertex AI RAG for storage and retrieval.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> VertexAiRagMemoryService`
+```python
+from adk_fluent import VertexAiRagMemoryService
+
+result = (
+    VertexAiRagMemoryService()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> VertexAiRagMemoryService`
 
 Resolve into a native ADK VertexAiRagMemoryService.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -216,16 +344,28 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BaseSessionService
+(builder-BaseSessionService)=
+## BaseSessionService
 
 > Fluent builder for `google.adk.sessions.base_session_service.BaseSessionService`
 
 Base class for session services.
 
-## Constructor
+**Quick start:**
 
 ```python
-BaseSessionService(args, kwargs)
+from adk_fluent import BaseSessionService
+
+result = (
+    BaseSessionService("args_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BaseSessionService(args: Any, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -233,24 +373,36 @@ BaseSessionService(args, kwargs)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BaseSessionService`
+#### `.build() -> BaseSessionService`
 
 Resolve into a native ADK BaseSessionService.
 
 ---
 
-# DatabaseSessionService
+(builder-DatabaseSessionService)=
+## DatabaseSessionService
 
 > Fluent builder for `google.adk.sessions.database_session_service.DatabaseSessionService`
 
 A session service that uses a database for storage.
 
-## Constructor
+**Quick start:**
 
 ```python
-DatabaseSessionService(db_url, kwargs)
+from adk_fluent import DatabaseSessionService
+
+result = (
+    DatabaseSessionService("db_url_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+DatabaseSessionService(db_url: str, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -258,65 +410,101 @@ DatabaseSessionService(db_url, kwargs)
 | `db_url` | `str` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> DatabaseSessionService`
+#### `.build() -> DatabaseSessionService`
 
 Resolve into a native ADK DatabaseSessionService.
 
 ---
 
-# InMemorySessionService
+(builder-InMemorySessionService)=
+## InMemorySessionService
 
 > Fluent builder for `google.adk.sessions.in_memory_session_service.InMemorySessionService`
 
 An in-memory implementation of the session service.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> InMemorySessionService`
+```python
+from adk_fluent import InMemorySessionService
+
+result = (
+    InMemorySessionService()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> InMemorySessionService`
 
 Resolve into a native ADK InMemorySessionService.
 
 ---
 
-# SqliteSessionService
+(builder-SqliteSessionService)=
+## SqliteSessionService
 
 > Fluent builder for `google.adk.sessions.sqlite_session_service.SqliteSessionService`
 
 A session service that uses an SQLite database for storage via aiosqlite.
 
-## Constructor
+**Quick start:**
 
 ```python
-SqliteSessionService(db_path)
+from adk_fluent import SqliteSessionService
+
+result = (
+    SqliteSessionService("db_path_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+SqliteSessionService(db_path: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `db_path` | `str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> SqliteSessionService`
+#### `.build() -> SqliteSessionService`
 
 Resolve into a native ADK SqliteSessionService.
 
 ---
 
-# VertexAiSessionService
+(builder-VertexAiSessionService)=
+## VertexAiSessionService
 
 > Fluent builder for `google.adk.sessions.vertex_ai_session_service.VertexAiSessionService`
 
 Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> VertexAiSessionService`
+```python
+from adk_fluent import VertexAiSessionService
+
+result = (
+    VertexAiSessionService()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> VertexAiSessionService`
 
 Resolve into a native ADK VertexAiSessionService.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -329,24 +517,36 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ForwardingArtifactService
+(builder-ForwardingArtifactService)=
+## ForwardingArtifactService
 
 > Fluent builder for `google.adk.tools._forwarding_artifact_service.ForwardingArtifactService`
 
 Artifact service that forwards to the parent tool context.
 
-## Constructor
+**Quick start:**
 
 ```python
-ForwardingArtifactService(tool_context)
+from adk_fluent import ForwardingArtifactService
+
+result = (
+    ForwardingArtifactService("tool_context_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+ForwardingArtifactService(tool_context: ToolContext)
 ```
 
 | Argument | Type |
 |----------|------|
 | `tool_context` | `ToolContext` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> ForwardingArtifactService`
+#### `.build() -> ForwardingArtifactService`
 
 Resolve into a native ADK ForwardingArtifactService.

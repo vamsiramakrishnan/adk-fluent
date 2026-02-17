@@ -1,9 +1,11 @@
 # Interactive Session with .session()
 
+*How to manage interactive sessions with agents.*
+
 _Source: `13_interactive_session.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires manual session lifecycle:
 #   runner = InMemoryRunner(agent=agent, app_name="app")
@@ -11,9 +13,8 @@ _Source: `13_interactive_session.py`_
 #   # Send messages manually with runner.run_async()
 #   # No automatic cleanup
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -24,6 +25,8 @@ from adk_fluent import Agent
 
 builder = Agent("chat").model("gemini-2.5-flash").instruct("Tutor.")
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -31,3 +34,7 @@ builder = Agent("chat").model("gemini-2.5-flash").instruct("Tutor.")
 assert hasattr(builder, "session")
 assert callable(builder.session)
 ```
+
+:::{seealso}
+API reference: [InMemorySessionService](../api/service.md#builder-InMemorySessionService)
+:::

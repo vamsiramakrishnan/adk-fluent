@@ -1,16 +1,17 @@
 # Immutable Variants with .with_()
 
+*How to create builder variants.*
+
 _Source: `23_with_variants.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK provides no cloning or variant mechanism. You'd manually
 # duplicate constructor calls, risking drift when the base config changes.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -28,6 +29,8 @@ fast = base.with_(name="fast", instruct="You are fast and concise.")
 assert base._config["name"] == "assistant"
 assert base._config["model"] == "gemini-2.5-flash"
 ```
+:::
+::::
 
 ## Equivalence
 

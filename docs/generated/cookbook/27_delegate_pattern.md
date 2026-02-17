@@ -1,9 +1,11 @@
 # Delegate Pattern: LLM-Driven Routing
 
+*How to delegate tasks between agents.*
+
 _Source: `27_delegate_pattern.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
@@ -22,9 +24,8 @@ coordinator_native = LlmAgent(
     tools=[AgentTool(agent=specialist)],
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -41,6 +42,8 @@ coordinator_fluent = (
     .delegate(code)
 )
 ```
+:::
+::::
 
 ## Equivalence
 

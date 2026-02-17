@@ -1,18 +1,19 @@
 # Agent Cloning with .clone()
 
+*How to clone and customize builders.*
+
 _Source: `10_cloning.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no clone mechanism. You must manually copy all parameters:
 #   base_args = dict(model="gemini-2.5-flash", instruction="Be helpful.")
 #   math_agent = LlmAgent(name="math", **base_args, tools=[calculator])
 #   code_agent = LlmAgent(name="code", **base_args, tools=[code_executor])
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -21,6 +22,8 @@ base = Agent("base").model("gemini-2.5-flash").instruct("Be helpful.")
 math_agent = base.clone("math").instruct("Solve math problems.")
 code_agent = base.clone("code").instruct("Write Python code.")
 ```
+:::
+::::
 
 ## Equivalence
 

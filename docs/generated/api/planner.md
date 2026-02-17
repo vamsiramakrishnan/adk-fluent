@@ -1,15 +1,35 @@
 # Module: `planner`
 
-# BasePlanner
+## Builders in this module
+
+| Builder | Description |
+|---------|-------------|
+| [BasePlanner](builder-BasePlanner) | Abstract base class for all planners. |
+| [BuiltInPlanner](builder-BuiltInPlanner) | The built-in planner that uses model's built-in thinking features. |
+| [PlanReActPlanner](builder-PlanReActPlanner) | Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. |
+
+(builder-BasePlanner)=
+## BasePlanner
 
 > Fluent builder for `google.adk.planners.base_planner.BasePlanner`
 
 Abstract base class for all planners.
 
-## Constructor
+**Quick start:**
 
 ```python
-BasePlanner(args, kwargs)
+from adk_fluent import BasePlanner
+
+result = (
+    BasePlanner("args_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BasePlanner(args: Any, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -17,48 +37,72 @@ BasePlanner(args, kwargs)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BasePlanner`
+#### `.build() -> BasePlanner`
 
 Resolve into a native ADK BasePlanner.
 
 ---
 
-# BuiltInPlanner
+(builder-BuiltInPlanner)=
+## BuiltInPlanner
 
 > Fluent builder for `google.adk.planners.built_in_planner.BuiltInPlanner`
 
 The built-in planner that uses model's built-in thinking features.
 
-## Constructor
+**Quick start:**
 
 ```python
-BuiltInPlanner(thinking_config)
+from adk_fluent import BuiltInPlanner
+
+result = (
+    BuiltInPlanner("thinking_config_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BuiltInPlanner(thinking_config: types.ThinkingConfig)
 ```
 
 | Argument | Type |
 |----------|------|
 | `thinking_config` | `types.ThinkingConfig` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BuiltInPlanner`
+#### `.build() -> BuiltInPlanner`
 
 Resolve into a native ADK BuiltInPlanner.
 
 ---
 
-# PlanReActPlanner
+(builder-PlanReActPlanner)=
+## PlanReActPlanner
 
 > Fluent builder for `google.adk.planners.plan_re_act_planner.PlanReActPlanner`
 
 Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation.
 
-## Constructor
+**Quick start:**
 
 ```python
-PlanReActPlanner(args, kwargs)
+from adk_fluent import PlanReActPlanner
+
+result = (
+    PlanReActPlanner("args_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+PlanReActPlanner(args: Any, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -66,8 +110,8 @@ PlanReActPlanner(args, kwargs)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> PlanReActPlanner`
+#### `.build() -> PlanReActPlanner`
 
 Resolve into a native ADK PlanReActPlanner.

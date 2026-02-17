@@ -1,15 +1,35 @@
 # Module: `runtime`
 
-# App
+## Builders in this module
+
+| Builder | Description |
+|---------|-------------|
+| [App](builder-App) | Represents an LLM-backed agentic application. |
+| [InMemoryRunner](builder-InMemoryRunner) | An in-memory Runner for testing and development. |
+| [Runner](builder-Runner) | The Runner class is used to run agents. |
+
+(builder-App)=
+## App
 
 > Fluent builder for `google.adk.apps.app.App`
 
 Represents an LLM-backed agentic application.
 
-## Constructor
+**Quick start:**
 
 ```python
-App(name, root_agent)
+from adk_fluent import App
+
+result = (
+    App("name_value", "root_agent_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+App(name: str, root_agent: BaseAgent)
 ```
 
 | Argument | Type |
@@ -17,13 +37,13 @@ App(name, root_agent)
 | `name` | `str` |
 | `root_agent` | `BaseAgent` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> App`
+#### `.build() -> App`
 
 Resolve into a native ADK App.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -36,19 +56,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# InMemoryRunner
+(builder-InMemoryRunner)=
+## InMemoryRunner
 
 > Fluent builder for `google.adk.runners.InMemoryRunner`
 
 An in-memory Runner for testing and development.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> InMemoryRunner`
+```python
+from adk_fluent import InMemoryRunner
+
+result = (
+    InMemoryRunner()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> InMemoryRunner`
 
 Resolve into a native ADK InMemoryRunner.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -62,29 +94,41 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# Runner
+(builder-Runner)=
+## Runner
 
 > Fluent builder for `google.adk.runners.Runner`
 
 The Runner class is used to run agents.
 
-## Constructor
+**Quick start:**
 
 ```python
-Runner(session_service)
+from adk_fluent import Runner
+
+result = (
+    Runner("session_service_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+Runner(session_service: BaseSessionService)
 ```
 
 | Argument | Type |
 |----------|------|
 | `session_service` | `BaseSessionService` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> Runner`
+#### `.build() -> Runner`
 
 Resolve into a native ADK Runner.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 

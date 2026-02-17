@@ -1,17 +1,18 @@
 # Real-World Pipeline: Full Expression Language
 
+*How to compose agents into a sequential pipeline.*
+
 _Source: `28_real_world_pipeline.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # A real-world content pipeline in native ADK would be 80+ lines of
 # explicit agent construction, manual routing, and callback wiring.
 # See below for the fluent equivalent in ~30 lines.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._routing import Route
@@ -69,6 +70,8 @@ pipeline = (
     >> formatter
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -86,3 +89,7 @@ assert isinstance(built, SequentialAgent)
 # Has multiple stages
 assert len(built.sub_agents) >= 3
 ```
+
+:::{seealso}
+API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
+:::

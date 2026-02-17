@@ -1,9 +1,11 @@
 # Operator Composition: >>, |, *
 
+*How to use operator syntax for composing agents.*
+
 _Source: `16_operator_composition.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -30,9 +32,8 @@ critic = LlmAgent(name="critic", model="gemini-2.5-flash", instruction="Critique
 reviser = LlmAgent(name="reviser", model="gemini-2.5-flash", instruction="Revise.")
 loop_native = LoopAgent(name="refine", max_iterations=3, sub_agents=[critic, reviser])
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -53,6 +54,8 @@ c = Agent("critic").model("gemini-2.5-flash").instruct("Critique.")
 rv = Agent("reviser").model("gemini-2.5-flash").instruct("Revise.")
 loop_fluent = (c >> rv) * 3
 ```
+:::
+::::
 
 ## Equivalence
 

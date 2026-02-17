@@ -1,9 +1,11 @@
 # Agent with Tools
 
+*How to attach tools to an agent using the fluent API.*
+
 _Source: `02_agent_with_tools.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -25,9 +27,8 @@ agent_native = LlmAgent(
     tools=[get_weather, get_time],
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -40,6 +41,8 @@ agent_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -48,3 +51,7 @@ assert type(agent_native) == type(agent_fluent)
 assert agent_native.name == agent_fluent.name
 assert len(agent_fluent.tools) == 2
 ```
+
+:::{seealso}
+API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
+:::

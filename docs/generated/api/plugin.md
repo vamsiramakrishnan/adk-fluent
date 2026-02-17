@@ -1,18 +1,47 @@
 # Module: `plugin`
 
-# RecordingsPlugin
+## Builders in this module
+
+| Builder | Description |
+|---------|-------------|
+| [RecordingsPlugin](builder-RecordingsPlugin) | Plugin for recording ADK agent interactions. |
+| [ReplayPlugin](builder-ReplayPlugin) | Plugin for replaying ADK agent interactions from recordings. |
+| [BasePlugin](builder-BasePlugin) | Base class for creating plugins. |
+| [BigQueryAgentAnalyticsPlugin](builder-BigQueryAgentAnalyticsPlugin) | BigQuery Agent Analytics Plugin (v2. |
+| [ContextFilterPlugin](builder-ContextFilterPlugin) | A plugin that filters the LLM context to reduce its size. |
+| [DebugLoggingPlugin](builder-DebugLoggingPlugin) | A plugin that captures complete debug information to a file. |
+| [GlobalInstructionPlugin](builder-GlobalInstructionPlugin) | Plugin that provides global instructions functionality at the App level. |
+| [LoggingPlugin](builder-LoggingPlugin) | A plugin that logs important information at each callback point. |
+| [MultimodalToolResultsPlugin](builder-MultimodalToolResultsPlugin) | A plugin that modifies function tool responses to support returning list of parts directly. |
+| [ReflectAndRetryToolPlugin](builder-ReflectAndRetryToolPlugin) | Provides self-healing, concurrent-safe error recovery for tool failures. |
+| [SaveFilesAsArtifactsPlugin](builder-SaveFilesAsArtifactsPlugin) | A plugin that saves files embedded in user messages as artifacts. |
+| [AgentSimulatorPlugin](builder-AgentSimulatorPlugin) | ADK Plugin for AgentSimulator. |
+
+(builder-RecordingsPlugin)=
+## RecordingsPlugin
 
 > Fluent builder for `google.adk.cli.plugins.recordings_plugin.RecordingsPlugin`
 
 Plugin for recording ADK agent interactions.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> RecordingsPlugin`
+```python
+from adk_fluent import RecordingsPlugin
+
+result = (
+    RecordingsPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> RecordingsPlugin`
 
 Resolve into a native ADK RecordingsPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -22,19 +51,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ReplayPlugin
+(builder-ReplayPlugin)=
+## ReplayPlugin
 
 > Fluent builder for `google.adk.cli.plugins.replay_plugin.ReplayPlugin`
 
 Plugin for replaying ADK agent interactions from recordings.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ReplayPlugin`
+```python
+from adk_fluent import ReplayPlugin
+
+result = (
+    ReplayPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ReplayPlugin`
 
 Resolve into a native ADK ReplayPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -44,40 +85,64 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# BasePlugin
+(builder-BasePlugin)=
+## BasePlugin
 
 > Fluent builder for `google.adk.plugins.base_plugin.BasePlugin`
 
 Base class for creating plugins.
 
-## Constructor
+**Quick start:**
 
 ```python
-BasePlugin(name)
+from adk_fluent import BasePlugin
+
+result = (
+    BasePlugin("name_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BasePlugin(name: str)
 ```
 
 | Argument | Type |
 |----------|------|
 | `name` | `str` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BasePlugin`
+#### `.build() -> BasePlugin`
 
 Resolve into a native ADK BasePlugin.
 
 ---
 
-# BigQueryAgentAnalyticsPlugin
+(builder-BigQueryAgentAnalyticsPlugin)=
+## BigQueryAgentAnalyticsPlugin
 
 > Fluent builder for `google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryAgentAnalyticsPlugin`
 
 BigQuery Agent Analytics Plugin (v2.0 using Write API).
 
-## Constructor
+**Quick start:**
 
 ```python
-BigQueryAgentAnalyticsPlugin(project_id, dataset_id, kwargs)
+from adk_fluent import BigQueryAgentAnalyticsPlugin
+
+result = (
+    BigQueryAgentAnalyticsPlugin("project_id_value", "dataset_id_value", "kwargs_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+BigQueryAgentAnalyticsPlugin(project_id: str, dataset_id: str, kwargs: Any)
 ```
 
 | Argument | Type |
@@ -86,13 +151,13 @@ BigQueryAgentAnalyticsPlugin(project_id, dataset_id, kwargs)
 | `dataset_id` | `str` |
 | `kwargs` | `Any` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> BigQueryAgentAnalyticsPlugin`
+#### `.build() -> BigQueryAgentAnalyticsPlugin`
 
 Resolve into a native ADK BigQueryAgentAnalyticsPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -104,19 +169,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ContextFilterPlugin
+(builder-ContextFilterPlugin)=
+## ContextFilterPlugin
 
 > Fluent builder for `google.adk.plugins.context_filter_plugin.ContextFilterPlugin`
 
 A plugin that filters the LLM context to reduce its size.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ContextFilterPlugin`
+```python
+from adk_fluent import ContextFilterPlugin
+
+result = (
+    ContextFilterPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ContextFilterPlugin`
 
 Resolve into a native ADK ContextFilterPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -128,19 +205,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# DebugLoggingPlugin
+(builder-DebugLoggingPlugin)=
+## DebugLoggingPlugin
 
 > Fluent builder for `google.adk.plugins.debug_logging_plugin.DebugLoggingPlugin`
 
 A plugin that captures complete debug information to a file.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> DebugLoggingPlugin`
+```python
+from adk_fluent import DebugLoggingPlugin
+
+result = (
+    DebugLoggingPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> DebugLoggingPlugin`
 
 Resolve into a native ADK DebugLoggingPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -153,19 +242,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# GlobalInstructionPlugin
+(builder-GlobalInstructionPlugin)=
+## GlobalInstructionPlugin
 
 > Fluent builder for `google.adk.plugins.global_instruction_plugin.GlobalInstructionPlugin`
 
 Plugin that provides global instructions functionality at the App level.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> GlobalInstructionPlugin`
+```python
+from adk_fluent import GlobalInstructionPlugin
+
+result = (
+    GlobalInstructionPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> GlobalInstructionPlugin`
 
 Resolve into a native ADK GlobalInstructionPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -176,19 +277,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# LoggingPlugin
+(builder-LoggingPlugin)=
+## LoggingPlugin
 
 > Fluent builder for `google.adk.plugins.logging_plugin.LoggingPlugin`
 
 A plugin that logs important information at each callback point.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> LoggingPlugin`
+```python
+from adk_fluent import LoggingPlugin
+
+result = (
+    LoggingPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> LoggingPlugin`
 
 Resolve into a native ADK LoggingPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -198,19 +311,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# MultimodalToolResultsPlugin
+(builder-MultimodalToolResultsPlugin)=
+## MultimodalToolResultsPlugin
 
 > Fluent builder for `google.adk.plugins.multimodal_tool_results_plugin.MultimodalToolResultsPlugin`
 
 A plugin that modifies function tool responses to support returning list of parts directly.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> MultimodalToolResultsPlugin`
+```python
+from adk_fluent import MultimodalToolResultsPlugin
+
+result = (
+    MultimodalToolResultsPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> MultimodalToolResultsPlugin`
 
 Resolve into a native ADK MultimodalToolResultsPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -220,19 +345,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# ReflectAndRetryToolPlugin
+(builder-ReflectAndRetryToolPlugin)=
+## ReflectAndRetryToolPlugin
 
 > Fluent builder for `google.adk.plugins.reflect_retry_tool_plugin.ReflectAndRetryToolPlugin`
 
 Provides self-healing, concurrent-safe error recovery for tool failures.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> ReflectAndRetryToolPlugin`
+```python
+from adk_fluent import ReflectAndRetryToolPlugin
+
+result = (
+    ReflectAndRetryToolPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> ReflectAndRetryToolPlugin`
 
 Resolve into a native ADK ReflectAndRetryToolPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -245,19 +382,31 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# SaveFilesAsArtifactsPlugin
+(builder-SaveFilesAsArtifactsPlugin)=
+## SaveFilesAsArtifactsPlugin
 
 > Fluent builder for `google.adk.plugins.save_files_as_artifacts_plugin.SaveFilesAsArtifactsPlugin`
 
 A plugin that saves files embedded in user messages as artifacts.
 
-## Terminal Methods
+**Quick start:**
 
-### `.build() -> SaveFilesAsArtifactsPlugin`
+```python
+from adk_fluent import SaveFilesAsArtifactsPlugin
+
+result = (
+    SaveFilesAsArtifactsPlugin()
+    .build()
+)
+```
+
+### Terminal Methods
+
+#### `.build() -> SaveFilesAsArtifactsPlugin`
 
 Resolve into a native ADK SaveFilesAsArtifactsPlugin.
 
-## Forwarded Fields
+### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
@@ -267,24 +416,36 @@ These fields are available via `__getattr__` forwarding.
 
 ---
 
-# AgentSimulatorPlugin
+(builder-AgentSimulatorPlugin)=
+## AgentSimulatorPlugin
 
 > Fluent builder for `google.adk.tools.agent_simulator.agent_simulator_plugin.AgentSimulatorPlugin`
 
 ADK Plugin for AgentSimulator.
 
-## Constructor
+**Quick start:**
 
 ```python
-AgentSimulatorPlugin(simulator_engine)
+from adk_fluent import AgentSimulatorPlugin
+
+result = (
+    AgentSimulatorPlugin("simulator_engine_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+AgentSimulatorPlugin(simulator_engine: AgentSimulatorEngine)
 ```
 
 | Argument | Type |
 |----------|------|
 | `simulator_engine` | `AgentSimulatorEngine` |
 
-## Terminal Methods
+### Terminal Methods
 
-### `.build() -> AgentSimulatorPlugin`
+#### `.build() -> AgentSimulatorPlugin`
 
 Resolve into a native ADK AgentSimulatorPlugin.

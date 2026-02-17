@@ -1,9 +1,11 @@
 # Dynamic Field Forwarding via __getattr__
 
+*How to use dynamic field forwarding.*
+
 _Source: `14_dynamic_forwarding.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -15,9 +17,8 @@ agent_native = LlmAgent(
     include_contents="none",
 )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -31,6 +32,8 @@ agent_fluent = (
     .build()
 )
 ```
+:::
+::::
 
 ## Equivalence
 

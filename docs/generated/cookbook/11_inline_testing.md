@@ -1,16 +1,17 @@
 # Inline Testing with .test()
 
+*How to run inline smoke tests on agents.*
+
 _Source: `11_inline_testing.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no inline testing. You must write separate test files
 # with full Runner/Session setup for each agent test.
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -25,6 +26,8 @@ from adk_fluent import Agent
 
 builder = Agent("qa").model("gemini-2.5-flash").instruct("Answer math.")
 ```
+:::
+::::
 
 ## Equivalence
 

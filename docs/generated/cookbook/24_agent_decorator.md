@@ -1,9 +1,11 @@
 # @agent Decorator Syntax
 
+*How to use the agent decorator pattern.*
+
 _Source: `24_agent_decorator.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -18,9 +20,8 @@ _Source: `24_agent_decorator.py`_
 #       tools=[get_weather],
 #   )
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent.decorators import agent
 
@@ -47,6 +48,8 @@ def log_call(callback_context, llm_request):
 # Build it when ready:
 built = weather_bot.build()
 ```
+:::
+::::
 
 ## Equivalence
 
@@ -70,3 +73,7 @@ from google.adk.agents.llm_agent import LlmAgent
 assert isinstance(built, LlmAgent)
 assert built.name == "weather_bot"
 ```
+
+:::{seealso}
+API reference: [Agent](../api/agent.md#builder-Agent)
+:::

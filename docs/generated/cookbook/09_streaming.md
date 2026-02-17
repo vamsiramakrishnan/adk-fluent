@@ -1,9 +1,11 @@
 # Streaming with .stream()
 
+*How to use streaming execution for real-time output.*
+
 _Source: `09_streaming.py`_
 
-## Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires manual event iteration:
 #   async for event in runner.run_async(user_id="u", session_id=s.id, new_message=content):
@@ -12,9 +14,8 @@ _Source: `09_streaming.py`_
 #               if part.text:
 #                   print(part.text, end="")
 ```
-
-## adk-fluent
-
+:::
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -24,6 +25,8 @@ from adk_fluent import Agent
 
 builder = Agent("s").model("gemini-2.5-flash").instruct("Tell stories.")
 ```
+:::
+::::
 
 ## Equivalence
 
