@@ -1,0 +1,369 @@
+# ============================================================================
+# ADK-FLUENT SEED CONFIGURATION
+# ============================================================================
+#
+# This is the ONLY file a human maintainer edits. Everything else is derived.
+#
+# The seed defines HOW each ADK class maps to a fluent builder. The scanner
+# reads the actual ADK source to discover WHAT fields exist. The generator
+# combines both to produce the runtime code, .pyi stubs, and test scaffolds.
+#
+# ARCHITECTURE:
+#   seed.toml (human intent) + manifest.json (machine truth) → codegen
+#
+# When ADK adds a new field, the manifest picks it up automatically.
+# You only edit this file when you want to:
+#   - Add a new ergonomic alias  (e.g., instruction → instruct)
+#   - Change field behavior       (e.g., make a new callback additive)
+#   - Add a new builder class     (e.g., when ADK adds a new agent type)
+#   - Define terminal methods     (e.g., .ask(), .run())
+#
+# ============================================================================
+
+[meta]
+adk_package = "google-adk"
+min_adk_version = "1.20.0"
+min_python = "3.11"
+output_package = "adk_fluent"
+output_dir = "src/adk_fluent"
+
+# ============================================================================
+# GLOBAL FIELD POLICIES
+# ============================================================================
+# These apply across ALL builders unless overridden per-builder.
+
+[global]
+# Fields that are NEVER exposed as fluent methods (internal/managed by framework)
+skip_fields = [
+    "parent_agent",       # Set automatically by sub_agents assignment
+    "model_config",       # Pydantic internal
+    "model_fields",       # Pydantic internal
+    "model_computed_fields",
+]
+
+# Fields where the fluent method APPENDS to a list rather than replacing.
+# Pattern: each .before_model(fn) call adds fn to the list.
+# This is the key semantic difference that requires hand-written methods.
+additive_fields = [
+    "before_agent_callback",
+    "after_agent_callback",
+    "before_model_callback",
+    "after_model_callback",
+    "before_tool_callback",
+    "after_tool_callback",
+    "on_model_error_callback",
+    "on_tool_error_callback",
+]
+
+# Fields where the fluent method APPENDS items to a list (extend, not replace).
+# Unlike additive_fields (which append a single callable), these extend a list.
+list_extend_fields = [
+    "tools",
+    "sub_agents",
+]
+
+
+# ============================================================================
+# BUILDER: Agent (wraps LlmAgent)
+# ============================================================================
+[builders.Agent]
+source_class = "google.adk.agents.LlmAgent"
+output_module = "agent"
+doc = "Fluent builder for LlmAgent — the primary thinking agent in ADK."
+
+# Constructor arguments — these go in __init__, not as chainable methods
+constructor_args = ["name", "model"]
+
+# Ergonomic aliases: fluent_method_name → pydantic_field_name
+# Only define these when the alias genuinely reads better in a chain.
+# All non-aliased fields are available via __getattr__ using their original name.
+[builders.Agent.aliases]
+instruct = "instruction"
+describe = "description"
+global_instruct = "global_instruction"
+
+# Fluent shorthand for additive callback fields.
+# Maps a short method name → the full callback field name.
+# These methods APPEND to the callback list, not replace.
+[builders.Agent.callback_aliases]
+before_agent = "before_agent_callback"
+after_agent = "after_agent_callback"
+before_model = "before_model_callback"
+after_model = "after_model_callback"
+before_tool = "before_tool_callback"
+after_tool = "after_tool_callback"
+on_model_error = "on_model_error_callback"
+on_tool_error = "on_tool_error_callback"
+
+# Additional fields to skip (beyond global skip_fields)
+extra_skip_fields = []
+
+# Terminal methods — these resolve the builder into a concrete object or result
+[[builders.Agent.terminals]]
+name = "build"
+returns = "LlmAgent"
+doc = "Resolve builder into a native ADK LlmAgent. The fluent layer vanishes here."
+
+[[builders.Agent.terminals]]
+name = "ask"
+signature = "(self, query: str, *, user_id: str = 'default') -> str"
+doc = "One-shot synchronous query. Creates session, runner, returns response text."
+
+[[builders.Agent.terminals]]
+name = "run"
+signature = "(self, query: str, *, user_id: str = 'default') -> AsyncGenerator[Event, None]"
+doc = "Async generator yielding events. For streaming use cases."
+
+# Extra methods that don't map to fields (middleware application, etc.)
+[[builders.Agent.extras]]
+name = "apply"
+signature = "(self, stack: MiddlewareStack) -> Self"
+doc = "Apply a reusable middleware stack (bulk callback registration)."
+
+[[builders.Agent.extras]]
+name = "tool"
+signature = "(self, fn_or_tool: Callable | BaseTool) -> Self"
+doc = "Add a single tool. Alias for .tools() with append semantics."
+behavior = "list_append"
+target_field = "tools"
+
+
+# ============================================================================
+# BUILDER: Pipeline (wraps SequentialAgent)
+# ============================================================================
+[builders.Pipeline]
+source_class = "google.adk.agents.SequentialAgent"
+output_module = "workflow"
+doc = "Fluent builder for SequentialAgent — deterministic step-by-step execution."
+
+constructor_args = ["name"]
+
+[builders.Pipeline.aliases]
+describe = "description"
+
+[builders.Pipeline.callback_aliases]
+before_agent = "before_agent_callback"
+after_agent = "after_agent_callback"
+
+extra_skip_fields = []
+
+# Pipeline-specific methods that compose the step list
+[[builders.Pipeline.extras]]
+name = "step"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Append an agent as the next step. Accepts built agents or builders."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.Pipeline.terminals]]
+name = "build"
+returns = "SequentialAgent"
+doc = "Resolve into a native ADK SequentialAgent."
+
+
+# ============================================================================
+# BUILDER: FanOut (wraps ParallelAgent)
+# ============================================================================
+[builders.FanOut]
+source_class = "google.adk.agents.ParallelAgent"
+output_module = "workflow"
+doc = "Fluent builder for ParallelAgent — run branches concurrently."
+
+constructor_args = ["name"]
+
+[builders.FanOut.aliases]
+describe = "description"
+
+[builders.FanOut.callback_aliases]
+before_agent = "before_agent_callback"
+after_agent = "after_agent_callback"
+
+extra_skip_fields = []
+
+[[builders.FanOut.extras]]
+name = "branch"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Add a parallel branch agent."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.FanOut.terminals]]
+name = "build"
+returns = "ParallelAgent"
+doc = "Resolve into a native ADK ParallelAgent."
+
+
+# ============================================================================
+# BUILDER: Loop (wraps LoopAgent)
+# ============================================================================
+[builders.Loop]
+source_class = "google.adk.agents.LoopAgent"
+output_module = "workflow"
+doc = "Fluent builder for LoopAgent — repeat until condition or max iterations."
+
+constructor_args = ["name"]
+
+[builders.Loop.aliases]
+describe = "description"
+
+[builders.Loop.callback_aliases]
+before_agent = "before_agent_callback"
+after_agent = "after_agent_callback"
+
+extra_skip_fields = []
+
+[[builders.Loop.extras]]
+name = "step"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Add an agent to the loop body."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.Loop.terminals]]
+name = "build"
+returns = "LoopAgent"
+doc = "Resolve into a native ADK LoopAgent."
+
+
+# ============================================================================
+# BUILDER: Team (wraps LlmAgent with sub_agents — coordinator pattern)
+# ============================================================================
+[builders.Team]
+source_class = "google.adk.agents.LlmAgent"
+output_module = "multi"
+doc = "Fluent builder for the coordinator pattern — LLM-driven agent delegation."
+
+constructor_args = ["name", "model"]
+
+[builders.Team.aliases]
+instruct = "instruction"
+describe = "description"
+
+[builders.Team.callback_aliases]
+before_agent = "before_agent_callback"
+after_agent = "after_agent_callback"
+before_model = "before_model_callback"
+after_model = "after_model_callback"
+
+extra_skip_fields = []
+
+[[builders.Team.extras]]
+name = "member"
+signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
+doc = "Add a member agent that the coordinator can delegate to."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.Team.terminals]]
+name = "build"
+returns = "LlmAgent"
+doc = "Resolve into an LlmAgent with sub_agents configured."
+
+
+# ============================================================================
+# BUILDER: Runtime (wraps Runner construction + services)
+# ============================================================================
+# NOTE: Runner is NOT a Pydantic BaseModel in all ADK versions.
+# This builder is a custom composition layer, not a direct model wrapper.
+# The scanner handles this via a "composite" source_type.
+
+[builders.Runtime]
+source_class = "__composite__"
+output_module = "runtime"
+doc = "Fluent builder for production runtime — Runner + services + App."
+
+constructor_args = ["app_name"]
+
+# These are not Pydantic fields — they're manual compositions.
+# The generator creates explicit methods for these.
+[[builders.Runtime.extras]]
+name = "agent"
+signature = "(self, agent: BaseAgent) -> Self"
+doc = "Set the root agent."
+behavior = "field_set"
+target_field = "_agent"
+
+[[builders.Runtime.extras]]
+name = "session_service"
+signature = "(self, svc: BaseSessionService) -> Self"
+doc = "Set the session service."
+behavior = "field_set"
+target_field = "_session_service"
+
+[[builders.Runtime.extras]]
+name = "artifact_service"
+signature = "(self, svc: BaseArtifactService) -> Self"
+doc = "Set the artifact service."
+behavior = "field_set"
+target_field = "_artifact_service"
+
+[[builders.Runtime.extras]]
+name = "memory_service"
+signature = "(self, svc: BaseMemoryService) -> Self"
+doc = "Set the memory service."
+behavior = "field_set"
+target_field = "_memory_service"
+
+[[builders.Runtime.extras]]
+name = "run_config"
+signature = "(self, config: RunConfig) -> Self"
+doc = "Set the runtime configuration."
+behavior = "field_set"
+target_field = "_run_config"
+
+[[builders.Runtime.extras]]
+name = "plugin"
+signature = "(self, plugin: BasePlugin) -> Self"
+doc = "Register a plugin."
+behavior = "list_append"
+target_field = "_plugins"
+
+[[builders.Runtime.terminals]]
+name = "build_runner"
+returns = "Runner"
+doc = "Build a Runner with configured services."
+
+[[builders.Runtime.terminals]]
+name = "build_app"
+returns = "App"
+doc = "Build a full App object (agent + runner + services + plugins)."
+
+
+# ============================================================================
+# BUILDER: MiddlewareStack (not wrapping an ADK class — pure adk-fluent concept)
+# ============================================================================
+[builders.MiddlewareStack]
+source_class = "__standalone__"
+output_module = "middleware"
+doc = "Reusable collection of callbacks that can be applied to any builder."
+
+constructor_args = []
+
+# MiddlewareStack only has callback methods — no Pydantic introspection needed
+[builders.MiddlewareStack.callback_aliases]
+before_agent = "before_agent_callback"
+after_agent = "after_agent_callback"
+before_model = "before_model_callback"
+after_model = "after_model_callback"
+before_tool = "before_tool_callback"
+after_tool = "after_tool_callback"
+on_model_error = "on_model_error_callback"
+on_tool_error = "on_tool_error_callback"
+
+
+# ============================================================================
+# FIELD DOCUMENTATION OVERRIDES
+# ============================================================================
+# Override or supplement docstrings for generated methods.
+# The scanner pulls docstrings from Pydantic field descriptions where available.
+# These overrides are for cases where the ADK doc is missing or unclear.
+
+[field_docs]
+instruction = "The agent's system instruction. Accepts a string or a callable that receives ReadonlyContext."
+description = "One-line description of the agent's capability. Used by parent agents for delegation decisions."
+tools = "List of tools available to the agent. Accepts functions, BaseTool instances, or AgentTool instances."
+output_key = "Session state key where the agent's final response text is stored."
+output_schema = "Pydantic BaseModel subclass for structured output. Disables tool use when set."
+include_contents = "Controls conversation history inclusion: 'default', 'none', or a custom strategy."
+planner = "Planning strategy for the agent (e.g., PlanReActPlanner)."
+generate_content_config = "Low-level Gemini generation config (temperature, top_p, etc.)."

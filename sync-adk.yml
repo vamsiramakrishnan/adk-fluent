@@ -1,0 +1,220 @@
+# ============================================================================
+# ADK-FLUENT CI: Scan → Generate → Test → PR
+# ============================================================================
+#
+# This workflow runs weekly and on every ADK release to keep adk-fluent
+# synchronized with upstream changes. It also runs on every PR.
+#
+# The pipeline:
+#   1. Install latest google-adk
+#   2. Run scanner → manifest.json
+#   3. Diff manifest against last known → detect changes
+#   4. Run generator → code + stubs + tests
+#   5. Run tests + type-check
+#   6. If stubs changed → auto-PR
+#
+
+name: Sync with ADK Upstream
+
+on:
+  schedule:
+    - cron: '0 8 * * MON'         # Every Monday morning UTC
+  workflow_dispatch:                # Manual trigger
+    inputs:
+      adk_version:
+        description: 'Specific ADK version to test against (leave empty for latest)'
+        required: false
+        default: ''
+  pull_request:
+    paths:
+      - 'seeds/**'
+      - 'scripts/**'
+      - 'src/**'
+      - 'tests/**'
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  # =========================================================================
+  # JOB 1: Scan ADK and generate code
+  # =========================================================================
+  scan-and-generate:
+    runs-on: ubuntu-latest
+    outputs:
+      adk_version: ${{ steps.scan.outputs.adk_version }}
+      has_changes: ${{ steps.check_changes.outputs.has_changes }}
+      is_breaking: ${{ steps.check_changes.outputs.is_breaking }}
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          if [ -n "${{ github.event.inputs.adk_version }}" ]; then
+            pip install "google-adk==${{ github.event.inputs.adk_version }}"
+          else
+            pip install google-adk --upgrade
+          fi
+          pip install tomli pyright pytest
+      
+      # --- SCAN ---
+      - name: Scan ADK upstream
+        id: scan
+        run: |
+          python scripts/scanner.py -o manifest.json
+          python scripts/scanner.py --summary
+          
+          ADK_VERSION=$(python -c "from importlib.metadata import version; print(version('google-adk'))")
+          echo "adk_version=$ADK_VERSION" >> "$GITHUB_OUTPUT"
+      
+      # --- DIFF ---
+      - name: Diff against previous manifest
+        id: check_changes
+        run: |
+          if [ -f manifest.previous.json ]; then
+            DIFF=$(python scripts/scanner.py --diff manifest.previous.json)
+            echo "$DIFF" | python -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          changes = bool(d.get('added_classes') or d.get('removed_classes') or d.get('field_changes'))
+          breaking = d.get('breaking', False)
+          print(f'has_changes={str(changes).lower()}')
+          print(f'is_breaking={str(breaking).lower()}')
+          " >> "$GITHUB_OUTPUT"
+            
+            echo "### ADK Diff Report" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            echo "$DIFF" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "is_breaking=false" >> "$GITHUB_OUTPUT"
+            echo "No previous manifest found — generating from scratch." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      
+      # --- GENERATE ---
+      - name: Generate code from seed + manifest
+        run: |
+          python scripts/generator.py \
+            seeds/seed.toml \
+            manifest.json \
+            --output-dir src/adk_fluent \
+            --test-dir tests/generated
+      
+      # --- ARCHIVE ---
+      - name: Archive manifest for next run
+        run: cp manifest.json manifest.previous.json
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: generated-code
+          path: |
+            src/adk_fluent/
+            tests/generated/
+            manifest.json
+            manifest.previous.json
+
+  # =========================================================================
+  # JOB 2: Type-check generated stubs
+  # =========================================================================
+  type-check:
+    needs: scan-and-generate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-code
+      
+      - name: Install and type-check
+        run: |
+          pip install google-adk pyright
+          pyright src/adk_fluent/ --pythonversion 3.12
+
+  # =========================================================================
+  # JOB 3: Run equivalence tests
+  # =========================================================================
+  test:
+    needs: scan-and-generate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Test against current and previous ADK versions
+        adk-version: ['latest', 'previous']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-code
+      
+      - name: Install ADK (${{ matrix.adk-version }})
+        run: |
+          pip install google-adk pytest
+          pip install -e .
+      
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+
+  # =========================================================================
+  # JOB 4: Create auto-PR if stubs changed
+  # =========================================================================
+  auto-pr:
+    needs: [scan-and-generate, type-check, test]
+    if: |
+      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-code
+      
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "chore: sync with google-adk ${{ needs.scan-and-generate.outputs.adk_version }}"
+          branch: auto/sync-adk-${{ needs.scan-and-generate.outputs.adk_version }}
+          commit-message: |
+            chore: regenerate from google-adk ${{ needs.scan-and-generate.outputs.adk_version }}
+            
+            Auto-generated by scan-and-generate workflow.
+            Breaking changes: ${{ needs.scan-and-generate.outputs.is_breaking }}
+          body: |
+            ## ADK Sync: ${{ needs.scan-and-generate.outputs.adk_version }}
+            
+            This PR was auto-generated by the weekly ADK sync workflow.
+            
+            - **ADK Version**: ${{ needs.scan-and-generate.outputs.adk_version }}
+            - **Breaking Changes**: ${{ needs.scan-and-generate.outputs.is_breaking }}
+            
+            ### What changed
+            See the diff report in the workflow summary.
+            
+            ### What to review
+            - [ ] `.pyi` stubs match expected API surface
+            - [ ] All tests pass
+            - [ ] No unexpected field removals
+          labels: |
+            automated
+            adk-sync
