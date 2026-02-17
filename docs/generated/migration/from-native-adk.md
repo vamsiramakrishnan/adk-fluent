@@ -150,7 +150,9 @@ The tables below show fluent method names that differ from the native field name
 |-------------|---------------|-------|
 | `description` | `.describe()` | alias |
 | `global_instruction` | `.global_instruct()` | alias |
+| `include_contents` | `.history()` | alias |
 | `instruction` | `.instruct()` | alias |
+| `output_key` | `.outputs()` | alias |
 | `after_agent_callback` | `.after_agent()` | callback, additive |
 | `after_model_callback` | `.after_model()` | callback, additive |
 | `after_tool_callback` | `.after_tool()` | callback, additive |
@@ -187,7 +189,9 @@ The tables below show fluent method names that differ from the native field name
 | Native Field | Fluent Method | Notes |
 |-------------|---------------|-------|
 | `description` | `.describe()` | alias |
+| `include_contents` | `.history()` | alias |
 | `instruction` | `.instruct()` | alias |
+| `output_key` | `.outputs()` | alias |
 
 ### Loop
 

@@ -48,10 +48,6 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 
 Append an agent as the next step.
 
-### `.clone(new_name: str) -> Self`
-
-Deep-copy this builder with a new name.
-
 ## Terminal Methods
 
 ### `.build() -> LoopAgent`
@@ -117,10 +113,6 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 
 Add a parallel branch agent.
 
-### `.clone(new_name: str) -> Self`
-
-Deep-copy this builder with a new name.
-
 ## Terminal Methods
 
 ### `.build() -> ParallelAgent`
@@ -184,10 +176,6 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 ### `.step(agent: BaseAgent | AgentBuilder) -> Self`
 
 Append an agent as the next step.
-
-### `.clone(new_name: str) -> Self`
-
-Deep-copy this builder with a new name.
 
 ## Terminal Methods
 

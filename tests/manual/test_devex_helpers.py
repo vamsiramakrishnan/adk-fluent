@@ -108,49 +108,60 @@ class TestArtifact:
         a = Artifact("report.txt")
         assert repr(a) == "Artifact('report.txt')"
 
-    @pytest.mark.asyncio
-    async def test_save_creates_text_part(self):
+    def test_save_creates_text_part(self):
         """save() wraps text content in a Part."""
-        a = Artifact("test.txt")
-        saved_parts = []
+        import asyncio
 
-        class MockCtx:
-            async def save_artifact(self, filename, part):
-                saved_parts.append((filename, part))
-                return 1
+        async def _test():
+            a = Artifact("test.txt")
+            saved_parts = []
 
-        version = await a.save(MockCtx(), "hello")
-        assert version == 1
-        assert len(saved_parts) == 1
-        assert saved_parts[0][0] == "test.txt"
-        # The part should be a genai Part — just check it was called
+            class MockCtx:
+                async def save_artifact(self, filename, part):
+                    saved_parts.append((filename, part))
+                    return 1
 
-    @pytest.mark.asyncio
-    async def test_load_returns_text(self):
+            version = await a.save(MockCtx(), "hello")
+            assert version == 1
+            assert len(saved_parts) == 1
+            assert saved_parts[0][0] == "test.txt"
+
+        asyncio.run(_test())
+
+    def test_load_returns_text(self):
         """load() extracts text from Part wrapper."""
-        a = Artifact("test.txt")
+        import asyncio
 
-        class MockPart:
-            text = "hello world"
+        async def _test():
+            a = Artifact("test.txt")
 
-        class MockCtx:
-            async def load_artifact(self, filename, version=None):
-                return MockPart()
+            class MockPart:
+                text = "hello world"
 
-        content = await a.load(MockCtx())
-        assert content == "hello world"
+            class MockCtx:
+                async def load_artifact(self, filename, version=None):
+                    return MockPart()
 
-    @pytest.mark.asyncio
-    async def test_load_returns_none_when_missing(self):
+            content = await a.load(MockCtx())
+            assert content == "hello world"
+
+        asyncio.run(_test())
+
+    def test_load_returns_none_when_missing(self):
         """load() returns None when artifact doesn't exist."""
-        a = Artifact("missing.txt")
+        import asyncio
 
-        class MockCtx:
-            async def load_artifact(self, filename, version=None):
-                return None
+        async def _test():
+            a = Artifact("missing.txt")
 
-        content = await a.load(MockCtx())
-        assert content is None
+            class MockCtx:
+                async def load_artifact(self, filename, version=None):
+                    return None
+
+            content = await a.load(MockCtx())
+            assert content is None
+
+        asyncio.run(_test())
 
 
 # ======================================================================

@@ -27,6 +27,7 @@ SCANNER       := "scripts/scanner.py"
 SEED_GEN      := "scripts/seed_generator.py"
 GENERATOR     := "scripts/generator.py"
 DOC_GEN       := "scripts/doc_generator.py"
+COOKBOOK_GEN   := "scripts/cookbook_generator.py"
 DOC_DIR       := "docs/generated"
 COOKBOOK_DIR   := "examples/cookbook"
 
@@ -95,6 +96,17 @@ docs-migration: _require-manifest _require-seed
         --output-dir {{DOC_DIR}} \
         --migration-only
 
+# --- Cookbook generation ---
+cookbook-gen: _require-manifest _require-seed
+    @echo "Generating cookbook example stubs..."
+    @uv run python {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
+        --cookbook-dir {{COOKBOOK_DIR}}
+
+cookbook-gen-dry: _require-manifest _require-seed
+    @echo "Previewing cookbook example stubs..."
+    @uv run python {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
+        --cookbook-dir {{COOKBOOK_DIR}} --dry-run
+
 # --- Diff against previous ---
 diff:
     #!/usr/bin/env bash
@@ -153,6 +165,8 @@ help:
     @echo "  just docs-api       Generate API reference only"
     @echo "  just docs-cookbook   Generate cookbook only"
     @echo "  just docs-migration Generate migration guide only"
+    @echo "  just cookbook-gen    Generate cookbook example stubs"
+    @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just diff           Show changes since last scan"
     @echo "  just build          Build pip package"
     @echo "  just publish        Publish to PyPI"

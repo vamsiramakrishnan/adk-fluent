@@ -88,11 +88,23 @@ Agent(name)
 - **Maps to:** `global_instruction`
 - Set the `global_instruction` field.
 
+### `.history(value)`
+
+- **Type:** `Literal[default, none]`
+- **Maps to:** `include_contents`
+- Set the `include_contents` field.
+
 ### `.instruct(value)`
 
 - **Type:** `Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]`
 - **Maps to:** `instruction`
 - Set the `instruction` field.
+
+### `.outputs(value)`
+
+- **Type:** `Union[str, NoneType]`
+- **Maps to:** `output_key`
+- Set the `output_key` field.
 
 ## Callbacks
 
@@ -174,13 +186,13 @@ Apply a reusable middleware stack (bulk callback registration).
 
 Add a member agent for coordinator pattern.
 
+### `.delegate(agent) -> Self`
+
+Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.
+
 ### `.guardrail(fn: Callable) -> Self`
 
 Attach a guardrail function as both before_model and after_model callback.
-
-### `.clone(new_name: str) -> Self`
-
-Deep-copy this builder with a new name. Independent config/callbacks/lists.
 
 ### `.ask(prompt: str) -> str`
 
@@ -202,6 +214,18 @@ Run a smoke test. Calls .ask() internally, asserts output matches condition.
 
 Create an interactive session context manager. Use with 'async with'.
 
+### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]`
+
+Run agent against multiple prompts with bounded concurrency.
+
+### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]`
+
+Async batch execution against multiple prompts.
+
+### `.events(prompt: str) -> AsyncIterator`
+
+Stream raw ADK Event objects. Yields every event including state deltas and function calls.
+
 ## Terminal Methods
 
 ### `.build() -> LlmAgent`
@@ -221,9 +245,7 @@ These fields are available via `__getattr__` forwarding.
 | `.generate_content_config(value)` | `Union[GenerateContentConfig, NoneType]` |
 | `.disallow_transfer_to_parent(value)` | `bool` |
 | `.disallow_transfer_to_peers(value)` | `bool` |
-| `.include_contents(value)` | `Literal[default, none]` |
 | `.input_schema(value)` | `Union[type[BaseModel], NoneType]` |
 | `.output_schema(value)` | `Union[type[BaseModel], NoneType]` |
-| `.output_key(value)` | `Union[str, NoneType]` |
 | `.planner(value)` | `Union[BasePlanner, NoneType]` |
 | `.code_executor(value)` | `Union[BaseCodeExecutor, NoneType]` |

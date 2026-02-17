@@ -203,11 +203,23 @@ LlmAgentConfig(name, instruction)
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
+### `.history(value)`
+
+- **Type:** `Literal[default, none]`
+- **Maps to:** `include_contents`
+- Optional. LlmAgent.include_contents.
+
 ### `.instruct(value)`
 
 - **Type:** `str`
 - **Maps to:** `instruction`
 - Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content.
+
+### `.outputs(value)`
+
+- **Type:** `Union[str, NoneType]`
+- **Maps to:** `output_key`
+- Optional. LlmAgent.output_key.
 
 ## Terminal Methods
 
@@ -232,8 +244,6 @@ These fields are available via `__getattr__` forwarding.
 | `.disallow_transfer_to_peers(value)` | `Union[bool, NoneType]` |
 | `.input_schema(value)` | `Union[CodeConfig, NoneType]` |
 | `.output_schema(value)` | `Union[CodeConfig, NoneType]` |
-| `.output_key(value)` | `Union[str, NoneType]` |
-| `.include_contents(value)` | `Literal[default, none]` |
 | `.tools(value)` | `Union[list[ToolConfig], NoneType]` |
 | `.before_model_callbacks(value)` | `Union[list[CodeConfig], NoneType]` |
 | `.after_model_callbacks(value)` | `Union[list[CodeConfig], NoneType]` |
