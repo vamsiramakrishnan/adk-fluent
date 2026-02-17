@@ -3,19 +3,20 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.agents.base_agent import BaseAgent
+from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
 # ======================================================================
 # Builder: BaseAgent
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-_ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
-
 class BaseAgent:
     """Base class for all agents in Agent Development Kit."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -48,11 +49,15 @@ class BaseAgent:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseAgent.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseAgent.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -64,14 +69,14 @@ class BaseAgent:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BaseAgent.model_fields:
+        if field_name not in _ADK_BaseAgent.model_fields:
             available = sorted(
-                set(BaseAgent.model_fields.keys())
+                set(_ADK_BaseAgent.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BaseAgent. "
+                f"'{name}' is not a recognized field on _ADK_BaseAgent. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -87,8 +92,8 @@ class BaseAgent:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseAgent:
-        """Base class for all agents in Agent Development Kit. Resolve into a native ADK BaseAgent."""
+    def build(self) -> _ADK_BaseAgent:
+        """Base class for all agents in Agent Development Kit. Resolve into a native ADK _ADK_BaseAgent."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -104,19 +109,20 @@ class BaseAgent:
             else:
                 config[field] = items
         
-        return BaseAgent(**config)
+        return _ADK_BaseAgent(**config)
 
 
 # ======================================================================
 # Builder: Agent
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
-_CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-_ADDITIVE_FIELDS: set[str] = {'after_model_callback', 'after_tool_callback', 'on_tool_error_callback', 'before_tool_callback', 'after_agent_callback', 'on_model_error_callback', 'before_model_callback', 'before_agent_callback'}
-
 class Agent:
     """LLM-based Agent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'on_tool_error_callback', 'before_tool_callback', 'after_tool_callback', 'before_model_callback', 'after_agent_callback', 'before_agent_callback', 'on_model_error_callback', 'after_model_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -218,7 +224,11 @@ class Agent:
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias

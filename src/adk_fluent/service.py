@@ -3,33 +3,34 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.artifacts.base_artifact_service import BaseArtifactService
-from google.adk.artifacts.file_artifact_service import FileArtifactService
-from google.adk.artifacts.gcs_artifact_service import GcsArtifactService
-from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService
-from google.adk.cli.utils.local_storage import PerAgentDatabaseSessionService
-from google.adk.memory.base_memory_service import BaseMemoryService
-from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
-from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService
-from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService
-from google.adk.sessions.base_session_service import BaseSessionService
-from google.adk.sessions.database_session_service import DatabaseSessionService
-from google.adk.sessions.in_memory_session_service import InMemorySessionService
-from google.adk.sessions.sqlite_session_service import SqliteSessionService
-from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService
-from google.adk.tools._forwarding_artifact_service import ForwardingArtifactService
+from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
+from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
+from google.adk.artifacts.gcs_artifact_service import GcsArtifactService as _ADK_GcsArtifactService
+from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService as _ADK_InMemoryArtifactService
+from google.adk.cli.utils.local_storage import PerAgentDatabaseSessionService as _ADK_PerAgentDatabaseSessionService
+from google.adk.memory.base_memory_service import BaseMemoryService as _ADK_BaseMemoryService
+from google.adk.memory.in_memory_memory_service import InMemoryMemoryService as _ADK_InMemoryMemoryService
+from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService as _ADK_VertexAiMemoryBankService
+from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService as _ADK_VertexAiRagMemoryService
+from google.adk.sessions.base_session_service import BaseSessionService as _ADK_BaseSessionService
+from google.adk.sessions.database_session_service import DatabaseSessionService as _ADK_DatabaseSessionService
+from google.adk.sessions.in_memory_session_service import InMemorySessionService as _ADK_InMemorySessionService
+from google.adk.sessions.sqlite_session_service import SqliteSessionService as _ADK_SqliteSessionService
+from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService as _ADK_VertexAiSessionService
+from google.adk.tools._forwarding_artifact_service import ForwardingArtifactService as _ADK_ForwardingArtifactService
 
 # ======================================================================
 # Builder: BaseArtifactService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class BaseArtifactService:
     """Abstract base class for artifact services."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -46,11 +47,16 @@ class BaseArtifactService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseArtifactService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseArtifactService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -69,7 +75,7 @@ class BaseArtifactService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseArtifactService. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseArtifactService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -85,8 +91,8 @@ class BaseArtifactService:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseArtifactService:
-        """Abstract base class for artifact services. Resolve into a native ADK BaseArtifactService."""
+    def build(self) -> _ADK_BaseArtifactService:
+        """Abstract base class for artifact services. Resolve into a native ADK _ADK_BaseArtifactService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -102,20 +108,21 @@ class BaseArtifactService:
             else:
                 config[field] = items
         
-        return BaseArtifactService(**config)
+        return _ADK_BaseArtifactService(**config)
 
 
 # ======================================================================
 # Builder: FileArtifactService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'root_dir'}
-
 class FileArtifactService:
     """Stores filesystem-backed artifacts beneath a configurable root directory."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'root_dir'}
 
 
     def __init__(self, root_dir: str) -> None:
@@ -132,11 +139,16 @@ class FileArtifactService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to FileArtifactService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_FileArtifactService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -155,7 +167,7 @@ class FileArtifactService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on FileArtifactService. "
+                f"'{name}' is not a recognized parameter on _ADK_FileArtifactService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -171,8 +183,8 @@ class FileArtifactService:
 
     # --- Terminal methods ---
 
-    def build(self) -> FileArtifactService:
-        """Stores filesystem-backed artifacts beneath a configurable root directory. Resolve into a native ADK FileArtifactService."""
+    def build(self) -> _ADK_FileArtifactService:
+        """Stores filesystem-backed artifacts beneath a configurable root directory. Resolve into a native ADK _ADK_FileArtifactService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -188,20 +200,21 @@ class FileArtifactService:
             else:
                 config[field] = items
         
-        return FileArtifactService(**config)
+        return _ADK_FileArtifactService(**config)
 
 
 # ======================================================================
 # Builder: GcsArtifactService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'bucket_name'}
-
 class GcsArtifactService:
     """An artifact service implementation using Google Cloud Storage (GCS)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'bucket_name'}
 
 
     def __init__(self, bucket_name: str, kwargs: str) -> None:
@@ -218,11 +231,16 @@ class GcsArtifactService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GcsArtifactService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GcsArtifactService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -241,7 +259,7 @@ class GcsArtifactService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GcsArtifactService. "
+                f"'{name}' is not a recognized parameter on _ADK_GcsArtifactService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -257,8 +275,8 @@ class GcsArtifactService:
 
     # --- Terminal methods ---
 
-    def build(self) -> GcsArtifactService:
-        """An artifact service implementation using Google Cloud Storage (GCS). Resolve into a native ADK GcsArtifactService."""
+    def build(self) -> _ADK_GcsArtifactService:
+        """An artifact service implementation using Google Cloud Storage (GCS). Resolve into a native ADK _ADK_GcsArtifactService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -274,19 +292,20 @@ class GcsArtifactService:
             else:
                 config[field] = items
         
-        return GcsArtifactService(**config)
+        return _ADK_GcsArtifactService(**config)
 
 
 # ======================================================================
 # Builder: InMemoryArtifactService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class InMemoryArtifactService:
     """An in-memory implementation of the artifact service."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -303,11 +322,15 @@ class InMemoryArtifactService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to InMemoryArtifactService.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_InMemoryArtifactService.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -319,14 +342,14 @@ class InMemoryArtifactService:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in InMemoryArtifactService.model_fields:
+        if field_name not in _ADK_InMemoryArtifactService.model_fields:
             available = sorted(
-                set(InMemoryArtifactService.model_fields.keys())
+                set(_ADK_InMemoryArtifactService.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on InMemoryArtifactService. "
+                f"'{name}' is not a recognized field on _ADK_InMemoryArtifactService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -342,8 +365,8 @@ class InMemoryArtifactService:
 
     # --- Terminal methods ---
 
-    def build(self) -> InMemoryArtifactService:
-        """An in-memory implementation of the artifact service. Resolve into a native ADK InMemoryArtifactService."""
+    def build(self) -> _ADK_InMemoryArtifactService:
+        """An in-memory implementation of the artifact service. Resolve into a native ADK _ADK_InMemoryArtifactService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -359,20 +382,21 @@ class InMemoryArtifactService:
             else:
                 config[field] = items
         
-        return InMemoryArtifactService(**config)
+        return _ADK_InMemoryArtifactService(**config)
 
 
 # ======================================================================
 # Builder: PerAgentDatabaseSessionService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'app_name_to_dir', 'agents_root'}
-
 class PerAgentDatabaseSessionService:
     """Routes session storage to per-agent `.adk/session.db` files."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'agents_root', 'app_name_to_dir'}
 
 
     def __init__(self, agents_root: str) -> None:
@@ -389,11 +413,16 @@ class PerAgentDatabaseSessionService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to PerAgentDatabaseSessionService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_PerAgentDatabaseSessionService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -412,7 +441,7 @@ class PerAgentDatabaseSessionService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on PerAgentDatabaseSessionService. "
+                f"'{name}' is not a recognized parameter on _ADK_PerAgentDatabaseSessionService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -428,8 +457,8 @@ class PerAgentDatabaseSessionService:
 
     # --- Terminal methods ---
 
-    def build(self) -> PerAgentDatabaseSessionService:
-        """Routes session storage to per-agent `.adk/session.db` files. Resolve into a native ADK PerAgentDatabaseSessionService."""
+    def build(self) -> _ADK_PerAgentDatabaseSessionService:
+        """Routes session storage to per-agent `.adk/session.db` files. Resolve into a native ADK _ADK_PerAgentDatabaseSessionService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -445,20 +474,21 @@ class PerAgentDatabaseSessionService:
             else:
                 config[field] = items
         
-        return PerAgentDatabaseSessionService(**config)
+        return _ADK_PerAgentDatabaseSessionService(**config)
 
 
 # ======================================================================
 # Builder: BaseMemoryService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class BaseMemoryService:
     """Base class for memory services."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -475,11 +505,16 @@ class BaseMemoryService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseMemoryService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseMemoryService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -498,7 +533,7 @@ class BaseMemoryService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseMemoryService. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseMemoryService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -514,8 +549,8 @@ class BaseMemoryService:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseMemoryService:
-        """Base class for memory services. Resolve into a native ADK BaseMemoryService."""
+    def build(self) -> _ADK_BaseMemoryService:
+        """Base class for memory services. Resolve into a native ADK _ADK_BaseMemoryService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -531,20 +566,21 @@ class BaseMemoryService:
             else:
                 config[field] = items
         
-        return BaseMemoryService(**config)
+        return _ADK_BaseMemoryService(**config)
 
 
 # ======================================================================
 # Builder: InMemoryMemoryService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class InMemoryMemoryService:
     """An in-memory memory service for prototyping purpose only."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -561,11 +597,16 @@ class InMemoryMemoryService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to InMemoryMemoryService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_InMemoryMemoryService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -584,7 +625,7 @@ class InMemoryMemoryService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on InMemoryMemoryService. "
+                f"'{name}' is not a recognized parameter on _ADK_InMemoryMemoryService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -600,8 +641,8 @@ class InMemoryMemoryService:
 
     # --- Terminal methods ---
 
-    def build(self) -> InMemoryMemoryService:
-        """An in-memory memory service for prototyping purpose only. Resolve into a native ADK InMemoryMemoryService."""
+    def build(self) -> _ADK_InMemoryMemoryService:
+        """An in-memory memory service for prototyping purpose only. Resolve into a native ADK _ADK_InMemoryMemoryService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -617,20 +658,21 @@ class InMemoryMemoryService:
             else:
                 config[field] = items
         
-        return InMemoryMemoryService(**config)
+        return _ADK_InMemoryMemoryService(**config)
 
 
 # ======================================================================
 # Builder: VertexAiMemoryBankService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'project', 'location', 'agent_engine_id', 'express_mode_api_key'}
-
 class VertexAiMemoryBankService:
     """Implementation of the BaseMemoryService using Vertex AI Memory Bank."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'location', 'project', 'agent_engine_id', 'express_mode_api_key'}
 
 
     def __init__(self, ) -> None:
@@ -647,11 +689,16 @@ class VertexAiMemoryBankService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to VertexAiMemoryBankService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_VertexAiMemoryBankService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -670,7 +717,7 @@ class VertexAiMemoryBankService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on VertexAiMemoryBankService. "
+                f"'{name}' is not a recognized parameter on _ADK_VertexAiMemoryBankService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -686,8 +733,8 @@ class VertexAiMemoryBankService:
 
     # --- Terminal methods ---
 
-    def build(self) -> VertexAiMemoryBankService:
-        """Implementation of the BaseMemoryService using Vertex AI Memory Bank. Resolve into a native ADK VertexAiMemoryBankService."""
+    def build(self) -> _ADK_VertexAiMemoryBankService:
+        """Implementation of the BaseMemoryService using Vertex AI Memory Bank. Resolve into a native ADK _ADK_VertexAiMemoryBankService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -703,20 +750,21 @@ class VertexAiMemoryBankService:
             else:
                 config[field] = items
         
-        return VertexAiMemoryBankService(**config)
+        return _ADK_VertexAiMemoryBankService(**config)
 
 
 # ======================================================================
 # Builder: VertexAiRagMemoryService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'rag_corpus', 'similarity_top_k', 'vector_distance_threshold'}
-
 class VertexAiRagMemoryService:
     """A memory service that uses Vertex AI RAG for storage and retrieval."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'rag_corpus', 'similarity_top_k', 'vector_distance_threshold'}
 
 
     def __init__(self, ) -> None:
@@ -733,11 +781,16 @@ class VertexAiRagMemoryService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to VertexAiRagMemoryService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_VertexAiRagMemoryService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -756,7 +809,7 @@ class VertexAiRagMemoryService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on VertexAiRagMemoryService. "
+                f"'{name}' is not a recognized parameter on _ADK_VertexAiRagMemoryService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -772,8 +825,8 @@ class VertexAiRagMemoryService:
 
     # --- Terminal methods ---
 
-    def build(self) -> VertexAiRagMemoryService:
-        """A memory service that uses Vertex AI RAG for storage and retrieval. Resolve into a native ADK VertexAiRagMemoryService."""
+    def build(self) -> _ADK_VertexAiRagMemoryService:
+        """A memory service that uses Vertex AI RAG for storage and retrieval. Resolve into a native ADK _ADK_VertexAiRagMemoryService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -789,20 +842,21 @@ class VertexAiRagMemoryService:
             else:
                 config[field] = items
         
-        return VertexAiRagMemoryService(**config)
+        return _ADK_VertexAiRagMemoryService(**config)
 
 
 # ======================================================================
 # Builder: BaseSessionService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class BaseSessionService:
     """Base class for session services."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -819,11 +873,16 @@ class BaseSessionService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseSessionService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseSessionService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -842,7 +901,7 @@ class BaseSessionService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseSessionService. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseSessionService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -858,8 +917,8 @@ class BaseSessionService:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseSessionService:
-        """Base class for session services. Resolve into a native ADK BaseSessionService."""
+    def build(self) -> _ADK_BaseSessionService:
+        """Base class for session services. Resolve into a native ADK _ADK_BaseSessionService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -875,20 +934,21 @@ class BaseSessionService:
             else:
                 config[field] = items
         
-        return BaseSessionService(**config)
+        return _ADK_BaseSessionService(**config)
 
 
 # ======================================================================
 # Builder: DatabaseSessionService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'db_url'}
-
 class DatabaseSessionService:
     """A session service that uses a database for storage."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'db_url'}
 
 
     def __init__(self, db_url: str, kwargs: str) -> None:
@@ -905,11 +965,16 @@ class DatabaseSessionService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DatabaseSessionService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DatabaseSessionService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -928,7 +993,7 @@ class DatabaseSessionService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on DatabaseSessionService. "
+                f"'{name}' is not a recognized parameter on _ADK_DatabaseSessionService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -944,8 +1009,8 @@ class DatabaseSessionService:
 
     # --- Terminal methods ---
 
-    def build(self) -> DatabaseSessionService:
-        """A session service that uses a database for storage. Resolve into a native ADK DatabaseSessionService."""
+    def build(self) -> _ADK_DatabaseSessionService:
+        """A session service that uses a database for storage. Resolve into a native ADK _ADK_DatabaseSessionService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -961,20 +1026,21 @@ class DatabaseSessionService:
             else:
                 config[field] = items
         
-        return DatabaseSessionService(**config)
+        return _ADK_DatabaseSessionService(**config)
 
 
 # ======================================================================
 # Builder: InMemorySessionService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class InMemorySessionService:
     """An in-memory implementation of the session service."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -991,11 +1057,16 @@ class InMemorySessionService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to InMemorySessionService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_InMemorySessionService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1014,7 +1085,7 @@ class InMemorySessionService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on InMemorySessionService. "
+                f"'{name}' is not a recognized parameter on _ADK_InMemorySessionService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1030,8 +1101,8 @@ class InMemorySessionService:
 
     # --- Terminal methods ---
 
-    def build(self) -> InMemorySessionService:
-        """An in-memory implementation of the session service. Resolve into a native ADK InMemorySessionService."""
+    def build(self) -> _ADK_InMemorySessionService:
+        """An in-memory implementation of the session service. Resolve into a native ADK _ADK_InMemorySessionService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1047,20 +1118,21 @@ class InMemorySessionService:
             else:
                 config[field] = items
         
-        return InMemorySessionService(**config)
+        return _ADK_InMemorySessionService(**config)
 
 
 # ======================================================================
 # Builder: SqliteSessionService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'db_path'}
-
 class SqliteSessionService:
     """A session service that uses an SQLite database for storage via aiosqlite."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'db_path'}
 
 
     def __init__(self, db_path: str) -> None:
@@ -1077,11 +1149,16 @@ class SqliteSessionService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SqliteSessionService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SqliteSessionService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1100,7 +1177,7 @@ class SqliteSessionService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SqliteSessionService. "
+                f"'{name}' is not a recognized parameter on _ADK_SqliteSessionService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1116,8 +1193,8 @@ class SqliteSessionService:
 
     # --- Terminal methods ---
 
-    def build(self) -> SqliteSessionService:
-        """A session service that uses an SQLite database for storage via aiosqlite. Resolve into a native ADK SqliteSessionService."""
+    def build(self) -> _ADK_SqliteSessionService:
+        """A session service that uses an SQLite database for storage via aiosqlite. Resolve into a native ADK _ADK_SqliteSessionService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1133,20 +1210,21 @@ class SqliteSessionService:
             else:
                 config[field] = items
         
-        return SqliteSessionService(**config)
+        return _ADK_SqliteSessionService(**config)
 
 
 # ======================================================================
 # Builder: VertexAiSessionService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'project', 'location', 'agent_engine_id', 'express_mode_api_key'}
-
 class VertexAiSessionService:
     """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'location', 'project', 'agent_engine_id', 'express_mode_api_key'}
 
 
     def __init__(self, ) -> None:
@@ -1163,11 +1241,16 @@ class VertexAiSessionService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to VertexAiSessionService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_VertexAiSessionService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1186,7 +1269,7 @@ class VertexAiSessionService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on VertexAiSessionService. "
+                f"'{name}' is not a recognized parameter on _ADK_VertexAiSessionService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1202,8 +1285,8 @@ class VertexAiSessionService:
 
     # --- Terminal methods ---
 
-    def build(self) -> VertexAiSessionService:
-        """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. Resolve into a native ADK VertexAiSessionService."""
+    def build(self) -> _ADK_VertexAiSessionService:
+        """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. Resolve into a native ADK _ADK_VertexAiSessionService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1219,20 +1302,21 @@ class VertexAiSessionService:
             else:
                 config[field] = items
         
-        return VertexAiSessionService(**config)
+        return _ADK_VertexAiSessionService(**config)
 
 
 # ======================================================================
 # Builder: ForwardingArtifactService
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'tool_context'}
-
 class ForwardingArtifactService:
     """Artifact service that forwards to the parent tool context."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'tool_context'}
 
 
     def __init__(self, tool_context: str) -> None:
@@ -1249,11 +1333,16 @@ class ForwardingArtifactService:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ForwardingArtifactService init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ForwardingArtifactService init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1272,7 +1361,7 @@ class ForwardingArtifactService:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ForwardingArtifactService. "
+                f"'{name}' is not a recognized parameter on _ADK_ForwardingArtifactService. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1288,8 +1377,8 @@ class ForwardingArtifactService:
 
     # --- Terminal methods ---
 
-    def build(self) -> ForwardingArtifactService:
-        """Artifact service that forwards to the parent tool context. Resolve into a native ADK ForwardingArtifactService."""
+    def build(self) -> _ADK_ForwardingArtifactService:
+        """Artifact service that forwards to the parent tool context. Resolve into a native ADK _ADK_ForwardingArtifactService."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1305,4 +1394,4 @@ class ForwardingArtifactService:
             else:
                 config[field] = items
         
-        return ForwardingArtifactService(**config)
+        return _ADK_ForwardingArtifactService(**config)

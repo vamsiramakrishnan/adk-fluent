@@ -38,9 +38,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/YOUR_ORG/adk-fluent"
-Repository = "https://github.com/YOUR_ORG/adk-fluent"
-Issues = "https://github.com/YOUR_ORG/adk-fluent/issues"
+Homepage = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
+Repository = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent"
+Issues = "https://gitlab.com/google-cloud-ce/googlers/vamramak/adk-fluent/-/issues"
 
 [project.entry-points."adk_extensions"]
 fluent = "adk_fluent"

@@ -3,55 +3,56 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.agents.agent_config import AgentConfig
-from google.adk.agents.base_agent_config import BaseAgentConfig
-from google.adk.agents.common_configs import AgentRefConfig
-from google.adk.agents.common_configs import ArgumentConfig
-from google.adk.agents.common_configs import CodeConfig
-from google.adk.agents.context_cache_config import ContextCacheConfig
-from google.adk.agents.llm_agent_config import LlmAgentConfig
-from google.adk.agents.loop_agent_config import LoopAgentConfig
-from google.adk.agents.parallel_agent_config import ParallelAgentConfig
-from google.adk.agents.run_config import RunConfig
-from google.adk.agents.run_config import ToolThreadPoolConfig
-from google.adk.agents.sequential_agent_config import SequentialAgentConfig
-from google.adk.apps.app import EventsCompactionConfig
-from google.adk.apps.app import ResumabilityConfig
-from google.adk.features._feature_registry import FeatureConfig
-from google.adk.flows.llm_flows.audio_cache_manager import AudioCacheConfig
-from google.adk.optimization.simple_prompt_optimizer import SimplePromptOptimizerConfig
-from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig
-from google.adk.plugins.bigquery_agent_analytics_plugin import RetryConfig
-from google.adk.sessions.base_session_service import GetSessionConfig
-from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import AgentSimulatorConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import InjectionConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import ToolSimulationConfig
-from google.adk.tools.agent_tool import AgentToolConfig
-from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig
-from google.adk.tools.bigquery.config import BigQueryToolConfig
-from google.adk.tools.bigtable.bigtable_credentials import BigtableCredentialsConfig
-from google.adk.tools.data_agent.config import DataAgentToolConfig
-from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig
-from google.adk.tools.example_tool import ExampleToolConfig
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolsetConfig
-from google.adk.tools.pubsub.config import PubSubToolConfig
-from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig
-from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig
-from google.adk.tools.tool_configs import BaseToolConfig
-from google.adk.tools.tool_configs import ToolArgsConfig
-from google.adk.tools.tool_configs import ToolConfig
+from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
+from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
+from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
+from google.adk.agents.common_configs import ArgumentConfig as _ADK_ArgumentConfig
+from google.adk.agents.common_configs import CodeConfig as _ADK_CodeConfig
+from google.adk.agents.context_cache_config import ContextCacheConfig as _ADK_ContextCacheConfig
+from google.adk.agents.llm_agent_config import LlmAgentConfig as _ADK_LlmAgentConfig
+from google.adk.agents.loop_agent_config import LoopAgentConfig as _ADK_LoopAgentConfig
+from google.adk.agents.parallel_agent_config import ParallelAgentConfig as _ADK_ParallelAgentConfig
+from google.adk.agents.run_config import RunConfig as _ADK_RunConfig
+from google.adk.agents.run_config import ToolThreadPoolConfig as _ADK_ToolThreadPoolConfig
+from google.adk.agents.sequential_agent_config import SequentialAgentConfig as _ADK_SequentialAgentConfig
+from google.adk.apps.app import EventsCompactionConfig as _ADK_EventsCompactionConfig
+from google.adk.apps.app import ResumabilityConfig as _ADK_ResumabilityConfig
+from google.adk.features._feature_registry import FeatureConfig as _ADK_FeatureConfig
+from google.adk.flows.llm_flows.audio_cache_manager import AudioCacheConfig as _ADK_AudioCacheConfig
+from google.adk.optimization.simple_prompt_optimizer import SimplePromptOptimizerConfig as _ADK_SimplePromptOptimizerConfig
+from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig as _ADK_BigQueryLoggerConfig
+from google.adk.plugins.bigquery_agent_analytics_plugin import RetryConfig as _ADK_RetryConfig
+from google.adk.sessions.base_session_service import GetSessionConfig as _ADK_GetSessionConfig
+from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig as _ADK_BaseGoogleCredentialsConfig
+from google.adk.tools.agent_simulator.agent_simulator_config import AgentSimulatorConfig as _ADK_AgentSimulatorConfig
+from google.adk.tools.agent_simulator.agent_simulator_config import InjectionConfig as _ADK_InjectionConfig
+from google.adk.tools.agent_simulator.agent_simulator_config import ToolSimulationConfig as _ADK_ToolSimulationConfig
+from google.adk.tools.agent_tool import AgentToolConfig as _ADK_AgentToolConfig
+from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig as _ADK_BigQueryCredentialsConfig
+from google.adk.tools.bigquery.config import BigQueryToolConfig as _ADK_BigQueryToolConfig
+from google.adk.tools.bigtable.bigtable_credentials import BigtableCredentialsConfig as _ADK_BigtableCredentialsConfig
+from google.adk.tools.data_agent.config import DataAgentToolConfig as _ADK_DataAgentToolConfig
+from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig as _ADK_DataAgentCredentialsConfig
+from google.adk.tools.example_tool import ExampleToolConfig as _ADK_ExampleToolConfig
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolsetConfig as _ADK_McpToolsetConfig
+from google.adk.tools.pubsub.config import PubSubToolConfig as _ADK_PubSubToolConfig
+from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig as _ADK_PubSubCredentialsConfig
+from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig as _ADK_SpannerCredentialsConfig
+from google.adk.tools.tool_configs import BaseToolConfig as _ADK_BaseToolConfig
+from google.adk.tools.tool_configs import ToolArgsConfig as _ADK_ToolArgsConfig
+from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
 
 # ======================================================================
 # Builder: AgentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class AgentConfig:
     """The config for the YAML schema to create an agent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, root: str) -> None:
@@ -68,11 +69,15 @@ class AgentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -84,14 +89,14 @@ class AgentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in AgentConfig.model_fields:
+        if field_name not in _ADK_AgentConfig.model_fields:
             available = sorted(
-                set(AgentConfig.model_fields.keys())
+                set(_ADK_AgentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on AgentConfig. "
+                f"'{name}' is not a recognized field on _ADK_AgentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -107,8 +112,8 @@ class AgentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentConfig:
-        """The config for the YAML schema to create an agent. Resolve into a native ADK AgentConfig."""
+    def build(self) -> _ADK_AgentConfig:
+        """The config for the YAML schema to create an agent. Resolve into a native ADK _ADK_AgentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -124,19 +129,20 @@ class AgentConfig:
             else:
                 config[field] = items
         
-        return AgentConfig(**config)
+        return _ADK_AgentConfig(**config)
 
 
 # ======================================================================
 # Builder: BaseAgentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BaseAgentConfig:
     """The config for the YAML schema of a BaseAgent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str) -> None:
@@ -158,11 +164,15 @@ class BaseAgentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseAgentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseAgentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -174,14 +184,14 @@ class BaseAgentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BaseAgentConfig.model_fields:
+        if field_name not in _ADK_BaseAgentConfig.model_fields:
             available = sorted(
-                set(BaseAgentConfig.model_fields.keys())
+                set(_ADK_BaseAgentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BaseAgentConfig. "
+                f"'{name}' is not a recognized field on _ADK_BaseAgentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -197,8 +207,8 @@ class BaseAgentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseAgentConfig:
-        """The config for the YAML schema of a BaseAgent. Resolve into a native ADK BaseAgentConfig."""
+    def build(self) -> _ADK_BaseAgentConfig:
+        """The config for the YAML schema of a BaseAgent. Resolve into a native ADK _ADK_BaseAgentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -214,19 +224,20 @@ class BaseAgentConfig:
             else:
                 config[field] = items
         
-        return BaseAgentConfig(**config)
+        return _ADK_BaseAgentConfig(**config)
 
 
 # ======================================================================
 # Builder: AgentRefConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class AgentRefConfig:
     """The config for the reference to another agent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -243,11 +254,15 @@ class AgentRefConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentRefConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentRefConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -259,14 +274,14 @@ class AgentRefConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in AgentRefConfig.model_fields:
+        if field_name not in _ADK_AgentRefConfig.model_fields:
             available = sorted(
-                set(AgentRefConfig.model_fields.keys())
+                set(_ADK_AgentRefConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on AgentRefConfig. "
+                f"'{name}' is not a recognized field on _ADK_AgentRefConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -282,8 +297,8 @@ class AgentRefConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentRefConfig:
-        """The config for the reference to another agent. Resolve into a native ADK AgentRefConfig."""
+    def build(self) -> _ADK_AgentRefConfig:
+        """The config for the reference to another agent. Resolve into a native ADK _ADK_AgentRefConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -299,19 +314,20 @@ class AgentRefConfig:
             else:
                 config[field] = items
         
-        return AgentRefConfig(**config)
+        return _ADK_AgentRefConfig(**config)
 
 
 # ======================================================================
 # Builder: ArgumentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ArgumentConfig:
     """An argument passed to a function or a class's constructor."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, value: str) -> None:
@@ -328,11 +344,15 @@ class ArgumentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ArgumentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ArgumentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -344,14 +364,14 @@ class ArgumentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ArgumentConfig.model_fields:
+        if field_name not in _ADK_ArgumentConfig.model_fields:
             available = sorted(
-                set(ArgumentConfig.model_fields.keys())
+                set(_ADK_ArgumentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ArgumentConfig. "
+                f"'{name}' is not a recognized field on _ADK_ArgumentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -367,8 +387,8 @@ class ArgumentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ArgumentConfig:
-        """An argument passed to a function or a class's constructor. Resolve into a native ADK ArgumentConfig."""
+    def build(self) -> _ADK_ArgumentConfig:
+        """An argument passed to a function or a class's constructor. Resolve into a native ADK _ADK_ArgumentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -384,19 +404,20 @@ class ArgumentConfig:
             else:
                 config[field] = items
         
-        return ArgumentConfig(**config)
+        return _ADK_ArgumentConfig(**config)
 
 
 # ======================================================================
 # Builder: CodeConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class CodeConfig:
     """Code reference config for a variable, a function, or a class."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str) -> None:
@@ -413,11 +434,15 @@ class CodeConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to CodeConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_CodeConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -429,14 +454,14 @@ class CodeConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in CodeConfig.model_fields:
+        if field_name not in _ADK_CodeConfig.model_fields:
             available = sorted(
-                set(CodeConfig.model_fields.keys())
+                set(_ADK_CodeConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on CodeConfig. "
+                f"'{name}' is not a recognized field on _ADK_CodeConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -452,8 +477,8 @@ class CodeConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> CodeConfig:
-        """Code reference config for a variable, a function, or a class. Resolve into a native ADK CodeConfig."""
+    def build(self) -> _ADK_CodeConfig:
+        """Code reference config for a variable, a function, or a class. Resolve into a native ADK _ADK_CodeConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -469,19 +494,20 @@ class CodeConfig:
             else:
                 config[field] = items
         
-        return CodeConfig(**config)
+        return _ADK_CodeConfig(**config)
 
 
 # ======================================================================
 # Builder: ContextCacheConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ContextCacheConfig:
     """Configuration for context caching across all agents in an app."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -498,11 +524,15 @@ class ContextCacheConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ContextCacheConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ContextCacheConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -514,14 +544,14 @@ class ContextCacheConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ContextCacheConfig.model_fields:
+        if field_name not in _ADK_ContextCacheConfig.model_fields:
             available = sorted(
-                set(ContextCacheConfig.model_fields.keys())
+                set(_ADK_ContextCacheConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ContextCacheConfig. "
+                f"'{name}' is not a recognized field on _ADK_ContextCacheConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -537,8 +567,8 @@ class ContextCacheConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ContextCacheConfig:
-        """Configuration for context caching across all agents in an app. Resolve into a native ADK ContextCacheConfig."""
+    def build(self) -> _ADK_ContextCacheConfig:
+        """Configuration for context caching across all agents in an app. Resolve into a native ADK _ADK_ContextCacheConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -554,19 +584,20 @@ class ContextCacheConfig:
             else:
                 config[field] = items
         
-        return ContextCacheConfig(**config)
+        return _ADK_ContextCacheConfig(**config)
 
 
 # ======================================================================
 # Builder: LlmAgentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description', 'instruct': 'instruction'}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class LlmAgentConfig:
     """The config for the YAML schema of a LlmAgent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description', 'instruct': 'instruction'}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str, instruction: str) -> None:
@@ -594,11 +625,15 @@ class LlmAgentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LlmAgentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LlmAgentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -610,14 +645,14 @@ class LlmAgentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in LlmAgentConfig.model_fields:
+        if field_name not in _ADK_LlmAgentConfig.model_fields:
             available = sorted(
-                set(LlmAgentConfig.model_fields.keys())
+                set(_ADK_LlmAgentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on LlmAgentConfig. "
+                f"'{name}' is not a recognized field on _ADK_LlmAgentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -633,8 +668,8 @@ class LlmAgentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> LlmAgentConfig:
-        """The config for the YAML schema of a LlmAgent. Resolve into a native ADK LlmAgentConfig."""
+    def build(self) -> _ADK_LlmAgentConfig:
+        """The config for the YAML schema of a LlmAgent. Resolve into a native ADK _ADK_LlmAgentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -650,19 +685,20 @@ class LlmAgentConfig:
             else:
                 config[field] = items
         
-        return LlmAgentConfig(**config)
+        return _ADK_LlmAgentConfig(**config)
 
 
 # ======================================================================
 # Builder: LoopAgentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class LoopAgentConfig:
     """The config for the YAML schema of a LoopAgent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str) -> None:
@@ -684,11 +720,15 @@ class LoopAgentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoopAgentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoopAgentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -700,14 +740,14 @@ class LoopAgentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in LoopAgentConfig.model_fields:
+        if field_name not in _ADK_LoopAgentConfig.model_fields:
             available = sorted(
-                set(LoopAgentConfig.model_fields.keys())
+                set(_ADK_LoopAgentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on LoopAgentConfig. "
+                f"'{name}' is not a recognized field on _ADK_LoopAgentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -723,8 +763,8 @@ class LoopAgentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoopAgentConfig:
-        """The config for the YAML schema of a LoopAgent. Resolve into a native ADK LoopAgentConfig."""
+    def build(self) -> _ADK_LoopAgentConfig:
+        """The config for the YAML schema of a LoopAgent. Resolve into a native ADK _ADK_LoopAgentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -740,19 +780,20 @@ class LoopAgentConfig:
             else:
                 config[field] = items
         
-        return LoopAgentConfig(**config)
+        return _ADK_LoopAgentConfig(**config)
 
 
 # ======================================================================
 # Builder: ParallelAgentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ParallelAgentConfig:
     """The config for the YAML schema of a ParallelAgent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str) -> None:
@@ -774,11 +815,15 @@ class ParallelAgentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ParallelAgentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ParallelAgentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -790,14 +835,14 @@ class ParallelAgentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ParallelAgentConfig.model_fields:
+        if field_name not in _ADK_ParallelAgentConfig.model_fields:
             available = sorted(
-                set(ParallelAgentConfig.model_fields.keys())
+                set(_ADK_ParallelAgentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ParallelAgentConfig. "
+                f"'{name}' is not a recognized field on _ADK_ParallelAgentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -813,8 +858,8 @@ class ParallelAgentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ParallelAgentConfig:
-        """The config for the YAML schema of a ParallelAgent. Resolve into a native ADK ParallelAgentConfig."""
+    def build(self) -> _ADK_ParallelAgentConfig:
+        """The config for the YAML schema of a ParallelAgent. Resolve into a native ADK _ADK_ParallelAgentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -830,19 +875,20 @@ class ParallelAgentConfig:
             else:
                 config[field] = items
         
-        return ParallelAgentConfig(**config)
+        return _ADK_ParallelAgentConfig(**config)
 
 
 # ======================================================================
 # Builder: RunConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class RunConfig:
     """Configs for runtime behavior of agents."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -859,11 +905,15 @@ class RunConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to RunConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_RunConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -875,14 +925,14 @@ class RunConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in RunConfig.model_fields:
+        if field_name not in _ADK_RunConfig.model_fields:
             available = sorted(
-                set(RunConfig.model_fields.keys())
+                set(_ADK_RunConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on RunConfig. "
+                f"'{name}' is not a recognized field on _ADK_RunConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -898,8 +948,8 @@ class RunConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> RunConfig:
-        """Configs for runtime behavior of agents. Resolve into a native ADK RunConfig."""
+    def build(self) -> _ADK_RunConfig:
+        """Configs for runtime behavior of agents. Resolve into a native ADK _ADK_RunConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -915,19 +965,20 @@ class RunConfig:
             else:
                 config[field] = items
         
-        return RunConfig(**config)
+        return _ADK_RunConfig(**config)
 
 
 # ======================================================================
 # Builder: ToolThreadPoolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ToolThreadPoolConfig:
     """Configuration for the tool thread pool executor."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -944,11 +995,15 @@ class ToolThreadPoolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ToolThreadPoolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ToolThreadPoolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -960,14 +1015,14 @@ class ToolThreadPoolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ToolThreadPoolConfig.model_fields:
+        if field_name not in _ADK_ToolThreadPoolConfig.model_fields:
             available = sorted(
-                set(ToolThreadPoolConfig.model_fields.keys())
+                set(_ADK_ToolThreadPoolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ToolThreadPoolConfig. "
+                f"'{name}' is not a recognized field on _ADK_ToolThreadPoolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -983,8 +1038,8 @@ class ToolThreadPoolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ToolThreadPoolConfig:
-        """Configuration for the tool thread pool executor. Resolve into a native ADK ToolThreadPoolConfig."""
+    def build(self) -> _ADK_ToolThreadPoolConfig:
+        """Configuration for the tool thread pool executor. Resolve into a native ADK _ADK_ToolThreadPoolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1000,19 +1055,20 @@ class ToolThreadPoolConfig:
             else:
                 config[field] = items
         
-        return ToolThreadPoolConfig(**config)
+        return _ADK_ToolThreadPoolConfig(**config)
 
 
 # ======================================================================
 # Builder: SequentialAgentConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class SequentialAgentConfig:
     """The config for the YAML schema of a SequentialAgent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str) -> None:
@@ -1034,11 +1090,15 @@ class SequentialAgentConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SequentialAgentConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SequentialAgentConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1050,14 +1110,14 @@ class SequentialAgentConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in SequentialAgentConfig.model_fields:
+        if field_name not in _ADK_SequentialAgentConfig.model_fields:
             available = sorted(
-                set(SequentialAgentConfig.model_fields.keys())
+                set(_ADK_SequentialAgentConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on SequentialAgentConfig. "
+                f"'{name}' is not a recognized field on _ADK_SequentialAgentConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1073,8 +1133,8 @@ class SequentialAgentConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> SequentialAgentConfig:
-        """The config for the YAML schema of a SequentialAgent. Resolve into a native ADK SequentialAgentConfig."""
+    def build(self) -> _ADK_SequentialAgentConfig:
+        """The config for the YAML schema of a SequentialAgent. Resolve into a native ADK _ADK_SequentialAgentConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1090,19 +1150,20 @@ class SequentialAgentConfig:
             else:
                 config[field] = items
         
-        return SequentialAgentConfig(**config)
+        return _ADK_SequentialAgentConfig(**config)
 
 
 # ======================================================================
 # Builder: EventsCompactionConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class EventsCompactionConfig:
     """The config of event compaction for an application."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, compaction_interval: str, overlap_size: str) -> None:
@@ -1119,11 +1180,15 @@ class EventsCompactionConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to EventsCompactionConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_EventsCompactionConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1135,14 +1200,14 @@ class EventsCompactionConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in EventsCompactionConfig.model_fields:
+        if field_name not in _ADK_EventsCompactionConfig.model_fields:
             available = sorted(
-                set(EventsCompactionConfig.model_fields.keys())
+                set(_ADK_EventsCompactionConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on EventsCompactionConfig. "
+                f"'{name}' is not a recognized field on _ADK_EventsCompactionConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1158,8 +1223,8 @@ class EventsCompactionConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> EventsCompactionConfig:
-        """The config of event compaction for an application. Resolve into a native ADK EventsCompactionConfig."""
+    def build(self) -> _ADK_EventsCompactionConfig:
+        """The config of event compaction for an application. Resolve into a native ADK _ADK_EventsCompactionConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1175,19 +1240,20 @@ class EventsCompactionConfig:
             else:
                 config[field] = items
         
-        return EventsCompactionConfig(**config)
+        return _ADK_EventsCompactionConfig(**config)
 
 
 # ======================================================================
 # Builder: ResumabilityConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ResumabilityConfig:
     """The config of the resumability for an application."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1204,11 +1270,15 @@ class ResumabilityConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ResumabilityConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ResumabilityConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1220,14 +1290,14 @@ class ResumabilityConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ResumabilityConfig.model_fields:
+        if field_name not in _ADK_ResumabilityConfig.model_fields:
             available = sorted(
-                set(ResumabilityConfig.model_fields.keys())
+                set(_ADK_ResumabilityConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ResumabilityConfig. "
+                f"'{name}' is not a recognized field on _ADK_ResumabilityConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1243,8 +1313,8 @@ class ResumabilityConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ResumabilityConfig:
-        """The config of the resumability for an application. Resolve into a native ADK ResumabilityConfig."""
+    def build(self) -> _ADK_ResumabilityConfig:
+        """The config of the resumability for an application. Resolve into a native ADK _ADK_ResumabilityConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1260,20 +1330,21 @@ class ResumabilityConfig:
             else:
                 config[field] = items
         
-        return ResumabilityConfig(**config)
+        return _ADK_ResumabilityConfig(**config)
 
 
 # ======================================================================
 # Builder: FeatureConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'default_on', 'stage'}
-
 class FeatureConfig:
     """Feature configuration."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'stage', 'default_on'}
 
 
     def __init__(self, stage: str) -> None:
@@ -1290,11 +1361,16 @@ class FeatureConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to FeatureConfig init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_FeatureConfig init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1313,7 +1389,7 @@ class FeatureConfig:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on FeatureConfig. "
+                f"'{name}' is not a recognized parameter on _ADK_FeatureConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1329,8 +1405,8 @@ class FeatureConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> FeatureConfig:
-        """Feature configuration. Resolve into a native ADK FeatureConfig."""
+    def build(self) -> _ADK_FeatureConfig:
+        """Feature configuration. Resolve into a native ADK _ADK_FeatureConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1346,20 +1422,21 @@ class FeatureConfig:
             else:
                 config[field] = items
         
-        return FeatureConfig(**config)
+        return _ADK_FeatureConfig(**config)
 
 
 # ======================================================================
 # Builder: AudioCacheConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'auto_flush_threshold', 'max_cache_duration_seconds', 'max_cache_size_bytes'}
-
 class AudioCacheConfig:
     """Configuration for audio caching behavior."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'max_cache_size_bytes', 'auto_flush_threshold', 'max_cache_duration_seconds'}
 
 
     def __init__(self, ) -> None:
@@ -1376,11 +1453,16 @@ class AudioCacheConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AudioCacheConfig init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AudioCacheConfig init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1399,7 +1481,7 @@ class AudioCacheConfig:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on AudioCacheConfig. "
+                f"'{name}' is not a recognized parameter on _ADK_AudioCacheConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1415,8 +1497,8 @@ class AudioCacheConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> AudioCacheConfig:
-        """Configuration for audio caching behavior. Resolve into a native ADK AudioCacheConfig."""
+    def build(self) -> _ADK_AudioCacheConfig:
+        """Configuration for audio caching behavior. Resolve into a native ADK _ADK_AudioCacheConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1432,19 +1514,20 @@ class AudioCacheConfig:
             else:
                 config[field] = items
         
-        return AudioCacheConfig(**config)
+        return _ADK_AudioCacheConfig(**config)
 
 
 # ======================================================================
 # Builder: SimplePromptOptimizerConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class SimplePromptOptimizerConfig:
     """Configuration for the IterativePromptOptimizer."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1461,11 +1544,15 @@ class SimplePromptOptimizerConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SimplePromptOptimizerConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SimplePromptOptimizerConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1477,14 +1564,14 @@ class SimplePromptOptimizerConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in SimplePromptOptimizerConfig.model_fields:
+        if field_name not in _ADK_SimplePromptOptimizerConfig.model_fields:
             available = sorted(
-                set(SimplePromptOptimizerConfig.model_fields.keys())
+                set(_ADK_SimplePromptOptimizerConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on SimplePromptOptimizerConfig. "
+                f"'{name}' is not a recognized field on _ADK_SimplePromptOptimizerConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1500,8 +1587,8 @@ class SimplePromptOptimizerConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> SimplePromptOptimizerConfig:
-        """Configuration for the IterativePromptOptimizer. Resolve into a native ADK SimplePromptOptimizerConfig."""
+    def build(self) -> _ADK_SimplePromptOptimizerConfig:
+        """Configuration for the IterativePromptOptimizer. Resolve into a native ADK _ADK_SimplePromptOptimizerConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1517,20 +1604,21 @@ class SimplePromptOptimizerConfig:
             else:
                 config[field] = items
         
-        return SimplePromptOptimizerConfig(**config)
+        return _ADK_SimplePromptOptimizerConfig(**config)
 
 
 # ======================================================================
 # Builder: BigQueryLoggerConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'queue_max_size', 'max_content_length', 'log_multi_modal_content', 'retry_config', 'batch_flush_interval', 'gcs_bucket_name', 'enabled', 'custom_tags', 'event_denylist', 'clustering_fields', 'table_id', 'connection_id', 'batch_size', 'content_formatter', 'log_session_metadata', 'event_allowlist', 'shutdown_timeout'}
-
 class BigQueryLoggerConfig:
     """Configuration for the BigQueryAgentAnalyticsPlugin."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'content_formatter', 'clustering_fields', 'enabled', 'table_id', 'custom_tags', 'max_content_length', 'shutdown_timeout', 'gcs_bucket_name', 'event_allowlist', 'log_multi_modal_content', 'batch_size', 'queue_max_size', 'retry_config', 'connection_id', 'batch_flush_interval', 'event_denylist', 'log_session_metadata'}
 
 
     def __init__(self, ) -> None:
@@ -1547,11 +1635,16 @@ class BigQueryLoggerConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigQueryLoggerConfig init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigQueryLoggerConfig init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1570,7 +1663,7 @@ class BigQueryLoggerConfig:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BigQueryLoggerConfig. "
+                f"'{name}' is not a recognized parameter on _ADK_BigQueryLoggerConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1586,8 +1679,8 @@ class BigQueryLoggerConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigQueryLoggerConfig:
-        """Configuration for the BigQueryAgentAnalyticsPlugin. Resolve into a native ADK BigQueryLoggerConfig."""
+    def build(self) -> _ADK_BigQueryLoggerConfig:
+        """Configuration for the BigQueryAgentAnalyticsPlugin. Resolve into a native ADK _ADK_BigQueryLoggerConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1603,20 +1696,21 @@ class BigQueryLoggerConfig:
             else:
                 config[field] = items
         
-        return BigQueryLoggerConfig(**config)
+        return _ADK_BigQueryLoggerConfig(**config)
 
 
 # ======================================================================
 # Builder: RetryConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'initial_delay', 'max_retries', 'multiplier', 'max_delay'}
-
 class RetryConfig:
     """Configuration for retrying failed BigQuery write operations."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'max_delay', 'max_retries', 'initial_delay', 'multiplier'}
 
 
     def __init__(self, ) -> None:
@@ -1633,11 +1727,16 @@ class RetryConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to RetryConfig init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_RetryConfig init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1656,7 +1755,7 @@ class RetryConfig:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on RetryConfig. "
+                f"'{name}' is not a recognized parameter on _ADK_RetryConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1672,8 +1771,8 @@ class RetryConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> RetryConfig:
-        """Configuration for retrying failed BigQuery write operations. Resolve into a native ADK RetryConfig."""
+    def build(self) -> _ADK_RetryConfig:
+        """Configuration for retrying failed BigQuery write operations. Resolve into a native ADK _ADK_RetryConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1689,19 +1788,20 @@ class RetryConfig:
             else:
                 config[field] = items
         
-        return RetryConfig(**config)
+        return _ADK_RetryConfig(**config)
 
 
 # ======================================================================
 # Builder: GetSessionConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class GetSessionConfig:
     """The configuration of getting a session."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1718,11 +1818,15 @@ class GetSessionConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GetSessionConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GetSessionConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1734,14 +1838,14 @@ class GetSessionConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in GetSessionConfig.model_fields:
+        if field_name not in _ADK_GetSessionConfig.model_fields:
             available = sorted(
-                set(GetSessionConfig.model_fields.keys())
+                set(_ADK_GetSessionConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on GetSessionConfig. "
+                f"'{name}' is not a recognized field on _ADK_GetSessionConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1757,8 +1861,8 @@ class GetSessionConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> GetSessionConfig:
-        """The configuration of getting a session. Resolve into a native ADK GetSessionConfig."""
+    def build(self) -> _ADK_GetSessionConfig:
+        """The configuration of getting a session. Resolve into a native ADK _ADK_GetSessionConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1774,19 +1878,20 @@ class GetSessionConfig:
             else:
                 config[field] = items
         
-        return GetSessionConfig(**config)
+        return _ADK_GetSessionConfig(**config)
 
 
 # ======================================================================
 # Builder: BaseGoogleCredentialsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BaseGoogleCredentialsConfig:
     """Base Google Credentials Configuration for Google API tools (Experimental)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1803,11 +1908,15 @@ class BaseGoogleCredentialsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseGoogleCredentialsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseGoogleCredentialsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1819,14 +1928,14 @@ class BaseGoogleCredentialsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BaseGoogleCredentialsConfig.model_fields:
+        if field_name not in _ADK_BaseGoogleCredentialsConfig.model_fields:
             available = sorted(
-                set(BaseGoogleCredentialsConfig.model_fields.keys())
+                set(_ADK_BaseGoogleCredentialsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BaseGoogleCredentialsConfig. "
+                f"'{name}' is not a recognized field on _ADK_BaseGoogleCredentialsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1842,8 +1951,8 @@ class BaseGoogleCredentialsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseGoogleCredentialsConfig:
-        """Base Google Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK BaseGoogleCredentialsConfig."""
+    def build(self) -> _ADK_BaseGoogleCredentialsConfig:
+        """Base Google Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BaseGoogleCredentialsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1859,19 +1968,20 @@ class BaseGoogleCredentialsConfig:
             else:
                 config[field] = items
         
-        return BaseGoogleCredentialsConfig(**config)
+        return _ADK_BaseGoogleCredentialsConfig(**config)
 
 
 # ======================================================================
 # Builder: AgentSimulatorConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class AgentSimulatorConfig:
     """Configuration for AgentSimulator."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1888,11 +1998,15 @@ class AgentSimulatorConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentSimulatorConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentSimulatorConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1904,14 +2018,14 @@ class AgentSimulatorConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in AgentSimulatorConfig.model_fields:
+        if field_name not in _ADK_AgentSimulatorConfig.model_fields:
             available = sorted(
-                set(AgentSimulatorConfig.model_fields.keys())
+                set(_ADK_AgentSimulatorConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on AgentSimulatorConfig. "
+                f"'{name}' is not a recognized field on _ADK_AgentSimulatorConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1927,8 +2041,8 @@ class AgentSimulatorConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentSimulatorConfig:
-        """Configuration for AgentSimulator. Resolve into a native ADK AgentSimulatorConfig."""
+    def build(self) -> _ADK_AgentSimulatorConfig:
+        """Configuration for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1944,19 +2058,20 @@ class AgentSimulatorConfig:
             else:
                 config[field] = items
         
-        return AgentSimulatorConfig(**config)
+        return _ADK_AgentSimulatorConfig(**config)
 
 
 # ======================================================================
 # Builder: InjectionConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class InjectionConfig:
     """Injection configuration for a tool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1973,11 +2088,15 @@ class InjectionConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to InjectionConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_InjectionConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1989,14 +2108,14 @@ class InjectionConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in InjectionConfig.model_fields:
+        if field_name not in _ADK_InjectionConfig.model_fields:
             available = sorted(
-                set(InjectionConfig.model_fields.keys())
+                set(_ADK_InjectionConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on InjectionConfig. "
+                f"'{name}' is not a recognized field on _ADK_InjectionConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2012,8 +2131,8 @@ class InjectionConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> InjectionConfig:
-        """Injection configuration for a tool. Resolve into a native ADK InjectionConfig."""
+    def build(self) -> _ADK_InjectionConfig:
+        """Injection configuration for a tool. Resolve into a native ADK _ADK_InjectionConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2029,19 +2148,20 @@ class InjectionConfig:
             else:
                 config[field] = items
         
-        return InjectionConfig(**config)
+        return _ADK_InjectionConfig(**config)
 
 
 # ======================================================================
 # Builder: ToolSimulationConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ToolSimulationConfig:
     """Simulation configuration for a single tool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, tool_name: str) -> None:
@@ -2058,11 +2178,15 @@ class ToolSimulationConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ToolSimulationConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ToolSimulationConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2074,14 +2198,14 @@ class ToolSimulationConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ToolSimulationConfig.model_fields:
+        if field_name not in _ADK_ToolSimulationConfig.model_fields:
             available = sorted(
-                set(ToolSimulationConfig.model_fields.keys())
+                set(_ADK_ToolSimulationConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ToolSimulationConfig. "
+                f"'{name}' is not a recognized field on _ADK_ToolSimulationConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2097,8 +2221,8 @@ class ToolSimulationConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ToolSimulationConfig:
-        """Simulation configuration for a single tool. Resolve into a native ADK ToolSimulationConfig."""
+    def build(self) -> _ADK_ToolSimulationConfig:
+        """Simulation configuration for a single tool. Resolve into a native ADK _ADK_ToolSimulationConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2114,19 +2238,20 @@ class ToolSimulationConfig:
             else:
                 config[field] = items
         
-        return ToolSimulationConfig(**config)
+        return _ADK_ToolSimulationConfig(**config)
 
 
 # ======================================================================
 # Builder: AgentToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class AgentToolConfig:
     """The config for the AgentTool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, agent: str) -> None:
@@ -2143,11 +2268,15 @@ class AgentToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2159,14 +2288,14 @@ class AgentToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in AgentToolConfig.model_fields:
+        if field_name not in _ADK_AgentToolConfig.model_fields:
             available = sorted(
-                set(AgentToolConfig.model_fields.keys())
+                set(_ADK_AgentToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on AgentToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_AgentToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2182,8 +2311,8 @@ class AgentToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentToolConfig:
-        """The config for the AgentTool. Resolve into a native ADK AgentToolConfig."""
+    def build(self) -> _ADK_AgentToolConfig:
+        """The config for the AgentTool. Resolve into a native ADK _ADK_AgentToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2199,19 +2328,20 @@ class AgentToolConfig:
             else:
                 config[field] = items
         
-        return AgentToolConfig(**config)
+        return _ADK_AgentToolConfig(**config)
 
 
 # ======================================================================
 # Builder: BigQueryCredentialsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BigQueryCredentialsConfig:
     """BigQuery Credentials Configuration for Google API tools (Experimental)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2228,11 +2358,15 @@ class BigQueryCredentialsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigQueryCredentialsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigQueryCredentialsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2244,14 +2378,14 @@ class BigQueryCredentialsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BigQueryCredentialsConfig.model_fields:
+        if field_name not in _ADK_BigQueryCredentialsConfig.model_fields:
             available = sorted(
-                set(BigQueryCredentialsConfig.model_fields.keys())
+                set(_ADK_BigQueryCredentialsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BigQueryCredentialsConfig. "
+                f"'{name}' is not a recognized field on _ADK_BigQueryCredentialsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2267,8 +2401,8 @@ class BigQueryCredentialsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigQueryCredentialsConfig:
-        """BigQuery Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK BigQueryCredentialsConfig."""
+    def build(self) -> _ADK_BigQueryCredentialsConfig:
+        """BigQuery Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigQueryCredentialsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2284,19 +2418,20 @@ class BigQueryCredentialsConfig:
             else:
                 config[field] = items
         
-        return BigQueryCredentialsConfig(**config)
+        return _ADK_BigQueryCredentialsConfig(**config)
 
 
 # ======================================================================
 # Builder: BigQueryToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BigQueryToolConfig:
     """Configuration for BigQuery tools."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2313,11 +2448,15 @@ class BigQueryToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigQueryToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigQueryToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2329,14 +2468,14 @@ class BigQueryToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BigQueryToolConfig.model_fields:
+        if field_name not in _ADK_BigQueryToolConfig.model_fields:
             available = sorted(
-                set(BigQueryToolConfig.model_fields.keys())
+                set(_ADK_BigQueryToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BigQueryToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_BigQueryToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2352,8 +2491,8 @@ class BigQueryToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigQueryToolConfig:
-        """Configuration for BigQuery tools. Resolve into a native ADK BigQueryToolConfig."""
+    def build(self) -> _ADK_BigQueryToolConfig:
+        """Configuration for BigQuery tools. Resolve into a native ADK _ADK_BigQueryToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2369,19 +2508,20 @@ class BigQueryToolConfig:
             else:
                 config[field] = items
         
-        return BigQueryToolConfig(**config)
+        return _ADK_BigQueryToolConfig(**config)
 
 
 # ======================================================================
 # Builder: BigtableCredentialsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BigtableCredentialsConfig:
     """Bigtable Credentials Configuration for Google API tools (Experimental)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2398,11 +2538,15 @@ class BigtableCredentialsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigtableCredentialsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigtableCredentialsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2414,14 +2558,14 @@ class BigtableCredentialsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BigtableCredentialsConfig.model_fields:
+        if field_name not in _ADK_BigtableCredentialsConfig.model_fields:
             available = sorted(
-                set(BigtableCredentialsConfig.model_fields.keys())
+                set(_ADK_BigtableCredentialsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BigtableCredentialsConfig. "
+                f"'{name}' is not a recognized field on _ADK_BigtableCredentialsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2437,8 +2581,8 @@ class BigtableCredentialsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigtableCredentialsConfig:
-        """Bigtable Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK BigtableCredentialsConfig."""
+    def build(self) -> _ADK_BigtableCredentialsConfig:
+        """Bigtable Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigtableCredentialsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2454,19 +2598,20 @@ class BigtableCredentialsConfig:
             else:
                 config[field] = items
         
-        return BigtableCredentialsConfig(**config)
+        return _ADK_BigtableCredentialsConfig(**config)
 
 
 # ======================================================================
 # Builder: DataAgentToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class DataAgentToolConfig:
     """Configuration for Data Agent tools."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2483,11 +2628,15 @@ class DataAgentToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DataAgentToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DataAgentToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2499,14 +2648,14 @@ class DataAgentToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in DataAgentToolConfig.model_fields:
+        if field_name not in _ADK_DataAgentToolConfig.model_fields:
             available = sorted(
-                set(DataAgentToolConfig.model_fields.keys())
+                set(_ADK_DataAgentToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on DataAgentToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_DataAgentToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2522,8 +2671,8 @@ class DataAgentToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> DataAgentToolConfig:
-        """Configuration for Data Agent tools. Resolve into a native ADK DataAgentToolConfig."""
+    def build(self) -> _ADK_DataAgentToolConfig:
+        """Configuration for Data Agent tools. Resolve into a native ADK _ADK_DataAgentToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2539,19 +2688,20 @@ class DataAgentToolConfig:
             else:
                 config[field] = items
         
-        return DataAgentToolConfig(**config)
+        return _ADK_DataAgentToolConfig(**config)
 
 
 # ======================================================================
 # Builder: DataAgentCredentialsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class DataAgentCredentialsConfig:
     """Data Agent Credentials Configuration for Google API tools."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2568,11 +2718,15 @@ class DataAgentCredentialsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DataAgentCredentialsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DataAgentCredentialsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2584,14 +2738,14 @@ class DataAgentCredentialsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in DataAgentCredentialsConfig.model_fields:
+        if field_name not in _ADK_DataAgentCredentialsConfig.model_fields:
             available = sorted(
-                set(DataAgentCredentialsConfig.model_fields.keys())
+                set(_ADK_DataAgentCredentialsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on DataAgentCredentialsConfig. "
+                f"'{name}' is not a recognized field on _ADK_DataAgentCredentialsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2607,8 +2761,8 @@ class DataAgentCredentialsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> DataAgentCredentialsConfig:
-        """Data Agent Credentials Configuration for Google API tools. Resolve into a native ADK DataAgentCredentialsConfig."""
+    def build(self) -> _ADK_DataAgentCredentialsConfig:
+        """Data Agent Credentials Configuration for Google API tools. Resolve into a native ADK _ADK_DataAgentCredentialsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2624,19 +2778,20 @@ class DataAgentCredentialsConfig:
             else:
                 config[field] = items
         
-        return DataAgentCredentialsConfig(**config)
+        return _ADK_DataAgentCredentialsConfig(**config)
 
 
 # ======================================================================
 # Builder: ExampleToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ExampleToolConfig:
     """Fluent builder for ExampleToolConfig."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, examples: str) -> None:
@@ -2653,11 +2808,15 @@ class ExampleToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ExampleToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ExampleToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2669,14 +2828,14 @@ class ExampleToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ExampleToolConfig.model_fields:
+        if field_name not in _ADK_ExampleToolConfig.model_fields:
             available = sorted(
-                set(ExampleToolConfig.model_fields.keys())
+                set(_ADK_ExampleToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ExampleToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_ExampleToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2692,8 +2851,8 @@ class ExampleToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ExampleToolConfig:
-        """Fluent builder for ExampleToolConfig. Resolve into a native ADK ExampleToolConfig."""
+    def build(self) -> _ADK_ExampleToolConfig:
+        """Fluent builder for ExampleToolConfig. Resolve into a native ADK _ADK_ExampleToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2709,19 +2868,20 @@ class ExampleToolConfig:
             else:
                 config[field] = items
         
-        return ExampleToolConfig(**config)
+        return _ADK_ExampleToolConfig(**config)
 
 
 # ======================================================================
 # Builder: McpToolsetConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class McpToolsetConfig:
     """The config for McpToolset."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2738,11 +2898,15 @@ class McpToolsetConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to McpToolsetConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_McpToolsetConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2754,14 +2918,14 @@ class McpToolsetConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in McpToolsetConfig.model_fields:
+        if field_name not in _ADK_McpToolsetConfig.model_fields:
             available = sorted(
-                set(McpToolsetConfig.model_fields.keys())
+                set(_ADK_McpToolsetConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on McpToolsetConfig. "
+                f"'{name}' is not a recognized field on _ADK_McpToolsetConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2777,8 +2941,8 @@ class McpToolsetConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> McpToolsetConfig:
-        """The config for McpToolset. Resolve into a native ADK McpToolsetConfig."""
+    def build(self) -> _ADK_McpToolsetConfig:
+        """The config for McpToolset. Resolve into a native ADK _ADK_McpToolsetConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2794,19 +2958,20 @@ class McpToolsetConfig:
             else:
                 config[field] = items
         
-        return McpToolsetConfig(**config)
+        return _ADK_McpToolsetConfig(**config)
 
 
 # ======================================================================
 # Builder: PubSubToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class PubSubToolConfig:
     """Configuration for Pub/Sub tools."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2823,11 +2988,15 @@ class PubSubToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to PubSubToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_PubSubToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2839,14 +3008,14 @@ class PubSubToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in PubSubToolConfig.model_fields:
+        if field_name not in _ADK_PubSubToolConfig.model_fields:
             available = sorted(
-                set(PubSubToolConfig.model_fields.keys())
+                set(_ADK_PubSubToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on PubSubToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_PubSubToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2862,8 +3031,8 @@ class PubSubToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> PubSubToolConfig:
-        """Configuration for Pub/Sub tools. Resolve into a native ADK PubSubToolConfig."""
+    def build(self) -> _ADK_PubSubToolConfig:
+        """Configuration for Pub/Sub tools. Resolve into a native ADK _ADK_PubSubToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2879,19 +3048,20 @@ class PubSubToolConfig:
             else:
                 config[field] = items
         
-        return PubSubToolConfig(**config)
+        return _ADK_PubSubToolConfig(**config)
 
 
 # ======================================================================
 # Builder: PubSubCredentialsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class PubSubCredentialsConfig:
     """Pub/Sub Credentials Configuration for Google API tools (Experimental)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2908,11 +3078,15 @@ class PubSubCredentialsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to PubSubCredentialsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_PubSubCredentialsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2924,14 +3098,14 @@ class PubSubCredentialsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in PubSubCredentialsConfig.model_fields:
+        if field_name not in _ADK_PubSubCredentialsConfig.model_fields:
             available = sorted(
-                set(PubSubCredentialsConfig.model_fields.keys())
+                set(_ADK_PubSubCredentialsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on PubSubCredentialsConfig. "
+                f"'{name}' is not a recognized field on _ADK_PubSubCredentialsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2947,8 +3121,8 @@ class PubSubCredentialsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> PubSubCredentialsConfig:
-        """Pub/Sub Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK PubSubCredentialsConfig."""
+    def build(self) -> _ADK_PubSubCredentialsConfig:
+        """Pub/Sub Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_PubSubCredentialsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2964,19 +3138,20 @@ class PubSubCredentialsConfig:
             else:
                 config[field] = items
         
-        return PubSubCredentialsConfig(**config)
+        return _ADK_PubSubCredentialsConfig(**config)
 
 
 # ======================================================================
 # Builder: SpannerCredentialsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class SpannerCredentialsConfig:
     """Spanner Credentials Configuration for Google API tools (Experimental)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2993,11 +3168,15 @@ class SpannerCredentialsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SpannerCredentialsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SpannerCredentialsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3009,14 +3188,14 @@ class SpannerCredentialsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in SpannerCredentialsConfig.model_fields:
+        if field_name not in _ADK_SpannerCredentialsConfig.model_fields:
             available = sorted(
-                set(SpannerCredentialsConfig.model_fields.keys())
+                set(_ADK_SpannerCredentialsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on SpannerCredentialsConfig. "
+                f"'{name}' is not a recognized field on _ADK_SpannerCredentialsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3032,8 +3211,8 @@ class SpannerCredentialsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> SpannerCredentialsConfig:
-        """Spanner Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK SpannerCredentialsConfig."""
+    def build(self) -> _ADK_SpannerCredentialsConfig:
+        """Spanner Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_SpannerCredentialsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3049,19 +3228,20 @@ class SpannerCredentialsConfig:
             else:
                 config[field] = items
         
-        return SpannerCredentialsConfig(**config)
+        return _ADK_SpannerCredentialsConfig(**config)
 
 
 # ======================================================================
 # Builder: BaseToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BaseToolConfig:
     """The base class for all tool configs."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -3078,11 +3258,15 @@ class BaseToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3094,14 +3278,14 @@ class BaseToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BaseToolConfig.model_fields:
+        if field_name not in _ADK_BaseToolConfig.model_fields:
             available = sorted(
-                set(BaseToolConfig.model_fields.keys())
+                set(_ADK_BaseToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BaseToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_BaseToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3117,8 +3301,8 @@ class BaseToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseToolConfig:
-        """The base class for all tool configs. Resolve into a native ADK BaseToolConfig."""
+    def build(self) -> _ADK_BaseToolConfig:
+        """The base class for all tool configs. Resolve into a native ADK _ADK_BaseToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3134,19 +3318,20 @@ class BaseToolConfig:
             else:
                 config[field] = items
         
-        return BaseToolConfig(**config)
+        return _ADK_BaseToolConfig(**config)
 
 
 # ======================================================================
 # Builder: ToolArgsConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ToolArgsConfig:
     """Config to host free key-value pairs for the args in ToolConfig."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -3163,11 +3348,15 @@ class ToolArgsConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ToolArgsConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ToolArgsConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3179,14 +3368,14 @@ class ToolArgsConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ToolArgsConfig.model_fields:
+        if field_name not in _ADK_ToolArgsConfig.model_fields:
             available = sorted(
-                set(ToolArgsConfig.model_fields.keys())
+                set(_ADK_ToolArgsConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ToolArgsConfig. "
+                f"'{name}' is not a recognized field on _ADK_ToolArgsConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3202,8 +3391,8 @@ class ToolArgsConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ToolArgsConfig:
-        """Config to host free key-value pairs for the args in ToolConfig. Resolve into a native ADK ToolArgsConfig."""
+    def build(self) -> _ADK_ToolArgsConfig:
+        """Config to host free key-value pairs for the args in ToolConfig. Resolve into a native ADK _ADK_ToolArgsConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3219,19 +3408,20 @@ class ToolArgsConfig:
             else:
                 config[field] = items
         
-        return ToolArgsConfig(**config)
+        return _ADK_ToolArgsConfig(**config)
 
 
 # ======================================================================
 # Builder: ToolConfig
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ToolConfig:
     """The configuration for a tool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str) -> None:
@@ -3248,11 +3438,15 @@ class ToolConfig:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ToolConfig.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ToolConfig.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3264,14 +3458,14 @@ class ToolConfig:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ToolConfig.model_fields:
+        if field_name not in _ADK_ToolConfig.model_fields:
             available = sorted(
-                set(ToolConfig.model_fields.keys())
+                set(_ADK_ToolConfig.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ToolConfig. "
+                f"'{name}' is not a recognized field on _ADK_ToolConfig. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3287,8 +3481,8 @@ class ToolConfig:
 
     # --- Terminal methods ---
 
-    def build(self) -> ToolConfig:
-        """The configuration for a tool. Resolve into a native ADK ToolConfig."""
+    def build(self) -> _ADK_ToolConfig:
+        """The configuration for a tool. Resolve into a native ADK _ADK_ToolConfig."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3304,4 +3498,4 @@ class ToolConfig:
             else:
                 config[field] = items
         
-        return ToolConfig(**config)
+        return _ADK_ToolConfig(**config)

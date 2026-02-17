@@ -3,22 +3,23 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.code_executors.agent_engine_sandbox_code_executor import AgentEngineSandboxCodeExecutor
-from google.adk.code_executors.base_code_executor import BaseCodeExecutor
-from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor
-from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor
-from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor
+from google.adk.code_executors.agent_engine_sandbox_code_executor import AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor
+from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
+from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
+from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor
+from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
 
 # ======================================================================
 # Builder: AgentEngineSandboxCodeExecutor
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class AgentEngineSandboxCodeExecutor:
     """A code executor that uses Agent Engine Code Execution Sandbox to execute code."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -35,11 +36,15 @@ class AgentEngineSandboxCodeExecutor:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentEngineSandboxCodeExecutor.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentEngineSandboxCodeExecutor.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -51,14 +56,14 @@ class AgentEngineSandboxCodeExecutor:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in AgentEngineSandboxCodeExecutor.model_fields:
+        if field_name not in _ADK_AgentEngineSandboxCodeExecutor.model_fields:
             available = sorted(
-                set(AgentEngineSandboxCodeExecutor.model_fields.keys())
+                set(_ADK_AgentEngineSandboxCodeExecutor.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on AgentEngineSandboxCodeExecutor. "
+                f"'{name}' is not a recognized field on _ADK_AgentEngineSandboxCodeExecutor. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -74,8 +79,8 @@ class AgentEngineSandboxCodeExecutor:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentEngineSandboxCodeExecutor:
-        """A code executor that uses Agent Engine Code Execution Sandbox to execute code. Resolve into a native ADK AgentEngineSandboxCodeExecutor."""
+    def build(self) -> _ADK_AgentEngineSandboxCodeExecutor:
+        """A code executor that uses Agent Engine Code Execution Sandbox to execute code. Resolve into a native ADK _ADK_AgentEngineSandboxCodeExecutor."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -91,19 +96,20 @@ class AgentEngineSandboxCodeExecutor:
             else:
                 config[field] = items
         
-        return AgentEngineSandboxCodeExecutor(**config)
+        return _ADK_AgentEngineSandboxCodeExecutor(**config)
 
 
 # ======================================================================
 # Builder: BaseCodeExecutor
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BaseCodeExecutor:
     """Abstract base class for all code executors."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -120,11 +126,15 @@ class BaseCodeExecutor:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseCodeExecutor.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseCodeExecutor.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -136,14 +146,14 @@ class BaseCodeExecutor:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BaseCodeExecutor.model_fields:
+        if field_name not in _ADK_BaseCodeExecutor.model_fields:
             available = sorted(
-                set(BaseCodeExecutor.model_fields.keys())
+                set(_ADK_BaseCodeExecutor.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BaseCodeExecutor. "
+                f"'{name}' is not a recognized field on _ADK_BaseCodeExecutor. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -159,8 +169,8 @@ class BaseCodeExecutor:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseCodeExecutor:
-        """Abstract base class for all code executors. Resolve into a native ADK BaseCodeExecutor."""
+    def build(self) -> _ADK_BaseCodeExecutor:
+        """Abstract base class for all code executors. Resolve into a native ADK _ADK_BaseCodeExecutor."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -176,19 +186,20 @@ class BaseCodeExecutor:
             else:
                 config[field] = items
         
-        return BaseCodeExecutor(**config)
+        return _ADK_BaseCodeExecutor(**config)
 
 
 # ======================================================================
 # Builder: BuiltInCodeExecutor
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class BuiltInCodeExecutor:
     """A code executor that uses the Model's built-in code executor."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -205,11 +216,15 @@ class BuiltInCodeExecutor:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BuiltInCodeExecutor.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BuiltInCodeExecutor.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -221,14 +236,14 @@ class BuiltInCodeExecutor:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in BuiltInCodeExecutor.model_fields:
+        if field_name not in _ADK_BuiltInCodeExecutor.model_fields:
             available = sorted(
-                set(BuiltInCodeExecutor.model_fields.keys())
+                set(_ADK_BuiltInCodeExecutor.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on BuiltInCodeExecutor. "
+                f"'{name}' is not a recognized field on _ADK_BuiltInCodeExecutor. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -244,8 +259,8 @@ class BuiltInCodeExecutor:
 
     # --- Terminal methods ---
 
-    def build(self) -> BuiltInCodeExecutor:
-        """A code executor that uses the Model's built-in code executor. Resolve into a native ADK BuiltInCodeExecutor."""
+    def build(self) -> _ADK_BuiltInCodeExecutor:
+        """A code executor that uses the Model's built-in code executor. Resolve into a native ADK _ADK_BuiltInCodeExecutor."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -261,19 +276,20 @@ class BuiltInCodeExecutor:
             else:
                 config[field] = items
         
-        return BuiltInCodeExecutor(**config)
+        return _ADK_BuiltInCodeExecutor(**config)
 
 
 # ======================================================================
 # Builder: UnsafeLocalCodeExecutor
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class UnsafeLocalCodeExecutor:
     """A code executor that unsafely execute code in the current local context."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -290,11 +306,15 @@ class UnsafeLocalCodeExecutor:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to UnsafeLocalCodeExecutor.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_UnsafeLocalCodeExecutor.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -306,14 +326,14 @@ class UnsafeLocalCodeExecutor:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in UnsafeLocalCodeExecutor.model_fields:
+        if field_name not in _ADK_UnsafeLocalCodeExecutor.model_fields:
             available = sorted(
-                set(UnsafeLocalCodeExecutor.model_fields.keys())
+                set(_ADK_UnsafeLocalCodeExecutor.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on UnsafeLocalCodeExecutor. "
+                f"'{name}' is not a recognized field on _ADK_UnsafeLocalCodeExecutor. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -329,8 +349,8 @@ class UnsafeLocalCodeExecutor:
 
     # --- Terminal methods ---
 
-    def build(self) -> UnsafeLocalCodeExecutor:
-        """A code executor that unsafely execute code in the current local context. Resolve into a native ADK UnsafeLocalCodeExecutor."""
+    def build(self) -> _ADK_UnsafeLocalCodeExecutor:
+        """A code executor that unsafely execute code in the current local context. Resolve into a native ADK _ADK_UnsafeLocalCodeExecutor."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -346,19 +366,20 @@ class UnsafeLocalCodeExecutor:
             else:
                 config[field] = items
         
-        return UnsafeLocalCodeExecutor(**config)
+        return _ADK_UnsafeLocalCodeExecutor(**config)
 
 
 # ======================================================================
 # Builder: VertexAiCodeExecutor
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class VertexAiCodeExecutor:
     """A code executor that uses Vertex Code Interpreter Extension to execute code."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -375,11 +396,15 @@ class VertexAiCodeExecutor:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to VertexAiCodeExecutor.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_VertexAiCodeExecutor.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -391,14 +416,14 @@ class VertexAiCodeExecutor:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in VertexAiCodeExecutor.model_fields:
+        if field_name not in _ADK_VertexAiCodeExecutor.model_fields:
             available = sorted(
-                set(VertexAiCodeExecutor.model_fields.keys())
+                set(_ADK_VertexAiCodeExecutor.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on VertexAiCodeExecutor. "
+                f"'{name}' is not a recognized field on _ADK_VertexAiCodeExecutor. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -414,8 +439,8 @@ class VertexAiCodeExecutor:
 
     # --- Terminal methods ---
 
-    def build(self) -> VertexAiCodeExecutor:
-        """A code executor that uses Vertex Code Interpreter Extension to execute code. Resolve into a native ADK VertexAiCodeExecutor."""
+    def build(self) -> _ADK_VertexAiCodeExecutor:
+        """A code executor that uses Vertex Code Interpreter Extension to execute code. Resolve into a native ADK _ADK_VertexAiCodeExecutor."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -431,4 +456,4 @@ class VertexAiCodeExecutor:
             else:
                 config[field] = items
         
-        return VertexAiCodeExecutor(**config)
+        return _ADK_VertexAiCodeExecutor(**config)

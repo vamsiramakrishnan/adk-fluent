@@ -3,68 +3,69 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.agents.active_streaming_tool import ActiveStreamingTool
-from google.adk.tools.agent_tool import AgentTool
-from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset
-from google.adk.tools.application_integration_tool.application_integration_toolset import ApplicationIntegrationToolset
-from google.adk.tools.application_integration_tool.integration_connector_tool import IntegrationConnectorTool
-from google.adk.tools.base_authenticated_tool import BaseAuthenticatedTool
-from google.adk.tools.base_tool import BaseTool
-from google.adk.tools.base_toolset import BaseToolset
-from google.adk.tools.bigquery.bigquery_toolset import BigQueryToolset
-from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset
-from google.adk.tools.computer_use.computer_use_tool import ComputerUseTool
-from google.adk.tools.computer_use.computer_use_toolset import ComputerUseToolset
-from google.adk.tools.data_agent.data_agent_toolset import DataAgentToolset
-from google.adk.tools.discovery_engine_search_tool import DiscoveryEngineSearchTool
-from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool
-from google.adk.tools.example_tool import ExampleTool
-from google.adk.tools.function_tool import FunctionTool
-from google.adk.tools.google_api_tool.google_api_tool import GoogleApiTool
-from google.adk.tools.google_api_tool.google_api_toolset import GoogleApiToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import CalendarToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import DocsToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import GmailToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import SheetsToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import SlidesToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import YoutubeToolset
-from google.adk.tools.google_maps_grounding_tool import GoogleMapsGroundingTool
-from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool
-from google.adk.tools.google_search_tool import GoogleSearchTool
-from google.adk.tools.google_tool import GoogleTool
-from google.adk.tools.load_artifacts_tool import LoadArtifactsTool
-from google.adk.tools.load_mcp_resource_tool import LoadMcpResourceTool
-from google.adk.tools.load_memory_tool import LoadMemoryTool
-from google.adk.tools.long_running_tool import LongRunningFunctionTool
-from google.adk.tools.mcp_tool.mcp_tool import MCPTool
-from google.adk.tools.mcp_tool.mcp_tool import McpTool
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import OpenAPIToolset
-from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import RestApiTool
-from google.adk.tools.preload_memory_tool import PreloadMemoryTool
-from google.adk.tools.pubsub.pubsub_toolset import PubSubToolset
-from google.adk.tools.retrieval.base_retrieval_tool import BaseRetrievalTool
-from google.adk.tools.set_model_response_tool import SetModelResponseTool
-from google.adk.tools.skill_toolset import LoadSkillResourceTool
-from google.adk.tools.skill_toolset import LoadSkillTool
-from google.adk.tools.skill_toolset import SkillToolset
-from google.adk.tools.spanner.spanner_toolset import SpannerToolset
-from google.adk.tools.toolbox_toolset import ToolboxToolset
-from google.adk.tools.transfer_to_agent_tool import TransferToAgentTool
-from google.adk.tools.url_context_tool import UrlContextTool
-from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool
+from google.adk.agents.active_streaming_tool import ActiveStreamingTool as _ADK_ActiveStreamingTool
+from google.adk.tools.agent_tool import AgentTool as _ADK_AgentTool
+from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset as _ADK_APIHubToolset
+from google.adk.tools.application_integration_tool.application_integration_toolset import ApplicationIntegrationToolset as _ADK_ApplicationIntegrationToolset
+from google.adk.tools.application_integration_tool.integration_connector_tool import IntegrationConnectorTool as _ADK_IntegrationConnectorTool
+from google.adk.tools.base_authenticated_tool import BaseAuthenticatedTool as _ADK_BaseAuthenticatedTool
+from google.adk.tools.base_tool import BaseTool as _ADK_BaseTool
+from google.adk.tools.base_toolset import BaseToolset as _ADK_BaseToolset
+from google.adk.tools.bigquery.bigquery_toolset import BigQueryToolset as _ADK_BigQueryToolset
+from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset as _ADK_BigtableToolset
+from google.adk.tools.computer_use.computer_use_tool import ComputerUseTool as _ADK_ComputerUseTool
+from google.adk.tools.computer_use.computer_use_toolset import ComputerUseToolset as _ADK_ComputerUseToolset
+from google.adk.tools.data_agent.data_agent_toolset import DataAgentToolset as _ADK_DataAgentToolset
+from google.adk.tools.discovery_engine_search_tool import DiscoveryEngineSearchTool as _ADK_DiscoveryEngineSearchTool
+from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool as _ADK_EnterpriseWebSearchTool
+from google.adk.tools.example_tool import ExampleTool as _ADK_ExampleTool
+from google.adk.tools.function_tool import FunctionTool as _ADK_FunctionTool
+from google.adk.tools.google_api_tool.google_api_tool import GoogleApiTool as _ADK_GoogleApiTool
+from google.adk.tools.google_api_tool.google_api_toolset import GoogleApiToolset as _ADK_GoogleApiToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import CalendarToolset as _ADK_CalendarToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import DocsToolset as _ADK_DocsToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import GmailToolset as _ADK_GmailToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import SheetsToolset as _ADK_SheetsToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import SlidesToolset as _ADK_SlidesToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import YoutubeToolset as _ADK_YoutubeToolset
+from google.adk.tools.google_maps_grounding_tool import GoogleMapsGroundingTool as _ADK_GoogleMapsGroundingTool
+from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool as _ADK_GoogleSearchAgentTool
+from google.adk.tools.google_search_tool import GoogleSearchTool as _ADK_GoogleSearchTool
+from google.adk.tools.google_tool import GoogleTool as _ADK_GoogleTool
+from google.adk.tools.load_artifacts_tool import LoadArtifactsTool as _ADK_LoadArtifactsTool
+from google.adk.tools.load_mcp_resource_tool import LoadMcpResourceTool as _ADK_LoadMcpResourceTool
+from google.adk.tools.load_memory_tool import LoadMemoryTool as _ADK_LoadMemoryTool
+from google.adk.tools.long_running_tool import LongRunningFunctionTool as _ADK_LongRunningFunctionTool
+from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _ADK_MCPTool
+from google.adk.tools.mcp_tool.mcp_tool import McpTool as _ADK_McpTool
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset as _ADK_MCPToolset
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
+from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import OpenAPIToolset as _ADK_OpenAPIToolset
+from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import RestApiTool as _ADK_RestApiTool
+from google.adk.tools.preload_memory_tool import PreloadMemoryTool as _ADK_PreloadMemoryTool
+from google.adk.tools.pubsub.pubsub_toolset import PubSubToolset as _ADK_PubSubToolset
+from google.adk.tools.retrieval.base_retrieval_tool import BaseRetrievalTool as _ADK_BaseRetrievalTool
+from google.adk.tools.set_model_response_tool import SetModelResponseTool as _ADK_SetModelResponseTool
+from google.adk.tools.skill_toolset import LoadSkillResourceTool as _ADK_LoadSkillResourceTool
+from google.adk.tools.skill_toolset import LoadSkillTool as _ADK_LoadSkillTool
+from google.adk.tools.skill_toolset import SkillToolset as _ADK_SkillToolset
+from google.adk.tools.spanner.spanner_toolset import SpannerToolset as _ADK_SpannerToolset
+from google.adk.tools.toolbox_toolset import ToolboxToolset as _ADK_ToolboxToolset
+from google.adk.tools.transfer_to_agent_tool import TransferToAgentTool as _ADK_TransferToAgentTool
+from google.adk.tools.url_context_tool import UrlContextTool as _ADK_UrlContextTool
+from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool as _ADK_VertexAiSearchTool
 
 # ======================================================================
 # Builder: ActiveStreamingTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class ActiveStreamingTool:
     """Manages streaming tool related resources during invocation."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -81,11 +82,15 @@ class ActiveStreamingTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ActiveStreamingTool.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ActiveStreamingTool.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -97,14 +102,14 @@ class ActiveStreamingTool:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in ActiveStreamingTool.model_fields:
+        if field_name not in _ADK_ActiveStreamingTool.model_fields:
             available = sorted(
-                set(ActiveStreamingTool.model_fields.keys())
+                set(_ADK_ActiveStreamingTool.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on ActiveStreamingTool. "
+                f"'{name}' is not a recognized field on _ADK_ActiveStreamingTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -120,8 +125,8 @@ class ActiveStreamingTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> ActiveStreamingTool:
-        """Manages streaming tool related resources during invocation. Resolve into a native ADK ActiveStreamingTool."""
+    def build(self) -> _ADK_ActiveStreamingTool:
+        """Manages streaming tool related resources during invocation. Resolve into a native ADK _ADK_ActiveStreamingTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -137,20 +142,21 @@ class ActiveStreamingTool:
             else:
                 config[field] = items
         
-        return ActiveStreamingTool(**config)
+        return _ADK_ActiveStreamingTool(**config)
 
 
 # ======================================================================
 # Builder: AgentTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'skip_summarization', 'agent', 'include_plugins'}
-
 class AgentTool:
     """A tool that wraps an agent."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'skip_summarization', 'agent', 'include_plugins'}
 
 
     def __init__(self, agent: str) -> None:
@@ -167,11 +173,16 @@ class AgentTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -190,7 +201,7 @@ class AgentTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on AgentTool. "
+                f"'{name}' is not a recognized parameter on _ADK_AgentTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -206,8 +217,8 @@ class AgentTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentTool:
-        """A tool that wraps an agent. Resolve into a native ADK AgentTool."""
+    def build(self) -> _ADK_AgentTool:
+        """A tool that wraps an agent. Resolve into a native ADK _ADK_AgentTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -223,20 +234,21 @@ class AgentTool:
             else:
                 config[field] = items
         
-        return AgentTool(**config)
+        return _ADK_AgentTool(**config)
 
 
 # ======================================================================
 # Builder: APIHubToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'description', 'access_token', 'apihub_client', 'tool_filter', 'name', 'service_account_json', 'auth_scheme', 'apihub_resource_name', 'auth_credential', 'lazy_load_spec'}
-
 class APIHubToolset:
     """APIHubTool generates tools from a given API Hub resource."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'apihub_client', 'name', 'tool_filter', 'lazy_load_spec', 'apihub_resource_name', 'service_account_json', 'auth_scheme', 'access_token', 'auth_credential', 'description'}
 
 
     def __init__(self, apihub_resource_name: str) -> None:
@@ -253,11 +265,16 @@ class APIHubToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to APIHubToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_APIHubToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -276,7 +293,7 @@ class APIHubToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on APIHubToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_APIHubToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -292,8 +309,8 @@ class APIHubToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> APIHubToolset:
-        """APIHubTool generates tools from a given API Hub resource. Resolve into a native ADK APIHubToolset."""
+    def build(self) -> _ADK_APIHubToolset:
+        """APIHubTool generates tools from a given API Hub resource. Resolve into a native ADK _ADK_APIHubToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -309,20 +326,21 @@ class APIHubToolset:
             else:
                 config[field] = items
         
-        return APIHubToolset(**config)
+        return _ADK_APIHubToolset(**config)
 
 
 # ======================================================================
 # Builder: ApplicationIntegrationToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'actions', 'entity_operations', 'tool_filter', 'location', 'service_account_json', 'connection_template_override', 'connection', 'triggers', 'tool_name_prefix', 'auth_scheme', 'integration', 'auth_credential', 'project', 'tool_instructions'}
-
 class ApplicationIntegrationToolset:
     """ApplicationIntegrationToolset generates tools from a given Application."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'connection_template_override', 'connection', 'tool_instructions', 'triggers', 'tool_filter', 'tool_name_prefix', 'actions', 'service_account_json', 'auth_scheme', 'project', 'location', 'auth_credential', 'integration', 'entity_operations'}
 
 
     def __init__(self, project: str, location: str) -> None:
@@ -339,11 +357,16 @@ class ApplicationIntegrationToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ApplicationIntegrationToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ApplicationIntegrationToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -362,7 +385,7 @@ class ApplicationIntegrationToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ApplicationIntegrationToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_ApplicationIntegrationToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -378,8 +401,8 @@ class ApplicationIntegrationToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> ApplicationIntegrationToolset:
-        """ApplicationIntegrationToolset generates tools from a given Application. Resolve into a native ADK ApplicationIntegrationToolset."""
+    def build(self) -> _ADK_ApplicationIntegrationToolset:
+        """ApplicationIntegrationToolset generates tools from a given Application. Resolve into a native ADK _ADK_ApplicationIntegrationToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -395,20 +418,21 @@ class ApplicationIntegrationToolset:
             else:
                 config[field] = items
         
-        return ApplicationIntegrationToolset(**config)
+        return _ADK_ApplicationIntegrationToolset(**config)
 
 
 # ======================================================================
 # Builder: IntegrationConnectorTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'description', 'entity', 'action', 'connection_name', 'name', 'rest_api_tool', 'operation', 'auth_scheme', 'auth_credential', 'connection_service_name', 'connection_host'}
-
 class IntegrationConnectorTool:
     """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name', 'connection_service_name', 'action', 'operation', 'connection_name', 'connection_host', 'auth_scheme', 'entity', 'auth_credential', 'rest_api_tool', 'description'}
 
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
@@ -425,11 +449,16 @@ class IntegrationConnectorTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to IntegrationConnectorTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_IntegrationConnectorTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -448,7 +477,7 @@ class IntegrationConnectorTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on IntegrationConnectorTool. "
+                f"'{name}' is not a recognized parameter on _ADK_IntegrationConnectorTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -464,8 +493,8 @@ class IntegrationConnectorTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> IntegrationConnectorTool:
-        """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint. Resolve into a native ADK IntegrationConnectorTool."""
+    def build(self) -> _ADK_IntegrationConnectorTool:
+        """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint. Resolve into a native ADK _ADK_IntegrationConnectorTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -481,20 +510,21 @@ class IntegrationConnectorTool:
             else:
                 config[field] = items
         
-        return IntegrationConnectorTool(**config)
+        return _ADK_IntegrationConnectorTool(**config)
 
 
 # ======================================================================
 # Builder: BaseAuthenticatedTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'description', 'name', 'response_for_auth_required', 'auth_config'}
-
 class BaseAuthenticatedTool:
     """A base tool class that handles authentication before the actual tool logic."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name', 'auth_config', 'description', 'response_for_auth_required'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -511,11 +541,16 @@ class BaseAuthenticatedTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseAuthenticatedTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseAuthenticatedTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -534,7 +569,7 @@ class BaseAuthenticatedTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseAuthenticatedTool. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseAuthenticatedTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -550,8 +585,8 @@ class BaseAuthenticatedTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseAuthenticatedTool:
-        """A base tool class that handles authentication before the actual tool logic. Resolve into a native ADK BaseAuthenticatedTool."""
+    def build(self) -> _ADK_BaseAuthenticatedTool:
+        """A base tool class that handles authentication before the actual tool logic. Resolve into a native ADK _ADK_BaseAuthenticatedTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -567,20 +602,21 @@ class BaseAuthenticatedTool:
             else:
                 config[field] = items
         
-        return BaseAuthenticatedTool(**config)
+        return _ADK_BaseAuthenticatedTool(**config)
 
 
 # ======================================================================
 # Builder: BaseTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'description', 'name', 'is_long_running', 'custom_metadata'}
-
 class BaseTool:
     """The base class for all tools."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'is_long_running', 'description', 'custom_metadata', 'name'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -597,11 +633,16 @@ class BaseTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -620,7 +661,7 @@ class BaseTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseTool. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -636,8 +677,8 @@ class BaseTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseTool:
-        """The base class for all tools. Resolve into a native ADK BaseTool."""
+    def build(self) -> _ADK_BaseTool:
+        """The base class for all tools. Resolve into a native ADK _ADK_BaseTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -653,20 +694,21 @@ class BaseTool:
             else:
                 config[field] = items
         
-        return BaseTool(**config)
+        return _ADK_BaseTool(**config)
 
 
 # ======================================================================
 # Builder: BaseToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'tool_filter'}
-
 class BaseToolset:
     """Base class for toolset."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'tool_name_prefix', 'tool_filter'}
 
 
     def __init__(self, ) -> None:
@@ -683,11 +725,16 @@ class BaseToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -706,7 +753,7 @@ class BaseToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -722,8 +769,8 @@ class BaseToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseToolset:
-        """Base class for toolset. Resolve into a native ADK BaseToolset."""
+    def build(self) -> _ADK_BaseToolset:
+        """Base class for toolset. Resolve into a native ADK _ADK_BaseToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -739,20 +786,21 @@ class BaseToolset:
             else:
                 config[field] = items
         
-        return BaseToolset(**config)
+        return _ADK_BaseToolset(**config)
 
 
 # ======================================================================
 # Builder: BigQueryToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'bigquery_tool_config', 'tool_filter', 'credentials_config'}
-
 class BigQueryToolset:
     """BigQuery Toolset contains tools for interacting with BigQuery data and metadata."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'bigquery_tool_config', 'tool_filter', 'credentials_config'}
 
 
     def __init__(self, ) -> None:
@@ -769,11 +817,16 @@ class BigQueryToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigQueryToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigQueryToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -792,7 +845,7 @@ class BigQueryToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BigQueryToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_BigQueryToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -808,8 +861,8 @@ class BigQueryToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigQueryToolset:
-        """BigQuery Toolset contains tools for interacting with BigQuery data and metadata. Resolve into a native ADK BigQueryToolset."""
+    def build(self) -> _ADK_BigQueryToolset:
+        """BigQuery Toolset contains tools for interacting with BigQuery data and metadata. Resolve into a native ADK _ADK_BigQueryToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -825,20 +878,21 @@ class BigQueryToolset:
             else:
                 config[field] = items
         
-        return BigQueryToolset(**config)
+        return _ADK_BigQueryToolset(**config)
 
 
 # ======================================================================
 # Builder: BigtableToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'bigtable_tool_settings'}
-
 class BigtableToolset:
     """Bigtable Toolset contains tools for interacting with Bigtable data and metadata."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'bigtable_tool_settings', 'tool_filter', 'credentials_config'}
 
 
     def __init__(self, ) -> None:
@@ -855,11 +909,16 @@ class BigtableToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigtableToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigtableToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -878,7 +937,7 @@ class BigtableToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BigtableToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_BigtableToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -894,8 +953,8 @@ class BigtableToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigtableToolset:
-        """Bigtable Toolset contains tools for interacting with Bigtable data and metadata. Resolve into a native ADK BigtableToolset."""
+    def build(self) -> _ADK_BigtableToolset:
+        """Bigtable Toolset contains tools for interacting with Bigtable data and metadata. Resolve into a native ADK _ADK_BigtableToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -911,20 +970,21 @@ class BigtableToolset:
             else:
                 config[field] = items
         
-        return BigtableToolset(**config)
+        return _ADK_BigtableToolset(**config)
 
 
 # ======================================================================
 # Builder: ComputerUseTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'screen_size', 'func', 'virtual_screen_size'}
-
 class ComputerUseTool:
     """A tool that wraps computer control functions for use with LLMs."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'func', 'screen_size', 'virtual_screen_size'}
 
 
     def __init__(self, func: str, screen_size: str) -> None:
@@ -941,11 +1001,16 @@ class ComputerUseTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ComputerUseTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ComputerUseTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -964,7 +1029,7 @@ class ComputerUseTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ComputerUseTool. "
+                f"'{name}' is not a recognized parameter on _ADK_ComputerUseTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -980,8 +1045,8 @@ class ComputerUseTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> ComputerUseTool:
-        """A tool that wraps computer control functions for use with LLMs. Resolve into a native ADK ComputerUseTool."""
+    def build(self) -> _ADK_ComputerUseTool:
+        """A tool that wraps computer control functions for use with LLMs. Resolve into a native ADK _ADK_ComputerUseTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -997,20 +1062,21 @@ class ComputerUseTool:
             else:
                 config[field] = items
         
-        return ComputerUseTool(**config)
+        return _ADK_ComputerUseTool(**config)
 
 
 # ======================================================================
 # Builder: ComputerUseToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'computer'}
-
 class ComputerUseToolset:
     """Fluent builder for ComputerUseToolset."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'computer'}
 
 
     def __init__(self, computer: str) -> None:
@@ -1027,11 +1093,16 @@ class ComputerUseToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ComputerUseToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ComputerUseToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1050,7 +1121,7 @@ class ComputerUseToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ComputerUseToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_ComputerUseToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1066,8 +1137,8 @@ class ComputerUseToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> ComputerUseToolset:
-        """Fluent builder for ComputerUseToolset. Resolve into a native ADK ComputerUseToolset."""
+    def build(self) -> _ADK_ComputerUseToolset:
+        """Fluent builder for ComputerUseToolset. Resolve into a native ADK _ADK_ComputerUseToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1083,20 +1154,21 @@ class ComputerUseToolset:
             else:
                 config[field] = items
         
-        return ComputerUseToolset(**config)
+        return _ADK_ComputerUseToolset(**config)
 
 
 # ======================================================================
 # Builder: DataAgentToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'data_agent_tool_config'}
-
 class DataAgentToolset:
     """Data Agent Toolset contains tools for interacting with data agents."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'data_agent_tool_config', 'credentials_config'}
 
 
     def __init__(self, ) -> None:
@@ -1113,11 +1185,16 @@ class DataAgentToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DataAgentToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DataAgentToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1136,7 +1213,7 @@ class DataAgentToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on DataAgentToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_DataAgentToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1152,8 +1229,8 @@ class DataAgentToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> DataAgentToolset:
-        """Data Agent Toolset contains tools for interacting with data agents. Resolve into a native ADK DataAgentToolset."""
+    def build(self) -> _ADK_DataAgentToolset:
+        """Data Agent Toolset contains tools for interacting with data agents. Resolve into a native ADK _ADK_DataAgentToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1169,20 +1246,21 @@ class DataAgentToolset:
             else:
                 config[field] = items
         
-        return DataAgentToolset(**config)
+        return _ADK_DataAgentToolset(**config)
 
 
 # ======================================================================
 # Builder: DiscoveryEngineSearchTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'max_results', 'filter', 'search_engine_id', 'data_store_id', 'data_store_specs'}
-
 class DiscoveryEngineSearchTool:
     """Tool for searching the discovery engine."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'max_results', 'data_store_id', 'data_store_specs', 'filter'}
 
 
     def __init__(self, ) -> None:
@@ -1199,11 +1277,16 @@ class DiscoveryEngineSearchTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DiscoveryEngineSearchTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DiscoveryEngineSearchTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1222,7 +1305,7 @@ class DiscoveryEngineSearchTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on DiscoveryEngineSearchTool. "
+                f"'{name}' is not a recognized parameter on _ADK_DiscoveryEngineSearchTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1238,8 +1321,8 @@ class DiscoveryEngineSearchTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> DiscoveryEngineSearchTool:
-        """Tool for searching the discovery engine. Resolve into a native ADK DiscoveryEngineSearchTool."""
+    def build(self) -> _ADK_DiscoveryEngineSearchTool:
+        """Tool for searching the discovery engine. Resolve into a native ADK _ADK_DiscoveryEngineSearchTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1255,20 +1338,21 @@ class DiscoveryEngineSearchTool:
             else:
                 config[field] = items
         
-        return DiscoveryEngineSearchTool(**config)
+        return _ADK_DiscoveryEngineSearchTool(**config)
 
 
 # ======================================================================
 # Builder: EnterpriseWebSearchTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class EnterpriseWebSearchTool:
     """A Gemini 2+ built-in tool using web grounding for Enterprise compliance."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -1285,11 +1369,16 @@ class EnterpriseWebSearchTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to EnterpriseWebSearchTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_EnterpriseWebSearchTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1308,7 +1397,7 @@ class EnterpriseWebSearchTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on EnterpriseWebSearchTool. "
+                f"'{name}' is not a recognized parameter on _ADK_EnterpriseWebSearchTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1324,8 +1413,8 @@ class EnterpriseWebSearchTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> EnterpriseWebSearchTool:
-        """A Gemini 2+ built-in tool using web grounding for Enterprise compliance. Resolve into a native ADK EnterpriseWebSearchTool."""
+    def build(self) -> _ADK_EnterpriseWebSearchTool:
+        """A Gemini 2+ built-in tool using web grounding for Enterprise compliance. Resolve into a native ADK _ADK_EnterpriseWebSearchTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1341,20 +1430,21 @@ class EnterpriseWebSearchTool:
             else:
                 config[field] = items
         
-        return EnterpriseWebSearchTool(**config)
+        return _ADK_EnterpriseWebSearchTool(**config)
 
 
 # ======================================================================
 # Builder: ExampleTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'examples'}
-
 class ExampleTool:
     """A tool that adds (few-shot) examples to the LLM request."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'examples'}
 
 
     def __init__(self, examples: str) -> None:
@@ -1371,11 +1461,16 @@ class ExampleTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ExampleTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ExampleTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1394,7 +1489,7 @@ class ExampleTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ExampleTool. "
+                f"'{name}' is not a recognized parameter on _ADK_ExampleTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1410,8 +1505,8 @@ class ExampleTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> ExampleTool:
-        """A tool that adds (few-shot) examples to the LLM request. Resolve into a native ADK ExampleTool."""
+    def build(self) -> _ADK_ExampleTool:
+        """A tool that adds (few-shot) examples to the LLM request. Resolve into a native ADK _ADK_ExampleTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1427,20 +1522,21 @@ class ExampleTool:
             else:
                 config[field] = items
         
-        return ExampleTool(**config)
+        return _ADK_ExampleTool(**config)
 
 
 # ======================================================================
 # Builder: FunctionTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'require_confirmation', 'func'}
-
 class FunctionTool:
     """A tool that wraps a user-defined Python function."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'func', 'require_confirmation'}
 
 
     def __init__(self, func: str) -> None:
@@ -1457,11 +1553,16 @@ class FunctionTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to FunctionTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_FunctionTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1480,7 +1581,7 @@ class FunctionTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on FunctionTool. "
+                f"'{name}' is not a recognized parameter on _ADK_FunctionTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1496,8 +1597,8 @@ class FunctionTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> FunctionTool:
-        """A tool that wraps a user-defined Python function. Resolve into a native ADK FunctionTool."""
+    def build(self) -> _ADK_FunctionTool:
+        """A tool that wraps a user-defined Python function. Resolve into a native ADK _ADK_FunctionTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1513,20 +1614,21 @@ class FunctionTool:
             else:
                 config[field] = items
         
-        return FunctionTool(**config)
+        return _ADK_FunctionTool(**config)
 
 
 # ======================================================================
 # Builder: GoogleApiTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'rest_api_tool', 'service_account', 'additional_headers'}
-
 class GoogleApiTool:
     """Fluent builder for GoogleApiTool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'client_secret', 'additional_headers', 'rest_api_tool', 'service_account'}
 
 
     def __init__(self, rest_api_tool: str) -> None:
@@ -1543,11 +1645,16 @@ class GoogleApiTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GoogleApiTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GoogleApiTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1566,7 +1673,7 @@ class GoogleApiTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GoogleApiTool. "
+                f"'{name}' is not a recognized parameter on _ADK_GoogleApiTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1582,8 +1689,8 @@ class GoogleApiTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> GoogleApiTool:
-        """Fluent builder for GoogleApiTool. Resolve into a native ADK GoogleApiTool."""
+    def build(self) -> _ADK_GoogleApiTool:
+        """Fluent builder for GoogleApiTool. Resolve into a native ADK _ADK_GoogleApiTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1599,20 +1706,21 @@ class GoogleApiTool:
             else:
                 config[field] = items
         
-        return GoogleApiTool(**config)
+        return _ADK_GoogleApiTool(**config)
 
 
 # ======================================================================
 # Builder: GoogleApiToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'api_name', 'client_secret', 'client_id', 'api_version', 'tool_filter', 'service_account', 'additional_headers', 'tool_name_prefix'}
-
 class GoogleApiToolset:
     """Google API Toolset contains tools for interacting with Google APIs."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'api_version', 'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'additional_headers', 'api_name', 'service_account'}
 
 
     def __init__(self, api_name: str, api_version: str) -> None:
@@ -1629,11 +1737,16 @@ class GoogleApiToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GoogleApiToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GoogleApiToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1652,7 +1765,7 @@ class GoogleApiToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GoogleApiToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_GoogleApiToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1668,8 +1781,8 @@ class GoogleApiToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> GoogleApiToolset:
-        """Google API Toolset contains tools for interacting with Google APIs. Resolve into a native ADK GoogleApiToolset."""
+    def build(self) -> _ADK_GoogleApiToolset:
+        """Google API Toolset contains tools for interacting with Google APIs. Resolve into a native ADK _ADK_GoogleApiToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1685,20 +1798,21 @@ class GoogleApiToolset:
             else:
                 config[field] = items
         
-        return GoogleApiToolset(**config)
+        return _ADK_GoogleApiToolset(**config)
 
 
 # ======================================================================
 # Builder: CalendarToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'tool_filter', 'service_account', 'tool_name_prefix'}
-
 class CalendarToolset:
     """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'service_account'}
 
 
     def __init__(self, ) -> None:
@@ -1715,11 +1829,16 @@ class CalendarToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to CalendarToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_CalendarToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1738,7 +1857,7 @@ class CalendarToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on CalendarToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_CalendarToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1754,8 +1873,8 @@ class CalendarToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> CalendarToolset:
-        """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API. Resolve into a native ADK CalendarToolset."""
+    def build(self) -> _ADK_CalendarToolset:
+        """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_CalendarToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1771,20 +1890,21 @@ class CalendarToolset:
             else:
                 config[field] = items
         
-        return CalendarToolset(**config)
+        return _ADK_CalendarToolset(**config)
 
 
 # ======================================================================
 # Builder: DocsToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'tool_filter', 'service_account', 'tool_name_prefix'}
-
 class DocsToolset:
     """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'service_account'}
 
 
     def __init__(self, ) -> None:
@@ -1801,11 +1921,16 @@ class DocsToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DocsToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DocsToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1824,7 +1949,7 @@ class DocsToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on DocsToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_DocsToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1840,8 +1965,8 @@ class DocsToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> DocsToolset:
-        """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API. Resolve into a native ADK DocsToolset."""
+    def build(self) -> _ADK_DocsToolset:
+        """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_DocsToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1857,20 +1982,21 @@ class DocsToolset:
             else:
                 config[field] = items
         
-        return DocsToolset(**config)
+        return _ADK_DocsToolset(**config)
 
 
 # ======================================================================
 # Builder: GmailToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'tool_filter', 'service_account', 'tool_name_prefix'}
-
 class GmailToolset:
     """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'service_account'}
 
 
     def __init__(self, ) -> None:
@@ -1887,11 +2013,16 @@ class GmailToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GmailToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GmailToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1910,7 +2041,7 @@ class GmailToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GmailToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_GmailToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1926,8 +2057,8 @@ class GmailToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> GmailToolset:
-        """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API. Resolve into a native ADK GmailToolset."""
+    def build(self) -> _ADK_GmailToolset:
+        """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_GmailToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1943,20 +2074,21 @@ class GmailToolset:
             else:
                 config[field] = items
         
-        return GmailToolset(**config)
+        return _ADK_GmailToolset(**config)
 
 
 # ======================================================================
 # Builder: SheetsToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'tool_filter', 'service_account', 'tool_name_prefix'}
-
 class SheetsToolset:
     """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'service_account'}
 
 
     def __init__(self, ) -> None:
@@ -1973,11 +2105,16 @@ class SheetsToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SheetsToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SheetsToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1996,7 +2133,7 @@ class SheetsToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SheetsToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_SheetsToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2012,8 +2149,8 @@ class SheetsToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> SheetsToolset:
-        """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API. Resolve into a native ADK SheetsToolset."""
+    def build(self) -> _ADK_SheetsToolset:
+        """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SheetsToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2029,20 +2166,21 @@ class SheetsToolset:
             else:
                 config[field] = items
         
-        return SheetsToolset(**config)
+        return _ADK_SheetsToolset(**config)
 
 
 # ======================================================================
 # Builder: SlidesToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'tool_filter', 'service_account', 'tool_name_prefix'}
-
 class SlidesToolset:
     """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'service_account'}
 
 
     def __init__(self, ) -> None:
@@ -2059,11 +2197,16 @@ class SlidesToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SlidesToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SlidesToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2082,7 +2225,7 @@ class SlidesToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SlidesToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_SlidesToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2098,8 +2241,8 @@ class SlidesToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> SlidesToolset:
-        """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API. Resolve into a native ADK SlidesToolset."""
+    def build(self) -> _ADK_SlidesToolset:
+        """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SlidesToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2115,20 +2258,21 @@ class SlidesToolset:
             else:
                 config[field] = items
         
-        return SlidesToolset(**config)
+        return _ADK_SlidesToolset(**config)
 
 
 # ======================================================================
 # Builder: YoutubeToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'client_secret', 'client_id', 'tool_filter', 'service_account', 'tool_name_prefix'}
-
 class YoutubeToolset:
     """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'client_id', 'tool_filter', 'client_secret', 'tool_name_prefix', 'service_account'}
 
 
     def __init__(self, ) -> None:
@@ -2145,11 +2289,16 @@ class YoutubeToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to YoutubeToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_YoutubeToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2168,7 +2317,7 @@ class YoutubeToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on YoutubeToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_YoutubeToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2184,8 +2333,8 @@ class YoutubeToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> YoutubeToolset:
-        """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API. Resolve into a native ADK YoutubeToolset."""
+    def build(self) -> _ADK_YoutubeToolset:
+        """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_YoutubeToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2201,20 +2350,21 @@ class YoutubeToolset:
             else:
                 config[field] = items
         
-        return YoutubeToolset(**config)
+        return _ADK_YoutubeToolset(**config)
 
 
 # ======================================================================
 # Builder: GoogleMapsGroundingTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class GoogleMapsGroundingTool:
     """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2231,11 +2381,16 @@ class GoogleMapsGroundingTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GoogleMapsGroundingTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GoogleMapsGroundingTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2254,7 +2409,7 @@ class GoogleMapsGroundingTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GoogleMapsGroundingTool. "
+                f"'{name}' is not a recognized parameter on _ADK_GoogleMapsGroundingTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2270,8 +2425,8 @@ class GoogleMapsGroundingTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> GoogleMapsGroundingTool:
-        """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. Resolve into a native ADK GoogleMapsGroundingTool."""
+    def build(self) -> _ADK_GoogleMapsGroundingTool:
+        """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. Resolve into a native ADK _ADK_GoogleMapsGroundingTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2287,20 +2442,21 @@ class GoogleMapsGroundingTool:
             else:
                 config[field] = items
         
-        return GoogleMapsGroundingTool(**config)
+        return _ADK_GoogleMapsGroundingTool(**config)
 
 
 # ======================================================================
 # Builder: GoogleSearchAgentTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'agent'}
-
 class GoogleSearchAgentTool:
     """A tool that wraps a sub-agent that only uses google_search tool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'agent'}
 
 
     def __init__(self, agent: str) -> None:
@@ -2317,11 +2473,16 @@ class GoogleSearchAgentTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GoogleSearchAgentTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GoogleSearchAgentTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2340,7 +2501,7 @@ class GoogleSearchAgentTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GoogleSearchAgentTool. "
+                f"'{name}' is not a recognized parameter on _ADK_GoogleSearchAgentTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2356,8 +2517,8 @@ class GoogleSearchAgentTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> GoogleSearchAgentTool:
-        """A tool that wraps a sub-agent that only uses google_search tool. Resolve into a native ADK GoogleSearchAgentTool."""
+    def build(self) -> _ADK_GoogleSearchAgentTool:
+        """A tool that wraps a sub-agent that only uses google_search tool. Resolve into a native ADK _ADK_GoogleSearchAgentTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2373,20 +2534,21 @@ class GoogleSearchAgentTool:
             else:
                 config[field] = items
         
-        return GoogleSearchAgentTool(**config)
+        return _ADK_GoogleSearchAgentTool(**config)
 
 
 # ======================================================================
 # Builder: GoogleSearchTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'bypass_multi_tools_limit', 'model'}
-
 class GoogleSearchTool:
     """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'bypass_multi_tools_limit', 'model'}
 
 
     def __init__(self, ) -> None:
@@ -2403,11 +2565,16 @@ class GoogleSearchTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GoogleSearchTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GoogleSearchTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2426,7 +2593,7 @@ class GoogleSearchTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GoogleSearchTool. "
+                f"'{name}' is not a recognized parameter on _ADK_GoogleSearchTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2442,8 +2609,8 @@ class GoogleSearchTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> GoogleSearchTool:
-        """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search. Resolve into a native ADK GoogleSearchTool."""
+    def build(self) -> _ADK_GoogleSearchTool:
+        """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search. Resolve into a native ADK _ADK_GoogleSearchTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2459,20 +2626,21 @@ class GoogleSearchTool:
             else:
                 config[field] = items
         
-        return GoogleSearchTool(**config)
+        return _ADK_GoogleSearchTool(**config)
 
 
 # ======================================================================
 # Builder: GoogleTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'func', 'credentials_config', 'tool_settings'}
-
 class GoogleTool:
     """GoogleTool class for tools that call Google APIs."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'func', 'credentials_config', 'tool_settings'}
 
 
     def __init__(self, func: str) -> None:
@@ -2489,11 +2657,16 @@ class GoogleTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GoogleTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GoogleTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2512,7 +2685,7 @@ class GoogleTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GoogleTool. "
+                f"'{name}' is not a recognized parameter on _ADK_GoogleTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2528,8 +2701,8 @@ class GoogleTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> GoogleTool:
-        """GoogleTool class for tools that call Google APIs. Resolve into a native ADK GoogleTool."""
+    def build(self) -> _ADK_GoogleTool:
+        """GoogleTool class for tools that call Google APIs. Resolve into a native ADK _ADK_GoogleTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2545,20 +2718,21 @@ class GoogleTool:
             else:
                 config[field] = items
         
-        return GoogleTool(**config)
+        return _ADK_GoogleTool(**config)
 
 
 # ======================================================================
 # Builder: LoadArtifactsTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class LoadArtifactsTool:
     """A tool that loads the artifacts and adds them to the session."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2575,11 +2749,16 @@ class LoadArtifactsTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoadArtifactsTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoadArtifactsTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2598,7 +2777,7 @@ class LoadArtifactsTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LoadArtifactsTool. "
+                f"'{name}' is not a recognized parameter on _ADK_LoadArtifactsTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2614,8 +2793,8 @@ class LoadArtifactsTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoadArtifactsTool:
-        """A tool that loads the artifacts and adds them to the session. Resolve into a native ADK LoadArtifactsTool."""
+    def build(self) -> _ADK_LoadArtifactsTool:
+        """A tool that loads the artifacts and adds them to the session. Resolve into a native ADK _ADK_LoadArtifactsTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2631,20 +2810,21 @@ class LoadArtifactsTool:
             else:
                 config[field] = items
         
-        return LoadArtifactsTool(**config)
+        return _ADK_LoadArtifactsTool(**config)
 
 
 # ======================================================================
 # Builder: LoadMcpResourceTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'mcp_toolset'}
-
 class LoadMcpResourceTool:
     """A tool that loads the MCP resources and adds them to the session."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'mcp_toolset'}
 
 
     def __init__(self, mcp_toolset: str) -> None:
@@ -2661,11 +2841,16 @@ class LoadMcpResourceTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoadMcpResourceTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoadMcpResourceTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2684,7 +2869,7 @@ class LoadMcpResourceTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LoadMcpResourceTool. "
+                f"'{name}' is not a recognized parameter on _ADK_LoadMcpResourceTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2700,8 +2885,8 @@ class LoadMcpResourceTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoadMcpResourceTool:
-        """A tool that loads the MCP resources and adds them to the session. Resolve into a native ADK LoadMcpResourceTool."""
+    def build(self) -> _ADK_LoadMcpResourceTool:
+        """A tool that loads the MCP resources and adds them to the session. Resolve into a native ADK _ADK_LoadMcpResourceTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2717,20 +2902,21 @@ class LoadMcpResourceTool:
             else:
                 config[field] = items
         
-        return LoadMcpResourceTool(**config)
+        return _ADK_LoadMcpResourceTool(**config)
 
 
 # ======================================================================
 # Builder: LoadMemoryTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class LoadMemoryTool:
     """A tool that loads the memory for the current user."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -2747,11 +2933,16 @@ class LoadMemoryTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoadMemoryTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoadMemoryTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2770,7 +2961,7 @@ class LoadMemoryTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LoadMemoryTool. "
+                f"'{name}' is not a recognized parameter on _ADK_LoadMemoryTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2786,8 +2977,8 @@ class LoadMemoryTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoadMemoryTool:
-        """A tool that loads the memory for the current user. Resolve into a native ADK LoadMemoryTool."""
+    def build(self) -> _ADK_LoadMemoryTool:
+        """A tool that loads the memory for the current user. Resolve into a native ADK _ADK_LoadMemoryTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2803,20 +2994,21 @@ class LoadMemoryTool:
             else:
                 config[field] = items
         
-        return LoadMemoryTool(**config)
+        return _ADK_LoadMemoryTool(**config)
 
 
 # ======================================================================
 # Builder: LongRunningFunctionTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'func'}
-
 class LongRunningFunctionTool:
     """A function tool that returns the result asynchronously."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'func'}
 
 
     def __init__(self, func: str) -> None:
@@ -2833,11 +3025,16 @@ class LongRunningFunctionTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LongRunningFunctionTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LongRunningFunctionTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2856,7 +3053,7 @@ class LongRunningFunctionTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LongRunningFunctionTool. "
+                f"'{name}' is not a recognized parameter on _ADK_LongRunningFunctionTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2872,8 +3069,8 @@ class LongRunningFunctionTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> LongRunningFunctionTool:
-        """A function tool that returns the result asynchronously. Resolve into a native ADK LongRunningFunctionTool."""
+    def build(self) -> _ADK_LongRunningFunctionTool:
+        """A function tool that returns the result asynchronously. Resolve into a native ADK _ADK_LongRunningFunctionTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2889,20 +3086,21 @@ class LongRunningFunctionTool:
             else:
                 config[field] = items
         
-        return LongRunningFunctionTool(**config)
+        return _ADK_LongRunningFunctionTool(**config)
 
 
 # ======================================================================
 # Builder: MCPTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class MCPTool:
     """Deprecated name, use `McpTool` instead."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -2919,11 +3117,16 @@ class MCPTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to MCPTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_MCPTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -2942,7 +3145,7 @@ class MCPTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on MCPTool. "
+                f"'{name}' is not a recognized parameter on _ADK_MCPTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -2958,8 +3161,8 @@ class MCPTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> MCPTool:
-        """Deprecated name, use `McpTool` instead. Resolve into a native ADK MCPTool."""
+    def build(self) -> _ADK_MCPTool:
+        """Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -2975,20 +3178,21 @@ class MCPTool:
             else:
                 config[field] = items
         
-        return MCPTool(**config)
+        return _ADK_MCPTool(**config)
 
 
 # ======================================================================
 # Builder: McpTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'require_confirmation', 'mcp_tool', 'mcp_session_manager', 'auth_scheme', 'progress_callback', 'auth_credential', 'header_provider'}
-
 class McpTool:
     """Turns an MCP Tool into an ADK Tool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'mcp_session_manager', 'progress_callback', 'mcp_tool', 'header_provider', 'auth_scheme', 'require_confirmation', 'auth_credential'}
 
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
@@ -3005,11 +3209,16 @@ class McpTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to McpTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_McpTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3028,7 +3237,7 @@ class McpTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on McpTool. "
+                f"'{name}' is not a recognized parameter on _ADK_McpTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3044,8 +3253,8 @@ class McpTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> McpTool:
-        """Turns an MCP Tool into an ADK Tool. Resolve into a native ADK McpTool."""
+    def build(self) -> _ADK_McpTool:
+        """Turns an MCP Tool into an ADK Tool. Resolve into a native ADK _ADK_McpTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3061,20 +3270,21 @@ class McpTool:
             else:
                 config[field] = items
         
-        return McpTool(**config)
+        return _ADK_McpTool(**config)
 
 
 # ======================================================================
 # Builder: MCPToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class MCPToolset:
     """Deprecated name, use `McpToolset` instead."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -3091,11 +3301,16 @@ class MCPToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to MCPToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_MCPToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3114,7 +3329,7 @@ class MCPToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on MCPToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_MCPToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3130,8 +3345,8 @@ class MCPToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> MCPToolset:
-        """Deprecated name, use `McpToolset` instead. Resolve into a native ADK MCPToolset."""
+    def build(self) -> _ADK_MCPToolset:
+        """Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3147,20 +3362,21 @@ class MCPToolset:
             else:
                 config[field] = items
         
-        return MCPToolset(**config)
+        return _ADK_MCPToolset(**config)
 
 
 # ======================================================================
 # Builder: McpToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'require_confirmation', 'connection_params', 'tool_filter', 'use_mcp_resources', 'errlog', 'tool_name_prefix', 'auth_scheme', 'progress_callback', 'auth_credential', 'header_provider'}
-
 class McpToolset:
     """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'connection_params', 'progress_callback', 'tool_filter', 'header_provider', 'auth_scheme', 'require_confirmation', 'tool_name_prefix', 'use_mcp_resources', 'auth_credential', 'errlog'}
 
 
     def __init__(self, connection_params: str) -> None:
@@ -3177,11 +3393,16 @@ class McpToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to McpToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_McpToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3200,7 +3421,7 @@ class McpToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on McpToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_McpToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3216,8 +3437,8 @@ class McpToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> McpToolset:
-        """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. Resolve into a native ADK McpToolset."""
+    def build(self) -> _ADK_McpToolset:
+        """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. Resolve into a native ADK _ADK_McpToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3233,20 +3454,21 @@ class McpToolset:
             else:
                 config[field] = items
         
-        return McpToolset(**config)
+        return _ADK_McpToolset(**config)
 
 
 # ======================================================================
 # Builder: OpenAPIToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'spec_str', 'spec_dict', 'tool_filter', 'credential_key', 'spec_str_type', 'tool_name_prefix', 'auth_scheme', 'auth_credential', 'ssl_verify', 'header_provider'}
-
 class OpenAPIToolset:
     """Class for parsing OpenAPI spec into a list of RestApiTool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'spec_str', 'credential_key', 'spec_str_type', 'tool_filter', 'header_provider', 'spec_dict', 'ssl_verify', 'auth_scheme', 'tool_name_prefix', 'auth_credential'}
 
 
     def __init__(self, ) -> None:
@@ -3263,11 +3485,16 @@ class OpenAPIToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to OpenAPIToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_OpenAPIToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3286,7 +3513,7 @@ class OpenAPIToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on OpenAPIToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_OpenAPIToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3302,8 +3529,8 @@ class OpenAPIToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> OpenAPIToolset:
-        """Class for parsing OpenAPI spec into a list of RestApiTool. Resolve into a native ADK OpenAPIToolset."""
+    def build(self) -> _ADK_OpenAPIToolset:
+        """Class for parsing OpenAPI spec into a list of RestApiTool. Resolve into a native ADK _ADK_OpenAPIToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3319,20 +3546,21 @@ class OpenAPIToolset:
             else:
                 config[field] = items
         
-        return OpenAPIToolset(**config)
+        return _ADK_OpenAPIToolset(**config)
 
 
 # ======================================================================
 # Builder: RestApiTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'description', 'credential_key', 'name', 'operation', 'should_parse_operation', 'auth_scheme', 'auth_credential', 'ssl_verify', 'endpoint', 'header_provider'}
-
 class RestApiTool:
     """A generic tool that interacts with a REST API."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'endpoint', 'credential_key', 'name', 'should_parse_operation', 'header_provider', 'operation', 'ssl_verify', 'auth_scheme', 'auth_credential', 'description'}
 
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
@@ -3349,11 +3577,16 @@ class RestApiTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to RestApiTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_RestApiTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3372,7 +3605,7 @@ class RestApiTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on RestApiTool. "
+                f"'{name}' is not a recognized parameter on _ADK_RestApiTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3388,8 +3621,8 @@ class RestApiTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> RestApiTool:
-        """A generic tool that interacts with a REST API. Resolve into a native ADK RestApiTool."""
+    def build(self) -> _ADK_RestApiTool:
+        """A generic tool that interacts with a REST API. Resolve into a native ADK _ADK_RestApiTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3405,20 +3638,21 @@ class RestApiTool:
             else:
                 config[field] = items
         
-        return RestApiTool(**config)
+        return _ADK_RestApiTool(**config)
 
 
 # ======================================================================
 # Builder: PreloadMemoryTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class PreloadMemoryTool:
     """A tool that preloads the memory for the current user."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -3435,11 +3669,16 @@ class PreloadMemoryTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to PreloadMemoryTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_PreloadMemoryTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3458,7 +3697,7 @@ class PreloadMemoryTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on PreloadMemoryTool. "
+                f"'{name}' is not a recognized parameter on _ADK_PreloadMemoryTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3474,8 +3713,8 @@ class PreloadMemoryTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> PreloadMemoryTool:
-        """A tool that preloads the memory for the current user. Resolve into a native ADK PreloadMemoryTool."""
+    def build(self) -> _ADK_PreloadMemoryTool:
+        """A tool that preloads the memory for the current user. Resolve into a native ADK _ADK_PreloadMemoryTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3491,20 +3730,21 @@ class PreloadMemoryTool:
             else:
                 config[field] = items
         
-        return PreloadMemoryTool(**config)
+        return _ADK_PreloadMemoryTool(**config)
 
 
 # ======================================================================
 # Builder: PubSubToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'tool_filter', 'pubsub_tool_config', 'credentials_config'}
-
 class PubSubToolset:
     """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'pubsub_tool_config'}
 
 
     def __init__(self, ) -> None:
@@ -3521,11 +3761,16 @@ class PubSubToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to PubSubToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_PubSubToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3544,7 +3789,7 @@ class PubSubToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on PubSubToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_PubSubToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3560,8 +3805,8 @@ class PubSubToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> PubSubToolset:
-        """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions. Resolve into a native ADK PubSubToolset."""
+    def build(self) -> _ADK_PubSubToolset:
+        """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions. Resolve into a native ADK _ADK_PubSubToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3577,20 +3822,21 @@ class PubSubToolset:
             else:
                 config[field] = items
         
-        return PubSubToolset(**config)
+        return _ADK_PubSubToolset(**config)
 
 
 # ======================================================================
 # Builder: BaseRetrievalTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'description', 'name', 'is_long_running', 'custom_metadata'}
-
 class BaseRetrievalTool:
     """Fluent builder for BaseRetrievalTool."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'is_long_running', 'description', 'custom_metadata', 'name'}
 
 
     def __init__(self, name: str, description: str) -> None:
@@ -3607,11 +3853,16 @@ class BaseRetrievalTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BaseRetrievalTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BaseRetrievalTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3630,7 +3881,7 @@ class BaseRetrievalTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BaseRetrievalTool. "
+                f"'{name}' is not a recognized parameter on _ADK_BaseRetrievalTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3646,8 +3897,8 @@ class BaseRetrievalTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> BaseRetrievalTool:
-        """Fluent builder for BaseRetrievalTool. Resolve into a native ADK BaseRetrievalTool."""
+    def build(self) -> _ADK_BaseRetrievalTool:
+        """Fluent builder for BaseRetrievalTool. Resolve into a native ADK _ADK_BaseRetrievalTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3663,20 +3914,21 @@ class BaseRetrievalTool:
             else:
                 config[field] = items
         
-        return BaseRetrievalTool(**config)
+        return _ADK_BaseRetrievalTool(**config)
 
 
 # ======================================================================
 # Builder: SetModelResponseTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'output_schema'}
-
 class SetModelResponseTool:
     """Internal tool used for output schema workaround."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'output_schema'}
 
 
     def __init__(self, output_schema: str) -> None:
@@ -3693,11 +3945,16 @@ class SetModelResponseTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SetModelResponseTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SetModelResponseTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3716,7 +3973,7 @@ class SetModelResponseTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SetModelResponseTool. "
+                f"'{name}' is not a recognized parameter on _ADK_SetModelResponseTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3732,8 +3989,8 @@ class SetModelResponseTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> SetModelResponseTool:
-        """Internal tool used for output schema workaround. Resolve into a native ADK SetModelResponseTool."""
+    def build(self) -> _ADK_SetModelResponseTool:
+        """Internal tool used for output schema workaround. Resolve into a native ADK _ADK_SetModelResponseTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3749,20 +4006,21 @@ class SetModelResponseTool:
             else:
                 config[field] = items
         
-        return SetModelResponseTool(**config)
+        return _ADK_SetModelResponseTool(**config)
 
 
 # ======================================================================
 # Builder: LoadSkillResourceTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'toolset'}
-
 class LoadSkillResourceTool:
     """Tool to load resources (references or assets) from a skill."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'toolset'}
 
 
     def __init__(self, toolset: str) -> None:
@@ -3779,11 +4037,16 @@ class LoadSkillResourceTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoadSkillResourceTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoadSkillResourceTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3802,7 +4065,7 @@ class LoadSkillResourceTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LoadSkillResourceTool. "
+                f"'{name}' is not a recognized parameter on _ADK_LoadSkillResourceTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3818,8 +4081,8 @@ class LoadSkillResourceTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoadSkillResourceTool:
-        """Tool to load resources (references or assets) from a skill. Resolve into a native ADK LoadSkillResourceTool."""
+    def build(self) -> _ADK_LoadSkillResourceTool:
+        """Tool to load resources (references or assets) from a skill. Resolve into a native ADK _ADK_LoadSkillResourceTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3835,20 +4098,21 @@ class LoadSkillResourceTool:
             else:
                 config[field] = items
         
-        return LoadSkillResourceTool(**config)
+        return _ADK_LoadSkillResourceTool(**config)
 
 
 # ======================================================================
 # Builder: LoadSkillTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'toolset'}
-
 class LoadSkillTool:
     """Tool to load a skill's instructions."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'toolset'}
 
 
     def __init__(self, toolset: str) -> None:
@@ -3865,11 +4129,16 @@ class LoadSkillTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoadSkillTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoadSkillTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3888,7 +4157,7 @@ class LoadSkillTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LoadSkillTool. "
+                f"'{name}' is not a recognized parameter on _ADK_LoadSkillTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3904,8 +4173,8 @@ class LoadSkillTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoadSkillTool:
-        """Tool to load a skill's instructions. Resolve into a native ADK LoadSkillTool."""
+    def build(self) -> _ADK_LoadSkillTool:
+        """Tool to load a skill's instructions. Resolve into a native ADK _ADK_LoadSkillTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -3921,20 +4190,21 @@ class LoadSkillTool:
             else:
                 config[field] = items
         
-        return LoadSkillTool(**config)
+        return _ADK_LoadSkillTool(**config)
 
 
 # ======================================================================
 # Builder: SkillToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'skills'}
-
 class SkillToolset:
     """A toolset for managing and interacting with agent skills."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'skills'}
 
 
     def __init__(self, skills: str) -> None:
@@ -3951,11 +4221,16 @@ class SkillToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SkillToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SkillToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -3974,7 +4249,7 @@ class SkillToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SkillToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_SkillToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -3990,8 +4265,8 @@ class SkillToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> SkillToolset:
-        """A toolset for managing and interacting with agent skills. Resolve into a native ADK SkillToolset."""
+    def build(self) -> _ADK_SkillToolset:
+        """A toolset for managing and interacting with agent skills. Resolve into a native ADK _ADK_SkillToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -4007,20 +4282,21 @@ class SkillToolset:
             else:
                 config[field] = items
         
-        return SkillToolset(**config)
+        return _ADK_SkillToolset(**config)
 
 
 # ======================================================================
 # Builder: SpannerToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'tool_filter', 'credentials_config', 'spanner_tool_settings'}
-
 class SpannerToolset:
     """Spanner Toolset contains tools for interacting with Spanner data, database and table information."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'spanner_tool_settings', 'tool_filter', 'credentials_config'}
 
 
     def __init__(self, ) -> None:
@@ -4037,11 +4313,16 @@ class SpannerToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SpannerToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SpannerToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -4060,7 +4341,7 @@ class SpannerToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SpannerToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_SpannerToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -4076,8 +4357,8 @@ class SpannerToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> SpannerToolset:
-        """Spanner Toolset contains tools for interacting with Spanner data, database and table information. Resolve into a native ADK SpannerToolset."""
+    def build(self) -> _ADK_SpannerToolset:
+        """Spanner Toolset contains tools for interacting with Spanner data, database and table information. Resolve into a native ADK _ADK_SpannerToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -4093,20 +4374,21 @@ class SpannerToolset:
             else:
                 config[field] = items
         
-        return SpannerToolset(**config)
+        return _ADK_SpannerToolset(**config)
 
 
 # ======================================================================
 # Builder: ToolboxToolset
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'server_url', 'bound_params', 'toolset_name', 'tool_names', 'auth_token_getters', 'additional_headers', 'credentials'}
-
 class ToolboxToolset:
     """A class that provides access to toolbox toolsets."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'toolset_name', 'auth_token_getters', 'credentials', 'bound_params', 'tool_names', 'additional_headers', 'server_url'}
 
 
     def __init__(self, server_url: str, kwargs: str) -> None:
@@ -4123,11 +4405,16 @@ class ToolboxToolset:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ToolboxToolset init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ToolboxToolset init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -4146,7 +4433,7 @@ class ToolboxToolset:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ToolboxToolset. "
+                f"'{name}' is not a recognized parameter on _ADK_ToolboxToolset. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -4162,8 +4449,8 @@ class ToolboxToolset:
 
     # --- Terminal methods ---
 
-    def build(self) -> ToolboxToolset:
-        """A class that provides access to toolbox toolsets. Resolve into a native ADK ToolboxToolset."""
+    def build(self) -> _ADK_ToolboxToolset:
+        """A class that provides access to toolbox toolsets. Resolve into a native ADK _ADK_ToolboxToolset."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -4179,20 +4466,21 @@ class ToolboxToolset:
             else:
                 config[field] = items
         
-        return ToolboxToolset(**config)
+        return _ADK_ToolboxToolset(**config)
 
 
 # ======================================================================
 # Builder: TransferToAgentTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'agent_names'}
-
 class TransferToAgentTool:
     """A specialized FunctionTool for agent transfer with enum constraints."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'agent_names'}
 
 
     def __init__(self, agent_names: str) -> None:
@@ -4209,11 +4497,16 @@ class TransferToAgentTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to TransferToAgentTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_TransferToAgentTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -4232,7 +4525,7 @@ class TransferToAgentTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on TransferToAgentTool. "
+                f"'{name}' is not a recognized parameter on _ADK_TransferToAgentTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -4248,8 +4541,8 @@ class TransferToAgentTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> TransferToAgentTool:
-        """A specialized FunctionTool for agent transfer with enum constraints. Resolve into a native ADK TransferToAgentTool."""
+    def build(self) -> _ADK_TransferToAgentTool:
+        """A specialized FunctionTool for agent transfer with enum constraints. Resolve into a native ADK _ADK_TransferToAgentTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -4265,20 +4558,21 @@ class TransferToAgentTool:
             else:
                 config[field] = items
         
-        return TransferToAgentTool(**config)
+        return _ADK_TransferToAgentTool(**config)
 
 
 # ======================================================================
 # Builder: UrlContextTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class UrlContextTool:
     """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, ) -> None:
@@ -4295,11 +4589,16 @@ class UrlContextTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to UrlContextTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_UrlContextTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -4318,7 +4617,7 @@ class UrlContextTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on UrlContextTool. "
+                f"'{name}' is not a recognized parameter on _ADK_UrlContextTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -4334,8 +4633,8 @@ class UrlContextTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> UrlContextTool:
-        """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. Resolve into a native ADK UrlContextTool."""
+    def build(self) -> _ADK_UrlContextTool:
+        """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. Resolve into a native ADK _ADK_UrlContextTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -4351,20 +4650,21 @@ class UrlContextTool:
             else:
                 config[field] = items
         
-        return UrlContextTool(**config)
+        return _ADK_UrlContextTool(**config)
 
 
 # ======================================================================
 # Builder: VertexAiSearchTool
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'max_results', 'filter', 'search_engine_id', 'bypass_multi_tools_limit', 'data_store_id', 'data_store_specs'}
-
 class VertexAiSearchTool:
     """A built-in tool using Vertex AI Search."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'search_engine_id', 'max_results', 'data_store_id', 'bypass_multi_tools_limit', 'data_store_specs', 'filter'}
 
 
     def __init__(self, ) -> None:
@@ -4381,11 +4681,16 @@ class VertexAiSearchTool:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to VertexAiSearchTool init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_VertexAiSearchTool init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -4404,7 +4709,7 @@ class VertexAiSearchTool:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on VertexAiSearchTool. "
+                f"'{name}' is not a recognized parameter on _ADK_VertexAiSearchTool. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -4420,8 +4725,8 @@ class VertexAiSearchTool:
 
     # --- Terminal methods ---
 
-    def build(self) -> VertexAiSearchTool:
-        """A built-in tool using Vertex AI Search. Resolve into a native ADK VertexAiSearchTool."""
+    def build(self) -> _ADK_VertexAiSearchTool:
+        """A built-in tool using Vertex AI Search. Resolve into a native ADK _ADK_VertexAiSearchTool."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -4437,4 +4742,4 @@ class VertexAiSearchTool:
             else:
                 config[field] = items
         
-        return VertexAiSearchTool(**config)
+        return _ADK_VertexAiSearchTool(**config)

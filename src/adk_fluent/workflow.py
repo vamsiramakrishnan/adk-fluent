@@ -11,12 +11,13 @@ from google.adk.agents.sequential_agent import SequentialAgent
 # Builder: Loop
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-_ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
-
 class Loop:
     """A shell agent that run its sub-agents in a loop."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -59,7 +60,11 @@ class Loop:
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -118,12 +123,13 @@ class Loop:
 # Builder: FanOut
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-_ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
-
 class FanOut:
     """A shell agent that runs its sub-agents in parallel in an isolated manner."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -166,7 +172,11 @@ class FanOut:
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -225,12 +235,13 @@ class FanOut:
 # Builder: Pipeline
 # ======================================================================
 
-_ALIASES: dict[str, str] = {'describe': 'description'}
-_CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-_ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
-
 class Pipeline:
     """A shell agent that runs its sub-agents in sequence."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
 
 
     def __init__(self, name: str) -> None:
@@ -273,7 +284,11 @@ class Pipeline:
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias

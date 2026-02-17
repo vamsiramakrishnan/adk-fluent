@@ -3,21 +3,22 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.planners.base_planner import BasePlanner
-from google.adk.planners.built_in_planner import BuiltInPlanner
-from google.adk.planners.plan_re_act_planner import PlanReActPlanner
+from google.adk.planners.base_planner import BasePlanner as _ADK_BasePlanner
+from google.adk.planners.built_in_planner import BuiltInPlanner as _ADK_BuiltInPlanner
+from google.adk.planners.plan_re_act_planner import PlanReActPlanner as _ADK_PlanReActPlanner
 
 # ======================================================================
 # Builder: BasePlanner
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class BasePlanner:
     """Abstract base class for all planners."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -34,11 +35,16 @@ class BasePlanner:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BasePlanner init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BasePlanner init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -57,7 +63,7 @@ class BasePlanner:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BasePlanner. "
+                f"'{name}' is not a recognized parameter on _ADK_BasePlanner. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -73,8 +79,8 @@ class BasePlanner:
 
     # --- Terminal methods ---
 
-    def build(self) -> BasePlanner:
-        """Abstract base class for all planners. Resolve into a native ADK BasePlanner."""
+    def build(self) -> _ADK_BasePlanner:
+        """Abstract base class for all planners. Resolve into a native ADK _ADK_BasePlanner."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -90,20 +96,21 @@ class BasePlanner:
             else:
                 config[field] = items
         
-        return BasePlanner(**config)
+        return _ADK_BasePlanner(**config)
 
 
 # ======================================================================
 # Builder: BuiltInPlanner
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'thinking_config'}
-
 class BuiltInPlanner:
     """The built-in planner that uses model's built-in thinking features."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'thinking_config'}
 
 
     def __init__(self, thinking_config: str) -> None:
@@ -120,11 +127,16 @@ class BuiltInPlanner:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BuiltInPlanner init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BuiltInPlanner init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -143,7 +155,7 @@ class BuiltInPlanner:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BuiltInPlanner. "
+                f"'{name}' is not a recognized parameter on _ADK_BuiltInPlanner. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -159,8 +171,8 @@ class BuiltInPlanner:
 
     # --- Terminal methods ---
 
-    def build(self) -> BuiltInPlanner:
-        """The built-in planner that uses model's built-in thinking features. Resolve into a native ADK BuiltInPlanner."""
+    def build(self) -> _ADK_BuiltInPlanner:
+        """The built-in planner that uses model's built-in thinking features. Resolve into a native ADK _ADK_BuiltInPlanner."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -176,20 +188,21 @@ class BuiltInPlanner:
             else:
                 config[field] = items
         
-        return BuiltInPlanner(**config)
+        return _ADK_BuiltInPlanner(**config)
 
 
 # ======================================================================
 # Builder: PlanReActPlanner
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = set()
-
 class PlanReActPlanner:
     """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = set()
 
 
     def __init__(self, args: str, kwargs: str) -> None:
@@ -206,11 +219,16 @@ class PlanReActPlanner:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to PlanReActPlanner init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_PlanReActPlanner init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -229,7 +247,7 @@ class PlanReActPlanner:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on PlanReActPlanner. "
+                f"'{name}' is not a recognized parameter on _ADK_PlanReActPlanner. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -245,8 +263,8 @@ class PlanReActPlanner:
 
     # --- Terminal methods ---
 
-    def build(self) -> PlanReActPlanner:
-        """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. Resolve into a native ADK PlanReActPlanner."""
+    def build(self) -> _ADK_PlanReActPlanner:
+        """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. Resolve into a native ADK _ADK_PlanReActPlanner."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -262,4 +280,4 @@ class PlanReActPlanner:
             else:
                 config[field] = items
         
-        return PlanReActPlanner(**config)
+        return _ADK_PlanReActPlanner(**config)

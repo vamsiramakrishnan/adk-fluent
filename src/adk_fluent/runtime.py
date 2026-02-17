@@ -3,20 +3,21 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.apps.app import App
-from google.adk.runners import InMemoryRunner
-from google.adk.runners import Runner
+from google.adk.apps.app import App as _ADK_App
+from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
+from google.adk.runners import Runner as _ADK_Runner
 
 # ======================================================================
 # Builder: App
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-
 class App:
     """Represents an LLM-backed agentic application."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
 
 
     def __init__(self, name: str, root_agent: str) -> None:
@@ -33,11 +34,15 @@ class App:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to App.model_fields for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_App.model_fields for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -49,14 +54,14 @@ class App:
             return _cb_setter
 
         # Validate against actual Pydantic schema
-        if field_name not in App.model_fields:
+        if field_name not in _ADK_App.model_fields:
             available = sorted(
-                set(App.model_fields.keys())
+                set(_ADK_App.model_fields.keys())
                 | set(_ALIASES.keys())
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized field on App. "
+                f"'{name}' is not a recognized field on _ADK_App. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -72,8 +77,8 @@ class App:
 
     # --- Terminal methods ---
 
-    def build(self) -> App:
-        """Represents an LLM-backed agentic application. Resolve into a native ADK App."""
+    def build(self) -> _ADK_App:
+        """Represents an LLM-backed agentic application. Resolve into a native ADK _ADK_App."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -89,20 +94,21 @@ class App:
             else:
                 config[field] = items
         
-        return App(**config)
+        return _ADK_App(**config)
 
 
 # ======================================================================
 # Builder: InMemoryRunner
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'agent', 'plugin_close_timeout', 'app_name', 'plugins', 'app'}
-
 class InMemoryRunner:
     """An in-memory Runner for testing and development."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'plugins', 'app', 'app_name', 'plugin_close_timeout', 'agent'}
 
 
     def __init__(self, ) -> None:
@@ -119,11 +125,16 @@ class InMemoryRunner:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to InMemoryRunner init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_InMemoryRunner init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -142,7 +153,7 @@ class InMemoryRunner:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on InMemoryRunner. "
+                f"'{name}' is not a recognized parameter on _ADK_InMemoryRunner. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -158,8 +169,8 @@ class InMemoryRunner:
 
     # --- Terminal methods ---
 
-    def build(self) -> InMemoryRunner:
-        """An in-memory Runner for testing and development. Resolve into a native ADK InMemoryRunner."""
+    def build(self) -> _ADK_InMemoryRunner:
+        """An in-memory Runner for testing and development. Resolve into a native ADK _ADK_InMemoryRunner."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -175,20 +186,21 @@ class InMemoryRunner:
             else:
                 config[field] = items
         
-        return InMemoryRunner(**config)
+        return _ADK_InMemoryRunner(**config)
 
 
 # ======================================================================
 # Builder: Runner
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'memory_service', 'auto_create_session', 'agent', 'plugin_close_timeout', 'session_service', 'app_name', 'credential_service', 'plugins', 'app', 'artifact_service'}
-
 class Runner:
     """The Runner class is used to run agents."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'plugins', 'app', 'auto_create_session', 'app_name', 'credential_service', 'memory_service', 'artifact_service', 'plugin_close_timeout', 'session_service', 'agent'}
 
 
     def __init__(self, session_service: str) -> None:
@@ -205,11 +217,16 @@ class Runner:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to Runner init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_Runner init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -228,7 +245,7 @@ class Runner:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on Runner. "
+                f"'{name}' is not a recognized parameter on _ADK_Runner. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -244,8 +261,8 @@ class Runner:
 
     # --- Terminal methods ---
 
-    def build(self) -> Runner:
-        """The Runner class is used to run agents. Resolve into a native ADK Runner."""
+    def build(self) -> _ADK_Runner:
+        """The Runner class is used to run agents. Resolve into a native ADK _ADK_Runner."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -261,4 +278,4 @@ class Runner:
             else:
                 config[field] = items
         
-        return Runner(**config)
+        return _ADK_Runner(**config)

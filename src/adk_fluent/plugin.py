@@ -3,30 +3,31 @@
 from __future__ import annotations
 from collections import defaultdict
 from typing import Any, Callable, Self
-from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin
-from google.adk.cli.plugins.replay_plugin import ReplayPlugin
-from google.adk.plugins.base_plugin import BasePlugin
-from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryAgentAnalyticsPlugin
-from google.adk.plugins.context_filter_plugin import ContextFilterPlugin
-from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin
-from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin
-from google.adk.plugins.logging_plugin import LoggingPlugin
-from google.adk.plugins.multimodal_tool_results_plugin import MultimodalToolResultsPlugin
-from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin
-from google.adk.plugins.save_files_as_artifacts_plugin import SaveFilesAsArtifactsPlugin
-from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulatorPlugin
+from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
+from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
+from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
+from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryAgentAnalyticsPlugin as _ADK_BigQueryAgentAnalyticsPlugin
+from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
+from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
+from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
+from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
+from google.adk.plugins.multimodal_tool_results_plugin import MultimodalToolResultsPlugin as _ADK_MultimodalToolResultsPlugin
+from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin
+from google.adk.plugins.save_files_as_artifacts_plugin import SaveFilesAsArtifactsPlugin as _ADK_SaveFilesAsArtifactsPlugin
+from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulatorPlugin as _ADK_AgentSimulatorPlugin
 
 # ======================================================================
 # Builder: RecordingsPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name'}
-
 class RecordingsPlugin:
     """Plugin for recording ADK agent interactions."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name'}
 
 
     def __init__(self, ) -> None:
@@ -43,11 +44,16 @@ class RecordingsPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to RecordingsPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_RecordingsPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -66,7 +72,7 @@ class RecordingsPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on RecordingsPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_RecordingsPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -82,8 +88,8 @@ class RecordingsPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> RecordingsPlugin:
-        """Plugin for recording ADK agent interactions. Resolve into a native ADK RecordingsPlugin."""
+    def build(self) -> _ADK_RecordingsPlugin:
+        """Plugin for recording ADK agent interactions. Resolve into a native ADK _ADK_RecordingsPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -99,20 +105,21 @@ class RecordingsPlugin:
             else:
                 config[field] = items
         
-        return RecordingsPlugin(**config)
+        return _ADK_RecordingsPlugin(**config)
 
 
 # ======================================================================
 # Builder: ReplayPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name'}
-
 class ReplayPlugin:
     """Plugin for replaying ADK agent interactions from recordings."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name'}
 
 
     def __init__(self, ) -> None:
@@ -129,11 +136,16 @@ class ReplayPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ReplayPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ReplayPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -152,7 +164,7 @@ class ReplayPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ReplayPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_ReplayPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -168,8 +180,8 @@ class ReplayPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> ReplayPlugin:
-        """Plugin for replaying ADK agent interactions from recordings. Resolve into a native ADK ReplayPlugin."""
+    def build(self) -> _ADK_ReplayPlugin:
+        """Plugin for replaying ADK agent interactions from recordings. Resolve into a native ADK _ADK_ReplayPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -185,20 +197,21 @@ class ReplayPlugin:
             else:
                 config[field] = items
         
-        return ReplayPlugin(**config)
+        return _ADK_ReplayPlugin(**config)
 
 
 # ======================================================================
 # Builder: BasePlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name'}
-
 class BasePlugin:
     """Base class for creating plugins."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name'}
 
 
     def __init__(self, name: str) -> None:
@@ -215,11 +228,16 @@ class BasePlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BasePlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BasePlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -238,7 +256,7 @@ class BasePlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BasePlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_BasePlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -254,8 +272,8 @@ class BasePlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> BasePlugin:
-        """Base class for creating plugins. Resolve into a native ADK BasePlugin."""
+    def build(self) -> _ADK_BasePlugin:
+        """Base class for creating plugins. Resolve into a native ADK _ADK_BasePlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -271,20 +289,21 @@ class BasePlugin:
             else:
                 config[field] = items
         
-        return BasePlugin(**config)
+        return _ADK_BasePlugin(**config)
 
 
 # ======================================================================
 # Builder: BigQueryAgentAnalyticsPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'dataset_id', 'location', 'table_id', 'config', 'project_id'}
-
 class BigQueryAgentAnalyticsPlugin:
     """BigQuery Agent Analytics Plugin (v2.0 using Write API)."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'table_id', 'dataset_id', 'config', 'project_id', 'location'}
 
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
@@ -301,11 +320,16 @@ class BigQueryAgentAnalyticsPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to BigQueryAgentAnalyticsPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_BigQueryAgentAnalyticsPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -324,7 +348,7 @@ class BigQueryAgentAnalyticsPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on BigQueryAgentAnalyticsPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_BigQueryAgentAnalyticsPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -340,8 +364,8 @@ class BigQueryAgentAnalyticsPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> BigQueryAgentAnalyticsPlugin:
-        """BigQuery Agent Analytics Plugin (v2.0 using Write API). Resolve into a native ADK BigQueryAgentAnalyticsPlugin."""
+    def build(self) -> _ADK_BigQueryAgentAnalyticsPlugin:
+        """BigQuery Agent Analytics Plugin (v2.0 using Write API). Resolve into a native ADK _ADK_BigQueryAgentAnalyticsPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -357,20 +381,21 @@ class BigQueryAgentAnalyticsPlugin:
             else:
                 config[field] = items
         
-        return BigQueryAgentAnalyticsPlugin(**config)
+        return _ADK_BigQueryAgentAnalyticsPlugin(**config)
 
 
 # ======================================================================
 # Builder: ContextFilterPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'num_invocations_to_keep', 'name', 'custom_filter'}
-
 class ContextFilterPlugin:
     """A plugin that filters the LLM context to reduce its size."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name', 'num_invocations_to_keep', 'custom_filter'}
 
 
     def __init__(self, ) -> None:
@@ -387,11 +412,16 @@ class ContextFilterPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ContextFilterPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ContextFilterPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -410,7 +440,7 @@ class ContextFilterPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ContextFilterPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_ContextFilterPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -426,8 +456,8 @@ class ContextFilterPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> ContextFilterPlugin:
-        """A plugin that filters the LLM context to reduce its size. Resolve into a native ADK ContextFilterPlugin."""
+    def build(self) -> _ADK_ContextFilterPlugin:
+        """A plugin that filters the LLM context to reduce its size. Resolve into a native ADK _ADK_ContextFilterPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -443,20 +473,21 @@ class ContextFilterPlugin:
             else:
                 config[field] = items
         
-        return ContextFilterPlugin(**config)
+        return _ADK_ContextFilterPlugin(**config)
 
 
 # ======================================================================
 # Builder: DebugLoggingPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'output_path', 'include_session_state', 'name', 'include_system_instruction'}
-
 class DebugLoggingPlugin:
     """A plugin that captures complete debug information to a file."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name', 'include_session_state', 'output_path', 'include_system_instruction'}
 
 
     def __init__(self, ) -> None:
@@ -473,11 +504,16 @@ class DebugLoggingPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to DebugLoggingPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_DebugLoggingPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -496,7 +532,7 @@ class DebugLoggingPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on DebugLoggingPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_DebugLoggingPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -512,8 +548,8 @@ class DebugLoggingPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> DebugLoggingPlugin:
-        """A plugin that captures complete debug information to a file. Resolve into a native ADK DebugLoggingPlugin."""
+    def build(self) -> _ADK_DebugLoggingPlugin:
+        """A plugin that captures complete debug information to a file. Resolve into a native ADK _ADK_DebugLoggingPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -529,20 +565,21 @@ class DebugLoggingPlugin:
             else:
                 config[field] = items
         
-        return DebugLoggingPlugin(**config)
+        return _ADK_DebugLoggingPlugin(**config)
 
 
 # ======================================================================
 # Builder: GlobalInstructionPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'global_instruction', 'name'}
-
 class GlobalInstructionPlugin:
     """Plugin that provides global instructions functionality at the App level."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name', 'global_instruction'}
 
 
     def __init__(self, ) -> None:
@@ -559,11 +596,16 @@ class GlobalInstructionPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to GlobalInstructionPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_GlobalInstructionPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -582,7 +624,7 @@ class GlobalInstructionPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on GlobalInstructionPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_GlobalInstructionPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -598,8 +640,8 @@ class GlobalInstructionPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> GlobalInstructionPlugin:
-        """Plugin that provides global instructions functionality at the App level. Resolve into a native ADK GlobalInstructionPlugin."""
+    def build(self) -> _ADK_GlobalInstructionPlugin:
+        """Plugin that provides global instructions functionality at the App level. Resolve into a native ADK _ADK_GlobalInstructionPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -615,20 +657,21 @@ class GlobalInstructionPlugin:
             else:
                 config[field] = items
         
-        return GlobalInstructionPlugin(**config)
+        return _ADK_GlobalInstructionPlugin(**config)
 
 
 # ======================================================================
 # Builder: LoggingPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name'}
-
 class LoggingPlugin:
     """A plugin that logs important information at each callback point."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name'}
 
 
     def __init__(self, ) -> None:
@@ -645,11 +688,16 @@ class LoggingPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to LoggingPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_LoggingPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -668,7 +716,7 @@ class LoggingPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on LoggingPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_LoggingPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -684,8 +732,8 @@ class LoggingPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> LoggingPlugin:
-        """A plugin that logs important information at each callback point. Resolve into a native ADK LoggingPlugin."""
+    def build(self) -> _ADK_LoggingPlugin:
+        """A plugin that logs important information at each callback point. Resolve into a native ADK _ADK_LoggingPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -701,20 +749,21 @@ class LoggingPlugin:
             else:
                 config[field] = items
         
-        return LoggingPlugin(**config)
+        return _ADK_LoggingPlugin(**config)
 
 
 # ======================================================================
 # Builder: MultimodalToolResultsPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name'}
-
 class MultimodalToolResultsPlugin:
     """A plugin that modifies function tool responses to support returning list of parts directly."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name'}
 
 
     def __init__(self, ) -> None:
@@ -731,11 +780,16 @@ class MultimodalToolResultsPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to MultimodalToolResultsPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_MultimodalToolResultsPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -754,7 +808,7 @@ class MultimodalToolResultsPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on MultimodalToolResultsPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_MultimodalToolResultsPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -770,8 +824,8 @@ class MultimodalToolResultsPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> MultimodalToolResultsPlugin:
-        """A plugin that modifies function tool responses to support returning list of parts directly. Resolve into a native ADK MultimodalToolResultsPlugin."""
+    def build(self) -> _ADK_MultimodalToolResultsPlugin:
+        """A plugin that modifies function tool responses to support returning list of parts directly. Resolve into a native ADK _ADK_MultimodalToolResultsPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -787,20 +841,21 @@ class MultimodalToolResultsPlugin:
             else:
                 config[field] = items
         
-        return MultimodalToolResultsPlugin(**config)
+        return _ADK_MultimodalToolResultsPlugin(**config)
 
 
 # ======================================================================
 # Builder: ReflectAndRetryToolPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name', 'max_retries', 'tracking_scope', 'throw_exception_if_retry_exceeded'}
-
 class ReflectAndRetryToolPlugin:
     """Provides self-healing, concurrent-safe error recovery for tool failures."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name', 'max_retries', 'tracking_scope', 'throw_exception_if_retry_exceeded'}
 
 
     def __init__(self, ) -> None:
@@ -817,11 +872,16 @@ class ReflectAndRetryToolPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to ReflectAndRetryToolPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_ReflectAndRetryToolPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -840,7 +900,7 @@ class ReflectAndRetryToolPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on ReflectAndRetryToolPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_ReflectAndRetryToolPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -856,8 +916,8 @@ class ReflectAndRetryToolPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> ReflectAndRetryToolPlugin:
-        """Provides self-healing, concurrent-safe error recovery for tool failures. Resolve into a native ADK ReflectAndRetryToolPlugin."""
+    def build(self) -> _ADK_ReflectAndRetryToolPlugin:
+        """Provides self-healing, concurrent-safe error recovery for tool failures. Resolve into a native ADK _ADK_ReflectAndRetryToolPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -873,20 +933,21 @@ class ReflectAndRetryToolPlugin:
             else:
                 config[field] = items
         
-        return ReflectAndRetryToolPlugin(**config)
+        return _ADK_ReflectAndRetryToolPlugin(**config)
 
 
 # ======================================================================
 # Builder: SaveFilesAsArtifactsPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'name'}
-
 class SaveFilesAsArtifactsPlugin:
     """A plugin that saves files embedded in user messages as artifacts."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'name'}
 
 
     def __init__(self, ) -> None:
@@ -903,11 +964,16 @@ class SaveFilesAsArtifactsPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to SaveFilesAsArtifactsPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_SaveFilesAsArtifactsPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -926,7 +992,7 @@ class SaveFilesAsArtifactsPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on SaveFilesAsArtifactsPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_SaveFilesAsArtifactsPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -942,8 +1008,8 @@ class SaveFilesAsArtifactsPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> SaveFilesAsArtifactsPlugin:
-        """A plugin that saves files embedded in user messages as artifacts. Resolve into a native ADK SaveFilesAsArtifactsPlugin."""
+    def build(self) -> _ADK_SaveFilesAsArtifactsPlugin:
+        """A plugin that saves files embedded in user messages as artifacts. Resolve into a native ADK _ADK_SaveFilesAsArtifactsPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -959,20 +1025,21 @@ class SaveFilesAsArtifactsPlugin:
             else:
                 config[field] = items
         
-        return SaveFilesAsArtifactsPlugin(**config)
+        return _ADK_SaveFilesAsArtifactsPlugin(**config)
 
 
 # ======================================================================
 # Builder: AgentSimulatorPlugin
 # ======================================================================
 
-_ALIASES: dict[str, str] = {}
-_CALLBACK_ALIASES: dict[str, str] = {}
-_ADDITIVE_FIELDS: set[str] = set()
-_KNOWN_PARAMS: set[str] = {'simulator_engine'}
-
 class AgentSimulatorPlugin:
     """ADK Plugin for AgentSimulator."""
+
+    # --- Class-level alias / field maps ---
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] = {'simulator_engine'}
 
 
     def __init__(self, simulator_engine: str) -> None:
@@ -989,11 +1056,16 @@ class AgentSimulatorPlugin:
     # --- Dynamic field forwarding ---
 
     def __getattr__(self, name: str):
-        """Forward unknown methods to AgentSimulatorPlugin init params for zero-maintenance compatibility."""
+        """Forward unknown methods to _ADK_AgentSimulatorPlugin init params for zero-maintenance compatibility."""
         if name.startswith("_"):
             raise AttributeError(name)
 
-        # Resolve through alias map
+        # Resolve through alias map (class-level constants)
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
         field_name = _ALIASES.get(name, name)
 
         # Check if it's a callback alias
@@ -1012,7 +1084,7 @@ class AgentSimulatorPlugin:
                 | set(_CALLBACK_ALIASES.keys())
             )
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on AgentSimulatorPlugin. "
+                f"'{name}' is not a recognized parameter on _ADK_AgentSimulatorPlugin. "
                 f"Available: {', '.join(available)}"
             )
 
@@ -1028,8 +1100,8 @@ class AgentSimulatorPlugin:
 
     # --- Terminal methods ---
 
-    def build(self) -> AgentSimulatorPlugin:
-        """ADK Plugin for AgentSimulator. Resolve into a native ADK AgentSimulatorPlugin."""
+    def build(self) -> _ADK_AgentSimulatorPlugin:
+        """ADK Plugin for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorPlugin."""
         config = {**self._config}
         
         # Merge accumulated callbacks
@@ -1045,4 +1117,4 @@ class AgentSimulatorPlugin:
             else:
                 config[field] = items
         
-        return AgentSimulatorPlugin(**config)
+        return _ADK_AgentSimulatorPlugin(**config)
