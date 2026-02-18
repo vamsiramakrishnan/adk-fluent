@@ -352,3 +352,72 @@ def test_generate_seed_from_manifest_end_to_end():
     # Must include LlmAgent as "Agent"
     assert "Agent" in parsed["builders"]
     assert "Pipeline" in parsed["builders"]  # SequentialAgent renamed
+
+
+# --- Type-Driven Extras ---
+def test_infer_extras_singular_adder_for_list_field():
+    from scripts.seed_generator import infer_extras
+
+    fields = [
+        {"name": "tools", "type_str": "list[BaseTool]", "is_callback": False},
+        {"name": "sub_agents", "type_str": "list[BaseAgent]", "is_callback": False},
+    ]
+    extras = infer_extras("SomeAgent", "agent", fields)
+    tool_extra = next((e for e in extras if e["name"] == "tool"), None)
+    assert tool_extra is not None
+    assert tool_extra["behavior"] == "list_append"
+    assert tool_extra["target_field"] == "tools"
+    sub_agent_extra = next((e for e in extras if e["name"] == "sub_agent"), None)
+    assert sub_agent_extra is not None
+    assert sub_agent_extra["behavior"] == "list_append"
+    assert sub_agent_extra["target_field"] == "sub_agents"
+
+
+def test_infer_extras_step_for_sub_agents_in_sequential():
+    from scripts.seed_generator import infer_extras
+
+    fields = [{"name": "sub_agents", "type_str": "list[BaseAgent]", "is_callback": False}]
+    extras = infer_extras("SequentialAgent", "agent", fields)
+    step = next((e for e in extras if e["name"] == "step"), None)
+    assert step is not None
+    assert step["target_field"] == "sub_agents"
+
+
+def test_infer_extras_branch_for_parallel():
+    from scripts.seed_generator import infer_extras
+
+    fields = [{"name": "sub_agents", "type_str": "list[BaseAgent]", "is_callback": False}]
+    extras = infer_extras("ParallelAgent", "agent", fields)
+    branch = next((e for e in extras if e["name"] == "branch"), None)
+    assert branch is not None
+
+
+def test_infer_extras_no_duplicates_with_manual():
+    from scripts.seed_generator import merge_extras
+
+    inferred = [
+        {"name": "tool", "behavior": "list_append", "target_field": "tools"},
+    ]
+    manual = [
+        {
+            "name": "tool",
+            "behavior": "runtime_helper",
+            "helper_func": "_add_tool",
+            "signature": "(self, fn_or_tool, *, require_confirmation: bool = False) -> Self",
+        },
+    ]
+    merged = merge_extras(inferred, manual)
+    assert len([e for e in merged if e["name"] == "tool"]) == 1
+    assert merged[0]["behavior"] == "runtime_helper"
+
+
+def test_infer_extras_unknown_class_gets_generic_adders():
+    from scripts.seed_generator import infer_extras
+
+    fields = [
+        {"name": "evaluators", "type_str": "list[BaseEvaluator]", "is_callback": False},
+    ]
+    extras = infer_extras("EvalSuite", "eval", fields)
+    evaluator_extra = next((e for e in extras if e["name"] == "evaluator"), None)
+    assert evaluator_extra is not None
+    assert evaluator_extra["target_field"] == "evaluators"

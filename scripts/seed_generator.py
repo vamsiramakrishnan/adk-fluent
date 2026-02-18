@@ -466,6 +466,115 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# TYPE-DRIVEN EXTRAS INFERENCE (A3)
+# ---------------------------------------------------------------------------
+
+
+def _singular_name(plural_field: str) -> str:
+    """Derive the singular form of a plural field name.
+
+    ``tools`` -> ``tool``, ``sub_agents`` -> ``sub_agent``,
+    ``plugins`` -> ``plugin``.
+
+    Simple rule: strip trailing ``"s"`` unless the name ends in ``"ss"``.
+    """
+    if plural_field.endswith("ss"):
+        return plural_field
+    if plural_field.endswith("s"):
+        return plural_field[:-1]
+    return plural_field
+
+
+def _inner_type_name(type_str: str) -> str:
+    """Extract the inner element type from ``list[X]``.
+
+    Handles ``Union[list[X], NoneType]`` and ``list[X] | None`` by
+    unwrapping the optional layer first.
+
+    Returns the raw *type_str* unchanged if it is not a list type.
+    """
+    s = _unwrap_optional(type_str)
+    for prefix in ("list[", "List["):
+        if s.startswith(prefix) and s.endswith("]"):
+            return s[len(prefix):-1].strip()
+    return s
+
+
+_CONTAINER_ALIASES: dict[str, dict[str, str]] = {
+    "SequentialAgent": {"sub_agent": "step"},
+    "LoopAgent": {"sub_agent": "step"},
+    "ParallelAgent": {"sub_agent": "branch"},
+}
+
+
+def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
+    """Infer extra (non-field) methods from field type information.
+
+    Any ``list[ComplexType]`` field produces a singular adder method with
+    ``list_append`` behavior.  For well-known container agents the method
+    is given a semantic name (step, branch) via ``_CONTAINER_ALIASES``;
+    when the alias differs from the generic singular, **both** names are
+    emitted.
+    """
+    extras: list[dict] = []
+    seen_names: set[str] = set()
+
+    for f in fields:
+        fname = f["name"]
+        ftype = f.get("type_str", "")
+
+        if not _is_list_of_complex_type(ftype):
+            continue
+
+        singular = _singular_name(fname)
+        inner = _inner_type_name(ftype)
+
+        # Check for a semantic alias override
+        alias_map = _CONTAINER_ALIASES.get(class_name, {})
+        alias = alias_map.get(singular)  # e.g. "step" for sub_agent
+
+        if alias and alias != singular:
+            # Emit the semantic alias first
+            if alias not in seen_names:
+                extras.append({
+                    "name": alias,
+                    "behavior": "list_append",
+                    "target_field": fname,
+                })
+                seen_names.add(alias)
+            # Also emit the generic singular form
+            if singular not in seen_names:
+                extras.append({
+                    "name": singular,
+                    "behavior": "list_append",
+                    "target_field": fname,
+                })
+                seen_names.add(singular)
+        else:
+            # No alias — just the singular adder
+            if singular not in seen_names:
+                extras.append({
+                    "name": singular,
+                    "behavior": "list_append",
+                    "target_field": fname,
+                })
+                seen_names.add(singular)
+
+    return extras
+
+
+def merge_extras(inferred: list[dict], manual: list[dict]) -> list[dict]:
+    """Merge inferred extras with manual overrides.
+
+    Manual entries win on name conflicts (matched by the ``name`` field).
+    """
+    manual_names = {e["name"] for e in manual}
+    merged = [e for e in inferred if e["name"] not in manual_names]
+    merged.extend(manual)
+    return merged
+
+
+# ---------------------------------------------------------------------------
 # TASK 11: TOML EMISSION
 # ---------------------------------------------------------------------------
 
@@ -683,9 +792,9 @@ def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None =
         # Step 4d: Output module
         output_module = determine_output_module(name, tag, module)
 
-        # Step 4e: Extras
+        # Step 4e: Extras (type-driven inference replaces class-name switch)
         source_class = cls_info.get("qualname", f"{module}.{name}")
-        extras = generate_extras(name, tag, source_class)
+        extras = infer_extras(name, tag, fields)
 
         # Step 5: Builder name
         builder_name = _builder_name_for_class(name, tag, renames)
