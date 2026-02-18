@@ -181,6 +181,57 @@ def test_generate_aliases():
     assert aliases == {"instruct": "instruction", "describe": "description"}
 
 
+# --- Morphological Alias Derivation ---
+def test_derive_alias_strips_tion_suffix():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("instruction") == "instruct"
+    assert derive_alias("description") == "describe"
+    assert derive_alias("configuration") == "configure"
+    assert derive_alias("execution") == "execute"
+
+
+def test_derive_alias_strips_ment_suffix():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("deployment") == "deploy"
+    assert derive_alias("assignment") == "assign"
+
+
+def test_derive_alias_returns_none_for_short_names():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("model") is None
+    assert derive_alias("name") is None
+    assert derive_alias("tools") is None
+
+
+def test_derive_alias_returns_none_for_no_pattern():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("temperature") is None
+    assert derive_alias("max_tokens") is None
+
+
+def test_derive_aliases_batch():
+    from scripts.seed_generator import derive_aliases
+
+    fields = ["instruction", "description", "model", "tools", "temperature"]
+    aliases = derive_aliases(fields)
+    assert aliases == {"instruct": "instruction", "describe": "description"}
+
+
+def test_derive_aliases_with_overrides():
+    from scripts.seed_generator import derive_aliases
+
+    fields = ["instruction", "output_key", "include_contents"]
+    overrides = {"outputs": "output_key", "history": "include_contents"}
+    aliases = derive_aliases(fields, overrides=overrides)
+    assert aliases["instruct"] == "instruction"  # Derived
+    assert aliases["outputs"] == "output_key"  # Override
+    assert aliases["history"] == "include_contents"  # Override
+
+
 def test_generate_callback_aliases():
     from scripts.seed_generator import generate_callback_aliases
 
