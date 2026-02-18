@@ -783,6 +783,7 @@ class _FnStepBuilder(BuilderBase):
 
     def build(self):
         from google.adk.agents.base_agent import BaseAgent
+        from adk_fluent._transforms import StateDelta, StateReplacement, _SCOPE_PREFIXES
 
         fn_ref = self._fn
 
@@ -790,7 +791,21 @@ class _FnStepBuilder(BuilderBase):
             """Zero-cost function agent. No LLM call."""
             async def _run_async_impl(self, ctx):
                 result = fn_ref(dict(ctx.session.state))
-                if isinstance(result, dict):
+                if isinstance(result, StateReplacement):
+                    # Only affect session-scoped (unprefixed) keys
+                    current_session_keys = {
+                        k for k in ctx.session.state
+                        if not k.startswith(_SCOPE_PREFIXES)
+                    }
+                    new_keys = set(result.new_state.keys())
+                    for k, v in result.new_state.items():
+                        ctx.session.state[k] = v
+                    for k in current_session_keys - new_keys:
+                        ctx.session.state[k] = None
+                elif isinstance(result, StateDelta):
+                    for k, v in result.updates.items():
+                        ctx.session.state[k] = v
+                elif isinstance(result, dict):
                     for k, v in result.items():
                         ctx.session.state[k] = v
                 # yield nothing — pure transform, no events

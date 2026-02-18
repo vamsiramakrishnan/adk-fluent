@@ -292,5 +292,7 @@ from ._helpers import Artifact
 from ._prompt import Prompt
 from ._routing import Route
 from ._transforms import S
+from ._transforms import StateDelta
+from ._transforms import StateReplacement
 from .decorators import agent
 from .presets import Preset

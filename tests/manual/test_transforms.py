@@ -1,6 +1,7 @@
 """Tests for S — state transform factories that compose with >>."""
 import pytest
 from adk_fluent import S, Agent
+from adk_fluent._transforms import StateDelta, StateReplacement
 from adk_fluent.workflow import Pipeline
 
 
@@ -11,15 +12,21 @@ from adk_fluent.workflow import Pipeline
 class TestPick:
     def test_keeps_specified_keys(self):
         fn = S.pick("a", "b")
-        assert fn({"a": 1, "b": 2, "c": 3}) == {"a": 1, "b": 2}
+        result = fn({"a": 1, "b": 2, "c": 3})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {"a": 1, "b": 2}
 
     def test_missing_keys_skipped(self):
         fn = S.pick("a", "z")
-        assert fn({"a": 1, "b": 2}) == {"a": 1}
+        result = fn({"a": 1, "b": 2})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {"a": 1}
 
     def test_empty_state(self):
         fn = S.pick("a")
-        assert fn({}) == {}
+        result = fn({})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {}
 
     def test_name(self):
         fn = S.pick("x", "y")
@@ -29,11 +36,15 @@ class TestPick:
 class TestDrop:
     def test_removes_specified_keys(self):
         fn = S.drop("secret")
-        assert fn({"a": 1, "secret": "x", "b": 2}) == {"a": 1, "b": 2}
+        result = fn({"a": 1, "secret": "x", "b": 2})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {"a": 1, "b": 2}
 
     def test_missing_keys_no_error(self):
         fn = S.drop("z")
-        assert fn({"a": 1}) == {"a": 1}
+        result = fn({"a": 1})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {"a": 1}
 
     def test_name(self):
         fn = S.drop("x", "y")
@@ -43,16 +54,20 @@ class TestDrop:
 class TestRename:
     def test_renames_keys(self):
         fn = S.rename(result="input")
-        assert fn({"result": 42, "other": 7}) == {"input": 42, "other": 7}
+        result = fn({"result": 42, "other": 7})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {"input": 42, "other": 7}
 
     def test_multiple_renames(self):
         fn = S.rename(a="x", b="y")
-        assert fn({"a": 1, "b": 2, "c": 3}) == {"x": 1, "y": 2, "c": 3}
+        result = fn({"a": 1, "b": 2, "c": 3})
+        assert isinstance(result, StateReplacement)
+        assert result.new_state == {"x": 1, "y": 2, "c": 3}
 
     def test_unmapped_keys_pass_through(self):
         fn = S.rename(a="x")
         result = fn({"a": 1, "b": 2})
-        assert "b" in result
+        assert "b" in result.new_state
 
     def test_name(self):
         fn = S.rename(old="new")
@@ -62,11 +77,15 @@ class TestRename:
 class TestDefault:
     def test_fills_missing(self):
         fn = S.default(score=0.5)
-        assert fn({"name": "test"}) == {"name": "test", "score": 0.5}
+        result = fn({"name": "test"})
+        assert isinstance(result, StateDelta)
+        assert result.updates == {"score": 0.5}
 
     def test_does_not_overwrite_existing(self):
         fn = S.default(score=0.5)
-        assert fn({"score": 0.9}) == {"score": 0.9}
+        result = fn({"score": 0.9})
+        assert isinstance(result, StateDelta)
+        assert result.updates == {}
 
     def test_name(self):
         fn = S.default(a=1, b=2)
@@ -77,17 +96,20 @@ class TestMerge:
     def test_default_join(self):
         fn = S.merge("a", "b", into="combined")
         result = fn({"a": "hello", "b": "world"})
-        assert result == {"combined": "hello\nworld"}
+        assert isinstance(result, StateDelta)
+        assert result.updates == {"combined": "hello\nworld"}
 
     def test_custom_fn(self):
         fn = S.merge("x", "y", into="total", fn=lambda x, y: x + y)
         result = fn({"x": 10, "y": 20})
-        assert result == {"total": 30}
+        assert isinstance(result, StateDelta)
+        assert result.updates == {"total": 30}
 
     def test_missing_key_skipped(self):
         fn = S.merge("a", "b", into="c")
         result = fn({"a": "only"})
-        assert result == {"c": "only"}
+        assert isinstance(result, StateDelta)
+        assert result.updates == {"c": "only"}
 
     def test_name(self):
         fn = S.merge("a", "b", into="c")
@@ -97,11 +119,15 @@ class TestMerge:
 class TestTransform:
     def test_applies_function(self):
         fn = S.transform("text", str.upper)
-        assert fn({"text": "hello"}) == {"text": "HELLO"}
+        result = fn({"text": "hello"})
+        assert isinstance(result, StateDelta)
+        assert result.updates == {"text": "HELLO"}
 
     def test_missing_key_returns_empty(self):
         fn = S.transform("text", str.upper)
-        assert fn({"other": 1}) == {}
+        result = fn({"other": 1})
+        assert isinstance(result, StateDelta)
+        assert result.updates == {}
 
     def test_name(self):
         fn = S.transform("x", abs)
@@ -112,7 +138,8 @@ class TestGuard:
     def test_passes_on_true(self):
         fn = S.guard(lambda s: "key" in s)
         result = fn({"key": 1})
-        assert result == {}
+        assert isinstance(result, StateDelta)
+        assert result.updates == {}
 
     def test_raises_on_false(self):
         fn = S.guard(lambda s: "key" in s, msg="Missing key")
@@ -121,10 +148,11 @@ class TestGuard:
 
 
 class TestLog:
-    def test_returns_empty_dict(self, capsys):
+    def test_returns_empty_delta(self, capsys):
         fn = S.log("a")
         result = fn({"a": 1, "b": 2})
-        assert result == {}
+        assert isinstance(result, StateDelta)
+        assert result.updates == {}
 
     def test_prints_selected_keys(self, capsys):
         fn = S.log("a", label="test")
@@ -145,7 +173,8 @@ class TestCompute:
             length=lambda s: len(s["text"]),
         )
         result = fn({"text": "hello world"})
-        assert result == {"summary": "hello", "length": 11}
+        assert isinstance(result, StateDelta)
+        assert result.updates == {"summary": "hello", "length": 11}
 
     def test_name(self):
         fn = S.compute(a=lambda s: 1)
