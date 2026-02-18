@@ -433,6 +433,11 @@ class Agent(BuilderBase):
             c.to_ir() if isinstance(c, BuilderBase) else c
             for c in children_raw
         )
+        # Extract produces/consumes contract annotations
+        produces_schema = self._config.get("_produces")
+        consumes_schema = self._config.get("_consumes")
+        writes_keys = frozenset(produces_schema.model_fields.keys()) if produces_schema else frozenset()
+        reads_keys = frozenset(consumes_schema.model_fields.keys()) if consumes_schema else frozenset()
         return AgentNode(
             name=self._config.get("name", ""),
             description=self._config.get("description", ""),
@@ -452,6 +457,10 @@ class Agent(BuilderBase):
             planner=self._config.get("planner"),
             code_executor=self._config.get("code_executor"),
             callbacks=callbacks,
+            writes_keys=writes_keys,
+            reads_keys=reads_keys,
+            produces_type=produces_schema,
+            consumes_type=consumes_schema,
         )
 
     def build(self) -> LlmAgent:

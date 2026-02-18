@@ -857,6 +857,26 @@ class BuilderBase:
         self._middlewares.append(mw)
         return self
 
+    def produces(self, schema: type) -> Self:
+        """Declare the Pydantic schema this agent writes to state."""
+        from pydantic import BaseModel
+        if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
+            raise TypeError(
+                f"produces() requires a Pydantic BaseModel subclass, got {schema!r}"
+            )
+        self._config["_produces"] = schema
+        return self
+
+    def consumes(self, schema: type) -> Self:
+        """Declare the Pydantic schema this agent reads from state."""
+        from pydantic import BaseModel
+        if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
+            raise TypeError(
+                f"consumes() requires a Pydantic BaseModel subclass, got {schema!r}"
+            )
+        self._config["_consumes"] = schema
+        return self
+
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
         aliases = getattr(self.__class__, "_ALIASES", {})
