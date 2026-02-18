@@ -368,7 +368,7 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"rag_corpus", "vector_distance_threshold", "similarity_top_k"}
+    _KNOWN_PARAMS: set[str] = {"vector_distance_threshold", "rag_corpus", "similarity_top_k"}
 
     def __init__(
         self,
