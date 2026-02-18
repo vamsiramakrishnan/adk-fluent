@@ -1,6 +1,6 @@
 {
   "adk_version": "1.25.0",
-  "scan_timestamp": "2026-02-18T02:31:15.455847+00:00",
+  "scan_timestamp": "2026-02-18T04:03:00.115847+00:00",
   "python_version": "3.11.7",
   "total_classes": 444,
   "total_fields": 779,
@@ -15467,21 +15467,21 @@
         {
           "name": "auto_rater_response_parser",
           "type_str": "AutoRaterResponseParser",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7fc0c52943d0>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7e6994144350>",
           "required": false,
           "position": 2
         },
         {
           "name": "per_invocation_results_aggregator",
           "type_str": "PerInvocationResultsAggregator",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7fc0c5294410>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7e6994144390>",
           "required": false,
           "position": 3
         },
         {
           "name": "invocation_results_summarizer",
           "type_str": "InvocationResultsSummarizer",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7fc0c5294450>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7e69941443d0>",
           "required": false,
           "position": 4
         },
@@ -26166,7 +26166,7 @@
           "name": "httpx_client_factory",
           "type_str": "CheckableMcpHttpClientFactory",
           "type_raw": "<class 'google.adk.tools.mcp_tool.mcp_session_manager.CheckableMcpHttpClientFactory'>",
-          "default": "<function create_mcp_http_client at 0x7fc0cbaba660>",
+          "default": "<function create_mcp_http_client at 0x7e699a952660>",
           "required": false,
           "is_callback": false,
           "is_list": false,
