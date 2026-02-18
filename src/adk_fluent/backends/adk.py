@@ -1,6 +1,8 @@
 """ADK Backend -- compiles IR node trees into native ADK objects."""
 from __future__ import annotations
 
+__all__ = ["ADKBackend"]
+
 from typing import Any, AsyncIterator
 
 from adk_fluent._ir import (
@@ -56,6 +58,19 @@ class ADKBackend:
         if cfg.resumable:
             from google.adk.apps.app import ResumabilityConfig
             app_kwargs["resumability_config"] = ResumabilityConfig(is_resumable=True)
+
+        # Compaction
+        if cfg.compaction:
+            from google.adk.apps.app import EventsCompactionConfig
+            ecc_kwargs: dict[str, Any] = {
+                "compaction_interval": cfg.compaction.interval,
+                "overlap_size": cfg.compaction.overlap,
+            }
+            if cfg.compaction.token_threshold is not None:
+                ecc_kwargs["token_threshold"] = cfg.compaction.token_threshold
+            if cfg.compaction.event_retention_size is not None:
+                ecc_kwargs["event_retention_size"] = cfg.compaction.event_retention_size
+            app_kwargs["events_compaction_config"] = EventsCompactionConfig(**ecc_kwargs)
 
         # Middleware -> plugin
         if cfg.middlewares:

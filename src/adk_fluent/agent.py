@@ -17,7 +17,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
 
@@ -91,7 +91,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'include_history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'after_model_callback', 'before_tool_callback', 'on_tool_error_callback', 'on_model_error_callback', 'before_agent_callback', 'before_model_callback', 'after_tool_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'on_tool_error_callback', 'on_model_error_callback', 'after_model_callback', 'before_tool_callback', 'before_model_callback', 'after_agent_callback', 'after_tool_callback'}
     _ADK_TARGET_CLASS = LlmAgent
 
 
@@ -321,8 +321,13 @@ class Agent(BuilderBase):
 
     # --- Extra methods ---
 
-    def tool(self, fn_or_tool: Callable | BaseTool) -> Self:
+    def tool(self, fn_or_tool: Callable | BaseTool, *, require_confirmation: bool = False) -> Self:
         """Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list."""
+        if require_confirmation and callable(fn_or_tool):
+            from google.adk.tools.base_tool import BaseTool as _BaseTool
+            if not isinstance(fn_or_tool, _BaseTool):
+                from google.adk.tools.function_tool import FunctionTool
+                fn_or_tool = FunctionTool(func=fn_or_tool, require_confirmation=True)
         self._lists["tools"].append(fn_or_tool)
         return self
 
@@ -411,57 +416,15 @@ class Agent(BuilderBase):
         async for chunk in run_events(self, prompt):
             yield chunk
 
-    # --- Dynamic field forwarding (safety net) ---
-
-    # --- Terminal methods ---
 
     def to_ir(self):
         """Convert this Agent builder to an AgentNode IR node."""
-        from adk_fluent._ir_generated import AgentNode
-        # Collect callbacks as tuples
-        callbacks = {
-            k: tuple(v) for k, v in self._callbacks.items() if v
-        }
-        # Collect tools from both _config and _lists
-        tools = tuple(self._config.get("tools", []))
-        if self._lists.get("tools"):
-            tools = tools + tuple(self._lists["tools"])
-        # Recursively convert sub_agents/children
-        children_raw = list(self._config.get("sub_agents", []))
-        children_raw.extend(self._lists.get("sub_agents", []))
-        children = tuple(
-            c.to_ir() if isinstance(c, BuilderBase) else c
-            for c in children_raw
-        )
-        # Extract produces/consumes contract annotations
-        produces_schema = self._config.get("_produces")
-        consumes_schema = self._config.get("_consumes")
-        writes_keys = frozenset(produces_schema.model_fields.keys()) if produces_schema else frozenset()
-        reads_keys = frozenset(consumes_schema.model_fields.keys()) if consumes_schema else frozenset()
-        return AgentNode(
-            name=self._config.get("name", ""),
-            description=self._config.get("description", ""),
-            children=children,
-            model=self._config.get("model", ""),
-            instruction=self._config.get("instruction", ""),
-            global_instruction=self._config.get("global_instruction", ""),
-            static_instruction=self._config.get("static_instruction"),
-            tools=tools,
-            generate_content_config=self._config.get("generate_content_config"),
-            disallow_transfer_to_parent=self._config.get("disallow_transfer_to_parent", False),
-            disallow_transfer_to_peers=self._config.get("disallow_transfer_to_peers", False),
-            include_contents=self._config.get("include_contents", "default"),
-            input_schema=self._config.get("input_schema"),
-            output_schema=self._config.get("output_schema") or self._config.get("_output_schema"),
-            output_key=self._config.get("output_key"),
-            planner=self._config.get("planner"),
-            code_executor=self._config.get("code_executor"),
-            callbacks=callbacks,
-            writes_keys=writes_keys,
-            reads_keys=reads_keys,
-            produces_type=produces_schema,
-            consumes_type=consumes_schema,
-        )
+        from adk_fluent._helpers import _agent_to_ir
+        return _agent_to_ir(self)
+
+    # --- Dynamic field forwarding (safety net) ---
+
+    # --- Terminal methods ---
 
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
