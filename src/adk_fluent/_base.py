@@ -2,6 +2,7 @@
 from __future__ import annotations
 import asyncio as _asyncio
 import itertools
+import types
 from typing import Any, Callable, Self
 
 from google.adk.agents.base_agent import BaseAgent
@@ -1209,7 +1210,8 @@ class TapAgent(BaseAgent):
         object.__setattr__(self, '_fn_ref', fn)
 
     async def _run_async_impl(self, ctx):
-        self._fn_ref(dict(ctx.session.state))
+        # Pass read-only view — tap should never mutate state
+        self._fn_ref(types.MappingProxyType(dict(ctx.session.state)))
         # Explicitly yield nothing — pure observation
 
 
