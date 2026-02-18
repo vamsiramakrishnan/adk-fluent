@@ -304,9 +304,8 @@ class BuilderBase:
                 route.eq(value, agent_builder)
             other = route  # Fall through to Route handling
 
-        # Route operand: build route agent and create pipeline
+        # Route operand: store Route directly so to_ir() can produce RouteNode
         if isinstance(other, Route):
-            route_agent = other.build()
             my_name = self._config.get("name", "")
             p = Pipeline(f"{my_name}_routed")
             if isinstance(self, Pipeline):
@@ -314,7 +313,7 @@ class BuilderBase:
                     p._lists["sub_agents"].append(item)
             else:
                 p._lists["sub_agents"].append(self)
-            p._lists["sub_agents"].append(route_agent)  # Already built
+            p._lists["sub_agents"].append(other)  # Store Route directly
             # Propagate middleware from self to result
             self_mw = getattr(self, "_middlewares", [])
             if self_mw:
@@ -584,6 +583,8 @@ class BuilderBase:
             resolved = []
             for item in items:
                 if isinstance(item, BuilderBase):
+                    resolved.append(item.build())
+                elif hasattr(item, "build") and callable(item.build):
                     resolved.append(item.build())
                 else:
                     resolved.append(item)

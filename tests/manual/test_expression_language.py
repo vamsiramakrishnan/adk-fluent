@@ -207,10 +207,13 @@ class TestRouteOperatorIntegration:
         assert len(sub_agents) == 2
         # First is the classifier builder
         assert sub_agents[0] is classifier
-        # Second is the built route agent (BaseAgent instance)
+        # Second is the Route object (built lazily at .build() time)
+        assert isinstance(sub_agents[1], Route)
+        # When built, it becomes a proper BaseAgent
         from google.adk.agents.base_agent import BaseAgent
 
-        assert isinstance(sub_agents[1], BaseAgent)
+        built = result.build()
+        assert isinstance(built.sub_agents[1], BaseAgent)
 
     def test_dict_rshift_uses_route(self):
         """agent >> dict creates deterministic Route (not LLM coordinator)."""
@@ -224,10 +227,12 @@ class TestRouteOperatorIntegration:
         assert isinstance(result, Pipeline)
         sub_agents = result._lists.get("sub_agents", [])
         assert len(sub_agents) == 2
-        # Second element should be a built BaseAgent (route), not a builder
-        assert isinstance(sub_agents[1], BaseAgent)
-        # Should have 2 sub-agents (one per dict entry)
-        assert len(sub_agents[1].sub_agents) == 2
+        # Second element is a Route object (built lazily at .build() time)
+        assert isinstance(sub_agents[1], Route)
+        # When built, route agent has correct sub-agents
+        built = result.build()
+        assert isinstance(built.sub_agents[1], BaseAgent)
+        assert len(built.sub_agents[1].sub_agents) == 2
 
     def test_dict_rshift_requires_outputs(self):
         """agent >> dict raises ValueError without .outputs()."""

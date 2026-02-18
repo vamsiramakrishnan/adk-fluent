@@ -96,6 +96,7 @@ class TestDictRouting:
 
     def test_dict_route_agent_has_sub_agents(self):
         """The route agent has the dict values as sub_agents."""
+        from adk_fluent._routing import Route
         from google.adk.agents.base_agent import BaseAgent
 
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
@@ -103,8 +104,12 @@ class TestDictRouting:
         b = Agent("handler_b").model("gemini-2.5-flash").instruct("B")
 
         pipeline = classifier >> {"opt_a": a, "opt_b": b}
-        # The second step is the built route agent (BaseAgent, not builder)
-        route_agent = pipeline._lists["sub_agents"][1]
+        # The second step is a Route object (built lazily at .build() time)
+        route_obj = pipeline._lists["sub_agents"][1]
+        assert isinstance(route_obj, Route)
+        # When built, route agent has correct sub_agents
+        built = pipeline.build()
+        route_agent = built.sub_agents[1]
         assert isinstance(route_agent, BaseAgent)
         assert len(route_agent.sub_agents) == 2
 

@@ -29,6 +29,10 @@ __all__ = [
     "_pipeline_to_ir",
     "_fanout_to_ir",
     "_loop_to_ir",
+    "_show_agent",
+    "_hide_agent",
+    "_add_memory",
+    "_add_memory_auto_save",
 ]
 
 
@@ -61,7 +65,15 @@ def _collect_children(builder):
 
     children_raw = list(builder._config.get("sub_agents", []))
     children_raw.extend(builder._lists.get("sub_agents", []))
-    return tuple(c.to_ir() if isinstance(c, BuilderBase) else c for c in children_raw)
+    result = []
+    for c in children_raw:
+        if isinstance(c, BuilderBase):
+            result.append(c.to_ir())
+        elif hasattr(c, "to_ir") and callable(c.to_ir):
+            result.append(c.to_ir())
+        else:
+            result.append(c)
+    return tuple(result)
 
 
 def _agent_to_ir(builder):
@@ -166,6 +178,62 @@ def deep_clone_builder(builder: Any, new_name: str) -> Any:
     new_builder._lists = copy.deepcopy(builder._lists)
     new_builder._config["name"] = new_name
     return new_builder
+
+
+# ---------------------------------------------------------------------------
+# v5.1 Context Engineering helpers
+# ---------------------------------------------------------------------------
+
+
+def _show_agent(builder):
+    """Force this agent's events to be user-facing (override topology inference)."""
+    builder._config["_visibility_override"] = "user"
+    return builder
+
+
+def _hide_agent(builder):
+    """Force this agent's events to be internal (override topology inference)."""
+    builder._config["_visibility_override"] = "internal"
+    return builder
+
+
+def _add_memory(builder, mode: str = "preload"):
+    """Add memory tools to this agent.
+
+    Modes:
+      'preload'   — PreloadMemoryTool (retrieves memory at start of each turn)
+      'on_demand' — LoadMemoryTool (agent decides when to load)
+      'both'      — Both tools
+    """
+    from google.adk.tools.load_memory_tool import LoadMemoryTool
+    from google.adk.tools.preload_memory_tool import PreloadMemoryTool
+
+    if mode == "preload":
+        builder._lists.setdefault("tools", []).append(PreloadMemoryTool())
+    elif mode == "on_demand":
+        builder._lists.setdefault("tools", []).append(LoadMemoryTool())
+    elif mode == "both":
+        builder._lists.setdefault("tools", []).append(PreloadMemoryTool())
+        builder._lists.setdefault("tools", []).append(LoadMemoryTool())
+    else:
+        raise ValueError(f"Invalid memory mode '{mode}'. Use 'preload', 'on_demand', or 'both'.")
+    return builder
+
+
+def _add_memory_auto_save(builder):
+    """Auto-save session to memory after each agent run.
+
+    Adds an after_agent_callback that calls memory_service.add_session_to_memory().
+    Requires a memory_service to be configured on the Runner/App.
+    """
+
+    async def _auto_save_callback(callback_context):
+        memory_service = getattr(callback_context._invocation_context, "memory_service", None)
+        if memory_service is not None:
+            await memory_service.add_session_to_memory(callback_context._invocation_context.session)
+
+    builder._callbacks["after_agent_callback"].append(_auto_save_callback)
+    return builder
 
 
 async def _run_single_attempt(builder, prompt: str, *, model_override: str | None = None) -> str:
