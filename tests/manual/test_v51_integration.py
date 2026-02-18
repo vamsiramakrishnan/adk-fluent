@@ -210,7 +210,7 @@ class TestMemoryIntegration:
 
 
 class TestIRFirstBuildIntegration:
-    """build() runs contracts by default; unchecked().build() skips them."""
+    """build() runs contracts by default; unchecked/strict control checking."""
 
     def test_pipeline_build_runs_contracts(self):
         pipeline = (
@@ -228,6 +228,14 @@ class TestIRFirstBuildIntegration:
         built = pipeline.unchecked().build()
         assert built is not None
 
+    def test_pipeline_strict_succeeds_with_valid_contracts(self):
+        pipeline = (
+            Agent("a").model("m").instruct("Classify.").outputs("intent")
+            >> Agent("b").model("m").instruct("Handle: {intent}")
+        )
+        built = pipeline.strict().build()
+        assert built is not None
+
 
 # ======================================================================
 # 7. Pipeline-level visibility policies
@@ -242,11 +250,24 @@ class TestPipelinePolicies:
             Agent("a").model("m").instruct("Classify.").outputs("intent")
             >> Agent("b").model("m").instruct("Handle.")
         )
-        assert hasattr(pipeline, "transparent")
+        result = pipeline.transparent()
+        assert result is pipeline
+        assert pipeline._config["_visibility_policy"] == "transparent"
 
     def test_filtered_policy(self):
         pipeline = (
             Agent("a").model("m").instruct("Classify.")
             >> Agent("b").model("m").instruct("Handle.")
         )
-        assert hasattr(pipeline, "filtered")
+        result = pipeline.filtered()
+        assert result is pipeline
+        assert pipeline._config["_visibility_policy"] == "filtered"
+
+    def test_annotated_policy(self):
+        pipeline = (
+            Agent("a").model("m").instruct("Classify.")
+            >> Agent("b").model("m").instruct("Handle.")
+        )
+        result = pipeline.annotated()
+        assert result is pipeline
+        assert pipeline._config["_visibility_policy"] == "annotate"
