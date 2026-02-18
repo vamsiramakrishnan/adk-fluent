@@ -128,6 +128,51 @@ def test_field_policy_normal():
     assert get_field_policy("instruction", "str | Callable", False) == "normal"
 
 
+# --- Type-Driven Field Policies ---
+def test_field_policy_infers_list_extend_from_type():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("tools", "list[BaseTool]", False) == "list_extend"
+    assert infer_field_policy("sub_agents", "list[BaseAgent]", False) == "list_extend"
+    assert infer_field_policy("artifacts", "list[Artifact]", False) == "list_extend"
+    assert infer_field_policy("examples", "list[Example]", False) == "list_extend"
+    # Union-wrapped lists (common in Pydantic Optional fields)
+    assert infer_field_policy("sub_agents", "Union[list[AgentRefConfig], NoneType]", False) == "list_extend"
+    assert infer_field_policy("tools", "Union[list[ToolConfig], NoneType]", False) == "list_extend"
+    # Pipe-union syntax
+    assert infer_field_policy("plugins", "list[BasePlugin] | None", False) == "list_extend"
+
+
+def test_field_policy_infers_additive_from_callback():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("before_model_callback", "Callable | None", True) == "additive"
+    assert infer_field_policy("on_error_callback", "Callable | None", True) == "additive"
+
+
+def test_field_policy_infers_skip_from_internals():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("model_config", "ConfigDict", False) == "skip"
+    assert infer_field_policy("model_fields", "dict", False) == "skip"
+    assert infer_field_policy("_private", "str", False) == "skip"
+    assert infer_field_policy("parent_agent", "BaseAgent | None", False, is_parent_ref=True) == "skip"
+
+
+def test_field_policy_normal_fallback():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("instruction", "str | None", False) == "normal"
+    assert infer_field_policy("temperature", "float", False) == "normal"
+
+
+def test_field_policy_list_of_primitives_is_normal():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("tags", "list[str]", False) == "normal"
+    assert infer_field_policy("names", "list[int]", False) == "normal"
+
+
 # --- Aliases ---
 def test_generate_aliases():
     from scripts.seed_generator import generate_aliases
