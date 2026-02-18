@@ -428,6 +428,10 @@ def emit_seed_toml(
                 lines.append(f'helper_func = "{extra["helper_func"]}"')
             if "target_method" in extra:
                 lines.append(f'target_method = "{extra["target_method"]}"')
+            if "example" in extra:
+                lines.append(f"example = '''\n{extra['example'].strip()}\n'''")
+            if "see_also" in extra:
+                lines.append(f"see_also = {_emit_string_list(extra['see_also'])}")
             lines.append("")
 
     return "\n".join(lines) + "\n"

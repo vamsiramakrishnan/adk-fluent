@@ -148,7 +148,7 @@ Agent(name: str)
 - **Maps to:** `output_key`
 - Set the `output_key` field.
 
-#### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+#### `.static(value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self`
 
 - **Maps to:** `static_instruction`
 - Set the `static_instruction` field.
@@ -281,13 +281,47 @@ Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can
 
 Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True.
 
+**Example:**
+
+```python
+def search(query: str) -> str:
+    """Search the web."""
+    return f"Results for {query}"
+
+agent = Agent("helper").tool(search).build()
+```
+
+**See also:** `FunctionTool`, `Agent.guardrail`
+
 #### `.guardrail(fn: Callable) -> Self`
 
 Attach a guardrail function as both before_model and after_model callback.
 
+**Example:**
+
+```python
+def safety_check(callback_context, llm_request, llm_response, agent):
+    if "unsafe" in str(llm_response):
+        return None  # Block response
+    return llm_response
+
+agent = Agent("safe", "gemini-2.5-flash").guardrail(safety_check).build()
+```
+
+**See also:** `Agent.before_model`, `Agent.after_model`
+
 #### `.ask(prompt: str) -> str`
 
 One-shot execution. Build agent, send prompt, return response text.
+
+**Example:**
+
+```python
+reply = Agent("qa", "gemini-2.5-flash").instruct("Answer questions.").ask("What is Python?")
+print(reply)
+```
+
+**See also:** `Agent.ask_async`, `Agent.stream`
 
 #### `.ask_async(prompt: str) -> str`
 
@@ -296,6 +330,15 @@ Async one-shot execution.
 #### `.stream(prompt: str) -> AsyncIterator[str]`
 
 Streaming execution. Yields response text chunks.
+
+**Example:**
+
+```python
+async for chunk in Agent("writer", "gemini-2.5-flash").instruct("Write a poem.").stream("About the sea"):
+    print(chunk, end="")
+```
+
+**See also:** `Agent.ask`, `Agent.events`
 
 #### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self`
 
@@ -316,6 +359,68 @@ Async batch execution against multiple prompts.
 #### `.events(prompt: str) -> AsyncIterator`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
+
+#### `.context(spec: Any) -> Self`
+
+Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.).
+
+**Example:**
+
+```python
+from adk_fluent import C
+
+agent = (
+    Agent("writer")
+    .model("gemini-2.5-flash")
+    .instruct("Write about {topic}.")
+    .context(C.from_state("topic"))
+    .build()
+)
+```
+
+**See also:** `C`, `Agent.memory`
+
+#### `.show() -> Self`
+
+Force this agent's events to be user-facing (override topology inference).
+
+**Example:**
+
+```python
+# Force intermediate agent output to be visible to users
+agent = Agent("logger").model("m").instruct("Log progress.").show()
+```
+
+**See also:** `Agent.hide`
+
+#### `.hide() -> Self`
+
+Force this agent's events to be internal (override topology inference).
+
+**Example:**
+
+```python
+# Suppress terminal agent output from user view
+agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
+```
+
+**See also:** `Agent.show`
+
+#### `.memory(mode: str = 'preload') -> Self`
+
+Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'.
+
+**Example:**
+
+```python
+agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
+```
+
+**See also:** `Agent.memory_auto_save`, `Agent.context`
+
+#### `.memory_auto_save() -> Self`
+
+Auto-save session to memory after each agent run.
 
 #### `.to_ir()`
 

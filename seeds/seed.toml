@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-18T23:00:58.473495+00:00"
+generated_at = "2026-02-18T23:50:32.629391+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -190,6 +190,14 @@ signature = "(self, fn_or_tool, *, require_confirmation: bool = False) -> Self"
 doc = "Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."
 behavior = "runtime_helper"
 helper_func = "_add_tool"
+example = '''
+def search(query: str) -> str:
+    """Search the web."""
+    return f"Results for {query}"
+
+agent = Agent("helper").tool(search).build()
+'''
+see_also = ["FunctionTool", "Agent.guardrail"]
 
 [[builders.Agent.extras]]
 name = "guardrail"
@@ -197,6 +205,15 @@ signature = "(self, fn: Callable) -> Self"
 doc = "Attach a guardrail function as both before_model and after_model callback."
 behavior = "dual_callback"
 target_fields = ["before_model_callback", "after_model_callback"]
+example = '''
+def safety_check(callback_context, llm_request, llm_response, agent):
+    if "unsafe" in str(llm_response):
+        return None  # Block response
+    return llm_response
+
+agent = Agent("safe", "gemini-2.5-flash").guardrail(safety_check).build()
+'''
+see_also = ["Agent.before_model", "Agent.after_model"]
 
 [[builders.Agent.extras]]
 name = "ask"
@@ -204,6 +221,11 @@ signature = "(self, prompt: str) -> str"
 doc = "One-shot execution. Build agent, send prompt, return response text."
 behavior = "runtime_helper"
 helper_func = "run_one_shot"
+example = '''
+reply = Agent("qa", "gemini-2.5-flash").instruct("Answer questions.").ask("What is Python?")
+print(reply)
+'''
+see_also = ["Agent.ask_async", "Agent.stream"]
 
 [[builders.Agent.extras]]
 name = "ask_async"
@@ -218,6 +240,11 @@ signature = "(self, prompt: str) -> AsyncIterator[str]"
 doc = "Streaming execution. Yields response text chunks."
 behavior = "runtime_helper_async_gen"
 helper_func = "run_stream"
+example = '''
+async for chunk in Agent("writer", "gemini-2.5-flash").instruct("Write a poem.").stream("About the sea"):
+    print(chunk, end="")
+'''
+see_also = ["Agent.ask", "Agent.events"]
 
 [[builders.Agent.extras]]
 name = "test"
@@ -260,6 +287,18 @@ signature = "(self, spec: Any) -> Self"
 doc = "Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."
 behavior = "field_set"
 target_field = "_context_spec"
+example = '''
+from adk_fluent import C
+
+agent = (
+    Agent("writer")
+    .model("gemini-2.5-flash")
+    .instruct("Write about {topic}.")
+    .context(C.from_state("topic"))
+    .build()
+)
+'''
+see_also = ["C", "Agent.memory"]
 
 [[builders.Agent.extras]]
 name = "show"
@@ -267,6 +306,11 @@ signature = "(self) -> Self"
 doc = "Force this agent's events to be user-facing (override topology inference)."
 behavior = "runtime_helper_ctx"
 helper_func = "_show_agent"
+example = '''
+# Force intermediate agent output to be visible to users
+agent = Agent("logger").model("m").instruct("Log progress.").show()
+'''
+see_also = ["Agent.hide"]
 
 [[builders.Agent.extras]]
 name = "hide"
@@ -274,6 +318,11 @@ signature = "(self) -> Self"
 doc = "Force this agent's events to be internal (override topology inference)."
 behavior = "runtime_helper_ctx"
 helper_func = "_hide_agent"
+example = '''
+# Suppress terminal agent output from user view
+agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
+'''
+see_also = ["Agent.show"]
 
 [[builders.Agent.extras]]
 name = "memory"
@@ -281,6 +330,10 @@ signature = "(self, mode: str = 'preload') -> Self"
 doc = "Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'."
 behavior = "runtime_helper"
 helper_func = "_add_memory"
+example = '''
+agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
+'''
+see_also = ["Agent.memory_auto_save", "Agent.context"]
 
 [[builders.Agent.extras]]
 name = "memory_auto_save"

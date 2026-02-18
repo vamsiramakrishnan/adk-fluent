@@ -194,12 +194,25 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             name = extra["name"]
             sig = extra.get("signature", "(self) -> Self")
             doc = extra.get("doc", "")
+            example = extra.get("example", "")
+            see_also = extra.get("see_also", [])
             # Clean up signature for display — show full type hints
             display_sig = sig.replace("(self, ", "(").replace("(self)", "()")
             lines.append(f"#### `.{name}{display_sig}`")
             lines.append("")
             if doc:
                 lines.append(doc)
+                lines.append("")
+            if example:
+                lines.append("**Example:**")
+                lines.append("")
+                lines.append("```python")
+                lines.append(example.strip())
+                lines.append("```")
+                lines.append("")
+            if see_also:
+                see_also_links = ", ".join(f"`{ref}`" for ref in see_also)
+                lines.append(f"**See also:** {see_also_links}")
                 lines.append("")
 
     # --- Terminal Methods ---
