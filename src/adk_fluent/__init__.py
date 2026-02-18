@@ -267,6 +267,12 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "check_contracts",
+    "mock_backend",
+    "MockBackend",
+    "AgentHarness",
+    "HarnessResponse",
+    "inject_resources",
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
@@ -334,4 +340,5 @@ from .presets import Preset
 from .backends import Backend
 from .backends import final_text
 from .backends.adk import ADKBackend
-from .testing import check_contracts
+from .testing import check_contracts, mock_backend, MockBackend, AgentHarness, HarnessResponse
+from .di import inject_resources

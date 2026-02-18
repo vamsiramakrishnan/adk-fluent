@@ -887,6 +887,11 @@ class BuilderBase:
         existing.update(resources)
         return self
 
+    def to_mermaid(self) -> str:
+        """Generate a Mermaid graph visualization of this builder's IR tree."""
+        from adk_fluent.viz import ir_to_mermaid
+        return ir_to_mermaid(self.to_ir())
+
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
         aliases = getattr(self.__class__, "_ALIASES", {})
