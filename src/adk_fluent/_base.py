@@ -14,6 +14,25 @@ __all__ = [
 
 
 # ======================================================================
+# Sentinel for "not set" — distinct from None
+# ======================================================================
+
+class _UnsetType:
+    """Sentinel for 'not set' — distinct from None."""
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __bool__(self): return False
+    def __repr__(self): return "_UNSET"
+
+_UNSET = _UnsetType()
+
+
+# ======================================================================
 # Callback composition helper
 # ======================================================================
 
@@ -500,7 +519,8 @@ class BuilderBase:
         until_pred = self._config.get("_until_predicate")
         output_schema = self._config.get("_output_schema")
 
-        config = {k: v for k, v in self._config.items() if not k.startswith("_")}
+        config = {k: v for k, v in self._config.items()
+                  if not k.startswith("_") and v is not _UNSET}
 
         # Wire @-operator output schema into ADK's native output_schema field
         if output_schema is not None:
