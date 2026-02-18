@@ -273,6 +273,9 @@ __all__ = [
     "Backend",
     "ADKBackend",
     "final_text",
+    "Middleware",
+    "RetryMiddleware",
+    "StructuredLogMiddleware",
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
@@ -312,3 +315,4 @@ from .presets import Preset
 from ._ir import ExecutionConfig, CompactionConfig, AgentEvent
 from .backends import Backend, final_text
 from .backends.adk import ADKBackend
+from .middleware import Middleware, RetryMiddleware, StructuredLogMiddleware

@@ -8,6 +8,8 @@ from agent-level callbacks (stored per-agent in IR nodes).
 """
 from __future__ import annotations
 
+import asyncio as _asyncio
+import time as _time
 from typing import Any, Protocol, runtime_checkable
 
 from google.adk.plugins.base_plugin import BasePlugin
@@ -15,6 +17,8 @@ from google.adk.plugins.base_plugin import BasePlugin
 __all__ = [
     "Middleware",
     "_MiddlewarePlugin",
+    "RetryMiddleware",
+    "StructuredLogMiddleware",
 ]
 
 
@@ -239,3 +243,87 @@ class _MiddlewarePlugin(BasePlugin):
 
     async def close(self):
         await self._run_stack_void("close")
+
+
+# ---------------------------------------------------------------------------
+# Built-in middleware implementations
+# ---------------------------------------------------------------------------
+
+
+class RetryMiddleware:
+    """Retry middleware for model and tool errors.
+
+    Returns None on error to let ADK retry.
+    Uses exponential backoff between retries.
+    """
+
+    def __init__(self, max_attempts: int = 3, backoff_base: float = 1.0):
+        self.max_attempts = max_attempts
+        self.backoff_base = backoff_base
+        self._attempts: dict[str, int] = {}
+
+    async def on_model_error(self, ctx, request, error):
+        key = f"model_{id(request)}"
+        self._attempts[key] = self._attempts.get(key, 0) + 1
+        if self._attempts[key] < self.max_attempts:
+            delay = self.backoff_base * (2 ** (self._attempts[key] - 1))
+            if delay > 0:
+                await _asyncio.sleep(delay)
+        return None
+
+    async def on_tool_error(self, ctx, tool_name, args, error):
+        key = f"tool_{tool_name}"
+        self._attempts[key] = self._attempts.get(key, 0) + 1
+        if self._attempts[key] < self.max_attempts:
+            delay = self.backoff_base * (2 ** (self._attempts[key] - 1))
+            if delay > 0:
+                await _asyncio.sleep(delay)
+        return None
+
+
+class StructuredLogMiddleware:
+    """Observability middleware that captures structured event logs.
+
+    Never short-circuits -- all methods return None.
+    Access captured events via the ``log`` attribute.
+    """
+
+    def __init__(self):
+        self.log: list[dict] = []
+
+    def _record(self, event, **kwargs):
+        entry = {"event": event, "timestamp": _time.time()}
+        entry.update(kwargs)
+        self.log.append(entry)
+
+    async def before_model(self, ctx, request):
+        self._record("before_model", request=str(request)[:200])
+        return None
+
+    async def after_model(self, ctx, response):
+        self._record("after_model", response=str(response)[:200])
+        return None
+
+    async def on_model_error(self, ctx, request, error):
+        self._record("on_model_error", error=str(error))
+        return None
+
+    async def before_agent(self, ctx, agent_name):
+        self._record("before_agent", agent_name=agent_name)
+        return None
+
+    async def after_agent(self, ctx, agent_name):
+        self._record("after_agent", agent_name=agent_name)
+        return None
+
+    async def before_tool(self, ctx, tool_name, args):
+        self._record("before_tool", tool_name=tool_name)
+        return None
+
+    async def after_tool(self, ctx, tool_name, args, result):
+        self._record("after_tool", tool_name=tool_name)
+        return None
+
+    async def on_tool_error(self, ctx, tool_name, args, error):
+        self._record("on_tool_error", tool_name=tool_name, error=str(error))
+        return None
