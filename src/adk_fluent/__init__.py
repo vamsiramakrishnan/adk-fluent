@@ -276,6 +276,13 @@ from ._base import expect
 from ._base import map_over
 from ._base import gate
 from ._base import race
+from ._base import FnAgent
+from ._base import TapAgent
+from ._base import FallbackAgent
+from ._base import MapOverAgent
+from ._base import TimeoutAgent
+from ._base import GateAgent
+from ._base import RaceAgent
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot

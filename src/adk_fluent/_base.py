@@ -3,7 +3,13 @@ from __future__ import annotations
 import itertools
 from typing import Any, Callable, Self
 
-__all__ = ["until", "tap", "expect", "map_over", "gate", "race"]
+from google.adk.agents.base_agent import BaseAgent
+
+__all__ = [
+    "until", "tap", "expect", "map_over", "gate", "race",
+    "FnAgent", "TapAgent", "FallbackAgent", "MapOverAgent",
+    "TimeoutAgent", "GateAgent", "RaceAgent",
+]
 
 
 # ======================================================================
@@ -782,35 +788,7 @@ class _FnStepBuilder(BuilderBase):
         return clone
 
     def build(self):
-        from google.adk.agents.base_agent import BaseAgent
-        from adk_fluent._transforms import StateDelta, StateReplacement, _SCOPE_PREFIXES
-
-        fn_ref = self._fn
-
-        class _FnAgent(BaseAgent):
-            """Zero-cost function agent. No LLM call."""
-            async def _run_async_impl(self, ctx):
-                result = fn_ref(dict(ctx.session.state))
-                if isinstance(result, StateReplacement):
-                    # Only affect session-scoped (unprefixed) keys
-                    current_session_keys = {
-                        k for k in ctx.session.state
-                        if not k.startswith(_SCOPE_PREFIXES)
-                    }
-                    new_keys = set(result.new_state.keys())
-                    for k, v in result.new_state.items():
-                        ctx.session.state[k] = v
-                    for k in current_session_keys - new_keys:
-                        ctx.session.state[k] = None
-                elif isinstance(result, StateDelta):
-                    for k, v in result.updates.items():
-                        ctx.session.state[k] = v
-                elif isinstance(result, dict):
-                    for k, v in result.items():
-                        ctx.session.state[k] = v
-                # yield nothing — pure transform, no events
-
-        return _FnAgent(name=self._config["name"])
+        return FnAgent(name=self._config["name"], fn=self._fn)
 
 
 class _FallbackBuilder(BuilderBase):
@@ -834,8 +812,6 @@ class _FallbackBuilder(BuilderBase):
         return clone
 
     def build(self):
-        from google.adk.agents.base_agent import BaseAgent
-
         built_children = []
         for child in self._children:
             if isinstance(child, BuilderBase):
@@ -843,22 +819,7 @@ class _FallbackBuilder(BuilderBase):
             else:
                 built_children.append(child)
 
-        class _FallbackAgent(BaseAgent):
-            """Tries each child agent in order. First success wins."""
-            async def _run_async_impl(self, ctx):
-                last_exc = None
-                for child in self.sub_agents:
-                    try:
-                        async for event in child.run_async(ctx):
-                            yield event
-                        return  # success — stop trying
-                    except Exception as exc:
-                        last_exc = exc
-                        continue
-                if last_exc is not None:
-                    raise last_exc
-
-        return _FallbackAgent(
+        return FallbackAgent(
             name=self._config["name"],
             sub_agents=built_children,
         )
@@ -901,17 +862,7 @@ class _TapBuilder(BuilderBase):
         return clone
 
     def build(self):
-        from google.adk.agents.base_agent import BaseAgent
-
-        fn_ref = self._fn
-
-        class _TapAgent(BaseAgent):
-            """Zero-cost observation agent. No LLM call, no state mutation."""
-            async def _run_async_impl(self, ctx):
-                fn_ref(dict(ctx.session.state))
-                # Explicitly yield nothing — pure observation
-
-        return _TapAgent(name=self._config["name"])
+        return TapAgent(name=self._config["name"], fn=self._fn)
 
 
 # ======================================================================
@@ -982,33 +933,16 @@ class _MapOverBuilder(BuilderBase):
         return clone
 
     def build(self):
-        from google.adk.agents.base_agent import BaseAgent
-
         sub_agent = self._agent
         if isinstance(sub_agent, BuilderBase):
             sub_agent = sub_agent.build()
 
-        list_key = self._list_key
-        item_key = self._item_key
-        output_key = self._output_key
-
-        class _MapOverAgent(BaseAgent):
-            """Iterates sub-agent over each item in a state list."""
-            async def _run_async_impl(self, ctx):
-                items = ctx.session.state.get(list_key, [])
-                results = []
-                for item in items:
-                    ctx.session.state[item_key] = item
-                    async for event in self.sub_agents[0].run_async(ctx):
-                        yield event
-                    # Collect result after sub-agent runs
-                    result_val = ctx.session.state.get(item_key, None)
-                    results.append(result_val)
-                ctx.session.state[output_key] = results
-
-        return _MapOverAgent(
+        return MapOverAgent(
             name=self._config["name"],
             sub_agents=[sub_agent],
+            list_key=self._list_key,
+            item_key=self._item_key,
+            output_key=self._output_key,
         )
 
 
@@ -1039,50 +973,14 @@ class _TimeoutBuilder(BuilderBase):
         return clone
 
     def build(self):
-        import asyncio
-        from google.adk.agents.base_agent import BaseAgent
-
         sub_agent = self._agent
         if isinstance(sub_agent, BuilderBase):
             sub_agent = sub_agent.build()
 
-        seconds = self._seconds
-
-        class _TimeoutAgent(BaseAgent):
-            """Wraps a sub-agent with a time limit."""
-            async def _run_async_impl(self, ctx):
-                import asyncio
-                queue = asyncio.Queue()
-                sentinel = object()
-
-                async def _consume():
-                    async for event in self.sub_agents[0].run_async(ctx):
-                        await queue.put(event)
-                    await queue.put(sentinel)
-
-                task = asyncio.create_task(_consume())
-                try:
-                    deadline = asyncio.get_event_loop().time() + seconds
-                    while True:
-                        remaining = deadline - asyncio.get_event_loop().time()
-                        if remaining <= 0:
-                            raise asyncio.TimeoutError(
-                                f"Agent '{self.sub_agents[0].name}' exceeded {seconds}s timeout"
-                            )
-                        item = await asyncio.wait_for(queue.get(), timeout=remaining)
-                        if item is sentinel:
-                            break
-                        yield item
-                except asyncio.TimeoutError:
-                    task.cancel()
-                    raise
-                finally:
-                    if not task.done():
-                        task.cancel()
-
-        return _TimeoutAgent(
+        return TimeoutAgent(
             name=self._config["name"],
             sub_agents=[sub_agent],
+            seconds=self._seconds,
         )
 
 
@@ -1131,49 +1029,12 @@ class _GateBuilder(BuilderBase):
         return clone
 
     def build(self):
-        from google.adk.agents.base_agent import BaseAgent
-        from google.adk.events.event import Event
-        from google.adk.events.event_actions import EventActions
-        from google.genai import types
-
-        predicate = self._predicate
-        message = self._message
-        gate_key = self._gate_key
-        approved_key = f"{gate_key}_approved"
-
-        class _GateAgent(BaseAgent):
-            """Human-in-the-loop approval gate."""
-            async def _run_async_impl(self, ctx):
-                state = ctx.session.state
-                try:
-                    needs_gate = predicate(state)
-                except (KeyError, TypeError, ValueError):
-                    needs_gate = False
-
-                if not needs_gate:
-                    return  # Condition not met, proceed
-
-                if state.get(approved_key):
-                    # Already approved, clear and proceed
-                    state[approved_key] = False
-                    state[gate_key] = False
-                    return
-
-                # Need approval: set flag and escalate
-                state[gate_key] = True
-                state[f"{gate_key}_message"] = message
-                yield Event(
-                    invocation_id=ctx.invocation_id,
-                    author=self.name,
-                    branch=ctx.branch,
-                    content=types.Content(
-                        role="model",
-                        parts=[types.Part(text=message)]
-                    ),
-                    actions=EventActions(escalate=True),
-                )
-
-        return _GateAgent(name=self._config["name"])
+        return GateAgent(
+            name=self._config["name"],
+            predicate=self._predicate,
+            message=self._message,
+            gate_key=self._gate_key,
+        )
 
 
 # ======================================================================
@@ -1215,9 +1076,6 @@ class _RaceBuilder(BuilderBase):
         return clone
 
     def build(self):
-        import asyncio
-        from google.adk.agents.base_agent import BaseAgent
-
         built_agents = []
         for a in self._agents:
             if isinstance(a, BuilderBase):
@@ -1225,40 +1083,223 @@ class _RaceBuilder(BuilderBase):
             else:
                 built_agents.append(a)
 
-        class _RaceAgent(BaseAgent):
-            """Runs sub-agents concurrently, keeps first to finish."""
-            async def _run_async_impl(self, ctx):
-                import asyncio
-
-                async def _run_one(agent):
-                    events = []
-                    async for event in agent.run_async(ctx):
-                        events.append(event)
-                    return events
-
-                tasks = {
-                    asyncio.create_task(_run_one(agent)): i
-                    for i, agent in enumerate(self.sub_agents)
-                }
-
-                try:
-                    done, pending = await asyncio.wait(
-                        tasks.keys(), return_when=asyncio.FIRST_COMPLETED
-                    )
-                    # Cancel remaining
-                    for task in pending:
-                        task.cancel()
-
-                    # Yield events from the winner
-                    winner = done.pop()
-                    for event in winner.result():
-                        yield event
-                finally:
-                    for task in tasks:
-                        if not task.done():
-                            task.cancel()
-
-        return _RaceAgent(
+        return RaceAgent(
             name=self._config["name"],
             sub_agents=built_agents,
         )
+
+
+# ======================================================================
+# Module-level agent classes (hoisted from inner build() definitions)
+#
+# These were previously defined inside each builder's build() method,
+# which created a new type object on every call. Hoisting them to
+# module level ensures:
+#   - type(a1) is type(a2) across builds
+#   - isinstance checks work correctly
+#   - No closure-based memory leaks in loops
+#
+# Because BaseAgent is a Pydantic BaseModel, extra constructor params
+# are rejected. We use object.__setattr__() after super().__init__()
+# to attach behavioral attributes as private instance attrs.
+# ======================================================================
+
+
+class FnAgent(BaseAgent):
+    """Zero-cost function agent. No LLM call."""
+
+    def __init__(self, *, fn: Callable, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, '_fn_ref', fn)
+
+    async def _run_async_impl(self, ctx):
+        from adk_fluent._transforms import StateDelta, StateReplacement, _SCOPE_PREFIXES
+        result = self._fn_ref(dict(ctx.session.state))
+        if isinstance(result, StateReplacement):
+            # Only affect session-scoped (unprefixed) keys
+            current_session_keys = {
+                k for k in ctx.session.state
+                if not k.startswith(_SCOPE_PREFIXES)
+            }
+            new_keys = set(result.new_state.keys())
+            for k, v in result.new_state.items():
+                ctx.session.state[k] = v
+            for k in current_session_keys - new_keys:
+                ctx.session.state[k] = None
+        elif isinstance(result, StateDelta):
+            for k, v in result.updates.items():
+                ctx.session.state[k] = v
+        elif isinstance(result, dict):
+            for k, v in result.items():
+                ctx.session.state[k] = v
+        # yield nothing — pure transform, no events
+
+
+class FallbackAgent(BaseAgent):
+    """Tries each child agent in order. First success wins."""
+
+    async def _run_async_impl(self, ctx):
+        last_exc = None
+        for child in self.sub_agents:
+            try:
+                async for event in child.run_async(ctx):
+                    yield event
+                return  # success — stop trying
+            except Exception as exc:
+                last_exc = exc
+                continue
+        if last_exc is not None:
+            raise last_exc
+
+
+class TapAgent(BaseAgent):
+    """Zero-cost observation agent. No LLM call, no state mutation."""
+
+    def __init__(self, *, fn: Callable, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, '_fn_ref', fn)
+
+    async def _run_async_impl(self, ctx):
+        self._fn_ref(dict(ctx.session.state))
+        # Explicitly yield nothing — pure observation
+
+
+class MapOverAgent(BaseAgent):
+    """Iterates sub-agent over each item in a state list."""
+
+    def __init__(self, *, list_key: str, item_key: str, output_key: str, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, '_list_key', list_key)
+        object.__setattr__(self, '_item_key', item_key)
+        object.__setattr__(self, '_output_key', output_key)
+
+    async def _run_async_impl(self, ctx):
+        items = ctx.session.state.get(self._list_key, [])
+        results = []
+        for item in items:
+            ctx.session.state[self._item_key] = item
+            async for event in self.sub_agents[0].run_async(ctx):
+                yield event
+            # Collect result after sub-agent runs
+            result_val = ctx.session.state.get(self._item_key, None)
+            results.append(result_val)
+        ctx.session.state[self._output_key] = results
+
+
+class TimeoutAgent(BaseAgent):
+    """Wraps a sub-agent with a time limit."""
+
+    def __init__(self, *, seconds: float, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, '_seconds', seconds)
+
+    async def _run_async_impl(self, ctx):
+        import asyncio
+        queue = asyncio.Queue()
+        sentinel = object()
+
+        async def _consume():
+            async for event in self.sub_agents[0].run_async(ctx):
+                await queue.put(event)
+            await queue.put(sentinel)
+
+        task = asyncio.create_task(_consume())
+        try:
+            deadline = asyncio.get_event_loop().time() + self._seconds
+            while True:
+                remaining = deadline - asyncio.get_event_loop().time()
+                if remaining <= 0:
+                    raise asyncio.TimeoutError(
+                        f"Agent '{self.sub_agents[0].name}' exceeded {self._seconds}s timeout"
+                    )
+                item = await asyncio.wait_for(queue.get(), timeout=remaining)
+                if item is sentinel:
+                    break
+                yield item
+        except asyncio.TimeoutError:
+            task.cancel()
+            raise
+        finally:
+            if not task.done():
+                task.cancel()
+
+
+class GateAgent(BaseAgent):
+    """Human-in-the-loop approval gate."""
+
+    def __init__(self, *, predicate: Callable, message: str, gate_key: str, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, '_predicate', predicate)
+        object.__setattr__(self, '_message', message)
+        object.__setattr__(self, '_gate_key', gate_key)
+
+    async def _run_async_impl(self, ctx):
+        from google.adk.events.event import Event
+        from google.adk.events.event_actions import EventActions
+        from google.genai import types
+
+        state = ctx.session.state
+        approved_key = f"{self._gate_key}_approved"
+
+        try:
+            needs_gate = self._predicate(state)
+        except (KeyError, TypeError, ValueError):
+            needs_gate = False
+
+        if not needs_gate:
+            return  # Condition not met, proceed
+
+        if state.get(approved_key):
+            # Already approved, clear and proceed
+            state[approved_key] = False
+            state[self._gate_key] = False
+            return
+
+        # Need approval: set flag and escalate
+        state[self._gate_key] = True
+        state[f"{self._gate_key}_message"] = self._message
+        yield Event(
+            invocation_id=ctx.invocation_id,
+            author=self.name,
+            branch=ctx.branch,
+            content=types.Content(
+                role="model",
+                parts=[types.Part(text=self._message)]
+            ),
+            actions=EventActions(escalate=True),
+        )
+
+
+class RaceAgent(BaseAgent):
+    """Runs sub-agents concurrently, keeps first to finish."""
+
+    async def _run_async_impl(self, ctx):
+        import asyncio
+
+        async def _run_one(agent):
+            events = []
+            async for event in agent.run_async(ctx):
+                events.append(event)
+            return events
+
+        tasks = {
+            asyncio.create_task(_run_one(agent)): i
+            for i, agent in enumerate(self.sub_agents)
+        }
+
+        try:
+            done, pending = await asyncio.wait(
+                tasks.keys(), return_when=asyncio.FIRST_COMPLETED
+            )
+            # Cancel remaining
+            for task in pending:
+                task.cancel()
+
+            # Yield events from the winner
+            winner = done.pop()
+            for event in winner.result():
+                yield event
+        finally:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
