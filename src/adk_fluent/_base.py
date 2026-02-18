@@ -1,5 +1,6 @@
 """BuilderBase mixin -- shared capabilities for all generated fluent builders."""
 from __future__ import annotations
+import asyncio as _asyncio
 import itertools
 from typing import Any, Callable, Self
 
@@ -10,6 +11,34 @@ __all__ = [
     "FnAgent", "TapAgent", "FallbackAgent", "MapOverAgent",
     "TimeoutAgent", "GateAgent", "RaceAgent",
 ]
+
+
+# ======================================================================
+# Callback composition helper
+# ======================================================================
+
+def _compose_callbacks(fns: list[Callable]) -> Callable:
+    """Chain multiple callbacks into a single callable.
+
+    Each runs in order. First non-None return value wins (short-circuit).
+    Handles both sync and async callbacks.
+    """
+    if not fns:
+        raise ValueError("_compose_callbacks requires at least one callback")
+    if len(fns) == 1:
+        return fns[0]
+
+    async def _composed(*args, **kwargs):
+        for fn in fns:
+            result = fn(*args, **kwargs)
+            if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
+                result = await result
+            if result is not None:
+                return result
+        return None
+
+    _composed.__name__ = f"composed_{'_'.join(getattr(f, '__name__', '?') for f in fns)}"
+    return _composed
 
 
 # ======================================================================
@@ -491,7 +520,7 @@ class BuilderBase:
         # Merge accumulated callbacks
         for field, fns in self._callbacks.items():
             if fns:
-                config[field] = fns if len(fns) > 1 else fns[0]
+                config[field] = _compose_callbacks(list(fns))
 
         # Merge accumulated lists (auto-building items)
         for field, items in self._lists.items():

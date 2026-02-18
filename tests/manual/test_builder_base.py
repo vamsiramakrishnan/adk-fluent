@@ -105,7 +105,10 @@ class TestPrepareBuildConfig:
         agent._callbacks["before_model_callback"].append(fn1)
         agent._callbacks["before_model_callback"].append(fn2)
         config = agent._prepare_build_config()
-        assert config["before_model_callback"] == [fn1, fn2]
+        # Multiple callbacks should be composed into a single callable
+        cb = config["before_model_callback"]
+        assert callable(cb), f"Expected callable, got {type(cb)}"
+        assert not isinstance(cb, list), "Should be a composed callable, not a list"
 
     def test_single_callback_unwrapped(self):
         fn1 = lambda ctx: None
