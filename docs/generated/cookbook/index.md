@@ -148,3 +148,21 @@ IR compilation, middleware, contracts, testing, dependency injection, and visual
 47_dependency_injection
 48_visualization
 ```
+
+## v5.1 Features
+
+Context engineering, visibility, memory, and contract verification.
+
+- [Context Engineering with C Transforms](49_context_engineering.md)
+- [Capture and Route: S.capture >> Agent >> Route](50_capture_and_route.md)
+- [Visibility Policies for Multi-Agent Pipelines](51_visibility_policies.md)
+- [Advanced Contract Checking with IR](52_contract_checking.md)
+
+```{toctree}
+:hidden:
+
+49_context_engineering
+50_capture_and_route
+51_visibility_policies
+52_contract_checking
+```

@@ -449,6 +449,14 @@ def _learn_summary(title: str) -> str:
         return "How to use plain functions as pipeline steps."
     if "dict" in title_lower and "rout" in title_lower:
         return "How to use dict-based routing."
+    if "context" in title_lower and "engineer" in title_lower:
+        return "How to use declarative context transforms to control what agents see."
+    if "capture" in title_lower and "route" in title_lower:
+        return "How to capture user input and route it to different agents."
+    if "visibility" in title_lower:
+        return "How to control which agent events are shown to users."
+    if "contract" in title_lower and "check" in title_lower:
+        return "How to verify data contracts between pipeline steps."
     return f"How to use {title.lower()} with the fluent API."
 
 
@@ -539,8 +547,10 @@ def _categorize_cookbook(filename: str) -> str:
         return "Advanced"
     elif num <= 43:
         return "Patterns"
-    else:
+    elif num <= 48:
         return "v4 Features"
+    else:
+        return "v5.1 Features"
 
 
 def gen_cookbook_index(cookbook_files: list[dict]) -> str:
@@ -560,13 +570,14 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
         categories[cat].append(cb)
 
     # Defined order
-    cat_order = ["Basics", "Execution", "Advanced", "Patterns", "v4 Features", "Other"]
+    cat_order = ["Basics", "Execution", "Advanced", "Patterns", "v4 Features", "v5.1 Features", "Other"]
     cat_descriptions = {
         "Basics": "Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.",
         "Execution": "Running agents: one-shot, streaming, cloning, testing, and sessions.",
         "Advanced": "Advanced composition: dynamic forwarding, operators, routing, and conditional logic.",
         "Patterns": "Real-world patterns: state management, presets, decorators, serialization, and more.",
         "v4 Features": "IR compilation, middleware, contracts, testing, dependency injection, and visualization.",
+        "v5.1 Features": "Context engineering, visibility, memory, and contract verification.",
         "Other": "Additional examples.",
     }
 
