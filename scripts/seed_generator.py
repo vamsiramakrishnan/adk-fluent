@@ -111,6 +111,20 @@ _PYDANTIC_INTERNALS = frozenset(
 )
 
 
+def is_parent_reference(field_name: str, type_str: str, mro_chain: list[str]) -> bool:
+    """Detect if a field is a parent/back-reference by checking if its type
+    appears in the class's MRO and the field name suggests parentage."""
+    parent_indicators = {"parent", "owner", "container"}
+    has_parent_name = any(ind in field_name for ind in parent_indicators)
+    if not has_parent_name:
+        return False
+    # Check if the field type references a class in the MRO
+    for cls_name in mro_chain:
+        if cls_name in type_str:
+            return True
+    return False
+
+
 def _unwrap_optional(type_str: str) -> str:
     """Unwrap ``Union[X, NoneType]``, ``Optional[X]``, and ``X | None`` to just ``X``.
 
@@ -770,8 +784,7 @@ def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None =
             fname = f["name"]
             ftype = f.get("type_str", "")
             is_cb = f.get("is_callback", False)
-            # TODO(A5): replace with MRO-based parent detection
-            is_parent_ref = fname == "parent_agent"
+            is_parent_ref = is_parent_reference(fname, ftype, mro_chain)
             policy = infer_field_policy(fname, ftype, is_cb, is_parent_ref=is_parent_ref)
 
             if policy == "skip":

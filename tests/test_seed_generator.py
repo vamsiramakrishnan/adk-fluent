@@ -421,3 +421,14 @@ def test_infer_extras_unknown_class_gets_generic_adders():
     evaluator_extra = next((e for e in extras if e["name"] == "evaluator"), None)
     assert evaluator_extra is not None
     assert evaluator_extra["target_field"] == "evaluators"
+
+
+# --- Parent Reference Detection (A5) ---
+def test_detect_parent_ref_from_mro():
+    from scripts.seed_generator import is_parent_reference
+    mro = ["LlmAgent", "BaseAgent", "BaseModel"]
+    assert is_parent_reference("parent_agent", "BaseAgent | None", mro) is True
+    assert is_parent_reference("parent_agent", "BaseAgent | None", ["Unrelated"]) is False
+    assert is_parent_reference("delegate", "BaseAgent | None", mro) is False  # name doesn't match
+    assert is_parent_reference("model", "str", mro) is False
+    assert is_parent_reference("owner_agent", "BaseAgent | None", mro) is True
