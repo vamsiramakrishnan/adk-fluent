@@ -82,7 +82,7 @@ Real-world patterns: state management, presets, decorators, serialization, and m
 - [Immutable Variants with .with_()](23_with_variants.md)
 - [@agent Decorator Syntax](24_agent_decorator.md)
 - [Validate and Explain](25_validate_explain.md)
-- [Serialization: to_dict, from_dict, to_yaml](26_serialization.md)
+- [Serialization: to_dict, to_yaml (Inspection Only)](26_serialization.md)
 - [Delegate Pattern: LLM-Driven Routing](27_delegate_pattern.md)
 - [Real-World Pipeline: Full Expression Language](28_real_world_pipeline.md)
 - [Function Steps: Plain Functions as Workflow Nodes (>> fn)](29_function_steps.md)
@@ -91,6 +91,15 @@ Real-world patterns: state management, presets, decorators, serialization, and m
 - [Fallback Chains: // Operator](32_fallback_operator.md)
 - [State Transforms: S Factories with >>](33_state_transforms.md)
 - [Full Expression Algebra: All Operators Together](34_full_algebra.md)
+- [Tap: Pure Observation Steps (No State Mutation)](35_tap_observation.md)
+- [Expect: State Contract Assertions in Pipelines](36_expect_assertions.md)
+- [Mock: Bypass LLM Calls for Testing](37_mock_testing.md)
+- [Retry If: Conditional Retry Based on Output Quality](38_retry_if.md)
+- [Map Over: Iterate an Agent Over List Items](39_map_over.md)
+- [Timeout: Time-Bound Agent Execution](40_timeout.md)
+- [Gate: Human-in-the-Loop Approval](41_gate_approval.md)
+- [Race: First-to-Finish Wins](42_race.md)
+- [Primitives Showcase: tap, expect, gate, Route, S.* in a single pipeline](43_primitives_showcase.md)
 
 ```{toctree}
 :hidden:
@@ -109,24 +118,33 @@ Real-world patterns: state management, presets, decorators, serialization, and m
 32_fallback_operator
 33_state_transforms
 34_full_algebra
+35_tap_observation
+36_expect_assertions
+37_mock_testing
+38_retry_if
+39_map_over
+40_timeout
+41_gate_approval
+42_race
+43_primitives_showcase
 ```
 
 ## v4 Features
 
 IR compilation, middleware, contracts, testing, dependency injection, and visualization.
 
-- [IR and Backends](35_ir_and_backends.md)
-- [Middleware](36_middleware.md)
-- [Contracts and Testing](37_contracts_and_testing.md)
-- [Dependency Injection](38_dependency_injection.md)
-- [Graph Visualization](39_visualization.md)
+- [IR and Backends](44_ir_and_backends.md)
+- [Middleware](45_middleware.md)
+- [Contracts and Testing](46_contracts_and_testing.md)
+- [Dependency Injection](47_dependency_injection.md)
+- [Graph Visualization](48_visualization.md)
 
 ```{toctree}
 :hidden:
 
-35_ir_and_backends
-36_middleware
-37_contracts_and_testing
-38_dependency_injection
-39_visualization
+44_ir_and_backends
+45_middleware
+46_contracts_and_testing
+47_dependency_injection
+48_visualization
 ```

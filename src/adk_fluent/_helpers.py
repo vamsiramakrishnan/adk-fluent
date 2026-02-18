@@ -24,11 +24,30 @@ __all__ = [
     "run_map_async",
     "StateKey",
     "Artifact",
+    "_add_tool",
     "_agent_to_ir",
     "_pipeline_to_ir",
     "_fanout_to_ir",
     "_loop_to_ir",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Tool helpers
+# ---------------------------------------------------------------------------
+
+
+def _add_tool(builder, fn_or_tool, *, require_confirmation: bool = False):
+    """Add a tool to the builder, wrapping plain callables when require_confirmation is set."""
+    if require_confirmation and callable(fn_or_tool):
+        from google.adk.tools.base_tool import BaseTool as _BaseTool
+
+        if not isinstance(fn_or_tool, _BaseTool):
+            from google.adk.tools.function_tool import FunctionTool
+
+            fn_or_tool = FunctionTool(func=fn_or_tool, require_confirmation=True)
+    builder._lists["tools"].append(fn_or_tool)
+    return builder
 
 
 # ---------------------------------------------------------------------------

@@ -335,6 +335,11 @@ LlmAgentConfig(name: str, instruction: str)
 - **Maps to:** `include_contents`
 - Optional. LlmAgent.include_contents.
 
+#### `.include_history(value: Literal[default, none]) -> Self`
+
+- **Maps to:** `include_contents`
+- Optional. LlmAgent.include_contents.
+
 #### `.instruct(value: str) -> Self`
 
 - **Maps to:** `instruction`

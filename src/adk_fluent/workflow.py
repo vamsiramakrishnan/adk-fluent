@@ -23,7 +23,7 @@ class Loop(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
     _ADK_TARGET_CLASS = LoopAgent
 
     def __init__(self, name: str) -> None:
@@ -110,7 +110,7 @@ class FanOut(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
     _ADK_TARGET_CLASS = ParallelAgent
 
     def __init__(self, name: str) -> None:
@@ -197,7 +197,7 @@ class Pipeline(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
     _ADK_TARGET_CLASS = SequentialAgent
 
     def __init__(self, name: str) -> None:

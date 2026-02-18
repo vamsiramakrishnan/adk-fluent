@@ -164,7 +164,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"table_id", "location", "dataset_id", "config", "project_id"}
+    _KNOWN_PARAMS: set[str] = {"project_id", "location", "dataset_id", "table_id", "config"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
@@ -216,7 +216,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"custom_filter", "name", "num_invocations_to_keep"}
+    _KNOWN_PARAMS: set[str] = {"name", "custom_filter", "num_invocations_to_keep"}
 
     def __init__(
         self,
@@ -270,7 +270,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"output_path", "name", "include_system_instruction", "include_session_state"}
+    _KNOWN_PARAMS: set[str] = {"include_session_state", "output_path", "name", "include_system_instruction"}
 
     def __init__(
         self,
@@ -329,7 +329,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name", "global_instruction"}
+    _KNOWN_PARAMS: set[str] = {"global_instruction", "name"}
 
     def __init__(
         self,
@@ -466,7 +466,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_retries", "throw_exception_if_retry_exceeded", "tracking_scope", "name"}
+    _KNOWN_PARAMS: set[str] = {"tracking_scope", "name", "throw_exception_if_retry_exceeded", "max_retries"}
 
     def __init__(
         self,

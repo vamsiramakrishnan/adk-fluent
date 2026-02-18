@@ -78,6 +78,10 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 
 Append an agent as the next step (lazy — built at .build() time).
 
+#### `.to_ir()`
+
+Convert this Loop builder to a LoopNode IR node.
+
 ### Terminal Methods
 
 #### `.build() -> LoopAgent`
@@ -165,6 +169,14 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 
 Add a parallel branch agent (lazy — built at .build() time).
 
+#### `.step(agent: BaseAgent | AgentBuilder) -> Self`
+
+Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API.
+
+#### `.to_ir()`
+
+Convert this FanOut builder to a ParallelNode IR node.
+
 ### Terminal Methods
 
 #### `.build() -> ParallelAgent`
@@ -250,6 +262,10 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 #### `.step(agent: BaseAgent | AgentBuilder) -> Self`
 
 Append an agent as the next step (lazy — built at .build() time).
+
+#### `.to_ir()`
+
+Convert this Pipeline builder to a SequenceNode IR node.
 
 ### Terminal Methods
 

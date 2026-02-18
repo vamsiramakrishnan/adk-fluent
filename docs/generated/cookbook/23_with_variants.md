@@ -15,11 +15,7 @@ _Source: `23_with_variants.py`_
 ```python
 from adk_fluent import Agent
 
-base = (
-    Agent("assistant")
-    .model("gemini-2.5-flash")
-    .instruct("You are a helpful assistant.")
-)
+base = Agent("assistant").model("gemini-2.5-flash").instruct("You are a helpful assistant.")
 
 # with_() creates an independent copy with overrides
 creative = base.with_(name="creative", model="gemini-2.5-pro")

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-02-18
+
+### Fixed
+- Documentation: renumbered cookbooks 35-48 to avoid collisions with primitives cookbooks (35-43)
+- Documentation: updated user guide with IR & backends, middleware, and testing pages
+- Documentation: updated existing cookbooks (02, 11, 15, 28, 31) with v4 feature examples
+- Codegen sync: regenerated builders, stubs, and API reference for google-adk 1.25.0
+
 ## [0.5.0] - 2026-02-18
 
 ### Added
@@ -98,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD with GitHub Actions
 - PyPI publishing via Trusted Publishing (OIDC)
 
+[0.5.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.0...v0.3.1

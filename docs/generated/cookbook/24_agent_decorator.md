@@ -70,6 +70,7 @@ assert len(weather_bot._callbacks["before_model_callback"]) == 1
 
 # Builds to a real ADK agent
 from google.adk.agents.llm_agent import LlmAgent
+
 assert isinstance(built, LlmAgent)
 assert built.name == "weather_bot"
 ```

@@ -35,6 +35,13 @@ optional_constructor_args = ["model"]
 # ---------------------------------------------------------------------------
 
 [[builders.Agent.extras]]
+name = "tool"
+signature = "(self, fn_or_tool, *, require_confirmation: bool = False) -> Self"
+doc = "Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."
+behavior = "runtime_helper"
+helper_func = "_add_tool"
+
+[[builders.Agent.extras]]
 name = "guardrail"
 signature = "(self, fn: Callable) -> Self"
 doc = "Attach a guardrail function as both before_model and after_model callback."

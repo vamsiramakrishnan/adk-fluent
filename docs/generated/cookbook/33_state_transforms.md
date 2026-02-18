@@ -24,6 +24,7 @@ class RenameKey(NativeBaseAgent):
         if "findings" in ctx.session.state:
             ctx.session.state["research"] = ctx.session.state.pop("findings")
 
+
 # Each transform = a new class. No composability.
 ```
 :::
@@ -80,8 +81,9 @@ pipeline = (
 
 # Full research pipeline with S transforms
 research_pipeline = (
-    (   Agent("web").model("gemini-2.5-flash").instruct("Search web.")
-      | Agent("scholar").model("gemini-2.5-flash").instruct("Search papers.")
+    (
+        Agent("web").model("gemini-2.5-flash").instruct("Search web.")
+        | Agent("scholar").model("gemini-2.5-flash").instruct("Search papers.")
     )
     >> S.merge("web", "scholar", into="research")
     >> S.default(confidence=0.0, draft_count=0)

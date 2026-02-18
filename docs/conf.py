@@ -39,7 +39,12 @@ source_suffix = {
     ".md": "markdown",
     ".rst": "restructuredtext",
 }
-exclude_patterns = ["_build", "plans", "generated/cookbook/conftest.md"]
+exclude_patterns = [
+    "_build",
+    "plans",
+    "other_specs",
+    "generated/cookbook/conftest.md",
+]
 
 # Suppress warnings for auto-generated cross-references and duplicate targets
 # - myst.header: heading level warnings in generated docs

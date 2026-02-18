@@ -248,6 +248,7 @@ The tables below show fluent method names that differ from the native field name
 | `description` | `.describe()` | alias |
 | `global_instruction` | `.global_instruct()` | alias |
 | `include_contents` | `.history()` | alias |
+| `include_contents` | `.include_history()` | alias |
 | `instruction` | `.instruct()` | alias |
 | `output_key` | `.outputs()` | alias |
 | `static_instruction` | `.static()` | alias |
@@ -292,6 +293,7 @@ The tables below show fluent method names that differ from the native field name
 |-------------|---------------|-------|
 | `description` | `.describe()` | alias |
 | `include_contents` | `.history()` | alias |
+| `include_contents` | `.include_history()` | alias |
 | `instruction` | `.instruct()` | alias |
 | `output_key` | `.outputs()` | alias |
 | `static_instruction` | `.static()` | alias |

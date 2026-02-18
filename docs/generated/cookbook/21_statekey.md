@@ -52,10 +52,12 @@ assert app_config.key == "app:config_version"
 assert call_count.name == "call_count"
 assert call_count.scope == "session"
 
+
 # Get/set with mock state
 class MockCtx:
     def __init__(self):
         self.state = {}
+
 
 ctx = MockCtx()
 assert call_count.get(ctx) == 0  # Returns default
@@ -74,6 +76,7 @@ assert items.get(ctx) == ["first", "second"]
 
 # Invalid scope raises
 import pytest
+
 with pytest.raises(ValueError, match="Invalid scope"):
     StateKey("bad", scope="nonexistent")
 ```

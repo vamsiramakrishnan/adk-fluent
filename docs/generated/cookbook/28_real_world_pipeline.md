@@ -18,10 +18,12 @@ from adk_fluent import Agent, Pipeline
 from adk_fluent._routing import Route
 from adk_fluent.presets import Preset
 
+
 # Shared production preset
 def audit_log(callback_context, llm_response):
     """Log all model responses for audit."""
     pass
+
 
 production = Preset(model="gemini-2.5-flash", after_model=audit_log)
 
@@ -35,15 +37,13 @@ classifier = (
 
 # Step 2: Route to appropriate handler
 simple_handler = Agent("simple").instruct("Give a direct answer.").use(production)
-complex_handler = (
-    Agent("researcher").instruct("Research thoroughly.").use(production)
-    >> Agent("synthesizer").instruct("Synthesize findings.").use(production)
-)
+complex_handler = Agent("researcher").instruct("Research thoroughly.").use(production) >> Agent("synthesizer").instruct(
+    "Synthesize findings."
+).use(production)
 creative_handler = (
-    (Agent("brainstorm").instruct("Generate ideas.").use(production)
-     | Agent("critique").instruct("Find flaws.").use(production))
-    >> Agent("refine").instruct("Refine the best ideas.").use(production)
-)
+    Agent("brainstorm").instruct("Generate ideas.").use(production)
+    | Agent("critique").instruct("Find flaws.").use(production)
+) >> Agent("refine").instruct("Refine the best ideas.").use(production)
 
 # Step 3: Quality check loop
 quality_loop = (
@@ -62,10 +62,7 @@ formatter = (
 # Compose the full pipeline
 pipeline = (
     classifier
-    >> Route("intent")
-        .eq("simple", simple_handler)
-        .eq("complex", complex_handler)
-        .eq("creative", creative_handler)
+    >> Route("intent").eq("simple", simple_handler).eq("complex", complex_handler).eq("creative", creative_handler)
     >> quality_loop
     >> formatter
 )
@@ -84,6 +81,7 @@ built = pipeline.build()
 
 # Top level is SequentialAgent
 from google.adk.agents.sequential_agent import SequentialAgent
+
 assert isinstance(built, SequentialAgent)
 
 # Has multiple stages
@@ -93,51 +91,3 @@ assert len(built.sub_agents) >= 3
 :::{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::
-
-## Data Contracts
-
-Add `produces()` / `consumes()` to verify data flow at build time:
-
-```python
-from pydantic import BaseModel
-from adk_fluent import Agent
-from adk_fluent._routing import Route
-from adk_fluent.testing import check_contracts
-
-class Intent(BaseModel):
-    intent: str
-
-class Response(BaseModel):
-    text: str
-    confidence: float
-
-# Annotate the pipeline steps with contracts
-classifier = (
-    Agent("classifier")
-    .instruct("Classify user request.")
-    .outputs("intent")
-    .produces(Intent)
-)
-handler = Agent("handler").instruct("Handle request.").consumes(Intent).produces(Response)
-
-pipeline = classifier >> handler
-issues = check_contracts(pipeline.to_ir())
-```
-
-```python
-assert issues == []
-```
-
-## Visualization
-
-```python
-print(pipeline.to_mermaid())
-# Generates a Mermaid diagram showing the pipeline structure
-# with data-flow annotations for produces/consumes
-```
-
-```python
-mermaid = pipeline.to_mermaid()
-assert "graph" in mermaid
-assert "Intent" in mermaid
-```

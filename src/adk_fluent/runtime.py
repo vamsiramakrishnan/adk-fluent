@@ -81,7 +81,7 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"agent", "app_name", "plugin_close_timeout", "plugins", "app"}
+    _KNOWN_PARAMS: set[str] = {"app_name", "plugin_close_timeout", "plugins", "agent", "app"}
 
     def __init__(
         self,
@@ -146,16 +146,16 @@ class Runner(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "session_service",
         "artifact_service",
-        "auto_create_session",
-        "agent",
         "app_name",
-        "plugin_close_timeout",
-        "plugins",
-        "app",
+        "auto_create_session",
         "credential_service",
         "memory_service",
+        "plugin_close_timeout",
+        "agent",
+        "plugins",
+        "app",
+        "session_service",
     }
 
     def __init__(self, session_service: str) -> None:

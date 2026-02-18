@@ -524,8 +524,10 @@ def _categorize_cookbook(filename: str) -> str:
         return "Execution"
     elif num <= 20:
         return "Advanced"
-    else:
+    elif num <= 43:
         return "Patterns"
+    else:
+        return "v4 Features"
 
 
 def gen_cookbook_index(cookbook_files: list[dict]) -> str:
@@ -545,12 +547,13 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
         categories[cat].append(cb)
 
     # Defined order
-    cat_order = ["Basics", "Execution", "Advanced", "Patterns", "Other"]
+    cat_order = ["Basics", "Execution", "Advanced", "Patterns", "v4 Features", "Other"]
     cat_descriptions = {
         "Basics": "Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.",
         "Execution": "Running agents: one-shot, streaming, cloning, testing, and sessions.",
         "Advanced": "Advanced composition: dynamic forwarding, operators, routing, and conditional logic.",
         "Patterns": "Real-world patterns: state management, presets, decorators, serialization, and more.",
+        "v4 Features": "IR compilation, middleware, contracts, testing, dependency injection, and visualization.",
         "Other": "Additional examples.",
     }
 
@@ -807,15 +810,28 @@ def generate_docs(
             cookbook_out.mkdir(parents=True, exist_ok=True)
 
             all_parsed: list[dict] = []
+            generated_stems: set[str] = set()
             for py_file in sorted(cookbook_path.glob("*.py")):
                 if py_file.name.startswith("conftest") or py_file.name.startswith("__"):
                     continue
                 parsed = process_cookbook_file(str(py_file))
                 all_parsed.append(parsed)
+                generated_stems.add(py_file.stem)
                 md = cookbook_to_markdown(parsed)
                 md_file = cookbook_out / f"{py_file.stem}.md"
                 md_file.write_text(md)
                 print(f"  Generated: {md_file}")
+
+            # Pick up hand-written .md files already in the output dir
+            # (e.g. v4 feature docs with no .py source)
+            for md_file in sorted(cookbook_out.glob("*.md")):
+                stem = md_file.stem
+                if stem == "index" or stem == "conftest" or stem in generated_stems:
+                    continue
+                # Extract title from first markdown heading
+                first_line = md_file.read_text().split("\n", 1)[0]
+                title = first_line.lstrip("# ").strip() if first_line.startswith("#") else stem
+                all_parsed.append({"filename": md_file.name, "title": title})
 
             # Generate cookbook index
             index_md = gen_cookbook_index(all_parsed)

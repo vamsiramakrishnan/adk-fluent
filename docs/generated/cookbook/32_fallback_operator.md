@@ -45,9 +45,8 @@ branch_b = Agent("b1").model("gemini-2.0-flash") // Agent("b2").model("gemini-2.
 parallel_fallbacks = branch_a | branch_b
 
 # // works with functions too
-fallback_with_fn = (
-    Agent("primary").model("gemini-2.5-flash").instruct("Try this.")
-    // (lambda s: {"result": "static fallback"})
+fallback_with_fn = Agent("primary").model("gemini-2.5-flash").instruct("Try this.") // (
+    lambda s: {"result": "static fallback"}
 )
 ```
 :::
@@ -65,10 +64,8 @@ assert len(resilient._children) == 3
 
 # Builds to a BaseAgent with sub_agents
 from google.adk.agents.base_agent import BaseAgent
-built = (
-    Agent("a").model("gemini-2.5-flash").instruct("A")
-    // Agent("b").model("gemini-2.5-pro").instruct("B")
-)
+
+built = Agent("a").model("gemini-2.5-flash").instruct("A") // Agent("b").model("gemini-2.5-pro").instruct("B")
 built_agent = built.build()
 assert isinstance(built_agent, BaseAgent)
 assert len(built_agent.sub_agents) == 2

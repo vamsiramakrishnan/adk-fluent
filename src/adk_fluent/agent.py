@@ -22,7 +22,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
     def __init__(self, name: str) -> None:
@@ -111,14 +111,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_tool_callback",
         "on_tool_error_callback",
+        "before_model_callback",
+        "after_tool_callback",
+        "before_agent_callback",
+        "after_agent_callback",
         "on_model_error_callback",
         "before_tool_callback",
         "after_model_callback",
-        "before_model_callback",
-        "after_agent_callback",
-        "before_agent_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -318,16 +318,6 @@ class Agent(BuilderBase):
 
     # --- Extra methods ---
 
-    def tool(self, fn_or_tool: Callable | BaseTool, *, require_confirmation: bool = False) -> Self:
-        """Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list."""
-        if require_confirmation and callable(fn_or_tool):
-            from google.adk.tools.base_tool import BaseTool as _BaseTool
-            if not isinstance(fn_or_tool, _BaseTool):
-                from google.adk.tools.function_tool import FunctionTool
-                fn_or_tool = FunctionTool(func=fn_or_tool, require_confirmation=True)
-        self._lists["tools"].append(fn_or_tool)
-        return self
-
     def apply(self, stack: MiddlewareStack) -> Self:
         """Apply a reusable middleware stack (bulk callback registration)."""
         raise NotImplementedError("Implement in hand-written layer")
@@ -353,6 +343,12 @@ class Agent(BuilderBase):
         from adk_fluent._helpers import delegate_agent
 
         return delegate_agent(self, agent)
+
+    def tool(self, fn_or_tool, *, require_confirmation: bool = False) -> Self:
+        """Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."""
+        from adk_fluent._helpers import _add_tool
+
+        return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
 
     def guardrail(self, fn: Callable) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""

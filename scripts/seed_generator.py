@@ -630,15 +630,15 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
         if builder_name not in auto.get("builders", {}):
             continue
 
-        # Merge extras
+        # Merge extras (manual overrides replace auto-generated ones with same name)
         manual_extras = manual_config.get("extras", [])
         if manual_extras:
             existing_extras = auto["builders"][builder_name].get("extras", [])
-            existing_names = {e["name"] for e in existing_extras}
-            for extra in manual_extras:
-                if extra["name"] not in existing_names:
-                    existing_extras.append(extra)
-            auto["builders"][builder_name]["extras"] = existing_extras
+            manual_names = {e["name"] for e in manual_extras}
+            # Keep auto extras that aren't overridden, then append manual ones
+            merged = [e for e in existing_extras if e["name"] not in manual_names]
+            merged.extend(manual_extras)
+            auto["builders"][builder_name]["extras"] = merged
 
         # Merge optional_constructor_args
         opt_args = manual_config.get("optional_constructor_args")

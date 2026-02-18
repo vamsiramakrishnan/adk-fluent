@@ -133,6 +133,11 @@ Agent(name: str)
 - **Maps to:** `include_contents`
 - Set the `include_contents` field.
 
+#### `.include_history(value: Literal[default, none]) -> Self`
+
+- **Maps to:** `include_contents`
+- Set the `include_contents` field.
+
 #### `.instruct(value: Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]) -> Self`
 
 - **Maps to:** `instruction`
@@ -256,21 +261,25 @@ Append callback to `on_tool_error_callback` only if `condition` is `True`.
 
 ### Extra Methods
 
-#### `.tool(fn_or_tool: Callable | BaseTool) -> Self`
-
-Add a single tool. Alias for .tools() with append semantics.
-
 #### `.apply(stack: MiddlewareStack) -> Self`
 
 Apply a reusable middleware stack (bulk callback registration).
 
+#### `.sub_agent(agent: BaseAgent | AgentBuilder) -> Self`
+
+Add a sub-agent (appends). Multiple .sub_agent() calls accumulate.
+
 #### `.member(agent: BaseAgent | AgentBuilder) -> Self`
 
-Add a member agent for coordinator pattern.
+Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern.
 
 #### `.delegate(agent) -> Self`
 
 Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.
+
+#### `.tool(fn_or_tool, *, require_confirmation: bool = False) -> Self`
+
+Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True.
 
 #### `.guardrail(fn: Callable) -> Self`
 
@@ -307,6 +316,10 @@ Async batch execution against multiple prompts.
 #### `.events(prompt: str) -> AsyncIterator`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
+
+#### `.to_ir()`
+
+Convert this Agent builder to an AgentNode IR node.
 
 ### Terminal Methods
 

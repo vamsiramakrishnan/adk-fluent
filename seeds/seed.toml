@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-18T08:42:16.204067+00:00"
+generated_at = "2026-02-18T08:58:19.976428+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -159,13 +159,6 @@ returns = "LlmAgent"
 doc = "Resolve into a native ADK LlmAgent."
 
 [[builders.Agent.extras]]
-name = "tool"
-signature = "(self, fn_or_tool: Callable | BaseTool) -> Self"
-doc = "Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list."
-behavior = "list_append"
-target_field = "tools"
-
-[[builders.Agent.extras]]
 name = "apply"
 signature = "(self, stack: MiddlewareStack) -> Self"
 doc = "Apply a reusable middleware stack (bulk callback registration)."
@@ -190,6 +183,13 @@ signature = "(self, agent) -> Self"
 doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
 behavior = "runtime_helper"
 helper_func = "delegate_agent"
+
+[[builders.Agent.extras]]
+name = "tool"
+signature = "(self, fn_or_tool, *, require_confirmation: bool = False) -> Self"
+doc = "Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."
+behavior = "runtime_helper"
+helper_func = "_add_tool"
 
 [[builders.Agent.extras]]
 name = "guardrail"
