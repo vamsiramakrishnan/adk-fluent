@@ -128,6 +128,7 @@ class ExecutionConfig:
     resumable: bool = False
     compaction: CompactionConfig | None = None
     custom_metadata: dict[str, Any] | None = None
+    middlewares: tuple = ()
 
 
 # ======================================================================

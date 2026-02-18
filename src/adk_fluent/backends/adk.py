@@ -57,6 +57,15 @@ class ADKBackend:
             from google.adk.apps.app import ResumabilityConfig
             app_kwargs["resumability_config"] = ResumabilityConfig(is_resumable=True)
 
+        # Middleware -> plugin
+        if cfg.middlewares:
+            from adk_fluent.middleware import _MiddlewarePlugin
+            plugin = _MiddlewarePlugin(
+                name=f"{cfg.app_name}_middleware",
+                stack=list(cfg.middlewares),
+            )
+            app_kwargs["plugins"] = [plugin]
+
         return App(**app_kwargs)
 
     async def run(self, compiled: Any, prompt: str, **kwargs) -> list[AgentEvent]:
