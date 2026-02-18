@@ -320,6 +320,15 @@ class Agent(BuilderBase):
 
     # --- Extra methods ---
 
+    def context(self, spec) -> Self:
+        """Declare what conversation context this agent should see.
+
+        Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.).
+        Compiles to include_contents + InstructionProvider on the LlmAgent.
+        """
+        self._config["_context_spec"] = spec
+        return self
+
     def apply(self, stack: MiddlewareStack) -> Self:
         """Apply a reusable middleware stack (bulk callback registration)."""
         raise NotImplementedError("Implement in hand-written layer")

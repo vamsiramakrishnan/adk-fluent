@@ -554,6 +554,7 @@ class BuilderBase:
         # Extract internal directives before stripping
         until_pred = self._config.get("_until_predicate")
         output_schema = self._config.get("_output_schema")
+        context_spec = self._config.get("_context_spec")
 
         config = {k: v for k, v in self._config.items() if not k.startswith("_") and v is not _UNSET}
 
@@ -591,6 +592,19 @@ class BuilderBase:
                 config[field] = existing + resolved
             else:
                 config[field] = resolved
+
+        # Context spec: compile C transforms into include_contents + InstructionProvider
+        if context_spec is not None:
+            from adk_fluent._context import CTransform, _compile_context_spec
+
+            if isinstance(context_spec, CTransform):
+                compiled = _compile_context_spec(
+                    developer_instruction=config.get("instruction", ""),
+                    context_spec=context_spec,
+                )
+                config["include_contents"] = compiled["include_contents"]
+                if compiled.get("instruction") is not None:
+                    config["instruction"] = compiled["instruction"]
 
         # Inject checkpoint agent for loop_until predicate
         if until_pred:
