@@ -877,6 +877,16 @@ class BuilderBase:
         self._config["_consumes"] = schema
         return self
 
+    def inject(self, **resources: Any) -> Self:
+        """Register resources for dependency injection into tool functions.
+
+        At build time, tools with matching parameter names will have
+        those parameters injected and hidden from the LLM schema.
+        """
+        existing = self._config.setdefault("_resources", {})
+        existing.update(resources)
+        return self
+
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
         aliases = getattr(self.__class__, "_ALIASES", {})
