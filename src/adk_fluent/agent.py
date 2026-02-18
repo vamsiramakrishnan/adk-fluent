@@ -22,7 +22,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
     def __init__(self, name: str) -> None:
@@ -111,14 +111,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_agent_callback",
-        "before_tool_callback",
-        "after_tool_callback",
         "after_model_callback",
-        "before_agent_callback",
-        "on_model_error_callback",
         "before_model_callback",
+        "after_tool_callback",
+        "after_agent_callback",
+        "on_model_error_callback",
         "on_tool_error_callback",
+        "before_tool_callback",
+        "before_agent_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -320,15 +320,6 @@ class Agent(BuilderBase):
 
     # --- Extra methods ---
 
-    def context(self, spec) -> Self:
-        """Declare what conversation context this agent should see.
-
-        Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.).
-        Compiles to include_contents + InstructionProvider on the LlmAgent.
-        """
-        self._config["_context_spec"] = spec
-        return self
-
     def apply(self, stack: MiddlewareStack) -> Self:
         """Apply a reusable middleware stack (bulk callback registration)."""
         raise NotImplementedError("Implement in hand-written layer")
@@ -418,6 +409,35 @@ class Agent(BuilderBase):
 
         async for chunk in run_events(self, prompt):
             yield chunk
+
+    def context(self, spec: Any) -> Self:
+        """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
+        self._config["_context_spec"] = spec
+        return self
+
+    def show(self) -> Self:
+        """Force this agent's events to be user-facing (override topology inference)."""
+        from adk_fluent._helpers import _show_agent
+
+        return _show_agent(self)
+
+    def hide(self) -> Self:
+        """Force this agent's events to be internal (override topology inference)."""
+        from adk_fluent._helpers import _hide_agent
+
+        return _hide_agent(self)
+
+    def memory(self, mode: str = "preload") -> Self:
+        """Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'."""
+        from adk_fluent._helpers import _add_memory
+
+        return _add_memory(self, mode)
+
+    def memory_auto_save(self) -> Self:
+        """Auto-save session to memory after each agent run."""
+        from adk_fluent._helpers import _add_memory_auto_save
+
+        return _add_memory_auto_save(self)
 
     def to_ir(self):
         """Convert this Agent builder to an AgentNode IR node."""

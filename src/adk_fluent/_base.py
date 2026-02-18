@@ -550,6 +550,9 @@ class BuilderBase:
 
     def _prepare_build_config(self) -> dict[str, Any]:
         """Prepare config dict for building: strip internal fields, auto-build sub-builders, merge callbacks and lists."""
+        # Run IR-first contract checking (appendix_f Q1, Q3)
+        self._run_build_contracts()
+
         # Extract internal directives before stripping
         until_pred = self._config.get("_until_predicate")
         output_schema = self._config.get("_output_schema")
@@ -917,6 +920,65 @@ class BuilderBase:
         from adk_fluent.viz import ir_to_mermaid
 
         return ir_to_mermaid(self.to_ir())
+
+    def strict(self) -> Self:
+        """Enable strict contract checking — build() raises ValueError on contract errors."""
+        self._config["_check_mode"] = "strict"
+        return self
+
+    def unchecked(self) -> Self:
+        """Disable contract checking on build()."""
+        self._config["_check_mode"] = False
+        return self
+
+    def _run_build_contracts(self) -> None:
+        """Run IR-first contract checking if this builder has to_ir().
+
+        Per appendix_f Q1: .build() internally uses IR.
+        Per appendix_f Q3: Contract checking is default, not opt-in.
+
+        Modes (controlled by _check_mode config):
+          True (default) — run contracts, log advisory diagnostics
+          "strict"       — raise ValueError on any contract error
+          False          — skip contract checking entirely
+        """
+        check_mode = self._config.get("_check_mode", True)
+        if check_mode is False:
+            return
+
+        # Only run contracts on compound builders that have to_ir
+        if not hasattr(self, "to_ir"):
+            return
+
+        try:
+            ir = self.to_ir()
+        except Exception:
+            return  # IR conversion failed — skip contracts silently
+
+        from adk_fluent.testing.contracts import check_contracts
+
+        issues = check_contracts(ir)
+        if not issues:
+            return
+
+        errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
+
+        if check_mode == "strict" and errors:
+            msg = "\n".join(f"  {i['agent']}: {i['message']}" for i in errors)
+            raise ValueError(f"Contract errors in pipeline:\n{msg}")
+
+        # Advisory mode: log warnings
+        if errors:
+            import logging
+
+            logger = logging.getLogger("adk_fluent.contracts")
+            for issue in errors:
+                logger.warning(
+                    "Contract issue [%s] %s: %s",
+                    issue.get("level", "?"),
+                    issue.get("agent", "?"),
+                    issue.get("message", "?"),
+                )
 
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""

@@ -214,5 +214,14 @@ class AgentEvent:
 # This is the base union of hand-written node types.
 # _ir_generated.py extends this with generated ADK node types.
 Node = (
-    TransformNode | TapNode | FallbackNode | RaceNode | GateNode | MapOverNode | TimeoutNode | RouteNode | TransferNode | CaptureNode
+    TransformNode
+    | TapNode
+    | FallbackNode
+    | RaceNode
+    | GateNode
+    | MapOverNode
+    | TimeoutNode
+    | RouteNode
+    | TransferNode
+    | CaptureNode
 )

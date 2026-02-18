@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Literal
 
 __all__ = ["C", "CTransform", "CComposite", "CPipe", "_compile_context_spec"]
@@ -177,6 +177,7 @@ class CTemplate(CTransform):
     """Render a template string with {key} and {key?} placeholders from state."""
 
     template: str = ""
+    include_contents: Literal["default", "none"] = "none"
     _kind: str = "template"
 
     def __post_init__(self) -> None:
@@ -295,9 +296,7 @@ def _make_from_agents_provider(agent_names: tuple[str, ...]) -> Callable:
     async def _provider(ctx: Any) -> str:
         events = list(ctx.session.events)
         filtered = [
-            e
-            for e in events
-            if getattr(e, "author", None) == "user" or getattr(e, "author", None) in names_set
+            e for e in events if getattr(e, "author", None) == "user" or getattr(e, "author", None) in names_set
         ]
         return _format_events_as_context(filtered)
 

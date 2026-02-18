@@ -164,7 +164,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"dataset_id", "config", "location", "table_id", "project_id"}
+    _KNOWN_PARAMS: set[str] = {"table_id", "config", "project_id", "dataset_id", "location"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
@@ -216,7 +216,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name", "num_invocations_to_keep", "custom_filter"}
+    _KNOWN_PARAMS: set[str] = {"custom_filter", "num_invocations_to_keep", "name"}
 
     def __init__(
         self,
@@ -270,7 +270,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name", "include_session_state", "output_path", "include_system_instruction"}
+    _KNOWN_PARAMS: set[str] = {"name", "include_session_state", "include_system_instruction", "output_path"}
 
     def __init__(
         self,
@@ -466,7 +466,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_retries", "tracking_scope", "name", "throw_exception_if_retry_exceeded"}
+    _KNOWN_PARAMS: set[str] = {"max_retries", "throw_exception_if_retry_exceeded", "tracking_scope", "name"}
 
     def __init__(
         self,

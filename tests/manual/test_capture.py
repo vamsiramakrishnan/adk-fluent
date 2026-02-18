@@ -44,11 +44,7 @@ class TestCaptureComposition:
         assert isinstance(p, Pipeline)
 
     def test_capture_in_chain(self):
-        p = (
-            S.capture("user_input")
-            >> Agent("writer").model("gemini-2.5-flash")
-            >> S.capture("feedback")
-        )
+        p = S.capture("user_input") >> Agent("writer").model("gemini-2.5-flash") >> S.capture("feedback")
         assert isinstance(p, Pipeline)
         built = p.build()
         assert len(built.sub_agents) == 3

@@ -18,7 +18,6 @@ from adk_fluent._context import (
     _compile_context_spec,
 )
 
-
 # ======================================================================
 # Boundary primitives: C.none() and C.default()
 # ======================================================================
@@ -272,10 +271,10 @@ class TestTemplate:
         t = C.template("Topic: {topic}")
         assert t.template == "Topic: {topic}"
 
-    def test_include_contents_is_default(self):
-        """CTemplate does NOT override include_contents (defaults to 'default')."""
+    def test_include_contents_is_none(self):
+        """CTemplate sets include_contents='none' — all context comes from template."""
         t = C.template("Hello {name}")
-        assert t.include_contents == "default"
+        assert t.include_contents == "none"
 
 
 # ======================================================================

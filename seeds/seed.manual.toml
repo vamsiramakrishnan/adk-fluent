@@ -105,6 +105,45 @@ behavior = "runtime_helper_async_gen"
 helper_func = "run_events"
 
 # ---------------------------------------------------------------------------
+# CONTEXT ENGINEERING EXTRAS (Phase 5.1)
+# ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "context"
+signature = "(self, spec: Any) -> Self"
+doc = "Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."
+behavior = "field_set"
+target_field = "_context_spec"
+
+[[builders.Agent.extras]]
+name = "show"
+signature = "(self) -> Self"
+doc = "Force this agent's events to be user-facing (override topology inference)."
+behavior = "runtime_helper_ctx"
+helper_func = "_show_agent"
+
+[[builders.Agent.extras]]
+name = "hide"
+signature = "(self) -> Self"
+doc = "Force this agent's events to be internal (override topology inference)."
+behavior = "runtime_helper_ctx"
+helper_func = "_hide_agent"
+
+[[builders.Agent.extras]]
+name = "memory"
+signature = "(self, mode: str = 'preload') -> Self"
+doc = "Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'."
+behavior = "runtime_helper"
+helper_func = "_add_memory"
+
+[[builders.Agent.extras]]
+name = "memory_auto_save"
+signature = "(self) -> Self"
+doc = "Auto-save session to memory after each agent run."
+behavior = "runtime_helper_ctx"
+helper_func = "_add_memory_auto_save"
+
+# ---------------------------------------------------------------------------
 # IR CONVERSION EXTRAS
 # ---------------------------------------------------------------------------
 # These wire to_ir() through the codegen so it survives regeneration.
