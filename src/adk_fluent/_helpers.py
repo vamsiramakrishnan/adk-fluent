@@ -67,9 +67,7 @@ def _collect_children(builder):
     children_raw.extend(builder._lists.get("sub_agents", []))
     result = []
     for c in children_raw:
-        if isinstance(c, BuilderBase):
-            result.append(c.to_ir())
-        elif hasattr(c, "to_ir") and callable(c.to_ir):
+        if isinstance(c, BuilderBase) or hasattr(c, "to_ir") and callable(c.to_ir):
             result.append(c.to_ir())
         else:
             result.append(c)

@@ -16,15 +16,15 @@ from adk_fluent._base import BuilderBase
 # Builder: Loop
 # ======================================================================
 
-
 class Loop(BuilderBase):
     """A shell agent that run its sub-agents in a loop."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
     _ADK_TARGET_CLASS = LoopAgent
+
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -46,17 +46,20 @@ class Loop(BuilderBase):
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def after_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def before_agent(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
+
 
     def before_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
@@ -71,6 +74,7 @@ class Loop(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
+
     def max_iterations(self, value: Union[int, NoneType]) -> Self:
         """Set the ``max_iterations`` field."""
         self._config["max_iterations"] = value
@@ -83,10 +87,10 @@ class Loop(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
+
     def to_ir(self):
         """Convert this Loop builder to a LoopNode IR node."""
         from adk_fluent._helpers import _loop_to_ir
-
         return _loop_to_ir(self)
 
     # --- Dynamic field forwarding (safety net) ---
@@ -103,15 +107,15 @@ class Loop(BuilderBase):
 # Builder: FanOut
 # ======================================================================
 
-
 class FanOut(BuilderBase):
     """A shell agent that runs its sub-agents in parallel in an isolated manner."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
     _ADK_TARGET_CLASS = ParallelAgent
+
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -133,17 +137,20 @@ class FanOut(BuilderBase):
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def after_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def before_agent(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
+
 
     def before_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
@@ -165,15 +172,16 @@ class FanOut(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
+
     def step(self, agent: BaseAgent | AgentBuilder) -> Self:
         """Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API."""
         self._lists["sub_agents"].append(agent)
         return self
 
+
     def to_ir(self):
         """Convert this FanOut builder to a ParallelNode IR node."""
         from adk_fluent._helpers import _fanout_to_ir
-
         return _fanout_to_ir(self)
 
     # --- Dynamic field forwarding (safety net) ---
@@ -190,15 +198,15 @@ class FanOut(BuilderBase):
 # Builder: Pipeline
 # ======================================================================
 
-
 class Pipeline(BuilderBase):
     """A shell agent that runs its sub-agents in sequence."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
     _ADK_TARGET_CLASS = SequentialAgent
+
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -220,17 +228,20 @@ class Pipeline(BuilderBase):
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def after_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def before_agent(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
+
 
     def before_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
@@ -252,10 +263,10 @@ class Pipeline(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
+
     def to_ir(self):
         """Convert this Pipeline builder to a SequenceNode IR node."""
         from adk_fluent._helpers import _pipeline_to_ir
-
         return _pipeline_to_ir(self)
 
     # --- Dynamic field forwarding (safety net) ---

@@ -16,7 +16,6 @@ from adk_fluent._base import BuilderBase
 # Builder: App
 # ======================================================================
 
-
 class App(BuilderBase):
     """Represents an LLM-backed agentic application."""
 
@@ -25,6 +24,7 @@ class App(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_App
+
 
     def __init__(self, name: str, root_agent: str) -> None:
         self._config: dict[str, Any] = {"name": name, "root_agent": root_agent}
@@ -42,15 +42,18 @@ class App(BuilderBase):
         self._config["plugins"] = value
         return self
 
+
     def events_compaction_config(self, value: Union[EventsCompactionConfig, NoneType]) -> Self:
         """Set the ``events_compaction_config`` field."""
         self._config["events_compaction_config"] = value
         return self
 
+
     def context_cache_config(self, value: Union[ContextCacheConfig, NoneType]) -> Self:
         """Set the ``context_cache_config`` field."""
         self._config["context_cache_config"] = value
         return self
+
 
     def resumability_config(self, value: Union[ResumabilityConfig, NoneType]) -> Self:
         """Set the ``resumability_config`` field."""
@@ -73,7 +76,6 @@ class App(BuilderBase):
 # Builder: InMemoryRunner
 # ======================================================================
 
-
 class InMemoryRunner(BuilderBase):
     """An in-memory Runner for testing and development."""
 
@@ -81,11 +83,10 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"app", "plugins", "agent", "app_name", "plugin_close_timeout"}
+    _KNOWN_PARAMS: set[str] = {'agent', 'plugin_close_timeout', 'plugins', 'app_name', 'app'}
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -101,20 +102,24 @@ class InMemoryRunner(BuilderBase):
         self._config["agent"] = value
         return self
 
+
     def app_name(self, value: Optional[str]) -> Self:
         """Set the ``app_name`` field."""
         self._config["app_name"] = value
         return self
+
 
     def plugins(self, value: Optional[list[BasePlugin]]) -> Self:
         """Set the ``plugins`` field."""
         self._config["plugins"] = value
         return self
 
+
     def app(self, value: Optional[App]) -> Self:
         """Set the ``app`` field."""
         self._config["app"] = value
         return self
+
 
     def plugin_close_timeout(self, value: float) -> Self:
         """Set the ``plugin_close_timeout`` field."""
@@ -137,7 +142,6 @@ class InMemoryRunner(BuilderBase):
 # Builder: Runner
 # ======================================================================
 
-
 class Runner(BuilderBase):
     """The Runner class is used to run agents."""
 
@@ -145,18 +149,8 @@ class Runner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {
-        "memory_service",
-        "plugins",
-        "plugin_close_timeout",
-        "agent",
-        "session_service",
-        "app_name",
-        "artifact_service",
-        "credential_service",
-        "app",
-        "auto_create_session",
-    }
+    _KNOWN_PARAMS: set[str] = {'credential_service', 'artifact_service', 'memory_service', 'auto_create_session', 'agent', 'plugin_close_timeout', 'session_service', 'plugins', 'app_name', 'app'}
+
 
     def __init__(self, session_service: str) -> None:
         self._config: dict[str, Any] = {"session_service": session_service}
@@ -174,40 +168,48 @@ class Runner(BuilderBase):
         self._config["app"] = value
         return self
 
+
     def app_name(self, value: Optional[str]) -> Self:
         """Set the ``app_name`` field."""
         self._config["app_name"] = value
         return self
+
 
     def agent(self, value: Optional[BaseAgent]) -> Self:
         """Set the ``agent`` field."""
         self._config["agent"] = value
         return self
 
+
     def plugins(self, value: Optional[List[BasePlugin]]) -> Self:
         """Set the ``plugins`` field."""
         self._config["plugins"] = value
         return self
+
 
     def artifact_service(self, value: Optional[BaseArtifactService]) -> Self:
         """Set the ``artifact_service`` field."""
         self._config["artifact_service"] = value
         return self
 
+
     def memory_service(self, value: Optional[BaseMemoryService]) -> Self:
         """Set the ``memory_service`` field."""
         self._config["memory_service"] = value
         return self
+
 
     def credential_service(self, value: Optional[BaseCredentialService]) -> Self:
         """Set the ``credential_service`` field."""
         self._config["credential_service"] = value
         return self
 
+
     def plugin_close_timeout(self, value: float) -> Self:
         """Set the ``plugin_close_timeout`` field."""
         self._config["plugin_close_timeout"] = value
         return self
+
 
     def auto_create_session(self, value: bool) -> Self:
         """Set the ``auto_create_session`` field."""

@@ -1,6 +1,5 @@
 """Tests for visibility inference and VisibilityPlugin."""
 
-import pytest
 
 from adk_fluent._ir import CaptureNode, RouteNode, TapNode, TransformNode
 from adk_fluent._ir_generated import (
@@ -10,7 +9,6 @@ from adk_fluent._ir_generated import (
     SequenceNode,
 )
 from adk_fluent._visibility import VisibilityPlugin, infer_visibility
-
 
 # ======================================================================
 # Visibility inference: single agent

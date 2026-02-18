@@ -585,9 +585,7 @@ class BuilderBase:
         for field, items in self._lists.items():
             resolved = []
             for item in items:
-                if isinstance(item, BuilderBase):
-                    resolved.append(item.build())
-                elif hasattr(item, "build") and callable(item.build):
+                if isinstance(item, BuilderBase) or hasattr(item, "build") and callable(item.build):
                     resolved.append(item.build())
                 else:
                     resolved.append(item)

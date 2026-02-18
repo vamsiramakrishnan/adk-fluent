@@ -16,7 +16,6 @@ from adk_fluent._base import BuilderBase
 # Builder: BasePlanner
 # ======================================================================
 
-
 class BasePlanner(BuilderBase):
     """Abstract base class for all planners."""
 
@@ -25,6 +24,7 @@ class BasePlanner(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
+
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -53,7 +53,6 @@ class BasePlanner(BuilderBase):
 # Builder: BuiltInPlanner
 # ======================================================================
 
-
 class BuiltInPlanner(BuilderBase):
     """The built-in planner that uses model's built-in thinking features."""
 
@@ -61,7 +60,8 @@ class BuiltInPlanner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"thinking_config"}
+    _KNOWN_PARAMS: set[str] = {'thinking_config'}
+
 
     def __init__(self, thinking_config: str) -> None:
         self._config: dict[str, Any] = {"thinking_config": thinking_config}
@@ -90,7 +90,6 @@ class BuiltInPlanner(BuilderBase):
 # Builder: PlanReActPlanner
 # ======================================================================
 
-
 class PlanReActPlanner(BuilderBase):
     """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation."""
 
@@ -99,6 +98,7 @@ class PlanReActPlanner(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
+
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}

@@ -96,8 +96,9 @@ class TestDictRouting:
 
     def test_dict_route_agent_has_sub_agents(self):
         """The route agent has the dict values as sub_agents."""
-        from adk_fluent._routing import Route
         from google.adk.agents.base_agent import BaseAgent
+
+        from adk_fluent._routing import Route
 
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
         a = Agent("handler_a").model("gemini-2.5-flash").instruct("A")

@@ -28,7 +28,6 @@ from adk_fluent._base import BuilderBase
 # Builder: BaseArtifactService
 # ======================================================================
 
-
 class BaseArtifactService(BuilderBase):
     """Abstract base class for artifact services."""
 
@@ -37,6 +36,7 @@ class BaseArtifactService(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
+
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -65,7 +65,6 @@ class BaseArtifactService(BuilderBase):
 # Builder: FileArtifactService
 # ======================================================================
 
-
 class FileArtifactService(BuilderBase):
     """Stores filesystem-backed artifacts beneath a configurable root directory."""
 
@@ -73,7 +72,8 @@ class FileArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"root_dir"}
+    _KNOWN_PARAMS: set[str] = {'root_dir'}
+
 
     def __init__(self, root_dir: str) -> None:
         self._config: dict[str, Any] = {"root_dir": root_dir}
@@ -102,7 +102,6 @@ class FileArtifactService(BuilderBase):
 # Builder: GcsArtifactService
 # ======================================================================
 
-
 class GcsArtifactService(BuilderBase):
     """An artifact service implementation using Google Cloud Storage (GCS)."""
 
@@ -110,7 +109,8 @@ class GcsArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"bucket_name"}
+    _KNOWN_PARAMS: set[str] = {'bucket_name'}
+
 
     def __init__(self, bucket_name: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"bucket_name": bucket_name, "kwargs": kwargs}
@@ -139,7 +139,6 @@ class GcsArtifactService(BuilderBase):
 # Builder: InMemoryArtifactService
 # ======================================================================
 
-
 class InMemoryArtifactService(BuilderBase):
     """An in-memory implementation of the artifact service."""
 
@@ -149,9 +148,8 @@ class InMemoryArtifactService(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_InMemoryArtifactService
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -183,7 +181,6 @@ class InMemoryArtifactService(BuilderBase):
 # Builder: PerAgentDatabaseSessionService
 # ======================================================================
 
-
 class PerAgentDatabaseSessionService(BuilderBase):
     """Routes session storage to per-agent `.adk/session.db` files."""
 
@@ -191,7 +188,8 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"app_name_to_dir", "agents_root"}
+    _KNOWN_PARAMS: set[str] = {'agents_root', 'app_name_to_dir'}
+
 
     def __init__(self, agents_root: str) -> None:
         self._config: dict[str, Any] = {"agents_root": agents_root}
@@ -225,7 +223,6 @@ class PerAgentDatabaseSessionService(BuilderBase):
 # Builder: BaseMemoryService
 # ======================================================================
 
-
 class BaseMemoryService(BuilderBase):
     """Base class for memory services."""
 
@@ -234,6 +231,7 @@ class BaseMemoryService(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
+
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -262,7 +260,6 @@ class BaseMemoryService(BuilderBase):
 # Builder: InMemoryMemoryService
 # ======================================================================
 
-
 class InMemoryMemoryService(BuilderBase):
     """An in-memory memory service for prototyping purpose only."""
 
@@ -272,9 +269,8 @@ class InMemoryMemoryService(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -301,7 +297,6 @@ class InMemoryMemoryService(BuilderBase):
 # Builder: VertexAiMemoryBankService
 # ======================================================================
 
-
 class VertexAiMemoryBankService(BuilderBase):
     """Implementation of the BaseMemoryService using Vertex AI Memory Bank."""
 
@@ -309,11 +304,10 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project", "agent_engine_id", "location", "express_mode_api_key"}
+    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'project', 'express_mode_api_key', 'location'}
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -329,15 +323,18 @@ class VertexAiMemoryBankService(BuilderBase):
         self._config["project"] = value
         return self
 
+
     def location(self, value: Optional[str]) -> Self:
         """Set the ``location`` field."""
         self._config["location"] = value
         return self
 
+
     def agent_engine_id(self, value: Optional[str]) -> Self:
         """Set the ``agent_engine_id`` field."""
         self._config["agent_engine_id"] = value
         return self
+
 
     def express_mode_api_key(self, value: Optional[str]) -> Self:
         """Set the ``express_mode_api_key`` field."""
@@ -360,7 +357,6 @@ class VertexAiMemoryBankService(BuilderBase):
 # Builder: VertexAiRagMemoryService
 # ======================================================================
 
-
 class VertexAiRagMemoryService(BuilderBase):
     """A memory service that uses Vertex AI RAG for storage and retrieval."""
 
@@ -368,11 +364,10 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"similarity_top_k", "vector_distance_threshold", "rag_corpus"}
+    _KNOWN_PARAMS: set[str] = {'vector_distance_threshold', 'similarity_top_k', 'rag_corpus'}
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -388,10 +383,12 @@ class VertexAiRagMemoryService(BuilderBase):
         self._config["rag_corpus"] = value
         return self
 
+
     def similarity_top_k(self, value: Optional[int]) -> Self:
         """Set the ``similarity_top_k`` field."""
         self._config["similarity_top_k"] = value
         return self
+
 
     def vector_distance_threshold(self, value: float) -> Self:
         """Set the ``vector_distance_threshold`` field."""
@@ -414,7 +411,6 @@ class VertexAiRagMemoryService(BuilderBase):
 # Builder: BaseSessionService
 # ======================================================================
 
-
 class BaseSessionService(BuilderBase):
     """Base class for session services."""
 
@@ -423,6 +419,7 @@ class BaseSessionService(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
+
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -451,7 +448,6 @@ class BaseSessionService(BuilderBase):
 # Builder: DatabaseSessionService
 # ======================================================================
 
-
 class DatabaseSessionService(BuilderBase):
     """A session service that uses a database for storage."""
 
@@ -459,7 +455,8 @@ class DatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"db_url"}
+    _KNOWN_PARAMS: set[str] = {'db_url'}
+
 
     def __init__(self, db_url: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"db_url": db_url, "kwargs": kwargs}
@@ -488,7 +485,6 @@ class DatabaseSessionService(BuilderBase):
 # Builder: InMemorySessionService
 # ======================================================================
 
-
 class InMemorySessionService(BuilderBase):
     """An in-memory implementation of the session service."""
 
@@ -498,9 +494,8 @@ class InMemorySessionService(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = set()
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -527,7 +522,6 @@ class InMemorySessionService(BuilderBase):
 # Builder: SqliteSessionService
 # ======================================================================
 
-
 class SqliteSessionService(BuilderBase):
     """A session service that uses an SQLite database for storage via aiosqlite."""
 
@@ -535,7 +529,8 @@ class SqliteSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"db_path"}
+    _KNOWN_PARAMS: set[str] = {'db_path'}
+
 
     def __init__(self, db_path: str) -> None:
         self._config: dict[str, Any] = {"db_path": db_path}
@@ -564,7 +559,6 @@ class SqliteSessionService(BuilderBase):
 # Builder: VertexAiSessionService
 # ======================================================================
 
-
 class VertexAiSessionService(BuilderBase):
     """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK."""
 
@@ -572,11 +566,10 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project", "agent_engine_id", "location", "express_mode_api_key"}
+    _KNOWN_PARAMS: set[str] = {'agent_engine_id', 'project', 'express_mode_api_key', 'location'}
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -592,15 +585,18 @@ class VertexAiSessionService(BuilderBase):
         self._config["project"] = value
         return self
 
+
     def location(self, value: Optional[str]) -> Self:
         """Set the ``location`` field."""
         self._config["location"] = value
         return self
 
+
     def agent_engine_id(self, value: Optional[str]) -> Self:
         """Set the ``agent_engine_id`` field."""
         self._config["agent_engine_id"] = value
         return self
+
 
     def express_mode_api_key(self, value: Optional[str]) -> Self:
         """Set the ``express_mode_api_key`` field."""
@@ -623,7 +619,6 @@ class VertexAiSessionService(BuilderBase):
 # Builder: ForwardingArtifactService
 # ======================================================================
 
-
 class ForwardingArtifactService(BuilderBase):
     """Artifact service that forwards to the parent tool context."""
 
@@ -631,7 +626,8 @@ class ForwardingArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_context"}
+    _KNOWN_PARAMS: set[str] = {'tool_context'}
+
 
     def __init__(self, tool_context: str) -> None:
         self._config: dict[str, Any] = {"tool_context": tool_context}

@@ -26,13 +26,14 @@ class TestBaseArtifactServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseArtifactService("test_args", "test_kwargs")
+        builder = BaseArtifactService('test_args', 'test_kwargs')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BaseArtifactService("test_args", "test_kwargs")
+        builder = BaseArtifactService('test_args', 'test_kwargs')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -42,13 +43,14 @@ class TestFileArtifactServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = FileArtifactService("test_root_dir")
+        builder = FileArtifactService('test_root_dir')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = FileArtifactService("test_root_dir")
+        builder = FileArtifactService('test_root_dir')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -58,13 +60,14 @@ class TestGcsArtifactServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = GcsArtifactService("test_bucket_name", "test_kwargs")
+        builder = GcsArtifactService('test_bucket_name', 'test_kwargs')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = GcsArtifactService("test_bucket_name", "test_kwargs")
+        builder = GcsArtifactService('test_bucket_name', 'test_kwargs')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -78,17 +81,20 @@ class TestInMemoryArtifactServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_chaining_returns_self(self):
         """.artifacts() returns the builder instance for chaining."""
         builder = InMemoryArtifactService()
         result = builder.artifacts({})
         assert result is builder
 
+
     def test_config_accumulation(self):
         """Setting .artifacts() stores the value in builder._config."""
         builder = InMemoryArtifactService()
         builder.artifacts({})
         assert builder._config["artifacts"] == {}
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -102,13 +108,14 @@ class TestPerAgentDatabaseSessionServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = PerAgentDatabaseSessionService("test_agents_root")
+        builder = PerAgentDatabaseSessionService('test_agents_root')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = PerAgentDatabaseSessionService("test_agents_root")
+        builder = PerAgentDatabaseSessionService('test_agents_root')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -118,13 +125,14 @@ class TestBaseMemoryServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseMemoryService("test_args", "test_kwargs")
+        builder = BaseMemoryService('test_args', 'test_kwargs')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BaseMemoryService("test_args", "test_kwargs")
+        builder = BaseMemoryService('test_args', 'test_kwargs')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -137,6 +145,7 @@ class TestInMemoryMemoryServiceBuilder:
         builder = InMemoryMemoryService()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -154,6 +163,7 @@ class TestVertexAiMemoryBankServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiMemoryBankService()
@@ -170,17 +180,20 @@ class TestVertexAiRagMemoryServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_chaining_returns_self(self):
         """.vector_distance_threshold() returns the builder instance for chaining."""
         builder = VertexAiRagMemoryService()
         result = builder.vector_distance_threshold(0.5)
         assert result is builder
 
+
     def test_config_accumulation(self):
         """Setting .vector_distance_threshold() stores the value in builder._config."""
         builder = VertexAiRagMemoryService()
         builder.vector_distance_threshold(0.5)
         assert builder._config["vector_distance_threshold"] == 0.5
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -194,13 +207,14 @@ class TestBaseSessionServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseSessionService("test_args", "test_kwargs")
+        builder = BaseSessionService('test_args', 'test_kwargs')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BaseSessionService("test_args", "test_kwargs")
+        builder = BaseSessionService('test_args', 'test_kwargs')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -210,13 +224,14 @@ class TestDatabaseSessionServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = DatabaseSessionService("test_db_url", "test_kwargs")
+        builder = DatabaseSessionService('test_db_url', 'test_kwargs')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = DatabaseSessionService("test_db_url", "test_kwargs")
+        builder = DatabaseSessionService('test_db_url', 'test_kwargs')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -230,6 +245,7 @@ class TestInMemorySessionServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = InMemorySessionService()
@@ -242,13 +258,14 @@ class TestSqliteSessionServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = SqliteSessionService("test_db_path")
+        builder = SqliteSessionService('test_db_path')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = SqliteSessionService("test_db_path")
+        builder = SqliteSessionService('test_db_path')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -262,6 +279,7 @@ class TestVertexAiSessionServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiSessionService()
@@ -274,12 +292,13 @@ class TestForwardingArtifactServiceBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ForwardingArtifactService("test_tool_context")
+        builder = ForwardingArtifactService('test_tool_context')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = ForwardingArtifactService("test_tool_context")
+        builder = ForwardingArtifactService('test_tool_context')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")

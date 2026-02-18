@@ -20,7 +20,6 @@ from adk_fluent._base import BuilderBase
 # Builder: AgentEngineSandboxCodeExecutor
 # ======================================================================
 
-
 class AgentEngineSandboxCodeExecutor(BuilderBase):
     """A code executor that uses Agent Engine Code Execution Sandbox to execute code."""
 
@@ -30,9 +29,8 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_AgentEngineSandboxCodeExecutor
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -48,25 +46,30 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
         self._config["optimize_data_file"] = value
         return self
 
+
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
         self._config["stateful"] = value
         return self
+
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
         self._config["error_retry_attempts"] = value
         return self
 
+
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
         self._config["code_block_delimiters"] = value
         return self
 
+
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
         self._config["execution_result_delimiters"] = value
         return self
+
 
     def sandbox_resource_name(self, value: str) -> Self:
         """Set the ``sandbox_resource_name`` field."""
@@ -89,7 +92,6 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
 # Builder: BaseCodeExecutor
 # ======================================================================
 
-
 class BaseCodeExecutor(BuilderBase):
     """Abstract base class for all code executors."""
 
@@ -99,9 +101,8 @@ class BaseCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_BaseCodeExecutor
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -117,20 +118,24 @@ class BaseCodeExecutor(BuilderBase):
         self._config["optimize_data_file"] = value
         return self
 
+
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
         self._config["stateful"] = value
         return self
+
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
         self._config["error_retry_attempts"] = value
         return self
 
+
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
         self._config["code_block_delimiters"] = value
         return self
+
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
@@ -153,7 +158,6 @@ class BaseCodeExecutor(BuilderBase):
 # Builder: BuiltInCodeExecutor
 # ======================================================================
 
-
 class BuiltInCodeExecutor(BuilderBase):
     """A code executor that uses the Model's built-in code executor."""
 
@@ -163,9 +167,8 @@ class BuiltInCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_BuiltInCodeExecutor
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -181,20 +184,24 @@ class BuiltInCodeExecutor(BuilderBase):
         self._config["optimize_data_file"] = value
         return self
 
+
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
         self._config["stateful"] = value
         return self
+
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
         self._config["error_retry_attempts"] = value
         return self
 
+
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
         self._config["code_block_delimiters"] = value
         return self
+
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
@@ -217,7 +224,6 @@ class BuiltInCodeExecutor(BuilderBase):
 # Builder: UnsafeLocalCodeExecutor
 # ======================================================================
 
-
 class UnsafeLocalCodeExecutor(BuilderBase):
     """A code executor that unsafely execute code in the current local context."""
 
@@ -227,9 +233,8 @@ class UnsafeLocalCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_UnsafeLocalCodeExecutor
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -245,20 +250,24 @@ class UnsafeLocalCodeExecutor(BuilderBase):
         self._config["optimize_data_file"] = value
         return self
 
+
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
         self._config["stateful"] = value
         return self
+
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
         self._config["error_retry_attempts"] = value
         return self
 
+
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
         self._config["code_block_delimiters"] = value
         return self
+
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
@@ -281,7 +290,6 @@ class UnsafeLocalCodeExecutor(BuilderBase):
 # Builder: VertexAiCodeExecutor
 # ======================================================================
 
-
 class VertexAiCodeExecutor(BuilderBase):
     """A code executor that uses Vertex Code Interpreter Extension to execute code."""
 
@@ -291,9 +299,8 @@ class VertexAiCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_VertexAiCodeExecutor
 
-    def __init__(
-        self,
-    ) -> None:
+
+    def __init__(self, ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -309,25 +316,30 @@ class VertexAiCodeExecutor(BuilderBase):
         self._config["optimize_data_file"] = value
         return self
 
+
     def stateful(self, value: Any) -> Self:
         """Set the ``stateful`` field."""
         self._config["stateful"] = value
         return self
+
 
     def error_retry_attempts(self, value: Any) -> Self:
         """Set the ``error_retry_attempts`` field."""
         self._config["error_retry_attempts"] = value
         return self
 
+
     def code_block_delimiters(self, value: Any) -> Self:
         """Set the ``code_block_delimiters`` field."""
         self._config["code_block_delimiters"] = value
         return self
 
+
     def execution_result_delimiters(self, value: Any) -> Self:
         """Set the ``execution_result_delimiters`` field."""
         self._config["execution_result_delimiters"] = value
         return self
+
 
     def resource_name(self, value: Any) -> Self:
         """Set the ``resource_name`` field."""

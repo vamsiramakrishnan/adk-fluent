@@ -15,15 +15,15 @@ from adk_fluent._base import BuilderBase
 # Builder: BaseAgent
 # ======================================================================
 
-
 class BaseAgent(BuilderBase):
     """Base class for all agents in Agent Development Kit."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ALIASES: dict[str, str] = {'describe': 'description'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
+
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -45,17 +45,20 @@ class BaseAgent(BuilderBase):
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def after_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def before_agent(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
+
 
     def before_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
@@ -86,41 +89,15 @@ class BaseAgent(BuilderBase):
 # Builder: Agent
 # ======================================================================
 
-
 class Agent(BuilderBase):
     """LLM-based Agent."""
 
     # --- Class-level alias / field maps ---
-    _ALIASES: dict[str, str] = {
-        "describe": "description",
-        "global_instruct": "global_instruction",
-        "history": "include_contents",
-        "include_history": "include_contents",
-        "instruct": "instruction",
-        "outputs": "output_key",
-        "static": "static_instruction",
-    }
-    _CALLBACK_ALIASES: dict[str, str] = {
-        "after_agent": "after_agent_callback",
-        "after_model": "after_model_callback",
-        "after_tool": "after_tool_callback",
-        "before_agent": "before_agent_callback",
-        "before_model": "before_model_callback",
-        "before_tool": "before_tool_callback",
-        "on_model_error": "on_model_error_callback",
-        "on_tool_error": "on_tool_error_callback",
-    }
-    _ADDITIVE_FIELDS: set[str] = {
-        "after_model_callback",
-        "before_model_callback",
-        "after_tool_callback",
-        "after_agent_callback",
-        "on_model_error_callback",
-        "on_tool_error_callback",
-        "before_tool_callback",
-        "before_agent_callback",
-    }
+    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'include_history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
+    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'on_model_error_callback', 'before_tool_callback', 'before_model_callback', 'after_tool_callback', 'before_agent_callback', 'on_tool_error_callback', 'after_agent_callback', 'after_model_callback'}
     _ADK_TARGET_CLASS = LlmAgent
+
 
     def __init__(self, name: str, model: str | None = None) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -136,34 +113,38 @@ class Agent(BuilderBase):
         self._config["description"] = value
         return self
 
+
     def global_instruct(self, value: Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]) -> Self:
         """Set the `global_instruction` field."""
         self._config["global_instruction"] = value
         return self
+
 
     def history(self, value: Literal[default, none]) -> Self:
         """Set the `include_contents` field."""
         self._config["include_contents"] = value
         return self
 
+
     def include_history(self, value: Literal[default, none]) -> Self:
         """Set the `include_contents` field."""
         self._config["include_contents"] = value
         return self
+
 
     def instruct(self, value: Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]) -> Self:
         """Set the `instruction` field."""
         self._config["instruction"] = value
         return self
 
+
     def outputs(self, value: Union[str, NoneType]) -> Self:
         """Set the `output_key` field."""
         self._config["output_key"] = value
         return self
 
-    def static(
-        self, value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]
-    ) -> Self:
+
+    def static(self, value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self:
         """Set the `static_instruction` field."""
         self._config["static_instruction"] = value
         return self
@@ -176,11 +157,13 @@ class Agent(BuilderBase):
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
+
     def after_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
+
 
     def after_model(self, *fns: Callable) -> Self:
         """Append callback(s) to `after_model_callback`. Multiple calls accumulate."""
@@ -188,11 +171,13 @@ class Agent(BuilderBase):
             self._callbacks["after_model_callback"].append(fn)
         return self
 
+
     def after_model_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_model_callback` only if condition is True."""
         if condition:
             self._callbacks["after_model_callback"].append(fn)
         return self
+
 
     def after_tool(self, *fns: Callable) -> Self:
         """Append callback(s) to `after_tool_callback`. Multiple calls accumulate."""
@@ -200,11 +185,13 @@ class Agent(BuilderBase):
             self._callbacks["after_tool_callback"].append(fn)
         return self
 
+
     def after_tool_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `after_tool_callback` only if condition is True."""
         if condition:
             self._callbacks["after_tool_callback"].append(fn)
         return self
+
 
     def before_agent(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
@@ -212,11 +199,13 @@ class Agent(BuilderBase):
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
+
     def before_agent_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
         if condition:
             self._callbacks["before_agent_callback"].append(fn)
         return self
+
 
     def before_model(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_model_callback`. Multiple calls accumulate."""
@@ -224,11 +213,13 @@ class Agent(BuilderBase):
             self._callbacks["before_model_callback"].append(fn)
         return self
 
+
     def before_model_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_model_callback` only if condition is True."""
         if condition:
             self._callbacks["before_model_callback"].append(fn)
         return self
+
 
     def before_tool(self, *fns: Callable) -> Self:
         """Append callback(s) to `before_tool_callback`. Multiple calls accumulate."""
@@ -236,11 +227,13 @@ class Agent(BuilderBase):
             self._callbacks["before_tool_callback"].append(fn)
         return self
 
+
     def before_tool_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `before_tool_callback` only if condition is True."""
         if condition:
             self._callbacks["before_tool_callback"].append(fn)
         return self
+
 
     def on_model_error(self, *fns: Callable) -> Self:
         """Append callback(s) to `on_model_error_callback`. Multiple calls accumulate."""
@@ -248,17 +241,20 @@ class Agent(BuilderBase):
             self._callbacks["on_model_error_callback"].append(fn)
         return self
 
+
     def on_model_error_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `on_model_error_callback` only if condition is True."""
         if condition:
             self._callbacks["on_model_error_callback"].append(fn)
         return self
 
+
     def on_tool_error(self, *fns: Callable) -> Self:
         """Append callback(s) to `on_tool_error_callback`. Multiple calls accumulate."""
         for fn in fns:
             self._callbacks["on_tool_error_callback"].append(fn)
         return self
+
 
     def on_tool_error_if(self, condition: bool, fn: Callable) -> Self:
         """Append callback to `on_tool_error_callback` only if condition is True."""
@@ -273,45 +269,54 @@ class Agent(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
+
     def model(self, value: Union[str, BaseLlm]) -> Self:
         """Set the ``model`` field."""
         self._config["model"] = value
         return self
+
 
     def tools(self, value: list[Union[Callable, BaseTool, BaseToolset]]) -> Self:
         """Set the ``tools`` field."""
         self._config["tools"] = value
         return self
 
+
     def generate_content_config(self, value: Union[GenerateContentConfig, NoneType]) -> Self:
         """Set the ``generate_content_config`` field."""
         self._config["generate_content_config"] = value
         return self
+
 
     def disallow_transfer_to_parent(self, value: bool) -> Self:
         """Set the ``disallow_transfer_to_parent`` field."""
         self._config["disallow_transfer_to_parent"] = value
         return self
 
+
     def disallow_transfer_to_peers(self, value: bool) -> Self:
         """Set the ``disallow_transfer_to_peers`` field."""
         self._config["disallow_transfer_to_peers"] = value
         return self
+
 
     def input_schema(self, value: Union[type[BaseModel], NoneType]) -> Self:
         """Set the ``input_schema`` field."""
         self._config["input_schema"] = value
         return self
 
+
     def output_schema(self, value: Union[type[BaseModel], NoneType]) -> Self:
         """Set the ``output_schema`` field."""
         self._config["output_schema"] = value
         return self
 
+
     def planner(self, value: Union[BasePlanner, NoneType]) -> Self:
         """Set the ``planner`` field."""
         self._config["planner"] = value
         return self
+
 
     def code_executor(self, value: Union[BaseCodeExecutor, NoneType]) -> Self:
         """Set the ``code_executor`` field."""
@@ -324,15 +329,16 @@ class Agent(BuilderBase):
         """Apply a reusable middleware stack (bulk callback registration)."""
         raise NotImplementedError("Implement in hand-written layer")
 
+
     def sub_agent(self, agent: BaseAgent | AgentBuilder) -> Self:
         """Add a sub-agent (appends). Multiple .sub_agent() calls accumulate."""
         self._lists["sub_agents"].append(agent)
         return self
 
+
     def member(self, agent: BaseAgent | AgentBuilder) -> Self:
         """Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern."""
         import warnings
-
         warnings.warn(
             ".member() is deprecated, use .sub_agent() instead",
             DeprecationWarning,
@@ -340,17 +346,18 @@ class Agent(BuilderBase):
         )
         return self.sub_agent(agent)
 
+
     def delegate(self, agent) -> Self:
         """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
         from adk_fluent._helpers import delegate_agent
-
         return delegate_agent(self, agent)
+
 
     def tool(self, fn_or_tool, *, require_confirmation: bool = False) -> Self:
         """Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."""
         from adk_fluent._helpers import _add_tool
-
         return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
+
 
     def guardrail(self, fn: Callable) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""
@@ -358,91 +365,90 @@ class Agent(BuilderBase):
         self._callbacks["after_model_callback"].append(fn)
         return self
 
+
     def ask(self, prompt: str) -> str:
         """One-shot execution. Build agent, send prompt, return response text."""
         from adk_fluent._helpers import run_one_shot
-
         return run_one_shot(self, prompt)
+
 
     async def ask_async(self, prompt: str) -> str:
         """Async one-shot execution."""
         from adk_fluent._helpers import run_one_shot_async
-
         return await run_one_shot_async(self, prompt)
+
 
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         """Streaming execution. Yields response text chunks."""
         from adk_fluent._helpers import run_stream
-
         async for chunk in run_stream(self, prompt):
             yield chunk
 
-    def test(
-        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
-    ) -> Self:
+
+    def test(self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self:
         """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
         from adk_fluent._helpers import run_inline_test
-
         return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
+
 
     def session(self):
         """Create an interactive session context manager. Use with 'async with'."""
         from adk_fluent._helpers import create_session
-
         return create_session(self)
+
 
     def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
         """Run agent against multiple prompts with bounded concurrency."""
         from adk_fluent._helpers import run_map
-
         return run_map(self, prompts, concurrency=concurrency)
+
 
     async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
         """Async batch execution against multiple prompts."""
         from adk_fluent._helpers import run_map_async
-
         return await run_map_async(self, prompts, concurrency=concurrency)
+
 
     async def events(self, prompt: str) -> AsyncIterator:
         """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
         from adk_fluent._helpers import run_events
-
         async for chunk in run_events(self, prompt):
             yield chunk
+
 
     def context(self, spec: Any) -> Self:
         """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
         self._config["_context_spec"] = spec
         return self
 
+
     def show(self) -> Self:
         """Force this agent's events to be user-facing (override topology inference)."""
         from adk_fluent._helpers import _show_agent
-
         return _show_agent(self)
+
 
     def hide(self) -> Self:
         """Force this agent's events to be internal (override topology inference)."""
         from adk_fluent._helpers import _hide_agent
-
         return _hide_agent(self)
 
-    def memory(self, mode: str = "preload") -> Self:
+
+    def memory(self, mode: str = 'preload') -> Self:
         """Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'."""
         from adk_fluent._helpers import _add_memory
-
         return _add_memory(self, mode)
+
 
     def memory_auto_save(self) -> Self:
         """Auto-save session to memory after each agent run."""
         from adk_fluent._helpers import _add_memory_auto_save
-
         return _add_memory_auto_save(self)
+
 
     def to_ir(self):
         """Convert this Agent builder to an AgentNode IR node."""
         from adk_fluent._helpers import _agent_to_ir
-
         return _agent_to_ir(self)
 
     # --- Dynamic field forwarding (safety net) ---

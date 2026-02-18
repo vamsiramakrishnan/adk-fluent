@@ -1,9 +1,8 @@
 """Tests for cross-channel contract checker (v5.1)."""
 
-import pytest
 from pydantic import BaseModel
 
-from adk_fluent import Agent, S
+from adk_fluent import Agent
 from adk_fluent._routing import Route
 from adk_fluent.testing import check_contracts
 

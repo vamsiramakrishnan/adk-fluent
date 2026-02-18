@@ -16,7 +16,6 @@ from adk_fluent._routing import Route
 from adk_fluent._visibility import infer_visibility
 from adk_fluent.testing import check_contracts
 
-
 # ======================================================================
 # 1. Classifier >> Route >> Handler
 # ======================================================================

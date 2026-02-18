@@ -275,11 +275,17 @@ __all__ = [
     "race",
     "FnAgent",
     "TapAgent",
+    "CaptureAgent",
     "FallbackAgent",
     "MapOverAgent",
     "TimeoutAgent",
     "GateAgent",
     "RaceAgent",
+    "C",
+    "CTransform",
+    "CComposite",
+    "CPipe",
+    "_compile_context_spec",
     "deep_clone_builder",
     "delegate_agent",
     "run_one_shot",
@@ -298,6 +304,10 @@ __all__ = [
     "_pipeline_to_ir",
     "_fanout_to_ir",
     "_loop_to_ir",
+    "_show_agent",
+    "_hide_agent",
+    "_add_memory",
+    "_add_memory_auto_save",
     "TransformNode",
     "TapNode",
     "FallbackNode",
@@ -307,6 +317,7 @@ __all__ = [
     "TimeoutNode",
     "RouteNode",
     "TransferNode",
+    "CaptureNode",
     "ExecutionConfig",
     "CompactionConfig",
     "AgentEvent",
@@ -323,6 +334,8 @@ __all__ = [
     "S",
     "StateDelta",
     "StateReplacement",
+    "infer_visibility",
+    "VisibilityPlugin",
     "agent",
     "Middleware",
     "_MiddlewarePlugin",
@@ -348,11 +361,17 @@ from ._base import gate
 from ._base import race
 from ._base import FnAgent
 from ._base import TapAgent
+from ._base import CaptureAgent
 from ._base import FallbackAgent
 from ._base import MapOverAgent
 from ._base import TimeoutAgent
 from ._base import GateAgent
 from ._base import RaceAgent
+from ._context import C
+from ._context import CTransform
+from ._context import CComposite
+from ._context import CPipe
+from ._context import _compile_context_spec
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot
@@ -371,6 +390,10 @@ from ._helpers import _agent_to_ir
 from ._helpers import _pipeline_to_ir
 from ._helpers import _fanout_to_ir
 from ._helpers import _loop_to_ir
+from ._helpers import _show_agent
+from ._helpers import _hide_agent
+from ._helpers import _add_memory
+from ._helpers import _add_memory_auto_save
 from ._ir import TransformNode
 from ._ir import TapNode
 from ._ir import FallbackNode
@@ -380,6 +403,7 @@ from ._ir import MapOverNode
 from ._ir import TimeoutNode
 from ._ir import RouteNode
 from ._ir import TransferNode
+from ._ir import CaptureNode
 from ._ir import ExecutionConfig
 from ._ir import CompactionConfig
 from ._ir import AgentEvent
@@ -396,6 +420,8 @@ from ._routing import Route
 from ._transforms import S
 from ._transforms import StateDelta
 from ._transforms import StateReplacement
+from ._visibility import infer_visibility
+from ._visibility import VisibilityPlugin
 from .decorators import agent
 from .middleware import Middleware
 from .middleware import _MiddlewarePlugin

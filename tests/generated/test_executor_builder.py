@@ -20,17 +20,20 @@ class TestAgentEngineSandboxCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = AgentEngineSandboxCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
 
+
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
         builder = AgentEngineSandboxCodeExecutor()
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -48,17 +51,20 @@ class TestBaseCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = BaseCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
 
+
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
         builder = BaseCodeExecutor()
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -76,17 +82,20 @@ class TestBuiltInCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = BuiltInCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
 
+
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
         builder = BuiltInCodeExecutor()
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -104,17 +113,20 @@ class TestUnsafeLocalCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = UnsafeLocalCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
 
+
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
         builder = UnsafeLocalCodeExecutor()
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -131,6 +143,7 @@ class TestVertexAiCodeExecutorBuilder:
         builder = VertexAiCodeExecutor()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
