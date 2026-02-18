@@ -9,6 +9,7 @@ from typing import Any
 
 from adk_fluent._ir import (
     AgentEvent,
+    CaptureNode,
     ExecutionConfig,
     FallbackNode,
     GateNode,
@@ -130,6 +131,7 @@ class ADKBackend:
             TimeoutNode: self._compile_timeout,
             RouteNode: self._compile_route,
             TransferNode: self._compile_transfer,
+            CaptureNode: self._compile_capture,
         }
         compiler = dispatch.get(type(node))
         if compiler is None:
@@ -374,3 +376,9 @@ class ADKBackend:
                     )
 
         return _TransferAgent(name=node.name)
+
+    def _compile_capture(self, node: CaptureNode) -> Any:
+        """CaptureNode -> CaptureAgent."""
+        from adk_fluent._base import CaptureAgent
+
+        return CaptureAgent(name=node.name, key=node.key)

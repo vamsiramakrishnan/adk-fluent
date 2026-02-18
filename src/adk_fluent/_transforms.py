@@ -227,3 +227,20 @@ class S:
 
         _set.__name__ = f"set_{'_'.join(values.keys())}"
         return _set
+
+    @staticmethod
+    def capture(key: str) -> Callable[[dict], StateDelta]:
+        """Capture the most recent user message into state[key].
+
+        The callable is a stub — real capture happens in CaptureAgent,
+        which is wired by the >> operator when _capture_key is detected.
+
+        >> S.capture("user_input") >> Agent("writer")
+        """
+
+        def _capture(state: dict) -> StateDelta:
+            return StateDelta({})
+
+        _capture.__name__ = f"capture_{key}"
+        _capture._capture_key = key
+        return _capture

@@ -25,6 +25,7 @@ __all__ = [
     "TimeoutNode",
     "RouteNode",
     "TransferNode",
+    "CaptureNode",
     # Config
     "ExecutionConfig",
     "CompactionConfig",
@@ -126,6 +127,14 @@ class TransferNode:
     condition: Callable | None = None
 
 
+@dataclass(frozen=True)
+class CaptureNode:
+    """Capture the most recent user message into session state."""
+
+    name: str
+    key: str
+
+
 # ======================================================================
 # Execution configuration
 # ======================================================================
@@ -205,5 +214,5 @@ class AgentEvent:
 # This is the base union of hand-written node types.
 # _ir_generated.py extends this with generated ADK node types.
 Node = (
-    TransformNode | TapNode | FallbackNode | RaceNode | GateNode | MapOverNode | TimeoutNode | RouteNode | TransferNode
+    TransformNode | TapNode | FallbackNode | RaceNode | GateNode | MapOverNode | TimeoutNode | RouteNode | TransferNode | CaptureNode
 )

@@ -19,6 +19,7 @@ __all__ = [
     "race",
     "FnAgent",
     "TapAgent",
+    "CaptureAgent",
     "FallbackAgent",
     "MapOverAgent",
     "TimeoutAgent",
@@ -940,6 +941,13 @@ def _fn_step(fn: Callable) -> BuilderBase:
 
     If the function returns None, it is assumed to have no state updates.
     """
+    capture_key = getattr(fn, "_capture_key", None)
+    if capture_key is not None:
+        name = getattr(fn, "__name__", f"capture_{capture_key}")
+        if not name.isidentifier():
+            name = f"capture_{capture_key}"
+        return _CaptureBuilder(name, capture_key)
+
     name = getattr(fn, "__name__", "_transform")
     # Sanitize: ADK requires valid Python identifiers for agent names
     if not name.isidentifier():
@@ -977,6 +985,36 @@ class _FnStepBuilder(BuilderBase):
             name=self._config.get("name", "fn_step"),
             fn=self._fn,
             semantics="merge",
+        )
+
+
+class _CaptureBuilder(BuilderBase):
+    """Builder wrapper for S.capture() in the expression language."""
+
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(self, step_name: str, capture_key: str):
+        self._config: dict[str, Any] = {"name": step_name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._capture_key = capture_key
+
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
+        clone._capture_key = self._capture_key
+        return clone
+
+    def build(self):
+        return CaptureAgent(name=self._config["name"], key=self._capture_key)
+
+    def to_ir(self):
+        from adk_fluent._ir import CaptureNode
+
+        return CaptureNode(
+            name=self._config.get("name", "capture"),
+            key=self._capture_key,
         )
 
 
@@ -1414,6 +1452,24 @@ class TapAgent(BaseAgent):
         # Pass read-only view — tap should never mutate state
         self._fn_ref(types.MappingProxyType(dict(ctx.session.state)))
         # Explicitly yield nothing — pure observation
+
+
+class CaptureAgent(BaseAgent):
+    """Capture the most recent user message from session events into state."""
+
+    def __init__(self, *, key: str, **kwargs):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_capture_key", key)
+
+    async def _run_async_impl(self, ctx):
+        for event in reversed(ctx.session.events):
+            if getattr(event, "author", None) == "user":
+                parts = getattr(getattr(event, "content", None), "parts", None) or []
+                texts = [getattr(p, "text", "") for p in parts if getattr(p, "text", None)]
+                if texts:
+                    ctx.session.state[self._capture_key] = "\n".join(texts)
+                    break
+        # yield nothing — pure capture, no events
 
 
 class MapOverAgent(BaseAgent):
