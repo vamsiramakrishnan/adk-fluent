@@ -37,49 +37,6 @@ class BasePlanner(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BasePlanner init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BasePlanner. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_BasePlanner:
@@ -117,49 +74,6 @@ class BuiltInPlanner(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BuiltInPlanner init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BuiltInPlanner. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_BuiltInPlanner:
@@ -196,49 +110,6 @@ class PlanReActPlanner(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_PlanReActPlanner init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_PlanReActPlanner. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 

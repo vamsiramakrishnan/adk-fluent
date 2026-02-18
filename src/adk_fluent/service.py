@@ -49,49 +49,6 @@ class BaseArtifactService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BaseArtifactService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BaseArtifactService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_BaseArtifactService:
@@ -128,49 +85,6 @@ class FileArtifactService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_FileArtifactService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_FileArtifactService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -209,49 +123,6 @@ class GcsArtifactService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_GcsArtifactService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_GcsArtifactService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_GcsArtifactService:
@@ -271,6 +142,7 @@ class InMemoryArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_InMemoryArtifactService
 
 
     def __init__(self, ) -> None:
@@ -292,48 +164,6 @@ class InMemoryArtifactService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_InMemoryArtifactService.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_InMemoryArtifactService.model_fields:
-            available = sorted(
-                set(_ADK_InMemoryArtifactService.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_InMemoryArtifactService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -377,49 +207,6 @@ class PerAgentDatabaseSessionService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_PerAgentDatabaseSessionService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_PerAgentDatabaseSessionService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_PerAgentDatabaseSessionService:
@@ -456,49 +243,6 @@ class BaseMemoryService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BaseMemoryService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BaseMemoryService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -537,49 +281,6 @@ class InMemoryMemoryService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_InMemoryMemoryService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_InMemoryMemoryService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_InMemoryMemoryService:
@@ -599,7 +300,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'express_mode_api_key', 'project', 'location', 'agent_engine_id'}
+    _KNOWN_PARAMS: set[str] = {'project', 'agent_engine_id', 'location', 'express_mode_api_key'}
 
 
     def __init__(self, ) -> None:
@@ -639,49 +340,6 @@ class VertexAiMemoryBankService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_VertexAiMemoryBankService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_VertexAiMemoryBankService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -737,49 +395,6 @@ class VertexAiRagMemoryService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_VertexAiRagMemoryService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_VertexAiRagMemoryService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_VertexAiRagMemoryService:
@@ -816,49 +431,6 @@ class BaseSessionService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BaseSessionService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BaseSessionService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -897,49 +469,6 @@ class DatabaseSessionService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_DatabaseSessionService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_DatabaseSessionService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_DatabaseSessionService:
@@ -976,49 +505,6 @@ class InMemorySessionService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_InMemorySessionService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_InMemorySessionService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -1057,49 +543,6 @@ class SqliteSessionService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_SqliteSessionService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_SqliteSessionService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_SqliteSessionService:
@@ -1119,7 +562,7 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'express_mode_api_key', 'project', 'location', 'agent_engine_id'}
+    _KNOWN_PARAMS: set[str] = {'project', 'agent_engine_id', 'location', 'express_mode_api_key'}
 
 
     def __init__(self, ) -> None:
@@ -1160,49 +603,6 @@ class VertexAiSessionService(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_VertexAiSessionService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_VertexAiSessionService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_VertexAiSessionService:
@@ -1239,49 +639,6 @@ class ForwardingArtifactService(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_ForwardingArtifactService init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_ForwardingArtifactService. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 

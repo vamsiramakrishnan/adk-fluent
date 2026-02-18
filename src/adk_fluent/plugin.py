@@ -51,49 +51,6 @@ class RecordingsPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_RecordingsPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_RecordingsPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_RecordingsPlugin:
@@ -136,49 +93,6 @@ class ReplayPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_ReplayPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_ReplayPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_ReplayPlugin:
@@ -216,49 +130,6 @@ class BasePlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BasePlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BasePlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_BasePlugin:
@@ -278,7 +149,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'table_id', 'dataset_id', 'location', 'project_id', 'config'}
+    _KNOWN_PARAMS: set[str] = {'dataset_id', 'project_id', 'config', 'table_id', 'location'}
 
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
@@ -312,49 +183,6 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BigQueryAgentAnalyticsPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_BigQueryAgentAnalyticsPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -410,49 +238,6 @@ class ContextFilterPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_ContextFilterPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_ContextFilterPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_ContextFilterPlugin:
@@ -472,7 +257,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name', 'include_system_instruction', 'output_path', 'include_session_state'}
+    _KNOWN_PARAMS: set[str] = {'name', 'include_session_state', 'output_path', 'include_system_instruction'}
 
 
     def __init__(self, ) -> None:
@@ -513,49 +298,6 @@ class DebugLoggingPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_DebugLoggingPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_DebugLoggingPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_DebugLoggingPlugin:
@@ -575,7 +317,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'global_instruction', 'name'}
+    _KNOWN_PARAMS: set[str] = {'name', 'global_instruction'}
 
 
     def __init__(self, ) -> None:
@@ -603,49 +345,6 @@ class GlobalInstructionPlugin(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_GlobalInstructionPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_GlobalInstructionPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -689,49 +388,6 @@ class LoggingPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_LoggingPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_LoggingPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_LoggingPlugin:
@@ -774,49 +430,6 @@ class MultimodalToolResultsPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_MultimodalToolResultsPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_MultimodalToolResultsPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_MultimodalToolResultsPlugin:
@@ -836,7 +449,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name', 'throw_exception_if_retry_exceeded', 'tracking_scope', 'max_retries'}
+    _KNOWN_PARAMS: set[str] = {'tracking_scope', 'name', 'throw_exception_if_retry_exceeded', 'max_retries'}
 
 
     def __init__(self, ) -> None:
@@ -876,49 +489,6 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_ReflectAndRetryToolPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_ReflectAndRetryToolPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -962,49 +532,6 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_SaveFilesAsArtifactsPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_SaveFilesAsArtifactsPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_SaveFilesAsArtifactsPlugin:
@@ -1041,49 +568,6 @@ class AgentSimulatorPlugin(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_AgentSimulatorPlugin init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on _ADK_AgentSimulatorPlugin. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 

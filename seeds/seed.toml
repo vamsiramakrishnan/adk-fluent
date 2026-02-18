@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-17T11:00:38.369321+00:00"
+generated_at = "2026-02-18T02:31:21.037334+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -10,12 +10,6 @@ output_dir = "src/adk_fluent"
 skip_fields = ["parent_agent"]
 additive_fields = ["after_agent_callback", "after_model_callback", "after_tool_callback", "before_agent_callback", "before_model_callback", "before_tool_callback", "on_model_error_callback", "on_tool_error_callback"]
 list_extend_fields = ["plugins", "sub_agents", "tools"]
-
-[field_docs]
-tools = "Set the full tools list (replaces). Use .tool() to append a single tool."
-output_schema = "Set the typed output schema (Pydantic model). Canonical method; @ operator is the shorthand."
-history = "Short alias for include_history(). Set the `include_contents` field."
-include_history = "Set the `include_contents` field. Controls which prior messages the agent sees."
 
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
@@ -271,6 +265,7 @@ extra_skip_fields = []
 [builders.LlmAgentConfig.aliases]
 describe = "description"
 history = "include_contents"
+include_history = "include_contents"
 instruct = "instruction"
 outputs = "output_key"
 static = "static_instruction"

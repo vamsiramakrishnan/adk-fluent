@@ -18,6 +18,7 @@ class BaseAgent(BuilderBase):
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
     _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADK_TARGET_CLASS = _ADK_BaseAgent
 
 
     def __init__(self, name: str) -> None:
@@ -72,48 +73,6 @@ class BaseAgent(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BaseAgent.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_BaseAgent.model_fields:
-            available = sorted(
-                set(_ADK_BaseAgent.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_BaseAgent. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_BaseAgent:
@@ -132,7 +91,8 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'include_history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_tool_callback', 'before_model_callback', 'on_tool_error_callback', 'after_agent_callback', 'after_tool_callback', 'before_agent_callback', 'after_model_callback', 'on_model_error_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'after_model_callback', 'before_tool_callback', 'on_tool_error_callback', 'on_model_error_callback', 'before_agent_callback', 'before_model_callback', 'after_tool_callback'}
+    _ADK_TARGET_CLASS = LlmAgent
 
 
     def __init__(self, name: str, model: str | None = None) -> None:
@@ -157,13 +117,13 @@ class Agent(BuilderBase):
 
 
     def history(self, value: Literal[default, none]) -> Self:
-        """Short alias for include_history(). Set the `include_contents` field."""
+        """Set the `include_contents` field."""
         self._config["include_contents"] = value
         return self
 
 
     def include_history(self, value: Literal[default, none]) -> Self:
-        """Set the `include_contents` field. Controls which prior messages the agent sees."""
+        """Set the `include_contents` field."""
         self._config["include_contents"] = value
         return self
 
@@ -180,7 +140,7 @@ class Agent(BuilderBase):
         return self
 
 
-    def static(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+    def static(self, value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self:
         """Set the `static_instruction` field."""
         self._config["static_instruction"] = value
         return self
@@ -313,7 +273,7 @@ class Agent(BuilderBase):
 
 
     def tools(self, value: list[Union[Callable, BaseTool, BaseToolset]]) -> Self:
-        """Set the full tools list (replaces). Use .tool() to append a single tool."""
+        """Set the ``tools`` field."""
         self._config["tools"] = value
         return self
 
@@ -343,7 +303,7 @@ class Agent(BuilderBase):
 
 
     def output_schema(self, value: Union[type[BaseModel], NoneType]) -> Self:
-        """Set the typed output schema (Pydantic model). Canonical method; @ operator is the shorthand."""
+        """Set the ``output_schema`` field."""
         self._config["output_schema"] = value
         return self
 
@@ -452,48 +412,6 @@ class Agent(BuilderBase):
             yield chunk
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to LlmAgent.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in LlmAgent.model_fields:
-            available = sorted(
-                set(LlmAgent.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on LlmAgent. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 

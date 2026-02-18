@@ -1,8 +1,8 @@
 {
   "adk_version": "1.25.0",
-  "scan_timestamp": "2026-02-17T02:10:39.117856+00:00",
+  "scan_timestamp": "2026-02-18T02:31:15.455847+00:00",
   "python_version": "3.11.7",
-  "total_classes": 443,
+  "total_classes": 444,
   "total_fields": 779,
   "total_callbacks": 19,
   "classes": [
@@ -1543,8 +1543,8 @@
         },
         {
           "name": "static_instruction",
-          "type_str": "Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]",
-          "type_raw": "typing.Union[google.genai.types.Content, str, google.genai.types.File, google.genai.types.Part, list[typing.Union[str, google.genai.types.File, google.genai.types.Part]], NoneType]",
+          "type_str": "Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]",
+          "type_raw": "typing.Union[google.genai.types.Content, str, PIL.Image.Image, google.genai.types.File, google.genai.types.Part, list[typing.Union[str, PIL.Image.Image, google.genai.types.File, google.genai.types.Part]], NoneType]",
           "default": "None",
           "required": false,
           "is_callback": false,
@@ -1917,7 +1917,7 @@
           "required": false,
           "is_callback": false,
           "is_list": false,
-          "description": "Optional. LlmAgent.model. Provide a model name string (e.g. \"gemini-2.5-flash\"). If not set, the model will be inherited from the ancestor or fall back to the system default (gemini-2.5-flash unless overridden via LlmAgent.set_default_model). To construct a model instance from code, use model_code.",
+          "description": "Optional. LlmAgent.model. Provide a model name string (e.g. \"gemini-2.0-flash\"). If not set, the model will be inherited from the ancestor or fall back to the system default (gemini-2.5-flash unless overridden via LlmAgent.set_default_model). To construct a model instance from code, use model_code.",
           "inherited_from": null,
           "validators": []
         },
@@ -1947,8 +1947,8 @@
         },
         {
           "name": "static_instruction",
-          "type_str": "Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]",
-          "type_raw": "typing.Union[google.genai.types.Content, str, google.genai.types.File, google.genai.types.Part, list[typing.Union[str, google.genai.types.File, google.genai.types.Part]], NoneType]",
+          "type_str": "Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]",
+          "type_raw": "typing.Union[google.genai.types.Content, str, PIL.Image.Image, google.genai.types.File, google.genai.types.Part, list[typing.Union[str, PIL.Image.Image, google.genai.types.File, google.genai.types.Part]], NoneType]",
           "default": "None",
           "required": false,
           "is_callback": false,
@@ -15467,21 +15467,21 @@
         {
           "name": "auto_rater_response_parser",
           "type_str": "AutoRaterResponseParser",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7f996262b850>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7fc0c52943d0>",
           "required": false,
           "position": 2
         },
         {
           "name": "per_invocation_results_aggregator",
           "type_str": "PerInvocationResultsAggregator",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7f996262b890>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7fc0c5294410>",
           "required": false,
           "position": 3
         },
         {
           "name": "invocation_results_summarizer",
           "type_str": "InvocationResultsSummarizer",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7f996262b8d0>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7fc0c5294450>",
           "required": false,
           "position": 4
         },
@@ -15648,6 +15648,37 @@
         "get_effective_rubrics_list"
       ],
       "doc": "An Evaluator for rubric based assessment of the agent's usage of Tools.",
+      "inspection_mode": "init_signature",
+      "init_params": [
+        {
+          "name": "eval_metric",
+          "type_str": "EvalMetric",
+          "default": null,
+          "required": true,
+          "position": 0
+        }
+      ]
+    },
+    {
+      "name": "SafetyEvaluatorV1",
+      "qualname": "google.adk.evaluation.safety_evaluator.SafetyEvaluatorV1",
+      "module": "google.adk.evaluation.safety_evaluator",
+      "is_pydantic": false,
+      "bases": [
+        "Evaluator"
+      ],
+      "mro_chain": [
+        "SafetyEvaluatorV1",
+        "Evaluator",
+        "ABC"
+      ],
+      "fields": [],
+      "own_fields": [],
+      "methods": [
+        "criterion_type",
+        "evaluate_invocations"
+      ],
+      "doc": "Evaluates safety (harmlessness) of an Agent's Response.",
       "inspection_mode": "init_signature",
       "init_params": [
         {
@@ -26135,7 +26166,7 @@
           "name": "httpx_client_factory",
           "type_str": "CheckableMcpHttpClientFactory",
           "type_raw": "<class 'google.adk.tools.mcp_tool.mcp_session_manager.CheckableMcpHttpClientFactory'>",
-          "default": "<function create_mcp_http_client at 0x7f996be18680>",
+          "default": "<function create_mcp_http_client at 0x7fc0cbaba660>",
           "required": false,
           "is_callback": false,
           "is_list": false,

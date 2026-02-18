@@ -144,3 +144,37 @@ class TestPrepareBuildConfig:
         assert not isinstance(resolved, BuilderBase)
         assert hasattr(resolved, "name")
         assert resolved.name == "sub"
+
+
+# --- Task 1: __getattr__ consolidation regression tests ---
+
+def test_getattr_resolves_known_pydantic_field():
+    """BuilderBase.__getattr__ should resolve fields via _ADK_TARGET_CLASS.model_fields."""
+    from adk_fluent import Agent
+    a = Agent("test")
+    # 'description' is a known LlmAgent field — should return a setter, not raise
+    result = a.description("hello")
+    assert result is a  # Chaining
+
+def test_getattr_rejects_unknown_field():
+    """BuilderBase.__getattr__ should raise AttributeError for unknown fields."""
+    from adk_fluent import Agent
+    a = Agent("test")
+    import pytest
+    with pytest.raises(AttributeError, match="not a recognized"):
+        a.totally_fake_field
+
+def test_getattr_resolves_callback_alias():
+    """BuilderBase.__getattr__ should handle callback aliases."""
+    from adk_fluent import Agent
+    a = Agent("test")
+    result = a.after_agent(lambda ctx: None)
+    assert result is a
+
+def test_getattr_handles_init_signature_mode():
+    """Builders with inspection_mode='init_signature' use _KNOWN_PARAMS."""
+    from adk_fluent import FunctionTool
+    t = FunctionTool(lambda: None)
+    import pytest
+    with pytest.raises(AttributeError, match="not a recognized"):
+        t.not_a_param

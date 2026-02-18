@@ -231,6 +231,11 @@ def gen_alias_maps(spec: BuilderSpec) -> str:
     else:
         lines.append("    _ADDITIVE_FIELDS: set[str] = set()")
 
+    # Emit _ADK_TARGET_CLASS for Pydantic-mode builders (used by BuilderBase.__getattr__)
+    if not spec.is_composite and not spec.is_standalone and spec.inspection_mode != "init_signature":
+        import_name = _adk_import_name(spec)
+        lines.append(f"    _ADK_TARGET_CLASS = {import_name}")
+
     # For init_signature mode, emit a static _KNOWN_PARAMS set from the manifest
     if spec.inspection_mode == "init_signature" and spec.init_params:
         param_names = sorted({p["name"] for p in spec.init_params
@@ -544,102 +549,12 @@ def gen_field_methods(spec: BuilderSpec) -> str:
 
 
 def gen_getattr_method(spec: BuilderSpec) -> str:
-    """Generate the __getattr__ forwarding method."""
-    if spec.is_composite or spec.is_standalone:
-        return ""  # No Pydantic introspection for these
+    """Generate the __getattr__ forwarding method.
 
-    class_short = _adk_import_name(spec)
-
-    if spec.inspection_mode == "init_signature":
-        return f'''
-    def __getattr__(self, name: str):
-        """Forward unknown methods to {class_short} init params for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against static _KNOWN_PARAMS set (non-Pydantic class)
-        if field_name not in _KNOWN_PARAMS:
-            available = sorted(
-                _KNOWN_PARAMS
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{{name}}' is not a recognized parameter on {class_short}. "
-                f"Available: {{', '.join(available)}}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-'''
-
-    # Default: Pydantic mode
-    return f'''
-    def __getattr__(self, name: str):
-        """Forward unknown methods to {class_short}.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in {class_short}.model_fields:
-            available = sorted(
-                set({class_short}.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{{name}}' is not a recognized field on {class_short}. "
-                f"Available: {{', '.join(available)}}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-'''
+    Returns empty string — __getattr__ is now provided by BuilderBase,
+    parameterized via _ADK_TARGET_CLASS and _KNOWN_PARAMS class attributes.
+    """
+    return ""
 
 
 def gen_build_method(spec: BuilderSpec) -> str:

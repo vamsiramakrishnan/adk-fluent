@@ -21,6 +21,7 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_AgentEngineSandboxCodeExecutor
 
 
     def __init__(self, ) -> None:
@@ -73,48 +74,6 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_AgentEngineSandboxCodeExecutor.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_AgentEngineSandboxCodeExecutor.model_fields:
-            available = sorted(
-                set(_ADK_AgentEngineSandboxCodeExecutor.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_AgentEngineSandboxCodeExecutor. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_AgentEngineSandboxCodeExecutor:
@@ -134,6 +93,7 @@ class BaseCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_BaseCodeExecutor
 
 
     def __init__(self, ) -> None:
@@ -179,48 +139,6 @@ class BaseCodeExecutor(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BaseCodeExecutor.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_BaseCodeExecutor.model_fields:
-            available = sorted(
-                set(_ADK_BaseCodeExecutor.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_BaseCodeExecutor. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -241,6 +159,7 @@ class BuiltInCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_BuiltInCodeExecutor
 
 
     def __init__(self, ) -> None:
@@ -286,48 +205,6 @@ class BuiltInCodeExecutor(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_BuiltInCodeExecutor.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_BuiltInCodeExecutor.model_fields:
-            available = sorted(
-                set(_ADK_BuiltInCodeExecutor.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_BuiltInCodeExecutor. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 
@@ -348,6 +225,7 @@ class UnsafeLocalCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_UnsafeLocalCodeExecutor
 
 
     def __init__(self, ) -> None:
@@ -394,48 +272,6 @@ class UnsafeLocalCodeExecutor(BuilderBase):
 
     # --- Dynamic field forwarding (safety net) ---
 
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_UnsafeLocalCodeExecutor.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_UnsafeLocalCodeExecutor.model_fields:
-            available = sorted(
-                set(_ADK_UnsafeLocalCodeExecutor.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_UnsafeLocalCodeExecutor. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
-
     # --- Terminal methods ---
 
     def build(self) -> _ADK_UnsafeLocalCodeExecutor:
@@ -455,6 +291,7 @@ class VertexAiCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_VertexAiCodeExecutor
 
 
     def __init__(self, ) -> None:
@@ -506,48 +343,6 @@ class VertexAiCodeExecutor(BuilderBase):
     # --- Extra methods ---
 
     # --- Dynamic field forwarding (safety net) ---
-
-    def __getattr__(self, name: str):
-        """Forward unknown methods to _ADK_VertexAiCodeExecutor.model_fields for zero-maintenance compatibility."""
-        if name.startswith("_"):
-            raise AttributeError(name)
-
-        # Resolve through alias map (class-level constants)
-        _ALIASES = self.__class__._ALIASES
-        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
-        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
-
-        field_name = _ALIASES.get(name, name)
-
-        # Check if it's a callback alias
-        if name in _CALLBACK_ALIASES:
-            cb_field = _CALLBACK_ALIASES[name]
-            def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
-            return _cb_setter
-
-        # Validate against actual Pydantic schema
-        if field_name not in _ADK_VertexAiCodeExecutor.model_fields:
-            available = sorted(
-                set(_ADK_VertexAiCodeExecutor.model_fields.keys())
-                | set(_ALIASES.keys())
-                | set(_CALLBACK_ALIASES.keys())
-            )
-            raise AttributeError(
-                f"'{name}' is not a recognized field on _ADK_VertexAiCodeExecutor. "
-                f"Available: {', '.join(available)}"
-            )
-
-        # Return a setter that stores value and returns self for chaining
-        def _setter(value: Any) -> Self:
-            if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
-            else:
-                self._config[field_name] = value
-            return self
-
-        return _setter
 
     # --- Terminal methods ---
 

@@ -46,6 +46,79 @@ class BuilderBase:
     _ALIASES: dict[str, str]
     _CALLBACK_ALIASES: dict[str, str]
     _ADDITIVE_FIELDS: set[str]
+    _ADK_TARGET_CLASS: type | None = None
+    _KNOWN_PARAMS: set[str] | None = None
+
+    # ------------------------------------------------------------------
+    # Shared __getattr__: dynamic field forwarding
+    # ------------------------------------------------------------------
+
+    def __getattr__(self, name: str):
+        """Forward unknown attribute access to a config-setter for chaining.
+
+        Validates field names against the ADK target class (Pydantic mode)
+        or a static _KNOWN_PARAMS set (init_signature mode). If neither is
+        configured (composite/standalone/primitive builders), any field is
+        accepted.
+        """
+        if name.startswith("_"):
+            raise AttributeError(name)
+
+        _ALIASES = self.__class__._ALIASES
+        _CALLBACK_ALIASES = self.__class__._CALLBACK_ALIASES
+        _ADDITIVE_FIELDS = self.__class__._ADDITIVE_FIELDS
+
+        field_name = _ALIASES.get(name, name)
+
+        # Check if it's a callback alias
+        if name in _CALLBACK_ALIASES:
+            cb_field = _CALLBACK_ALIASES[name]
+            def _cb_setter(fn: Callable) -> Self:
+                self._callbacks[cb_field].append(fn)
+                return self
+            return _cb_setter
+
+        # Validate field name
+        _ADK_TARGET_CLASS = self.__class__._ADK_TARGET_CLASS
+        _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
+
+        if _ADK_TARGET_CLASS is not None:
+            # Pydantic mode: validate against model_fields
+            if field_name not in _ADK_TARGET_CLASS.model_fields:
+                available = sorted(
+                    set(_ADK_TARGET_CLASS.model_fields.keys())
+                    | set(_ALIASES.keys())
+                    | set(_CALLBACK_ALIASES.keys())
+                )
+                cls_name = _ADK_TARGET_CLASS.__name__
+                raise AttributeError(
+                    f"'{name}' is not a recognized field on {cls_name}. "
+                    f"Available: {', '.join(available)}"
+                )
+        elif _KNOWN_PARAMS is not None:
+            # init_signature mode: validate against static param set
+            if field_name not in _KNOWN_PARAMS:
+                available = sorted(
+                    _KNOWN_PARAMS
+                    | set(_ALIASES.keys())
+                    | set(_CALLBACK_ALIASES.keys())
+                )
+                cls_name = self.__class__.__name__
+                raise AttributeError(
+                    f"'{name}' is not a recognized parameter on {cls_name}. "
+                    f"Available: {', '.join(available)}"
+                )
+        # else: composite/standalone/primitive — accept any field
+
+        # Return a setter that stores value and returns self for chaining
+        def _setter(value: Any) -> Self:
+            if field_name in _ADDITIVE_FIELDS:
+                self._callbacks[field_name].append(value)
+            else:
+                self._config[field_name] = value
+            return self
+
+        return _setter
 
     # ------------------------------------------------------------------
     # Task 2: __repr__
