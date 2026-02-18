@@ -110,3 +110,23 @@ Real-world patterns: state management, presets, decorators, serialization, and m
 33_state_transforms
 34_full_algebra
 ```
+
+## v4 Features
+
+IR compilation, middleware, contracts, testing, dependency injection, and visualization.
+
+- [IR and Backends](35_ir_and_backends.md)
+- [Middleware](36_middleware.md)
+- [Contracts and Testing](37_contracts_and_testing.md)
+- [Dependency Injection](38_dependency_injection.md)
+- [Graph Visualization](39_visualization.md)
+
+```{toctree}
+:hidden:
+
+35_ir_and_backends
+36_middleware
+37_contracts_and_testing
+38_dependency_injection
+39_visualization
+```

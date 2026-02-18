@@ -93,3 +93,51 @@ assert len(built.sub_agents) >= 3
 :::{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::
+
+## Data Contracts
+
+Add `produces()` / `consumes()` to verify data flow at build time:
+
+```python
+from pydantic import BaseModel
+from adk_fluent import Agent
+from adk_fluent._routing import Route
+from adk_fluent.testing import check_contracts
+
+class Intent(BaseModel):
+    intent: str
+
+class Response(BaseModel):
+    text: str
+    confidence: float
+
+# Annotate the pipeline steps with contracts
+classifier = (
+    Agent("classifier")
+    .instruct("Classify user request.")
+    .outputs("intent")
+    .produces(Intent)
+)
+handler = Agent("handler").instruct("Handle request.").consumes(Intent).produces(Response)
+
+pipeline = classifier >> handler
+issues = check_contracts(pipeline.to_ir())
+```
+
+```python
+assert issues == []
+```
+
+## Visualization
+
+```python
+print(pipeline.to_mermaid())
+# Generates a Mermaid diagram showing the pipeline structure
+# with data-flow annotations for produces/consumes
+```
+
+```python
+mermaid = pipeline.to_mermaid()
+assert "graph" in mermaid
+assert "Intent" in mermaid
+```

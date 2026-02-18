@@ -88,3 +88,39 @@ assert detailed._config["instruction"] == "Analyze data thoroughly."
 assert detailed._config["output_key"] == "analysis"
 assert detailed._config["_output_schema"] is ReportSchema
 ```
+
+## Inter-Agent Data Contracts
+
+While `@` sets the output schema for a single agent, `.produces()` and `.consumes()` declare inter-agent data contracts for pipeline verification:
+
+```python
+from pydantic import BaseModel
+from adk_fluent import Agent
+from adk_fluent.testing import check_contracts
+
+class Analysis(BaseModel):
+    summary: str
+    key_points: list[str]
+
+class Report(BaseModel):
+    title: str
+    body: str
+
+# produces/consumes enable build-time contract checking
+pipeline = (
+    Agent("analyst").produces(Analysis)
+    >> Agent("writer").consumes(Analysis).produces(Report) @ Report
+    >> Agent("editor").consumes(Report)
+)
+
+# Verify all data contracts are satisfied
+issues = check_contracts(pipeline.to_ir())
+```
+
+```python
+assert issues == []
+```
+
+:::{note}
+`@` (output_schema) tells the LLM what shape to return. `.produces()` / `.consumes()` tell the pipeline what state keys flow between agents. They complement each other.
+:::
