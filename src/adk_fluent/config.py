@@ -395,7 +395,9 @@ class LlmAgentConfig(BuilderBase):
         self._config["output_key"] = value
         return self
 
-    def static(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+    def static(
+        self, value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]
+    ) -> Self:
         """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
         self._config["static_instruction"] = value
         return self
@@ -1091,7 +1093,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_cache_size_bytes", "auto_flush_threshold", "max_cache_duration_seconds"}
+    _KNOWN_PARAMS: set[str] = {"max_cache_size_bytes", "max_cache_duration_seconds", "auto_flush_threshold"}
 
     def __init__(
         self,
@@ -1205,23 +1207,23 @@ class BigQueryLoggerConfig(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "connection_id",
-        "retry_config",
-        "enabled",
-        "max_content_length",
-        "event_allowlist",
-        "clustering_fields",
-        "content_formatter",
-        "batch_flush_interval",
-        "event_denylist",
-        "custom_tags",
-        "log_session_metadata",
+        "batch_size",
         "gcs_bucket_name",
         "log_multi_modal_content",
-        "queue_max_size",
-        "shutdown_timeout",
+        "custom_tags",
+        "event_allowlist",
+        "batch_flush_interval",
+        "content_formatter",
         "table_id",
-        "batch_size",
+        "connection_id",
+        "queue_max_size",
+        "max_content_length",
+        "log_session_metadata",
+        "enabled",
+        "retry_config",
+        "clustering_fields",
+        "event_denylist",
+        "shutdown_timeout",
     }
 
     def __init__(
@@ -1346,7 +1348,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"initial_delay", "multiplier", "max_retries", "max_delay"}
+    _KNOWN_PARAMS: set[str] = {"max_retries", "max_delay", "initial_delay", "multiplier"}
 
     def __init__(
         self,

@@ -111,14 +111,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "on_model_error_callback",
-        "before_agent_callback",
-        "before_model_callback",
-        "after_model_callback",
-        "on_tool_error_callback",
         "after_agent_callback",
-        "after_tool_callback",
         "before_tool_callback",
+        "after_tool_callback",
+        "after_model_callback",
+        "before_agent_callback",
+        "on_model_error_callback",
+        "before_model_callback",
+        "on_tool_error_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -161,7 +161,9 @@ class Agent(BuilderBase):
         self._config["output_key"] = value
         return self
 
-    def static(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+    def static(
+        self, value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]
+    ) -> Self:
         """Set the `static_instruction` field."""
         self._config["static_instruction"] = value
         return self
