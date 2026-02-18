@@ -1,4 +1,5 @@
 """Tests for .stream() -- builder mechanics only."""
+
 from adk_fluent.agent import Agent
 
 

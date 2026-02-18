@@ -40,9 +40,8 @@ branch_b = Agent("b1").model("gemini-2.0-flash") // Agent("b2").model("gemini-2.
 parallel_fallbacks = branch_a | branch_b
 
 # // works with functions too
-fallback_with_fn = (
-    Agent("primary").model("gemini-2.5-flash").instruct("Try this.")
-    // (lambda s: {"result": "static fallback"})
+fallback_with_fn = Agent("primary").model("gemini-2.5-flash").instruct("Try this.") // (
+    lambda s: {"result": "static fallback"}
 )
 
 root_agent = fallback_with_fn.build()

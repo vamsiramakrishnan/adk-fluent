@@ -1,13 +1,15 @@
 """Tests for the complete expression language: Route, proceed_if, loop_until."""
-import pytest
-from adk_fluent import Agent, Pipeline
-from adk_fluent.workflow import Loop, FanOut
-from adk_fluent._routing import Route, _make_route_agent, _make_checkpoint_agent
 
+import pytest
+
+from adk_fluent import Agent, Pipeline
+from adk_fluent._routing import Route, _make_checkpoint_agent, _make_route_agent
+from adk_fluent.workflow import Loop
 
 # ======================================================================
 # Route -- Deterministic Branching
 # ======================================================================
+
 
 class TestRouteBuilder:
     """Tests for the Route fluent builder."""
@@ -74,12 +76,7 @@ class TestRouteBuilder:
         premium = Agent("premium").model("gemini-2.5-flash")
         standard = Agent("standard").model("gemini-2.5-flash")
         basic = Agent("basic").model("gemini-2.5-flash")
-        route = (
-            Route("score")
-            .gt(0.8, premium)
-            .gt(0.5, standard)
-            .otherwise(basic)
-        )
+        route = Route("score").gt(0.8, premium).gt(0.5, standard).otherwise(basic)
         assert len(route._rules) == 2
         assert route._default is basic
 
@@ -116,6 +113,7 @@ class TestRouteBuild:
     def test_route_build_returns_base_agent(self):
         """Route.build() returns a BaseAgent instance."""
         from google.adk.agents.base_agent import BaseAgent
+
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         b = Agent("b").model("gemini-2.5-flash").instruct("B")
         route = Route("key").eq("x", a).eq("y", b)
@@ -148,6 +146,7 @@ class TestRouteBuild:
     def test_route_build_auto_builds_sub_builders(self):
         """Route.build() auto-builds sub-agent builders."""
         from google.adk.agents.llm_agent import LlmAgent
+
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         route = Route("key").eq("x", a)
         result = route.build()
@@ -183,6 +182,7 @@ class TestRouteRepr:
 # Route >> Integration with Pipeline Operators
 # ======================================================================
 
+
 class TestRouteOperatorIntegration:
     """Tests for Route with >> operator."""
 
@@ -209,11 +209,13 @@ class TestRouteOperatorIntegration:
         assert sub_agents[0] is classifier
         # Second is the built route agent (BaseAgent instance)
         from google.adk.agents.base_agent import BaseAgent
+
         assert isinstance(sub_agents[1], BaseAgent)
 
     def test_dict_rshift_uses_route(self):
         """agent >> dict creates deterministic Route (not LLM coordinator)."""
         from google.adk.agents.base_agent import BaseAgent
+
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         b = Agent("b").model("gemini-2.5-flash").instruct("B")
@@ -247,6 +249,7 @@ class TestRouteOperatorIntegration:
 # ======================================================================
 # proceed_if -- Conditional Gating
 # ======================================================================
+
 
 class TestProceedIf:
     """Tests for proceed_if conditional gating."""
@@ -309,12 +312,7 @@ class TestProceedIf:
 
     def test_proceed_if_multiple_gates(self):
         """Multiple proceed_if() calls accumulate callbacks."""
-        agent = (
-            Agent("a")
-            .model("gemini-2.5-flash")
-            .proceed_if(lambda s: s.get("x"))
-            .proceed_if(lambda s: s.get("y"))
-        )
+        agent = Agent("a").model("gemini-2.5-flash").proceed_if(lambda s: s.get("x")).proceed_if(lambda s: s.get("y"))
         assert len(agent._callbacks["before_agent_callback"]) == 2
 
     def test_proceed_if_in_pipeline(self):
@@ -339,6 +337,7 @@ class TestProceedIf:
                 @staticmethod
                 def get(key, default=None):
                     return {}.get(key, default)
+
                 def __getitem__(self, key):
                     raise KeyError(key)
 
@@ -349,6 +348,7 @@ class TestProceedIf:
 # ======================================================================
 # loop_until -- Conditional Loop Exit
 # ======================================================================
+
 
 class TestLoopUntil:
     """Tests for loop_until conditional loop exit."""
@@ -428,13 +428,7 @@ class TestUntilOnLoop:
         writer = Agent("writer").model("gemini-2.5-flash").instruct("Write")
         reviewer = Agent("reviewer").model("gemini-2.5-flash").instruct("Review")
 
-        loop = (
-            Loop("refine")
-            .step(writer)
-            .step(reviewer)
-            .until(lambda s: s.get("quality") == "good")
-            .max_iterations(5)
-        )
+        loop = Loop("refine").step(writer).step(reviewer).until(lambda s: s.get("quality") == "good").max_iterations(5)
         assert isinstance(loop, Loop)
         assert loop._config["max_iterations"] == 5
         assert "_until_predicate" in loop._config
@@ -450,12 +444,14 @@ class TestUntilOnLoop:
 # _make_checkpoint_agent -- Internal
 # ======================================================================
 
+
 class TestCheckpointAgent:
     """Tests for the internal checkpoint agent."""
 
     def test_checkpoint_agent_is_base_agent(self):
         """Checkpoint agent is a BaseAgent instance."""
         from google.adk.agents.base_agent import BaseAgent
+
         agent = _make_checkpoint_agent("check", lambda s: True)
         assert isinstance(agent, BaseAgent)
 
@@ -469,6 +465,7 @@ class TestCheckpointAgent:
 # _make_route_agent -- Internal
 # ======================================================================
 
+
 class TestRouteAgent:
     """Tests for the internal route agent."""
 
@@ -476,6 +473,7 @@ class TestRouteAgent:
         """Route agent is a BaseAgent instance."""
         from google.adk.agents.base_agent import BaseAgent
         from google.adk.agents.llm_agent import LlmAgent
+
         sub = LlmAgent(name="a", model="gemini-2.5-flash")
         agent = _make_route_agent("route_key", [(lambda s: True, sub)], None, [sub])
         assert isinstance(agent, BaseAgent)
@@ -483,6 +481,7 @@ class TestRouteAgent:
     def test_route_agent_has_sub_agents(self):
         """Route agent registers all sub-agents."""
         from google.adk.agents.llm_agent import LlmAgent
+
         a = LlmAgent(name="a", model="gemini-2.5-flash")
         b = LlmAgent(name="b", model="gemini-2.5-flash")
         agent = _make_route_agent("route_key", [(lambda s: True, a)], b, [a, b])
@@ -492,6 +491,7 @@ class TestRouteAgent:
 # ======================================================================
 # Full Expression Language Composition
 # ======================================================================
+
 
 class TestFullComposition:
     """Tests for composing all five control flow primitives."""
@@ -527,8 +527,6 @@ class TestFullComposition:
         writer = Agent("writer").model("gemini-2.5-flash").instruct("Write")
         reviewer = Agent("reviewer").model("gemini-2.5-flash").instruct("Review").outputs("quality")
 
-        result = (writer >> reviewer).loop_until(
-            lambda s: s.get("quality") == "good", max_iterations=5
-        )
+        result = (writer >> reviewer).loop_until(lambda s: s.get("quality") == "good", max_iterations=5)
         assert isinstance(result, Loop)
         assert result._config["max_iterations"] == 5

@@ -74,9 +74,7 @@ END_DATE = "end_date"
 # Pydantic output schemas (consolidated from shared_libraries/types.py)
 # ---------------------------------------------------------------------------
 
-json_response_config = GenerateContentConfig(
-    response_mime_type="application/json"
-)
+json_response_config = GenerateContentConfig(response_mime_type="application/json")
 
 
 class Destination(BaseModel):
@@ -263,9 +261,7 @@ def map_tool(key: str, tool_context: ToolContext):
                     c = data["candidates"][0]
                     poi["place_id"] = c.get("place_id")
                     poi["map_url"] = (
-                        f"https://www.google.com/maps/place/?q=place_id:{c['place_id']}"
-                        if c.get("place_id")
-                        else None
+                        f"https://www.google.com/maps/place/?q=place_id:{c['place_id']}" if c.get("place_id") else None
                     )
                     loc = c.get("geometry", {}).get("location", {})
                     if loc:
@@ -280,9 +276,7 @@ def map_tool(key: str, tool_context: ToolContext):
 # --- In-trip monitoring tools ---
 
 
-def flight_status_check(
-    flight_number: str, flight_date: str, checkin_time: str, departure_time: str
-):
+def flight_status_check(flight_number: str, flight_date: str, checkin_time: str, departure_time: str):
     """Checks the status of a flight, given its flight_number, date, checkin_time and departure_time."""
     return {"status": f"Flight {flight_number} checked"}
 
@@ -294,9 +288,7 @@ def event_booking_check(event_name: str, event_date: str, event_location: str):
     return {"status": f"{event_name} checked"}
 
 
-def weather_impact_check(
-    activity_name: str, activity_date: str, activity_location: str
-):
+def weather_impact_check(activity_name: str, activity_date: str, activity_location: str):
     """Checks the status of an outdoor activity that may be impacted by weather."""
     return {"status": f"{activity_name} checked"}
 
@@ -382,9 +374,7 @@ def transit_coordination(readonly_context: ReadonlyContext):
     if state.get(ITIN_DATETIME, ""):
         current_datetime = state[ITIN_DATETIME]
 
-    travel_from, travel_to, leave_by, arrive_by = _find_segment(
-        profile, itinerary, current_datetime
-    )
+    travel_from, travel_to, leave_by, arrive_by = _find_segment(profile, itinerary, current_datetime)
 
     return LOGISTIC_PROMPT_TEMPLATE.format(
         CURRENT_TIME=current_datetime,
@@ -543,9 +533,7 @@ create_reservation = (
 )
 
 payment_choice = (
-    Agent("payment_choice", MODEL)
-    .describe("Show the users available payment choices.")
-    .instruct(PAYMENT_CHOICE_PROMPT)
+    Agent("payment_choice", MODEL).describe("Show the users available payment choices.").instruct(PAYMENT_CHOICE_PROMPT)
 )
 
 process_payment = (
@@ -556,10 +544,7 @@ process_payment = (
 
 booking_agent = (
     Agent("booking_agent", MODEL)
-    .describe(
-        "Given an itinerary, complete the bookings of items by handling "
-        "payment choices and processing."
-    )
+    .describe("Given an itinerary, complete the bookings of items by handling payment choices and processing.")
     .instruct(BOOKING_AGENT_PROMPT)
     .delegate(create_reservation)
     .delegate(payment_choice)
@@ -650,14 +635,16 @@ root_agent = (
     Agent("root_agent", "gemini-2.0-flash-001")
     .describe("A Travel Concierge using the services of multiple sub-agents")
     .instruct(ROOT_AGENT_PROMPT)
-    .sub_agents([
-        inspiration_agent.build(),
-        planning_agent.build(),
-        booking_agent.build(),
-        pre_trip_agent.build(),
-        in_trip_agent.build(),
-        post_trip_agent.build(),
-    ])
+    .sub_agents(
+        [
+            inspiration_agent.build(),
+            planning_agent.build(),
+            booking_agent.build(),
+            pre_trip_agent.build(),
+            in_trip_agent.build(),
+            post_trip_agent.build(),
+        ]
+    )
     .before_agent(_load_precreated_itinerary)
     .build()
 )

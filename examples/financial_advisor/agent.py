@@ -35,22 +35,14 @@ data_analyst = (
 )
 
 trading_analyst = (
-    Agent("trading_analyst_agent", MODEL)
-    .instruct(TRADING_ANALYST_PROMPT)
-    .outputs("proposed_trading_strategies_output")
+    Agent("trading_analyst_agent", MODEL).instruct(TRADING_ANALYST_PROMPT).outputs("proposed_trading_strategies_output")
 )
 
 execution_analyst = (
-    Agent("execution_analyst_agent", MODEL)
-    .instruct(EXECUTION_ANALYST_PROMPT)
-    .outputs("execution_plan_output")
+    Agent("execution_analyst_agent", MODEL).instruct(EXECUTION_ANALYST_PROMPT).outputs("execution_plan_output")
 )
 
-risk_analyst = (
-    Agent("risk_analyst_agent", MODEL)
-    .instruct(RISK_ANALYST_PROMPT)
-    .outputs("final_risk_assessment_output")
-)
+risk_analyst = Agent("risk_analyst_agent", MODEL).instruct(RISK_ANALYST_PROMPT).outputs("final_risk_assessment_output")
 
 # --- Root coordinator ---
 

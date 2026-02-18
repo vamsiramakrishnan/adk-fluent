@@ -1,6 +1,7 @@
 """Tests for BuilderBase.__repr__."""
+
 from adk_fluent.agent import Agent
-from adk_fluent.workflow import Pipeline, FanOut, Loop
+from adk_fluent.workflow import Pipeline
 
 
 def _log_fn(ctx):

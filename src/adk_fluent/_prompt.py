@@ -17,9 +17,8 @@ Usage:
 Compiles to a single instruction string. Each section is optional and reusable.
 Template variables ({key}) pass through for ADK session-state injection.
 """
-from __future__ import annotations
 
-from typing import Any
+from __future__ import annotations
 
 __all__ = ["Prompt"]
 

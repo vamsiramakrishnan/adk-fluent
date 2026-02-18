@@ -1,12 +1,12 @@
 """Tests for the backend protocol."""
-import pytest
-from adk_fluent.backends._protocol import Backend, final_text
+
 from adk_fluent._ir import AgentEvent
+from adk_fluent.backends._protocol import Backend, final_text
 
 
 def test_backend_is_runtime_checkable():
     """Backend should be a runtime-checkable Protocol."""
-    assert hasattr(Backend, '__protocol_attrs__') or hasattr(Backend, '__abstractmethods__')
+    assert hasattr(Backend, "__protocol_attrs__") or hasattr(Backend, "__abstractmethods__")
 
 
 def test_final_text_extracts_last_final_content():

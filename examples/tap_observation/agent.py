@@ -21,9 +21,11 @@ pipeline_fluent = (
     >> Agent("writer").model("gemini-2.5-flash").instruct("Write.")
 )
 
+
 # Named functions keep their name
 def log_draft(state):
     print(f"Draft length: {len(state.get('draft', ''))}")
+
 
 pipeline_with_named_tap = (
     Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.")
@@ -32,9 +34,6 @@ pipeline_with_named_tap = (
 )
 
 # .tap() method on any builder -- convenience for inline chaining
-pipeline_method = (
-    Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze.")
-    .tap(lambda s: print("Analysis done"))
-)
+pipeline_method = Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze.").tap(lambda s: print("Analysis done"))
 
 root_agent = pipeline_method.build()

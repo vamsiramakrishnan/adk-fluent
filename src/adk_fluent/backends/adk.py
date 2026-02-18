@@ -1,9 +1,11 @@
 """ADK Backend -- compiles IR node trees into native ADK objects."""
+
 from __future__ import annotations
 
 __all__ = ["ADKBackend"]
 
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 from adk_fluent._ir import (
     AgentEvent,
@@ -57,11 +59,13 @@ class ADKBackend:
         # Resumability
         if cfg.resumable:
             from google.adk.apps.app import ResumabilityConfig
+
             app_kwargs["resumability_config"] = ResumabilityConfig(is_resumable=True)
 
         # Compaction
         if cfg.compaction:
             from google.adk.apps.app import EventsCompactionConfig
+
             ecc_kwargs: dict[str, Any] = {
                 "compaction_interval": cfg.compaction.interval,
                 "overlap_size": cfg.compaction.overlap,
@@ -75,6 +79,7 @@ class ADKBackend:
         # Middleware -> plugin
         if cfg.middlewares:
             from adk_fluent.middleware import _MiddlewarePlugin
+
             plugin = _MiddlewarePlugin(
                 name=f"{cfg.app_name}_middleware",
                 stack=list(cfg.middlewares),
@@ -90,8 +95,7 @@ class ADKBackend:
         (needs API keys).
         """
         raise NotImplementedError(
-            "ADKBackend.run() requires a session service and API key. "
-            "Use compile() for unit-testable compilation."
+            "ADKBackend.run() requires a session service and API key. Use compile() for unit-testable compilation."
         )
 
     async def stream(self, compiled: Any, prompt: str, **kwargs) -> AsyncIterator[AgentEvent]:
@@ -101,8 +105,7 @@ class ADKBackend:
         (needs API keys).
         """
         raise NotImplementedError(
-            "ADKBackend.stream() requires a session service and API key. "
-            "Use compile() for unit-testable compilation."
+            "ADKBackend.stream() requires a session service and API key. Use compile() for unit-testable compilation."
         )
         # Make this an async generator to satisfy the protocol
         yield  # type: ignore[misc]  # pragma: no cover
@@ -147,6 +150,7 @@ class ADKBackend:
     def _compile_agent(self, node: AgentNode) -> Any:
         """AgentNode -> LlmAgent."""
         from google.adk.agents.llm_agent import LlmAgent
+
         from adk_fluent._base import _compose_callbacks
 
         kwargs: dict[str, Any] = {"name": node.name}
@@ -197,6 +201,7 @@ class ADKBackend:
     def _compile_sequence(self, node: SequenceNode) -> Any:
         """SequenceNode -> SequentialAgent."""
         from google.adk.agents.sequential_agent import SequentialAgent
+
         from adk_fluent._base import _compose_callbacks
 
         kwargs: dict[str, Any] = {
@@ -215,6 +220,7 @@ class ADKBackend:
     def _compile_parallel(self, node: ParallelNode) -> Any:
         """ParallelNode -> ParallelAgent."""
         from google.adk.agents.parallel_agent import ParallelAgent
+
         from adk_fluent._base import _compose_callbacks
 
         kwargs: dict[str, Any] = {
@@ -233,6 +239,7 @@ class ADKBackend:
     def _compile_loop(self, node: LoopNode) -> Any:
         """LoopNode -> LoopAgent."""
         from google.adk.agents.loop_agent import LoopAgent
+
         from adk_fluent._base import _compose_callbacks
 
         kwargs: dict[str, Any] = {
@@ -253,16 +260,19 @@ class ADKBackend:
     def _compile_transform(self, node: TransformNode) -> Any:
         """TransformNode -> FnAgent."""
         from adk_fluent._base import FnAgent
+
         return FnAgent(name=node.name, fn=node.fn)
 
     def _compile_tap(self, node: TapNode) -> Any:
         """TapNode -> TapAgent."""
         from adk_fluent._base import TapAgent
+
         return TapAgent(name=node.name, fn=node.fn)
 
     def _compile_fallback(self, node: FallbackNode) -> Any:
         """FallbackNode -> FallbackAgent."""
         from adk_fluent._base import FallbackAgent
+
         return FallbackAgent(
             name=node.name,
             sub_agents=self._compile_children(node.children),
@@ -271,6 +281,7 @@ class ADKBackend:
     def _compile_race(self, node: RaceNode) -> Any:
         """RaceNode -> RaceAgent."""
         from adk_fluent._base import RaceAgent
+
         return RaceAgent(
             name=node.name,
             sub_agents=self._compile_children(node.children),
@@ -279,6 +290,7 @@ class ADKBackend:
     def _compile_gate(self, node: GateNode) -> Any:
         """GateNode -> GateAgent."""
         from adk_fluent._base import GateAgent
+
         return GateAgent(
             name=node.name,
             predicate=node.predicate,
@@ -289,6 +301,7 @@ class ADKBackend:
     def _compile_mapover(self, node: MapOverNode) -> Any:
         """MapOverNode -> MapOverAgent."""
         from adk_fluent._base import MapOverAgent
+
         sub_agents = []
         if node.body is not None:
             sub_agents.append(self._compile_node(node.body))
@@ -303,6 +316,7 @@ class ADKBackend:
     def _compile_timeout(self, node: TimeoutNode) -> Any:
         """TimeoutNode -> TimeoutAgent."""
         from adk_fluent._base import TimeoutAgent
+
         sub_agents = []
         if node.body is not None:
             sub_agents.append(self._compile_node(node.body))
@@ -351,6 +365,7 @@ class ADKBackend:
                 if should_transfer and target_name:
                     from google.adk.events.event import Event
                     from google.adk.events.event_actions import EventActions
+
                     yield Event(
                         invocation_id=ctx.invocation_id,
                         author=self.name,

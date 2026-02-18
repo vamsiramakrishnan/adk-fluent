@@ -2,11 +2,13 @@
 
 import pytest  # noqa: F401 (used inside test methods)
 
-from adk_fluent.executor import AgentEngineSandboxCodeExecutor
-from adk_fluent.executor import BaseCodeExecutor
-from adk_fluent.executor import BuiltInCodeExecutor
-from adk_fluent.executor import UnsafeLocalCodeExecutor
-from adk_fluent.executor import VertexAiCodeExecutor
+from adk_fluent.executor import (
+    AgentEngineSandboxCodeExecutor,
+    BaseCodeExecutor,
+    BuiltInCodeExecutor,
+    UnsafeLocalCodeExecutor,
+    VertexAiCodeExecutor,
+)
 
 
 class TestAgentEngineSandboxCodeExecutorBuilder:
@@ -18,13 +20,11 @@ class TestAgentEngineSandboxCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = AgentEngineSandboxCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
@@ -32,10 +32,8 @@ class TestAgentEngineSandboxCodeExecutorBuilder:
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = AgentEngineSandboxCodeExecutor()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -50,13 +48,11 @@ class TestBaseCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = BaseCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
@@ -64,10 +60,8 @@ class TestBaseCodeExecutorBuilder:
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BaseCodeExecutor()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -82,13 +76,11 @@ class TestBuiltInCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = BuiltInCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
@@ -96,10 +88,8 @@ class TestBuiltInCodeExecutorBuilder:
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BuiltInCodeExecutor()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -114,13 +104,11 @@ class TestUnsafeLocalCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.optimize_data_file() returns the builder instance for chaining."""
         builder = UnsafeLocalCodeExecutor()
         result = builder.optimize_data_file(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .optimize_data_file() stores the value in builder._config."""
@@ -128,10 +116,8 @@ class TestUnsafeLocalCodeExecutorBuilder:
         builder.optimize_data_file(True)
         assert builder._config["optimize_data_file"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = UnsafeLocalCodeExecutor()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -146,10 +132,8 @@ class TestVertexAiCodeExecutorBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = VertexAiCodeExecutor()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")

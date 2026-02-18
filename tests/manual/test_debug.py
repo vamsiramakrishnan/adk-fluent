@@ -1,4 +1,5 @@
 """Tests for .debug() — builder mechanics only (no LLM calls)."""
+
 from adk_fluent.agent import Agent
 
 

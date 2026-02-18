@@ -1,14 +1,16 @@
 """Tests for the completed expression algebra: immutable operators, >> fn, * until, @, //."""
+
 import pytest
 from pydantic import BaseModel
-from adk_fluent.agent import Agent
-from adk_fluent.workflow import Pipeline, FanOut, Loop
-from adk_fluent._base import BuilderBase, _FnStepBuilder, _FallbackBuilder, _UntilSpec, until
 
+from adk_fluent._base import BuilderBase, _FallbackBuilder, _UntilSpec, until
+from adk_fluent.agent import Agent
+from adk_fluent.workflow import FanOut, Loop, Pipeline
 
 # ======================================================================
 # Immutable Operators — >> and | must not mutate left operand
 # ======================================================================
+
 
 class TestImmutableRshift:
     """>> must return a new Pipeline, not mutate the left operand."""
@@ -89,6 +91,7 @@ class TestImmutableOr:
 # >> accepts callables — functions as workflow nodes
 # ======================================================================
 
+
 class TestRshiftCallable:
     """>> must accept callable (function) operands."""
 
@@ -117,6 +120,7 @@ class TestRshiftCallable:
     def test_named_function_uses_name(self):
         def my_transform(state):
             return {"x": 1}
+
         a = Agent("a").model("gemini-2.5-flash")
         result = a >> my_transform
         # The function step should use the function name
@@ -132,13 +136,16 @@ class TestRshiftCallable:
 
     def test_fn_step_builds_to_base_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         from adk_fluent._base import _fn_step
+
         step = _fn_step(lambda s: {"x": 1})
         built = step.build()
         assert isinstance(built, BaseAgent)
 
     def test_fn_step_is_builder_base(self):
         from adk_fluent._base import _fn_step
+
         step = _fn_step(lambda s: {})
         assert isinstance(step, BuilderBase)
 
@@ -167,6 +174,7 @@ class TestRshiftCallable:
 # ======================================================================
 # * until(pred) — conditional loops in the algebra
 # ======================================================================
+
 
 class TestMulUntil:
     """* must accept until() specs in addition to integers."""
@@ -255,6 +263,7 @@ class TestMulUntil:
 # @ — typed output contracts via __matmul__
 # ======================================================================
 
+
 class TestMatmul:
     """@ must bind a Pydantic model as the output schema."""
 
@@ -285,6 +294,7 @@ class TestMatmul:
 
     def test_matmul_wires_into_build(self):
         """@ sets output_schema on the built LlmAgent."""
+
         class MySchema(BaseModel):
             value: str
 
@@ -294,6 +304,7 @@ class TestMatmul:
 
     def test_matmul_composes_with_rshift(self):
         """a @ Schema >> b works correctly."""
+
         class MySchema(BaseModel):
             x: int
 
@@ -313,6 +324,7 @@ class TestMatmul:
 
     def test_matmul_on_pipeline(self):
         """Pipeline @ Schema works (sets schema on the pipeline builder)."""
+
         class MySchema(BaseModel):
             x: int
 
@@ -325,6 +337,7 @@ class TestMatmul:
 # ======================================================================
 # // — fallback operator via __floordiv__
 # ======================================================================
+
 
 class TestFloordiv:
     """// must create a fallback chain."""
@@ -358,6 +371,7 @@ class TestFloordiv:
 
     def test_fallback_builds_to_base_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         a = Agent("fast").model("gemini-2.0-flash").instruct("Fast")
         b = Agent("slow").model("gemini-2.5-pro").instruct("Slow")
         result = a // b
@@ -406,6 +420,7 @@ class TestFloordiv:
 # Full Composition — all operators together
 # ======================================================================
 
+
 class TestFullAlgebra:
     """Tests combining all five mechanisms in complex expressions."""
 
@@ -424,6 +439,7 @@ class TestFullAlgebra:
 
     def test_matmul_and_fallback_in_pipeline(self):
         """a @ Schema // b @ Schema >> c works."""
+
         class Out(BaseModel):
             x: int
 
@@ -436,6 +452,7 @@ class TestFullAlgebra:
 
     def test_full_complex_expression(self):
         """The complete proof expression from the design."""
+
         class Report(BaseModel):
             title: str
             body: str
@@ -447,16 +464,20 @@ class TestFullAlgebra:
             return {"research": state.get("web", "") + "\n" + state.get("papers", "")}
 
         pipeline = (
-            (   Agent("web").model("gemini-2.5-flash").instruct("Search web.")
-              | Agent("scholar").model("gemini-2.5-flash").instruct("Search papers.")
+            (
+                Agent("web").model("gemini-2.5-flash").instruct("Search web.")
+                | Agent("scholar").model("gemini-2.5-flash").instruct("Search papers.")
             )
             >> merge_research
-            >> Agent("writer").model("gemini-2.5-flash").instruct("Write.") @ Report
-               // Agent("writer_b").model("gemini-2.5-pro").instruct("Write.") @ Report
+            >> Agent("writer").model("gemini-2.5-flash").instruct("Write.")
+            @ Report
+            // Agent("writer_b").model("gemini-2.5-pro").instruct("Write.")
+            @ Report
             >> (
                 Agent("critic").model("gemini-2.5-flash").instruct("Score.").outputs("confidence")
                 >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve.")
-            ) * confident
+            )
+            * confident
         )
 
         assert isinstance(pipeline, Pipeline)

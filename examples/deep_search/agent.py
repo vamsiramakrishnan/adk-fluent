@@ -37,9 +37,7 @@ MODEL = "gemini-2.5-pro"
 MAX_ITERATIONS = 5
 TODAY = datetime.datetime.now().strftime("%Y-%m-%d")
 
-thinking = BuiltInPlanner(
-    thinking_config=genai_types.ThinkingConfig(include_thoughts=True)
-)
+thinking = BuiltInPlanner(thinking_config=genai_types.ThinkingConfig(include_thoughts=True))
 
 # --- Agent definitions ---
 
@@ -101,17 +99,15 @@ report_composer = (
 # * until(...) creates Loop that exits when predicate is satisfied,
 #   replacing the manual EscalationChecker BaseAgent entirely
 
-refinement_loop = (
-    research_evaluator >> enhanced_search
-) * until(
+refinement_loop = (research_evaluator >> enhanced_search) * until(
     lambda s: s.get("research_evaluation", {}).get("grade") == "pass",
     max=MAX_ITERATIONS,
 )
 
 research_pipeline = (
-    section_planner >> section_researcher >> refinement_loop >> report_composer
-).name("research_pipeline").describe(
-    "Executes research with iterative refinement and composes cited report."
+    (section_planner >> section_researcher >> refinement_loop >> report_composer)
+    .name("research_pipeline")
+    .describe("Executes research with iterative refinement and composes cited report.")
 )
 
 root_agent = (

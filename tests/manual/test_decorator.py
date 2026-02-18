@@ -1,6 +1,7 @@
 """Tests for @agent decorator."""
-from adk_fluent.decorators import agent
+
 from adk_fluent.agent import Agent as AgentBuilder
+from adk_fluent.decorators import agent
 
 
 def _before_model_cb(ctx):

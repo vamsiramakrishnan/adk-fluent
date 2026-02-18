@@ -1,12 +1,14 @@
 """Tests for the enhanced scanner."""
-import pytest
-import sys
+
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def test_discover_modules_finds_core_packages():
     from scripts.scanner import discover_modules
+
     modules = discover_modules()
     module_names = set(modules)
     assert any(m.startswith("google.adk.agents") for m in module_names)
@@ -17,12 +19,14 @@ def test_discover_modules_finds_core_packages():
 
 def test_discover_modules_skips_broken_imports():
     from scripts.scanner import discover_modules
+
     modules = discover_modules()
     assert isinstance(modules, list)
 
 
 def test_discover_classes_finds_core_classes():
-    from scripts.scanner import discover_modules, discover_classes
+    from scripts.scanner import discover_classes, discover_modules
+
     modules = discover_modules()
     class_tuples = discover_classes(modules)
     class_names = {cls.__name__ for cls, _ in class_tuples}
@@ -33,7 +37,9 @@ def test_discover_classes_finds_core_classes():
 
 def test_scan_class_pydantic():
     from google.adk.agents import LlmAgent
+
     from scripts.scanner import scan_class
+
     info = scan_class(LlmAgent)
     assert info.is_pydantic is True
     assert info.inspection_mode == "pydantic"
@@ -43,7 +49,9 @@ def test_scan_class_pydantic():
 
 def test_scan_class_non_pydantic():
     from google.adk.runners import Runner
+
     from scripts.scanner import scan_class
+
     info = scan_class(Runner)
     assert info.is_pydantic is False
     assert info.inspection_mode == "init_signature"
@@ -52,6 +60,7 @@ def test_scan_class_non_pydantic():
 
 def test_scan_all_finds_many_classes():
     from scripts.scanner import scan_all
+
     manifest = scan_all()
     assert manifest.total_classes > 30
     class_names = {c.name for c in manifest.classes}
@@ -61,6 +70,7 @@ def test_scan_all_finds_many_classes():
 
 def test_scan_all_includes_non_pydantic():
     from scripts.scanner import scan_all
+
     manifest = scan_all()
     class_names = {c.name for c in manifest.classes}
     assert "Runner" in class_names
@@ -70,7 +80,9 @@ def test_scan_all_includes_non_pydantic():
 
 def test_manifest_serialization():
     import json
-    from scripts.scanner import scan_all, manifest_to_dict
+
+    from scripts.scanner import manifest_to_dict, scan_all
+
     manifest = scan_all()
     data = manifest_to_dict(manifest)
     json_str = json.dumps(data, indent=2, default=str)

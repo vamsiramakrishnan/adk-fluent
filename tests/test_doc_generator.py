@@ -8,18 +8,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 from doc_generator import (
+    cookbook_to_markdown,
     gen_api_reference_for_builder,
     gen_api_reference_module,
     gen_migration_guide,
     process_cookbook_file,
-    cookbook_to_markdown,
 )
 from generator import BuilderSpec
-
 
 # ---------------------------------------------------------------------------
 # Fixtures (lightweight BuilderSpec instances for testing)
 # ---------------------------------------------------------------------------
+
 
 def _make_spec(**overrides) -> BuilderSpec:
     """Create a minimal BuilderSpec with sensible defaults."""
@@ -46,8 +46,13 @@ def _make_spec(**overrides) -> BuilderSpec:
         ],
         terminals=[{"name": "build", "returns": "LlmAgent", "doc": "Resolve into a native ADK LlmAgent."}],
         extras=[
-            {"name": "tool", "signature": "(self, fn_or_tool: Callable | BaseTool) -> Self",
-             "doc": "Add a single tool.", "behavior": "list_append", "target_field": "tools"},
+            {
+                "name": "tool",
+                "signature": "(self, fn_or_tool: Callable | BaseTool) -> Self",
+                "doc": "Add a single tool.",
+                "behavior": "list_append",
+                "target_field": "tools",
+            },
         ],
         is_composite=False,
         is_standalone=False,
@@ -86,6 +91,7 @@ def _make_simple_spec() -> BuilderSpec:
 # ---------------------------------------------------------------------------
 # Tests: gen_api_reference_for_builder
 # ---------------------------------------------------------------------------
+
 
 class TestGenApiReferenceForBuilder:
     def test_header_contains_builder_name(self):
@@ -160,6 +166,7 @@ class TestGenApiReferenceForBuilder:
 # Tests: gen_api_reference_module
 # ---------------------------------------------------------------------------
 
+
 class TestGenApiReferenceModule:
     def test_module_header(self):
         spec = _make_spec()
@@ -178,6 +185,7 @@ class TestGenApiReferenceModule:
 # ---------------------------------------------------------------------------
 # Tests: process_cookbook_file
 # ---------------------------------------------------------------------------
+
 
 class TestProcessCookbookFile:
     def test_splits_on_markers(self, tmp_path):
@@ -226,6 +234,7 @@ class TestProcessCookbookFile:
 # Tests: cookbook_to_markdown
 # ---------------------------------------------------------------------------
 
+
 class TestCookbookToMarkdown:
     def test_produces_valid_markdown(self):
         parsed = {
@@ -264,11 +273,13 @@ class TestCookbookToMarkdown:
 # Tests: gen_migration_guide
 # ---------------------------------------------------------------------------
 
+
 class TestGenMigrationGuide:
     @staticmethod
     def _by_module(specs):
         """Build a by_module dict from a list of specs."""
         from collections import defaultdict
+
         bm = defaultdict(list)
         for s in specs:
             bm[s.output_module].append(s)

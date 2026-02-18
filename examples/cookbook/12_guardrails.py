@@ -22,12 +22,7 @@ agent_native = LlmAgent(
 from adk_fluent import Agent
 
 # One call registers both before and after:
-builder = (
-    Agent("secure")
-    .model("gemini-2.5-flash")
-    .instruct("Be secure.")
-    .guardrail(pii_filter)
-)
+builder = Agent("secure").model("gemini-2.5-flash").instruct("Be secure.").guardrail(pii_filter)
 
 # --- ASSERT ---
 assert pii_filter in builder._callbacks["before_model_callback"]

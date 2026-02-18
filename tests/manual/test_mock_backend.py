@@ -1,19 +1,22 @@
 """Tests for mock_backend and AgentHarness."""
+
 import asyncio
 
 
 def test_mock_backend_satisfies_protocol():
     """MockBackend satisfies the Backend protocol."""
-    from adk_fluent.testing import mock_backend
     from adk_fluent.backends import Backend
+    from adk_fluent.testing import mock_backend
+
     mb = mock_backend({"agent_a": "Hello!"})
     assert isinstance(mb, Backend)
 
 
 def test_mock_backend_compile():
     """MockBackend.compile returns a passable compiled object."""
-    from adk_fluent.testing import mock_backend
     from adk_fluent import Agent
+    from adk_fluent.testing import mock_backend
+
     mb = mock_backend({"agent_a": "Hello!"})
     ir = Agent("agent_a").to_ir()
     compiled = mb.compile(ir)
@@ -22,8 +25,8 @@ def test_mock_backend_compile():
 
 def test_mock_backend_run():
     """MockBackend.run returns events with canned responses."""
-    from adk_fluent.testing import mock_backend
     from adk_fluent import Agent
+    from adk_fluent.testing import mock_backend
 
     async def _run():
         mb = mock_backend({"agent_a": "Hello from mock!"})
@@ -37,8 +40,8 @@ def test_mock_backend_run():
 
 def test_mock_backend_run_state_delta():
     """MockBackend supports dict responses for state_delta."""
-    from adk_fluent.testing import mock_backend
     from adk_fluent import Agent
+    from adk_fluent.testing import mock_backend
 
     async def _run():
         mb = mock_backend({"agent_a": {"intent": "billing"}})
@@ -52,8 +55,8 @@ def test_mock_backend_run_state_delta():
 
 def test_mock_backend_unknown_agent():
     """Unknown agents return a generic event."""
-    from adk_fluent.testing import mock_backend
     from adk_fluent import Agent
+    from adk_fluent.testing import mock_backend
 
     async def _run():
         mb = mock_backend({"other": "response"})
@@ -67,25 +70,20 @@ def test_mock_backend_unknown_agent():
 
 def test_harness_creation():
     """AgentHarness wraps a builder with a mock backend."""
-    from adk_fluent.testing import AgentHarness, mock_backend
     from adk_fluent import Agent
-    harness = AgentHarness(
-        Agent("a").instruct("test"),
-        backend=mock_backend({"a": "response"})
-    )
+    from adk_fluent.testing import AgentHarness, mock_backend
+
+    harness = AgentHarness(Agent("a").instruct("test"), backend=mock_backend({"a": "response"}))
     assert harness is not None
 
 
 def test_harness_send():
     """AgentHarness.send() returns a response object."""
-    from adk_fluent.testing import AgentHarness, mock_backend
     from adk_fluent import Agent
+    from adk_fluent.testing import AgentHarness, mock_backend
 
     async def _run():
-        harness = AgentHarness(
-            Agent("a").instruct("test"),
-            backend=mock_backend({"a": "Hello!"})
-        )
+        harness = AgentHarness(Agent("a").instruct("test"), backend=mock_backend({"a": "Hello!"}))
         response = await harness.send("Hi")
         assert response.final_text == "Hello!"
         assert not response.errors

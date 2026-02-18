@@ -25,7 +25,7 @@ native_agent = LlmAgent(
     description="A simple greeting agent",
 )
 
-print(f"\nNative ADK agent:")
+print("\nNative ADK agent:")
 print(f"  type:        {type(native_agent).__name__}")
 print(f"  name:        {native_agent.name}")
 print(f"  model:       {native_agent.model}")
@@ -42,7 +42,7 @@ fluent_agent = (
     .build()
 )
 
-print(f"\nFluent agent:")
+print("\nFluent agent:")
 print(f"  type:        {type(fluent_agent).__name__}")
 print(f"  name:        {fluent_agent.name}")
 print(f"  model:       {fluent_agent.model}")
@@ -90,7 +90,7 @@ fluent_tools_agent = (
     Agent("assistant")
     .model("gemini-2.5-flash")
     .instruct("You help with weather and time queries.")
-    .tool(get_weather)      # plain functions auto-wrap
+    .tool(get_weather)  # plain functions auto-wrap
     .tool(get_time)
     .build()
 )
@@ -177,16 +177,8 @@ from adk_fluent import Pipeline
 fluent_pipeline = (
     Pipeline("blog_pipeline")
     .describe("Research then write")
-    .step(
-        Agent("researcher")
-        .model("gemini-2.5-flash")
-        .instruct("Research the given topic thoroughly.")
-    )
-    .step(
-        Agent("writer")
-        .model("gemini-2.5-flash")
-        .instruct("Write a blog post based on the research.")
-    )
+    .step(Agent("researcher").model("gemini-2.5-flash").instruct("Research the given topic thoroughly."))
+    .step(Agent("writer").model("gemini-2.5-flash").instruct("Write a blog post based on the research."))
     .build()
 )
 
@@ -296,8 +288,8 @@ agent_with_extras = (
     Agent("dynamic")
     .model("gemini-2.5-flash")
     .instruct("test")
-    .output_key("result")           # forwarded via __getattr__
-    .include_contents("none")       # forwarded via __getattr__
+    .output_key("result")  # forwarded via __getattr__
+    .include_contents("none")  # forwarded via __getattr__
     .build()
 )
 

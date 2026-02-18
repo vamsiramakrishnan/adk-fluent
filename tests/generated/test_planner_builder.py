@@ -2,9 +2,7 @@
 
 import pytest  # noqa: F401 (used inside test methods)
 
-from adk_fluent.planner import BasePlanner
-from adk_fluent.planner import BuiltInPlanner
-from adk_fluent.planner import PlanReActPlanner
+from adk_fluent.planner import BasePlanner, BuiltInPlanner, PlanReActPlanner
 
 
 class TestBasePlannerBuilder:
@@ -12,15 +10,13 @@ class TestBasePlannerBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BasePlanner('test_args', 'test_kwargs')
+        builder = BasePlanner("test_args", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = BasePlanner('test_args', 'test_kwargs')
+        builder = BasePlanner("test_args", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -30,15 +26,13 @@ class TestBuiltInPlannerBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BuiltInPlanner('test_thinking_config')
+        builder = BuiltInPlanner("test_thinking_config")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = BuiltInPlanner('test_thinking_config')
+        builder = BuiltInPlanner("test_thinking_config")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -48,14 +42,12 @@ class TestPlanReActPlannerBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = PlanReActPlanner('test_args', 'test_kwargs')
+        builder = PlanReActPlanner("test_args", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = PlanReActPlanner('test_args', 'test_kwargs')
+        builder = PlanReActPlanner("test_args", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")

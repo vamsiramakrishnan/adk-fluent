@@ -1,5 +1,7 @@
 """Tests for Preset field validation."""
+
 import pytest
+
 from adk_fluent import Preset
 
 
@@ -33,10 +35,14 @@ def test_preset_accepts_all_callback_aliases():
     """Preset should accept short callback aliases."""
     fn = lambda ctx: None
     for alias in [
-        "before_agent", "after_agent",
-        "before_model", "after_model",
-        "before_tool", "after_tool",
-        "on_model_error", "on_tool_error",
+        "before_agent",
+        "after_agent",
+        "before_model",
+        "after_model",
+        "before_tool",
+        "after_tool",
+        "on_model_error",
+        "on_tool_error",
     ]:
         p = Preset(**{alias: fn})
         assert fn in p._callbacks[alias]
@@ -46,10 +52,14 @@ def test_preset_accepts_full_callback_names():
     """Preset should accept full callback field names."""
     fn = lambda ctx: None
     for name in [
-        "before_agent_callback", "after_agent_callback",
-        "before_model_callback", "after_model_callback",
-        "before_tool_callback", "after_tool_callback",
-        "on_model_error_callback", "on_tool_error_callback",
+        "before_agent_callback",
+        "after_agent_callback",
+        "before_model_callback",
+        "after_model_callback",
+        "before_tool_callback",
+        "after_tool_callback",
+        "on_model_error_callback",
+        "on_tool_error_callback",
     ]:
         p = Preset(**{name: fn})
         assert fn in p._callbacks[name]

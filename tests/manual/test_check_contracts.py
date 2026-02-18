@@ -1,5 +1,5 @@
 """Tests for check_contracts() contract verification."""
-import pytest
+
 from pydantic import BaseModel
 
 
@@ -16,6 +16,7 @@ class Resolution(BaseModel):
 def test_valid_contract_no_issues():
     from adk_fluent import Agent
     from adk_fluent.testing import check_contracts
+
     pipeline = Agent("a").produces(Intent) >> Agent("b").consumes(Intent)
     issues = check_contracts(pipeline.to_ir())
     assert issues == []
@@ -24,6 +25,7 @@ def test_valid_contract_no_issues():
 def test_missing_producer_reports_issue():
     from adk_fluent import Agent
     from adk_fluent.testing import check_contracts
+
     pipeline = Agent("a") >> Agent("b").consumes(Intent)
     issues = check_contracts(pipeline.to_ir())
     assert len(issues) >= 1
@@ -33,6 +35,7 @@ def test_missing_producer_reports_issue():
 def test_untyped_agents_no_issues():
     from adk_fluent import Agent
     from adk_fluent.testing import check_contracts
+
     pipeline = Agent("a") >> Agent("b")
     issues = check_contracts(pipeline.to_ir())
     assert issues == []
@@ -41,6 +44,7 @@ def test_untyped_agents_no_issues():
 def test_multi_step_contract_chain():
     from adk_fluent import Agent
     from adk_fluent.testing import check_contracts
+
     pipeline = (
         Agent("a").produces(Intent)
         >> Agent("b").consumes(Intent).produces(Resolution)
@@ -66,5 +70,6 @@ def test_partial_overlap_reports_missing():
 def test_check_contracts_on_non_sequence():
     from adk_fluent import Agent
     from adk_fluent.testing import check_contracts
+
     issues = check_contracts(Agent("solo").to_ir())
     assert issues == []

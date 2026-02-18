@@ -33,26 +33,29 @@ class Report(BaseModel):
 #   S   state transforms
 pipeline = (
     # Step 1: Parallel research (|)
-    (   Agent("web").model("gemini-2.5-flash").instruct("Search the web for information.")
-      | Agent("scholar").model("gemini-2.5-flash").instruct("Search academic papers.")
+    (
+        Agent("web").model("gemini-2.5-flash").instruct("Search the web for information.")
+        | Agent("scholar").model("gemini-2.5-flash").instruct("Search academic papers.")
     )
     # Step 2: Merge research results (S transform via >>)
     >> S.merge("web", "scholar", into="research")
     # Step 3: Write with typed output (@) and fallback (//)
-    >> Agent("writer").model("gemini-2.5-flash").instruct("Write a report.") @ Report
-       // Agent("writer_b").model("gemini-2.5-pro").instruct("Write a report.") @ Report
+    >> Agent("writer").model("gemini-2.5-flash").instruct("Write a report.")
+    @ Report
+    // Agent("writer_b").model("gemini-2.5-pro").instruct("Write a report.")
+    @ Report
     # Step 4: Quality loop (* until)
     >> (
         Agent("critic").model("gemini-2.5-flash").instruct("Score the report.").outputs("confidence")
         >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve the report.")
-    ) * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
+    )
+    * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
 )
 
 # Sub-expression reuse — immutable operators make this safe
-review = (
-    Agent("reviewer").model("gemini-2.5-flash").instruct("Review quality.")
-    >> Agent("scorer").model("gemini-2.5-flash").instruct("Score.").outputs("score")
-)
+review = Agent("reviewer").model("gemini-2.5-flash").instruct("Review quality.") >> Agent("scorer").model(
+    "gemini-2.5-flash"
+).instruct("Score.").outputs("score")
 quality_gate = until(lambda s: float(s.get("score", 0)) > 0.8, max=3)
 
 # Same sub-expression in two independent pipelines

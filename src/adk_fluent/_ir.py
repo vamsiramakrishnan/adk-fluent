@@ -7,20 +7,31 @@ ADK backend.
 For ADK-native agent types (AgentNode, SequenceNode, etc.), see
 _ir_generated.py which is produced by scripts/ir_generator.py.
 """
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Literal, Union
+from typing import Any, Literal
 
 __all__ = [
     # Primitive nodes
-    "TransformNode", "TapNode", "FallbackNode", "RaceNode",
-    "GateNode", "MapOverNode", "TimeoutNode", "RouteNode",
+    "TransformNode",
+    "TapNode",
+    "FallbackNode",
+    "RaceNode",
+    "GateNode",
+    "MapOverNode",
+    "TimeoutNode",
+    "RouteNode",
     "TransferNode",
     # Config
-    "ExecutionConfig", "CompactionConfig",
+    "ExecutionConfig",
+    "CompactionConfig",
     # Events
-    "AgentEvent", "ToolCallInfo", "ToolResponseInfo",
+    "AgentEvent",
+    "ToolCallInfo",
+    "ToolResponseInfo",
     # Type union
     "Node",
 ]
@@ -30,9 +41,11 @@ __all__ = [
 # Primitive IR nodes (hand-written — no ADK counterpart)
 # ======================================================================
 
+
 @dataclass(frozen=True)
 class TransformNode:
     """Zero-cost state transform. No LLM call."""
+
     name: str
     fn: Callable
     semantics: Literal["merge", "replace_session", "delete_keys"] = "merge"
@@ -43,6 +56,7 @@ class TransformNode:
 @dataclass(frozen=True)
 class TapNode:
     """Zero-cost observation. No LLM call, no state mutation."""
+
     name: str
     fn: Callable
 
@@ -50,6 +64,7 @@ class TapNode:
 @dataclass(frozen=True)
 class FallbackNode:
     """Try children in order. First success wins."""
+
     name: str
     children: tuple = ()
 
@@ -57,6 +72,7 @@ class FallbackNode:
 @dataclass(frozen=True)
 class RaceNode:
     """Run children concurrently. First to finish wins."""
+
     name: str
     children: tuple = ()
 
@@ -64,6 +80,7 @@ class RaceNode:
 @dataclass(frozen=True)
 class GateNode:
     """Human-in-the-loop approval gate."""
+
     name: str
     predicate: Callable
     message: str = "Approval required"
@@ -73,6 +90,7 @@ class GateNode:
 @dataclass(frozen=True)
 class MapOverNode:
     """Iterate a sub-agent over each item in a state list."""
+
     name: str
     list_key: str
     body: Any = None
@@ -83,6 +101,7 @@ class MapOverNode:
 @dataclass(frozen=True)
 class TimeoutNode:
     """Wrap a sub-agent with a time limit."""
+
     name: str
     body: Any = None
     seconds: float = 0.0
@@ -91,6 +110,7 @@ class TimeoutNode:
 @dataclass(frozen=True)
 class RouteNode:
     """Deterministic state-based routing. No LLM call."""
+
     name: str
     key: str | None = None
     rules: tuple = ()
@@ -100,6 +120,7 @@ class RouteNode:
 @dataclass(frozen=True)
 class TransferNode:
     """Hard agent transfer (ADK's transfer_to_agent)."""
+
     name: str
     target: str = ""
     condition: Callable | None = None
@@ -109,9 +130,11 @@ class TransferNode:
 # Execution configuration
 # ======================================================================
 
+
 @dataclass(frozen=True)
 class CompactionConfig:
     """Event compaction settings (maps to ADK EventsCompactionConfig)."""
+
     interval: int = 10
     overlap: int = 2
     token_threshold: int | None = None
@@ -121,6 +144,7 @@ class CompactionConfig:
 @dataclass(frozen=True)
 class ExecutionConfig:
     """Top-level execution configuration."""
+
     app_name: str = "adk_fluent_app"
     max_llm_calls: int = 500
     timeout_seconds: float | None = None
@@ -135,9 +159,11 @@ class ExecutionConfig:
 # Backend-agnostic event types
 # ======================================================================
 
+
 @dataclass
 class ToolCallInfo:
     """A tool invocation within an event."""
+
     tool_name: str
     args: dict[str, Any]
     call_id: str
@@ -146,6 +172,7 @@ class ToolCallInfo:
 @dataclass
 class ToolResponseInfo:
     """A tool response within an event."""
+
     tool_name: str
     result: Any
     call_id: str
@@ -154,6 +181,7 @@ class ToolResponseInfo:
 @dataclass
 class AgentEvent:
     """Backend-agnostic representation of an execution event."""
+
     author: str
     content: str | None = None
     state_delta: dict[str, Any] = field(default_factory=dict)
@@ -176,8 +204,6 @@ class AgentEvent:
 
 # This is the base union of hand-written node types.
 # _ir_generated.py extends this with generated ADK node types.
-Node = Union[
-    TransformNode, TapNode, FallbackNode, RaceNode,
-    GateNode, MapOverNode, TimeoutNode, RouteNode,
-    TransferNode,
-]
+Node = (
+    TransformNode | TapNode | FallbackNode | RaceNode | GateNode | MapOverNode | TimeoutNode | RouteNode | TransferNode
+)

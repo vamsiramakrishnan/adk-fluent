@@ -18,7 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
@@ -30,6 +30,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # TASK 5: CLASSIFICATION ENGINE
 # ---------------------------------------------------------------------------
+
 
 def classify_class(name: str, module: str, mro_chain: list[str]) -> str:
     """Classify an ADK class into a semantic tag.
@@ -68,9 +69,18 @@ def classify_class(name: str, module: str, mro_chain: list[str]) -> str:
     return "data"
 
 
-_BUILDER_WORTHY_TAGS = frozenset({
-    "agent", "config", "runtime", "executor", "planner", "service", "plugin", "tool",
-})
+_BUILDER_WORTHY_TAGS = frozenset(
+    {
+        "agent",
+        "config",
+        "runtime",
+        "executor",
+        "planner",
+        "service",
+        "plugin",
+        "tool",
+    }
+)
 
 
 def is_builder_worthy(tag: str) -> bool:
@@ -82,10 +92,15 @@ def is_builder_worthy(tag: str) -> bool:
 # TASK 6: FIELD POLICY ENGINE
 # ---------------------------------------------------------------------------
 
-_ALWAYS_SKIP = frozenset({
-    "parent_agent", "model_config", "model_fields",
-    "model_computed_fields", "model_post_init",
-})
+_ALWAYS_SKIP = frozenset(
+    {
+        "parent_agent",
+        "model_config",
+        "model_fields",
+        "model_computed_fields",
+        "model_post_init",
+    }
+)
 
 _LIST_EXTEND_FIELDS = frozenset({"tools", "sub_agents", "plugins"})
 
@@ -204,6 +219,7 @@ def determine_output_module(class_name: str, tag: str, module: str) -> str:
 # TASK 10: EXTRA METHODS ENGINE
 # ---------------------------------------------------------------------------
 
+
 def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
     """Generate extra (non-field) methods for a builder.
 
@@ -212,62 +228,78 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
     extras: list[dict] = []
 
     if class_name in ("SequentialAgent", "LoopAgent"):
-        extras.append({
-            "name": "step",
-            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Append an agent as the next step (lazy — built at .build() time).",
-            "behavior": "list_append",
-            "target_field": "sub_agents",
-        })
+        extras.append(
+            {
+                "name": "step",
+                "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+                "doc": "Append an agent as the next step (lazy — built at .build() time).",
+                "behavior": "list_append",
+                "target_field": "sub_agents",
+            }
+        )
     elif class_name == "ParallelAgent":
-        extras.append({
-            "name": "branch",
-            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Add a parallel branch agent (lazy — built at .build() time).",
-            "behavior": "list_append",
-            "target_field": "sub_agents",
-        })
-        extras.append({
-            "name": "step",
-            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API.",
-            "behavior": "list_append",
-            "target_field": "sub_agents",
-        })
+        extras.append(
+            {
+                "name": "branch",
+                "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+                "doc": "Add a parallel branch agent (lazy — built at .build() time).",
+                "behavior": "list_append",
+                "target_field": "sub_agents",
+            }
+        )
+        extras.append(
+            {
+                "name": "step",
+                "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+                "doc": "Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API.",
+                "behavior": "list_append",
+                "target_field": "sub_agents",
+            }
+        )
     elif class_name == "LlmAgent":
-        extras.append({
-            "name": "tool",
-            "signature": "(self, fn_or_tool: Callable | BaseTool) -> Self",
-            "doc": "Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list.",
-            "behavior": "list_append",
-            "target_field": "tools",
-        })
-        extras.append({
-            "name": "apply",
-            "signature": "(self, stack: MiddlewareStack) -> Self",
-            "doc": "Apply a reusable middleware stack (bulk callback registration).",
-        })
-        extras.append({
-            "name": "sub_agent",
-            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Add a sub-agent (appends). Multiple .sub_agent() calls accumulate.",
-            "behavior": "list_append",
-            "target_field": "sub_agents",
-        })
-        extras.append({
-            "name": "member",
-            "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
-            "doc": "Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern.",
-            "behavior": "deprecation_alias",
-            "target_method": "sub_agent",
-        })
-        extras.append({
-            "name": "delegate",
-            "signature": "(self, agent) -> Self",
-            "doc": "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.",
-            "behavior": "runtime_helper",
-            "helper_func": "delegate_agent",
-        })
+        extras.append(
+            {
+                "name": "tool",
+                "signature": "(self, fn_or_tool: Callable | BaseTool) -> Self",
+                "doc": "Add a single tool (appends). Multiple .tool() calls accumulate. Use .tools() to replace the full list.",
+                "behavior": "list_append",
+                "target_field": "tools",
+            }
+        )
+        extras.append(
+            {
+                "name": "apply",
+                "signature": "(self, stack: MiddlewareStack) -> Self",
+                "doc": "Apply a reusable middleware stack (bulk callback registration).",
+            }
+        )
+        extras.append(
+            {
+                "name": "sub_agent",
+                "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+                "doc": "Add a sub-agent (appends). Multiple .sub_agent() calls accumulate.",
+                "behavior": "list_append",
+                "target_field": "sub_agents",
+            }
+        )
+        extras.append(
+            {
+                "name": "member",
+                "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
+                "doc": "Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern.",
+                "behavior": "deprecation_alias",
+                "target_method": "sub_agent",
+            }
+        )
+        extras.append(
+            {
+                "name": "delegate",
+                "signature": "(self, agent) -> Self",
+                "doc": "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.",
+                "behavior": "runtime_helper",
+                "helper_func": "delegate_agent",
+            }
+        )
 
     # Non-agent classes get no extras
     return extras
@@ -276,6 +308,7 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # TASK 11: TOML EMISSION
 # ---------------------------------------------------------------------------
+
 
 def _quote_toml_string(s: str) -> str:
     """Properly quote a string for TOML output."""
@@ -314,12 +347,12 @@ def emit_seed_toml(
 
     # Meta section
     lines.append("[meta]")
-    lines.append(f'adk_package = "google-adk"')
+    lines.append('adk_package = "google-adk"')
     lines.append(f'adk_version = "{adk_version}"')
-    lines.append(f'generated_at = "{datetime.now(timezone.utc).isoformat()}"')
-    lines.append(f'min_python = "3.11"')
-    lines.append(f'output_package = "adk_fluent"')
-    lines.append(f'output_dir = "src/adk_fluent"')
+    lines.append(f'generated_at = "{datetime.now(UTC).isoformat()}"')
+    lines.append('min_python = "3.11"')
+    lines.append('output_package = "adk_fluent"')
+    lines.append('output_dir = "src/adk_fluent"')
     lines.append("")
 
     # Global section
@@ -334,7 +367,7 @@ def emit_seed_toml(
     if field_docs:
         lines.append("[field_docs]")
         for field_name, doc_str in sorted(field_docs.items()):
-            lines.append(f'{field_name} = {_quote_toml_string(doc_str)}')
+            lines.append(f"{field_name} = {_quote_toml_string(doc_str)}")
         lines.append("")
 
     # Builder sections
@@ -343,7 +376,7 @@ def emit_seed_toml(
         lines.append(f"[builders.{name}]")
         lines.append(f'source_class = "{builder["source_class"]}"')
         lines.append(f'output_module = "{builder["output_module"]}"')
-        lines.append(f'doc = {_quote_toml_string(builder.get("doc", ""))}')
+        lines.append(f"doc = {_quote_toml_string(builder.get('doc', ''))}")
         lines.append(f'auto_tag = "{builder.get("tag", "data")}"')
         lines.append(f"constructor_args = {_emit_string_list(builder.get('constructor_args', []))}")
         opt_args = builder.get("optional_constructor_args")
@@ -374,7 +407,7 @@ def emit_seed_toml(
             lines.append(f'name = "{terminal["name"]}"')
             lines.append(f'returns = "{terminal["returns"]}"')
             if "doc" in terminal:
-                lines.append(f'doc = {_quote_toml_string(terminal["doc"])}')
+                lines.append(f"doc = {_quote_toml_string(terminal['doc'])}")
             lines.append("")
 
         # Extras
@@ -384,13 +417,13 @@ def emit_seed_toml(
             if "signature" in extra:
                 lines.append(f'signature = "{extra["signature"]}"')
             if "doc" in extra:
-                lines.append(f'doc = {_quote_toml_string(extra["doc"])}')
+                lines.append(f"doc = {_quote_toml_string(extra['doc'])}")
             if "behavior" in extra:
                 lines.append(f'behavior = "{extra["behavior"]}"')
             if "target_field" in extra:
                 lines.append(f'target_field = "{extra["target_field"]}"')
             if "target_fields" in extra:
-                lines.append(f'target_fields = {_emit_string_list(extra["target_fields"])}')
+                lines.append(f"target_fields = {_emit_string_list(extra['target_fields'])}")
             if "helper_func" in extra:
                 lines.append(f'helper_func = "{extra["helper_func"]}"')
             if "target_method" in extra:
@@ -539,11 +572,16 @@ def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None =
 # MANUAL SEED MERGING
 # ---------------------------------------------------------------------------
 
-_MANUAL_EXTRA_BEHAVIORS = frozenset({
-    "dual_callback", "deep_copy",
-    "runtime_helper", "runtime_helper_async",
-    "runtime_helper_async_gen", "runtime_helper_ctx",
-})
+_MANUAL_EXTRA_BEHAVIORS = frozenset(
+    {
+        "dual_callback",
+        "deep_copy",
+        "runtime_helper",
+        "runtime_helper_async",
+        "runtime_helper_async_gen",
+        "runtime_helper_ctx",
+    }
+)
 
 
 def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
@@ -555,7 +593,6 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
     4. Append manual extras to the corresponding builder's extras list.
     5. Return the merged TOML string.
     """
-    import io
 
     # Parse auto-generated TOML
     auto = tomllib.loads(auto_toml)
@@ -624,6 +661,7 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate seed.toml from manifest.json",
@@ -662,7 +700,11 @@ def main():
     if args.output:
         Path(args.output).write_text(toml_str)
         print(f"Seed written to {args.output}", file=sys.stderr)
-        top_level = [line for line in toml_str.split("\n") if line.startswith("[builders.") and "." not in line[len("[builders."):-1]]
+        top_level = [
+            line
+            for line in toml_str.split("\n")
+            if line.startswith("[builders.") and "." not in line[len("[builders.") : -1]
+        ]
         print(f"  Builders generated: {len(top_level)}", file=sys.stderr)
     else:
         print(toml_str)

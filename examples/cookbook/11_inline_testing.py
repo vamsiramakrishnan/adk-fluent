@@ -22,6 +22,7 @@ builder = Agent("qa").model("gemini-2.5-flash").instruct("Answer math.")
 assert hasattr(builder, "test")
 assert callable(builder.test)
 import inspect
+
 sig = inspect.signature(builder.test)
 assert "prompt" in sig.parameters
 assert "contains" in sig.parameters

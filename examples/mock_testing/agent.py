@@ -15,18 +15,12 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # .mock(list): cycle through canned responses
 agent_list = (
-    Agent("writer")
-    .model("gemini-2.5-flash")
-    .instruct("Write a story.")
-    .mock(["Once upon a time...", "The end."])
+    Agent("writer").model("gemini-2.5-flash").instruct("Write a story.").mock(["Once upon a time...", "The end."])
 )
 
 # .mock(callable): dynamic response based on the LLM request
 agent_fn = (
-    Agent("echo")
-    .model("gemini-2.5-flash")
-    .instruct("Echo the user's message.")
-    .mock(lambda req: "Mocked: I heard you")
+    Agent("echo").model("gemini-2.5-flash").instruct("Echo the user's message.").mock(lambda req: "Mocked: I heard you")
 )
 
 # Chainable -- .mock() returns self

@@ -1,4 +1,5 @@
 """Test harness for agent builders."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -10,6 +11,7 @@ from adk_fluent._ir import AgentEvent
 @dataclass
 class HarnessResponse:
     """Result from a harness send() call."""
+
     events: list[AgentEvent]
     final_text: str = ""
     errors: list[str] = field(default_factory=list)

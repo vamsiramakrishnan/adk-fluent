@@ -28,6 +28,7 @@ assert "Config fields:" in explanation
 
 # validate() catches errors: missing required fields
 import pytest
+
 broken = Agent("broken")  # No model set
 
 # Some builders may pass validation even without model (depends on ADK version)

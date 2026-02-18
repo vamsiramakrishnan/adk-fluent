@@ -24,21 +24,21 @@ Usage:
     # Start numbering from a specific index
     python scripts/cookbook_generator.py seeds/seed.toml manifest.json --start-index 30
 """
+
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
-from textwrap import dedent
 
 # Import shared parsing from generator
 sys.path.insert(0, str(Path(__file__).parent))
-from generator import parse_seed, parse_manifest, resolve_builder_specs, BuilderSpec
-
+from generator import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
 
 # ---------------------------------------------------------------------------
 # TEMPLATE RENDERING
 # ---------------------------------------------------------------------------
+
 
 def _render_native_section(spec: BuilderSpec) -> str:
     """Render the NATIVE ADK section for a builder."""
@@ -48,10 +48,7 @@ def _render_native_section(spec: BuilderSpec) -> str:
             f"# It orchestrates multiple ADK components."
         )
     if spec.is_standalone:
-        return (
-            f"# Native ADK has no direct equivalent for {spec.name}.\n"
-            f"# This is an adk-fluent convenience builder."
-        )
+        return f"# Native ADK has no direct equivalent for {spec.name}.\n# This is an adk-fluent convenience builder."
 
     short = spec.source_class_short
     module = spec.source_class.rsplit(".", 1)[0] if "." in spec.source_class else spec.source_class
@@ -84,7 +81,7 @@ def _render_native_section(spec: BuilderSpec) -> str:
                 ctor_args.append(f"    {arg}=None  # type: {type_str}")
 
     # Add common aliased fields
-    for fluent_name, field_name in sorted(spec.aliases.items()):
+    for _fluent_name, field_name in sorted(spec.aliases.items()):
         if field_name in spec.constructor_args:
             continue
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
@@ -125,7 +122,7 @@ def _render_fluent_section(spec: BuilderSpec) -> str:
                 if "str" in type_str:
                     arg_strs.append(f'"{a}_value"')
                 else:
-                    arg_strs.append(f"None")
+                    arg_strs.append("None")
             chain_parts.append(f"{spec.name}({', '.join(arg_strs)})")
         else:
             chain_parts.append(f"{spec.name}()")
@@ -163,7 +160,7 @@ def _render_fluent_section(spec: BuilderSpec) -> str:
 def _render_assert_section(spec: BuilderSpec) -> str:
     """Render the ASSERT equivalence section for a builder."""
     if spec.is_composite or spec.is_standalone:
-        return f"assert fluent is not None\nassert fluent._config[\"name\"] is not None"
+        return 'assert fluent is not None\nassert fluent._config["name"] is not None'
 
     lines = [
         "assert type(native) == type(fluent)",
@@ -174,7 +171,7 @@ def _render_assert_section(spec: BuilderSpec) -> str:
         lines.append(f'assert fluent.name == "example_{spec.name.lower()}"')
 
     # Check aliased fields
-    for fluent_name, field_name in sorted(spec.aliases.items()):
+    for _fluent_name, field_name in sorted(spec.aliases.items()):
         if field_name in spec.constructor_args:
             continue
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
@@ -193,7 +190,9 @@ def generate_cookbook(spec: BuilderSpec) -> str:
     fluent = _render_fluent_section(spec)
     assertion = _render_assert_section(spec)
 
-    return f'"""{title}"""\n\n# --- NATIVE ---\n{native}\n\n# --- FLUENT ---\n{fluent}\n\n# --- ASSERT ---\n{assertion}\n'
+    return (
+        f'"""{title}"""\n\n# --- NATIVE ---\n{native}\n\n# --- FLUENT ---\n{fluent}\n\n# --- ASSERT ---\n{assertion}\n'
+    )
 
 
 def _spec_title(spec: BuilderSpec) -> str:
@@ -208,6 +207,7 @@ def _spec_title(spec: BuilderSpec) -> str:
 # ---------------------------------------------------------------------------
 # FILE MANAGEMENT
 # ---------------------------------------------------------------------------
+
 
 def _existing_cookbook_builders(cookbook_dir: Path) -> set[str]:
     """Scan existing cookbook files to determine which builders are already covered."""
@@ -245,6 +245,7 @@ def _next_index(cookbook_dir: Path, start: int = 30) -> int:
 # ---------------------------------------------------------------------------
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
+
 
 def generate_all_cookbooks(
     seed_path: str,
@@ -311,31 +312,21 @@ def generate_all_cookbooks(
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate cookbook example stubs from seed + manifest"
-    )
+    parser = argparse.ArgumentParser(description="Generate cookbook example stubs from seed + manifest")
     parser.add_argument("seed", help="Path to seed.toml")
     parser.add_argument("manifest", help="Path to manifest.json")
     parser.add_argument(
-        "--cookbook-dir", default="examples/cookbook",
-        help="Output directory for cookbook files (default: examples/cookbook)"
+        "--cookbook-dir",
+        default="examples/cookbook",
+        help="Output directory for cookbook files (default: examples/cookbook)",
     )
+    parser.add_argument("--dry-run", action="store_true", help="Preview generated files without writing")
+    parser.add_argument("--force", action="store_true", help="Overwrite existing cookbook files")
+    parser.add_argument("--only", type=str, default=None, help="Generate only for a specific builder name")
     parser.add_argument(
-        "--dry-run", action="store_true",
-        help="Preview generated files without writing"
-    )
-    parser.add_argument(
-        "--force", action="store_true",
-        help="Overwrite existing cookbook files"
-    )
-    parser.add_argument(
-        "--only", type=str, default=None,
-        help="Generate only for a specific builder name"
-    )
-    parser.add_argument(
-        "--start-index", type=int, default=30,
-        help="Starting file index for generated examples (default: 30)"
+        "--start-index", type=int, default=30, help="Starting file index for generated examples (default: 30)"
     )
     args = parser.parse_args()
 

@@ -23,12 +23,7 @@ writer_native = LlmAgent(
 from adk_fluent import Agent, Pipeline
 
 # @ binds a Pydantic model as the output schema
-writer_fluent = (
-    Agent("writer")
-    .model("gemini-2.5-flash")
-    .instruct("Write a report.")
-    @ ReportSchema
-)
+writer_fluent = Agent("writer").model("gemini-2.5-flash").instruct("Write a report.") @ ReportSchema
 
 # @ is immutable — original unchanged
 base = Agent("base").model("gemini-2.5-flash").instruct("Analyze.")
@@ -50,11 +45,7 @@ pipeline = (
 
 # @ preserves all existing config
 detailed = (
-    Agent("analyst")
-    .model("gemini-2.5-flash")
-    .instruct("Analyze data thoroughly.")
-    .outputs("analysis")
-    @ ReportSchema
+    Agent("analyst").model("gemini-2.5-flash").instruct("Analyze data thoroughly.").outputs("analysis") @ ReportSchema
 )
 
 # --- ASSERT ---

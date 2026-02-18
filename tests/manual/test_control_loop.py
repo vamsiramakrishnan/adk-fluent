@@ -1,5 +1,7 @@
 """Tests for control loop DevEx improvements: aliases, delegate, dict >> routing."""
+
 import pytest
+
 from adk_fluent import Agent, Pipeline
 
 
@@ -19,12 +21,7 @@ class TestOutputsAlias:
 
     def test_outputs_in_chain(self):
         """outputs() works in a fluent chain."""
-        agent = (
-            Agent("step1")
-            .model("gemini-2.5-flash")
-            .instruct("Classify the input.")
-            .outputs("classification")
-        )
+        agent = Agent("step1").model("gemini-2.5-flash").instruct("Classify the input.").outputs("classification")
         assert agent._config["output_key"] == "classification"
         assert agent._config["instruction"] == "Classify the input."
 
@@ -65,12 +62,7 @@ class TestDelegateMethod:
         """Multiple delegate() calls accumulate."""
         a = Agent("a").model("gemini-2.5-flash")
         b = Agent("b").model("gemini-2.5-flash")
-        coordinator = (
-            Agent("router")
-            .model("gemini-2.5-flash")
-            .delegate(a)
-            .delegate(b)
-        )
+        coordinator = Agent("router").model("gemini-2.5-flash").delegate(a).delegate(b)
         assert len(coordinator._lists.get("tools", [])) == 2
 
 
@@ -95,13 +87,17 @@ class TestDictRouting:
     def test_dict_pipeline_has_two_steps(self):
         """The resulting Pipeline has classifier + route_agent as sub_agents."""
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
-        result = classifier >> {"a": Agent("x").model("gemini-2.5-flash").instruct("X"), "b": Agent("y").model("gemini-2.5-flash").instruct("Y")}
+        result = classifier >> {
+            "a": Agent("x").model("gemini-2.5-flash").instruct("X"),
+            "b": Agent("y").model("gemini-2.5-flash").instruct("Y"),
+        }
         # Pipeline has 2 items in sub_agents list (classifier builder + built route agent)
         assert len(result._lists.get("sub_agents", [])) == 2
 
     def test_dict_route_agent_has_sub_agents(self):
         """The route agent has the dict values as sub_agents."""
         from google.adk.agents.base_agent import BaseAgent
+
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
         a = Agent("handler_a").model("gemini-2.5-flash").instruct("A")
         b = Agent("handler_b").model("gemini-2.5-flash").instruct("B")
@@ -115,8 +111,12 @@ class TestDictRouting:
     def test_dict_route_is_deterministic(self):
         """The route agent is a deterministic BaseAgent, NOT an LLM-based coordinator."""
         from google.adk.agents.llm_agent import LlmAgent
+
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
-        pipeline = classifier >> {"booking": Agent("booker").model("gemini-2.5-flash").instruct("B"), "info": Agent("info_agent").model("gemini-2.5-flash").instruct("I")}
+        pipeline = classifier >> {
+            "booking": Agent("booker").model("gemini-2.5-flash").instruct("B"),
+            "info": Agent("info_agent").model("gemini-2.5-flash").instruct("I"),
+        }
         route_agent = pipeline._lists["sub_agents"][1]
         # Should NOT be an LlmAgent (deterministic routing, no LLM)
         assert not isinstance(route_agent, LlmAgent)
@@ -126,7 +126,13 @@ class TestDictRouting:
         classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
         formatter = Agent("formatter").model("gemini-2.5-flash")
 
-        result = (classifier >> {"a": Agent("x").model("gemini-2.5-flash").instruct("X"), "b": Agent("y").model("gemini-2.5-flash").instruct("Y")}) >> formatter
+        result = (
+            classifier
+            >> {
+                "a": Agent("x").model("gemini-2.5-flash").instruct("X"),
+                "b": Agent("y").model("gemini-2.5-flash").instruct("Y"),
+            }
+        ) >> formatter
         # Should be a Pipeline with 3 steps
         assert isinstance(result, Pipeline)
         assert len(result._lists.get("sub_agents", [])) == 3

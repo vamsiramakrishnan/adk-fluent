@@ -1,6 +1,7 @@
 """Tests for operator composition: >>, |, *."""
+
 from adk_fluent.agent import Agent
-from adk_fluent.workflow import Pipeline, FanOut, Loop
+from adk_fluent.workflow import FanOut, Loop, Pipeline
 
 
 class TestRshift:

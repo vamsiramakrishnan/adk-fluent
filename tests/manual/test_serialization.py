@@ -1,7 +1,7 @@
 """Tests for serialization: to_dict, to_yaml (inspection-only, no round-trip)."""
+
 from adk_fluent.agent import Agent
 from adk_fluent.workflow import Pipeline
-import pytest
 
 
 def _my_callback(ctx):

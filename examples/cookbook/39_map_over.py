@@ -8,6 +8,7 @@ from google.adk.agents.llm_agent import LlmAgent
 
 class MapOverAgent(NativeBaseAgent):
     """Custom agent that iterates a sub-agent over each item in a state list."""
+
     async def _run_async_impl(self, ctx):
         items = ctx.session.state.get("documents", [])
         results = []
@@ -20,7 +21,8 @@ class MapOverAgent(NativeBaseAgent):
 
 
 summarizer = LlmAgent(
-    name="summarizer", model="gemini-2.5-flash",
+    name="summarizer",
+    model="gemini-2.5-flash",
     instruction="Summarize the document in _item.",
 )
 native_mapper = MapOverAgent(name="mapper", sub_agents=[summarizer])

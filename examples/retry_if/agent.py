@@ -31,11 +31,7 @@ pipeline_retry = (
 
 # Equivalence: retry_if(p) == loop_until(not p)
 # These produce identical behavior:
-via_retry = Agent("a").model("gemini-2.5-flash").retry_if(
-    lambda s: s.get("ok") != "yes", max_retries=4
-)
-via_loop = Agent("a").model("gemini-2.5-flash").loop_until(
-    lambda s: s.get("ok") == "yes", max_iterations=4
-)
+via_retry = Agent("a").model("gemini-2.5-flash").retry_if(lambda s: s.get("ok") != "yes", max_retries=4)
+via_loop = Agent("a").model("gemini-2.5-flash").loop_until(lambda s: s.get("ok") == "yes", max_iterations=4)
 
 root_agent = via_loop.build()

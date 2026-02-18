@@ -25,9 +25,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
 
 # ---------------------------------------------------------------------------
 # CONFIGURATION
@@ -70,10 +69,11 @@ CALLBACK_VALUE_FIELDS: set[str] = {
 # TYPE MAPPING
 # ---------------------------------------------------------------------------
 
+
 def map_type_to_ir(field: dict) -> str:
     """Map a manifest field type to a frozen-friendly IR type annotation."""
     name = field["name"]
-    type_str = field["type_str"]
+    _type_str = field["type_str"]
     is_list = field.get("is_list", False)
 
     # Renamed fields
@@ -146,6 +146,7 @@ def default_for_ir(field: dict) -> str:
 # GENERATION
 # ---------------------------------------------------------------------------
 
+
 def classify_fields(fields: list[dict]) -> tuple[list[dict], list[dict]]:
     """Split fields into regular fields and callback fields.
 
@@ -175,16 +176,16 @@ def gen_node_class(adk_name: str, ir_name: str, cls_data: dict) -> str:
     regular_fields, callback_fields = classify_fields(fields)
 
     lines = []
-    lines.append(f"@dataclass(frozen=True)")
+    lines.append("@dataclass(frozen=True)")
     lines.append(f"class {ir_name}:")
     lines.append(f'    """Generated IR node for ADK {adk_name}.')
-    lines.append(f"")
+    lines.append("")
     lines.append(f"    {doc}")
-    lines.append(f'    """')
-    lines.append(f"")
+    lines.append('    """')
+    lines.append("")
 
     # Required field first
-    lines.append(f"    name: str")
+    lines.append("    name: str")
 
     # Regular fields with defaults
     for f in regular_fields:
@@ -197,9 +198,7 @@ def gen_node_class(adk_name: str, ir_name: str, cls_data: dict) -> str:
     if callback_fields:
         cb_names = [f["name"] for f in callback_fields]
         lines.append(f"    # Merged callback fields: {', '.join(cb_names)}")
-    lines.append(
-        '    callbacks: dict[str, tuple[Callable, ...]] = field(default_factory=dict)'
-    )
+    lines.append("    callbacks: dict[str, tuple[Callable, ...]] = field(default_factory=dict)")
 
     # adk-fluent extension fields
     lines.append("")
@@ -217,7 +216,7 @@ def gen_full_module(manifest: dict) -> str:
     """Generate the complete _ir_generated.py module."""
     classes = {cls["name"]: cls for cls in manifest.get("classes", [])}
 
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
     adk_version = manifest.get("adk_version", "unknown")
 
     header_lines = [
@@ -231,13 +230,20 @@ def gen_full_module(manifest: dict) -> str:
         '"""',
         "from __future__ import annotations",
         "",
+        "from collections.abc import Callable",
         "from dataclasses import dataclass, field",
-        "from typing import Any, Callable, Union",
+        "from typing import Any",
         "",
         "from adk_fluent._ir import (",
-        "    TransformNode, TapNode, FallbackNode, RaceNode,",
-        "    GateNode, MapOverNode, TimeoutNode, RouteNode,",
+        "    FallbackNode,",
+        "    GateNode,",
+        "    MapOverNode,",
+        "    RaceNode,",
+        "    RouteNode,",
+        "    TapNode,",
+        "    TimeoutNode,",
         "    TransferNode,",
+        "    TransformNode,",
         ")",
         "",
         "__all__ = [",
@@ -267,23 +273,26 @@ def gen_full_module(manifest: dict) -> str:
     # Generate FullNode type union
     generated_names = list(CLASS_MAP.values())
     hand_written_names = [
-        "TransformNode", "TapNode", "FallbackNode", "RaceNode",
-        "GateNode", "MapOverNode", "TimeoutNode", "RouteNode",
+        "TransformNode",
+        "TapNode",
+        "FallbackNode",
+        "RaceNode",
+        "GateNode",
+        "MapOverNode",
+        "TimeoutNode",
+        "RouteNode",
         "TransferNode",
     ]
     all_node_names = generated_names + hand_written_names
 
+    union_parts = " | ".join(all_node_names)
     union_lines = [
         "# ======================================================================",
         "# Full Node type union (generated + hand-written)",
         "# ======================================================================",
         "",
-        "FullNode = Union[",
+        f"FullNode = {union_parts}",
     ]
-    for i, name in enumerate(all_node_names):
-        comma = "," if i < len(all_node_names) - 1 else ","
-        union_lines.append(f"    {name}{comma}")
-    union_lines.append("]")
     union_lines.append("")
 
     return "\n".join(header_lines) + "\n".join(body_parts) + "\n" + "\n".join(union_lines)
@@ -293,10 +302,9 @@ def gen_full_module(manifest: dict) -> str:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate frozen dataclass IR nodes from ADK manifest"
-    )
+    parser = argparse.ArgumentParser(description="Generate frozen dataclass IR nodes from ADK manifest")
     parser.add_argument("manifest", help="Path to manifest.json")
     parser.add_argument(
         "--output",

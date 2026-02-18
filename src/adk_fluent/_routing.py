@@ -1,6 +1,9 @@
 """Control flow primitives for the fluent expression language. Hand-written, not generated."""
+
 from __future__ import annotations
-from typing import Any, Callable
+
+from collections.abc import Callable
+from typing import Any
 
 __all__ = ["Route"]
 
@@ -8,11 +11,12 @@ __all__ = ["Route"]
 def _make_fallback_builder(children: list):
     """Create a _FallbackBuilder from a list of children."""
     from adk_fluent._base import _FallbackBuilder
+
     names = []
     for c in children:
-        if hasattr(c, '_config'):
+        if hasattr(c, "_config"):
             names.append(c._config.get("name", "?"))
-        elif hasattr(c, 'name'):
+        elif hasattr(c, "name"):
             names.append(c.name)
         else:
             names.append("?")

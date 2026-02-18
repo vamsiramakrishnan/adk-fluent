@@ -4,6 +4,7 @@
 def test_fn_agent_same_type_across_builds():
     """Two FnStep builds should produce agents of the same type."""
     from adk_fluent._base import _fn_step
+
     fn = lambda state: {"x": 1}
     a1 = _fn_step(fn).build()
     a2 = _fn_step(fn).build()
@@ -13,6 +14,7 @@ def test_fn_agent_same_type_across_builds():
 def test_tap_agent_same_type_across_builds():
     """Two tap builds should produce agents of the same type."""
     from adk_fluent import tap
+
     fn = lambda state: None
     a1 = tap(fn).build()
     a2 = tap(fn).build()
@@ -22,36 +24,43 @@ def test_tap_agent_same_type_across_builds():
 def test_fn_agent_is_importable():
     """Module-level agent classes should be importable."""
     from adk_fluent._base import FnAgent
+
     assert FnAgent is not None
 
 
 def test_tap_agent_is_importable():
     from adk_fluent._base import TapAgent
+
     assert TapAgent is not None
 
 
 def test_gate_agent_is_importable():
     from adk_fluent._base import GateAgent
+
     assert GateAgent is not None
 
 
 def test_race_agent_is_importable():
     from adk_fluent._base import RaceAgent
+
     assert RaceAgent is not None
 
 
 def test_fallback_agent_is_importable():
     from adk_fluent._base import FallbackAgent
+
     assert FallbackAgent is not None
 
 
 def test_timeout_agent_is_importable():
     from adk_fluent._base import TimeoutAgent
+
     assert TimeoutAgent is not None
 
 
 def test_map_over_agent_is_importable():
     from adk_fluent._base import MapOverAgent
+
     assert MapOverAgent is not None
 
 

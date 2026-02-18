@@ -1,4 +1,5 @@
 """Tests for .retry() and .fallback() — builder mechanics only (no LLM calls)."""
+
 from adk_fluent.agent import Agent
 
 
@@ -41,12 +42,7 @@ class TestFallback:
 
 class TestRetryFallbackCombined:
     def test_retry_and_fallback_together(self):
-        a = (
-            Agent("test")
-            .model("gemini-2.5-flash")
-            .retry(max_attempts=3)
-            .fallback("gpt-4o")
-        )
+        a = Agent("test").model("gemini-2.5-flash").retry(max_attempts=3).fallback("gpt-4o")
         assert a._config["_retry"]["max_attempts"] == 3
         assert a._config["_fallbacks"] == ["gpt-4o"]
         assert a._config["model"] == "gemini-2.5-flash"

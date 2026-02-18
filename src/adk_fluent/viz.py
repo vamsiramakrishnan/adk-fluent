@@ -1,4 +1,5 @@
 """Graph visualization for IR node trees."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -24,11 +25,14 @@ def ir_to_mermaid(node: Any, *, show_contracts: bool = True) -> str:
         return f"n{_counter[0]}"
 
     def _walk(n: Any) -> str:
-        from adk_fluent._ir_generated import SequenceNode, ParallelNode, LoopNode, AgentNode
         from adk_fluent._ir import (
-            TransformNode, TapNode, FallbackNode, RaceNode,
-            GateNode, MapOverNode, TimeoutNode, RouteNode, TransferNode,
+            GateNode,
+            RouteNode,
+            TapNode,
+            TransferNode,
+            TransformNode,
         )
+        from adk_fluent._ir_generated import AgentNode, LoopNode, ParallelNode, SequenceNode
 
         nid = _id()
         name = getattr(n, "name", "?")
@@ -74,7 +78,7 @@ def ir_to_mermaid(node: Any, *, show_contracts: bool = True) -> str:
                 cid = _walk(child)
                 child_ids.append(cid)
             for i in range(len(child_ids) - 1):
-                edges.append(f"    {child_ids[i]} --> {child_ids[i+1]}")
+                edges.append(f"    {child_ids[i]} --> {child_ids[i + 1]}")
         elif children:
             for child in children:
                 cid = _walk(child)

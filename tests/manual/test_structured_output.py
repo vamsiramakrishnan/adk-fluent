@@ -1,9 +1,11 @@
 """Tests for .output() — structured output builder mechanics (no LLM calls)."""
+
 from adk_fluent.agent import Agent
 
 
 class FakeSchema:
     """Stand-in for a Pydantic model class."""
+
     pass
 
 

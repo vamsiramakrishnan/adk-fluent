@@ -1,11 +1,11 @@
 """Tests for antipattern fixes: counter safety, explicit fields, structured output, sync/async."""
+
 import asyncio
 
 import pytest
 
-from adk_fluent.agent import Agent
 from adk_fluent._base import BuilderBase, _fn_step, _fn_step_counter
-
+from adk_fluent.agent import Agent
 
 # ======================================================================
 # Fix 1: itertools.count() replaces global mutable counter
@@ -17,6 +17,7 @@ class TestFnStepCounter:
 
     def test_counter_is_itertools_count(self):
         import itertools
+
         assert isinstance(_fn_step_counter, itertools.count)
 
     def test_counter_increments(self):
@@ -33,8 +34,10 @@ class TestFnStepCounter:
 
     def test_named_function_uses_own_name(self):
         """Functions with valid identifier names use their own name, not the counter."""
+
         def my_transform(state):
             return state
+
         step = _fn_step(my_transform)
         assert step._config["name"] == "my_transform"
 
@@ -49,9 +52,7 @@ class TestExplicitFieldMethods:
 
     def test_model_is_explicit_method(self):
         """Agent.model() should be a real method, not __getattr__ closure."""
-        assert "model" in Agent.__dict__, (
-            "model should be an explicit method on Agent, not resolved via __getattr__"
-        )
+        assert "model" in Agent.__dict__, "model should be an explicit method on Agent, not resolved via __getattr__"
 
     def test_sub_agents_is_explicit_method(self):
         assert "sub_agents" in Agent.__dict__
@@ -75,12 +76,7 @@ class TestExplicitFieldMethods:
         assert result is agent  # returns self for chaining
 
     def test_explicit_method_chainable(self):
-        agent = (
-            Agent("test")
-            .model("gemini-2.5-flash")
-            .disallow_transfer_to_parent(True)
-            .instruct("Do stuff")
-        )
+        agent = Agent("test").model("gemini-2.5-flash").disallow_transfer_to_parent(True).instruct("Do stuff")
         assert agent._config["model"] == "gemini-2.5-flash"
         assert agent._config["disallow_transfer_to_parent"] is True
         assert agent._config["instruction"] == "Do stuff"
@@ -104,15 +100,19 @@ class TestStructuredOutputParseFailure:
 
     def test_stores_schema_in_config(self):
         """Basic mechanic: .output() stores the schema."""
+
         class FakeSchema:
             pass
+
         a = Agent("test").output(FakeSchema)
         assert a._config["_output_schema"] is FakeSchema
 
     def test_matmul_stores_schema(self):
         """@ operator stores schema via clone."""
+
         class FakeSchema:
             pass
+
         a = Agent("test") @ FakeSchema
         assert a._config["_output_schema"] is FakeSchema
 

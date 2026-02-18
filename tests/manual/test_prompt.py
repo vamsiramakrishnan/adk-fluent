@@ -1,11 +1,11 @@
 """Tests for Prompt builder, .static() alias, and inject_context()."""
-import pytest
-from adk_fluent import Agent, Prompt
 
+from adk_fluent import Agent, Prompt
 
 # ======================================================================
 # Prompt builder — section methods
 # ======================================================================
+
 
 class TestPromptSections:
     def test_role_only(self):
@@ -44,12 +44,7 @@ class TestPromptSections:
 
     def test_section_order_is_fixed(self):
         # Even if called out of order, sections appear in standard order
-        p = (
-            Prompt()
-            .example("example first")
-            .role("role second")
-            .task("task third")
-        )
+        p = Prompt().example("example first").role("role second").task("task third")
         result = str(p)
         role_pos = result.index("role second")
         task_pos = result.index("task third")
@@ -57,12 +52,7 @@ class TestPromptSections:
         assert role_pos < task_pos < example_pos
 
     def test_multiple_constraints(self):
-        p = (
-            Prompt()
-            .constraint("Be concise.")
-            .constraint("No jargon.")
-            .constraint("Use examples.")
-        )
+        p = Prompt().constraint("Be concise.").constraint("No jargon.").constraint("Use examples.")
         result = str(p)
         assert "Constraints:\nBe concise.\nNo jargon.\nUse examples." in result
 
@@ -85,6 +75,7 @@ class TestPromptSections:
 # ======================================================================
 # Prompt builder — composition
 # ======================================================================
+
 
 class TestPromptComposition:
     def test_merge_combines_sections(self):
@@ -128,6 +119,7 @@ class TestPromptComposition:
 # Prompt builder — output
 # ======================================================================
 
+
 class TestPromptOutput:
     def test_build_returns_string(self):
         p = Prompt().role("Test.")
@@ -160,6 +152,7 @@ class TestPromptOutput:
 # Prompt + Agent integration
 # ======================================================================
 
+
 class TestPromptWithAgent:
     def test_instruct_accepts_prompt(self):
         prompt = Prompt().role("Helper.").task("Answer questions.")
@@ -177,6 +170,7 @@ class TestPromptWithAgent:
 # ======================================================================
 # .static() alias
 # ======================================================================
+
 
 class TestStaticAlias:
     def test_static_sets_static_instruction(self):
@@ -198,11 +192,10 @@ class TestStaticAlias:
 # inject_context()
 # ======================================================================
 
+
 class TestInjectContext:
     def test_inject_context_adds_before_model_callback(self):
-        builder = Agent("test").model("gemini-2.5-flash").inject_context(
-            lambda ctx: "extra context"
-        )
+        builder = Agent("test").model("gemini-2.5-flash").inject_context(lambda ctx: "extra context")
         assert len(builder._callbacks["before_model_callback"]) == 1
 
     def test_inject_context_chains(self):
@@ -228,12 +221,8 @@ class TestInjectContext:
     def test_inject_context_composes_with_guardrail(self):
         def my_guardrail(ctx, req):
             pass
-        builder = (
-            Agent("test")
-            .model("gemini-2.5-flash")
-            .guardrail(my_guardrail)
-            .inject_context(lambda ctx: "extra")
-        )
+
+        builder = Agent("test").model("gemini-2.5-flash").guardrail(my_guardrail).inject_context(lambda ctx: "extra")
         # guardrail adds to both before_model and after_model
         # inject_context adds to before_model
         assert len(builder._callbacks["before_model_callback"]) == 2

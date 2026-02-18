@@ -47,7 +47,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-adk pytest pytest-asyncio pytest-cov
+          pip install google-adk pytest pytest-asyncio pytest-cov ruff
           pip install -e ".[dev]"
 
       - name: Run codegen pipeline
@@ -56,6 +56,8 @@ jobs:
           python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
           python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
           python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
+          ruff check --fix .
+          ruff format .
 
       - name: Run tests with coverage
         run: pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=xml --cov-report=term-missing
@@ -84,7 +86,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-adk hatch
+          pip install google-adk hatch ruff
           pip install -e ".[dev]"
 
       - name: Run codegen pipeline
@@ -93,6 +95,8 @@ jobs:
           python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
           python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
           python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
+          ruff check --fix .
+          ruff format .
 
       - name: Build package
         run: hatch build

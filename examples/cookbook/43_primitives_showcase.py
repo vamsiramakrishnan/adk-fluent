@@ -27,11 +27,7 @@ assert isinstance(pipeline_method, Pipeline)
 validator = Agent("validator", MODEL).instruct("Validate input.").outputs("valid")
 enricher = Agent("enricher", MODEL).instruct("Enrich the data.")
 
-pipeline_with_expect = (
-    validator
-    >> expect(lambda s: s.get("valid") == "yes", "Validation must pass")
-    >> enricher
-)
+pipeline_with_expect = validator >> expect(lambda s: s.get("valid") == "yes", "Validation must pass") >> enricher
 assert isinstance(pipeline_with_expect, Pipeline)
 built = pipeline_with_expect.build()
 assert len(built.sub_agents) == 3  # validator, expect, enricher
@@ -45,11 +41,7 @@ risk_gate = gate(
 )
 executor = Agent("executor", MODEL).instruct("Execute the action.")
 
-pipeline_with_gate = (
-    Agent("analyzer", MODEL).instruct("Analyze risk.").outputs("risk_level")
-    >> risk_gate
-    >> executor
-)
+pipeline_with_gate = Agent("analyzer", MODEL).instruct("Analyze risk.").outputs("risk_level") >> risk_gate >> executor
 assert isinstance(pipeline_with_gate, Pipeline)
 built_gate = pipeline_with_gate.build()
 assert len(built_gate.sub_agents) == 3
@@ -61,12 +53,7 @@ handler_a = Agent("handle_a", MODEL).instruct("Handle intent A.")
 handler_b = Agent("handle_b", MODEL).instruct("Handle intent B.")
 fallback = Agent("handle_default", MODEL).instruct("Handle unknown.")
 
-route = (
-    Route("intent")
-    .eq("question", handler_a)
-    .eq("command", handler_b)
-    .otherwise(fallback)
-)
+route = Route("intent").eq("question", handler_a).eq("command", handler_b).otherwise(fallback)
 
 routed_pipeline = classifier >> route
 assert isinstance(routed_pipeline, Pipeline)
@@ -130,9 +117,9 @@ full_pipeline = (
     >> Agent("classify", MODEL).instruct("Classify the input.").outputs("intent")
     # Route based on classification
     >> Route("intent")
-        .eq("research", Agent("researcher", MODEL).instruct("Research.").outputs("findings"))
-        .eq("summarize", Agent("summarizer", MODEL).instruct("Summarize.").outputs("findings"))
-        .otherwise(Agent("general", MODEL).instruct("General help.").outputs("findings"))
+    .eq("research", Agent("researcher", MODEL).instruct("Research.").outputs("findings"))
+    .eq("summarize", Agent("summarizer", MODEL).instruct("Summarize.").outputs("findings"))
+    .otherwise(Agent("general", MODEL).instruct("General help.").outputs("findings"))
     # Observe after routing
     >> tap(lambda s: None)  # no-op observation
     # Assert contract

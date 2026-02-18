@@ -9,6 +9,7 @@ from google.adk.agents.sequential_agent import SequentialAgent
 
 class MergeResearch(NativeBaseAgent):
     """Custom agent just to merge two state keys."""
+
     async def _run_async_impl(self, ctx):
         web = ctx.session.state.get("web_results", "")
         papers = ctx.session.state.get("paper_results", "")
@@ -20,16 +21,16 @@ researcher = LlmAgent(name="researcher", model="gemini-2.5-flash", instruction="
 merger = MergeResearch(name="merge")
 writer = LlmAgent(name="writer", model="gemini-2.5-flash", instruction="Write.")
 
-pipeline_native = SequentialAgent(
-    name="pipeline", sub_agents=[researcher, merger, writer]
-)
+pipeline_native = SequentialAgent(name="pipeline", sub_agents=[researcher, merger, writer])
 
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline
 
+
 # Plain function — receives state dict, returns dict of updates
 def merge_research(state):
     return {"research": state.get("web_results", "") + "\n" + state.get("paper_results", "")}
+
 
 # >> fn: function becomes a zero-cost workflow node (no LLM call)
 pipeline_fluent = (
@@ -38,9 +39,11 @@ pipeline_fluent = (
     >> Agent("writer").model("gemini-2.5-flash").instruct("Write.")
 )
 
+
 # Named functions keep their name as the agent name
 def trim_to_500(state):
     return {"summary": state.get("text", "")[:500]}
+
 
 trimmed = Agent("a").model("gemini-2.5-flash") >> trim_to_500
 
@@ -51,8 +54,12 @@ pipeline_with_lambda = (
     >> Agent("b").model("gemini-2.5-flash")
 )
 
+
 # fn >> agent also works (via __rrshift__)
-preprocess = lambda s: {"cleaned": s.get("raw", "").strip()}
+def preprocess(s):
+    return {"cleaned": s.get("raw", "").strip()}
+
+
 reversed_pipeline = preprocess >> Agent("processor").model("gemini-2.5-flash")
 
 # --- ASSERT ---

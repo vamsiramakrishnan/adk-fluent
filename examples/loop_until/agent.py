@@ -17,10 +17,7 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 writer = Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").outputs("quality")
 reviewer = Agent("reviewer").model("gemini-2.5-flash").instruct("Review the draft.")
 
-refinement = (writer >> reviewer).loop_until(
-    lambda s: s.get("quality") == "good",
-    max_iterations=5
-)
+refinement = (writer >> reviewer).loop_until(lambda s: s.get("quality") == "good", max_iterations=5)
 
 # .until() on a Loop — alternative syntax
 manual_loop = (

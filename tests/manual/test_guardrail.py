@@ -33,11 +33,6 @@ class TestGuardrail:
         guard_fn = lambda ctx: "guard"
         before_fn = lambda ctx: "before"
         after_fn = lambda ctx: "after"
-        builder = (
-            Agent("test")
-            .before_model(before_fn)
-            .guardrail(guard_fn)
-            .after_model(after_fn)
-        )
+        builder = Agent("test").before_model(before_fn).guardrail(guard_fn).after_model(after_fn)
         assert builder._callbacks["before_model_callback"] == [before_fn, guard_fn]
         assert builder._callbacks["after_model_callback"] == [guard_fn, after_fn]

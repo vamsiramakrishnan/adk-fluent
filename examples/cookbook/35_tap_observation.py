@@ -9,6 +9,7 @@ from google.adk.agents.sequential_agent import SequentialAgent
 
 class LogState(NativeBaseAgent):
     """Custom agent just to print state without modifying it."""
+
     async def _run_async_impl(self, ctx):
         print(dict(ctx.session.state))
         # yield nothing -- pure observation
@@ -18,9 +19,7 @@ researcher = LlmAgent(name="researcher", model="gemini-2.5-flash", instruction="
 logger = LogState(name="logger")
 writer = LlmAgent(name="writer", model="gemini-2.5-flash", instruction="Write.")
 
-pipeline_native = SequentialAgent(
-    name="pipeline", sub_agents=[researcher, logger, writer]
-)
+pipeline_native = SequentialAgent(name="pipeline", sub_agents=[researcher, logger, writer])
 
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline, tap
@@ -33,9 +32,11 @@ pipeline_fluent = (
     >> Agent("writer").model("gemini-2.5-flash").instruct("Write.")
 )
 
+
 # Named functions keep their name
 def log_draft(state):
     print(f"Draft length: {len(state.get('draft', ''))}")
+
 
 pipeline_with_named_tap = (
     Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.")
@@ -44,10 +45,7 @@ pipeline_with_named_tap = (
 )
 
 # .tap() method on any builder -- convenience for inline chaining
-pipeline_method = (
-    Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze.")
-    .tap(lambda s: print("Analysis done"))
-)
+pipeline_method = Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze.").tap(lambda s: print("Analysis done"))
 
 # --- ASSERT ---
 from adk_fluent._base import _TapBuilder

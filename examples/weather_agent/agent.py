@@ -16,6 +16,7 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # --- Tools (plain functions, auto-wrapped) ---
 
+
 def get_weather(city: str) -> dict:
     """Get the current weather for a city."""
     # Stub — replace with real API call
@@ -33,7 +34,7 @@ def get_forecast(city: str, days: int = 3) -> dict:
     return {
         "city": city,
         "days": days,
-        "forecast": [f"Day {i+1}: Sunny, {70+i}F" for i in range(days)],
+        "forecast": [f"Day {i + 1}: Sunny, {70 + i}F" for i in range(days)],
     }
 
 

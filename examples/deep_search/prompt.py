@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 # Pydantic Models
 # =====================================================================
 
+
 class SearchQuery(BaseModel):
     """A single follow-up web search query."""
 
@@ -28,12 +29,8 @@ class SearchQuery(BaseModel):
 class Feedback(BaseModel):
     """Structured evaluation of research quality."""
 
-    grade: Literal["pass", "fail"] = Field(
-        description="Whether the research meets the quality bar: 'pass' or 'fail'."
-    )
-    comment: str = Field(
-        description="Detailed evaluation explaining the reasoning behind the grade."
-    )
+    grade: Literal["pass", "fail"] = Field(description="Whether the research meets the quality bar: 'pass' or 'fail'.")
+    comment: str = Field(description="Detailed evaluation explaining the reasoning behind the grade.")
     follow_up_queries: list[SearchQuery] | None = Field(
         default=None,
         description=(
@@ -313,6 +310,7 @@ creating, refining, and executing structured research plans.
 # Callbacks
 # =====================================================================
 
+
 def collect_research_sources_callback(callback_context):
     """Extract grounding metadata from session events into structured state.
 
@@ -337,11 +335,7 @@ def collect_research_sources_callback(callback_context):
             if not chunk.web:
                 continue
             url = chunk.web.uri
-            title = (
-                chunk.web.title
-                if chunk.web.title != chunk.web.domain
-                else chunk.web.domain
-            )
+            title = chunk.web.title if chunk.web.title != chunk.web.domain else chunk.web.domain
             if url not in url_to_short_id:
                 short_id = f"src-{id_counter}"
                 url_to_short_id[url] = short_id
@@ -362,14 +356,8 @@ def collect_research_sources_callback(callback_context):
                 for i, chunk_idx in enumerate(chunk_indices):
                     if chunk_idx in chunks_info:
                         short_id = chunks_info[chunk_idx]
-                        confidence = (
-                            confidence_scores[i]
-                            if i < len(confidence_scores)
-                            else 0.5
-                        )
-                        text_segment = (
-                            support.segment.text if support.segment else ""
-                        )
+                        confidence = confidence_scores[i] if i < len(confidence_scores) else 0.5
+                        text_segment = support.segment.text if support.segment else ""
                         sources[short_id]["supported_claims"].append(
                             {
                                 "text_segment": text_segment,
@@ -396,9 +384,7 @@ def citation_replacement_callback(callback_context):
         source_info = sources.get(short_id)
         if not source_info:
             return ""
-        display_text = source_info.get(
-            "title", source_info.get("domain", short_id)
-        )
+        display_text = source_info.get("title", source_info.get("domain", short_id))
         return f" [{display_text}]({source_info['url']})"
 
     processed_report = re.sub(
@@ -417,6 +403,7 @@ def citation_replacement_callback(callback_context):
 # Custom BaseAgent: EscalationChecker
 # =====================================================================
 
+
 class EscalationChecker(BaseAgent):
     """Check if the research evaluation grade is 'pass' and escalate to exit the loop.
 
@@ -428,9 +415,7 @@ class EscalationChecker(BaseAgent):
     def __init__(self, name: str):
         super().__init__(name=name)
 
-    async def _run_async_impl(
-        self, ctx: InvocationContext
-    ) -> AsyncGenerator[Event, None]:
+    async def _run_async_impl(self, ctx: InvocationContext) -> AsyncGenerator[Event, None]:
         evaluation_result = ctx.session.state.get("research_evaluation")
         if evaluation_result and evaluation_result.get("grade") == "pass":
             yield Event(

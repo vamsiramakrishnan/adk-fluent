@@ -1,4 +1,5 @@
 """Tests for _UNSET sentinel handling."""
+
 from adk_fluent._base import _UNSET
 
 
@@ -15,6 +16,7 @@ def test_unset_repr():
 def test_unset_excluded_from_build_config():
     """_UNSET values should not appear in build config."""
     from adk_fluent import Agent
+
     a = Agent("test")
     a._config["model"] = _UNSET
     config = a._prepare_build_config()
@@ -24,6 +26,7 @@ def test_unset_excluded_from_build_config():
 def test_none_included_in_build_config():
     """None values should still appear in build config (they have meaning in ADK)."""
     from adk_fluent import Agent
+
     a = Agent("test")
     a._config["generate_content_config"] = None
     config = a._prepare_build_config()

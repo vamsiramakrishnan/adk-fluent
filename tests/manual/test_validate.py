@@ -1,7 +1,8 @@
 """Tests for validate() and explain()."""
+
 import pytest
+
 from adk_fluent.agent import Agent
-from adk_fluent.workflow import Pipeline
 
 
 def _dummy_cb(ctx):

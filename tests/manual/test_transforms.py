@@ -1,13 +1,15 @@
 """Tests for S — state transform factories that compose with >>."""
+
 import pytest
-from adk_fluent import S, Agent
+
+from adk_fluent import Agent, S
 from adk_fluent._transforms import StateDelta, StateReplacement
 from adk_fluent.workflow import Pipeline
-
 
 # ======================================================================
 # Unit tests — each factory in isolation (pure dict -> dict)
 # ======================================================================
+
 
 class TestPick:
     def test_keeps_specified_keys(self):
@@ -185,6 +187,7 @@ class TestCompute:
 # Integration tests — S factories compose with >> in pipelines
 # ======================================================================
 
+
 class TestCompositionWithPipeline:
     def test_pick_in_pipeline(self):
         a = Agent("a").model("gemini-2.5-flash")
@@ -203,13 +206,7 @@ class TestCompositionWithPipeline:
     def test_chain_multiple_transforms(self):
         a = Agent("a").model("gemini-2.5-flash")
         b = Agent("b").model("gemini-2.5-flash")
-        p = (
-            a
-            >> S.pick("findings", "sources")
-            >> S.rename(findings="research")
-            >> S.default(confidence=0.5)
-            >> b
-        )
+        p = a >> S.pick("findings", "sources") >> S.rename(findings="research") >> S.default(confidence=0.5) >> b
         built = p.build()
         assert len(built.sub_agents) == 5  # a, pick, rename, default, b
 
@@ -238,8 +235,9 @@ class TestCompositionWithPipeline:
         from adk_fluent._base import until
 
         pipeline = (
-            (   Agent("web").model("gemini-2.5-flash").instruct("Search.")
-              | Agent("scholar").model("gemini-2.5-flash").instruct("Search.")
+            (
+                Agent("web").model("gemini-2.5-flash").instruct("Search.")
+                | Agent("scholar").model("gemini-2.5-flash").instruct("Search.")
             )
             >> S.merge("web", "scholar", into="research")
             >> S.default(confidence=0.0)
@@ -247,7 +245,8 @@ class TestCompositionWithPipeline:
             >> (
                 Agent("critic").model("gemini-2.5-flash").instruct("Score.")
                 >> Agent("reviser").model("gemini-2.5-flash").instruct("Revise.")
-            ) * until(lambda s: s.get("confidence", 0) > 0.8, max=3)
+            )
+            * until(lambda s: s.get("confidence", 0) > 0.8, max=3)
         )
         assert isinstance(pipeline, Pipeline)
         built = pipeline.build()

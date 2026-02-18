@@ -1,22 +1,22 @@
 """Tests for new control loop primitives: tap, expect, mock, retry_if, map_over, timeout, gate, race."""
+
 import pytest
 
-from adk_fluent.agent import Agent
-from adk_fluent.workflow import Pipeline, Loop
 from adk_fluent._base import (
     BuilderBase,
-    tap,
-    expect,
-    map_over,
-    gate,
-    race,
-    _TapBuilder,
-    _MapOverBuilder,
-    _TimeoutBuilder,
     _GateBuilder,
+    _MapOverBuilder,
     _RaceBuilder,
+    _TapBuilder,
+    _TimeoutBuilder,
+    expect,
+    gate,
+    map_over,
+    race,
+    tap,
 )
-
+from adk_fluent.agent import Agent
+from adk_fluent.workflow import Loop, Pipeline
 
 # ======================================================================
 # Primitive 1: tap
@@ -40,6 +40,7 @@ class TestTap:
     def test_tap_name_from_function(self):
         def my_observer(s):
             pass
+
         t = tap(my_observer)
         assert t._config["name"] == "my_observer"
 
@@ -50,6 +51,7 @@ class TestTap:
 
     def test_tap_builds_base_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         t = tap(lambda s: None)
         built = t.build()
         assert isinstance(built, BaseAgent)
@@ -88,6 +90,7 @@ class TestExpect:
 
     def test_expect_builds_base_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         e = expect(lambda s: True, "msg")
         built = e.build()
         assert isinstance(built, BaseAgent)
@@ -145,6 +148,7 @@ class TestMock:
 
     def test_mock_callback_returns_llm_response(self):
         from google.adk.models.llm_response import LlmResponse
+
         agent = Agent("test").model("gemini-2.5-flash").mock(["hello"])
         cb = agent._callbacks["before_model_callback"][0]
         result = cb(callback_context=None, llm_request=None)
@@ -162,11 +166,8 @@ class TestMock:
         assert r3.content.parts[0].text == "a"  # cycles back
 
     def test_mock_callable_receives_request(self):
-        from google.adk.models.llm_response import LlmResponse
         received = []
-        agent = Agent("test").model("gemini-2.5-flash").mock(
-            lambda req: (received.append(req), "dynamic")[1]
-        )
+        agent = Agent("test").model("gemini-2.5-flash").mock(lambda req: (received.append(req), "dynamic")[1])
         cb = agent._callbacks["before_model_callback"][0]
         sentinel = object()
         cb(None, sentinel)
@@ -199,8 +200,8 @@ class TestRetryIf:
         agent = Agent("writer").model("gemini-2.5-flash")
         result = agent.retry_if(lambda s: s.get("quality") != "good")
         until_pred = result._config["_until_predicate"]
-        assert until_pred({"quality": "good"}) is True   # exit loop
-        assert until_pred({"quality": "bad"}) is False    # keep retrying
+        assert until_pred({"quality": "good"}) is True  # exit loop
+        assert until_pred({"quality": "bad"}) is False  # keep retrying
 
     def test_retry_if_builds_with_checkpoint(self):
         agent = Agent("writer").model("gemini-2.5-flash").instruct("Write")
@@ -236,6 +237,7 @@ class TestMapOver:
 
     def test_map_over_builds_with_sub_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         agent = Agent("summarizer").model("gemini-2.5-flash").instruct("Summarize")
         m = map_over("items", agent, output_key="summaries")
         built = m.build()
@@ -283,6 +285,7 @@ class TestTimeout:
 
     def test_timeout_builds_with_sub_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         agent = Agent("a").model("gemini-2.5-flash").instruct("Hi")
         result = agent.timeout(30)
         built = result.build()
@@ -303,6 +306,7 @@ class TestTimeout:
         assert isinstance(p, Pipeline)
         # timeout | agent (parallel)
         from adk_fluent.workflow import FanOut
+
         f = a.timeout(10) | b
         assert isinstance(f, FanOut)
 
@@ -326,6 +330,7 @@ class TestGate:
 
     def test_gate_builds_base_agent(self):
         from google.adk.agents.base_agent import BaseAgent
+
         g = gate(lambda s: True, message="Approve?")
         built = g.build()
         assert isinstance(built, BaseAgent)
@@ -371,6 +376,7 @@ class TestRace:
 
     def test_race_builds_with_sub_agents(self):
         from google.adk.agents.base_agent import BaseAgent
+
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         b = Agent("b").model("gemini-2.5-flash").instruct("B")
         r = race(a, b)

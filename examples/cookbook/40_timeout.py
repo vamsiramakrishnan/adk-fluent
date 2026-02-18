@@ -13,12 +13,7 @@ from adk_fluent import Agent, Pipeline
 
 # .timeout(seconds): wrap any agent with a time limit
 # Raises asyncio.TimeoutError if the agent exceeds the limit
-fast_agent = (
-    Agent("fast_responder")
-    .model("gemini-2.5-flash")
-    .instruct("Answer quickly.")
-    .timeout(30)
-)
+fast_agent = Agent("fast_responder").model("gemini-2.5-flash").instruct("Answer quickly.").timeout(30)
 
 # Timeout in a pipeline -- only the slow step is time-bounded
 pipeline = (
@@ -29,8 +24,7 @@ pipeline = (
 
 # Timeout on a whole pipeline
 bounded_pipeline = (
-    Agent("a").model("gemini-2.5-flash").instruct("Step A.")
-    >> Agent("b").model("gemini-2.5-flash").instruct("Step B.")
+    Agent("a").model("gemini-2.5-flash").instruct("Step A.") >> Agent("b").model("gemini-2.5-flash").instruct("Step B.")
 ).timeout(120)
 
 # --- ASSERT ---

@@ -2,44 +2,46 @@
 
 import pytest  # noqa: F401 (used inside test methods)
 
-from adk_fluent.config import AgentConfig
-from adk_fluent.config import BaseAgentConfig
-from adk_fluent.config import AgentRefConfig
-from adk_fluent.config import ArgumentConfig
-from adk_fluent.config import CodeConfig
-from adk_fluent.config import ContextCacheConfig
-from adk_fluent.config import LlmAgentConfig
-from adk_fluent.config import LoopAgentConfig
-from adk_fluent.config import ParallelAgentConfig
-from adk_fluent.config import RunConfig
-from adk_fluent.config import ToolThreadPoolConfig
-from adk_fluent.config import SequentialAgentConfig
-from adk_fluent.config import EventsCompactionConfig
-from adk_fluent.config import ResumabilityConfig
-from adk_fluent.config import FeatureConfig
-from adk_fluent.config import AudioCacheConfig
-from adk_fluent.config import SimplePromptOptimizerConfig
-from adk_fluent.config import BigQueryLoggerConfig
-from adk_fluent.config import RetryConfig
-from adk_fluent.config import GetSessionConfig
-from adk_fluent.config import BaseGoogleCredentialsConfig
-from adk_fluent.config import AgentSimulatorConfig
-from adk_fluent.config import InjectionConfig
-from adk_fluent.config import ToolSimulationConfig
-from adk_fluent.config import AgentToolConfig
-from adk_fluent.config import BigQueryCredentialsConfig
-from adk_fluent.config import BigQueryToolConfig
-from adk_fluent.config import BigtableCredentialsConfig
-from adk_fluent.config import DataAgentToolConfig
-from adk_fluent.config import DataAgentCredentialsConfig
-from adk_fluent.config import ExampleToolConfig
-from adk_fluent.config import McpToolsetConfig
-from adk_fluent.config import PubSubToolConfig
-from adk_fluent.config import PubSubCredentialsConfig
-from adk_fluent.config import SpannerCredentialsConfig
-from adk_fluent.config import BaseToolConfig
-from adk_fluent.config import ToolArgsConfig
-from adk_fluent.config import ToolConfig
+from adk_fluent.config import (
+    AgentConfig,
+    AgentRefConfig,
+    AgentSimulatorConfig,
+    AgentToolConfig,
+    ArgumentConfig,
+    AudioCacheConfig,
+    BaseAgentConfig,
+    BaseGoogleCredentialsConfig,
+    BaseToolConfig,
+    BigQueryCredentialsConfig,
+    BigQueryLoggerConfig,
+    BigQueryToolConfig,
+    BigtableCredentialsConfig,
+    CodeConfig,
+    ContextCacheConfig,
+    DataAgentCredentialsConfig,
+    DataAgentToolConfig,
+    EventsCompactionConfig,
+    ExampleToolConfig,
+    FeatureConfig,
+    GetSessionConfig,
+    InjectionConfig,
+    LlmAgentConfig,
+    LoopAgentConfig,
+    McpToolsetConfig,
+    ParallelAgentConfig,
+    PubSubCredentialsConfig,
+    PubSubToolConfig,
+    ResumabilityConfig,
+    RetryConfig,
+    RunConfig,
+    SequentialAgentConfig,
+    SimplePromptOptimizerConfig,
+    SpannerCredentialsConfig,
+    ToolArgsConfig,
+    ToolConfig,
+    ToolSimulationConfig,
+    ToolThreadPoolConfig,
+)
 
 
 class TestAgentConfigBuilder:
@@ -47,15 +49,13 @@ class TestAgentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = AgentConfig('test_root')
+        builder = AgentConfig("test_root")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = AgentConfig('test_root')
+        builder = AgentConfig("test_root")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -65,29 +65,25 @@ class TestBaseAgentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseAgentConfig('test_name')
+        builder = BaseAgentConfig("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.describe() returns the builder instance for chaining."""
-        builder = BaseAgentConfig('test_name')
+        builder = BaseAgentConfig("test_name")
         result = builder.describe("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .sub_agents() stores the value in builder._config."""
-        builder = BaseAgentConfig('test_name')
+        builder = BaseAgentConfig("test_name")
         builder.sub_agents(None)
         assert builder._config["sub_agents"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = BaseAgentConfig('test_name')
+        builder = BaseAgentConfig("test_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -101,13 +97,11 @@ class TestAgentRefConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.config_path() returns the builder instance for chaining."""
         builder = AgentRefConfig()
         result = builder.config_path(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .config_path() stores the value in builder._config."""
@@ -115,10 +109,8 @@ class TestAgentRefConfigBuilder:
         builder.config_path(None)
         assert builder._config["config_path"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = AgentRefConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -129,29 +121,25 @@ class TestArgumentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ArgumentConfig('test_value')
+        builder = ArgumentConfig("test_value")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
-        builder = ArgumentConfig('test_value')
+        builder = ArgumentConfig("test_value")
         result = builder.name(None)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
-        builder = ArgumentConfig('test_value')
+        builder = ArgumentConfig("test_value")
         builder.name(None)
         assert builder._config["name"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ArgumentConfig('test_value')
+        builder = ArgumentConfig("test_value")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -161,29 +149,25 @@ class TestCodeConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = CodeConfig('test_name')
+        builder = CodeConfig("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.args() returns the builder instance for chaining."""
-        builder = CodeConfig('test_name')
+        builder = CodeConfig("test_name")
         result = builder.args(None)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .args() stores the value in builder._config."""
-        builder = CodeConfig('test_name')
+        builder = CodeConfig("test_name")
         builder.args(None)
         assert builder._config["args"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = CodeConfig('test_name')
+        builder = CodeConfig("test_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -197,13 +181,11 @@ class TestContextCacheConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.cache_intervals() returns the builder instance for chaining."""
         builder = ContextCacheConfig()
         result = builder.cache_intervals(42)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .cache_intervals() stores the value in builder._config."""
@@ -211,10 +193,8 @@ class TestContextCacheConfigBuilder:
         builder.cache_intervals(42)
         assert builder._config["cache_intervals"] == 42
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = ContextCacheConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -225,29 +205,25 @@ class TestLlmAgentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = LlmAgentConfig('test_name', 'test_instruction')
+        builder = LlmAgentConfig("test_name", "test_instruction")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.describe() returns the builder instance for chaining."""
-        builder = LlmAgentConfig('test_name', 'test_instruction')
+        builder = LlmAgentConfig("test_name", "test_instruction")
         result = builder.describe("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .agent_class() stores the value in builder._config."""
-        builder = LlmAgentConfig('test_name', 'test_instruction')
+        builder = LlmAgentConfig("test_name", "test_instruction")
         builder.agent_class("test_value")
         assert builder._config["agent_class"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = LlmAgentConfig('test_name', 'test_instruction')
+        builder = LlmAgentConfig("test_name", "test_instruction")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -257,29 +233,25 @@ class TestLoopAgentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = LoopAgentConfig('test_name')
+        builder = LoopAgentConfig("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.describe() returns the builder instance for chaining."""
-        builder = LoopAgentConfig('test_name')
+        builder = LoopAgentConfig("test_name")
         result = builder.describe("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .agent_class() stores the value in builder._config."""
-        builder = LoopAgentConfig('test_name')
+        builder = LoopAgentConfig("test_name")
         builder.agent_class("test_value")
         assert builder._config["agent_class"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = LoopAgentConfig('test_name')
+        builder = LoopAgentConfig("test_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -289,29 +261,25 @@ class TestParallelAgentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ParallelAgentConfig('test_name')
+        builder = ParallelAgentConfig("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.describe() returns the builder instance for chaining."""
-        builder = ParallelAgentConfig('test_name')
+        builder = ParallelAgentConfig("test_name")
         result = builder.describe("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .agent_class() stores the value in builder._config."""
-        builder = ParallelAgentConfig('test_name')
+        builder = ParallelAgentConfig("test_name")
         builder.agent_class("test_value")
         assert builder._config["agent_class"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ParallelAgentConfig('test_name')
+        builder = ParallelAgentConfig("test_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -325,13 +293,11 @@ class TestRunConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.speech_config() returns the builder instance for chaining."""
         builder = RunConfig()
         result = builder.speech_config(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .speech_config() stores the value in builder._config."""
@@ -339,10 +305,8 @@ class TestRunConfigBuilder:
         builder.speech_config(None)
         assert builder._config["speech_config"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = RunConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -357,13 +321,11 @@ class TestToolThreadPoolConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.max_workers() returns the builder instance for chaining."""
         builder = ToolThreadPoolConfig()
         result = builder.max_workers(42)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .max_workers() stores the value in builder._config."""
@@ -371,10 +333,8 @@ class TestToolThreadPoolConfigBuilder:
         builder.max_workers(42)
         assert builder._config["max_workers"] == 42
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = ToolThreadPoolConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -385,29 +345,25 @@ class TestSequentialAgentConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = SequentialAgentConfig('test_name')
+        builder = SequentialAgentConfig("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.describe() returns the builder instance for chaining."""
-        builder = SequentialAgentConfig('test_name')
+        builder = SequentialAgentConfig("test_name")
         result = builder.describe("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .agent_class() stores the value in builder._config."""
-        builder = SequentialAgentConfig('test_name')
+        builder = SequentialAgentConfig("test_name")
         builder.agent_class("test_value")
         assert builder._config["agent_class"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = SequentialAgentConfig('test_name')
+        builder = SequentialAgentConfig("test_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -417,29 +373,25 @@ class TestEventsCompactionConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = EventsCompactionConfig('test_compaction_interval', 'test_overlap_size')
+        builder = EventsCompactionConfig("test_compaction_interval", "test_overlap_size")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.summarizer() returns the builder instance for chaining."""
-        builder = EventsCompactionConfig('test_compaction_interval', 'test_overlap_size')
+        builder = EventsCompactionConfig("test_compaction_interval", "test_overlap_size")
         result = builder.summarizer(None)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .summarizer() stores the value in builder._config."""
-        builder = EventsCompactionConfig('test_compaction_interval', 'test_overlap_size')
+        builder = EventsCompactionConfig("test_compaction_interval", "test_overlap_size")
         builder.summarizer(None)
         assert builder._config["summarizer"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = EventsCompactionConfig('test_compaction_interval', 'test_overlap_size')
+        builder = EventsCompactionConfig("test_compaction_interval", "test_overlap_size")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -453,13 +405,11 @@ class TestResumabilityConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.is_resumable() returns the builder instance for chaining."""
         builder = ResumabilityConfig()
         result = builder.is_resumable(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .is_resumable() stores the value in builder._config."""
@@ -467,10 +417,8 @@ class TestResumabilityConfigBuilder:
         builder.is_resumable(True)
         assert builder._config["is_resumable"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = ResumabilityConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -481,29 +429,25 @@ class TestFeatureConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = FeatureConfig('test_stage')
+        builder = FeatureConfig("test_stage")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.default_on() returns the builder instance for chaining."""
-        builder = FeatureConfig('test_stage')
+        builder = FeatureConfig("test_stage")
         result = builder.default_on(True)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .default_on() stores the value in builder._config."""
-        builder = FeatureConfig('test_stage')
+        builder = FeatureConfig("test_stage")
         builder.default_on(True)
         assert builder._config["default_on"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = FeatureConfig('test_stage')
+        builder = FeatureConfig("test_stage")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -517,13 +461,11 @@ class TestAudioCacheConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.max_cache_size_bytes() returns the builder instance for chaining."""
         builder = AudioCacheConfig()
         result = builder.max_cache_size_bytes(42)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .max_cache_size_bytes() stores the value in builder._config."""
@@ -531,10 +473,8 @@ class TestAudioCacheConfigBuilder:
         builder.max_cache_size_bytes(42)
         assert builder._config["max_cache_size_bytes"] == 42
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = AudioCacheConfig()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -549,13 +489,11 @@ class TestSimplePromptOptimizerConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.optimizer_model() returns the builder instance for chaining."""
         builder = SimplePromptOptimizerConfig()
         result = builder.optimizer_model("test_value")
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .optimizer_model() stores the value in builder._config."""
@@ -563,10 +501,8 @@ class TestSimplePromptOptimizerConfigBuilder:
         builder.optimizer_model("test_value")
         assert builder._config["optimizer_model"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = SimplePromptOptimizerConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -581,13 +517,11 @@ class TestBigQueryLoggerConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.enabled() returns the builder instance for chaining."""
         builder = BigQueryLoggerConfig()
         result = builder.enabled(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .enabled() stores the value in builder._config."""
@@ -595,10 +529,8 @@ class TestBigQueryLoggerConfigBuilder:
         builder.enabled(True)
         assert builder._config["enabled"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BigQueryLoggerConfig()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -613,13 +545,11 @@ class TestRetryConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.max_retries() returns the builder instance for chaining."""
         builder = RetryConfig()
         result = builder.max_retries(42)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .max_retries() stores the value in builder._config."""
@@ -627,10 +557,8 @@ class TestRetryConfigBuilder:
         builder.max_retries(42)
         assert builder._config["max_retries"] == 42
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = RetryConfig()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -645,13 +573,11 @@ class TestGetSessionConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.num_recent_events() returns the builder instance for chaining."""
         builder = GetSessionConfig()
         result = builder.num_recent_events(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .num_recent_events() stores the value in builder._config."""
@@ -659,10 +585,8 @@ class TestGetSessionConfigBuilder:
         builder.num_recent_events(None)
         assert builder._config["num_recent_events"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = GetSessionConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -677,13 +601,11 @@ class TestBaseGoogleCredentialsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.credentials() returns the builder instance for chaining."""
         builder = BaseGoogleCredentialsConfig()
         result = builder.credentials(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .credentials() stores the value in builder._config."""
@@ -691,10 +613,8 @@ class TestBaseGoogleCredentialsConfigBuilder:
         builder.credentials(None)
         assert builder._config["credentials"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BaseGoogleCredentialsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -709,13 +629,11 @@ class TestAgentSimulatorConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.tool_simulation_configs() returns the builder instance for chaining."""
         builder = AgentSimulatorConfig()
         result = builder.tool_simulation_configs([])
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .tool_simulation_configs() stores the value in builder._config."""
@@ -723,10 +641,8 @@ class TestAgentSimulatorConfigBuilder:
         builder.tool_simulation_configs([])
         assert builder._config["tool_simulation_configs"] == []
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = AgentSimulatorConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -741,13 +657,11 @@ class TestInjectionConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.injection_probability() returns the builder instance for chaining."""
         builder = InjectionConfig()
         result = builder.injection_probability(0.5)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .injection_probability() stores the value in builder._config."""
@@ -755,10 +669,8 @@ class TestInjectionConfigBuilder:
         builder.injection_probability(0.5)
         assert builder._config["injection_probability"] == 0.5
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = InjectionConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -769,29 +681,25 @@ class TestToolSimulationConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ToolSimulationConfig('test_tool_name')
+        builder = ToolSimulationConfig("test_tool_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.injection_configs() returns the builder instance for chaining."""
-        builder = ToolSimulationConfig('test_tool_name')
+        builder = ToolSimulationConfig("test_tool_name")
         result = builder.injection_configs([])
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .injection_configs() stores the value in builder._config."""
-        builder = ToolSimulationConfig('test_tool_name')
+        builder = ToolSimulationConfig("test_tool_name")
         builder.injection_configs([])
         assert builder._config["injection_configs"] == []
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ToolSimulationConfig('test_tool_name')
+        builder = ToolSimulationConfig("test_tool_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -801,29 +709,25 @@ class TestAgentToolConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = AgentToolConfig('test_agent')
+        builder = AgentToolConfig("test_agent")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.skip_summarization() returns the builder instance for chaining."""
-        builder = AgentToolConfig('test_agent')
+        builder = AgentToolConfig("test_agent")
         result = builder.skip_summarization(True)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .skip_summarization() stores the value in builder._config."""
-        builder = AgentToolConfig('test_agent')
+        builder = AgentToolConfig("test_agent")
         builder.skip_summarization(True)
         assert builder._config["skip_summarization"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = AgentToolConfig('test_agent')
+        builder = AgentToolConfig("test_agent")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -837,13 +741,11 @@ class TestBigQueryCredentialsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.credentials() returns the builder instance for chaining."""
         builder = BigQueryCredentialsConfig()
         result = builder.credentials(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .credentials() stores the value in builder._config."""
@@ -851,10 +753,8 @@ class TestBigQueryCredentialsConfigBuilder:
         builder.credentials(None)
         assert builder._config["credentials"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BigQueryCredentialsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -869,13 +769,11 @@ class TestBigQueryToolConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.maximum_bytes_billed() returns the builder instance for chaining."""
         builder = BigQueryToolConfig()
         result = builder.maximum_bytes_billed(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .maximum_bytes_billed() stores the value in builder._config."""
@@ -883,10 +781,8 @@ class TestBigQueryToolConfigBuilder:
         builder.maximum_bytes_billed(None)
         assert builder._config["maximum_bytes_billed"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BigQueryToolConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -901,13 +797,11 @@ class TestBigtableCredentialsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.credentials() returns the builder instance for chaining."""
         builder = BigtableCredentialsConfig()
         result = builder.credentials(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .credentials() stores the value in builder._config."""
@@ -915,10 +809,8 @@ class TestBigtableCredentialsConfigBuilder:
         builder.credentials(None)
         assert builder._config["credentials"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BigtableCredentialsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -933,13 +825,11 @@ class TestDataAgentToolConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.max_query_result_rows() returns the builder instance for chaining."""
         builder = DataAgentToolConfig()
         result = builder.max_query_result_rows(42)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .max_query_result_rows() stores the value in builder._config."""
@@ -947,10 +837,8 @@ class TestDataAgentToolConfigBuilder:
         builder.max_query_result_rows(42)
         assert builder._config["max_query_result_rows"] == 42
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = DataAgentToolConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -965,13 +853,11 @@ class TestDataAgentCredentialsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.credentials() returns the builder instance for chaining."""
         builder = DataAgentCredentialsConfig()
         result = builder.credentials(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .credentials() stores the value in builder._config."""
@@ -979,10 +865,8 @@ class TestDataAgentCredentialsConfigBuilder:
         builder.credentials(None)
         assert builder._config["credentials"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = DataAgentCredentialsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -993,15 +877,13 @@ class TestExampleToolConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ExampleToolConfig('test_examples')
+        builder = ExampleToolConfig("test_examples")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ExampleToolConfig('test_examples')
+        builder = ExampleToolConfig("test_examples")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
@@ -1015,13 +897,11 @@ class TestMcpToolsetConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.stdio_server_params() returns the builder instance for chaining."""
         builder = McpToolsetConfig()
         result = builder.stdio_server_params(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .stdio_server_params() stores the value in builder._config."""
@@ -1029,10 +909,8 @@ class TestMcpToolsetConfigBuilder:
         builder.stdio_server_params(None)
         assert builder._config["stdio_server_params"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = McpToolsetConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -1047,13 +925,11 @@ class TestPubSubToolConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.project_id() returns the builder instance for chaining."""
         builder = PubSubToolConfig()
         result = builder.project_id("test_value")
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .project_id() stores the value in builder._config."""
@@ -1061,10 +937,8 @@ class TestPubSubToolConfigBuilder:
         builder.project_id("test_value")
         assert builder._config["project_id"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = PubSubToolConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -1079,13 +953,11 @@ class TestPubSubCredentialsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.credentials() returns the builder instance for chaining."""
         builder = PubSubCredentialsConfig()
         result = builder.credentials(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .credentials() stores the value in builder._config."""
@@ -1093,10 +965,8 @@ class TestPubSubCredentialsConfigBuilder:
         builder.credentials(None)
         assert builder._config["credentials"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = PubSubCredentialsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -1111,13 +981,11 @@ class TestSpannerCredentialsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.credentials() returns the builder instance for chaining."""
         builder = SpannerCredentialsConfig()
         result = builder.credentials(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .credentials() stores the value in builder._config."""
@@ -1125,10 +993,8 @@ class TestSpannerCredentialsConfigBuilder:
         builder.credentials(None)
         assert builder._config["credentials"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = SpannerCredentialsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -1143,10 +1009,8 @@ class TestBaseToolConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BaseToolConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -1161,10 +1025,8 @@ class TestToolArgsConfigBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = ToolArgsConfig()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -1175,28 +1037,24 @@ class TestToolConfigBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ToolConfig('test_name')
+        builder = ToolConfig("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.args() returns the builder instance for chaining."""
-        builder = ToolConfig('test_name')
+        builder = ToolConfig("test_name")
         result = builder.args(None)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .args() stores the value in builder._config."""
-        builder = ToolConfig('test_name')
+        builder = ToolConfig("test_name")
         builder.args(None)
         assert builder._config["args"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ToolConfig('test_name')
+        builder = ToolConfig("test_name")
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")

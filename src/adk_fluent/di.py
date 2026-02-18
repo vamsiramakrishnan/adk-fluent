@@ -1,9 +1,11 @@
 """Resource dependency injection for tool functions."""
+
 from __future__ import annotations
 
 import functools
 import inspect
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 def inject_resources(fn: Callable, resources: dict[str, Any]) -> Callable:
@@ -21,10 +23,7 @@ def inject_resources(fn: Callable, resources: dict[str, Any]) -> Callable:
         Wrapped function with modified signature.
     """
     sig = inspect.signature(fn)
-    resource_params = {
-        name for name in sig.parameters
-        if name in resources and name != "tool_context"
-    }
+    resource_params = {name for name in sig.parameters if name in resources and name != "tool_context"}
 
     if not resource_params:
         return fn

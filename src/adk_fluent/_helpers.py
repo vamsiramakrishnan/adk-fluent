@@ -1,12 +1,14 @@
 """Runtime helpers for adk-fluent ergonomic features. Hand-written, not generated."""
+
 from __future__ import annotations
+
 import asyncio
 import copy
 import re as _re
 import sys
 import time
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from typing import Any
 
 __all__ = [
     "deep_clone_builder",
@@ -33,16 +35,14 @@ __all__ = [
 # IR conversion helpers (used by generated to_ir() methods)
 # ---------------------------------------------------------------------------
 
+
 def _collect_children(builder):
     """Collect and recursively convert sub_agents from builder config and lists."""
     from adk_fluent._base import BuilderBase
 
     children_raw = list(builder._config.get("sub_agents", []))
     children_raw.extend(builder._lists.get("sub_agents", []))
-    return tuple(
-        c.to_ir() if isinstance(c, BuilderBase) else c
-        for c in children_raw
-    )
+    return tuple(c.to_ir() if isinstance(c, BuilderBase) else c for c in children_raw)
 
 
 def _agent_to_ir(builder):
@@ -59,16 +59,8 @@ def _agent_to_ir(builder):
 
     produces_schema = builder._config.get("_produces")
     consumes_schema = builder._config.get("_consumes")
-    writes_keys = (
-        frozenset(produces_schema.model_fields.keys())
-        if produces_schema
-        else frozenset()
-    )
-    reads_keys = (
-        frozenset(consumes_schema.model_fields.keys())
-        if consumes_schema
-        else frozenset()
-    )
+    writes_keys = frozenset(produces_schema.model_fields.keys()) if produces_schema else frozenset()
+    reads_keys = frozenset(consumes_schema.model_fields.keys()) if consumes_schema else frozenset()
 
     return AgentNode(
         name=builder._config.get("name", ""),
@@ -80,16 +72,11 @@ def _agent_to_ir(builder):
         static_instruction=builder._config.get("static_instruction"),
         tools=tools,
         generate_content_config=builder._config.get("generate_content_config"),
-        disallow_transfer_to_parent=builder._config.get(
-            "disallow_transfer_to_parent", False
-        ),
-        disallow_transfer_to_peers=builder._config.get(
-            "disallow_transfer_to_peers", False
-        ),
+        disallow_transfer_to_parent=builder._config.get("disallow_transfer_to_parent", False),
+        disallow_transfer_to_peers=builder._config.get("disallow_transfer_to_peers", False),
         include_contents=builder._config.get("include_contents", "default"),
         input_schema=builder._config.get("input_schema"),
-        output_schema=builder._config.get("output_schema")
-        or builder._config.get("_output_schema"),
+        output_schema=builder._config.get("output_schema") or builder._config.get("_output_schema"),
         output_key=builder._config.get("output_key"),
         planner=builder._config.get("planner"),
         code_executor=builder._config.get("code_executor"),
@@ -141,7 +128,7 @@ def delegate_agent(builder, agent):
     from google.adk.tools.agent_tool import AgentTool
 
     # Auto-build if it's a builder
-    built = agent.build() if hasattr(agent, 'build') and hasattr(agent, '_config') else agent
+    built = agent.build() if hasattr(agent, "build") and hasattr(agent, "_config") else agent
     tool = AgentTool(agent=built)
     builder._lists.setdefault("tools", []).append(tool)
     return builder
@@ -181,21 +168,15 @@ async def _run_single_attempt(builder, prompt: str, *, model_override: str | Non
         agent = builder.build()
         app_name = f"_ask_{agent.name}"
         runner = InMemoryRunner(agent=agent, app_name=app_name)
-        session = await runner.session_service.create_session(
-            app_name=app_name, user_id="_ask_user"
-        )
-        content = types.Content(
-            role="user", parts=[types.Part(text=prompt)]
-        )
+        session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
+        content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
         if debug:
             _debug_log(agent_name, f"Sending prompt ({len(prompt)} chars)")
             t0 = time.monotonic()
 
         last_text = ""
-        async for event in runner.run_async(
-            user_id="_ask_user", session_id=session.id, new_message=content
-        ):
+        async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
             if event.content and event.content.parts:
                 for part in event.content.parts:
                     if part.text:
@@ -261,19 +242,20 @@ async def run_one_shot_async(builder, prompt: str) -> str:
     schema = builder._config.get("_output_schema")
     if schema is not None:
         import json as _json
+
         try:
             return schema.model_validate_json(last_text)
         except Exception:
             try:
                 data = _json.loads(last_text)
                 return schema.model_validate(data)
-            except Exception:
+            except Exception as e:
                 raise ValueError(
                     f"Structured output parsing failed for schema "
                     f"{schema.__name__}. The LLM returned text that could "
                     f"not be parsed as the requested type.\n"
                     f"Raw response:\n{last_text}"
-                )
+                ) from e
 
     return last_text
 
@@ -281,9 +263,11 @@ async def run_one_shot_async(builder, prompt: str) -> str:
 async def run_map_async(builder, prompts, *, concurrency=5):
     """Run agent against multiple prompts concurrently with bounded concurrency."""
     semaphore = asyncio.Semaphore(concurrency)
+
     async def _one(prompt):
         async with semaphore:
             return await run_one_shot_async(builder, prompt)
+
     return await asyncio.gather(*[_one(p) for p in prompts])
 
 
@@ -330,16 +314,10 @@ async def run_stream(builder, prompt: str):
     agent = builder.build()
     app_name = f"_stream_{agent.name}"
     runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(
-        app_name=app_name, user_id="_stream_user"
-    )
-    content = types.Content(
-        role="user", parts=[types.Part(text=prompt)]
-    )
+    session = await runner.session_service.create_session(app_name=app_name, user_id="_stream_user")
+    content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
-    async for event in runner.run_async(
-        user_id="_stream_user", session_id=session.id, new_message=content
-    ):
+    async for event in runner.run_async(user_id="_stream_user", session_id=session.id, new_message=content):
         if event.content and event.content.parts:
             for part in event.content.parts:
                 if part.text:
@@ -391,9 +369,7 @@ class ChatSession:
         """Send a message and return the response text."""
         from google.genai import types
 
-        content = types.Content(
-            role="user", parts=[types.Part(text=text)]
-        )
+        content = types.Content(role="user", parts=[types.Part(text=text)])
         last_text = ""
         async for event in self._runner.run_async(
             user_id=self._user_id,
@@ -416,9 +392,7 @@ async def create_session(builder):
     app_name = f"_session_{agent.name}"
     user_id = "_session_user"
     runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(
-        app_name=app_name, user_id=user_id
-    )
+    session = await runner.session_service.create_session(app_name=app_name, user_id=user_id)
 
     try:
         yield ChatSession(runner, session, user_id)
@@ -429,6 +403,7 @@ async def create_session(builder):
 # ======================================================================
 # StateKey — typed state descriptor
 # ======================================================================
+
 
 class StateKey:
     """Typed state key descriptor for ergonomic state access in callbacks and tools.
@@ -477,7 +452,7 @@ class StateKey:
 
         Works with CallbackContext, ToolContext, or any object with a .state dict-like attribute.
         """
-        state = ctx.state if hasattr(ctx, 'state') else ctx
+        state = ctx.state if hasattr(ctx, "state") else ctx
         if callable(state) and not isinstance(state, dict):
             state = state()  # ReadonlyContext.state() is a method
         return state.get(self._full_key, self._default)
@@ -487,7 +462,7 @@ class StateKey:
 
         Works with CallbackContext, ToolContext, or any object with a .state dict-like attribute.
         """
-        state = ctx.state if hasattr(ctx, 'state') else ctx
+        state = ctx.state if hasattr(ctx, "state") else ctx
         if callable(state) and not isinstance(state, dict):
             state = state()
         state[self._full_key] = value
@@ -519,6 +494,7 @@ class StateKey:
 # Artifact — fluent artifact descriptor
 # ======================================================================
 
+
 class Artifact:
     """Fluent artifact descriptor for ergonomic artifact operations in tools and callbacks.
 
@@ -546,6 +522,7 @@ class Artifact:
         Works with CallbackContext or ToolContext.
         """
         from google.genai import types
+
         if isinstance(content, bytes):
             part = types.Part.from_data(data=content, mime_type="application/octet-stream")
         else:
@@ -562,9 +539,9 @@ class Artifact:
         part = await ctx.load_artifact(self._filename, version=version)
         if part is None:
             return None
-        if hasattr(part, 'text') and part.text:
+        if hasattr(part, "text") and part.text:
             return part.text
-        if hasattr(part, 'inline_data') and part.inline_data:
+        if hasattr(part, "inline_data") and part.inline_data:
             return part.inline_data.data
         return str(part)
 
@@ -573,7 +550,7 @@ class Artifact:
 
         Works with ToolContext (which has list_artifacts).
         """
-        if hasattr(ctx, 'list_artifacts'):
+        if hasattr(ctx, "list_artifacts"):
             all_artifacts = await ctx.list_artifacts()
             # Filter for this filename — ADK returns all artifact keys
             return [i for i, name in enumerate(all_artifacts) if name == self._filename]
@@ -586,6 +563,7 @@ class Artifact:
 # ======================================================================
 # run_events — raw event streaming
 # ======================================================================
+
 
 async def run_events(builder, prompt: str):
     """Stream raw ADK Event objects from a one-shot agent execution.
@@ -606,14 +584,8 @@ async def run_events(builder, prompt: str):
     agent = builder.build()
     app_name = f"_events_{agent.name}"
     runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(
-        app_name=app_name, user_id="_events_user"
-    )
-    content = types.Content(
-        role="user", parts=[types.Part(text=prompt)]
-    )
+    session = await runner.session_service.create_session(app_name=app_name, user_id="_events_user")
+    content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
-    async for event in runner.run_async(
-        user_id="_events_user", session_id=session.id, new_message=content
-    ):
+    async for event in runner.run_async(user_id="_events_user", session_id=session.id, new_message=content):
         yield event

@@ -9,10 +9,7 @@
 from adk_fluent import Agent
 
 agent = (
-    Agent("classifier")
-    .model("gemini-2.5-flash")
-    .instruct("Classify inputs into categories.")
-    .output_key("category")
+    Agent("classifier").model("gemini-2.5-flash").instruct("Classify inputs into categories.").output_key("category")
 )
 
 # Serialize to dict (inspection only -- callables can't round-trip)

@@ -1,16 +1,29 @@
 """BuilderBase mixin -- shared capabilities for all generated fluent builders."""
+
 from __future__ import annotations
+
 import asyncio as _asyncio
 import itertools
 import types
-from typing import Any, Callable, Self
+from collections.abc import Callable
+from typing import Any, Self
 
 from google.adk.agents.base_agent import BaseAgent
 
 __all__ = [
-    "until", "tap", "expect", "map_over", "gate", "race",
-    "FnAgent", "TapAgent", "FallbackAgent", "MapOverAgent",
-    "TimeoutAgent", "GateAgent", "RaceAgent",
+    "until",
+    "tap",
+    "expect",
+    "map_over",
+    "gate",
+    "race",
+    "FnAgent",
+    "TapAgent",
+    "FallbackAgent",
+    "MapOverAgent",
+    "TimeoutAgent",
+    "GateAgent",
+    "RaceAgent",
 ]
 
 
@@ -18,8 +31,10 @@ __all__ = [
 # Sentinel for "not set" — distinct from None
 # ======================================================================
 
+
 class _UnsetType:
     """Sentinel for 'not set' — distinct from None."""
+
     _instance = None
 
     def __new__(cls):
@@ -27,8 +42,12 @@ class _UnsetType:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __bool__(self): return False
-    def __repr__(self): return "_UNSET"
+    def __bool__(self):
+        return False
+
+    def __repr__(self):
+        return "_UNSET"
+
 
 _UNSET = _UnsetType()
 
@@ -36,6 +55,7 @@ _UNSET = _UnsetType()
 # ======================================================================
 # Callback composition helper
 # ======================================================================
+
 
 def _compose_callbacks(fns: list[Callable]) -> Callable:
     """Chain multiple callbacks into a single callable.
@@ -65,6 +85,7 @@ def _compose_callbacks(fns: list[Callable]) -> Callable:
 # Expression language primitives (defined before BuilderBase, no deps)
 # ======================================================================
 
+
 class _UntilSpec:
     """Specifies conditional loop exit for the * operator.
 
@@ -73,6 +94,7 @@ class _UntilSpec:
         quality_ok = until(lambda s: s["quality"] == "good", max=5)
         pipeline = (writer >> reviewer) * quality_ok
     """
+
     __slots__ = ("predicate", "max")
 
     def __init__(self, predicate: Callable, *, max: int = 10):
@@ -98,6 +120,7 @@ class BuilderBase:
 
     All generated builders inherit from this class.
     """
+
     _ALIASES: dict[str, str]
     _CALLBACK_ALIASES: dict[str, str]
     _ADDITIVE_FIELDS: set[str]
@@ -128,9 +151,11 @@ class BuilderBase:
         # Check if it's a callback alias
         if name in _CALLBACK_ALIASES:
             cb_field = _CALLBACK_ALIASES[name]
+
             def _cb_setter(fn: Callable) -> Self:
                 self._callbacks[cb_field].append(fn)
                 return self
+
             return _cb_setter
 
         # Validate field name
@@ -141,28 +166,19 @@ class BuilderBase:
             # Pydantic mode: validate against model_fields
             if field_name not in _ADK_TARGET_CLASS.model_fields:
                 available = sorted(
-                    set(_ADK_TARGET_CLASS.model_fields.keys())
-                    | set(_ALIASES.keys())
-                    | set(_CALLBACK_ALIASES.keys())
+                    set(_ADK_TARGET_CLASS.model_fields.keys()) | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys())
                 )
                 cls_name = _ADK_TARGET_CLASS.__name__
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}. "
-                    f"Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
                 )
-        elif _KNOWN_PARAMS is not None:
+        elif _KNOWN_PARAMS is not None and field_name not in _KNOWN_PARAMS:
             # init_signature mode: validate against static param set
-            if field_name not in _KNOWN_PARAMS:
-                available = sorted(
-                    _KNOWN_PARAMS
-                    | set(_ALIASES.keys())
-                    | set(_CALLBACK_ALIASES.keys())
-                )
-                cls_name = self.__class__.__name__
-                raise AttributeError(
-                    f"'{name}' is not a recognized parameter on {cls_name}. "
-                    f"Available: {', '.join(available)}"
-                )
+            available = sorted(_KNOWN_PARAMS | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
+            cls_name = self.__class__.__name__
+            raise AttributeError(
+                f"'{name}' is not a recognized parameter on {cls_name}. Available: {', '.join(available)}"
+            )
         # else: composite/standalone/primitive — accept any field
 
         # Return a setter that stores value and returns self for chaining
@@ -246,7 +262,6 @@ class BuilderBase:
 
     def _fork_for_operator(self) -> BuilderBase:
         """Create an operator-safe fork. Shares sub-builders (safe: operators never mutate children)."""
-        import copy
         new = object.__new__(type(self))
         new._config = dict(self._config)
         new._callbacks = {k: list(v) for k, v in self._callbacks.items()}
@@ -264,15 +279,15 @@ class BuilderBase:
         - dict (shorthand for deterministic Route)
         - Route (deterministic branching)
         """
-        from adk_fluent.workflow import Pipeline
         from adk_fluent._routing import Route
+        from adk_fluent.workflow import Pipeline
 
         # Callable operand: wrap as zero-cost FnStep
         if callable(other) and not isinstance(other, (BuilderBase, Route, type)):
             other = _fn_step(other)
 
         # Reject unsupported operands (e.g. raw types like int)
-        if not isinstance(other, (BuilderBase, Route, dict)) and not hasattr(other, 'build'):
+        if not isinstance(other, (BuilderBase, Route, dict)) and not hasattr(other, "build"):
             return NotImplemented
 
         # Dict operand: convert to deterministic Route
@@ -306,7 +321,7 @@ class BuilderBase:
             return p
 
         my_name = self._config.get("name", "")
-        other_name = other._config.get("name", "") if hasattr(other, '_config') else ""
+        other_name = other._config.get("name", "") if hasattr(other, "_config") else ""
         if isinstance(self, Pipeline):
             # Clone, then append — original Pipeline unchanged
             clone = self._fork_for_operator()
@@ -340,6 +355,7 @@ class BuilderBase:
     def __or__(self, other: BuilderBase) -> BuilderBase:
         """Create or extend a FanOut: a | b | c."""
         from adk_fluent.workflow import FanOut
+
         my_name = self._config.get("name", "")
         other_name = other._config.get("name", "")
         if isinstance(self, FanOut):
@@ -437,9 +453,7 @@ class BuilderBase:
             self.build()
         except Exception as exc:
             name = self._config.get("name", "?")
-            raise ValueError(
-                f"Validation failed for {self.__class__.__name__}('{name}'): {exc}"
-            ) from exc
+            raise ValueError(f"Validation failed for {self.__class__.__name__}('{name}'): {exc}") from exc
         return self
 
     def explain(self) -> str:
@@ -484,11 +498,7 @@ class BuilderBase:
         """Serialize builder state to a plain dict."""
         cls_name = self.__class__.__name__
         # Config: skip internal _ fields
-        config = {
-            k: self._serialize_value(v)
-            for k, v in self._config.items()
-            if not k.startswith("_")
-        }
+        config = {k: self._serialize_value(v) for k, v in self._config.items() if not k.startswith("_")}
         # Callbacks: store qualname strings
         callbacks: dict[str, list[str]] = {}
         for field, fns in self._callbacks.items():
@@ -513,11 +523,8 @@ class BuilderBase:
         """
         try:
             import yaml
-        except ImportError:
-            raise ImportError(
-                "to_yaml() requires the 'pyyaml' package. "
-                "Install it with: pip install pyyaml"
-            )
+        except ImportError as e:
+            raise ImportError("to_yaml() requires the 'pyyaml' package. Install it with: pip install pyyaml") from e
         return yaml.dump(self.to_dict(), default_flow_style=False)
 
     # ------------------------------------------------------------------
@@ -527,6 +534,7 @@ class BuilderBase:
     def with_(self, **overrides: Any) -> Self:
         """Clone this builder and apply overrides. Original unchanged."""
         from adk_fluent._helpers import deep_clone_builder
+
         new_name = overrides.pop("name", self._config.get("name", ""))
         new_builder = deep_clone_builder(self, new_name)
         # Resolve aliases in overrides
@@ -546,8 +554,7 @@ class BuilderBase:
         until_pred = self._config.get("_until_predicate")
         output_schema = self._config.get("_output_schema")
 
-        config = {k: v for k, v in self._config.items()
-                  if not k.startswith("_") and v is not _UNSET}
+        config = {k: v for k, v in self._config.items() if not k.startswith("_") and v is not _UNSET}
 
         # Wire @-operator output schema into ADK's native output_schema field
         if output_schema is not None:
@@ -555,6 +562,7 @@ class BuilderBase:
 
         # Auto-convert Prompt objects to strings
         from adk_fluent._prompt import Prompt
+
         for key, value in list(config.items()):
             if isinstance(value, Prompt):
                 config[key] = str(value)
@@ -586,6 +594,7 @@ class BuilderBase:
         # Inject checkpoint agent for loop_until predicate
         if until_pred:
             from adk_fluent._routing import _make_checkpoint_agent
+
             checkpoint = _make_checkpoint_agent("_until_check", until_pred)
             config.setdefault("sub_agents", []).append(checkpoint)
 
@@ -598,6 +607,7 @@ class BuilderBase:
     def clone(self, new_name: str) -> Self:
         """Deep-copy this builder with a new name. Independent config/callbacks/lists."""
         from adk_fluent._helpers import deep_clone_builder
+
         return deep_clone_builder(self, new_name)
 
     # ------------------------------------------------------------------
@@ -650,14 +660,17 @@ class BuilderBase:
         Usage:
             agent.inject_context(lambda ctx: f"User: {ctx.state.get('user')}")
         """
+
         def _inject_cb(callback_context, llm_request):
             text = fn(callback_context)
             if text:
                 from google.genai import types
+
                 part = types.Part.from_text(text=str(text))
                 content = types.Content(role="user", parts=[part])
                 llm_request.contents.insert(0, content)
             return None
+
         self._callbacks["before_model_callback"].append(_inject_cb)
         return self
 
@@ -670,16 +683,20 @@ class BuilderBase:
         Usage:
             enricher.proceed_if(lambda s: s.get("valid") == "yes")
         """
+
         def _gate_cb(callback_context):
             state = callback_context.state
             try:
                 if not predicate(state):
                     from google.genai import types
+
                     return types.Content(role="model", parts=[])
             except (KeyError, TypeError, ValueError):
                 from google.genai import types
+
                 return types.Content(role="model", parts=[])
             return None
+
         self._callbacks["before_agent_callback"].append(_gate_cb)
         return self
 
@@ -704,6 +721,7 @@ class BuilderBase:
             Loop("refine").step(writer).step(reviewer).until(lambda s: ...).max_iterations(5)
         """
         from adk_fluent.workflow import Loop
+
         if isinstance(self, Loop):
             self._config["_until_predicate"] = predicate
             return self
@@ -741,28 +759,22 @@ class BuilderBase:
         """
         if callable(responses) and not isinstance(responses, list):
             fn = responses
+
             def _mock_cb(callback_context, llm_request):
                 from google.adk.models.llm_response import LlmResponse
                 from google.genai import types
+
                 text = fn(llm_request)
-                return LlmResponse(
-                    content=types.Content(
-                        role="model",
-                        parts=[types.Part(text=str(text))]
-                    )
-                )
+                return LlmResponse(content=types.Content(role="model", parts=[types.Part(text=str(text))]))
         else:
             response_iter = itertools.cycle(responses)
+
             def _mock_cb(callback_context, llm_request):
                 from google.adk.models.llm_response import LlmResponse
                 from google.genai import types
+
                 text = next(response_iter)
-                return LlmResponse(
-                    content=types.Content(
-                        role="model",
-                        parts=[types.Part(text=str(text))]
-                    )
-                )
+                return LlmResponse(content=types.Content(role="model", parts=[types.Part(text=str(text))]))
 
         self._callbacks.setdefault("before_model_callback", []).append(_mock_cb)
         return self
@@ -809,8 +821,7 @@ class BuilderBase:
         Subclasses override to return the appropriate IR node type.
         """
         raise NotImplementedError(
-            f"{self.__class__.__name__}.to_ir() is not implemented. "
-            f"Use .build() for direct ADK object construction."
+            f"{self.__class__.__name__}.to_ir() is not implemented. Use .build() for direct ADK object construction."
         )
 
     def to_app(self, config=None):
@@ -860,20 +871,18 @@ class BuilderBase:
     def produces(self, schema: type) -> Self:
         """Declare the Pydantic schema this agent writes to state."""
         from pydantic import BaseModel
+
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
-            raise TypeError(
-                f"produces() requires a Pydantic BaseModel subclass, got {schema!r}"
-            )
+            raise TypeError(f"produces() requires a Pydantic BaseModel subclass, got {schema!r}")
         self._config["_produces"] = schema
         return self
 
     def consumes(self, schema: type) -> Self:
         """Declare the Pydantic schema this agent reads from state."""
         from pydantic import BaseModel
+
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
-            raise TypeError(
-                f"consumes() requires a Pydantic BaseModel subclass, got {schema!r}"
-            )
+            raise TypeError(f"consumes() requires a Pydantic BaseModel subclass, got {schema!r}")
         self._config["_consumes"] = schema
         return self
 
@@ -890,6 +899,7 @@ class BuilderBase:
     def to_mermaid(self) -> str:
         """Generate a Mermaid graph visualization of this builder's IR tree."""
         from adk_fluent.viz import ir_to_mermaid
+
         return ir_to_mermaid(self.to_ir())
 
     def use(self, preset: Any) -> Self:
@@ -941,6 +951,7 @@ def _fn_step(fn: Callable) -> BuilderBase:
 
 class _FnStepBuilder(BuilderBase):
     """Builder wrapper for a pure function in the expression language."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -961,6 +972,7 @@ class _FnStepBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import TransformNode
+
         return TransformNode(
             name=self._config.get("name", "fn_step"),
             fn=self._fn,
@@ -973,6 +985,7 @@ class _FallbackBuilder(BuilderBase):
 
     Tries each child in order. First success wins.
     """
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -1003,10 +1016,8 @@ class _FallbackBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import FallbackNode
-        children = tuple(
-            c.to_ir() if isinstance(c, BuilderBase) else c
-            for c in self._children
-        )
+
+        children = tuple(c.to_ir() if isinstance(c, BuilderBase) else c for c in self._children)
         return FallbackNode(
             name=self._config.get("name", "fallback"),
             children=children,
@@ -1034,6 +1045,7 @@ def tap(fn: Callable) -> BuilderBase:
 
 class _TapBuilder(BuilderBase):
     """Builder for a pure observation step. No state mutation, no LLM."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -1054,6 +1066,7 @@ class _TapBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import TapNode
+
         return TapNode(
             name=self._config.get("name", "tap"),
             fn=self._fn,
@@ -1106,6 +1119,7 @@ def map_over(key: str, agent, *, item_key: str = "_item", output_key: str = "sum
 
 class _MapOverBuilder(BuilderBase):
     """Builder for iterating an agent over list items in state."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -1142,6 +1156,7 @@ class _MapOverBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import MapOverNode
+
         body = self._agent.to_ir() if isinstance(self._agent, BuilderBase) else self._agent
         return MapOverNode(
             name=self._config.get("name", "map_over"),
@@ -1161,6 +1176,7 @@ _timeout_counter = itertools.count(1)
 
 class _TimeoutBuilder(BuilderBase):
     """Builder that wraps an agent with a time limit."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -1191,6 +1207,7 @@ class _TimeoutBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import TimeoutNode
+
         body = self._agent.to_ir() if isinstance(self._agent, BuilderBase) else self._agent
         return TimeoutNode(
             name=self._config.get("name", "timeout"),
@@ -1224,6 +1241,7 @@ def gate(predicate: Callable, *, message: str = "Approval required", gate_key: s
 
 class _GateBuilder(BuilderBase):
     """Builder for a human-in-the-loop approval gate."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -1253,6 +1271,7 @@ class _GateBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import GateNode
+
         return GateNode(
             name=self._config.get("name", "gate"),
             predicate=self._predicate,
@@ -1274,7 +1293,7 @@ def race(*agents) -> BuilderBase:
     """
     names = []
     for a in agents:
-        if hasattr(a, '_config'):
+        if hasattr(a, "_config"):
             names.append(a._config.get("name", "?"))
         else:
             names.append("?")
@@ -1284,6 +1303,7 @@ def race(*agents) -> BuilderBase:
 
 class _RaceBuilder(BuilderBase):
     """Builder for a race: first sub-agent to finish wins."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -1314,10 +1334,8 @@ class _RaceBuilder(BuilderBase):
 
     def to_ir(self):
         from adk_fluent._ir import RaceNode
-        children = tuple(
-            a.to_ir() if isinstance(a, BuilderBase) else a
-            for a in self._agents
-        )
+
+        children = tuple(a.to_ir() if isinstance(a, BuilderBase) else a for a in self._agents)
         return RaceNode(
             name=self._config.get("name", "race"),
             children=children,
@@ -1345,17 +1363,15 @@ class FnAgent(BaseAgent):
 
     def __init__(self, *, fn: Callable, **kwargs):
         super().__init__(**kwargs)
-        object.__setattr__(self, '_fn_ref', fn)
+        object.__setattr__(self, "_fn_ref", fn)
 
     async def _run_async_impl(self, ctx):
-        from adk_fluent._transforms import StateDelta, StateReplacement, _SCOPE_PREFIXES
+        from adk_fluent._transforms import _SCOPE_PREFIXES, StateDelta, StateReplacement
+
         result = self._fn_ref(dict(ctx.session.state))
         if isinstance(result, StateReplacement):
             # Only affect session-scoped (unprefixed) keys
-            current_session_keys = {
-                k for k in ctx.session.state
-                if not k.startswith(_SCOPE_PREFIXES)
-            }
+            current_session_keys = {k for k in ctx.session.state if not k.startswith(_SCOPE_PREFIXES)}
             new_keys = set(result.new_state.keys())
             for k, v in result.new_state.items():
                 ctx.session.state[k] = v
@@ -1392,7 +1408,7 @@ class TapAgent(BaseAgent):
 
     def __init__(self, *, fn: Callable, **kwargs):
         super().__init__(**kwargs)
-        object.__setattr__(self, '_fn_ref', fn)
+        object.__setattr__(self, "_fn_ref", fn)
 
     async def _run_async_impl(self, ctx):
         # Pass read-only view — tap should never mutate state
@@ -1405,9 +1421,9 @@ class MapOverAgent(BaseAgent):
 
     def __init__(self, *, list_key: str, item_key: str, output_key: str, **kwargs):
         super().__init__(**kwargs)
-        object.__setattr__(self, '_list_key', list_key)
-        object.__setattr__(self, '_item_key', item_key)
-        object.__setattr__(self, '_output_key', output_key)
+        object.__setattr__(self, "_list_key", list_key)
+        object.__setattr__(self, "_item_key", item_key)
+        object.__setattr__(self, "_output_key", output_key)
 
     async def _run_async_impl(self, ctx):
         items = ctx.session.state.get(self._list_key, [])
@@ -1427,10 +1443,11 @@ class TimeoutAgent(BaseAgent):
 
     def __init__(self, *, seconds: float, **kwargs):
         super().__init__(**kwargs)
-        object.__setattr__(self, '_seconds', seconds)
+        object.__setattr__(self, "_seconds", seconds)
 
     async def _run_async_impl(self, ctx):
         import asyncio
+
         queue = asyncio.Queue()
         sentinel = object()
 
@@ -1445,14 +1462,12 @@ class TimeoutAgent(BaseAgent):
             while True:
                 remaining = deadline - asyncio.get_event_loop().time()
                 if remaining <= 0:
-                    raise asyncio.TimeoutError(
-                        f"Agent '{self.sub_agents[0].name}' exceeded {self._seconds}s timeout"
-                    )
+                    raise TimeoutError(f"Agent '{self.sub_agents[0].name}' exceeded {self._seconds}s timeout")
                 item = await asyncio.wait_for(queue.get(), timeout=remaining)
                 if item is sentinel:
                     break
                 yield item
-        except asyncio.TimeoutError:
+        except TimeoutError:
             task.cancel()
             raise
         finally:
@@ -1465,9 +1480,9 @@ class GateAgent(BaseAgent):
 
     def __init__(self, *, predicate: Callable, message: str, gate_key: str, **kwargs):
         super().__init__(**kwargs)
-        object.__setattr__(self, '_predicate', predicate)
-        object.__setattr__(self, '_message', message)
-        object.__setattr__(self, '_gate_key', gate_key)
+        object.__setattr__(self, "_predicate", predicate)
+        object.__setattr__(self, "_message", message)
+        object.__setattr__(self, "_gate_key", gate_key)
 
     async def _run_async_impl(self, ctx):
         from google.adk.events.event import Event
@@ -1498,10 +1513,7 @@ class GateAgent(BaseAgent):
             invocation_id=ctx.invocation_id,
             author=self.name,
             branch=ctx.branch,
-            content=types.Content(
-                role="model",
-                parts=[types.Part(text=self._message)]
-            ),
+            content=types.Content(role="model", parts=[types.Part(text=self._message)]),
             actions=EventActions(escalate=True),
         )
 
@@ -1518,15 +1530,10 @@ class RaceAgent(BaseAgent):
                 events.append(event)
             return events
 
-        tasks = {
-            asyncio.create_task(_run_one(agent)): i
-            for i, agent in enumerate(self.sub_agents)
-        }
+        tasks = {asyncio.create_task(_run_one(agent)): i for i, agent in enumerate(self.sub_agents)}
 
         try:
-            done, pending = await asyncio.wait(
-                tasks.keys(), return_when=asyncio.FIRST_COMPLETED
-            )
+            done, pending = await asyncio.wait(tasks.keys(), return_when=asyncio.FIRST_COMPLETED)
             # Cancel remaining
             for task in pending:
                 task.cancel()

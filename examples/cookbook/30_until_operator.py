@@ -31,7 +31,8 @@ full_pipeline = (
     >> (
         Agent("builder").model("gemini-2.5-flash").instruct("Build solution.")
         >> Agent("tester").model("gemini-2.5-flash").instruct("Test solution.")
-    ) * until(lambda s: s.get("tests_pass"), max=3)
+    )
+    * until(lambda s: s.get("tests_pass"), max=3)
     >> Agent("deployer").model("gemini-2.5-flash").instruct("Deploy.")
 )
 

@@ -25,11 +25,7 @@ class TestVariadicCallbacks:
         fn1 = lambda ctx: None
         fn2 = lambda ctx: None
         fn3 = lambda ctx: None
-        builder = (
-            Agent("test")
-            .before_model(fn1)
-            .before_model(fn2, fn3)
-        )
+        builder = Agent("test").before_model(fn1).before_model(fn2, fn3)
         assert builder._callbacks["before_model_callback"] == [fn1, fn2, fn3]
 
     def test_returns_self(self):

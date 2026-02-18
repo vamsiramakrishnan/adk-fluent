@@ -14,10 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 agent = (
-    Agent("classifier")
-    .model("gemini-2.5-flash")
-    .instruct("Classify inputs into categories.")
-    .output_key("category")
+    Agent("classifier").model("gemini-2.5-flash").instruct("Classify inputs into categories.").output_key("category")
 )
 
 # Serialize to dict (inspection only -- callables can't round-trip)

@@ -15,6 +15,7 @@ Usage:
     python scripts/cookbook_to_agents.py --only 28                # Convert one
     python scripts/cookbook_to_agents.py --output-dir examples/   # Custom output
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,10 +23,10 @@ import re
 import sys
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # PARSING
 # ---------------------------------------------------------------------------
+
 
 def parse_cookbook(filepath: Path) -> dict:
     """Parse a cookbook file into title and sections."""
@@ -96,15 +97,15 @@ def _is_buildable_example(parsed: dict) -> bool:
         return False
 
     # Skip pure StateKey/Artifact examples (no agent at all)
-    if "Agent(" not in fluent and "Pipeline(" not in fluent and "FanOut(" not in fluent and "Loop(" not in fluent and "@agent(" not in fluent:
-        return False
-
-    return True
+    return (
+        "Agent(" in fluent or "Pipeline(" in fluent or "FanOut(" in fluent or "Loop(" in fluent or "@agent(" in fluent
+    )
 
 
 # ---------------------------------------------------------------------------
 # AGENT.PY GENERATION
 # ---------------------------------------------------------------------------
+
 
 def generate_agent_py(parsed: dict) -> str | None:
     """Generate an agent.py file from a parsed cookbook example.
@@ -124,15 +125,15 @@ def generate_agent_py(parsed: dict) -> str | None:
     folder_name = _cookbook_to_folder_name(cookbook_name)
 
     lines = []
-    lines.append(f'"""')
+    lines.append('"""')
     lines.append(f"{title}")
-    lines.append(f"")
+    lines.append("")
     lines.append(f"Converted from cookbook example: {parsed['filepath'].name}")
-    lines.append(f"")
-    lines.append(f"Usage:")
-    lines.append(f"    cd examples")
+    lines.append("")
+    lines.append("Usage:")
+    lines.append("    cd examples")
     lines.append(f"    adk web {folder_name}")
-    lines.append(f'"""')
+    lines.append('"""')
     lines.append("")
 
     # Include any function/class definitions from the native section that
@@ -152,7 +153,9 @@ def generate_agent_py(parsed: dict) -> str | None:
     if last_import_idx >= 0:
         fluent_lines.insert(last_import_idx + 1, "from dotenv import load_dotenv")
         fluent_lines.insert(last_import_idx + 2, "")
-        fluent_lines.insert(last_import_idx + 3, "load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)")
+        fluent_lines.insert(
+            last_import_idx + 3, "load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)"
+        )
     lines.append("\n".join(fluent_lines))
     lines.append("")
 
@@ -229,6 +232,7 @@ def _cookbook_to_folder_name(stem: str) -> str:
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
 
+
 def convert_all(
     cookbook_dir: str = "examples/cookbook",
     output_dir: str = "examples",
@@ -288,39 +292,27 @@ def convert_all(
             print(f"    {name}: {reason}")
 
     if converted and not dry_run:
-        print(f"\n  Run any agent with:")
+        print("\n  Run any agent with:")
         print(f"    cd {output_dir}")
-        print(f"    adk web <folder_name>")
+        print("    adk web <folder_name>")
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Convert cookbook examples to adk-web-compatible agent folders"
+    parser = argparse.ArgumentParser(description="Convert cookbook examples to adk-web-compatible agent folders")
+    parser.add_argument(
+        "--cookbook-dir", default="examples/cookbook", help="Cookbook examples directory (default: examples/cookbook)"
     )
     parser.add_argument(
-        "--cookbook-dir", default="examples/cookbook",
-        help="Cookbook examples directory (default: examples/cookbook)"
+        "--output-dir", default="examples", help="Output directory for agent folders (default: examples)"
     )
-    parser.add_argument(
-        "--output-dir", default="examples",
-        help="Output directory for agent folders (default: examples)"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true",
-        help="Preview generated files without writing"
-    )
-    parser.add_argument(
-        "--only", type=str, default=None,
-        help="Convert only files matching this prefix/substring"
-    )
-    parser.add_argument(
-        "--force", action="store_true",
-        help="Overwrite existing folders"
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Preview generated files without writing")
+    parser.add_argument("--only", type=str, default=None, help="Convert only files matching this prefix/substring")
+    parser.add_argument("--force", action="store_true", help="Overwrite existing folders")
     args = parser.parse_args()
 
     convert_all(

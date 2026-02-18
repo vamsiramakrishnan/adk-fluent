@@ -1,7 +1,7 @@
 """Tests for Resource DI (dependency injection)."""
-import inspect
+
 import asyncio
-import pytest
+import inspect
 
 
 def test_inject_resources_hides_params():
@@ -68,6 +68,7 @@ def test_inject_no_overlap_passthrough():
 def test_builder_inject_method():
     """Agent.inject(key=value) stores resources for DI."""
     from adk_fluent import Agent
+
     a = Agent("a").inject(db="fake_db")
     assert a._config["_resources"] == {"db": "fake_db"}
 
@@ -75,6 +76,7 @@ def test_builder_inject_method():
 def test_builder_inject_chainable():
     """inject() returns self."""
     from adk_fluent import Agent
+
     a = Agent("a")
     result = a.inject(db="fake")
     assert result is a
@@ -83,5 +85,6 @@ def test_builder_inject_chainable():
 def test_builder_inject_accumulates():
     """Multiple inject() calls merge resources."""
     from adk_fluent import Agent
+
     a = Agent("a").inject(db="fake").inject(cache="mem")
     assert a._config["_resources"] == {"db": "fake", "cache": "mem"}

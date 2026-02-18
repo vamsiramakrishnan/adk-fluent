@@ -6,6 +6,7 @@ cost tracking, etc.) that compiles to ADK BasePlugin instances.
 Middleware is app-global (attached via ExecutionConfig). This is separate
 from agent-level callbacks (stored per-agent in IR nodes).
 """
+
 from __future__ import annotations
 
 import asyncio as _asyncio
@@ -90,15 +91,11 @@ class Middleware(Protocol):
         """Called before a tool executes."""
         return None
 
-    async def after_tool(
-        self, ctx: Any, tool_name: str, args: dict, result: dict
-    ) -> dict | None:
+    async def after_tool(self, ctx: Any, tool_name: str, args: dict, result: dict) -> dict | None:
         """Called after a tool executes."""
         return None
 
-    async def on_tool_error(
-        self, ctx: Any, tool_name: str, args: dict, error: Exception
-    ) -> dict | None:
+    async def on_tool_error(self, ctx: Any, tool_name: str, args: dict, error: Exception) -> dict | None:
         """Called when a tool execution fails."""
         return None
 
@@ -156,12 +153,8 @@ class _MiddlewarePlugin(BasePlugin):
 
     # --- Runner lifecycle ---
 
-    async def on_user_message_callback(
-        self, *, invocation_context, user_message
-    ):
-        return await self._run_stack(
-            "on_user_message", invocation_context, user_message
-        )
+    async def on_user_message_callback(self, *, invocation_context, user_message):
+        return await self._run_stack("on_user_message", invocation_context, user_message)
 
     async def before_run_callback(self, *, invocation_context):
         return await self._run_stack("before_run", invocation_context)
@@ -191,21 +184,13 @@ class _MiddlewarePlugin(BasePlugin):
     # --- Model lifecycle ---
 
     async def before_model_callback(self, *, callback_context, llm_request):
-        return await self._run_stack(
-            "before_model", callback_context, llm_request
-        )
+        return await self._run_stack("before_model", callback_context, llm_request)
 
     async def after_model_callback(self, *, callback_context, llm_response):
-        return await self._run_stack(
-            "after_model", callback_context, llm_response
-        )
+        return await self._run_stack("after_model", callback_context, llm_response)
 
-    async def on_model_error_callback(
-        self, *, callback_context, llm_request, error
-    ):
-        return await self._run_stack(
-            "on_model_error", callback_context, llm_request, error
-        )
+    async def on_model_error_callback(self, *, callback_context, llm_request, error):
+        return await self._run_stack("on_model_error", callback_context, llm_request, error)
 
     # --- Tool lifecycle ---
 
@@ -217,9 +202,7 @@ class _MiddlewarePlugin(BasePlugin):
             tool_args,
         )
 
-    async def after_tool_callback(
-        self, *, tool, tool_args, tool_context, result
-    ):
+    async def after_tool_callback(self, *, tool, tool_args, tool_context, result):
         return await self._run_stack(
             "after_tool",
             tool_context,
@@ -228,9 +211,7 @@ class _MiddlewarePlugin(BasePlugin):
             result,
         )
 
-    async def on_tool_error_callback(
-        self, *, tool, tool_args, tool_context, error
-    ):
+    async def on_tool_error_callback(self, *, tool, tool_args, tool_context, error):
         return await self._run_stack(
             "on_tool_error",
             tool_context,

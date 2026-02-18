@@ -28,12 +28,8 @@ pipeline_retry = (
 
 # Equivalence: retry_if(p) == loop_until(not p)
 # These produce identical behavior:
-via_retry = Agent("a").model("gemini-2.5-flash").retry_if(
-    lambda s: s.get("ok") != "yes", max_retries=4
-)
-via_loop = Agent("a").model("gemini-2.5-flash").loop_until(
-    lambda s: s.get("ok") == "yes", max_iterations=4
-)
+via_retry = Agent("a").model("gemini-2.5-flash").retry_if(lambda s: s.get("ok") != "yes", max_retries=4)
+via_loop = Agent("a").model("gemini-2.5-flash").loop_until(lambda s: s.get("ok") == "yes", max_iterations=4)
 
 # --- ASSERT ---
 from adk_fluent.workflow import Loop as LoopBuilder
@@ -50,8 +46,8 @@ assert pipeline_retry._config["max_iterations"] == 5
 
 # The predicate is inverted: retry_if(p) stores not-p as until_predicate
 until_pred = writer._config["_until_predicate"]
-assert until_pred({"quality": "good"}) is True   # exit: stop retrying
-assert until_pred({"quality": "bad"}) is False    # continue retrying
+assert until_pred({"quality": "good"}) is True  # exit: stop retrying
+assert until_pred({"quality": "bad"}) is False  # continue retrying
 
 # Both retry_if and loop_until produce Loop builders
 assert isinstance(via_retry, LoopBuilder)

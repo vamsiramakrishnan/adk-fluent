@@ -47,10 +47,12 @@ assert len(formatter._callbacks["before_agent_callback"]) == 1
 # The callback is a closure that checks state
 cb = enricher._callbacks["before_agent_callback"][0]
 
+
 # Simulate: callback returns None (proceed) when state matches
 class FakeCtx:
     def __init__(self, state_dict):
         self.state = state_dict
+
 
 result = cb(FakeCtx({"valid": "yes"}))
 assert result is None  # Proceed

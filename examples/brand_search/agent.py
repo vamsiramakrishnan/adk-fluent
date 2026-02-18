@@ -87,10 +87,12 @@ root_agent = (
     Agent("brand_search_optimization", MODEL)
     .describe("A helpful assistant for brand search optimization.")
     .instruct(ROOT_PROMPT)
-    .sub_agents([
-        keyword_finding.build(),
-        search_results.build(),
-        comparison_root.build(),
-    ])
+    .sub_agents(
+        [
+            keyword_finding.build(),
+            search_results.build(),
+            comparison_root.build(),
+        ]
+    )
     .build()
 )

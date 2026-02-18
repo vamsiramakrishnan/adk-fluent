@@ -1,5 +1,7 @@
 """Inter-agent contract verification."""
+
 from __future__ import annotations
+
 from typing import Any
 
 
@@ -25,10 +27,7 @@ def check_contracts(ir_node: Any) -> list[str]:
         if reads:
             missing = reads - available_keys
             for key in sorted(missing):
-                issues.append(
-                    f"Agent '{child_name}' consumes key '{key}' "
-                    f"but no prior step produces it"
-                )
+                issues.append(f"Agent '{child_name}' consumes key '{key}' but no prior step produces it")
 
         available_keys |= writes
 

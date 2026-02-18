@@ -1,7 +1,7 @@
 """Tests for deep_clone_builder and .clone() functionality."""
 
-from adk_fluent.agent import Agent
 from adk_fluent._helpers import deep_clone_builder
+from adk_fluent.agent import Agent
 
 
 class TestDeepCloneBuilder:

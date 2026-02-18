@@ -17,6 +17,7 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # --- Tools ---
 
+
 def search_web(query: str) -> str:
     """Search the web for information."""
     return f"[Web results for '{query}': Found 3 relevant articles about {query}]"
@@ -33,6 +34,7 @@ def save_draft(content: str) -> str:
 
 
 # --- Callbacks ---
+
 
 def log_agent_start(callback_context):
     """Log when each agent starts."""
@@ -77,8 +79,7 @@ writing_phase = (
         Agent("editor")
         .model("gemini-2.5-flash")
         .instruct(
-            "Review the article for clarity, accuracy, and completeness. "
-            "Provide specific feedback for improvement."
+            "Review the article for clarity, accuracy, and completeness. Provide specific feedback for improvement."
         )
     )
 )

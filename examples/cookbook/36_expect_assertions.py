@@ -9,6 +9,7 @@ from google.adk.agents.sequential_agent import SequentialAgent
 
 class AssertDraftExists(NativeBaseAgent):
     """Custom agent that raises if 'draft' is missing from state."""
+
     async def _run_async_impl(self, ctx):
         if "draft" not in ctx.session.state:
             raise ValueError("Draft must exist before review")
@@ -19,9 +20,7 @@ writer = LlmAgent(name="writer", model="gemini-2.5-flash", instruction="Write a 
 checker = AssertDraftExists(name="checker")
 reviewer = LlmAgent(name="reviewer", model="gemini-2.5-flash", instruction="Review the draft.")
 
-pipeline_native = SequentialAgent(
-    name="pipeline", sub_agents=[writer, checker, reviewer]
-)
+pipeline_native = SequentialAgent(name="pipeline", sub_agents=[writer, checker, reviewer])
 
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline, expect

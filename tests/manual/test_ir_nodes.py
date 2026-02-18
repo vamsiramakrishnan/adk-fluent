@@ -1,14 +1,22 @@
 """Tests for hand-written IR node types."""
+
 import pytest
+
 from adk_fluent._ir import (
-    TransformNode, TapNode, FallbackNode, RaceNode, GateNode,
-    MapOverNode, TimeoutNode, RouteNode, TransferNode,
-    ExecutionConfig, CompactionConfig, AgentEvent,
-    Node,
+    AgentEvent,
+    CompactionConfig,
+    ExecutionConfig,
+    FallbackNode,
+    GateNode,
+    MapOverNode,
+    RaceNode,
+    RouteNode,
+    TapNode,
+    TransformNode,
 )
 
-
 # --- Frozen immutability ---
+
 
 def test_transform_node_is_frozen():
     node = TransformNode(name="t1", fn=lambda s: s)
@@ -24,6 +32,7 @@ def test_tap_node_is_frozen():
 
 # --- Field defaults ---
 
+
 def test_transform_node_defaults():
     fn = lambda s: {"x": 1}
     node = TransformNode(name="t1", fn=fn)
@@ -34,6 +43,7 @@ def test_transform_node_defaults():
 
 def test_map_over_node_defaults():
     from adk_fluent._ir import TapNode
+
     body = TapNode(name="inner", fn=lambda s: None)
     node = MapOverNode(name="m1", list_key="items", body=body)
     assert node.item_key == "_item"
@@ -54,6 +64,7 @@ def test_route_node_defaults():
 
 # --- ExecutionConfig ---
 
+
 def test_execution_config_defaults():
     cfg = ExecutionConfig()
     assert cfg.app_name == "adk_fluent_app"
@@ -71,6 +82,7 @@ def test_compaction_config():
 
 # --- AgentEvent ---
 
+
 def test_agent_event_defaults():
     evt = AgentEvent(author="test")
     assert evt.content is None
@@ -87,6 +99,7 @@ def test_agent_event_with_content():
 
 
 # --- Node type union ---
+
 
 def test_node_union_includes_primitive_types():
     """The Node type should accept all primitive IR types."""

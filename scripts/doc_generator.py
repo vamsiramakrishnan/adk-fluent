@@ -13,28 +13,27 @@ Usage:
     python scripts/doc_generator.py seeds/seed.toml manifest.json --cookbook-only
     python scripts/doc_generator.py seeds/seed.toml manifest.json --migration-only
 """
+
 from __future__ import annotations
 
 import argparse
-import json
+import contextlib
 import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib
+with contextlib.suppress(ImportError):
+    import tomllib  # noqa: F401
 
 # Import BuilderSpec resolution from generator (same directory)
 sys.path.insert(0, str(Path(__file__).parent))
-from generator import parse_seed, parse_manifest, resolve_builder_specs, BuilderSpec
-
+from generator import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
 
 # ---------------------------------------------------------------------------
 # HELPERS
 # ---------------------------------------------------------------------------
+
 
 def _anchor_id(name: str) -> str:
     """Convert a builder name to a lowercase anchor id for MyST targets."""
@@ -60,9 +59,9 @@ def _usage_example(spec: BuilderSpec) -> str:
     lines.append("```python")
     lines.append(f"from adk_fluent import {spec.name}")
     lines.append("")
-    lines.append(f"result = (")
+    lines.append("result = (")
     lines.append(f"    {chain}")
-    lines.append(f")")
+    lines.append(")")
     lines.append("```")
     return "\n".join(lines)
 
@@ -70,6 +69,7 @@ def _usage_example(spec: BuilderSpec) -> str:
 # ---------------------------------------------------------------------------
 # API REFERENCE GENERATION
 # ---------------------------------------------------------------------------
+
 
 def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
     """Generate MyST-flavored Markdown API reference for a single builder.
@@ -87,15 +87,15 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
     lines: list[str] = []
 
     # --- MyST target anchor ---
-    anchor = _anchor_id(spec.name)
+    _anchor = _anchor_id(spec.name)
     lines.append(f"(builder-{spec.name})=")
     lines.append(f"## {spec.name}")
     lines.append("")
 
     if spec.is_composite:
-        lines.append(f"> Composite builder (no single ADK class)")
+        lines.append("> Composite builder (no single ADK class)")
     elif spec.is_standalone:
-        lines.append(f"> Standalone builder (no ADK class)")
+        lines.append("> Standalone builder (no ADK class)")
     else:
         lines.append(f"> Fluent builder for `{spec.source_class}`")
     lines.append("")
@@ -339,6 +339,7 @@ def gen_api_index(by_module: dict[str, list[BuilderSpec]]) -> str:
 # ---------------------------------------------------------------------------
 # COOKBOOK PROCESSOR
 # ---------------------------------------------------------------------------
+
 
 def process_cookbook_file(filepath: str) -> dict:
     """Parse an annotated cookbook example into sections."""
@@ -586,6 +587,7 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
 # MIGRATION GUIDE GENERATOR
 # ---------------------------------------------------------------------------
 
+
 def gen_migration_guide(specs: list[BuilderSpec], by_module: dict[str, list[BuilderSpec]]) -> str:
     """Generate a migration guide with class/field mapping tables,
     before/after code snippets, and cross-references to API pages."""
@@ -613,7 +615,7 @@ def gen_migration_guide(specs: list[BuilderSpec], by_module: dict[str, list[Buil
     lines.append("```python")
     lines.append("from google.adk.agents.llm_agent import LlmAgent")
     lines.append("")
-    lines.append('agent = LlmAgent(')
+    lines.append("agent = LlmAgent(")
     lines.append('    name="helper",')
     lines.append('    model="gemini-2.5-flash",')
     lines.append('    instruction="You are a helpful assistant.",')
@@ -721,15 +723,9 @@ def gen_migration_guide(specs: list[BuilderSpec], by_module: dict[str, list[Buil
         builder_link = f"[{spec.name}](../api/{module_name}.md#builder-{spec.name})"
 
         if spec.is_composite or spec.is_standalone:
-            lines.append(
-                f"| _(composite)_ | {builder_link} | "
-                f"`from adk_fluent import {spec.name}` |"
-            )
+            lines.append(f"| _(composite)_ | {builder_link} | `from adk_fluent import {spec.name}` |")
         else:
-            lines.append(
-                f"| `{spec.source_class_short}` | {builder_link} | "
-                f"`from adk_fluent import {spec.name}` |"
-            )
+            lines.append(f"| `{spec.source_class_short}` | {builder_link} | `from adk_fluent import {spec.name}` |")
     lines.append("")
 
     # --- Per-builder field mapping ---
@@ -763,6 +759,7 @@ def gen_migration_guide(specs: list[BuilderSpec], by_module: dict[str, list[Buil
 # ---------------------------------------------------------------------------
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
+
 
 def generate_docs(
     seed_path: str,
@@ -848,32 +845,18 @@ def generate_docs(
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate adk-fluent documentation from seed + manifest"
-    )
+    parser = argparse.ArgumentParser(description="Generate adk-fluent documentation from seed + manifest")
     parser.add_argument("seed", help="Path to seed.toml")
     parser.add_argument("manifest", help="Path to manifest.json")
+    parser.add_argument("--output-dir", default="docs/generated", help="Output directory (default: docs/generated)")
     parser.add_argument(
-        "--output-dir", default="docs/generated",
-        help="Output directory (default: docs/generated)"
+        "--cookbook-dir", default="examples/cookbook", help="Cookbook examples directory (default: examples/cookbook)"
     )
-    parser.add_argument(
-        "--cookbook-dir", default="examples/cookbook",
-        help="Cookbook examples directory (default: examples/cookbook)"
-    )
-    parser.add_argument(
-        "--api-only", action="store_true",
-        help="Generate API reference only"
-    )
-    parser.add_argument(
-        "--cookbook-only", action="store_true",
-        help="Generate cookbook only"
-    )
-    parser.add_argument(
-        "--migration-only", action="store_true",
-        help="Generate migration guide only"
-    )
+    parser.add_argument("--api-only", action="store_true", help="Generate API reference only")
+    parser.add_argument("--cookbook-only", action="store_true", help="Generate cookbook only")
+    parser.add_argument("--migration-only", action="store_true", help="Generate migration guide only")
     args = parser.parse_args()
 
     generate_docs(

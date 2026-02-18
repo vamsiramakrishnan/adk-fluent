@@ -11,11 +11,14 @@ Usage:
 
 # --- Tools & Callbacks ---
 
+
 def log_before(callback_context, llm_request):
     print("before model")
 
+
 def log_after(callback_context, llm_response):
     print("after model")
+
 
 from adk_fluent import Agent
 from dotenv import load_dotenv

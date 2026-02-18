@@ -15,12 +15,7 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # Fields not explicitly aliased still work via __getattr__:
 agent_fluent = (
-    Agent("dynamic")
-    .model("gemini-2.5-flash")
-    .instruct("test")
-    .output_key("result")
-    .include_contents("none")
-    .build()
+    Agent("dynamic").model("gemini-2.5-flash").instruct("test").output_key("result").include_contents("none").build()
 )
 
 root_agent = agent_fluent

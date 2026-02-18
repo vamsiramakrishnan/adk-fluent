@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 ADK-FLUENT GENERATOR
@@ -25,9 +24,8 @@ import json
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from textwrap import dedent, indent
 
 try:
     import tomllib  # Python 3.11+
@@ -39,28 +37,30 @@ except ImportError:
 # DATA STRUCTURES
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class BuilderSpec:
     """Parsed builder specification from seed + manifest."""
-    name: str                           # e.g., "Agent"
-    source_class: str                   # e.g., "google.adk.agents.LlmAgent"
-    source_class_short: str             # e.g., "LlmAgent"
-    output_module: str                  # e.g., "agent"
+
+    name: str  # e.g., "Agent"
+    source_class: str  # e.g., "google.adk.agents.LlmAgent"
+    source_class_short: str  # e.g., "LlmAgent"
+    output_module: str  # e.g., "agent"
     doc: str
-    constructor_args: list[str]         # Fields passed to __init__
-    aliases: dict[str, str]             # fluent_name → pydantic_field_name
-    reverse_aliases: dict[str, str]     # pydantic_field_name → fluent_name
-    callback_aliases: dict[str, str]    # short_name → full_callback_field_name
-    skip_fields: set[str]              # Fields not exposed
-    additive_fields: set[str]           # Callback fields with append semantics
-    list_extend_fields: set[str]        # List fields with extend semantics
-    fields: list[dict]                  # From manifest (all Pydantic fields)
-    terminals: list[dict]               # Terminal methods
-    extras: list[dict]                  # Extra hand-written methods
-    is_composite: bool                  # True if __composite__ (no Pydantic class)
-    is_standalone: bool                 # True if __standalone__ (no ADK class at all)
-    field_docs: dict[str, str]          # Override docstrings
-    inspection_mode: str = "pydantic"   # "pydantic" or "init_signature"
+    constructor_args: list[str]  # Fields passed to __init__
+    aliases: dict[str, str]  # fluent_name → pydantic_field_name
+    reverse_aliases: dict[str, str]  # pydantic_field_name → fluent_name
+    callback_aliases: dict[str, str]  # short_name → full_callback_field_name
+    skip_fields: set[str]  # Fields not exposed
+    additive_fields: set[str]  # Callback fields with append semantics
+    list_extend_fields: set[str]  # List fields with extend semantics
+    fields: list[dict]  # From manifest (all Pydantic fields)
+    terminals: list[dict]  # Terminal methods
+    extras: list[dict]  # Extra hand-written methods
+    is_composite: bool  # True if __composite__ (no Pydantic class)
+    is_standalone: bool  # True if __standalone__ (no ADK class at all)
+    field_docs: dict[str, str]  # Override docstrings
+    inspection_mode: str = "pydantic"  # "pydantic" or "init_signature"
     init_params: list[dict] | None = None  # __init__ params for init_signature mode
     optional_constructor_args: list[str] | None = None  # Optional positional args (e.g. model)
 
@@ -68,6 +68,7 @@ class BuilderSpec:
 # ---------------------------------------------------------------------------
 # PARSING: seed.toml + manifest.json → BuilderSpec[]
 # ---------------------------------------------------------------------------
+
 
 def parse_seed(seed_path: str) -> dict:
     """Parse the seed.toml file."""
@@ -88,21 +89,21 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
     global_additive = set(global_config.get("additive_fields", []))
     global_list_extend = set(global_config.get("list_extend_fields", []))
     field_docs = seed.get("field_docs", {})
-    
+
     # Index manifest classes by qualname
     manifest_classes = {}
     for cls in manifest.get("classes", []):
         manifest_classes[cls["qualname"]] = cls
         # Also index by short name for convenience
         manifest_classes[cls["name"]] = cls
-    
+
     specs = []
-    
+
     for builder_name, builder_config in seed.get("builders", {}).items():
         source_class = builder_config.get("source_class", "")
         is_composite = source_class == "__composite__"
         is_standalone = source_class == "__standalone__"
-        
+
         # Look up manifest data for this class
         fields = []
         source_short = ""
@@ -121,21 +122,20 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
                 inspection_mode = cls_data.get("inspection_mode", "pydantic")
                 init_params = cls_data.get("init_params", [])
             else:
-                print(f"WARNING: {source_class} not found in manifest for builder {builder_name}",
-                      file=sys.stderr)
+                print(f"WARNING: {source_class} not found in manifest for builder {builder_name}", file=sys.stderr)
                 source_short = source_class.split(".")[-1]
         else:
             source_short = builder_name
-        
+
         # Merge skip fields
         extra_skip = set(builder_config.get("extra_skip_fields", []))
         skip_fields = global_skip | extra_skip | set(builder_config.get("constructor_args", []))
-        
+
         # Build alias maps
         aliases = dict(builder_config.get("aliases", {}))
         reverse_aliases = {v: k for k, v in aliases.items()}
         callback_aliases = dict(builder_config.get("callback_aliases", {}))
-        
+
         spec = BuilderSpec(
             name=builder_name,
             source_class=source_class,
@@ -160,13 +160,14 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
             optional_constructor_args=builder_config.get("optional_constructor_args"),
         )
         specs.append(spec)
-    
+
     return specs
 
 
 # ---------------------------------------------------------------------------
 # CODE GENERATION: Runtime .py
 # ---------------------------------------------------------------------------
+
 
 def _adk_import_name(spec: BuilderSpec) -> str:
     """Return the name used to reference the ADK class in generated code.
@@ -180,21 +181,16 @@ def _adk_import_name(spec: BuilderSpec) -> str:
     return class_name
 
 
-def gen_runtime_imports(spec: BuilderSpec) -> str:
-    """Generate import statements for a builder module."""
+def gen_runtime_imports(spec: BuilderSpec) -> list[str]:
+    """Return raw import lines for a single builder spec (no header/grouping)."""
     lines = [
-        '"""Auto-generated by adk-fluent generator. Manual edits will be overwritten."""',
-        "",
-        "from __future__ import annotations",
-        "",
         "from collections import defaultdict",
-        "from typing import Any, Callable, Self",
-        "",
+        "from collections.abc import Callable",
+        "from typing import Any, Self",
         "from adk_fluent._base import BuilderBase",
     ]
 
     if not spec.is_composite and not spec.is_standalone:
-        # Import the source class (alias if name collides with builder)
         module_path = ".".join(spec.source_class.split(".")[:-1])
         class_name = spec.source_class.split(".")[-1]
         import_name = _adk_import_name(spec)
@@ -203,7 +199,30 @@ def gen_runtime_imports(spec: BuilderSpec) -> str:
         else:
             lines.append(f"from {module_path} import {class_name}")
 
-    return "\n".join(lines)
+    return lines
+
+
+def _sort_imports(raw_lines: list[str]) -> str:
+    """Sort and group import lines into future / stdlib / third-party / first-party."""
+    future, stdlib, third_party, first_party = [], [], [], []
+    for line in raw_lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("from __future__"):
+            future.append(stripped)
+        elif any(stripped.startswith(f"from {mod}") or stripped.startswith(f"import {mod}") for mod in ("adk_fluent",)):
+            first_party.append(stripped)
+        elif any(stripped.startswith(f"from {mod}") or stripped.startswith(f"import {mod}") for mod in ("google.",)):
+            third_party.append(stripped)
+        else:
+            stdlib.append(stripped)
+
+    groups = []
+    for grp in (future, sorted(set(stdlib)), sorted(set(third_party)), sorted(set(first_party))):
+        if grp:
+            groups.append("\n".join(grp))
+    return "\n\n".join(groups)
 
 
 def gen_alias_maps(spec: BuilderSpec) -> str:
@@ -238,8 +257,9 @@ def gen_alias_maps(spec: BuilderSpec) -> str:
 
     # For init_signature mode, emit a static _KNOWN_PARAMS set from the manifest
     if spec.inspection_mode == "init_signature" and spec.init_params:
-        param_names = sorted({p["name"] for p in spec.init_params
-                              if p["name"] not in ("self", "args", "kwargs", "kwds")})
+        param_names = sorted(
+            {p["name"] for p in spec.init_params if p["name"] not in ("self", "args", "kwargs", "kwds")}
+        )
         if param_names:
             lines.append(f"    _KNOWN_PARAMS: set[str] = {repr(set(param_names))}")
         else:
@@ -273,7 +293,7 @@ def gen_init_method(spec: BuilderSpec) -> str:
     # Set optional args into config if provided
     for arg in optional_args:
         body_lines.append(f"if {arg} is not None:")
-        body_lines.append(f"    self._config[\"{arg}\"] = {arg}")
+        body_lines.append(f'    self._config["{arg}"] = {arg}')
 
     body = "\n        ".join(body_lines)
     return f"""
@@ -299,7 +319,7 @@ def gen_alias_methods(spec: BuilderSpec) -> str:
 
         methods.append(f'''
     def {fluent_name}(self, value: {type_hint}) -> Self:
-        """{doc or f'Set the `{field_name}` field.'}"""
+        """{doc or f"Set the `{field_name}` field."}"""
         self._config["{field_name}"] = value
         return self
 ''')
@@ -366,14 +386,14 @@ def _extract_forwarding_args(sig: str) -> str:
 def gen_extra_methods(spec: BuilderSpec) -> str:
     """Generate extra methods defined in the seed."""
     methods = []
-    
+
     for extra in spec.extras:
         name = extra["name"]
         sig = extra.get("signature", "(self) -> Self")
         doc = extra.get("doc", "")
         behavior = extra.get("behavior", "custom")
         target = extra.get("target_field", "")
-        
+
         if behavior == "list_append":
             # Lazy append — building deferred to _prepare_build_config()
             # This allows sub-expression reuse in operators (>> | *)
@@ -401,59 +421,56 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
                 param_name = sig.split("self, ")[1].split(":")[0].strip()
             else:
                 param_name = "fn"
-            append_lines = "\n        ".join(
-                f'self._callbacks["{tf}"].append({param_name})'
-                for tf in target_fields
-            )
-            body = f'''
+            append_lines = "\n        ".join(f'self._callbacks["{tf}"].append({param_name})' for tf in target_fields)
+            body = f"""
         {append_lines}
-        return self'''
+        return self"""
         elif behavior == "deep_copy":
             # Extract param name from signature
             if "self, " in sig:
                 param_name = sig.split("self, ")[1].split(":")[0].strip()
             else:
                 param_name = "new_name"
-            body = f'''
+            body = f"""
         from adk_fluent._helpers import deep_clone_builder
-        return deep_clone_builder(self, {param_name})'''
+        return deep_clone_builder(self, {param_name})"""
         elif behavior == "runtime_helper":
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
-            body = f'''
+            body = f"""
         from adk_fluent._helpers import {helper_func}
-        return {helper_func}(self, {args_fwd})'''
+        return {helper_func}(self, {args_fwd})"""
         elif behavior == "runtime_helper_async":
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
-            body = f'''
+            body = f"""
         from adk_fluent._helpers import {helper_func}
-        return await {helper_func}(self, {args_fwd})'''
+        return await {helper_func}(self, {args_fwd})"""
         elif behavior == "runtime_helper_async_gen":
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
-            body = f'''
+            body = f"""
         from adk_fluent._helpers import {helper_func}
         async for chunk in {helper_func}(self, {args_fwd}):
-            yield chunk'''
+            yield chunk"""
         elif behavior == "runtime_helper_ctx":
             helper_func = extra.get("helper_func", name)
-            body = f'''
+            body = f"""
         from adk_fluent._helpers import {helper_func}
-        return {helper_func}(self)'''
+        return {helper_func}(self)"""
         elif behavior == "deprecation_alias":
             target_method = extra.get("target_method", name)
-            body = f'''
+            body = f"""
         import warnings
         warnings.warn(
             ".{name}() is deprecated, use .{target_method}() instead",
             DeprecationWarning,
             stacklevel=2,
         )
-        return self.{target_method}(agent)'''
+        return self.{target_method}(agent)"""
         else:
-            body = '''
-        raise NotImplementedError("Implement in hand-written layer")'''
+            body = """
+        raise NotImplementedError("Implement in hand-written layer")"""
 
         is_async = behavior in ("runtime_helper_async", "runtime_helper_async_gen")
         async_prefix = "async " if is_async else ""
@@ -462,7 +479,7 @@ def gen_extra_methods(spec: BuilderSpec) -> str:
         """{doc}"""
         {body.strip()}
 ''')
-    
+
     return "\n".join(methods)
 
 
@@ -489,7 +506,7 @@ def gen_field_methods(spec: BuilderSpec) -> str:
     alias_method_names = set(spec.aliases.keys())
     callback_method_names = set(spec.callback_aliases.keys())
     # _if variants too
-    callback_if_names = {f"{n}_if" for n in spec.callback_aliases.keys()}
+    callback_if_names = {f"{n}_if" for n in spec.callback_aliases}
 
     covered = (
         spec.skip_fields
@@ -540,7 +557,7 @@ def gen_field_methods(spec: BuilderSpec) -> str:
                 doc = spec.field_docs.get(fname, field.get("description", ""))
                 methods.append(f'''
     def {fname}(self, value: {type_str}) -> Self:
-        """{doc or f'Set the ``{fname}`` field.'}"""
+        """{doc or f"Set the ``{fname}`` field."}"""
         self._config["{fname}"] = value
         return self
 ''')
@@ -575,7 +592,7 @@ def gen_build_method(spec: BuilderSpec) -> str:
 def gen_runtime_class(spec: BuilderSpec) -> str:
     """Generate complete runtime class code."""
     sections = [
-        f'\nclass {spec.name}(BuilderBase):',
+        f"\nclass {spec.name}(BuilderBase):",
         f'    """{spec.doc}"""',
         "",
         "    # --- Class-level alias / field maps ---",
@@ -601,36 +618,29 @@ def gen_runtime_class(spec: BuilderSpec) -> str:
 
 def gen_runtime_module(specs_for_module: list[BuilderSpec]) -> str:
     """Generate a complete .py module for a group of builders."""
-    # Collect all unique imports
-    all_imports = set()
-    import_blocks = []
-    
+    # Collect all unique import lines across specs
+    all_import_lines: list[str] = []
     for spec in specs_for_module:
-        import_blocks.append(gen_runtime_imports(spec))
-    
-    # Deduplicate and combine imports
-    seen_imports = set()
-    unique_import_lines = []
-    for block in import_blocks:
-        for line in block.split("\n"):
-            if line not in seen_imports:
-                seen_imports.add(line)
-                unique_import_lines.append(line)
-    
-    # Generate classes (alias maps are now class-level attributes)
+        all_import_lines.extend(gen_runtime_imports(spec))
+
+    header = '"""Auto-generated by adk-fluent generator. Manual edits will be overwritten."""\n\nfrom __future__ import annotations\n'
+    sorted_imports = _sort_imports(all_import_lines)
+
+    # Generate classes
     body_parts = []
     for spec in specs_for_module:
         body_parts.append("\n# " + "=" * 70)
         body_parts.append(f"# Builder: {spec.name}")
         body_parts.append("# " + "=" * 70)
         body_parts.append(gen_runtime_class(spec))
-    
-    return "\n".join(unique_import_lines) + "\n" + "\n".join(body_parts)
+
+    return header + "\n" + sorted_imports + "\n" + "\n".join(body_parts)
 
 
 # ---------------------------------------------------------------------------
 # CODE GENERATION: Type Stubs .pyi
 # ---------------------------------------------------------------------------
+
 
 def gen_stub_method(method_name: str, type_hint: str, doc: str = "") -> str:
     """Generate a single .pyi stub method."""
@@ -643,20 +653,20 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
         f"class {spec.name}(BuilderBase):",
         f'    """{spec.doc}"""',
     ]
-    
+
     # Constructor
     required_params = [f"{arg}: str" for arg in spec.constructor_args]
     optional_args = spec.optional_constructor_args or []
     optional_params = [f"{arg}: str | None = None" for arg in optional_args]
     all_params = ", ".join(required_params + optional_params)
     lines.append(f"    def __init__(self, {all_params}) -> None: ...")
-    
+
     # Alias methods (with proper types from manifest)
     for fluent_name, field_name in spec.aliases.items():
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
         type_str = field_info["type_str"] if field_info else "Any"
         lines.append(f"    def {fluent_name}(self, value: {type_str}) -> Self: ...")
-    
+
     # Callback methods
     for short_name in spec.callback_aliases:
         lines.append(f"    def {short_name}(self, fn: Callable) -> Self: ...")
@@ -703,37 +713,38 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
 
             type_str = field["type_str"]
             lines.append(f"    def {fname}(self, value: {type_str}) -> Self: ...")
-    
+
     # Extra methods
     for extra in spec.extras:
         sig = extra.get("signature", "(self) -> Self")
         behavior = extra.get("behavior", "")
         prefix = "async " if behavior in ("runtime_helper_async", "runtime_helper_async_gen") else ""
         lines.append(f"    {prefix}def {extra['name']}{sig}: ...")
-    
+
     # Terminal methods
     for terminal in spec.terminals:
         if "signature" in terminal:
             lines.append(f"    def {terminal['name']}{terminal['signature']}: ...")
         elif "returns" in terminal:
             lines.append(f"    def {terminal['name']}(self) -> {terminal['returns']}: ...")
-    
+
     return "\n".join(lines)
 
 
 def gen_stub_module(specs_for_module: list[BuilderSpec], adk_version: str) -> str:
     """Generate a complete .pyi stub module."""
-    lines = [
+    header_lines = [
         "# AUTO-GENERATED by adk-fluent generator — do not edit manually",
         f"# Generated from google-adk {adk_version}",
-        f"# Timestamp: {datetime.now(timezone.utc).isoformat()}",
-        "",
-        "from typing import Any, AsyncGenerator, Callable, Self",
-        "",
-        "from adk_fluent._base import BuilderBase",
-        "",
+        f"# Timestamp: {datetime.now(UTC).isoformat()}",
     ]
-    
+
+    raw_imports = [
+        "from collections.abc import AsyncGenerator, Callable",
+        "from typing import Any, Self",
+        "from adk_fluent._base import BuilderBase",
+    ]
+
     # Collect imports from source classes (alias when builder name collides)
     for spec in specs_for_module:
         if not spec.is_composite and not spec.is_standalone:
@@ -741,22 +752,24 @@ def gen_stub_module(specs_for_module: list[BuilderSpec], adk_version: str) -> st
             class_name = spec.source_class.split(".")[-1]
             import_name = _adk_import_name(spec)
             if import_name != class_name:
-                lines.append(f"from {module_path} import {class_name} as {import_name}")
+                raw_imports.append(f"from {module_path} import {class_name} as {import_name}")
             else:
-                lines.append(f"from {module_path} import {class_name}")
+                raw_imports.append(f"from {module_path} import {class_name}")
 
-    lines.append("")
+    sorted_imports = _sort_imports(raw_imports)
 
+    body_lines = []
     for spec in specs_for_module:
-        lines.append(gen_stub_class(spec, adk_version))
-        lines.append("")
+        body_lines.append(gen_stub_class(spec, adk_version))
+        body_lines.append("")
 
-    return "\n".join(lines)
+    return "\n".join(header_lines) + "\n\n" + sorted_imports + "\n\n" + "\n".join(body_lines)
 
 
 # ---------------------------------------------------------------------------
 # CODE GENERATION: Test Scaffolds
 # ---------------------------------------------------------------------------
+
 
 def gen_test_class(spec: BuilderSpec) -> str:
     """Generate test scaffold for a builder.
@@ -813,7 +826,8 @@ class Test{spec.name}Builder:
             break
 
     # --- Build test class ---
-    lines = [f'''
+    lines = [
+        f'''
 class Test{spec.name}Builder:
     """Tests for {spec.name} builder mechanics (no .build() calls)."""
 
@@ -822,7 +836,8 @@ class Test{spec.name}Builder:
         builder = {spec.name}({constructor_args_str})
         assert builder is not None
         assert isinstance(builder._config, dict)
-''']
+'''
+    ]
 
     # test_chaining_returns_self — pick any alias or config field method
     chain_method = None
@@ -873,7 +888,6 @@ class Test{spec.name}Builder:
     lines.append(f'''
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = {spec.name}({constructor_args_str})
         with pytest.raises(AttributeError, match="{match_str}"):
             builder.zzz_not_a_real_field("oops")
@@ -895,9 +909,9 @@ def gen_test_module(specs_for_module: list[BuilderSpec]) -> str:
         "",
     ]
 
-    # Only import our builder classes — no ADK class imports needed
-    for spec in specs_for_module:
-        lines.append(f"from adk_fluent.{spec.output_module} import {spec.name}")
+    # Only import our builder classes — no ADK class imports needed (sorted for I001)
+    builder_imports = sorted(f"from adk_fluent.{spec.output_module} import {spec.name}" for spec in specs_for_module)
+    lines.extend(builder_imports)
 
     lines.append("")
 
@@ -910,7 +924,7 @@ def gen_test_module(specs_for_module: list[BuilderSpec]) -> str:
 def _test_value_for_type(type_str: str) -> str:
     """Generate a reasonable test value for a given type string."""
     ts = type_str.lower().strip()
-    
+
     if ts == "str" or "str |" in ts or "| str" in ts:
         return '"test_value"'
     if ts == "bool":
@@ -925,13 +939,14 @@ def _test_value_for_type(type_str: str) -> str:
         return "{}"
     if "none" in ts:
         return "None"
-    
+
     return "..."
 
 
 # ---------------------------------------------------------------------------
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
+
 
 def _extract_all_from_file(py_file: Path) -> list[str] | None:
     """Extract __all__ list from a Python file using ast."""
@@ -945,13 +960,12 @@ def _extract_all_from_file(py_file: Path) -> list[str] | None:
     for node in ast.iter_child_nodes(tree):
         if isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == "__all__":
-                    if isinstance(node.value, ast.List):
-                        names = []
-                        for elt in node.value.elts:
-                            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
-                                names.append(elt.value)
-                        return names
+                if isinstance(target, ast.Name) and target.id == "__all__" and isinstance(node.value, ast.List):
+                    names = []
+                    for elt in node.value.elts:
+                        if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                            names.append(elt.value)
+                    return names
     return None
 
 
@@ -994,9 +1008,14 @@ def _discover_manual_exports(output_dir: str) -> list[tuple[str, list[str]]]:
     return result
 
 
-def generate_all(seed_path: str, manifest_path: str, output_dir: str,
-                 test_dir: str | None = None,
-                 stubs_only: bool = False, tests_only: bool = False):
+def generate_all(
+    seed_path: str,
+    manifest_path: str,
+    output_dir: str,
+    test_dir: str | None = None,
+    stubs_only: bool = False,
+    tests_only: bool = False,
+):
     """Main generation pipeline."""
     seed = parse_seed(seed_path)
     manifest = parse_manifest(manifest_path)
@@ -1020,6 +1039,19 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
             filepath.write_text(code)
             print(f"  Generated: {filepath}")
 
+        # Auto-discover manual module exports first (needed for __all__)
+        generated_modules = set(by_module.keys())
+        manual_exports = _discover_manual_exports(output_dir)
+        manual_names: list[str] = []
+        manual_import_lines: list[str] = []
+        for module_name, names in manual_exports:
+            stem = module_name.lstrip(".")
+            if stem in generated_modules:
+                continue
+            for name in names:
+                manual_names.append(name)
+                manual_import_lines.append(f"from {module_name} import {name}")
+
         # Generate __init__.py with re-exports
         init_lines = [
             '"""adk-fluent: Fluent builder API for Google ADK."""',
@@ -1033,26 +1065,19 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
         init_lines.append("__all__ = [")
         for spec in specs:
             init_lines.append(f'    "{spec.name}",')
+        for name in manual_names:
+            init_lines.append(f'    "{name}",')
         init_lines.append("]")
 
-        # Auto-discover manual module exports
-        generated_modules = set(by_module.keys())
-        manual_exports = _discover_manual_exports(output_dir)
-        if manual_exports:
+        if manual_import_lines:
             init_lines.append("")
             init_lines.append("# --- Manual module exports (auto-discovered from __all__) ---")
-            for module_name, names in manual_exports:
-                # Skip generated modules
-                stem = module_name.lstrip(".")
-                if stem in generated_modules:
-                    continue
-                for name in names:
-                    init_lines.append(f"from {module_name} import {name}")
+            init_lines.extend(manual_import_lines)
 
         init_path = output_path / "__init__.py"
-        init_path.write_text("\n".join(init_lines))
+        init_path.write_text("\n".join(init_lines) + "\n")
         print(f"  Generated: {init_path}")
-    
+
     # --- Generate .pyi stubs ---
     if not tests_only:
         for module_name, module_specs in by_module.items():
@@ -1060,33 +1085,39 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
             filepath = output_path / f"{module_name}.pyi"
             filepath.write_text(stub)
             print(f"  Generated: {filepath}")
-    
+
     # --- Generate test scaffolds ---
     if test_dir and not stubs_only:
         test_path = Path(test_dir)
         test_path.mkdir(parents=True, exist_ok=True)
-        
+
         for module_name, module_specs in by_module.items():
             test_code = gen_test_module(module_specs)
             filepath = test_path / f"test_{module_name}_builder.py"
             filepath.write_text(test_code)
             print(f"  Generated: {filepath}")
-    
+
     # --- Summary ---
-    print(f"\n  Summary:")
+    print("\n  Summary:")
     print(f"    ADK version:    {adk_version}")
     print(f"    Builders:       {len(specs)}")
     print(f"    Modules:        {len(by_module)}")
+
     def _count_forwarded(s: BuilderSpec) -> int:
         if s.inspection_mode == "init_signature" and s.init_params:
-            return len([p for p in s.init_params
-                        if p["name"] not in ("self", "args", "kwargs", "kwds")
-                        and p["name"] not in s.skip_fields])
+            return len(
+                [
+                    p
+                    for p in s.init_params
+                    if p["name"] not in ("self", "args", "kwargs", "kwds") and p["name"] not in s.skip_fields
+                ]
+            )
         return len([f for f in s.fields if f["name"] not in s.skip_fields])
 
     total_methods = sum(
         len(s.aliases) + len(s.callback_aliases) + len(s.extras) + _count_forwarded(s)
-        for s in specs if not s.is_composite and not s.is_standalone
+        for s in specs
+        if not s.is_composite and not s.is_standalone
     )
     print(f"    Total methods:  ~{total_methods} (aliases + callbacks + forwarded)")
 
@@ -1094,6 +1125,7 @@ def generate_all(seed_path: str, manifest_path: str, output_dir: str,
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main():
     parser = argparse.ArgumentParser(description="Generate adk-fluent code from seed + manifest")
@@ -1104,7 +1136,7 @@ def main():
     parser.add_argument("--stubs-only", action="store_true", help="Generate only .pyi stubs")
     parser.add_argument("--tests-only", action="store_true", help="Generate only test scaffolds")
     args = parser.parse_args()
-    
+
     generate_all(
         seed_path=args.seed,
         manifest_path=args.manifest,

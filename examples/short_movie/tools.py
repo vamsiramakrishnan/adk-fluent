@@ -35,9 +35,7 @@ def storyboard_generate(prompt: str, scene_number: int) -> list[str]:
     return [f"https://storage.example.com/scene_{scene_number}_storyboard.png"]
 
 
-def video_generate(
-    prompt: str, scene_number: int, image_link: str, screenplay: str
-) -> list[str]:
+def video_generate(prompt: str, scene_number: int, image_link: str, screenplay: str) -> list[str]:
     """Generate a video clip for a scene using Veo 3.0.
 
     Args:

@@ -2,57 +2,59 @@
 
 import pytest  # noqa: F401 (used inside test methods)
 
-from adk_fluent.tool import ActiveStreamingTool
-from adk_fluent.tool import AgentTool
-from adk_fluent.tool import APIHubToolset
-from adk_fluent.tool import ApplicationIntegrationToolset
-from adk_fluent.tool import IntegrationConnectorTool
-from adk_fluent.tool import BaseAuthenticatedTool
-from adk_fluent.tool import BaseTool
-from adk_fluent.tool import BaseToolset
-from adk_fluent.tool import BigQueryToolset
-from adk_fluent.tool import BigtableToolset
-from adk_fluent.tool import ComputerUseTool
-from adk_fluent.tool import ComputerUseToolset
-from adk_fluent.tool import DataAgentToolset
-from adk_fluent.tool import DiscoveryEngineSearchTool
-from adk_fluent.tool import EnterpriseWebSearchTool
-from adk_fluent.tool import ExampleTool
-from adk_fluent.tool import FunctionTool
-from adk_fluent.tool import GoogleApiTool
-from adk_fluent.tool import GoogleApiToolset
-from adk_fluent.tool import CalendarToolset
-from adk_fluent.tool import DocsToolset
-from adk_fluent.tool import GmailToolset
-from adk_fluent.tool import SheetsToolset
-from adk_fluent.tool import SlidesToolset
-from adk_fluent.tool import YoutubeToolset
-from adk_fluent.tool import GoogleMapsGroundingTool
-from adk_fluent.tool import GoogleSearchAgentTool
-from adk_fluent.tool import GoogleSearchTool
-from adk_fluent.tool import GoogleTool
-from adk_fluent.tool import LoadArtifactsTool
-from adk_fluent.tool import LoadMcpResourceTool
-from adk_fluent.tool import LoadMemoryTool
-from adk_fluent.tool import LongRunningFunctionTool
-from adk_fluent.tool import MCPTool
-from adk_fluent.tool import McpTool
-from adk_fluent.tool import MCPToolset
-from adk_fluent.tool import McpToolset
-from adk_fluent.tool import OpenAPIToolset
-from adk_fluent.tool import RestApiTool
-from adk_fluent.tool import PreloadMemoryTool
-from adk_fluent.tool import PubSubToolset
-from adk_fluent.tool import BaseRetrievalTool
-from adk_fluent.tool import SetModelResponseTool
-from adk_fluent.tool import LoadSkillResourceTool
-from adk_fluent.tool import LoadSkillTool
-from adk_fluent.tool import SkillToolset
-from adk_fluent.tool import SpannerToolset
-from adk_fluent.tool import ToolboxToolset
-from adk_fluent.tool import TransferToAgentTool
-from adk_fluent.tool import UrlContextTool
-from adk_fluent.tool import VertexAiSearchTool
+from adk_fluent.tool import (
+    ActiveStreamingTool,
+    AgentTool,
+    APIHubToolset,
+    ApplicationIntegrationToolset,
+    BaseAuthenticatedTool,
+    BaseRetrievalTool,
+    BaseTool,
+    BaseToolset,
+    BigQueryToolset,
+    BigtableToolset,
+    CalendarToolset,
+    ComputerUseTool,
+    ComputerUseToolset,
+    DataAgentToolset,
+    DiscoveryEngineSearchTool,
+    DocsToolset,
+    EnterpriseWebSearchTool,
+    ExampleTool,
+    FunctionTool,
+    GmailToolset,
+    GoogleApiTool,
+    GoogleApiToolset,
+    GoogleMapsGroundingTool,
+    GoogleSearchAgentTool,
+    GoogleSearchTool,
+    GoogleTool,
+    IntegrationConnectorTool,
+    LoadArtifactsTool,
+    LoadMcpResourceTool,
+    LoadMemoryTool,
+    LoadSkillResourceTool,
+    LoadSkillTool,
+    LongRunningFunctionTool,
+    MCPTool,
+    McpTool,
+    MCPToolset,
+    McpToolset,
+    OpenAPIToolset,
+    PreloadMemoryTool,
+    PubSubToolset,
+    RestApiTool,
+    SetModelResponseTool,
+    SheetsToolset,
+    SkillToolset,
+    SlidesToolset,
+    SpannerToolset,
+    ToolboxToolset,
+    TransferToAgentTool,
+    UrlContextTool,
+    VertexAiSearchTool,
+    YoutubeToolset,
+)
 
 
 class TestActiveStreamingToolBuilder:
@@ -64,13 +66,11 @@ class TestActiveStreamingToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.task() returns the builder instance for chaining."""
         builder = ActiveStreamingTool()
         result = builder.task(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .task() stores the value in builder._config."""
@@ -78,10 +78,8 @@ class TestActiveStreamingToolBuilder:
         builder.task(None)
         assert builder._config["task"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = ActiveStreamingTool()
         with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
@@ -92,29 +90,25 @@ class TestAgentToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = AgentTool('test_agent')
+        builder = AgentTool("test_agent")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.skip_summarization() returns the builder instance for chaining."""
-        builder = AgentTool('test_agent')
+        builder = AgentTool("test_agent")
         result = builder.skip_summarization(True)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .skip_summarization() stores the value in builder._config."""
-        builder = AgentTool('test_agent')
+        builder = AgentTool("test_agent")
         builder.skip_summarization(True)
         assert builder._config["skip_summarization"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = AgentTool('test_agent')
+        builder = AgentTool("test_agent")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -124,29 +118,25 @@ class TestAPIHubToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = APIHubToolset('test_apihub_resource_name')
+        builder = APIHubToolset("test_apihub_resource_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
-        builder = APIHubToolset('test_apihub_resource_name')
+        builder = APIHubToolset("test_apihub_resource_name")
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
-        builder = APIHubToolset('test_apihub_resource_name')
+        builder = APIHubToolset("test_apihub_resource_name")
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = APIHubToolset('test_apihub_resource_name')
+        builder = APIHubToolset("test_apihub_resource_name")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -156,15 +146,13 @@ class TestApplicationIntegrationToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ApplicationIntegrationToolset('test_project', 'test_location')
+        builder = ApplicationIntegrationToolset("test_project", "test_location")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ApplicationIntegrationToolset('test_project', 'test_location')
+        builder = ApplicationIntegrationToolset("test_project", "test_location")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -174,29 +162,25 @@ class TestIntegrationConnectorToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = IntegrationConnectorTool('test_name', 'test_description', 'test_connection_name')
+        builder = IntegrationConnectorTool("test_name", "test_description", "test_connection_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.connection_host() returns the builder instance for chaining."""
-        builder = IntegrationConnectorTool('test_name', 'test_description', 'test_connection_name')
+        builder = IntegrationConnectorTool("test_name", "test_description", "test_connection_name")
         result = builder.connection_host("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .connection_host() stores the value in builder._config."""
-        builder = IntegrationConnectorTool('test_name', 'test_description', 'test_connection_name')
+        builder = IntegrationConnectorTool("test_name", "test_description", "test_connection_name")
         builder.connection_host("test_value")
         assert builder._config["connection_host"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = IntegrationConnectorTool('test_name', 'test_description', 'test_connection_name')
+        builder = IntegrationConnectorTool("test_name", "test_description", "test_connection_name")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -206,15 +190,13 @@ class TestBaseAuthenticatedToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseAuthenticatedTool('test_name', 'test_description')
+        builder = BaseAuthenticatedTool("test_name", "test_description")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = BaseAuthenticatedTool('test_name', 'test_description')
+        builder = BaseAuthenticatedTool("test_name", "test_description")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -224,29 +206,25 @@ class TestBaseToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseTool('test_name', 'test_description')
+        builder = BaseTool("test_name", "test_description")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.is_long_running() returns the builder instance for chaining."""
-        builder = BaseTool('test_name', 'test_description')
+        builder = BaseTool("test_name", "test_description")
         result = builder.is_long_running(True)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .is_long_running() stores the value in builder._config."""
-        builder = BaseTool('test_name', 'test_description')
+        builder = BaseTool("test_name", "test_description")
         builder.is_long_running(True)
         assert builder._config["is_long_running"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = BaseTool('test_name', 'test_description')
+        builder = BaseTool("test_name", "test_description")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -260,10 +238,8 @@ class TestBaseToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BaseToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -278,10 +254,8 @@ class TestBigQueryToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BigQueryToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -296,10 +270,8 @@ class TestBigtableToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = BigtableToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -310,15 +282,13 @@ class TestComputerUseToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ComputerUseTool('test_func', 'test_screen_size')
+        builder = ComputerUseTool("test_func", "test_screen_size")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ComputerUseTool('test_func', 'test_screen_size')
+        builder = ComputerUseTool("test_func", "test_screen_size")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -328,15 +298,13 @@ class TestComputerUseToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ComputerUseToolset('test_computer')
+        builder = ComputerUseToolset("test_computer")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ComputerUseToolset('test_computer')
+        builder = ComputerUseToolset("test_computer")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -350,10 +318,8 @@ class TestDataAgentToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = DataAgentToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -368,10 +334,8 @@ class TestDiscoveryEngineSearchToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = DiscoveryEngineSearchTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -386,10 +350,8 @@ class TestEnterpriseWebSearchToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = EnterpriseWebSearchTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -400,15 +362,13 @@ class TestExampleToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ExampleTool('test_examples')
+        builder = ExampleTool("test_examples")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ExampleTool('test_examples')
+        builder = ExampleTool("test_examples")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -418,15 +378,13 @@ class TestFunctionToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = FunctionTool('test_func')
+        builder = FunctionTool("test_func")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = FunctionTool('test_func')
+        builder = FunctionTool("test_func")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -436,15 +394,13 @@ class TestGoogleApiToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = GoogleApiTool('test_rest_api_tool')
+        builder = GoogleApiTool("test_rest_api_tool")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = GoogleApiTool('test_rest_api_tool')
+        builder = GoogleApiTool("test_rest_api_tool")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -454,15 +410,13 @@ class TestGoogleApiToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = GoogleApiToolset('test_api_name', 'test_api_version')
+        builder = GoogleApiToolset("test_api_name", "test_api_version")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = GoogleApiToolset('test_api_name', 'test_api_version')
+        builder = GoogleApiToolset("test_api_name", "test_api_version")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -476,10 +430,8 @@ class TestCalendarToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = CalendarToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -494,10 +446,8 @@ class TestDocsToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = DocsToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -512,10 +462,8 @@ class TestGmailToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = GmailToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -530,10 +478,8 @@ class TestSheetsToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = SheetsToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -548,10 +494,8 @@ class TestSlidesToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = SlidesToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -566,10 +510,8 @@ class TestYoutubeToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = YoutubeToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -584,10 +526,8 @@ class TestGoogleMapsGroundingToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = GoogleMapsGroundingTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -598,15 +538,13 @@ class TestGoogleSearchAgentToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = GoogleSearchAgentTool('test_agent')
+        builder = GoogleSearchAgentTool("test_agent")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = GoogleSearchAgentTool('test_agent')
+        builder = GoogleSearchAgentTool("test_agent")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -620,13 +558,11 @@ class TestGoogleSearchToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.bypass_multi_tools_limit() returns the builder instance for chaining."""
         builder = GoogleSearchTool()
         result = builder.bypass_multi_tools_limit(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .bypass_multi_tools_limit() stores the value in builder._config."""
@@ -634,10 +570,8 @@ class TestGoogleSearchToolBuilder:
         builder.bypass_multi_tools_limit(True)
         assert builder._config["bypass_multi_tools_limit"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = GoogleSearchTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -648,15 +582,13 @@ class TestGoogleToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = GoogleTool('test_func')
+        builder = GoogleTool("test_func")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = GoogleTool('test_func')
+        builder = GoogleTool("test_func")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -670,10 +602,8 @@ class TestLoadArtifactsToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = LoadArtifactsTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -684,15 +614,13 @@ class TestLoadMcpResourceToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = LoadMcpResourceTool('test_mcp_toolset')
+        builder = LoadMcpResourceTool("test_mcp_toolset")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = LoadMcpResourceTool('test_mcp_toolset')
+        builder = LoadMcpResourceTool("test_mcp_toolset")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -706,10 +634,8 @@ class TestLoadMemoryToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = LoadMemoryTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -720,15 +646,13 @@ class TestLongRunningFunctionToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = LongRunningFunctionTool('test_func')
+        builder = LongRunningFunctionTool("test_func")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = LongRunningFunctionTool('test_func')
+        builder = LongRunningFunctionTool("test_func")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -738,15 +662,13 @@ class TestMCPToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = MCPTool('test_args', 'test_kwargs')
+        builder = MCPTool("test_args", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = MCPTool('test_args', 'test_kwargs')
+        builder = MCPTool("test_args", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -756,15 +678,13 @@ class TestMcpToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = McpTool('test_mcp_tool', 'test_mcp_session_manager')
+        builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = McpTool('test_mcp_tool', 'test_mcp_session_manager')
+        builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -774,15 +694,13 @@ class TestMCPToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = MCPToolset('test_args', 'test_kwargs')
+        builder = MCPToolset("test_args", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = MCPToolset('test_args', 'test_kwargs')
+        builder = MCPToolset("test_args", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -792,15 +710,13 @@ class TestMcpToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = McpToolset('test_connection_params')
+        builder = McpToolset("test_connection_params")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = McpToolset('test_connection_params')
+        builder = McpToolset("test_connection_params")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -814,10 +730,8 @@ class TestOpenAPIToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = OpenAPIToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -828,15 +742,13 @@ class TestRestApiToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = RestApiTool('test_name', 'test_description', 'test_endpoint')
+        builder = RestApiTool("test_name", "test_description", "test_endpoint")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = RestApiTool('test_name', 'test_description', 'test_endpoint')
+        builder = RestApiTool("test_name", "test_description", "test_endpoint")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -850,10 +762,8 @@ class TestPreloadMemoryToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = PreloadMemoryTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -868,13 +778,11 @@ class TestPubSubToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.tool_filter() returns the builder instance for chaining."""
         builder = PubSubToolset()
         result = builder.tool_filter(None)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .tool_filter() stores the value in builder._config."""
@@ -882,10 +790,8 @@ class TestPubSubToolsetBuilder:
         builder.tool_filter(None)
         assert builder._config["tool_filter"] == None
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = PubSubToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -896,29 +802,25 @@ class TestBaseRetrievalToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BaseRetrievalTool('test_name', 'test_description')
+        builder = BaseRetrievalTool("test_name", "test_description")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.is_long_running() returns the builder instance for chaining."""
-        builder = BaseRetrievalTool('test_name', 'test_description')
+        builder = BaseRetrievalTool("test_name", "test_description")
         result = builder.is_long_running(True)
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .is_long_running() stores the value in builder._config."""
-        builder = BaseRetrievalTool('test_name', 'test_description')
+        builder = BaseRetrievalTool("test_name", "test_description")
         builder.is_long_running(True)
         assert builder._config["is_long_running"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = BaseRetrievalTool('test_name', 'test_description')
+        builder = BaseRetrievalTool("test_name", "test_description")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -928,15 +830,13 @@ class TestSetModelResponseToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = SetModelResponseTool('test_output_schema')
+        builder = SetModelResponseTool("test_output_schema")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = SetModelResponseTool('test_output_schema')
+        builder = SetModelResponseTool("test_output_schema")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -946,15 +846,13 @@ class TestLoadSkillResourceToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = LoadSkillResourceTool('test_toolset')
+        builder = LoadSkillResourceTool("test_toolset")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = LoadSkillResourceTool('test_toolset')
+        builder = LoadSkillResourceTool("test_toolset")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -964,15 +862,13 @@ class TestLoadSkillToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = LoadSkillTool('test_toolset')
+        builder = LoadSkillTool("test_toolset")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = LoadSkillTool('test_toolset')
+        builder = LoadSkillTool("test_toolset")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -982,15 +878,13 @@ class TestSkillToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = SkillToolset('test_skills')
+        builder = SkillToolset("test_skills")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = SkillToolset('test_skills')
+        builder = SkillToolset("test_skills")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -1004,10 +898,8 @@ class TestSpannerToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = SpannerToolset()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -1018,15 +910,13 @@ class TestToolboxToolsetBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = ToolboxToolset('test_server_url', 'test_kwargs')
+        builder = ToolboxToolset("test_server_url", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = ToolboxToolset('test_server_url', 'test_kwargs')
+        builder = ToolboxToolset("test_server_url", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -1036,15 +926,13 @@ class TestTransferToAgentToolBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = TransferToAgentTool('test_agent_names')
+        builder = TransferToAgentTool("test_agent_names")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
-        builder = TransferToAgentTool('test_agent_names')
+        builder = TransferToAgentTool("test_agent_names")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -1058,10 +946,8 @@ class TestUrlContextToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = UrlContextTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
@@ -1076,13 +962,11 @@ class TestVertexAiSearchToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.bypass_multi_tools_limit() returns the builder instance for chaining."""
         builder = VertexAiSearchTool()
         result = builder.bypass_multi_tools_limit(True)
         assert result is builder
-
 
     def test_config_accumulation(self):
         """Setting .bypass_multi_tools_limit() stores the value in builder._config."""
@@ -1090,10 +974,8 @@ class TestVertexAiSearchToolBuilder:
         builder.bypass_multi_tools_limit(True)
         assert builder._config["bypass_multi_tools_limit"] == True
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        import pytest
         builder = VertexAiSearchTool()
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")

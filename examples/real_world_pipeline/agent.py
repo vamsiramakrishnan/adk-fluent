@@ -15,10 +15,12 @@ from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
+
 # Shared production preset
 def audit_log(callback_context, llm_response):
     """Log all model responses for audit."""
     pass
+
 
 production = Preset(model="gemini-2.5-flash", after_model=audit_log)
 
@@ -32,15 +34,13 @@ classifier = (
 
 # Step 2: Route to appropriate handler
 simple_handler = Agent("simple").instruct("Give a direct answer.").use(production)
-complex_handler = (
-    Agent("researcher").instruct("Research thoroughly.").use(production)
-    >> Agent("synthesizer").instruct("Synthesize findings.").use(production)
-)
+complex_handler = Agent("researcher").instruct("Research thoroughly.").use(production) >> Agent("synthesizer").instruct(
+    "Synthesize findings."
+).use(production)
 creative_handler = (
-    (Agent("brainstorm").instruct("Generate ideas.").use(production)
-     | Agent("critique").instruct("Find flaws.").use(production))
-    >> Agent("refine").instruct("Refine the best ideas.").use(production)
-)
+    Agent("brainstorm").instruct("Generate ideas.").use(production)
+    | Agent("critique").instruct("Find flaws.").use(production)
+) >> Agent("refine").instruct("Refine the best ideas.").use(production)
 
 # Step 3: Quality check loop
 quality_loop = (
@@ -59,10 +59,7 @@ formatter = (
 # Compose the full pipeline
 pipeline = (
     classifier
-    >> Route("intent")
-        .eq("simple", simple_handler)
-        .eq("complex", complex_handler)
-        .eq("creative", creative_handler)
+    >> Route("intent").eq("simple", simple_handler).eq("complex", complex_handler).eq("creative", creative_handler)
     >> quality_loop
     >> formatter
 )

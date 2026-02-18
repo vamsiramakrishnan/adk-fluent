@@ -1,11 +1,13 @@
 """Tests for DevEx helper classes: StateKey, Artifact, events."""
-import pytest
-from adk_fluent._helpers import StateKey, Artifact, run_events
 
+import pytest
+
+from adk_fluent._helpers import Artifact, StateKey, run_events
 
 # ======================================================================
 # StateKey Tests
 # ======================================================================
+
 
 class TestStateKey:
     """Tests for StateKey typed state descriptor."""
@@ -95,6 +97,7 @@ class TestStateKey:
 # Artifact Tests
 # ======================================================================
 
+
 class TestArtifact:
     """Tests for Artifact fluent descriptor."""
 
@@ -168,6 +171,7 @@ class TestArtifact:
 # Events Tests
 # ======================================================================
 
+
 class TestRunEvents:
     """Tests for run_events helper function existence."""
 
@@ -178,10 +182,12 @@ class TestRunEvents:
     def test_run_events_in_all(self):
         """run_events is in __all__."""
         from adk_fluent import _helpers
+
         assert "run_events" in _helpers.__all__
 
     def test_events_method_on_agent(self):
         """Agent builder has .events() method from seed extra."""
         from adk_fluent import Agent
+
         agent = Agent("test").model("gemini-2.5-flash")
         assert hasattr(agent, "events")

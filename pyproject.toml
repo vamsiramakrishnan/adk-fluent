@@ -90,6 +90,7 @@ pythonpath = ["."]
 [tool.ruff]
 target-version = "py311"
 line-length = 120
+extend-exclude = ["*.pyi"]   # stubs use forward-ref types without imports
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
@@ -98,6 +99,27 @@ ignore = [
     "B905",   # zip strict — not needed for 3.11+
     "SIM108", # ternary — readability preference
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Generated builder modules use manifest type annotations as strings
+# (from __future__ import annotations) — not importable at check time.
+"src/adk_fluent/agent.py" = ["F821"]
+"src/adk_fluent/workflow.py" = ["F821"]
+"src/adk_fluent/tool.py" = ["F821"]
+"src/adk_fluent/config.py" = ["F821"]
+"src/adk_fluent/runtime.py" = ["F821"]
+"src/adk_fluent/service.py" = ["F821"]
+"src/adk_fluent/plugin.py" = ["F821"]
+"src/adk_fluent/executor.py" = ["F821"]
+"src/adk_fluent/planner.py" = ["F821"]
+# __init__.py is a generated re-export hub
+"src/adk_fluent/__init__.py" = ["F401", "I001"]
+# Generated test scaffolds use patterns ruff dislikes
+"tests/generated/*.py" = ["F811", "E711", "E712", "E731"]
+# Manual tests use lambdas for quick callback stubs
+"tests/**/*.py" = ["E731"]
+# Examples prioritize readability over import order
+"examples/**/*.py" = ["E402", "I001", "F401", "E721", "B011"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["adk_fluent"]

@@ -5,7 +5,8 @@
 #   just all        → Full pipeline: scan → seed → generate → docs
 #   just scan       → Introspect installed ADK, produce manifest.json
 #   just seed       → Generate seed.toml from manifest.json
-#   just generate   → Combine seed.toml + manifest.json → code + stubs + tests
+#   just generate   → Combine seed.toml + manifest.json → code + stubs + tests + lint
+#   just lint       → Run ruff check + format check
 #   just docs       → Generate all documentation
 #   just test       → Run all tests
 #   just typecheck  → Run pyright on generated stubs
@@ -26,6 +27,7 @@ TEST_DIR      := "tests/generated"
 SCANNER       := "scripts/scanner.py"
 SEED_GEN      := "scripts/seed_generator.py"
 GENERATOR     := "scripts/generator.py"
+IR_GEN        := "scripts/ir_generator.py"
 DOC_GEN       := "scripts/doc_generator.py"
 COOKBOOK_GEN   := "scripts/cookbook_generator.py"
 DOC_DIR       := "docs/generated"
@@ -53,6 +55,9 @@ generate: _require-manifest _require-seed
     @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
+    @uv run python {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
+    @uv run ruff check --fix .
+    @uv run ruff format .
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed
@@ -60,6 +65,12 @@ stubs: _require-manifest _require-seed
     @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --stubs-only
+
+# --- Lint ---
+lint:
+    @echo "Running lint checks..."
+    @uv run ruff check .
+    @uv run ruff format --check .
 
 # --- Tests ---
 test:
@@ -177,6 +188,7 @@ help:
     @echo "  just seed           manifest.json -> seed.toml"
     @echo "  just generate       seed.toml + manifest.json -> code"
     @echo "  just stubs          Regenerate .pyi stubs only"
+    @echo "  just lint           Run ruff check + format check"
     @echo "  just test           Run pytest suite"
     @echo "  just typecheck      Run pyright type-check"
     @echo "  just docs           Generate all documentation"

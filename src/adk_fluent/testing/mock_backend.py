@@ -1,7 +1,9 @@
 """Mock backend for deterministic testing without LLM calls."""
+
 from __future__ import annotations
 
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 from adk_fluent._ir import AgentEvent, ExecutionConfig
 
@@ -39,23 +41,29 @@ class MockBackend:
         else:
             response = self._responses.get(name)
             if response is None:
-                events.append(AgentEvent(
-                    author=name,
-                    content=f"[no mock for '{name}']",
-                    is_final=True,
-                ))
+                events.append(
+                    AgentEvent(
+                        author=name,
+                        content=f"[no mock for '{name}']",
+                        is_final=True,
+                    )
+                )
             elif isinstance(response, dict):
-                events.append(AgentEvent(
-                    author=name,
-                    state_delta=response,
-                    is_final=True,
-                ))
+                events.append(
+                    AgentEvent(
+                        author=name,
+                        state_delta=response,
+                        is_final=True,
+                    )
+                )
             else:
-                events.append(AgentEvent(
-                    author=name,
-                    content=str(response),
-                    is_final=True,
-                ))
+                events.append(
+                    AgentEvent(
+                        author=name,
+                        content=str(response),
+                        is_final=True,
+                    )
+                )
 
 
 def mock_backend(responses: dict[str, Any]) -> MockBackend:
