@@ -773,6 +773,20 @@ class BuilderBase:
     # Task 7: Presets (.use())
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # IR conversion
+    # ------------------------------------------------------------------
+
+    def to_ir(self):
+        """Convert this builder to an IR node.
+
+        Subclasses override to return the appropriate IR node type.
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__}.to_ir() is not implemented. "
+            f"Use .build() for direct ADK object construction."
+        )
+
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
         aliases = getattr(self.__class__, "_ALIASES", {})
@@ -840,6 +854,14 @@ class _FnStepBuilder(BuilderBase):
     def build(self):
         return FnAgent(name=self._config["name"], fn=self._fn)
 
+    def to_ir(self):
+        from adk_fluent._ir import TransformNode
+        return TransformNode(
+            name=self._config.get("name", "fn_step"),
+            fn=self._fn,
+            semantics="merge",
+        )
+
 
 class _FallbackBuilder(BuilderBase):
     """Builder for a fallback chain: a // b // c.
@@ -872,6 +894,17 @@ class _FallbackBuilder(BuilderBase):
         return FallbackAgent(
             name=self._config["name"],
             sub_agents=built_children,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import FallbackNode
+        children = tuple(
+            c.to_ir() if isinstance(c, BuilderBase) else c
+            for c in self._children
+        )
+        return FallbackNode(
+            name=self._config.get("name", "fallback"),
+            children=children,
         )
 
 
@@ -913,6 +946,13 @@ class _TapBuilder(BuilderBase):
 
     def build(self):
         return TapAgent(name=self._config["name"], fn=self._fn)
+
+    def to_ir(self):
+        from adk_fluent._ir import TapNode
+        return TapNode(
+            name=self._config.get("name", "tap"),
+            fn=self._fn,
+        )
 
 
 # ======================================================================
@@ -995,6 +1035,17 @@ class _MapOverBuilder(BuilderBase):
             output_key=self._output_key,
         )
 
+    def to_ir(self):
+        from adk_fluent._ir import MapOverNode
+        body = self._agent.to_ir() if isinstance(self._agent, BuilderBase) else self._agent
+        return MapOverNode(
+            name=self._config.get("name", "map_over"),
+            list_key=self._list_key,
+            body=body,
+            item_key=self._item_key,
+            output_key=self._output_key,
+        )
+
 
 # ======================================================================
 # Primitive: timeout (time-bound agent execution)
@@ -1030,6 +1081,15 @@ class _TimeoutBuilder(BuilderBase):
         return TimeoutAgent(
             name=self._config["name"],
             sub_agents=[sub_agent],
+            seconds=self._seconds,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import TimeoutNode
+        body = self._agent.to_ir() if isinstance(self._agent, BuilderBase) else self._agent
+        return TimeoutNode(
+            name=self._config.get("name", "timeout"),
+            body=body,
             seconds=self._seconds,
         )
 
@@ -1086,6 +1146,15 @@ class _GateBuilder(BuilderBase):
             gate_key=self._gate_key,
         )
 
+    def to_ir(self):
+        from adk_fluent._ir import GateNode
+        return GateNode(
+            name=self._config.get("name", "gate"),
+            predicate=self._predicate,
+            message=self._message,
+            gate_key=self._gate_key,
+        )
+
 
 # ======================================================================
 # Primitive: race (first-to-finish wins)
@@ -1136,6 +1205,17 @@ class _RaceBuilder(BuilderBase):
         return RaceAgent(
             name=self._config["name"],
             sub_agents=built_agents,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import RaceNode
+        children = tuple(
+            a.to_ir() if isinstance(a, BuilderBase) else a
+            for a in self._agents
+        )
+        return RaceNode(
+            name=self._config.get("name", "race"),
+            children=children,
         )
 
 

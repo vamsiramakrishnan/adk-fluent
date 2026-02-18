@@ -84,6 +84,34 @@ class Route:
             )
         return self._key
 
+    def to_ir(self):
+        """Convert this Route to an IR RouteNode."""
+        from adk_fluent._base import BuilderBase
+        from adk_fluent._ir import RouteNode
+
+        ir_rules = []
+        for pred, agent_or_builder in self._rules:
+            if isinstance(agent_or_builder, BuilderBase):
+                ir_agent = agent_or_builder.to_ir()
+            else:
+                ir_agent = agent_or_builder
+            ir_rules.append((pred, ir_agent))
+
+        ir_default = None
+        if self._default is not None:
+            if isinstance(self._default, BuilderBase):
+                ir_default = self._default.to_ir()
+            else:
+                ir_default = self._default
+
+        name = f"route_{self._key}" if self._key else "route"
+        return RouteNode(
+            name=name,
+            key=self._key,
+            rules=tuple(ir_rules),
+            default=ir_default,
+        )
+
     def build(self):
         """Build a deterministic RouteAgent from the configured rules."""
         from adk_fluent._base import BuilderBase

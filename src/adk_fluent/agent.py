@@ -415,6 +415,45 @@ class Agent(BuilderBase):
 
     # --- Terminal methods ---
 
+    def to_ir(self):
+        """Convert this Agent builder to an AgentNode IR node."""
+        from adk_fluent._ir_generated import AgentNode
+        # Collect callbacks as tuples
+        callbacks = {
+            k: tuple(v) for k, v in self._callbacks.items() if v
+        }
+        # Collect tools from both _config and _lists
+        tools = tuple(self._config.get("tools", []))
+        if self._lists.get("tools"):
+            tools = tools + tuple(self._lists["tools"])
+        # Recursively convert sub_agents/children
+        children_raw = list(self._config.get("sub_agents", []))
+        children_raw.extend(self._lists.get("sub_agents", []))
+        children = tuple(
+            c.to_ir() if isinstance(c, BuilderBase) else c
+            for c in children_raw
+        )
+        return AgentNode(
+            name=self._config.get("name", ""),
+            description=self._config.get("description", ""),
+            children=children,
+            model=self._config.get("model", ""),
+            instruction=self._config.get("instruction", ""),
+            global_instruction=self._config.get("global_instruction", ""),
+            static_instruction=self._config.get("static_instruction"),
+            tools=tools,
+            generate_content_config=self._config.get("generate_content_config"),
+            disallow_transfer_to_parent=self._config.get("disallow_transfer_to_parent", False),
+            disallow_transfer_to_peers=self._config.get("disallow_transfer_to_peers", False),
+            include_contents=self._config.get("include_contents", "default"),
+            input_schema=self._config.get("input_schema"),
+            output_schema=self._config.get("output_schema") or self._config.get("_output_schema"),
+            output_key=self._config.get("output_key"),
+            planner=self._config.get("planner"),
+            code_executor=self._config.get("code_executor"),
+            callbacks=callbacks,
+        )
+
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
         config = self._prepare_build_config()
