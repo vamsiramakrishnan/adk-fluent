@@ -267,6 +267,12 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "ExecutionConfig",
+    "CompactionConfig",
+    "AgentEvent",
+    "Backend",
+    "ADKBackend",
+    "final_text",
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
@@ -303,3 +309,6 @@ from ._transforms import StateDelta
 from ._transforms import StateReplacement
 from .decorators import agent
 from .presets import Preset
+from ._ir import ExecutionConfig, CompactionConfig, AgentEvent
+from .backends import Backend, final_text
+from .backends.adk import ADKBackend

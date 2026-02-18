@@ -787,6 +787,19 @@ class BuilderBase:
             f"Use .build() for direct ADK object construction."
         )
 
+    def to_app(self, config=None):
+        """Compile this builder through IR to a native ADK App.
+
+        Args:
+            config: ExecutionConfig with app_name, resumability, etc.
+        Returns:
+            A native google.adk App object.
+        """
+        from adk_fluent.backends.adk import ADKBackend
+        backend = ADKBackend()
+        ir = self.to_ir()
+        return backend.compile(ir, config=config)
+
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
         aliases = getattr(self.__class__, "_ALIASES", {})
