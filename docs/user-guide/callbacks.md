@@ -150,3 +150,25 @@ agent = (
     .build()
 )
 ```
+
+## Callbacks vs. Middleware
+
+Callbacks are **per-agent** -- they apply only to the agent they're attached to. For cross-cutting concerns that should apply to the entire execution (all agents in a pipeline), use **middleware** instead.
+
+| Aspect | Callbacks | Middleware |
+|--------|-----------|------------|
+| Scope | Single agent | Entire execution |
+| Attachment | `.before_model(fn)` | `.middleware(mw)` |
+| Multiplicity | Multiple per agent | Stack of middleware on pipeline |
+| Compilation | Stored on IR node | Stored in ExecutionConfig |
+
+```python
+# Per-agent callback: only affects this agent
+agent = Agent("a").before_model(log_fn)
+
+# App-global middleware: affects all agents in the pipeline
+from adk_fluent import RetryMiddleware
+pipeline = (Agent("a") >> Agent("b")).middleware(RetryMiddleware())
+```
+
+See [Middleware](middleware.md) for the full middleware guide.

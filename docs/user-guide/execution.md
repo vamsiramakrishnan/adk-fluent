@@ -145,6 +145,27 @@ agent.test("What is 2+2?", equals="4")
 
 `.test()` returns `self` so it can be chained with other builder methods. It is useful for quick inline smoke tests during development.
 
+## `.to_app(config=None)`
+
+Compile the builder through IR to a native ADK `App` object. This is the production-grade alternative to `.build()` that supports middleware, resumability, and event compaction:
+
+```python
+from adk_fluent import Agent, ExecutionConfig, CompactionConfig
+
+app = (
+    Agent("prod")
+    .model("gemini-2.5-flash")
+    .instruct("Production agent.")
+    .to_app(config=ExecutionConfig(
+        app_name="prod_service",
+        resumable=True,
+        compaction=CompactionConfig(interval=10, overlap=2),
+    ))
+)
+```
+
+Unlike `.build()` which returns a raw ADK agent, `.to_app()` returns a full `App` object with configuration applied.
+
 ## Execution Method Summary
 
 | Method | Description |
@@ -157,3 +178,4 @@ agent.test("What is 2+2?", equals="4")
 | `.map_async(prompts, concurrency=5)` | Async batch execution |
 | `.session()` | Create an interactive `async with` session context manager |
 | `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output |
+| `.to_app(config=None)` | Compile through IR to native ADK `App` with config (resumability, compaction, middleware) |

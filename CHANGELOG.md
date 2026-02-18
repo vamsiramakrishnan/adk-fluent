@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-18
+
+### Added
+- **IR + Backend**: `to_ir()` converts builders to frozen dataclass IR trees; `to_app()` compiles through IR to native ADK App
+- **Backend Protocol**: `Backend` protocol with `compile`, `run`, `stream`; `ADKBackend` implementation; `final_text()` helper
+- **ExecutionConfig**: `app_name`, `resumable`, `compaction`, `middlewares` configuration
+- **Middleware**: `Middleware` protocol with 13 lifecycle hooks, `_MiddlewarePlugin` adapter
+- **Built-in Middleware**: `RetryMiddleware` (exponential backoff), `StructuredLogMiddleware` (event capture)
+- **Data Contracts**: `.produces(Schema)`, `.consumes(Schema)` for inter-agent data flow
+- **Contract Verification**: `check_contracts()` validates sequential data flow at build time
+- **ToolConfirmation**: `.tool(fn, require_confirmation=True)` pass-through
+- **Resource DI**: `inject_resources()` hides infra params from LLM schema; `.inject()` builder method
+- **Mock Testing**: `mock_backend()` for deterministic testing without LLM calls; `AgentHarness` for ergonomic test assertions
+- **Graph Visualization**: `.to_mermaid()` generates Mermaid diagrams from IR trees
+- New testing module: `adk_fluent.testing` (check_contracts, mock_backend, AgentHarness)
+- New DI module: `adk_fluent.di` (inject_resources)
+- New viz module: `adk_fluent.viz` (ir_to_mermaid)
+
 ## [0.4.0] - 2025-02-17
 
 ### Added
@@ -80,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD with GitHub Actions
 - PyPI publishing via Trusted Publishing (OIDC)
 
+[0.5.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.2.0...v0.3.0

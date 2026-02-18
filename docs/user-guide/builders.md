@@ -135,6 +135,109 @@ agent = Agent.from_dict(data)
 agent = Agent.from_yaml(yaml_str)
 ```
 
+## IR Compilation
+
+Every builder can produce an Intermediate Representation (IR) -- a frozen dataclass tree that decouples the builder from ADK:
+
+```python
+from adk_fluent import Agent
+
+# Inspect the IR tree
+ir = Agent("helper").model("gemini-2.5-flash").instruct("Help.").to_ir()
+print(ir)  # AgentNode(name='helper', model='gemini-2.5-flash', ...)
+```
+
+### `.to_ir()`
+
+Returns a frozen dataclass IR node. Agent builders return `AgentNode`, pipelines return `SequenceNode`, etc.:
+
+| Builder | IR Node |
+|---------|---------|
+| `Agent` | `AgentNode` |
+| `Pipeline` | `SequenceNode` |
+| `FanOut` | `ParallelNode` |
+| `Loop` | `LoopNode` |
+
+### `.to_app(config=None)`
+
+Compiles through IR → ADKBackend → native ADK `App`. An alternative to `.build()` that goes through the full compilation pipeline:
+
+```python
+from adk_fluent import Agent, ExecutionConfig
+
+app = Agent("helper").instruct("Help.").to_app(
+    config=ExecutionConfig(app_name="my_app", resumable=True)
+)
+```
+
+### `.to_mermaid()`
+
+Generates a Mermaid graph diagram from the builder's IR tree:
+
+```python
+pipeline = Agent("a") >> Agent("b") >> Agent("c")
+print(pipeline.to_mermaid())
+# graph TD
+#     n1[["a_then_b_then_c (sequence)"]]
+#     n2["a"]
+#     n3["b"]
+#     n4["c"]
+#     n2 --> n3
+#     n3 --> n4
+```
+
+## Data Contracts
+
+`.produces()` and `.consumes()` declare the Pydantic schemas an agent writes to and reads from state:
+
+```python
+from pydantic import BaseModel
+from adk_fluent import Agent
+
+class Intent(BaseModel):
+    category: str
+    confidence: float
+
+classifier = Agent("classifier").produces(Intent)
+resolver = Agent("resolver").consumes(Intent)
+
+pipeline = classifier >> resolver
+```
+
+The contract annotations are stored on the IR nodes and can be verified with `check_contracts()`. See [Testing](testing.md) for details.
+
+## Dependency Injection
+
+`.inject()` registers resources that are injected into tool functions at call time. Injected parameters are hidden from the LLM schema:
+
+```python
+from adk_fluent import Agent
+
+agent = (
+    Agent("lookup")
+    .tool(search_db)  # search_db(query: str, db: Database) -> str
+    .inject(db=my_database)
+)
+# LLM sees: search_db(query: str) -> str
+# At call time: db=my_database is injected automatically
+```
+
+## Middleware
+
+`.middleware()` attaches app-global middleware. Unlike callbacks (which are per-agent), middleware applies to the entire execution:
+
+```python
+from adk_fluent import Agent, RetryMiddleware
+
+pipeline = (
+    Agent("a") >> Agent("b")
+).middleware(RetryMiddleware(max_retries=3))
+
+app = pipeline.to_app()  # Middleware compiled into App plugins
+```
+
+See [Middleware](middleware.md) for the full middleware guide.
+
 ## Workflow Builders
 
 All workflow builders (Pipeline, FanOut, Loop) accept both built ADK agents and fluent builders as arguments. Builders are auto-built at `.build()` time.

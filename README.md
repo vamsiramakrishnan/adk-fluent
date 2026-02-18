@@ -255,6 +255,62 @@ pipeline = (
 | `S.guard(pred)` | Assert invariant |
 | `S.log(*keys)` | Debug-print |
 
+### IR, Backends, and Middleware (v4)
+
+Builders can compile to an intermediate representation (IR) for inspection, testing, and alternative backends:
+
+```python
+from adk_fluent import Agent, ExecutionConfig, CompactionConfig
+
+# IR: inspect the agent tree without building
+pipeline = Agent("a") >> Agent("b") >> Agent("c")
+ir = pipeline.to_ir()  # Returns frozen dataclass tree
+
+# to_app(): compile through IR to a native ADK App
+app = pipeline.to_app(config=ExecutionConfig(
+    app_name="my_app",
+    resumable=True,
+    compaction=CompactionConfig(interval=10),
+))
+
+# Middleware: app-global cross-cutting behavior
+from adk_fluent import Middleware, RetryMiddleware, StructuredLogMiddleware
+
+app = (
+    Agent("a") >> Agent("b")
+).middleware(RetryMiddleware(max_retries=3)).to_app()
+
+# Data contracts: verify pipeline wiring at build time
+from pydantic import BaseModel
+from adk_fluent.testing import check_contracts
+
+class Intent(BaseModel):
+    category: str
+    confidence: float
+
+pipeline = Agent("classifier").produces(Intent) >> Agent("resolver").consumes(Intent)
+issues = check_contracts(pipeline.to_ir())  # [] = all good
+
+# Deterministic testing without LLM calls
+from adk_fluent.testing import mock_backend, AgentHarness
+
+harness = AgentHarness(pipeline, backend=mock_backend({
+    "classifier": {"category": "billing", "confidence": 0.9},
+    "resolver": "Ticket #1234 created.",
+}))
+
+# Graph visualization
+print(pipeline.to_mermaid())  # Mermaid diagram source
+```
+
+```python
+# Tool confirmation (human-in-the-loop approval)
+agent = Agent("ops").tool(deploy_fn, require_confirmation=True)
+
+# Resource DI (hide infra params from LLM)
+agent = Agent("lookup").tool(search_db).inject(db=my_database)
+```
+
 ### Deterministic Routing
 
 Route on session state without LLM calls:
