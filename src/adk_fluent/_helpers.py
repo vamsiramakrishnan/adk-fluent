@@ -22,7 +22,115 @@ __all__ = [
     "run_map_async",
     "StateKey",
     "Artifact",
+    "_agent_to_ir",
+    "_pipeline_to_ir",
+    "_fanout_to_ir",
+    "_loop_to_ir",
 ]
+
+
+# ---------------------------------------------------------------------------
+# IR conversion helpers (used by generated to_ir() methods)
+# ---------------------------------------------------------------------------
+
+def _collect_children(builder):
+    """Collect and recursively convert sub_agents from builder config and lists."""
+    from adk_fluent._base import BuilderBase
+
+    children_raw = list(builder._config.get("sub_agents", []))
+    children_raw.extend(builder._lists.get("sub_agents", []))
+    return tuple(
+        c.to_ir() if isinstance(c, BuilderBase) else c
+        for c in children_raw
+    )
+
+
+def _agent_to_ir(builder):
+    """Convert an Agent builder to an AgentNode IR node."""
+    from adk_fluent._ir_generated import AgentNode
+
+    callbacks = {k: tuple(v) for k, v in builder._callbacks.items() if v}
+
+    tools = tuple(builder._config.get("tools", []))
+    if builder._lists.get("tools"):
+        tools = tools + tuple(builder._lists["tools"])
+
+    children = _collect_children(builder)
+
+    produces_schema = builder._config.get("_produces")
+    consumes_schema = builder._config.get("_consumes")
+    writes_keys = (
+        frozenset(produces_schema.model_fields.keys())
+        if produces_schema
+        else frozenset()
+    )
+    reads_keys = (
+        frozenset(consumes_schema.model_fields.keys())
+        if consumes_schema
+        else frozenset()
+    )
+
+    return AgentNode(
+        name=builder._config.get("name", ""),
+        description=builder._config.get("description", ""),
+        children=children,
+        model=builder._config.get("model", ""),
+        instruction=builder._config.get("instruction", ""),
+        global_instruction=builder._config.get("global_instruction", ""),
+        static_instruction=builder._config.get("static_instruction"),
+        tools=tools,
+        generate_content_config=builder._config.get("generate_content_config"),
+        disallow_transfer_to_parent=builder._config.get(
+            "disallow_transfer_to_parent", False
+        ),
+        disallow_transfer_to_peers=builder._config.get(
+            "disallow_transfer_to_peers", False
+        ),
+        include_contents=builder._config.get("include_contents", "default"),
+        input_schema=builder._config.get("input_schema"),
+        output_schema=builder._config.get("output_schema")
+        or builder._config.get("_output_schema"),
+        output_key=builder._config.get("output_key"),
+        planner=builder._config.get("planner"),
+        code_executor=builder._config.get("code_executor"),
+        callbacks=callbacks,
+        writes_keys=writes_keys,
+        reads_keys=reads_keys,
+        produces_type=produces_schema,
+        consumes_type=consumes_schema,
+    )
+
+
+def _pipeline_to_ir(builder):
+    """Convert a Pipeline builder to a SequenceNode IR node."""
+    from adk_fluent._ir_generated import SequenceNode
+
+    return SequenceNode(
+        name=builder._config.get("name", "pipeline"),
+        children=_collect_children(builder),
+    )
+
+
+def _fanout_to_ir(builder):
+    """Convert a FanOut builder to a ParallelNode IR node."""
+    from adk_fluent._ir_generated import ParallelNode
+
+    return ParallelNode(
+        name=builder._config.get("name", "fanout"),
+        children=_collect_children(builder),
+    )
+
+
+def _loop_to_ir(builder):
+    """Convert a Loop builder to a LoopNode IR node."""
+    from adk_fluent._ir_generated import LoopNode
+
+    return LoopNode(
+        name=builder._config.get("name", "loop"),
+        children=_collect_children(builder),
+        max_iterations=builder._config.get("max_iterations"),
+    )
+
 
 def delegate_agent(builder, agent):
     """Wrap an agent (or builder) as an AgentTool and add it to the builder's tools list.

@@ -933,41 +933,63 @@ def _test_value_for_type(type_str: str) -> str:
 # ORCHESTRATOR
 # ---------------------------------------------------------------------------
 
+def _extract_all_from_file(py_file: Path) -> list[str] | None:
+    """Extract __all__ list from a Python file using ast."""
+    import ast
+
+    try:
+        tree = ast.parse(py_file.read_text())
+    except SyntaxError:
+        return None
+
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "__all__":
+                    if isinstance(node.value, ast.List):
+                        names = []
+                        for elt in node.value.elts:
+                            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                                names.append(elt.value)
+                        return names
+    return None
+
+
 def _discover_manual_exports(output_dir: str) -> list[tuple[str, list[str]]]:
     """Auto-discover manual Python files and their __all__ exports.
 
     Scans the output directory for .py files that weren't generated,
-    and extracts their __all__ list using ast.
+    and also scans subdirectory packages (*/__init__.py) for exports.
     """
-    import ast
-
     output_path = Path(output_dir)
     result = []
 
+    # Top-level .py files
     for py_file in sorted(output_path.glob("*.py")):
         if py_file.name == "__init__.py":
             continue
 
-        try:
-            tree = ast.parse(py_file.read_text())
-        except SyntaxError:
-            continue
-
-        # Look for __all__ assignment
-        all_names = None
-        for node in ast.iter_child_nodes(tree):
-            if isinstance(node, ast.Assign):
-                for target in node.targets:
-                    if isinstance(target, ast.Name) and target.id == "__all__":
-                        if isinstance(node.value, ast.List):
-                            all_names = []
-                            for elt in node.value.elts:
-                                if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
-                                    all_names.append(elt.value)
-
+        all_names = _extract_all_from_file(py_file)
         if all_names:
             module_name = f".{py_file.stem}"
             result.append((module_name, all_names))
+
+    # Subdirectory packages (*/__init__.py)
+    for init_file in sorted(output_path.glob("*/__init__.py")):
+        pkg_name = init_file.parent.name
+        all_names = _extract_all_from_file(init_file)
+        if all_names:
+            module_name = f".{pkg_name}"
+            result.append((module_name, all_names))
+
+        # Also scan non-__init__ .py files inside the subpackage
+        for sub_file in sorted(init_file.parent.glob("*.py")):
+            if sub_file.name == "__init__.py":
+                continue
+            sub_names = _extract_all_from_file(sub_file)
+            if sub_names:
+                sub_module = f".{pkg_name}.{sub_file.stem}"
+                result.append((sub_module, sub_names))
 
     return result
 

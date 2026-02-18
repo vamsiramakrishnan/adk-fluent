@@ -18,7 +18,7 @@ class Loop(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
     _ADK_TARGET_CLASS = LoopAgent
 
 
@@ -83,24 +83,15 @@ class Loop(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
-    # --- Dynamic field forwarding (safety net) ---
-
-    # --- Terminal methods ---
 
     def to_ir(self):
         """Convert this Loop builder to a LoopNode IR node."""
-        from adk_fluent._ir_generated import LoopNode
-        children_raw = list(self._config.get("sub_agents", []))
-        children_raw.extend(self._lists.get("sub_agents", []))
-        children = tuple(
-            c.to_ir() if isinstance(c, BuilderBase) else c
-            for c in children_raw
-        )
-        return LoopNode(
-            name=self._config.get("name", "loop"),
-            children=children,
-            max_iterations=self._config.get("max_iterations"),
-        )
+        from adk_fluent._helpers import _loop_to_ir
+        return _loop_to_ir(self)
+
+    # --- Dynamic field forwarding (safety net) ---
+
+    # --- Terminal methods ---
 
     def build(self) -> LoopAgent:
         """A shell agent that run its sub-agents in a loop. Resolve into a native ADK LoopAgent."""
@@ -118,7 +109,7 @@ class FanOut(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
     _ADK_TARGET_CLASS = ParallelAgent
 
 
@@ -183,23 +174,15 @@ class FanOut(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
-    # --- Dynamic field forwarding (safety net) ---
-
-    # --- Terminal methods ---
 
     def to_ir(self):
         """Convert this FanOut builder to a ParallelNode IR node."""
-        from adk_fluent._ir_generated import ParallelNode
-        children_raw = list(self._config.get("sub_agents", []))
-        children_raw.extend(self._lists.get("sub_agents", []))
-        children = tuple(
-            c.to_ir() if isinstance(c, BuilderBase) else c
-            for c in children_raw
-        )
-        return ParallelNode(
-            name=self._config.get("name", "fanout"),
-            children=children,
-        )
+        from adk_fluent._helpers import _fanout_to_ir
+        return _fanout_to_ir(self)
+
+    # --- Dynamic field forwarding (safety net) ---
+
+    # --- Terminal methods ---
 
     def build(self) -> ParallelAgent:
         """A shell agent that runs its sub-agents in parallel in an isolated manner. Resolve into a native ADK ParallelAgent."""
@@ -217,7 +200,7 @@ class Pipeline(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
     _ADK_TARGET_CLASS = SequentialAgent
 
 
@@ -276,23 +259,15 @@ class Pipeline(BuilderBase):
         self._lists["sub_agents"].append(agent)
         return self
 
-    # --- Dynamic field forwarding (safety net) ---
-
-    # --- Terminal methods ---
 
     def to_ir(self):
         """Convert this Pipeline builder to a SequenceNode IR node."""
-        from adk_fluent._ir_generated import SequenceNode
-        children_raw = list(self._config.get("sub_agents", []))
-        children_raw.extend(self._lists.get("sub_agents", []))
-        children = tuple(
-            c.to_ir() if isinstance(c, BuilderBase) else c
-            for c in children_raw
-        )
-        return SequenceNode(
-            name=self._config.get("name", "pipeline"),
-            children=children,
-        )
+        from adk_fluent._helpers import _pipeline_to_ir
+        return _pipeline_to_ir(self)
+
+    # --- Dynamic field forwarding (safety net) ---
+
+    # --- Terminal methods ---
 
     def build(self) -> SequentialAgent:
         """A shell agent that runs its sub-agents in sequence. Resolve into a native ADK SequentialAgent."""

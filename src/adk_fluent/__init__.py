@@ -267,15 +267,6 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
-    "ExecutionConfig",
-    "CompactionConfig",
-    "AgentEvent",
-    "Backend",
-    "ADKBackend",
-    "final_text",
-    "Middleware",
-    "RetryMiddleware",
-    "StructuredLogMiddleware",
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
@@ -305,14 +296,42 @@ from ._helpers import run_map
 from ._helpers import run_map_async
 from ._helpers import StateKey
 from ._helpers import Artifact
+from ._helpers import _agent_to_ir
+from ._helpers import _pipeline_to_ir
+from ._helpers import _fanout_to_ir
+from ._helpers import _loop_to_ir
+from ._ir import TransformNode
+from ._ir import TapNode
+from ._ir import FallbackNode
+from ._ir import RaceNode
+from ._ir import GateNode
+from ._ir import MapOverNode
+from ._ir import TimeoutNode
+from ._ir import RouteNode
+from ._ir import TransferNode
+from ._ir import ExecutionConfig
+from ._ir import CompactionConfig
+from ._ir import AgentEvent
+from ._ir import ToolCallInfo
+from ._ir import ToolResponseInfo
+from ._ir import Node
+from ._ir_generated import AgentNode
+from ._ir_generated import SequenceNode
+from ._ir_generated import ParallelNode
+from ._ir_generated import LoopNode
+from ._ir_generated import FullNode
 from ._prompt import Prompt
 from ._routing import Route
 from ._transforms import S
 from ._transforms import StateDelta
 from ._transforms import StateReplacement
 from .decorators import agent
+from .middleware import Middleware
+from .middleware import _MiddlewarePlugin
+from .middleware import RetryMiddleware
+from .middleware import StructuredLogMiddleware
 from .presets import Preset
-from ._ir import ExecutionConfig, CompactionConfig, AgentEvent
-from .backends import Backend, final_text
+from .backends import Backend
+from .backends import final_text
 from .backends.adk import ADKBackend
-from .middleware import Middleware, RetryMiddleware, StructuredLogMiddleware
+from .testing import check_contracts

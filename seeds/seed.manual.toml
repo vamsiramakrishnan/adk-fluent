@@ -97,3 +97,36 @@ doc = "Stream raw ADK Event objects. Yields every event including state deltas a
 behavior = "runtime_helper_async_gen"
 helper_func = "run_events"
 
+# ---------------------------------------------------------------------------
+# IR CONVERSION EXTRAS
+# ---------------------------------------------------------------------------
+# These wire to_ir() through the codegen so it survives regeneration.
+
+[[builders.Agent.extras]]
+name = "to_ir"
+signature = "(self)"
+doc = "Convert this Agent builder to an AgentNode IR node."
+behavior = "runtime_helper_ctx"
+helper_func = "_agent_to_ir"
+
+[[builders.Pipeline.extras]]
+name = "to_ir"
+signature = "(self)"
+doc = "Convert this Pipeline builder to a SequenceNode IR node."
+behavior = "runtime_helper_ctx"
+helper_func = "_pipeline_to_ir"
+
+[[builders.FanOut.extras]]
+name = "to_ir"
+signature = "(self)"
+doc = "Convert this FanOut builder to a ParallelNode IR node."
+behavior = "runtime_helper_ctx"
+helper_func = "_fanout_to_ir"
+
+[[builders.Loop.extras]]
+name = "to_ir"
+signature = "(self)"
+doc = "Convert this Loop builder to a LoopNode IR node."
+behavior = "runtime_helper_ctx"
+helper_func = "_loop_to_ir"
+
