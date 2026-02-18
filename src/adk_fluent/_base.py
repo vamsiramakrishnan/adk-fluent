@@ -244,8 +244,8 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
-    def _clone_shallow(self) -> BuilderBase:
-        """Shallow-clone this builder for immutable operator results."""
+    def _fork_for_operator(self) -> BuilderBase:
+        """Create an operator-safe fork. Shares sub-builders (safe: operators never mutate children)."""
         import copy
         new = object.__new__(type(self))
         new._config = dict(self._config)
@@ -303,7 +303,7 @@ class BuilderBase:
         other_name = other._config.get("name", "") if hasattr(other, '_config') else ""
         if isinstance(self, Pipeline):
             # Clone, then append — original Pipeline unchanged
-            clone = self._clone_shallow()
+            clone = self._fork_for_operator()
             clone.step(other)
             clone._config["name"] = f"{my_name}_then_{other_name}"
             return clone
@@ -328,7 +328,7 @@ class BuilderBase:
         other_name = other._config.get("name", "")
         if isinstance(self, FanOut):
             # Clone, then add branch — original FanOut unchanged
-            clone = self._clone_shallow()
+            clone = self._fork_for_operator()
             clone.branch(other)
             clone._config["name"] = f"{my_name}_and_{other_name}"
             return clone
@@ -373,7 +373,7 @@ class BuilderBase:
         Prefer .output_schema() in explicit builder chains; use @ in
         operator expressions where brevity matters.
         """
-        clone = self._clone_shallow()
+        clone = self._fork_for_operator()
         clone._config["_output_schema"] = schema
         return clone
 
@@ -832,8 +832,8 @@ class _FnStepBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._fn = fn_ref
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._fn = self._fn
         return clone
 
@@ -856,8 +856,8 @@ class _FallbackBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._children = children
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._children = list(self._children)
         return clone
 
@@ -906,8 +906,8 @@ class _TapBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._fn = fn_ref
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._fn = self._fn
         return clone
 
@@ -974,8 +974,8 @@ class _MapOverBuilder(BuilderBase):
         self._item_key = item_key
         self._output_key = output_key
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._agent = self._agent
         clone._list_key = self._list_key
         clone._item_key = self._item_key
@@ -1016,8 +1016,8 @@ class _TimeoutBuilder(BuilderBase):
         self._agent = agent
         self._seconds = seconds
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._agent = self._agent
         clone._seconds = self._seconds
         return clone
@@ -1071,8 +1071,8 @@ class _GateBuilder(BuilderBase):
         self._message = message
         self._gate_key = gate_key
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._predicate = self._predicate
         clone._message = self._message
         clone._gate_key = self._gate_key
@@ -1120,8 +1120,8 @@ class _RaceBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._agents = agents
 
-    def _clone_shallow(self) -> BuilderBase:
-        clone = super()._clone_shallow()
+    def _fork_for_operator(self) -> BuilderBase:
+        clone = super()._fork_for_operator()
         clone._agents = list(self._agents)
         return clone
 
