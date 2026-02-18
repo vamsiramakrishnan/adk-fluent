@@ -251,6 +251,8 @@ class BuilderBase:
         new._config = dict(self._config)
         new._callbacks = {k: list(v) for k, v in self._callbacks.items()}
         new._lists = {k: list(v) for k, v in self._lists.items()}
+        if hasattr(self, "_middlewares"):
+            new._middlewares = list(self._middlewares)
         return new
 
     def __rshift__(self, other) -> BuilderBase:
@@ -297,6 +299,10 @@ class BuilderBase:
             else:
                 p._lists["sub_agents"].append(self)
             p._lists["sub_agents"].append(route_agent)  # Already built
+            # Propagate middleware from self to result
+            self_mw = getattr(self, "_middlewares", [])
+            if self_mw:
+                p._middlewares = list(self_mw)
             return p
 
         my_name = self._config.get("name", "")
@@ -306,13 +312,23 @@ class BuilderBase:
             clone = self._fork_for_operator()
             clone.step(other)
             clone._config["name"] = f"{my_name}_then_{other_name}"
-            return clone
+            result = clone
         else:
             name = f"{my_name}_then_{other_name}"
             p = Pipeline(name)
             p.step(self)
             p.step(other)
-            return p
+            result = p
+
+        # Propagate middleware from operands to result
+        merged_mw = list(getattr(self, "_middlewares", []))
+        other_mw = getattr(other, "_middlewares", []) if isinstance(other, BuilderBase) else []
+        for mw in other_mw:
+            if mw not in merged_mw:
+                merged_mw.append(mw)
+        if merged_mw:
+            result._middlewares = merged_mw
+        return result
 
     def __rrshift__(self, other) -> BuilderBase:
         """Support callable >> agent syntax."""
@@ -331,13 +347,23 @@ class BuilderBase:
             clone = self._fork_for_operator()
             clone.branch(other)
             clone._config["name"] = f"{my_name}_and_{other_name}"
-            return clone
+            result = clone
         else:
             name = f"{my_name}_and_{other_name}"
             f = FanOut(name)
             f.branch(self)
             f.branch(other)
-            return f
+            result = f
+
+        # Propagate middleware from operands to result
+        merged_mw = list(getattr(self, "_middlewares", []))
+        other_mw = getattr(other, "_middlewares", []) if isinstance(other, BuilderBase) else []
+        for mw in other_mw:
+            if mw not in merged_mw:
+                merged_mw.append(mw)
+        if merged_mw:
+            result._middlewares = merged_mw
+        return result
 
     def __mul__(self, other) -> BuilderBase:
         """Create a Loop: agent * 3 or agent * until(pred)."""
@@ -795,10 +821,41 @@ class BuilderBase:
         Returns:
             A native google.adk App object.
         """
+        from adk_fluent._ir import ExecutionConfig
         from adk_fluent.backends.adk import ADKBackend
+
+        builder_mw = getattr(self, "_middlewares", [])
+        cfg = config or ExecutionConfig()
+
+        # Merge builder middleware + config middleware
+        if builder_mw:
+            all_mw = tuple(builder_mw) + cfg.middlewares
+            cfg = ExecutionConfig(
+                app_name=cfg.app_name,
+                max_llm_calls=cfg.max_llm_calls,
+                timeout_seconds=cfg.timeout_seconds,
+                streaming_mode=cfg.streaming_mode,
+                resumable=cfg.resumable,
+                compaction=cfg.compaction,
+                custom_metadata=cfg.custom_metadata,
+                middlewares=all_mw,
+            )
+
         backend = ADKBackend()
         ir = self.to_ir()
-        return backend.compile(ir, config=config)
+        return backend.compile(ir, config=cfg)
+
+    def middleware(self, mw) -> Self:
+        """Attach a middleware to this builder.
+
+        Middleware is app-global -- it applies to the entire execution,
+        not just this agent. When to_app() is called, all middleware
+        from the builder chain is collected and compiled into a plugin.
+        """
+        if not hasattr(self, "_middlewares"):
+            self._middlewares = []
+        self._middlewares.append(mw)
+        return self
 
     def use(self, preset: Any) -> Self:
         """Apply a Preset's fields and callbacks to this builder. Returns self."""
