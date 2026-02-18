@@ -936,6 +936,25 @@ class BuilderBase:
 
         return self
 
+    # ------------------------------------------------------------------
+    # Pipeline-level visibility policies
+    # ------------------------------------------------------------------
+
+    def transparent(self) -> Self:
+        """All agents visible regardless of position. For debugging/demos."""
+        self._config["_visibility_policy"] = "transparent"
+        return self
+
+    def filtered(self) -> Self:
+        """Only terminal agents visible. Topology-inferred (default)."""
+        self._config["_visibility_policy"] = "filtered"
+        return self
+
+    def annotated(self) -> Self:
+        """All events reach client with visibility metadata. Client filters."""
+        self._config["_visibility_policy"] = "annotate"
+        return self
+
 
 # ======================================================================
 # Post-BuilderBase primitives (depend on BuilderBase)
