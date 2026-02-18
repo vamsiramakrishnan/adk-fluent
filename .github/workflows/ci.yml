@@ -55,6 +55,7 @@ jobs:
           python scripts/scanner.py -o manifest.json
           python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
           python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
+          python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
 
       - name: Run tests with coverage
         run: pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=xml --cov-report=term-missing
@@ -91,6 +92,7 @@ jobs:
           python scripts/scanner.py -o manifest.json
           python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
           python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
+          python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
 
       - name: Build package
         run: hatch build
