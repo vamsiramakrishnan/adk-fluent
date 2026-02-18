@@ -19,6 +19,9 @@ ir = pipeline.to_ir()
 # Compile to native ADK App via IR
 app = pipeline.to_app()
 
+# .build() still works for direct agent construction
+agent_fluent = pipeline.build()
+
 # --- ASSERT ---
 from adk_fluent._ir_generated import AgentNode, SequenceNode
 
@@ -32,3 +35,4 @@ assert ir.children[1].name == "b"
 from google.adk.apps.app import App
 
 assert isinstance(app, App)
+assert type(seq) == type(agent_fluent)

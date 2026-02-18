@@ -34,11 +34,7 @@ def search_db(query: str, db: object) -> str:
 
 # .inject() hides db from LLM schema, injects at call time
 agent_fluent = (
-    Agent("searcher")
-    .model("gemini-2.5-flash")
-    .instruct("Search for data.")
-    .tool(search_db)
-    .inject(db="my_database")
+    Agent("searcher").model("gemini-2.5-flash").instruct("Search for data.").tool(search_db).inject(db="my_database")
 )
 
 # --- ASSERT ---

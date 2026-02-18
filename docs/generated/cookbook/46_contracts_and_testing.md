@@ -16,7 +16,7 @@ _Source: `46_contracts_and_testing.py`_
 from pydantic import BaseModel
 
 from adk_fluent import Agent
-from adk_fluent.testing import MockBackend, check_contracts, mock_backend
+from adk_fluent.testing import check_contracts, mock_backend
 
 
 class Intent(BaseModel):
@@ -32,6 +32,9 @@ issues = check_contracts(pipeline.to_ir())
 
 # 3. Create a mock backend for deterministic testing
 mb = mock_backend({"classifier": {"category": "billing", "confidence": 0.95}, "resolver": "Done."})
+
+# Build the pipeline for adk web
+agent_fluent = pipeline.build()
 ```
 :::
 ::::

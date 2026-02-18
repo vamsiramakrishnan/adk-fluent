@@ -19,9 +19,8 @@ from adk_fluent import Agent
 pipeline = Agent("classifier") >> Agent("resolver") >> Agent("responder")
 mermaid = pipeline.to_mermaid()
 
-# Parallel branches
-fanout = Agent("a") | Agent("b") | Agent("c")
-fanout_mermaid = fanout.to_mermaid()
+# Build the pipeline for adk web
+agent_fluent = pipeline.build()
 ```
 :::
 ::::
@@ -35,5 +34,8 @@ assert "resolver" in mermaid
 assert "responder" in mermaid
 assert "-->" in mermaid
 
+# Parallel branches also produce valid Mermaid
+fanout = Agent("a") | Agent("b") | Agent("c")
+fanout_mermaid = fanout.to_mermaid()
 assert "graph TD" in fanout_mermaid
 ```
