@@ -10,6 +10,9 @@ execution
 callbacks
 presets
 state-transforms
+context-engineering
+visibility
+memory
 ir-and-backends
 middleware
 testing

@@ -1,8 +1,11 @@
-"""Visibility Policies for Multi-Agent Pipelines"""
+"""Visibility: Content Review Pipeline"""
 
 # --- NATIVE ---
-# Native ADK shows all agent outputs to users. There is no built-in
-# mechanism to suppress intermediate agent events.
+# In native ADK, a 4-agent content pipeline (draft → fact-check →
+# compliance → publish) sends all intermediate outputs to the user.
+# The user sees the raw draft, the fact-checker's internal notes, and
+# the compliance report — when they only want the final published version.
+# There's no built-in way to suppress intermediate events.
 
 # --- FLUENT ---
 from adk_fluent import Agent
@@ -10,44 +13,75 @@ from adk_fluent._visibility import infer_visibility
 
 MODEL = "gemini-2.5-flash"
 
-# Build a 3-agent pipeline
-pipeline = (
-    Agent("drafter").model(MODEL).instruct("Write a draft.")
-    >> Agent("reviewer").model(MODEL).instruct("Review the draft.")
-    >> Agent("editor").model(MODEL).instruct("Produce final version.")
+# Content review pipeline: only the final publisher output matters to the user.
+# Internal agents (drafter, fact-checker, compliance) should be silent.
+
+content_pipeline = (
+    Agent("drafter")
+        .model(MODEL)
+        .instruct(
+            "Write a first draft of the article based on the research notes.\n"
+            "Focus on clarity and structure. Don't worry about polish yet."
+        )
+    >> Agent("fact_checker")
+        .model(MODEL)
+        .instruct(
+            "Review the draft for factual accuracy.\n"
+            "Flag any unsupported claims. Add source annotations.\n"
+            "Output the corrected draft with inline notes."
+        )
+    >> Agent("compliance")
+        .model(MODEL)
+        .instruct(
+            "Review for brand guidelines, legal requirements, and tone.\n"
+            "Flag anything that needs legal review."
+        )
+    >> Agent("publisher")
+        .model(MODEL)
+        .instruct(
+            "Produce the final published version.\n"
+            "Incorporate fact-check corrections and compliance feedback.\n"
+            "Remove all internal annotations."
+        )
 )
 
-# Infer visibility from topology
-ir = pipeline.to_ir()
-vis = infer_visibility(ir)
+# Infer visibility from pipeline topology
+ir = content_pipeline.to_ir()
+visibility = infer_visibility(ir)
 
-# Pipeline-level policies
+# For debugging: make all agents visible
 debug_pipeline = (
     Agent("a").model(MODEL).instruct("Step 1.")
     >> Agent("b").model(MODEL).instruct("Step 2.")
+    >> Agent("c").model(MODEL).instruct("Step 3.")
 )
 debug_pipeline.transparent()
 
+# For production: only terminal agent visible (default behavior)
 prod_pipeline = (
     Agent("a").model(MODEL).instruct("Step 1.")
     >> Agent("b").model(MODEL).instruct("Step 2.")
+    >> Agent("c").model(MODEL).instruct("Step 3.")
 )
 prod_pipeline.filtered()
 
-# Per-agent overrides
-shown = Agent("logger").model(MODEL).instruct("Log.").show()
-hidden = Agent("cleanup").model(MODEL).instruct("Clean.").hide()
+# Per-agent overrides: force an intermediate agent to be visible
+compliance_agent = Agent("compliance").model(MODEL).instruct("Review.").show()
+cleanup_agent = Agent("cleanup").model(MODEL).instruct("Clean up.").hide()
 
 # --- ASSERT ---
-# Terminal agent is user-facing, intermediate agents are internal
-assert vis["drafter"] == "internal"
-assert vis["reviewer"] == "internal"
-assert vis["editor"] == "user"
+# Only the terminal agent (publisher) is user-facing
+assert visibility["drafter"] == "internal"
+assert visibility["fact_checker"] == "internal"
+assert visibility["compliance"] == "internal"
+assert visibility["publisher"] == "user"
 
-# Policy methods set config
+# Debug mode: all agents transparent
 assert debug_pipeline._config["_visibility_policy"] == "transparent"
+
+# Production mode: filtered
 assert prod_pipeline._config["_visibility_policy"] == "filtered"
 
 # Per-agent overrides set config
-assert shown._config["_visibility_override"] == "user"
-assert hidden._config["_visibility_override"] == "internal"
+assert compliance_agent._config["_visibility_override"] == "user"
+assert cleanup_agent._config["_visibility_override"] == "internal"
