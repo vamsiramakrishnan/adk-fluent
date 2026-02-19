@@ -1,4 +1,10 @@
-"""Streaming with .stream()"""
+"""Live Sports Commentary -- Streaming with .stream()
+
+Demonstrates the .stream() method for token-by-token output.  The
+scenario: a live sports commentary agent that streams play-by-play
+narration as it generates, providing real-time updates to viewers.
+No LLM calls are made here -- we only verify builder mechanics.
+"""
 
 # --- NATIVE ---
 # Native ADK requires manual event iteration:
@@ -11,12 +17,26 @@
 # --- FLUENT ---
 from adk_fluent import Agent
 
-# Streaming in one line:
-# async for chunk in Agent("s").model("gemini-2.5-flash").instruct("Tell stories.").stream("Once upon a time"):
+# In production, streaming is a single async for loop:
+# async for chunk in (
+#     Agent("commentator")
+#     .model("gemini-2.5-flash")
+#     .instruct("Provide enthusiastic play-by-play sports commentary.")
+#     .stream("The striker receives the ball at midfield...")
+# ):
 #     print(chunk, end="")
 
-builder = Agent("s").model("gemini-2.5-flash").instruct("Tell stories.")
+builder = (
+    Agent("commentator")
+    .model("gemini-2.5-flash")
+    .instruct(
+        "You are a live sports commentator. Provide enthusiastic, "
+        "detailed play-by-play narration. Build excitement as the "
+        "action unfolds and explain tactical decisions."
+    )
+)
 
 # --- ASSERT ---
 assert hasattr(builder, "stream")
 assert callable(builder.stream)
+assert builder._config["name"] == "commentator"

@@ -1,34 +1,49 @@
-"""Additive Callbacks"""
+"""Content Moderation with Logging -- Additive Callbacks
+
+Demonstrates before_model and after_model callbacks.  The scenario:
+a content moderation agent where we log every request before it
+reaches the model and audit every response after generation.
+"""
 
 # --- NATIVE ---
 from google.adk.agents.llm_agent import LlmAgent
 
 
-def log_before(callback_context, llm_request):
-    print("before model")
+def log_moderation_request(callback_context, llm_request):
+    """Log incoming content for audit trail before the model processes it."""
+    print("[AUDIT] Moderation request received")
 
 
-def log_after(callback_context, llm_response):
-    print("after model")
+def check_response_safety(callback_context, llm_response):
+    """Verify model output meets safety standards after generation."""
+    print("[AUDIT] Response safety check passed")
 
 
 agent_native = LlmAgent(
-    name="observed",
+    name="content_moderator",
     model="gemini-2.5-flash",
-    instruction="You are observed.",
-    before_model_callback=log_before,
-    after_model_callback=log_after,
+    instruction=(
+        "You are a content moderation agent. Evaluate user-submitted "
+        "content and flag anything that violates community guidelines. "
+        "Provide a severity rating: safe, warning, or violation."
+    ),
+    before_model_callback=log_moderation_request,
+    after_model_callback=check_response_safety,
 )
 
 # --- FLUENT ---
 from adk_fluent import Agent
 
 agent_fluent = (
-    Agent("observed")
+    Agent("content_moderator")
     .model("gemini-2.5-flash")
-    .instruct("You are observed.")
-    .before_model(log_before)
-    .after_model(log_after)
+    .instruct(
+        "You are a content moderation agent. Evaluate user-submitted "
+        "content and flag anything that violates community guidelines. "
+        "Provide a severity rating: safe, warning, or violation."
+    )
+    .before_model(log_moderation_request)
+    .after_model(check_response_safety)
     .build()
 )
 
