@@ -254,3 +254,78 @@ def test_roundtrip_builder_spec_to_ir_to_python():
     assert "def build(self)" in source
     assert 'self._config["instruction"] = value' in source
     assert "return self" in source
+
+
+def test_stub_emission_from_spec():
+    """spec_to_ir → emit_stub should produce valid .pyi content."""
+    from scripts.generator import spec_to_ir, BuilderSpec
+    from scripts.code_ir import emit_stub
+
+    spec = BuilderSpec(
+        name="TestBuilder",
+        source_class="google.adk.test.TestClass",
+        source_class_short="TestClass",
+        output_module="test",
+        doc="Test builder.",
+        constructor_args=["name"],
+        aliases={"instruct": "instruction"},
+        reverse_aliases={"instruction": "instruct"},
+        callback_aliases={},
+        skip_fields={"name", "parent_agent"},
+        additive_fields=set(),
+        list_extend_fields=set(),
+        fields=[
+            {"name": "name", "type_str": "str", "required": True, "is_callback": False},
+            {"name": "instruction", "type_str": "str | None", "required": False, "is_callback": False, "description": ""},
+        ],
+        terminals=[{"name": "build", "returns": "TestClass"}],
+        extras=[],
+        is_composite=False,
+        is_standalone=False,
+        field_docs={},
+    )
+    ir_class = spec_to_ir(spec)
+    stub = emit_stub(ir_class)
+
+    assert "class TestBuilder(BuilderBase):" in stub
+    assert "def instruct(self, value: str" in stub
+    assert "def build(self)" in stub
+    assert "..." in stub  # Stubs use ellipsis bodies
+
+
+def test_test_generation_from_ir():
+    """spec_to_ir_test should produce a test class with standard test methods."""
+    from scripts.generator import spec_to_ir_test, BuilderSpec
+    from scripts.code_ir import emit_python
+
+    spec = BuilderSpec(
+        name="TestBuilder",
+        source_class="google.adk.test.TestClass",
+        source_class_short="TestClass",
+        output_module="test",
+        doc="Test builder.",
+        constructor_args=["name"],
+        aliases={"instruct": "instruction"},
+        reverse_aliases={"instruction": "instruct"},
+        callback_aliases={"before_model": "before_model_callback"},
+        skip_fields={"name", "parent_agent"},
+        additive_fields={"before_model_callback"},
+        list_extend_fields=set(),
+        fields=[
+            {"name": "name", "type_str": "str", "required": True, "is_callback": False},
+            {"name": "instruction", "type_str": "str | None", "required": False, "is_callback": False, "description": ""},
+            {"name": "before_model_callback", "type_str": "Callable | None", "required": False, "is_callback": True},
+        ],
+        terminals=[{"name": "build", "returns": "TestClass"}],
+        extras=[],
+        is_composite=False,
+        is_standalone=False,
+        field_docs={},
+    )
+    ir_test = spec_to_ir_test(spec)
+    source = emit_python(ir_test)
+
+    assert "TestTestBuilderBuilder" in source or "TestTestBuilder" in source
+    assert "test_builder_creation" in source
+    assert "test_chaining_returns_self" in source
+    assert "test_typo_detection" in source
