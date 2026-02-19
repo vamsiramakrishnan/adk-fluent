@@ -159,7 +159,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'config', 'table_id', 'project_id', 'dataset_id', 'location'}
+    _KNOWN_PARAMS: set[str] = {'dataset_id', 'table_id', 'location', 'project_id', 'config'}
 
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
@@ -213,7 +213,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'custom_filter', 'num_invocations_to_keep', 'name'}
+    _KNOWN_PARAMS: set[str] = {'name', 'num_invocations_to_keep', 'custom_filter'}
 
 
     def __init__(self, ) -> None:
@@ -267,7 +267,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'include_session_state', 'include_system_instruction', 'name', 'output_path'}
+    _KNOWN_PARAMS: set[str] = {'name', 'include_session_state', 'include_system_instruction', 'output_path'}
 
 
     def __init__(self, ) -> None:
@@ -327,7 +327,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'global_instruction', 'name'}
+    _KNOWN_PARAMS: set[str] = {'name', 'global_instruction'}
 
 
     def __init__(self, ) -> None:
@@ -459,7 +459,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'tracking_scope', 'throw_exception_if_retry_exceeded', 'max_retries', 'name'}
+    _KNOWN_PARAMS: set[str] = {'throw_exception_if_retry_exceeded', 'name', 'max_retries', 'tracking_scope'}
 
 
     def __init__(self, ) -> None:

@@ -21,7 +21,7 @@ class BaseAgent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_agent_callback', 'after_agent_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
 
@@ -95,7 +95,7 @@ class Agent(BuilderBase):
     # --- Class-level alias / field maps ---
     _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'history': 'include_contents', 'include_history': 'include_contents', 'instruct': 'instruction', 'outputs': 'output_key', 'static': 'static_instruction'}
     _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'on_model_error_callback', 'before_tool_callback', 'before_model_callback', 'after_tool_callback', 'before_agent_callback', 'on_tool_error_callback', 'after_agent_callback', 'after_model_callback'}
+    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'after_model_callback', 'after_tool_callback', 'before_tool_callback', 'before_model_callback', 'before_agent_callback', 'on_model_error_callback', 'on_tool_error_callback'}
     _ADK_TARGET_CLASS = LlmAgent
 
 

@@ -1085,7 +1085,7 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'stage', 'default_on'}
+    _KNOWN_PARAMS: set[str] = {'default_on', 'stage'}
 
 
     def __init__(self, stage: str) -> None:
@@ -1127,7 +1127,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_cache_duration_seconds', 'max_cache_size_bytes', 'auto_flush_threshold'}
+    _KNOWN_PARAMS: set[str] = {'auto_flush_threshold', 'max_cache_duration_seconds', 'max_cache_size_bytes'}
 
 
     def __init__(self, ) -> None:
@@ -1241,7 +1241,7 @@ class BigQueryLoggerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'enabled', 'batch_flush_interval', 'connection_id', 'gcs_bucket_name', 'clustering_fields', 'log_session_metadata', 'log_multi_modal_content', 'table_id', 'queue_max_size', 'event_allowlist', 'max_content_length', 'shutdown_timeout', 'event_denylist', 'custom_tags', 'retry_config', 'content_formatter', 'batch_size'}
+    _KNOWN_PARAMS: set[str] = {'content_formatter', 'event_denylist', 'log_session_metadata', 'connection_id', 'gcs_bucket_name', 'max_content_length', 'queue_max_size', 'table_id', 'clustering_fields', 'enabled', 'batch_size', 'batch_flush_interval', 'log_multi_modal_content', 'retry_config', 'shutdown_timeout', 'event_allowlist', 'custom_tags'}
 
 
     def __init__(self, ) -> None:
@@ -1379,7 +1379,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'max_delay', 'initial_delay', 'max_retries', 'multiplier'}
+    _KNOWN_PARAMS: set[str] = {'multiplier', 'max_delay', 'max_retries', 'initial_delay'}
 
 
     def __init__(self, ) -> None:

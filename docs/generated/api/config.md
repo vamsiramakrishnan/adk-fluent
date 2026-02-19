@@ -350,7 +350,7 @@ LlmAgentConfig(name: str, instruction: str)
 - **Maps to:** `output_key`
 - Optional. LlmAgent.output_key.
 
-#### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+#### `.static(value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self`
 
 - **Maps to:** `static_instruction`
 - Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion]).
