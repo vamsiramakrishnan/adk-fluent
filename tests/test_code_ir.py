@@ -211,3 +211,46 @@ def test_emit_python_raw_stmt():
     source = emit_python(m)
     assert 'self._callbacks["before_model_callback"].append(fn)' in source
     assert 'self._callbacks["after_model_callback"].append(fn)' in source
+
+
+def test_roundtrip_builder_spec_to_ir_to_python():
+    """BuilderSpec -> IR -> Python source should produce valid code."""
+    from scripts.generator import spec_to_ir, BuilderSpec
+    from scripts.code_ir import emit_python
+
+    spec = BuilderSpec(
+        name="TestBuilder",
+        source_class="google.adk.test.TestClass",
+        source_class_short="TestClass",
+        output_module="test",
+        doc="Test builder.",
+        constructor_args=["name"],
+        aliases={"instruct": "instruction"},
+        reverse_aliases={"instruction": "instruct"},
+        callback_aliases={"before_model": "before_model_callback"},
+        skip_fields={"name", "parent_agent"},
+        additive_fields={"before_model_callback"},
+        list_extend_fields=set(),
+        fields=[
+            {"name": "name", "type_str": "str", "required": True, "is_callback": False},
+            {"name": "instruction", "type_str": "str | None", "required": False, "is_callback": False, "description": ""},
+            {"name": "before_model_callback", "type_str": "Callable | None", "required": False, "is_callback": True},
+        ],
+        terminals=[{"name": "build", "returns": "TestClass"}],
+        extras=[],
+        is_composite=False,
+        is_standalone=False,
+        field_docs={},
+    )
+    ir_class = spec_to_ir(spec)
+    source = emit_python(ir_class)
+
+    # Verify key structural elements
+    assert "class TestBuilder(BuilderBase):" in source
+    assert "def __init__(self, name: str)" in source
+    assert "def instruct(self, value: str" in source
+    assert "def before_model(self, *fns: Callable) -> Self:" in source
+    assert "def before_model_if(self, condition: bool" in source
+    assert "def build(self)" in source
+    assert 'self._config["instruction"] = value' in source
+    assert "return self" in source

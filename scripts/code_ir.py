@@ -225,7 +225,10 @@ def _emit_class_python(c: ClassNode) -> str:
 
     if c.attrs:
         for attr in c.attrs:
-            lines.append(f"    {attr.name}: {attr.type_hint} = {attr.value}")
+            if attr.type_hint:
+                lines.append(f"    {attr.name}: {attr.type_hint} = {attr.value}")
+            else:
+                lines.append(f"    {attr.name} = {attr.value}")
 
     if c.attrs and c.methods:
         lines.append("")
@@ -284,7 +287,10 @@ def _emit_class_stub(c: ClassNode) -> str:
 
     if c.attrs:
         for attr in c.attrs:
-            lines.append(f"    {attr.name}: {attr.type_hint} = {attr.value}")
+            if attr.type_hint:
+                lines.append(f"    {attr.name}: {attr.type_hint} = {attr.value}")
+            else:
+                lines.append(f"    {attr.name} = {attr.value}")
 
     for method in c.methods:
         lines.append(_emit_method_stub(method))
