@@ -1,85 +1,110 @@
-"""State Transforms: S Factories with >>"""
+"""Research Data Pipeline: State Transforms with S Factories"""
 
 # --- NATIVE ---
-# Native ADK requires custom BaseAgent subclasses for any state transform:
+# Native ADK requires custom BaseAgent subclasses for any state transform.
+# In a clinical research pipeline, each data cleaning step becomes a class:
 from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
 
 
-class SelectKeys(NativeBaseAgent):
+class SelectResearchFields(NativeBaseAgent):
     async def _run_async_impl(self, ctx):
-        # Keep only "findings" and "sources"
+        # Keep only "clinical_findings" and "lab_results"
         for key in list(ctx.session.state.keys()):
-            if key not in ("findings", "sources"):
+            if key not in ("clinical_findings", "lab_results"):
                 del ctx.session.state[key]
 
 
-class RenameKey(NativeBaseAgent):
+class RenameForReport(NativeBaseAgent):
     async def _run_async_impl(self, ctx):
-        if "findings" in ctx.session.state:
-            ctx.session.state["research"] = ctx.session.state.pop("findings")
+        if "clinical_findings" in ctx.session.state:
+            ctx.session.state["analysis"] = ctx.session.state.pop("clinical_findings")
 
 
 # Each transform = a new class. No composability.
 
 # --- FLUENT ---
 from adk_fluent import Agent, S, Pipeline
+from adk_fluent._transforms import StateDelta, StateReplacement
 
-# S.pick — keep only specified keys
-picked = S.pick("findings", "sources")
-assert picked({"findings": "data", "sources": ["a"], "noise": 123}) == {"findings": "data", "sources": ["a"]}
+# S.pick — keep only the research-relevant fields, drop noise
+# Returns StateReplacement (replaces session-scoped state entirely)
+picked = S.pick("clinical_findings", "lab_results")
+result = picked({"clinical_findings": "positive", "lab_results": [1.2, 3.4], "patient_notes": "misc"})
+assert isinstance(result, StateReplacement)
+assert result.new_state == {"clinical_findings": "positive", "lab_results": [1.2, 3.4]}
 
-# S.drop — remove specified keys
-dropped = S.drop("_internal", "_debug")
-assert dropped({"result": "ok", "_internal": "x"}) == {"result": "ok"}
+# S.drop — remove internal/debug fields before publishing results
+dropped = S.drop("_raw_sensor_data", "_debug_log")
+result = dropped({"conclusion": "significant", "_raw_sensor_data": "..."})
+assert isinstance(result, StateReplacement)
+assert result.new_state == {"conclusion": "significant"}
 
-# S.rename — rename keys (unmapped pass through)
-renamed = S.rename(findings="research", raw_score="score")
-assert renamed({"findings": "data", "other": 1}) == {"research": "data", "other": 1}
+# S.rename — normalize field names for the downstream report template
+renamed = S.rename(clinical_findings="analysis", raw_score="p_value")
+result = renamed({"clinical_findings": "data", "sample_size": 100})
+assert isinstance(result, StateReplacement)
+assert result.new_state == {"analysis": "data", "sample_size": 100}
 
-# S.default — fill missing keys without overwriting
-defaulted = S.default(confidence=0.5, language="en")
-assert defaulted({"confidence": 0.9}) == {"confidence": 0.9, "language": "en"}
+# S.default — fill missing fields with safe defaults for statistical analysis
+# Returns StateDelta (additive merge — only missing keys are added)
+defaulted = S.default(confidence_interval=0.95, significance_level=0.05)
+result = defaulted({"confidence_interval": 0.99})
+assert isinstance(result, StateDelta)
+assert result.updates == {"significance_level": 0.05}  # existing key not overwritten
 
-# S.merge — combine keys (default: newline join)
-merged = S.merge("web", "papers", into="research")
-assert merged({"web": "Web data", "papers": "Paper data"}) == {"research": "Web data\nPaper data"}
+# S.merge — combine results from parallel research streams
+merged = S.merge("literature_review", "experimental_data", into="combined_research")
+result = merged({"literature_review": "Prior work shows...", "experimental_data": "Trial results..."})
+assert isinstance(result, StateDelta)
+assert result.updates == {"combined_research": "Prior work shows...\nTrial results..."}
 
-# S.merge with custom function
-summed = S.merge("a", "b", into="total", fn=lambda a, b: a + b)
-assert summed({"a": 10, "b": 20}) == {"total": 30}
+# S.merge with custom function — aggregate numerical results
+averaged = S.merge("trial_a_score", "trial_b_score", into="mean_score", fn=lambda a, b: (a + b) / 2)
+result = averaged({"trial_a_score": 0.82, "trial_b_score": 0.88})
+assert isinstance(result, StateDelta)
+assert result.updates == {"mean_score": 0.85}
 
-# S.transform — apply function to single key
-transformed = S.transform("text", str.upper)
-assert transformed({"text": "hello"}) == {"text": "HELLO"}
+# S.transform — apply function to a single field
+transformed = S.transform("abstract", str.upper)
+result = transformed({"abstract": "results indicate"})
+assert isinstance(result, StateDelta)
+assert result.updates == {"abstract": "RESULTS INDICATE"}
 
-# S.compute — derive new keys from full state
+# S.compute — derive new fields from full state (e.g., statistical metrics)
 computed = S.compute(
-    word_count=lambda s: len(s.get("text", "").split()),
-    preview=lambda s: s.get("text", "")[:50],
+    word_count=lambda s: len(s.get("manuscript", "").split()),
+    preview=lambda s: s.get("manuscript", "")[:80],
 )
-assert computed({"text": "hello world"}) == {"word_count": 2, "preview": "hello world"}
+result = computed({"manuscript": "This study demonstrates significant results"})
+assert isinstance(result, StateDelta)
+assert result.updates == {"word_count": 5, "preview": "This study demonstrates significant results"}
 
-# S.guard — assert state invariant
-guarded = S.guard(lambda s: "key" in s, msg="Missing required key")
+# S.guard — assert state invariant before proceeding
+guarded = S.guard(lambda s: "patient_id" in s, msg="Missing required patient_id")
 
-# Compose with >> in pipelines
+# Compose with >> in a clinical data pipeline
 pipeline = (
-    Agent("researcher").model("gemini-2.5-flash").instruct("Research the topic.")
-    >> S.pick("findings", "sources")
-    >> S.rename(findings="research_data")
-    >> S.default(confidence=0.0)
-    >> Agent("writer").model("gemini-2.5-flash").instruct("Write a report.")
+    Agent("data_extractor").model("gemini-2.5-flash")
+    .instruct("Extract structured clinical data from the patient records.")
+    >> S.pick("clinical_findings", "lab_results")
+    >> S.rename(clinical_findings="analysis_input")
+    >> S.default(confidence_interval=0.95)
+    >> Agent("statistical_analyzer").model("gemini-2.5-flash")
+    .instruct("Perform statistical analysis on the clinical data.")
 )
 
-# Full research pipeline with S transforms
+# Full research pipeline with parallel data collection and S transforms
 research_pipeline = (
     (
-        Agent("web").model("gemini-2.5-flash").instruct("Search web.")
-        | Agent("scholar").model("gemini-2.5-flash").instruct("Search papers.")
+        Agent("literature_agent").model("gemini-2.5-flash")
+        .instruct("Search medical literature databases for relevant studies.")
+        | Agent("trial_agent").model("gemini-2.5-flash")
+        .instruct("Query clinical trial registries for comparable trials.")
     )
-    >> S.merge("web", "scholar", into="research")
-    >> S.default(confidence=0.0, draft_count=0)
-    >> Agent("writer").model("gemini-2.5-flash").instruct("Write report.")
+    >> S.merge("literature_agent", "trial_agent", into="combined_evidence")
+    >> S.default(confidence_interval=0.95, sample_size=0)
+    >> Agent("report_writer").model("gemini-2.5-flash")
+    .instruct("Write a systematic review report from the combined evidence.")
     >> S.compute(
         word_count=lambda s: len(s.get("report", "").split()),
     )
@@ -89,7 +114,7 @@ research_pipeline = (
 # S transforms compose with >> into Pipeline
 assert isinstance(pipeline, Pipeline)
 built = pipeline.build()
-assert len(built.sub_agents) == 5  # researcher, pick, rename, default, writer
+assert len(built.sub_agents) == 5  # extractor, pick, rename, default, analyzer
 
 # All transform agent names are valid identifiers
 for sub in built.sub_agents:
