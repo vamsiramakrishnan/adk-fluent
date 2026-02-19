@@ -822,6 +822,55 @@ def generate_docs(
 
         # Generate API index
         index_md = gen_api_index(by_module)
+
+        # Discover hand-written .md files in the api/ directory and append
+        # them to the index (summary table + toctree).
+        hand_written: list[tuple[str, str]] = []  # (stem, title)
+        for md_file in sorted(api_dir.glob("*.md")):
+            stem = md_file.stem
+            if stem == "index" or stem in by_module:
+                continue
+            # Extract title from first markdown heading
+            first_line = md_file.read_text().split("\n", 1)[0]
+            title = first_line.lstrip("# ").strip() if first_line.startswith("#") else stem
+            hand_written.append((stem, title))
+
+        if hand_written:
+            # Append hand-written modules to the summary table
+            # Find the end of the table (blank line after last row) and insert rows
+            table_rows = ""
+            toctree_entries = ""
+            for stem, title in hand_written:
+                table_rows += f"| `{stem}` | — | [{stem}]({stem}.md) |\n"
+                toctree_entries += f"{stem}\n"
+
+            # Insert table rows before the blank line after the table
+            # and toctree entries before the closing ```
+            lines = index_md.split("\n")
+            new_lines: list[str] = []
+            in_toctree = False
+            table_done = False
+            for line in lines:
+                # Detect end of table: first blank line after table rows
+                if not table_done and line == "" and new_lines and new_lines[-1].startswith("|"):
+                    # Insert hand-written table rows before the blank line
+                    for stem, title in hand_written:
+                        new_lines.append(f"| `{stem}` | — | [{stem}]({stem}.md) |")
+                    table_done = True
+
+                if line.startswith("```{toctree}"):
+                    in_toctree = True
+
+                # Insert hand-written entries before closing ```
+                if in_toctree and line == "```":
+                    for stem, _title in hand_written:
+                        new_lines.append(stem)
+                    in_toctree = False
+
+                new_lines.append(line)
+
+            index_md = "\n".join(new_lines)
+
         index_path = api_dir / "index.md"
         index_path.write_text(index_md)
         print(f"  Generated: {index_path}")

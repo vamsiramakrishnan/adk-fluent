@@ -16,6 +16,9 @@ Complete API reference for all **132 builders** across
 | `service` | 15 | [service](service.md) |
 | `tool` | 51 | [tool](tool.md) |
 | `workflow` | 3 | [workflow](workflow.md) |
+| `context` | — | [context](context.md) |
+| `contracts` | — | [contracts](contracts.md) |
+| `visibility` | — | [visibility](visibility.md) |
 
 ```{toctree}
 :hidden:
@@ -29,4 +32,7 @@ runtime
 service
 tool
 workflow
+context
+contracts
+visibility
 ```
