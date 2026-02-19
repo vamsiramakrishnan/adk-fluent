@@ -1,60 +1,76 @@
-"""Retry If: Conditional Retry Based on Output Quality"""
+"""Retry If: API Integration Agent That Retries on Transient Failures"""
 
 # --- NATIVE ---
 # Native ADK has no built-in conditional retry. You'd need to:
 #   1. Wrap the agent in a LoopAgent
 #   2. Create a custom checkpoint BaseAgent that evaluates a predicate
 #   3. Yield Event(actions=EventActions(escalate=True)) to exit when satisfied
-# This is the same boilerplate as loop_until but with inverted logic.
+# For a payment gateway integration, this means 30+ lines of boilerplate
+# just to handle transient 503 errors.
 
 # --- FLUENT ---
 from adk_fluent import Agent, Loop
 
-# .retry_if(): retry while the predicate returns True
-# Semantically: "keep retrying as long as quality is not good"
-writer = (
-    Agent("writer")
+# Scenario: A payment processing agent that calls an external gateway.
+# Transient failures (timeouts, rate limits) should trigger automatic retries,
+# but permanent failures (invalid card) should stop immediately.
+
+# .retry_if(): keep retrying while the predicate returns True
+payment_processor = (
+    Agent("payment_processor")
     .model("gemini-2.5-flash")
-    .instruct("Write a high-quality draft.")
-    .outputs("quality")
-    .retry_if(lambda s: s.get("quality") != "good", max_retries=3)
+    .instruct("Process the payment through the gateway. Report status as 'success', 'transient_error', or 'permanent_error'.")
+    .outputs("payment_status")
+    .retry_if(lambda s: s.get("payment_status") == "transient_error", max_retries=3)
 )
 
-# retry_if on a pipeline -- retry the whole pipeline
-pipeline_retry = (
-    Agent("drafter").model("gemini-2.5-flash").instruct("Write.").outputs("draft")
-    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Score quality.").outputs("score")
-).retry_if(lambda s: float(s.get("score", "0")) < 8.0, max_retries=5)
+# retry_if on a pipeline -- retry the entire charge-then-verify flow
+charge_and_verify = (
+    Agent("charge_agent").model("gemini-2.5-flash")
+    .instruct("Submit charge to payment gateway.")
+    .outputs("charge_result")
+    >> Agent("verification_agent").model("gemini-2.5-flash")
+    .instruct("Verify the charge was recorded by the bank.")
+    .outputs("verified")
+).retry_if(lambda s: s.get("verified") != "confirmed", max_retries=5)
 
 # Equivalence: retry_if(p) == loop_until(not p)
-# These produce identical behavior:
-via_retry = Agent("a").model("gemini-2.5-flash").retry_if(lambda s: s.get("ok") != "yes", max_retries=4)
-via_loop = Agent("a").model("gemini-2.5-flash").loop_until(lambda s: s.get("ok") == "yes", max_iterations=4)
+# These produce identical behavior for an inventory sync agent:
+via_retry = (
+    Agent("inventory_sync")
+    .model("gemini-2.5-flash")
+    .retry_if(lambda s: s.get("sync_status") != "complete", max_retries=4)
+)
+via_loop = (
+    Agent("inventory_sync")
+    .model("gemini-2.5-flash")
+    .loop_until(lambda s: s.get("sync_status") == "complete", max_iterations=4)
+)
 
 # --- ASSERT ---
 from adk_fluent.workflow import Loop as LoopBuilder
 
 # retry_if creates a Loop builder
-assert isinstance(writer, LoopBuilder)
+assert isinstance(payment_processor, LoopBuilder)
 
-# Default max_retries is 3
-assert writer._config["max_iterations"] == 3
+# max_retries maps to max_iterations
+assert payment_processor._config["max_iterations"] == 3
 
 # Pipeline retry also creates a Loop
-assert isinstance(pipeline_retry, LoopBuilder)
-assert pipeline_retry._config["max_iterations"] == 5
+assert isinstance(charge_and_verify, LoopBuilder)
+assert charge_and_verify._config["max_iterations"] == 5
 
 # The predicate is inverted: retry_if(p) stores not-p as until_predicate
-until_pred = writer._config["_until_predicate"]
-assert until_pred({"quality": "good"}) is True  # exit: stop retrying
-assert until_pred({"quality": "bad"}) is False  # continue retrying
+until_pred = payment_processor._config["_until_predicate"]
+assert until_pred({"payment_status": "success"}) is True          # exit: stop retrying
+assert until_pred({"payment_status": "transient_error"}) is False  # continue retrying
 
-# Both retry_if and loop_until produce Loop builders
+# Both retry_if and loop_until produce Loop builders with identical structure
 assert isinstance(via_retry, LoopBuilder)
 assert isinstance(via_loop, LoopBuilder)
 assert via_retry._config["max_iterations"] == via_loop._config["max_iterations"]
 
 # Build verifies checkpoint agent is injected
-built = writer.build()
+built = payment_processor.build()
 assert len(built.sub_agents) >= 2
 assert built.sub_agents[-1].name == "_until_check"
