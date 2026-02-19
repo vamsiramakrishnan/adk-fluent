@@ -1,27 +1,40 @@
-"""Production Runtime Setup"""
+"""Deploying a Chatbot to Production"""
 
 # --- NATIVE ---
-# Native ADK production setup requires multiple objects:
+# Native ADK production setup requires assembling multiple objects:
 #   from google.adk.agents.llm_agent import LlmAgent
 #   from google.adk.runners import Runner
 #   from google.adk.sessions.in_memory_session_service import InMemorySessionService
 #
-#   agent = LlmAgent(name="prod", model="gemini-2.5-flash", instruction="Production agent.")
+#   agent = LlmAgent(
+#       name="store_assistant",
+#       model="gemini-2.5-flash",
+#       instruction="You are a helpful e-commerce assistant. Help customers "
+#                   "find products, check order status, and answer FAQs.",
+#       description="Production e-commerce chatbot with order tracking and FAQ support.",
+#   )
 #   session_service = InMemorySessionService()
-#   runner = Runner(agent=agent, app_name="prod_app", session_service=session_service)
+#   runner = Runner(
+#       agent=agent, app_name="ecommerce_app", session_service=session_service
+#   )
 
 # --- FLUENT ---
 from adk_fluent import Agent
 
-# The fluent API reduces runtime setup too:
+# The fluent API collapses runtime setup into a single chain.
+# .describe() adds metadata visible to monitoring and admin dashboards.
 agent = (
-    Agent("prod")
+    Agent("store_assistant")
     .model("gemini-2.5-flash")
-    .instruct("Production agent.")
-    .describe("A production-ready agent with tools and callbacks.")
+    .instruct(
+        "You are a helpful e-commerce assistant. Help customers "
+        "find products, check order status, and answer FAQs."
+    )
+    .describe("Production e-commerce chatbot with order tracking and FAQ support.")
 )
 
 # --- ASSERT ---
-assert agent._config["name"] == "prod"
+assert agent._config["name"] == "store_assistant"
 assert agent._config["model"] == "gemini-2.5-flash"
-assert agent._config["instruction"] == "Production agent."
+assert "e-commerce assistant" in agent._config["instruction"]
+assert "Production e-commerce chatbot" in agent._config["description"]

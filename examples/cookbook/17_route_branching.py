@@ -1,51 +1,59 @@
-"""Deterministic Route Branching"""
+"""E-Commerce Order Routing with Deterministic Branching"""
 
 # --- NATIVE ---
 # Native ADK has no built-in deterministic router. You'd need:
-#   1. An LlmAgent coordinator (wastes API calls for simple decisions), OR
-#   2. A custom BaseAgent subclass with predicate logic
-# Neither approach is ergonomic.
+#   1. An LlmAgent coordinator (wastes API calls for simple routing), OR
+#   2. A custom BaseAgent subclass with predicate logic (~30 lines)
+# Neither approach is ergonomic for common routing patterns.
 
 # --- FLUENT ---
 from adk_fluent import Agent
 from adk_fluent._routing import Route
 
-booker = Agent("booker").model("gemini-2.5-flash").instruct("Book flights.")
-info = Agent("info").model("gemini-2.5-flash").instruct("Provide info.")
-default = Agent("fallback").model("gemini-2.5-flash").instruct("Handle other.")
+# Route on exact match: direct orders to the correct fulfillment team
+electronics = Agent("electronics").model("gemini-2.5-flash").instruct("Process electronics orders.")
+clothing = Agent("clothing").model("gemini-2.5-flash").instruct("Process clothing orders.")
+grocery = Agent("grocery").model("gemini-2.5-flash").instruct("Process grocery orders with cold chain.")
 
-# Route on exact match
-route = Route("intent").eq("booking", booker).eq("info", info).otherwise(default)
+category_route = (
+    Route("category")
+    .eq("electronics", electronics)
+    .eq("clothing", clothing)
+    .eq("grocery", grocery)
+    .otherwise(Agent("general").model("gemini-2.5-flash").instruct("Process general merchandise."))
+)
 
-# Route on substring
-urgent = Agent("urgent").model("gemini-2.5-flash").instruct("Handle urgently.")
-normal = Agent("normal").model("gemini-2.5-flash").instruct("Handle normally.")
-text_route = Route("message").contains("URGENT", urgent).otherwise(normal)
+# Route on substring: detect priority keywords in order notes
+express = Agent("express").model("gemini-2.5-flash").instruct("Expedite with next-day delivery.")
+standard = Agent("standard").model("gemini-2.5-flash").instruct("Process with standard shipping.")
+priority_route = Route("order_notes").contains("RUSH", express).otherwise(standard)
 
-# Route on threshold
-premium = Agent("premium").model("gemini-2.5-flash").instruct("Premium service.")
-basic = Agent("basic").model("gemini-2.5-flash").instruct("Basic service.")
-score_route = Route("score").gt(0.8, premium).otherwise(basic)
+# Route on threshold: handle high-value orders differently
+vip_handler = Agent("vip_handler").model("gemini-2.5-flash").instruct("Assign dedicated account manager.")
+regular_handler = Agent("regular_handler").model("gemini-2.5-flash").instruct("Process normally.")
+value_route = Route("order_total").gt(500.0, vip_handler).otherwise(regular_handler)
 
-# Complex multi-key predicate
+# Complex multi-key predicate: combine membership status and order value
 complex_route = (
-    Route().when(lambda s: s.get("status") == "vip" and float(s.get("score", 0)) > 0.5, premium).otherwise(basic)
+    Route()
+    .when(lambda s: s.get("membership") == "platinum" and float(s.get("order_total", 0)) > 100, vip_handler)
+    .otherwise(regular_handler)
 )
 
 # --- ASSERT ---
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
-# Route builds to BaseAgent (deterministic, no LLM)
-built = route.build()
+# Route builds to BaseAgent (deterministic, no LLM needed for routing)
+built = category_route.build()
 assert isinstance(built, BaseAgent)
 assert not isinstance(built, LlmAgent)
-assert len(built.sub_agents) == 3  # booker, info, default
+assert len(built.sub_agents) == 4  # electronics, clothing, grocery, general
 
-# Text route works
-built_text = text_route.build()
-assert len(built_text.sub_agents) == 2
+# Priority route works
+built_priority = priority_route.build()
+assert len(built_priority.sub_agents) == 2
 
-# Score route works
-built_score = score_route.build()
-assert len(built_score.sub_agents) == 2
+# Value route works
+built_value = value_route.build()
+assert len(built_value.sub_agents) == 2
