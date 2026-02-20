@@ -373,8 +373,11 @@ def _emit_class_stub(c: ClassNode) -> str:
     if c.doc:
         lines.append(f'    """{c.doc}"""')
 
-    if c.attrs:
-        for attr in c.attrs:
+    # Stubs only expose public attrs — internal attrs (prefixed _) are
+    # implementation details that cause pyright override-mismatch noise.
+    public_attrs = [a for a in c.attrs if not a.name.startswith("_")]
+    if public_attrs:
+        for attr in public_attrs:
             if attr.type_hint:
                 lines.append(f"    {attr.name}: {attr.type_hint} = {attr.value}")
             else:
@@ -383,7 +386,7 @@ def _emit_class_stub(c: ClassNode) -> str:
     for method in c.methods:
         lines.append(_emit_method_stub(method))
 
-    if not c.doc and not c.attrs and not c.methods:
+    if not c.doc and not public_attrs and not c.methods:
         lines.append("    ...")
 
     return "\n".join(lines)
