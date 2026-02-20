@@ -11,4 +11,5 @@ manifest.json
 manifest.previous.json
 .worktrees/
 .gemini
-.claude.issues/
+.claude
+.issues/.wiki/
