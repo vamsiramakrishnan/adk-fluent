@@ -4,6 +4,25 @@
 
 _Source: `32_fallback_operator.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1{"case_law_db_or_statute_search_and_reg_db_or_federal_register (parallel)"}
+    n2["case_law_db_or_statute_search"]
+    n3["case_law_db"]
+    n4["statute_search"]
+    n5["reg_db_or_federal_register"]
+    n6["reg_db"]
+    n7["federal_register"]
+    n2 --> n3
+    n2 --> n4
+    n1 --> n2
+    n5 --> n6
+    n5 --> n7
+    n1 --> n5
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

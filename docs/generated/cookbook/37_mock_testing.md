@@ -4,6 +4,18 @@
 
 _Source: `37_mock_testing.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["kyc_verifier_then_risk_assessor_then_account_provisioner (sequence)"]]
+    n2["kyc_verifier"]
+    n3["risk_assessor"]
+    n4["account_provisioner"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

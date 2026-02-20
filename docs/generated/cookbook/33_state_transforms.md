@@ -4,6 +4,26 @@
 
 _Source: `33_state_transforms.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["literature_agent_and_trial_agent_then_merge_literature_agent_trial_agent_into_combined_evidence_then_default_confidence_interval_sample_size_then_report_writer_then_compute_word_count (sequence)"]]
+    n2{"literature_agent_and_trial_agent (parallel)"}
+    n3["literature_agent"]
+    n4["trial_agent"]
+    n5>"merge_literature_agent_trial_agent_into_combined_evidence transform"]
+    n6>"default_confidence_interval_sample_size transform"]
+    n7["report_writer"]
+    n8>"compute_word_count transform"]
+    n2 --> n3
+    n2 --> n4
+    n2 --> n5
+    n5 --> n6
+    n6 --> n7
+    n7 --> n8
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

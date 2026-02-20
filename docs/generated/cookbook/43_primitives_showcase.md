@@ -4,6 +4,18 @@
 
 _Source: `43_primitives_showcase.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["inventory_checker_then_expect_5_then_payment_processor (sequence)"]]
+    n2["inventory_checker"]
+    n3>"expect_5 transform"]
+    n4["payment_processor"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} adk-fluent
 ```python

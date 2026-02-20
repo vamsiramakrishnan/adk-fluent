@@ -89,6 +89,10 @@ docs: _require-manifest _require-seed
     @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
         --output-dir {{DOC_DIR}} \
         --cookbook-dir {{COOKBOOK_DIR}}
+    @echo "Updating README.md from template..."
+    @uv run python scripts/readme_generator.py
+    @echo "Generating concepts documentation..."
+    @uv run python scripts/concepts_generator.py
 
 docs-api: _require-manifest _require-seed
     @echo "Generating API reference..."

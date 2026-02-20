@@ -4,6 +4,18 @@
 
 _Source: `16_operator_composition.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["scraper_then_analyzer_then_reporter (sequence)"]]
+    n2["scraper"]
+    n3["analyzer"]
+    n4["reporter"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

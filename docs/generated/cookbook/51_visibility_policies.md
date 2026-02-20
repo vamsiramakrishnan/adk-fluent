@@ -4,6 +4,20 @@
 
 _Source: `51_visibility_policies.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["drafter_then_fact_checker_then_compliance_then_publisher (sequence)"]]
+    n2["drafter"]
+    n3["fact_checker"]
+    n4["compliance"]
+    n5["publisher"]
+    n2 --> n3
+    n3 --> n4
+    n4 --> n5
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

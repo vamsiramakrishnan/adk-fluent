@@ -9,6 +9,18 @@ summary.
 
 _Source: `04_sequential_pipeline.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["contract_review (sequence)"]]
+    n2["extractor"]
+    n3["risk_analyst"]
+    n4["summarizer"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

@@ -4,6 +4,18 @@
 
 _Source: `19_conditional_gating.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["risk_scorer_then_fraud_investigator_then_compliance_notifier (sequence)"]]
+    n2["risk_scorer"]
+    n3["fraud_investigator"]
+    n4["compliance_notifier"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

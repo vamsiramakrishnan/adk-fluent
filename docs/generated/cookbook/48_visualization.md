@@ -4,6 +4,19 @@
 
 _Source: `48_visualization.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1{"us_east_and_eu_west_and_ap_south (parallel)"}
+    n2["us_east"]
+    n3["eu_west"]
+    n4["ap_south"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

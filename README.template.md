@@ -141,18 +141,7 @@ support_pipeline = classify >> resolve >> respond
 escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct("Escalate.")
 ```
 
-### Pipeline Architecture
-
-```mermaid
-graph TD
-    n1[["customer_support (sequence)"]]
-    n2["classifier"]
-    n3["resolver"]
-    n4["responder"]
-    n2 --> n3
-    n3 --> n4
-```
-
+<!-- INJECT_MERMAID_DIAGRAM -->
 
 ## Expression Language
 

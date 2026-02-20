@@ -211,6 +211,27 @@ behavior = "runtime_helper_ctx"
 helper_func = "_add_memory_auto_save"
 
 # ---------------------------------------------------------------------------
+# DELEGATION EXTRAS
+# ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "delegate"
+signature = "(self, agent) -> Self"
+doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
+behavior = "runtime_helper"
+helper_func = "delegate_agent"
+example = '''
+specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
+coordinator = (
+    Agent("router", "gemini-2.5-flash")
+    .instruct("Route tasks to specialists.")
+    .delegate(specialist)
+    .build()
+)
+'''
+see_also = ["Agent.tool", "Agent.isolate"]
+
+# ---------------------------------------------------------------------------
 # TRANSFER CONTROL EXTRAS
 # ---------------------------------------------------------------------------
 

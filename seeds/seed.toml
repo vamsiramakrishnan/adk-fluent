@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-20T05:18:53.857363+00:00"
+generated_at = "2026-02-20T06:36:27.543328+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -9,7 +9,7 @@ output_dir = "src/adk_fluent"
 [global]
 skip_fields = ["parent_agent"]
 additive_fields = ["after_agent_callback", "after_model_callback", "after_tool_callback", "before_agent_callback", "before_model_callback", "before_tool_callback", "on_model_error_callback", "on_tool_error_callback"]
-list_extend_fields = ["plugins", "sub_agents", "tools"]
+list_extend_fields = ["after_agent_callbacks", "after_model_callbacks", "after_tool_callbacks", "args", "before_agent_callbacks", "before_model_callbacks", "before_tool_callbacks", "code_block_delimiters", "injection_configs", "plugins", "sub_agents", "tool_simulation_configs", "tools"]
 
 [field_docs]
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
@@ -65,6 +65,13 @@ name = "build"
 returns = "BaseAgent"
 doc = "Resolve into a native ADK BaseAgent."
 
+[[builders.BaseAgent.extras]]
+name = "sub_agent"
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
 [builders.BaseAgentConfig]
 source_class = "google.adk.agents.base_agent_config.BaseAgentConfig"
 output_module = "config"
@@ -80,6 +87,27 @@ describe = "description"
 name = "build"
 returns = "BaseAgentConfig"
 doc = "Resolve into a native ADK BaseAgentConfig."
+
+[[builders.BaseAgentConfig.extras]]
+name = "sub_agent"
+signature = "(self, value: AgentRefConfig) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.BaseAgentConfig.extras]]
+name = "before_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_agent_callbacks"
+
+[[builders.BaseAgentConfig.extras]]
+name = "after_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_agent_callbacks"
 
 [builders.AgentRefConfig]
 source_class = "google.adk.agents.common_configs.AgentRefConfig"
@@ -120,6 +148,13 @@ name = "build"
 returns = "CodeConfig"
 doc = "Resolve into a native ADK CodeConfig."
 
+[[builders.CodeConfig.extras]]
+name = "arg"
+signature = "(self, value: ArgumentConfig) -> Self"
+doc = "Append to ``args`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "args"
+
 [builders.ContextCacheConfig]
 source_class = "google.adk.agents.context_cache_config.ContextCacheConfig"
 output_module = "config"
@@ -150,6 +185,7 @@ include_history = "include_contents"
 instruct = "instruction"
 outputs = "output_key"
 static = "static_instruction"
+static_instruct = "static_instruction"
 
 [builders.Agent.callback_aliases]
 after_agent = "after_agent_callback"
@@ -167,30 +203,11 @@ returns = "LlmAgent"
 doc = "Resolve into a native ADK LlmAgent."
 
 [[builders.Agent.extras]]
-name = "apply"
-signature = "(self, stack: MiddlewareStack) -> Self"
-doc = "Apply a reusable middleware stack (bulk callback registration)."
-
-[[builders.Agent.extras]]
 name = "sub_agent"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Add a sub-agent (appends). Multiple .sub_agent() calls accumulate."
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
-
-[[builders.Agent.extras]]
-name = "member"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern."
-behavior = "deprecation_alias"
-target_method = "sub_agent"
-
-[[builders.Agent.extras]]
-name = "delegate"
-signature = "(self, agent) -> Self"
-doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
-behavior = "runtime_helper"
-helper_func = "delegate_agent"
 
 [[builders.Agent.extras]]
 name = "tool"
@@ -351,6 +368,23 @@ behavior = "runtime_helper_ctx"
 helper_func = "_add_memory_auto_save"
 
 [[builders.Agent.extras]]
+name = "delegate"
+signature = "(self, agent) -> Self"
+doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
+behavior = "runtime_helper"
+helper_func = "delegate_agent"
+example = '''
+specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
+coordinator = (
+    Agent("router", "gemini-2.5-flash")
+    .instruct("Route tasks to specialists.")
+    .delegate(specialist)
+    .build()
+)
+'''
+see_also = ["Agent.tool", "Agent.isolate"]
+
+[[builders.Agent.extras]]
 name = "isolate"
 signature = "(self) -> Self"
 doc = "Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."
@@ -390,11 +424,68 @@ include_history = "include_contents"
 instruct = "instruction"
 outputs = "output_key"
 static = "static_instruction"
+static_instruct = "static_instruction"
 
 [[builders.LlmAgentConfig.terminals]]
 name = "build"
 returns = "LlmAgentConfig"
 doc = "Resolve into a native ADK LlmAgentConfig."
+
+[[builders.LlmAgentConfig.extras]]
+name = "sub_agent"
+signature = "(self, value: AgentRefConfig) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.LlmAgentConfig.extras]]
+name = "before_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_agent_callbacks"
+
+[[builders.LlmAgentConfig.extras]]
+name = "after_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_agent_callbacks"
+
+[[builders.LlmAgentConfig.extras]]
+name = "tool"
+signature = "(self, value: ToolConfig) -> Self"
+doc = "Append to ``tools`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "tools"
+
+[[builders.LlmAgentConfig.extras]]
+name = "before_model_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_model_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_model_callbacks"
+
+[[builders.LlmAgentConfig.extras]]
+name = "after_model_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_model_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_model_callbacks"
+
+[[builders.LlmAgentConfig.extras]]
+name = "before_tool_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_tool_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_tool_callbacks"
+
+[[builders.LlmAgentConfig.extras]]
+name = "after_tool_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_tool_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_tool_callbacks"
 
 [builders.Loop]
 source_class = "google.adk.agents.loop_agent.LoopAgent"
@@ -418,8 +509,15 @@ doc = "Resolve into a native ADK LoopAgent."
 
 [[builders.Loop.extras]]
 name = "step"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Append an agent as the next step (lazy — built at .build() time)."
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.Loop.extras]]
+name = "sub_agent"
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
@@ -446,6 +544,27 @@ name = "build"
 returns = "LoopAgentConfig"
 doc = "Resolve into a native ADK LoopAgentConfig."
 
+[[builders.LoopAgentConfig.extras]]
+name = "sub_agent"
+signature = "(self, value: AgentRefConfig) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.LoopAgentConfig.extras]]
+name = "before_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_agent_callbacks"
+
+[[builders.LoopAgentConfig.extras]]
+name = "after_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_agent_callbacks"
+
 [builders.FanOut]
 source_class = "google.adk.agents.parallel_agent.ParallelAgent"
 output_module = "workflow"
@@ -468,15 +587,15 @@ doc = "Resolve into a native ADK ParallelAgent."
 
 [[builders.FanOut.extras]]
 name = "branch"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Add a parallel branch agent (lazy — built at .build() time)."
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
 [[builders.FanOut.extras]]
-name = "step"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API."
+name = "sub_agent"
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
@@ -503,6 +622,27 @@ name = "build"
 returns = "ParallelAgentConfig"
 doc = "Resolve into a native ADK ParallelAgentConfig."
 
+[[builders.ParallelAgentConfig.extras]]
+name = "sub_agent"
+signature = "(self, value: AgentRefConfig) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.ParallelAgentConfig.extras]]
+name = "before_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_agent_callbacks"
+
+[[builders.ParallelAgentConfig.extras]]
+name = "after_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_agent_callbacks"
+
 [builders.RunConfig]
 source_class = "google.adk.agents.run_config.RunConfig"
 output_module = "config"
@@ -510,6 +650,10 @@ doc = "Configs for runtime behavior of agents."
 auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
+
+[builders.RunConfig.aliases]
+input_audio_transcribe = "input_audio_transcription"
+output_audio_transcribe = "output_audio_transcription"
 
 [[builders.RunConfig.terminals]]
 name = "build"
@@ -551,8 +695,15 @@ doc = "Resolve into a native ADK SequentialAgent."
 
 [[builders.Pipeline.extras]]
 name = "step"
-signature = "(self, agent: BaseAgent | AgentBuilder) -> Self"
-doc = "Append an agent as the next step (lazy — built at .build() time)."
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.Pipeline.extras]]
+name = "sub_agent"
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "sub_agents"
 
@@ -579,6 +730,27 @@ name = "build"
 returns = "SequentialAgentConfig"
 doc = "Resolve into a native ADK SequentialAgentConfig."
 
+[[builders.SequentialAgentConfig.extras]]
+name = "sub_agent"
+signature = "(self, value: AgentRefConfig) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
+
+[[builders.SequentialAgentConfig.extras]]
+name = "before_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``before_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "before_agent_callbacks"
+
+[[builders.SequentialAgentConfig.extras]]
+name = "after_agent_callback"
+signature = "(self, value: CodeConfig) -> Self"
+doc = "Append to ``after_agent_callbacks`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "after_agent_callbacks"
+
 [builders.App]
 source_class = "google.adk.apps.app.App"
 output_module = "runtime"
@@ -591,6 +763,13 @@ extra_skip_fields = []
 name = "build"
 returns = "App"
 doc = "Resolve into a native ADK App."
+
+[[builders.App.extras]]
+name = "plugin"
+signature = "(self, value: BasePlugin) -> Self"
+doc = "Append to ``plugins`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "plugins"
 
 [builders.EventsCompactionConfig]
 source_class = "google.adk.apps.app.EventsCompactionConfig"
@@ -722,6 +901,13 @@ name = "build"
 returns = "AgentEngineSandboxCodeExecutor"
 doc = "Resolve into a native ADK AgentEngineSandboxCodeExecutor."
 
+[[builders.AgentEngineSandboxCodeExecutor.extras]]
+name = "code_block_delimiter"
+signature = "(self, value: tuple[str, str]) -> Self"
+doc = "Append to ``code_block_delimiters`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "code_block_delimiters"
+
 [builders.BaseCodeExecutor]
 source_class = "google.adk.code_executors.base_code_executor.BaseCodeExecutor"
 output_module = "executor"
@@ -734,6 +920,13 @@ extra_skip_fields = []
 name = "build"
 returns = "BaseCodeExecutor"
 doc = "Resolve into a native ADK BaseCodeExecutor."
+
+[[builders.BaseCodeExecutor.extras]]
+name = "code_block_delimiter"
+signature = "(self, value: tuple[str, str]) -> Self"
+doc = "Append to ``code_block_delimiters`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "code_block_delimiters"
 
 [builders.BuiltInCodeExecutor]
 source_class = "google.adk.code_executors.built_in_code_executor.BuiltInCodeExecutor"
@@ -748,6 +941,13 @@ name = "build"
 returns = "BuiltInCodeExecutor"
 doc = "Resolve into a native ADK BuiltInCodeExecutor."
 
+[[builders.BuiltInCodeExecutor.extras]]
+name = "code_block_delimiter"
+signature = "(self, value: tuple[str, str]) -> Self"
+doc = "Append to ``code_block_delimiters`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "code_block_delimiters"
+
 [builders.UnsafeLocalCodeExecutor]
 source_class = "google.adk.code_executors.unsafe_local_code_executor.UnsafeLocalCodeExecutor"
 output_module = "executor"
@@ -760,6 +960,13 @@ extra_skip_fields = []
 name = "build"
 returns = "UnsafeLocalCodeExecutor"
 doc = "Resolve into a native ADK UnsafeLocalCodeExecutor."
+
+[[builders.UnsafeLocalCodeExecutor.extras]]
+name = "code_block_delimiter"
+signature = "(self, value: tuple[str, str]) -> Self"
+doc = "Append to ``code_block_delimiters`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "code_block_delimiters"
 
 [builders.VertexAiCodeExecutor]
 source_class = "google.adk.code_executors.vertex_ai_code_executor.VertexAiCodeExecutor"
@@ -859,6 +1066,9 @@ doc = "Configuration for the IterativePromptOptimizer."
 auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
+
+[builders.SimplePromptOptimizerConfig.aliases]
+model_configure = "model_configuration"
 
 [[builders.SimplePromptOptimizerConfig.terminals]]
 name = "build"
@@ -1185,10 +1395,20 @@ auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
 
+[builders.AgentSimulatorConfig.aliases]
+simulation_model_configure = "simulation_model_configuration"
+
 [[builders.AgentSimulatorConfig.terminals]]
 name = "build"
 returns = "AgentSimulatorConfig"
 doc = "Resolve into a native ADK AgentSimulatorConfig."
+
+[[builders.AgentSimulatorConfig.extras]]
+name = "tool_simulation_config"
+signature = "(self, value: ToolSimulationConfig) -> Self"
+doc = "Append to ``tool_simulation_configs`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "tool_simulation_configs"
 
 [builders.InjectionConfig]
 source_class = "google.adk.tools.agent_simulator.agent_simulator_config.InjectionConfig"
@@ -1215,6 +1435,13 @@ extra_skip_fields = []
 name = "build"
 returns = "ToolSimulationConfig"
 doc = "Resolve into a native ADK ToolSimulationConfig."
+
+[[builders.ToolSimulationConfig.extras]]
+name = "injection_config"
+signature = "(self, value: InjectionConfig) -> Self"
+doc = "Append to ``injection_configs`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "injection_configs"
 
 [builders.AgentSimulatorPlugin]
 source_class = "google.adk.tools.agent_simulator.agent_simulator_plugin.AgentSimulatorPlugin"
@@ -1249,6 +1476,9 @@ doc = "The config for the AgentTool."
 auto_tag = "data"
 constructor_args = ["agent"]
 extra_skip_fields = []
+
+[builders.AgentToolConfig.aliases]
+skip_summarizate = "skip_summarization"
 
 [[builders.AgentToolConfig.terminals]]
 name = "build"
@@ -1366,6 +1596,9 @@ doc = "Configuration for BigQuery tools."
 auto_tag = "data"
 constructor_args = []
 extra_skip_fields = []
+
+[builders.BigQueryToolConfig.aliases]
+locate = "location"
 
 [[builders.BigQueryToolConfig.terminals]]
 name = "build"

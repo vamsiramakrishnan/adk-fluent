@@ -4,6 +4,18 @@
 
 _Source: `29_function_steps.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["financial_extractor_then_normalize_currency_then_report_loader (sequence)"]]
+    n2["financial_extractor"]
+    n3>"normalize_currency transform"]
+    n4["report_loader"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

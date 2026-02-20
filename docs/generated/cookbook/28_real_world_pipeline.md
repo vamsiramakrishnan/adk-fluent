@@ -4,6 +4,40 @@
 
 _Source: `28_real_world_pipeline.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["asset_classifier_routed_then_portfolio_reviewer_then_analysis_refiner_x3_then_report_generator (sequence)"]]
+    n2["asset_classifier"]
+    n3{"route_asset_class (route)"}
+    n4["equity_screener"]
+    n5[["credit_analyst_then_rate_modeler (sequence)"]]
+    n6["credit_analyst"]
+    n7["rate_modeler"]
+    n8[["quant_modeler_and_market_sentiment_then_risk_aggregator (sequence)"]]
+    n9{"quant_modeler_and_market_sentiment (parallel)"}
+    n10["quant_modeler"]
+    n11["market_sentiment"]
+    n12["risk_aggregator"]
+    n13(("portfolio_reviewer_then_analysis_refiner_x3 (loop x3)"))
+    n14["portfolio_reviewer"]
+    n15["analysis_refiner"]
+    n16["report_generator"]
+    n3 --> n4
+    n6 --> n7
+    n3 --> n5
+    n9 --> n10
+    n9 --> n11
+    n9 --> n12
+    n3 --> n8
+    n13 --> n14
+    n13 --> n15
+    n2 --> n3
+    n3 --> n13
+    n13 --> n16
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

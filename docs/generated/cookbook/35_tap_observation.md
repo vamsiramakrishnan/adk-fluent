@@ -4,6 +4,18 @@
 
 _Source: `35_tap_observation.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["feature_engineer_then_tap_1_then_inference_engine (sequence)"]]
+    n2["feature_engineer"]
+    n3>"tap_1 tap"]
+    n4["inference_engine"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

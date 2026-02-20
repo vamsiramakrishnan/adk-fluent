@@ -10,6 +10,19 @@ task before returning control.
 
 _Source: `54_transfer_control.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1["service_coordinator"]
+    n2["billing_specialist"]
+    n3["technical_specialist"]
+    n4["general_support"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

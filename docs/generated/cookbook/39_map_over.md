@@ -4,6 +4,20 @@
 
 _Source: `39_map_over.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["feedback_collector_then_map_over_feedback_entries_3_then_summary_writer (sequence)"]]
+    n2["feedback_collector"]
+    n3["map_over_feedback_entries_3"]
+    n4["sentiment_analyzer"]
+    n5["summary_writer"]
+    n3 --> n4
+    n2 --> n3
+    n3 --> n5
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

@@ -9,11 +9,24 @@ form, then assessing risk, then summarizing the outcome.
 
 _Source: `53_structured_schemas.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
+    n2["intake_agent"]
+    n3["risk_agent"]
+    n4["summary_agent"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python
 from pydantic import BaseModel
 from google.adk.agents.llm_agent import LlmAgent
+
 
 class ClaimIntake(BaseModel):
     claimant_name: str
@@ -21,10 +34,12 @@ class ClaimIntake(BaseModel):
     incident_date: str
     description: str
 
+
 class RiskAssessment(BaseModel):
     risk_level: str
     flags: list[str]
     recommended_action: str
+
 
 intake_native = LlmAgent(
     name="intake_agent",
@@ -81,8 +96,8 @@ risk_fluent = (
 )
 
 # The @ operator -- shorthand for .output_schema() in expressions
-base_agent = Agent("intake_agent").model("gemini-2.5-flash").instruct(
-    "Extract claim details and return structured JSON."
+base_agent = (
+    Agent("intake_agent").model("gemini-2.5-flash").instruct("Extract claim details and return structured JSON.")
 )
 typed_agent = base_agent @ ClaimIntake  # immutable: returns a new builder
 
@@ -90,10 +105,7 @@ typed_agent = base_agent @ ClaimIntake  # immutable: returns a new builder
 summary_agent = (
     Agent("summary_agent")
     .model("gemini-2.5-flash")
-    .instruct(
-        "Produce a plain-language summary of the claim and its risk "
-        "assessment for the claims adjuster."
-    )
+    .instruct("Produce a plain-language summary of the claim and its risk assessment for the claims adjuster.")
 )
 pipeline = intake_fluent >> risk_fluent >> summary_agent
 ```

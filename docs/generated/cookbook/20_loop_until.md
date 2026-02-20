@@ -4,6 +4,17 @@
 
 _Source: `20_loop_until.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1(("resume_writer_then_resume_reviewer_x5 (loop x5)"))
+    n2["resume_writer"]
+    n3["resume_reviewer"]
+    n1 --> n2
+    n1 --> n3
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

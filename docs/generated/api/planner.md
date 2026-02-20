@@ -37,7 +37,7 @@ BasePlanner(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BasePlanner`
 
@@ -73,7 +73,7 @@ BuiltInPlanner(thinking_config: types.ThinkingConfig)
 |----------|------|
 | `thinking_config` | `types.ThinkingConfig` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BuiltInPlanner`
 
@@ -110,7 +110,7 @@ PlanReActPlanner(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> PlanReActPlanner`
 

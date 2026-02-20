@@ -22,6 +22,7 @@ from adk_fluent import App
 
 result = (
     App("name_value", "root_agent_value")
+    .plugin(...)
     .build()
 )
 ```
@@ -37,7 +38,13 @@ App(name: str, root_agent: BaseAgent)
 | `name` | `str` |
 | `root_agent` | `BaseAgent` |
 
-### Terminal Methods
+### Configuration
+
+#### `.plugin(value: BasePlugin) -> Self`
+
+Append to ``plugins`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> App`
 
@@ -74,7 +81,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> InMemoryRunner`
 
@@ -122,7 +129,7 @@ Runner(session_service: BaseSessionService)
 |----------|------|
 | `session_service` | `BaseSessionService` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> Runner`
 

@@ -46,6 +46,11 @@ class App(BuilderBase):
         self._config["resumability_config"] = value
         return self
 
+    def plugin(self, value: BasePlugin) -> Self:
+        """Append to ``plugins`` (lazy — built at .build() time)."""
+        self._lists["plugins"].append(value)
+        return self
+
     def build(self) -> _ADK_App:
         """Represents an LLM-backed agentic application. Resolve into a native ADK _ADK_App."""
         config = self._prepare_build_config()
@@ -58,7 +63,7 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"plugin_close_timeout", "agent", "plugins", "app_name", "app"}
+    _KNOWN_PARAMS: set[str] = {"app_name", "agent", "plugin_close_timeout", "app", "plugins"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -103,16 +108,16 @@ class Runner(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "session_service",
-        "plugin_close_timeout",
-        "agent",
-        "plugins",
-        "credential_service",
         "memory_service",
+        "auto_create_session",
+        "session_service",
         "app_name",
         "artifact_service",
-        "auto_create_session",
+        "agent",
+        "plugin_close_timeout",
         "app",
+        "credential_service",
+        "plugins",
     }
 
     def __init__(self, session_service: str) -> None:

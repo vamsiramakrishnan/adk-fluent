@@ -74,7 +74,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ActiveStreamingTool`
 
@@ -119,7 +119,7 @@ AgentTool(agent: BaseAgent)
 |----------|------|
 | `agent` | `BaseAgent` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> AgentTool`
 
@@ -164,7 +164,7 @@ APIHubToolset(apihub_resource_name: str)
 |----------|------|
 | `apihub_resource_name` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> APIHubToolset`
 
@@ -217,7 +217,7 @@ ApplicationIntegrationToolset(project: str, location: str)
 | `project` | `str` |
 | `location` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ApplicationIntegrationToolset`
 
@@ -274,7 +274,7 @@ IntegrationConnectorTool(name: str, description: str, connection_name: str)
 | `description` | `str` |
 | `connection_name` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> IntegrationConnectorTool`
 
@@ -326,7 +326,7 @@ BaseAuthenticatedTool(name: Any, description: Any)
 | `name` | `Any` |
 | `description` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseAuthenticatedTool`
 
@@ -372,7 +372,7 @@ BaseTool(name: Any, description: Any)
 | `name` | `Any` |
 | `description` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseTool`
 
@@ -407,7 +407,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseToolset`
 
@@ -442,7 +442,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BigQueryToolset`
 
@@ -478,7 +478,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BigtableToolset`
 
@@ -525,7 +525,7 @@ ComputerUseTool(func: Callable[..., Any], screen_size: tuple[int, int])
 | `func` | `Callable[..., Any]` |
 | `screen_size` | `tuple[int, int]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ComputerUseTool`
 
@@ -569,7 +569,7 @@ ComputerUseToolset(computer: BaseComputer)
 |----------|------|
 | `computer` | `BaseComputer` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ComputerUseToolset`
 
@@ -595,7 +595,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DataAgentToolset`
 
@@ -631,7 +631,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DiscoveryEngineSearchTool`
 
@@ -669,7 +669,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> EnterpriseWebSearchTool`
 
@@ -705,7 +705,7 @@ ExampleTool(examples: Union[list[Example], BaseExampleProvider])
 |----------|------|
 | `examples` | `Union[list[Example], BaseExampleProvider]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ExampleTool`
 
@@ -741,7 +741,7 @@ FunctionTool(func: Callable[..., Any])
 |----------|------|
 | `func` | `Callable[..., Any]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> FunctionTool`
 
@@ -785,7 +785,7 @@ GoogleApiTool(rest_api_tool: RestApiTool)
 |----------|------|
 | `rest_api_tool` | `RestApiTool` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GoogleApiTool`
 
@@ -833,7 +833,7 @@ GoogleApiToolset(api_name: str, api_version: str)
 | `api_name` | `str` |
 | `api_version` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GoogleApiToolset`
 
@@ -872,7 +872,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> CalendarToolset`
 
@@ -910,7 +910,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DocsToolset`
 
@@ -948,7 +948,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GmailToolset`
 
@@ -986,7 +986,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SheetsToolset`
 
@@ -1024,7 +1024,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SlidesToolset`
 
@@ -1062,7 +1062,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> YoutubeToolset`
 
@@ -1100,7 +1100,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GoogleMapsGroundingTool`
 
@@ -1136,7 +1136,7 @@ GoogleSearchAgentTool(agent: LlmAgent)
 |----------|------|
 | `agent` | `LlmAgent` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GoogleSearchAgentTool`
 
@@ -1162,7 +1162,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GoogleSearchTool`
 
@@ -1207,7 +1207,7 @@ GoogleTool(func: Callable[..., Any])
 |----------|------|
 | `func` | `Callable[..., Any]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GoogleTool`
 
@@ -1242,7 +1242,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoadArtifactsTool`
 
@@ -1278,7 +1278,7 @@ LoadMcpResourceTool(mcp_toolset: McpToolset)
 |----------|------|
 | `mcp_toolset` | `McpToolset` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoadMcpResourceTool`
 
@@ -1304,7 +1304,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoadMemoryTool`
 
@@ -1340,7 +1340,7 @@ LongRunningFunctionTool(func: Callable)
 |----------|------|
 | `func` | `Callable` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LongRunningFunctionTool`
 
@@ -1377,7 +1377,7 @@ MCPTool(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> MCPTool`
 
@@ -1414,7 +1414,7 @@ McpTool(mcp_tool: McpBaseTool, mcp_session_manager: MCPSessionManager)
 | `mcp_tool` | `McpBaseTool` |
 | `mcp_session_manager` | `MCPSessionManager` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> McpTool`
 
@@ -1463,7 +1463,7 @@ MCPToolset(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> MCPToolset`
 
@@ -1499,7 +1499,7 @@ McpToolset(connection_params: Union[StdioServerParameters, StdioConnectionParams
 |----------|------|
 | `connection_params` | `Union[StdioServerParameters, StdioConnectionParams, SseConnectionParams, StreamableHTTPConnectionParams]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> McpToolset`
 
@@ -1541,7 +1541,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> OpenAPIToolset`
 
@@ -1596,7 +1596,7 @@ RestApiTool(name: str, description: str, endpoint: Union[OperationEndpoint, str]
 | `description` | `str` |
 | `endpoint` | `Union[OperationEndpoint, str]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> RestApiTool`
 
@@ -1636,7 +1636,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> PreloadMemoryTool`
 
@@ -1662,7 +1662,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> PubSubToolset`
 
@@ -1709,7 +1709,7 @@ BaseRetrievalTool(name: Any, description: Any)
 | `name` | `Any` |
 | `description` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseRetrievalTool`
 
@@ -1754,7 +1754,7 @@ SetModelResponseTool(output_schema: type[BaseModel])
 |----------|------|
 | `output_schema` | `type[BaseModel]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SetModelResponseTool`
 
@@ -1790,7 +1790,7 @@ LoadSkillResourceTool(toolset: 'SkillToolset')
 |----------|------|
 | `toolset` | `'SkillToolset'` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoadSkillResourceTool`
 
@@ -1826,7 +1826,7 @@ LoadSkillTool(toolset: 'SkillToolset')
 |----------|------|
 | `toolset` | `'SkillToolset'` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoadSkillTool`
 
@@ -1862,7 +1862,7 @@ SkillToolset(skills: list[models.Skill])
 |----------|------|
 | `skills` | `list[models.Skill]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SkillToolset`
 
@@ -1888,7 +1888,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SpannerToolset`
 
@@ -1935,7 +1935,7 @@ ToolboxToolset(server_url: str, kwargs: Any)
 | `server_url` | `str` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ToolboxToolset`
 
@@ -1984,7 +1984,7 @@ TransferToAgentTool(agent_names: list[str])
 |----------|------|
 | `agent_names` | `list[str]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> TransferToAgentTool`
 
@@ -2010,7 +2010,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> UrlContextTool`
 
@@ -2036,7 +2036,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> VertexAiSearchTool`
 

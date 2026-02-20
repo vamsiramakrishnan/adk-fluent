@@ -4,6 +4,32 @@
 
 _Source: `34_full_algebra.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["wire_service_and_social_monitor_then_merge_wire_service_social_monitor_into_raw_sources_then_senior_writer_or_backup_writer_then_fact_checker_then_copy_editor_x4 (sequence)"]]
+    n2{"wire_service_and_social_monitor (parallel)"}
+    n3["wire_service"]
+    n4["social_monitor"]
+    n5>"merge_wire_service_social_monitor_into_raw_sources transform"]
+    n6["senior_writer_or_backup_writer"]
+    n7["senior_writer"]
+    n8["backup_writer"]
+    n9(("fact_checker_then_copy_editor_x4 (loop x4)"))
+    n10["fact_checker"]
+    n11["copy_editor"]
+    n2 --> n3
+    n2 --> n4
+    n6 --> n7
+    n6 --> n8
+    n9 --> n10
+    n9 --> n11
+    n2 --> n5
+    n5 --> n6
+    n6 --> n9
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

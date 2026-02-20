@@ -35,7 +35,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> RecordingsPlugin`
 
@@ -69,7 +69,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ReplayPlugin`
 
@@ -113,7 +113,7 @@ BasePlugin(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BasePlugin`
 
@@ -151,7 +151,7 @@ BigQueryAgentAnalyticsPlugin(project_id: str, dataset_id: str, kwargs: Any)
 | `dataset_id` | `str` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BigQueryAgentAnalyticsPlugin`
 
@@ -187,7 +187,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ContextFilterPlugin`
 
@@ -223,7 +223,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DebugLoggingPlugin`
 
@@ -260,7 +260,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GlobalInstructionPlugin`
 
@@ -295,7 +295,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoggingPlugin`
 
@@ -329,7 +329,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> MultimodalToolResultsPlugin`
 
@@ -363,7 +363,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ReflectAndRetryToolPlugin`
 
@@ -400,7 +400,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SaveFilesAsArtifactsPlugin`
 
@@ -444,7 +444,7 @@ AgentSimulatorPlugin(simulator_engine: AgentSimulatorEngine)
 |----------|------|
 | `simulator_engine` | `AgentSimulatorEngine` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> AgentSimulatorPlugin`
 

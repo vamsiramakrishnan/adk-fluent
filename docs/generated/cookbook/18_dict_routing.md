@@ -4,6 +4,22 @@
 
 _Source: `18_dict_routing.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["language_detector_routed (sequence)"]]
+    n2["language_detector"]
+    n3{"route_language (route)"}
+    n4["english_support"]
+    n5["spanish_support"]
+    n6["french_support"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n2 --> n3
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

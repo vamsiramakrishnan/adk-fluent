@@ -59,6 +59,11 @@ class BaseAgent(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
+    def sub_agent(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
+        return self
+
     def build(self) -> _ADK_BaseAgent:
         """Base class for all agents in Agent Development Kit. Resolve into a native ADK _ADK_BaseAgent."""
         config = self._prepare_build_config()
@@ -76,6 +81,7 @@ class Agent(BuilderBase):
         "instruct": "instruction",
         "outputs": "output_key",
         "static": "static_instruction",
+        "static_instruct": "static_instruction",
     }
     _CALLBACK_ALIASES: dict[str, str] = {
         "after_agent": "after_agent_callback",
@@ -88,14 +94,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "on_tool_error_callback",
-        "on_model_error_callback",
-        "before_tool_callback",
-        "after_agent_callback",
         "before_model_callback",
+        "after_model_callback",
         "before_agent_callback",
         "after_tool_callback",
-        "after_model_callback",
+        "on_model_error_callback",
+        "after_agent_callback",
+        "on_tool_error_callback",
+        "before_tool_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -136,9 +142,12 @@ class Agent(BuilderBase):
         self._config["output_key"] = value
         return self
 
-    def static(
-        self, value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]
-    ) -> Self:
+    def static(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+        """Set the `static_instruction` field."""
+        self._config["static_instruction"] = value
+        return self
+
+    def static_instruct(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
         """Set the `static_instruction` field."""
         self._config["static_instruction"] = value
         return self
@@ -289,31 +298,10 @@ class Agent(BuilderBase):
         self._config["code_executor"] = value
         return self
 
-    def apply(self, stack: MiddlewareStack) -> Self:
-        """Apply a reusable middleware stack (bulk callback registration)."""
-        raise NotImplementedError("Implement in hand-written layer")
-
-    def sub_agent(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Add a sub-agent (appends). Multiple .sub_agent() calls accumulate."""
-        self._lists["sub_agents"].append(agent)
+    def sub_agent(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
         return self
-
-    def member(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Deprecated: use .sub_agent() instead. Add a sub-agent for coordinator pattern."""
-        import warnings
-
-        warnings.warn(
-            ".member() is deprecated, use .sub_agent() instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.sub_agent(agent)
-
-    def delegate(self, agent) -> Self:
-        """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
-        from adk_fluent._helpers import delegate_agent
-
-        return delegate_agent(self, agent)
 
     def tool(self, fn_or_tool, *, require_confirmation: bool = False) -> Self:
         """Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."""
@@ -407,6 +395,12 @@ class Agent(BuilderBase):
         from adk_fluent._helpers import _add_memory_auto_save
 
         return _add_memory_auto_save(self)
+
+    def delegate(self, agent) -> Self:
+        """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
+        from adk_fluent._helpers import delegate_agent
+
+        return delegate_agent(self, agent)
 
     def isolate(self) -> Self:
         """Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."""

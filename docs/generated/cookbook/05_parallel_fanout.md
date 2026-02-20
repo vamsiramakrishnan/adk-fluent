@@ -9,6 +9,19 @@ to produce a comprehensive competitive analysis.
 
 _Source: `05_parallel_fanout.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1{"market_research (parallel)"}
+    n2["web_analyst"]
+    n3["academic_analyst"]
+    n4["social_analyst"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

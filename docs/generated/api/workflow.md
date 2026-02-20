@@ -37,12 +37,22 @@ Loop(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Set the `description` field.
+
+#### `.sub_agent(value: BaseAgent) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.to_ir()`
+
+Convert this Loop builder to a LoopNode IR node.
 
 ### Callbacks
 
@@ -51,8 +61,7 @@ Loop(name: str)
 Append callback(s) to `after_agent_callback`.
 
 :::{note}
-Multiple calls accumulate. Each invocation appends to the callback list
-rather than replacing previous callbacks.
+Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self`
@@ -64,29 +73,22 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 Append callback(s) to `before_agent_callback`.
 
 :::{note}
-Multiple calls accumulate. Each invocation appends to the callback list
-rather than replacing previous callbacks.
+Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-### Extra Methods
-
-#### `.step(agent: BaseAgent | AgentBuilder) -> Self`
-
-Append an agent as the next step (lazy — built at .build() time).
-
-#### `.to_ir()`
-
-Convert this Loop builder to a LoopNode IR node.
-
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> LoopAgent`
 
 Resolve into a native ADK LoopAgent.
+
+#### `.step(value: BaseAgent) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
 
 ### Forwarded Fields
 
@@ -128,12 +130,22 @@ FanOut(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Set the `description` field.
+
+#### `.sub_agent(value: BaseAgent) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.to_ir()`
+
+Convert this FanOut builder to a ParallelNode IR node.
 
 ### Callbacks
 
@@ -142,8 +154,7 @@ FanOut(name: str)
 Append callback(s) to `after_agent_callback`.
 
 :::{note}
-Multiple calls accumulate. Each invocation appends to the callback list
-rather than replacing previous callbacks.
+Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self`
@@ -155,29 +166,18 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 Append callback(s) to `before_agent_callback`.
 
 :::{note}
-Multiple calls accumulate. Each invocation appends to the callback list
-rather than replacing previous callbacks.
+Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-### Extra Methods
+### Control Flow & Execution
 
-#### `.branch(agent: BaseAgent | AgentBuilder) -> Self`
+#### `.branch(value: BaseAgent) -> Self`
 
-Add a parallel branch agent (lazy — built at .build() time).
-
-#### `.step(agent: BaseAgent | AgentBuilder) -> Self`
-
-Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API.
-
-#### `.to_ir()`
-
-Convert this FanOut builder to a ParallelNode IR node.
-
-### Terminal Methods
+Append to ``sub_agents`` (lazy — built at .build() time).
 
 #### `.build() -> ParallelAgent`
 
@@ -222,12 +222,22 @@ Pipeline(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Set the `description` field.
+
+#### `.sub_agent(value: BaseAgent) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.to_ir()`
+
+Convert this Pipeline builder to a SequenceNode IR node.
 
 ### Callbacks
 
@@ -236,8 +246,7 @@ Pipeline(name: str)
 Append callback(s) to `after_agent_callback`.
 
 :::{note}
-Multiple calls accumulate. Each invocation appends to the callback list
-rather than replacing previous callbacks.
+Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self`
@@ -249,29 +258,22 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 Append callback(s) to `before_agent_callback`.
 
 :::{note}
-Multiple calls accumulate. Each invocation appends to the callback list
-rather than replacing previous callbacks.
+Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-### Extra Methods
-
-#### `.step(agent: BaseAgent | AgentBuilder) -> Self`
-
-Append an agent as the next step (lazy — built at .build() time).
-
-#### `.to_ir()`
-
-Convert this Pipeline builder to a SequenceNode IR node.
-
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SequentialAgent`
 
 Resolve into a native ADK SequentialAgent.
+
+#### `.step(value: BaseAgent) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
 
 ### Forwarded Fields
 

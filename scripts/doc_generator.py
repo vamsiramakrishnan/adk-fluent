@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import importlib.util
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
 
 with contextlib.suppress(ImportError):
@@ -71,19 +73,90 @@ def _usage_example(spec: BuilderSpec) -> str:
 # ---------------------------------------------------------------------------
 
 
-def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
-    """Generate MyST-flavored Markdown API reference for a single builder.
+def _extract_doc_example(doc: str) -> tuple[str, str]:
+    """Splits a docstring into (main_doc, example_code)."""
+    if not doc:
+        return "", ""
+    parts = re.split(r"(?:^|\n)\s*Examples?:\s*(?:\n|$)", doc, maxsplit=1, flags=re.IGNORECASE)
+    if len(parts) == 2:
+        example = parts[1].strip()
+        if example.startswith("```python"):
+            example = example[9:].strip()
+        elif example.startswith("```"):
+            example = example[3:].strip()
+        if example.endswith("```"):
+            example = example[:-3].strip()
+        return parts[0].strip(), example.strip()
+    return doc.strip(), ""
 
-    Sections:
-      - MyST target anchor for cross-referencing
-      - Header with description and inline usage example
-      - Constructor args table
-      - Alias methods with full type hints
-      - Callback methods with MyST admonitions
-      - Extra methods
-      - Terminal methods
-      - Forwarded fields table
-    """
+
+@dataclass
+class ApiMethod:
+    name: str
+    signature: str
+    doc: str
+    example: str
+    category: str
+    notes: list[str] = field(default_factory=list)
+
+
+def _categorize_method(method_name: str, is_callback: bool, spec_name: str) -> str:
+    CONTROL_FLOW = {
+        "proceed_if",
+        "loop_until",
+        "retry_if",
+        "timeout",
+        "delegate",
+        "isolate",
+        "step",
+        "branch",
+        "build",
+        "ask",
+        "ask_async",
+        "stream",
+        "events",
+        "map",
+        "map_async",
+        "session",
+        "test",
+        "clone",
+        "with_",
+        "validate",
+        "explain",
+        "until",
+        "max_iterations",
+    }
+    TRANSFORMS = {"pick", "rename", "merge", "default", "drop", "transform", "compute", "guard", "log"}
+    CORE_CONFIG = {
+        "model",
+        "instruct",
+        "static",
+        "describe",
+        "history",
+        "outputs",
+        "tool",
+        "sub_agent",
+        "role",
+        "task",
+        "name",
+        "inject_context",
+        "global_instruct",
+        "schema",
+        "branch",
+    }
+    if method_name in CONTROL_FLOW:
+        return "Control Flow & Execution"
+    if method_name in TRANSFORMS and spec_name == "S":
+        return "State Transforms"
+    if is_callback or method_name == "guardrail":
+        return "Callbacks"
+    if method_name in CORE_CONFIG:
+        return "Core Configuration"
+    return "Configuration"
+
+
+def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
+    """Generate MyST-flavored Markdown API reference for a single builder."""
     lines: list[str] = []
 
     # --- MyST target anchor ---
@@ -147,10 +220,10 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             lines.append(f"| `{arg}` | `{arg_type}` |")
         lines.append("")
 
+    methods: list[ApiMethod] = []
+
     # --- Alias Methods ---
     if spec.aliases:
-        lines.append("### Methods")
-        lines.append("")
         for fluent_name, field_name in spec.aliases.items():
             field_info = next((f for f in spec.fields if f["name"] == field_name), None)
             type_hint = field_info["type_str"] if field_info else "Any"
@@ -160,79 +233,133 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             if not doc:
                 doc = f"Set the `{field_name}` field."
 
-            lines.append(f"#### `.{fluent_name}(value: {type_hint}) -> Self`")
-            lines.append("")
-            lines.append(f"- **Maps to:** `{field_name}`")
-            lines.append(f"- {doc}")
-            lines.append("")
+            main_doc, example_code = _extract_doc_example(doc)
+            category = _categorize_method(fluent_name, False, spec.name)
+
+            methods.append(
+                ApiMethod(
+                    name=fluent_name,
+                    signature=f"(value: {type_hint}) -> Self",
+                    doc=f"- **Maps to:** `{field_name}`\n- {main_doc}",
+                    example=example_code,
+                    category=category,
+                )
+            )
 
     # --- Callback Methods ---
     if spec.callback_aliases:
-        lines.append("### Callbacks")
-        lines.append("")
         for short_name, full_name in spec.callback_aliases.items():
-            lines.append(f"#### `.{short_name}(*fns: Callable) -> Self`")
-            lines.append("")
-            lines.append(f"Append callback(s) to `{full_name}`.")
-            lines.append("")
-            lines.append(":::{note}")
-            lines.append("Multiple calls accumulate. Each invocation appends to the callback list")
-            lines.append("rather than replacing previous callbacks.")
-            lines.append(":::")
-            lines.append("")
-
-            lines.append(f"#### `.{short_name}_if(condition: bool, fn: Callable) -> Self`")
-            lines.append("")
-            lines.append(f"Append callback to `{full_name}` only if `condition` is `True`.")
-            lines.append("")
+            category = _categorize_method(short_name, True, spec.name)
+            methods.append(
+                ApiMethod(
+                    name=short_name,
+                    signature="(*fns: Callable) -> Self",
+                    doc=f"Append callback(s) to `{full_name}`.",
+                    example="",
+                    category=category,
+                    notes=[
+                        "Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks."
+                    ],
+                )
+            )
+            methods.append(
+                ApiMethod(
+                    name=f"{short_name}_if",
+                    signature="(condition: bool, fn: Callable) -> Self",
+                    doc=f"Append callback to `{full_name}` only if `condition` is `True`.",
+                    example="",
+                    category=category,
+                    notes=[],
+                )
+            )
 
     # --- Extra Methods ---
     if spec.extras:
-        lines.append("### Extra Methods")
-        lines.append("")
         for extra in spec.extras:
             name = extra["name"]
             sig = extra.get("signature", "(self) -> Self")
-            doc = extra.get("doc", "")
-            example = extra.get("example", "")
-            see_also = extra.get("see_also", [])
-            # Clean up signature for display — show full type hints
             display_sig = sig.replace("(self, ", "(").replace("(self)", "()")
-            lines.append(f"#### `.{name}{display_sig}`")
-            lines.append("")
-            if doc:
-                lines.append(doc)
-                lines.append("")
-            if example:
-                lines.append("**Example:**")
-                lines.append("")
-                lines.append("```python")
-                lines.append(example.strip())
-                lines.append("```")
-                lines.append("")
+
+            doc = extra.get("doc", "")
+            main_doc, example_code = _extract_doc_example(doc)
+            if extra.get("example"):
+                example_code = extra["example"].strip()
+
+            see_also = extra.get("see_also", [])
+            notes = []
             if see_also:
                 see_also_links = ", ".join(f"`{ref}`" for ref in see_also)
-                lines.append(f"**See also:** {see_also_links}")
-                lines.append("")
+                notes.append(f"**See also:** {see_also_links}")
+
+            category = _categorize_method(name, False, spec.name)
+            methods.append(
+                ApiMethod(
+                    name=name, signature=display_sig, doc=main_doc, example=example_code, category=category, notes=notes
+                )
+            )
 
     # --- Terminal Methods ---
     if spec.terminals:
-        lines.append("### Terminal Methods")
-        lines.append("")
         for terminal in spec.terminals:
             t_name = terminal["name"]
             if "signature" in terminal:
                 display_sig = terminal["signature"].replace("(self, ", "(").replace("(self)", "()")
-                lines.append(f"#### `.{t_name}{display_sig}`")
             elif "returns" in terminal:
-                lines.append(f"#### `.{t_name}() -> {terminal['returns']}`")
+                display_sig = f"() -> {terminal['returns']}"
             else:
-                lines.append(f"#### `.{t_name}()`")
+                display_sig = "()"
+
+            doc = terminal.get("doc", "")
+            main_doc, example_code = _extract_doc_example(doc)
+            category = "Control Flow & Execution"
+
+            methods.append(
+                ApiMethod(
+                    name=t_name,
+                    signature=display_sig,
+                    doc=main_doc,
+                    example=example_code,
+                    category=category,
+                )
+            )
+
+    # Render grouped methods
+    groups = defaultdict(list)
+    for m in methods:
+        groups[m.category].append(m)
+
+    for category in [
+        "Core Configuration",
+        "Configuration",
+        "Callbacks",
+        "State Transforms",
+        "Control Flow & Execution",
+    ]:
+        if category in groups:
+            lines.append(f"### {category}")
             lines.append("")
-            t_doc = terminal.get("doc", "")
-            if t_doc:
-                lines.append(t_doc)
+            for m in sorted(groups[category], key=lambda x: x.name):
+                lines.append(f"#### `.{m.name}{m.signature}`")
                 lines.append("")
+                if m.doc:
+                    lines.append(m.doc)
+                    lines.append("")
+                for note in m.notes:
+                    if note.startswith("**See also"):
+                        lines.append(note)
+                        lines.append("")
+                    else:
+                        lines.append(":::{note}")
+                        lines.append(note)
+                        lines.append(":::")
+                        lines.append("")
+                if m.example:
+                    lines.append("**Example:**")
+                    lines.append("")
+                    lines.append("```python")
+                    lines.append(m.example)
+                    lines.append("```")
+                    lines.append("")
 
     # --- Forwarded Fields ---
     if not spec.is_composite and not spec.is_standalone:
@@ -480,6 +607,57 @@ def _guess_related_api(filename: str) -> tuple[str, str] | None:
     return None
 
 
+def _get_mermaid_from_cookbook(filepath: str) -> str:
+    """Attempts to run the cookbook file and find a builder to generate a mermaid diagram."""
+    try:
+        spec = importlib.util.spec_from_file_location("mod", filepath)
+        mod = importlib.util.module_from_spec(spec)
+
+        # Monkeypatch build on all generated builder classes in adk_fluent
+        import adk_fluent
+
+        patched = {}
+        for name in dir(adk_fluent):
+            obj = getattr(adk_fluent, name)
+            if isinstance(obj, type) and hasattr(obj, "build"):
+                patched[obj] = obj.build
+
+                def mock_build(self, *args, **kwargs):
+                    self._mock_built = True
+                    return self
+
+                obj.build = mock_build
+
+        with contextlib.suppress(Exception):
+            spec.loader.exec_module(mod)
+
+        # Unpatch
+        for obj, orig_build in patched.items():
+            obj.build = orig_build
+
+        # Now find the largest/most complex builder
+        from adk_fluent._base import BuilderBase
+
+        best_builder = None
+        max_nodes = 0
+
+        for name in dir(mod):
+            obj = getattr(mod, name)
+            if isinstance(obj, BuilderBase):
+                with contextlib.suppress(Exception):
+                    mermaid = obj.to_mermaid()
+                    nodes = mermaid.count("    n")  # rough heuristic
+                    if nodes > max_nodes:
+                        max_nodes = nodes
+                        best_builder = obj
+
+        if best_builder and max_nodes >= 2:  # At least a couple of nodes
+            return best_builder.to_mermaid()
+    except Exception:  # noqa: SIM105
+        pass
+    return ""
+
+
 def cookbook_to_markdown(parsed: dict) -> str:
     """Convert parsed cookbook data to MyST Markdown with sphinx-design tabs."""
     lines: list[str] = []
@@ -494,6 +672,18 @@ def cookbook_to_markdown(parsed: dict) -> str:
 
     lines.append(f"_Source: `{parsed['filename']}`_")
     lines.append("")
+
+    # --- Optional Mermaid Diagram ---
+    # We try to dynamically evaluate the file to grab the mermaid graph
+    filepath = str(Path("examples/cookbook") / parsed["filename"])
+    mermaid_src = _get_mermaid_from_cookbook(filepath)
+    if mermaid_src:
+        lines.append("### Architecture")
+        lines.append("")
+        lines.append("```mermaid")
+        lines.append(mermaid_src)
+        lines.append("```")
+        lines.append("")
 
     # --- Tabbed side-by-side comparison ---
     if parsed["native"] or parsed["fluent"]:

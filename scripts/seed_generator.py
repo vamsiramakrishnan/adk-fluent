@@ -534,6 +534,12 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
             continue
 
         singular = _singular_name(fname)
+        inner = _inner_type_name(ftype)
+
+        # Build the default signature and doc for list_append extras
+        sig = f"(self, value: {inner}) -> Self"
+        doc = f"Append to ``{fname}`` (lazy — built at .build() time)."
+
         # Check for a semantic alias override
         alias_map = _CONTAINER_ALIASES.get(class_name, {})
         alias = alias_map.get(singular)  # e.g. "step" for sub_agent
@@ -544,6 +550,8 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
                 extras.append(
                     {
                         "name": alias,
+                        "signature": sig,
+                        "doc": doc,
                         "behavior": "list_append",
                         "target_field": fname,
                     }
@@ -554,6 +562,8 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
                 extras.append(
                     {
                         "name": singular,
+                        "signature": sig,
+                        "doc": doc,
                         "behavior": "list_append",
                         "target_field": fname,
                     }
@@ -565,6 +575,8 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
                 extras.append(
                     {
                         "name": singular,
+                        "signature": sig,
+                        "doc": doc,
                         "behavior": "list_append",
                         "target_field": fname,
                     }

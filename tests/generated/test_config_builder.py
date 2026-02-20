@@ -294,9 +294,9 @@ class TestRunConfigBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.speech_config() returns the builder instance for chaining."""
+        """.input_audio_transcribe() returns the builder instance for chaining."""
         builder = RunConfig()
-        result = builder.speech_config(None)
+        result = builder.input_audio_transcribe("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
@@ -490,9 +490,9 @@ class TestSimplePromptOptimizerConfigBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.optimizer_model() returns the builder instance for chaining."""
+        """.model_configure() returns the builder instance for chaining."""
         builder = SimplePromptOptimizerConfig()
-        result = builder.optimizer_model("test_value")
+        result = builder.model_configure("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
@@ -630,9 +630,9 @@ class TestAgentSimulatorConfigBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.tool_simulation_configs() returns the builder instance for chaining."""
+        """.simulation_model_configure() returns the builder instance for chaining."""
         builder = AgentSimulatorConfig()
-        result = builder.tool_simulation_configs([])
+        result = builder.simulation_model_configure("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
@@ -714,16 +714,16 @@ class TestAgentToolConfigBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.skip_summarization() returns the builder instance for chaining."""
+        """.skip_summarizate() returns the builder instance for chaining."""
         builder = AgentToolConfig("test_agent")
-        result = builder.skip_summarization(True)
+        result = builder.skip_summarizate("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .skip_summarization() stores the value in builder._config."""
+        """Setting .include_plugins() stores the value in builder._config."""
         builder = AgentToolConfig("test_agent")
-        builder.skip_summarization(True)
-        assert builder._config["skip_summarization"] == True
+        builder.include_plugins(True)
+        assert builder._config["include_plugins"] == True
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -770,9 +770,9 @@ class TestBigQueryToolConfigBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.maximum_bytes_billed() returns the builder instance for chaining."""
+        """.locate() returns the builder instance for chaining."""
         builder = BigQueryToolConfig()
-        result = builder.maximum_bytes_billed(None)
+        result = builder.locate("test_value")
         assert result is builder
 
     def test_config_accumulation(self):

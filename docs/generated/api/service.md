@@ -49,7 +49,7 @@ BaseArtifactService(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseArtifactService`
 
@@ -85,7 +85,7 @@ FileArtifactService(root_dir: Path | str)
 |----------|------|
 | `root_dir` | `Path | str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> FileArtifactService`
 
@@ -122,7 +122,7 @@ GcsArtifactService(bucket_name: str, kwargs: Any)
 | `bucket_name` | `str` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GcsArtifactService`
 
@@ -148,7 +148,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> InMemoryArtifactService`
 
@@ -192,7 +192,7 @@ PerAgentDatabaseSessionService(agents_root: Path | str)
 |----------|------|
 | `agents_root` | `Path | str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> PerAgentDatabaseSessionService`
 
@@ -237,7 +237,7 @@ BaseMemoryService(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseMemoryService`
 
@@ -263,7 +263,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> InMemoryMemoryService`
 
@@ -289,7 +289,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> VertexAiMemoryBankService`
 
@@ -326,7 +326,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> VertexAiRagMemoryService`
 
@@ -373,7 +373,7 @@ BaseSessionService(args: Any, kwargs: Any)
 | `args` | `Any` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseSessionService`
 
@@ -410,7 +410,7 @@ DatabaseSessionService(db_url: str, kwargs: Any)
 | `db_url` | `str` |
 | `kwargs` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DatabaseSessionService`
 
@@ -436,7 +436,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> InMemorySessionService`
 
@@ -472,7 +472,7 @@ SqliteSessionService(db_path: str)
 |----------|------|
 | `db_path` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SqliteSessionService`
 
@@ -498,7 +498,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> VertexAiSessionService`
 
@@ -545,7 +545,7 @@ ForwardingArtifactService(tool_context: ToolContext)
 |----------|------|
 | `tool_context` | `ToolContext` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ForwardingArtifactService`
 

@@ -113,7 +113,7 @@ class TestGenApiReferenceForBuilder:
     def test_alias_methods_section(self):
         spec = _make_spec()
         md = gen_api_reference_for_builder(spec)
-        assert "### Methods" in md
+        assert "### Core Configuration" in md
         assert ".instruct(value: str) -> Self" in md
         assert ".describe(value: str) -> Self" in md
         assert "`instruction`" in md
@@ -128,13 +128,14 @@ class TestGenApiReferenceForBuilder:
     def test_extra_methods_section(self):
         spec = _make_spec()
         md = gen_api_reference_for_builder(spec)
-        assert "## Extra Methods" in md
+        # extras are now integrated into semantic categories
         assert ".tool(" in md
 
     def test_terminal_methods_section(self):
         spec = _make_spec()
         md = gen_api_reference_for_builder(spec)
-        assert "## Terminal Methods" in md
+        # build() is now under "Control Flow & Execution" category
+        assert "### Control Flow & Execution" in md
         assert ".build() -> LlmAgent" in md
 
     def test_forwarded_fields_section(self):

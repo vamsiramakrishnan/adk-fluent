@@ -24,11 +24,18 @@ from adk_fluent import AgentEngineSandboxCodeExecutor
 
 result = (
     AgentEngineSandboxCodeExecutor()
+    .code_block_delimiter(...)
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.code_block_delimiter(value: tuple[str, str]) -> Self`
+
+Append to ``code_block_delimiters`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> AgentEngineSandboxCodeExecutor`
 
@@ -63,11 +70,18 @@ from adk_fluent import BaseCodeExecutor
 
 result = (
     BaseCodeExecutor()
+    .code_block_delimiter(...)
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.code_block_delimiter(value: tuple[str, str]) -> Self`
+
+Append to ``code_block_delimiters`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> BaseCodeExecutor`
 
@@ -101,11 +115,18 @@ from adk_fluent import BuiltInCodeExecutor
 
 result = (
     BuiltInCodeExecutor()
+    .code_block_delimiter(...)
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.code_block_delimiter(value: tuple[str, str]) -> Self`
+
+Append to ``code_block_delimiters`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> BuiltInCodeExecutor`
 
@@ -139,11 +160,18 @@ from adk_fluent import UnsafeLocalCodeExecutor
 
 result = (
     UnsafeLocalCodeExecutor()
+    .code_block_delimiter(...)
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.code_block_delimiter(value: tuple[str, str]) -> Self`
+
+Append to ``code_block_delimiters`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> UnsafeLocalCodeExecutor`
 
@@ -181,7 +209,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> VertexAiCodeExecutor`
 

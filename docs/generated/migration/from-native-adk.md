@@ -252,6 +252,7 @@ The tables below show fluent method names that differ from the native field name
 | `instruction` | `.instruct()` | alias |
 | `output_key` | `.outputs()` | alias |
 | `static_instruction` | `.static()` | alias |
+| `static_instruction` | `.static_instruct()` | alias |
 | `after_agent_callback` | `.after_agent()` | callback, additive |
 | `after_model_callback` | `.after_model()` | callback, additive |
 | `after_tool_callback` | `.after_tool()` | callback, additive |
@@ -260,6 +261,20 @@ The tables below show fluent method names that differ from the native field name
 | `before_tool_callback` | `.before_tool()` | callback, additive |
 | `on_model_error_callback` | `.on_model_error()` | callback, additive |
 | `on_tool_error_callback` | `.on_tool_error()` | callback, additive |
+
+(migration-agentsimulatorconfig)=
+### AgentSimulatorConfig
+
+| Native Field | Fluent Method | Notes |
+|-------------|---------------|-------|
+| `simulation_model_configuration` | `.simulation_model_configure()` | alias |
+
+(migration-agenttoolconfig)=
+### AgentToolConfig
+
+| Native Field | Fluent Method | Notes |
+|-------------|---------------|-------|
+| `skip_summarization` | `.skip_summarizate()` | alias |
 
 (migration-baseagent)=
 ### BaseAgent
@@ -276,6 +291,13 @@ The tables below show fluent method names that differ from the native field name
 | Native Field | Fluent Method | Notes |
 |-------------|---------------|-------|
 | `description` | `.describe()` | alias |
+
+(migration-bigquerytoolconfig)=
+### BigQueryToolConfig
+
+| Native Field | Fluent Method | Notes |
+|-------------|---------------|-------|
+| `location` | `.locate()` | alias |
 
 (migration-fanout)=
 ### FanOut
@@ -297,6 +319,7 @@ The tables below show fluent method names that differ from the native field name
 | `instruction` | `.instruct()` | alias |
 | `output_key` | `.outputs()` | alias |
 | `static_instruction` | `.static()` | alias |
+| `static_instruction` | `.static_instruct()` | alias |
 
 (migration-loop)=
 ### Loop
@@ -330,9 +353,24 @@ The tables below show fluent method names that differ from the native field name
 | `after_agent_callback` | `.after_agent()` | callback, additive |
 | `before_agent_callback` | `.before_agent()` | callback, additive |
 
+(migration-runconfig)=
+### RunConfig
+
+| Native Field | Fluent Method | Notes |
+|-------------|---------------|-------|
+| `input_audio_transcription` | `.input_audio_transcribe()` | alias |
+| `output_audio_transcription` | `.output_audio_transcribe()` | alias |
+
 (migration-sequentialagentconfig)=
 ### SequentialAgentConfig
 
 | Native Field | Fluent Method | Notes |
 |-------------|---------------|-------|
 | `description` | `.describe()` | alias |
+
+(migration-simplepromptoptimizerconfig)=
+### SimplePromptOptimizerConfig
+
+| Native Field | Fluent Method | Notes |
+|-------------|---------------|-------|
+| `model_configuration` | `.model_configure()` | alias |

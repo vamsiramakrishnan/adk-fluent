@@ -9,6 +9,17 @@ up to 3 times until quality standards are met.
 
 _Source: `06_loop_agent.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1(("essay_refiner (loop x3)"))
+    n2["critic"]
+    n3["reviser"]
+    n1 --> n2
+    n1 --> n3
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

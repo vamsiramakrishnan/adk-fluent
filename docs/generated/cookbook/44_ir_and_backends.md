@@ -4,6 +4,16 @@
 
 _Source: `44_ir_and_backends.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["credit_check_then_underwriter (sequence)"]]
+    n2["credit_check"]
+    n3["underwriter"]
+    n2 --> n3
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

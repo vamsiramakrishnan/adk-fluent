@@ -71,7 +71,7 @@ AgentConfig(root: RootModelRootType)
 |----------|------|
 | `root` | `RootModelRootType` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> AgentConfig`
 
@@ -108,14 +108,28 @@ BaseAgentConfig(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-### Terminal Methods
+#### `.sub_agent(value: AgentRefConfig) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.after_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``after_agent_callbacks`` (lazy — built at .build() time).
+
+#### `.before_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``before_agent_callbacks`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> BaseAgentConfig`
 
@@ -152,7 +166,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> AgentRefConfig`
 
@@ -197,7 +211,7 @@ ArgumentConfig(value: Any)
 |----------|------|
 | `value` | `Any` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ArgumentConfig`
 
@@ -227,6 +241,7 @@ from adk_fluent import CodeConfig
 
 result = (
     CodeConfig("name_value")
+    .arg(...)
     .build()
 )
 ```
@@ -241,7 +256,13 @@ CodeConfig(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Terminal Methods
+### Configuration
+
+#### `.arg(value: ArgumentConfig) -> Self`
+
+Append to ``args`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> CodeConfig`
 
@@ -275,7 +296,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ContextCacheConfig`
 
@@ -323,7 +344,7 @@ LlmAgentConfig(name: str, instruction: str)
 | `name` | `str` |
 | `instruction` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
@@ -331,11 +352,6 @@ LlmAgentConfig(name: str, instruction: str)
 - Optional. The description of the agent.
 
 #### `.history(value: Literal[default, none]) -> Self`
-
-- **Maps to:** `include_contents`
-- Optional. LlmAgent.include_contents.
-
-#### `.include_history(value: Literal[default, none]) -> Self`
 
 - **Maps to:** `include_contents`
 - Optional. LlmAgent.include_contents.
@@ -350,12 +366,56 @@ LlmAgentConfig(name: str, instruction: str)
 - **Maps to:** `output_key`
 - Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``.
 
-#### `.static(value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self`
+#### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
 - **Maps to:** `static_instruction`
 - Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion]).
 
-### Terminal Methods
+#### `.sub_agent(value: AgentRefConfig) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+#### `.tool(value: ToolConfig) -> Self`
+
+Append to ``tools`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.after_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``after_agent_callbacks`` (lazy — built at .build() time).
+
+#### `.after_model_callback(value: CodeConfig) -> Self`
+
+Append to ``after_model_callbacks`` (lazy — built at .build() time).
+
+#### `.after_tool_callback(value: CodeConfig) -> Self`
+
+Append to ``after_tool_callbacks`` (lazy — built at .build() time).
+
+#### `.before_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``before_agent_callbacks`` (lazy — built at .build() time).
+
+#### `.before_model_callback(value: CodeConfig) -> Self`
+
+Append to ``before_model_callbacks`` (lazy — built at .build() time).
+
+#### `.before_tool_callback(value: CodeConfig) -> Self`
+
+Append to ``before_tool_callbacks`` (lazy — built at .build() time).
+
+#### `.include_history(value: Literal[default, none]) -> Self`
+
+- **Maps to:** `include_contents`
+- Optional. LlmAgent.include_contents.
+
+#### `.static_instruct(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+
+- **Maps to:** `static_instruction`
+- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion]).
+
+### Control Flow & Execution
 
 #### `.build() -> LlmAgentConfig`
 
@@ -415,14 +475,28 @@ LoopAgentConfig(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-### Terminal Methods
+#### `.sub_agent(value: AgentRefConfig) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.after_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``after_agent_callbacks`` (lazy — built at .build() time).
+
+#### `.before_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``before_agent_callbacks`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> LoopAgentConfig`
 
@@ -471,14 +545,28 @@ ParallelAgentConfig(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-### Terminal Methods
+#### `.sub_agent(value: AgentRefConfig) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.after_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``after_agent_callbacks`` (lazy — built at .build() time).
+
+#### `.before_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``before_agent_callbacks`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> ParallelAgentConfig`
 
@@ -511,11 +599,24 @@ from adk_fluent import RunConfig
 
 result = (
     RunConfig()
+    .input_audio_transcribe("...")
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.input_audio_transcribe(value: Union[AudioTranscriptionConfig, NoneType]) -> Self`
+
+- **Maps to:** `input_audio_transcription`
+- Set the `input_audio_transcription` field.
+
+#### `.output_audio_transcribe(value: Union[AudioTranscriptionConfig, NoneType]) -> Self`
+
+- **Maps to:** `output_audio_transcription`
+- Set the `output_audio_transcription` field.
+
+### Control Flow & Execution
 
 #### `.build() -> RunConfig`
 
@@ -532,8 +633,6 @@ These fields are available via `__getattr__` forwarding.
 | `.save_input_blobs_as_artifacts(value)` | `bool` |
 | `.support_cfc(value)` | `bool` |
 | `.streaming_mode(value)` | `StreamingMode` |
-| `.output_audio_transcription(value)` | `Union[AudioTranscriptionConfig, NoneType]` |
-| `.input_audio_transcription(value)` | `Union[AudioTranscriptionConfig, NoneType]` |
 | `.realtime_input_config(value)` | `Union[RealtimeInputConfig, NoneType]` |
 | `.enable_affective_dialog(value)` | `Union[bool, NoneType]` |
 | `.proactivity(value)` | `Union[ProactivityConfig, NoneType]` |
@@ -565,7 +664,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ToolThreadPoolConfig`
 
@@ -610,14 +709,28 @@ SequentialAgentConfig(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Methods
+### Core Configuration
 
 #### `.describe(value: str) -> Self`
 
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-### Terminal Methods
+#### `.sub_agent(value: AgentRefConfig) -> Self`
+
+Append to ``sub_agents`` (lazy — built at .build() time).
+
+### Configuration
+
+#### `.after_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``after_agent_callbacks`` (lazy — built at .build() time).
+
+#### `.before_agent_callback(value: CodeConfig) -> Self`
+
+Append to ``before_agent_callbacks`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> SequentialAgentConfig`
 
@@ -665,7 +778,7 @@ EventsCompactionConfig(compaction_interval: int, overlap_size: int)
 | `compaction_interval` | `int` |
 | `overlap_size` | `int` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> EventsCompactionConfig`
 
@@ -701,7 +814,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ResumabilityConfig`
 
@@ -745,7 +858,7 @@ FeatureConfig(stage: FeatureStage)
 |----------|------|
 | `stage` | `FeatureStage` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> FeatureConfig`
 
@@ -779,7 +892,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> AudioCacheConfig`
 
@@ -811,11 +924,19 @@ from adk_fluent import SimplePromptOptimizerConfig
 
 result = (
     SimplePromptOptimizerConfig()
+    .model_configure("...")
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.model_configure(value: GenerateContentConfig) -> Self`
+
+- **Maps to:** `model_configuration`
+- The configuration for the optimizer model.
+
+### Control Flow & Execution
 
 #### `.build() -> SimplePromptOptimizerConfig`
 
@@ -828,7 +949,6 @@ These fields are available via `__getattr__` forwarding.
 | Field | Type |
 |-------|------|
 | `.optimizer_model(value)` | `str` |
-| `.model_configuration(value)` | `GenerateContentConfig` |
 | `.num_iterations(value)` | `int` |
 | `.batch_size(value)` | `int` |
 
@@ -852,7 +972,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BigQueryLoggerConfig`
 
@@ -902,7 +1022,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> RetryConfig`
 
@@ -939,7 +1059,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> GetSessionConfig`
 
@@ -974,7 +1094,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseGoogleCredentialsConfig`
 
@@ -1008,11 +1128,23 @@ from adk_fluent import AgentSimulatorConfig
 
 result = (
     AgentSimulatorConfig()
+    .simulation_model_configure("...")
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.simulation_model_configure(value: GenerateContentConfig) -> Self`
+
+- **Maps to:** `simulation_model_configuration`
+- Set the `simulation_model_configuration` field.
+
+#### `.tool_simulation_config(value: ToolSimulationConfig) -> Self`
+
+Append to ``tool_simulation_configs`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> AgentSimulatorConfig`
 
@@ -1026,7 +1158,6 @@ These fields are available via `__getattr__` forwarding.
 |-------|------|
 | `.tool_simulation_configs(value)` | `list[ToolSimulationConfig]` |
 | `.simulation_model(value)` | `str` |
-| `.simulation_model_configuration(value)` | `GenerateContentConfig` |
 | `.tracing_path(value)` | `Union[str, NoneType]` |
 | `.environment_data(value)` | `Union[str, NoneType]` |
 
@@ -1050,7 +1181,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> InjectionConfig`
 
@@ -1085,6 +1216,7 @@ from adk_fluent import ToolSimulationConfig
 
 result = (
     ToolSimulationConfig("tool_name_value")
+    .injection_config(...)
     .build()
 )
 ```
@@ -1099,7 +1231,13 @@ ToolSimulationConfig(tool_name: str)
 |----------|------|
 | `tool_name` | `str` |
 
-### Terminal Methods
+### Configuration
+
+#### `.injection_config(value: InjectionConfig) -> Self`
+
+Append to ``injection_configs`` (lazy — built at .build() time).
+
+### Control Flow & Execution
 
 #### `.build() -> ToolSimulationConfig`
 
@@ -1130,6 +1268,7 @@ from adk_fluent import AgentToolConfig
 
 result = (
     AgentToolConfig("agent_value")
+    .skip_summarizate("...")
     .build()
 )
 ```
@@ -1144,7 +1283,14 @@ AgentToolConfig(agent: AgentRefConfig)
 |----------|------|
 | `agent` | `AgentRefConfig` |
 
-### Terminal Methods
+### Configuration
+
+#### `.skip_summarizate(value: bool) -> Self`
+
+- **Maps to:** `skip_summarization`
+- Set the `skip_summarization` field.
+
+### Control Flow & Execution
 
 #### `.build() -> AgentToolConfig`
 
@@ -1156,7 +1302,6 @@ These fields are available via `__getattr__` forwarding.
 
 | Field | Type |
 |-------|------|
-| `.skip_summarization(value)` | `bool` |
 | `.include_plugins(value)` | `bool` |
 
 ---
@@ -1179,7 +1324,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BigQueryCredentialsConfig`
 
@@ -1213,11 +1358,19 @@ from adk_fluent import BigQueryToolConfig
 
 result = (
     BigQueryToolConfig()
+    .locate("...")
     .build()
 )
 ```
 
-### Terminal Methods
+### Configuration
+
+#### `.locate(value: Union[str, NoneType]) -> Self`
+
+- **Maps to:** `location`
+- Set the `location` field.
+
+### Control Flow & Execution
 
 #### `.build() -> BigQueryToolConfig`
 
@@ -1234,7 +1387,6 @@ These fields are available via `__getattr__` forwarding.
 | `.max_query_result_rows(value)` | `int` |
 | `.application_name(value)` | `Union[str, NoneType]` |
 | `.compute_project_id(value)` | `Union[str, NoneType]` |
-| `.location(value)` | `Union[str, NoneType]` |
 | `.job_labels(value)` | `Union[dict[str, str], NoneType]` |
 
 ---
@@ -1257,7 +1409,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BigtableCredentialsConfig`
 
@@ -1295,7 +1447,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DataAgentToolConfig`
 
@@ -1329,7 +1481,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> DataAgentCredentialsConfig`
 
@@ -1377,7 +1529,7 @@ ExampleToolConfig(examples: Union[list[Example], str])
 |----------|------|
 | `examples` | `Union[list[Example], str]` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ExampleToolConfig`
 
@@ -1403,7 +1555,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> McpToolsetConfig`
 
@@ -1445,7 +1597,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> PubSubToolConfig`
 
@@ -1479,7 +1631,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> PubSubCredentialsConfig`
 
@@ -1517,7 +1669,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> SpannerCredentialsConfig`
 
@@ -1555,7 +1707,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> BaseToolConfig`
 
@@ -1581,7 +1733,7 @@ result = (
 )
 ```
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ToolArgsConfig`
 
@@ -1617,7 +1769,7 @@ ToolConfig(name: str)
 |----------|------|
 | `name` | `str` |
 
-### Terminal Methods
+### Control Flow & Execution
 
 #### `.build() -> ToolConfig`
 

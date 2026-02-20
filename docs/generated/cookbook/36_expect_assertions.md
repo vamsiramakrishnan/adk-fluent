@@ -4,6 +4,22 @@
 
 _Source: `36_expect_assertions.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["data_ingester_then_expect_2_then_aggregator_then_expect_3_then_report_builder (sequence)"]]
+    n2["data_ingester"]
+    n3>"expect_2 transform"]
+    n4["aggregator"]
+    n5>"expect_3 transform"]
+    n6["report_builder"]
+    n2 --> n3
+    n3 --> n4
+    n4 --> n5
+    n5 --> n6
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

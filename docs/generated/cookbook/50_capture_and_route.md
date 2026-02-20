@@ -4,6 +4,24 @@
 
 _Source: `50_capture_and_route.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["capture_ticket_then_triage_routed (sequence)"]]
+    n2["capture_ticket"]
+    n3["triage"]
+    n4{"route_priority (route)"}
+    n5["incident_commander"]
+    n6["senior_support"]
+    n7["support_bot"]
+    n4 --> n5
+    n4 --> n6
+    n4 -.-> n7
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

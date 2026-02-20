@@ -4,6 +4,22 @@
 
 _Source: `42_race.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["query_classifier_then_race_federal_search_state_search_then_citation_formatter (sequence)"]]
+    n2["query_classifier"]
+    n3["race_federal_search_state_search"]
+    n4["federal_search"]
+    n5["state_search"]
+    n6["citation_formatter"]
+    n3 --> n4
+    n3 --> n5
+    n2 --> n3
+    n3 --> n6
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

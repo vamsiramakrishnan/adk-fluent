@@ -4,6 +4,18 @@
 
 _Source: `46_contracts_and_testing.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["dicom_parser_then_diagnosis_agent (sequence)"]]
+    n2["dicom_parser"]
+    n3["diagnosis_agent"]
+    n2 --> n3
+    n2 -. "produces ImagingStudy" .-o n2
+    n3 -. "consumes ImagingStudy" .-o n3
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

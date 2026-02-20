@@ -4,6 +4,22 @@
 
 _Source: `30_until_operator.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["intake_agent_then_document_validator_then_identity_verifier_x3_then_welcome_agent (sequence)"]]
+    n2["intake_agent"]
+    n3(("document_validator_then_identity_verifier_x3 (loop x3)"))
+    n4["document_validator"]
+    n5["identity_verifier"]
+    n6["welcome_agent"]
+    n3 --> n4
+    n3 --> n5
+    n2 --> n3
+    n3 --> n6
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

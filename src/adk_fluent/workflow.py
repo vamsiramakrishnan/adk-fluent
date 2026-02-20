@@ -65,9 +65,14 @@ class Loop(BuilderBase):
         self._config["max_iterations"] = value
         return self
 
-    def step(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Append an agent as the next step (lazy — built at .build() time)."""
-        self._lists["sub_agents"].append(agent)
+    def step(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
+        return self
+
+    def sub_agent(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
         return self
 
     def to_ir(self):
@@ -129,14 +134,14 @@ class FanOut(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
-    def branch(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Add a parallel branch agent (lazy — built at .build() time)."""
-        self._lists["sub_agents"].append(agent)
+    def branch(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
         return self
 
-    def step(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API."""
-        self._lists["sub_agents"].append(agent)
+    def sub_agent(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
         return self
 
     def to_ir(self):
@@ -198,9 +203,14 @@ class Pipeline(BuilderBase):
         self._config["sub_agents"] = value
         return self
 
-    def step(self, agent: BaseAgent | AgentBuilder) -> Self:
-        """Append an agent as the next step (lazy — built at .build() time)."""
-        self._lists["sub_agents"].append(agent)
+    def step(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
+        return self
+
+    def sub_agent(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self._lists["sub_agents"].append(value)
         return self
 
     def to_ir(self):

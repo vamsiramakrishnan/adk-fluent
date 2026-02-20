@@ -60,6 +60,11 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
         self._config["sandbox_resource_name"] = value
         return self
 
+    def code_block_delimiter(self, value: tuple[str, str]) -> Self:
+        """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self._lists["code_block_delimiters"].append(value)
+        return self
+
     def build(self) -> _ADK_AgentEngineSandboxCodeExecutor:
         """A code executor that uses Agent Engine Code Execution Sandbox to execute code. Resolve into a native ADK _ADK_AgentEngineSandboxCodeExecutor."""
         config = self._prepare_build_config()
@@ -102,6 +107,11 @@ class BaseCodeExecutor(BuilderBase):
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
         self._config["execution_result_delimiters"] = value
+        return self
+
+    def code_block_delimiter(self, value: tuple[str, str]) -> Self:
+        """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self._lists["code_block_delimiters"].append(value)
         return self
 
     def build(self) -> _ADK_BaseCodeExecutor:
@@ -148,6 +158,11 @@ class BuiltInCodeExecutor(BuilderBase):
         self._config["execution_result_delimiters"] = value
         return self
 
+    def code_block_delimiter(self, value: tuple[str, str]) -> Self:
+        """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self._lists["code_block_delimiters"].append(value)
+        return self
+
     def build(self) -> _ADK_BuiltInCodeExecutor:
         """A code executor that uses the Model's built-in code executor. Resolve into a native ADK _ADK_BuiltInCodeExecutor."""
         config = self._prepare_build_config()
@@ -190,6 +205,11 @@ class UnsafeLocalCodeExecutor(BuilderBase):
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
         self._config["execution_result_delimiters"] = value
+        return self
+
+    def code_block_delimiter(self, value: tuple[str, str]) -> Self:
+        """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self._lists["code_block_delimiters"].append(value)
         return self
 
     def build(self) -> _ADK_UnsafeLocalCodeExecutor:

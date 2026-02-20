@@ -4,6 +4,24 @@
 
 _Source: `49_context_engineering.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["capture_customer_message_then_classifier_routed (sequence)"]]
+    n2["capture_customer_message"]
+    n3["classifier"]
+    n4{"route_category (route)"}
+    n5["billing_agent"]
+    n6["tech_agent"]
+    n7["general_agent"]
+    n4 --> n5
+    n4 --> n6
+    n4 -.-> n7
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python
