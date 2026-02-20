@@ -21,11 +21,13 @@ __all__ = [
 
 # Node type names that are zero-cost (no LLM call) and have no children to recurse.
 # RouteNode is also zero-cost but handled separately because it has branches.
-_ZERO_COST_TYPES = frozenset({
-    "TransformNode",
-    "TapNode",
-    "CaptureNode",
-})
+_ZERO_COST_TYPES = frozenset(
+    {
+        "TransformNode",
+        "TapNode",
+        "CaptureNode",
+    }
+)
 
 
 def infer_visibility(
@@ -189,10 +191,12 @@ class VisibilityPlugin(BasePlugin):
         """Check if an event represents an error (error_code or escalate)."""
         if hasattr(event, "error_code") and event.error_code:
             return True
-        if hasattr(event, "actions") and event.actions:
-            if hasattr(event.actions, "escalate") and event.actions.escalate:
-                return True
-        return False
+        return bool(
+            hasattr(event, "actions")
+            and event.actions
+            and hasattr(event.actions, "escalate")
+            and event.actions.escalate
+        )
 
     @staticmethod
     def _strip_content(event) -> None:

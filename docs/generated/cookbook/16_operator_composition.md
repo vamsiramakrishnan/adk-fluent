@@ -1,6 +1,6 @@
-# Operator Composition: >>, |, *
+# News Analysis Pipeline with Operator Composition: >>, |, *
 
-*How to use operator syntax for composing agents.*
+*How to compose agents into a sequential pipeline.*
 
 _Source: `16_operator_composition.py`_
 
@@ -12,47 +12,47 @@ from google.adk.agents.sequential_agent import SequentialAgent
 from google.adk.agents.parallel_agent import ParallelAgent
 from google.adk.agents.loop_agent import LoopAgent
 
-# Native: 15+ lines for a simple pipeline
-researcher = LlmAgent(name="researcher", model="gemini-2.5-flash", instruction="Research.")
-writer = LlmAgent(name="writer", model="gemini-2.5-flash", instruction="Write.")
-editor = LlmAgent(name="editor", model="gemini-2.5-flash", instruction="Edit.")
+# Native: a news analysis pipeline requires 15+ lines of boilerplate
+scraper = LlmAgent(name="scraper", model="gemini-2.5-flash", instruction="Scrape news articles from sources.")
+analyzer = LlmAgent(name="analyzer", model="gemini-2.5-flash", instruction="Analyze sentiment and key themes.")
+reporter = LlmAgent(name="reporter", model="gemini-2.5-flash", instruction="Write a summary news report.")
 
 pipeline_native = SequentialAgent(
-    name="content_pipeline",
-    sub_agents=[researcher, writer, editor],
+    name="news_pipeline",
+    sub_agents=[scraper, analyzer, reporter],
 )
 
-# Native: parallel requires explicit wrapping
-web = LlmAgent(name="web", model="gemini-2.5-flash", instruction="Search web.")
-db = LlmAgent(name="db", model="gemini-2.5-flash", instruction="Search DB.")
-parallel_native = ParallelAgent(name="dual_search", sub_agents=[web, db])
+# Native: parallel data gathering
+politics = LlmAgent(name="politics", model="gemini-2.5-flash", instruction="Gather political news.")
+markets = LlmAgent(name="markets", model="gemini-2.5-flash", instruction="Gather financial market data.")
+parallel_native = ParallelAgent(name="news_sources", sub_agents=[politics, markets])
 
-# Native: loop requires explicit wrapping
-critic = LlmAgent(name="critic", model="gemini-2.5-flash", instruction="Critique.")
-reviser = LlmAgent(name="reviser", model="gemini-2.5-flash", instruction="Revise.")
-loop_native = LoopAgent(name="refine", max_iterations=3, sub_agents=[critic, reviser])
+# Native: editorial loop for quality refinement
+draft_writer = LlmAgent(name="draft_writer", model="gemini-2.5-flash", instruction="Write a news draft.")
+fact_checker = LlmAgent(name="fact_checker", model="gemini-2.5-flash", instruction="Fact-check the draft.")
+loop_native = LoopAgent(name="editorial_loop", max_iterations=3, sub_agents=[draft_writer, fact_checker])
 ```
 :::
 :::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
-r = Agent("researcher").model("gemini-2.5-flash").instruct("Research.")
-w = Agent("writer").model("gemini-2.5-flash").instruct("Write.")
-e = Agent("editor").model("gemini-2.5-flash").instruct("Edit.")
+s = Agent("scraper").model("gemini-2.5-flash").instruct("Scrape news articles from sources.")
+a = Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze sentiment and key themes.")
+r = Agent("reporter").model("gemini-2.5-flash").instruct("Write a summary news report.")
 
-# >> creates Pipeline (SequentialAgent)
-pipeline_fluent = r >> w >> e
+# >> creates Pipeline (SequentialAgent): scrape -> analyze -> report
+pipeline_fluent = s >> a >> r
 
-# | creates FanOut (ParallelAgent)
-web_f = Agent("web").model("gemini-2.5-flash").instruct("Search web.")
-db_f = Agent("db").model("gemini-2.5-flash").instruct("Search DB.")
-parallel_fluent = web_f | db_f
+# | creates FanOut (ParallelAgent): gather from multiple beats simultaneously
+pol = Agent("politics").model("gemini-2.5-flash").instruct("Gather political news.")
+mkt = Agent("markets").model("gemini-2.5-flash").instruct("Gather financial market data.")
+parallel_fluent = pol | mkt
 
-# * creates Loop (LoopAgent)
-c = Agent("critic").model("gemini-2.5-flash").instruct("Critique.")
-rv = Agent("reviser").model("gemini-2.5-flash").instruct("Revise.")
-loop_fluent = (c >> rv) * 3
+# * creates Loop (LoopAgent): draft and fact-check up to 3 times
+dw = Agent("draft_writer").model("gemini-2.5-flash").instruct("Write a news draft.")
+fc = Agent("fact_checker").model("gemini-2.5-flash").instruct("Fact-check the draft.")
+loop_fluent = (dw >> fc) * 3
 ```
 :::
 ::::

@@ -1,4 +1,8 @@
-# Agent with Tools
+# Travel Planner with Weather and Flight Lookup -- Agent with Tools
+
+Demonstrates attaching function tools to an agent.  The scenario:
+a travel planning assistant that can look up weather forecasts and
+search for flights to help users plan trips.
 
 *How to attach tools to an agent using the fluent API.*
 
@@ -10,21 +14,25 @@ _Source: `02_agent_with_tools.py`_
 from google.adk.agents.llm_agent import LlmAgent
 
 
-def get_weather(city: str) -> str:
-    """Get weather for a city."""
-    return f"Sunny in {city}"
+def check_weather(city: str, date: str) -> str:
+    """Check the weather forecast for a city on a given date."""
+    return f"Forecast for {city} on {date}: 24C, partly cloudy"
 
 
-def get_time(timezone: str) -> str:
-    """Get current time."""
-    return f"3:00 PM in {timezone}"
+def search_flights(origin: str, destination: str, date: str) -> str:
+    """Search available flights between two cities on a date."""
+    return f"Found 3 flights from {origin} to {destination} on {date}, starting at $299"
 
 
 agent_native = LlmAgent(
-    name="assistant",
+    name="travel_planner",
     model="gemini-2.5-flash",
-    instruction="You help with weather and time.",
-    tools=[get_weather, get_time],
+    instruction=(
+        "You are a travel planning assistant. Help users plan trips by "
+        "checking weather forecasts and searching for flights. Always "
+        "check the weather at the destination before recommending flights."
+    ),
+    tools=[check_weather, search_flights],
 )
 ```
 :::
@@ -33,11 +41,15 @@ agent_native = LlmAgent(
 from adk_fluent import Agent
 
 agent_fluent = (
-    Agent("assistant")
+    Agent("travel_planner")
     .model("gemini-2.5-flash")
-    .instruct("You help with weather and time.")
-    .tool(get_weather)
-    .tool(get_time)
+    .instruct(
+        "You are a travel planning assistant. Help users plan trips by "
+        "checking weather forecasts and searching for flights. Always "
+        "check the weather at the destination before recommending flights."
+    )
+    .tool(check_weather)
+    .tool(search_flights)
     .build()
 )
 ```

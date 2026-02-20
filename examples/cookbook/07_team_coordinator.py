@@ -22,24 +22,21 @@ coordinator_native = LlmAgent(
             name="marketing",
             model="gemini-2.5-flash",
             instruction=(
-                "Draft marketing campaigns, press releases, and "
-                "social media strategies for the product launch."
+                "Draft marketing campaigns, press releases, and social media strategies for the product launch."
             ),
         ),
         LlmAgent(
             name="engineering",
             model="gemini-2.5-flash",
             instruction=(
-                "Review technical readiness: CI/CD pipelines, load "
-                "testing results, and deployment checklists."
+                "Review technical readiness: CI/CD pipelines, load testing results, and deployment checklists."
             ),
         ),
         LlmAgent(
             name="legal",
             model="gemini-2.5-flash",
             instruction=(
-                "Review licensing terms, privacy compliance (GDPR/CCPA), "
-                "and terms-of-service updates for the launch."
+                "Review licensing terms, privacy compliance (GDPR/CCPA), and terms-of-service updates for the launch."
             ),
         ),
     ],
@@ -60,25 +57,18 @@ coordinator_fluent = (
     .sub_agent(
         Agent("marketing")
         .model("gemini-2.5-flash")
-        .instruct(
-            "Draft marketing campaigns, press releases, and "
-            "social media strategies for the product launch."
-        )
+        .instruct("Draft marketing campaigns, press releases, and social media strategies for the product launch.")
     )
     .sub_agent(
         Agent("engineering")
         .model("gemini-2.5-flash")
-        .instruct(
-            "Review technical readiness: CI/CD pipelines, load "
-            "testing results, and deployment checklists."
-        )
+        .instruct("Review technical readiness: CI/CD pipelines, load testing results, and deployment checklists.")
     )
     .sub_agent(
         Agent("legal")
         .model("gemini-2.5-flash")
         .instruct(
-            "Review licensing terms, privacy compliance (GDPR/CCPA), "
-            "and terms-of-service updates for the launch."
+            "Review licensing terms, privacy compliance (GDPR/CCPA), and terms-of-service updates for the launch."
         )
     )
     .build()

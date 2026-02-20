@@ -1,13 +1,13 @@
-# Mock: Bypass LLM Calls for Testing
+# Mock Testing: Customer Onboarding Pipeline with Deterministic Mocks
 
-*How to run inline smoke tests on agents.*
+*How to compose agents into a sequential pipeline.*
 
 _Source: `37_mock_testing.py`_
 
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python
-# Native ADK uses before_model_callback to bypass the LLM:
+# Native ADK uses before_model_callback to bypass the LLM during tests:
 #
 #   from google.adk.models.llm_response import LlmResponse
 #   from google.genai import types
@@ -16,42 +16,58 @@ _Source: `37_mock_testing.py`_
 #       return LlmResponse(
 #           content=types.Content(
 #               role="model",
-#               parts=[types.Part(text="Mocked response")]
+#               parts=[types.Part(text="KYC: approved")]
 #           )
 #       )
 #
-#   agent = LlmAgent(
-#       name="agent", model="gemini-2.5-flash",
-#       instruction="Do something.",
+#   kyc_agent = LlmAgent(
+#       name="kyc_verifier", model="gemini-2.5-flash",
+#       instruction="Verify customer KYC documents.",
 #       before_model_callback=mock_callback,
 #   )
 #
-# This is exactly what ADK's ReplayPlugin does globally.
-# adk-fluent provides .mock() for per-agent mocking.
+# For a multi-step onboarding pipeline, you'd need one callback per agent,
+# making test setup verbose and fragile.
 ```
 :::
 :::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
-# .mock(list): cycle through canned responses
-agent_list = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write a story.").mock(["Once upon a time...", "The end."])
-)
+# Scenario: Customer onboarding pipeline with three stages:
+#   1. KYC verification -- checks identity documents
+#   2. Risk assessment -- evaluates financial risk profile
+#   3. Account provisioning -- creates the customer account
 
-# .mock(callable): dynamic response based on the LLM request
-agent_fn = (
-    Agent("echo").model("gemini-2.5-flash").instruct("Echo the user's message.").mock(lambda req: "Mocked: I heard you")
-)
-
-# Chainable -- .mock() returns self
-agent_chained = (
-    Agent("analyzer")
+# .mock(list): cycle through scripted responses for repeatable tests
+kyc_verifier = (
+    Agent("kyc_verifier")
     .model("gemini-2.5-flash")
-    .mock(["Analysis complete."])
-    .instruct("Analyze the data.")
-    .outputs("analysis")
+    .instruct("Verify the customer's identity documents and return approval status.")
+    .outputs("kyc_status")
+    .mock(["KYC: approved", "KYC: pending review"])
 )
+
+# .mock(callable): dynamic responses based on the LLM request context
+risk_assessor = (
+    Agent("risk_assessor")
+    .model("gemini-2.5-flash")
+    .instruct("Evaluate the customer's financial risk profile.")
+    .outputs("risk_level")
+    .mock(lambda req: "risk_level: low")
+)
+
+# Chainable -- .mock() returns self so it composes with other builder methods
+account_provisioner = (
+    Agent("account_provisioner")
+    .model("gemini-2.5-flash")
+    .mock(["Account ACT-10042 created successfully."])
+    .instruct("Provision a new bank account for the approved customer.")
+    .outputs("account_id")
+)
+
+# Full onboarding pipeline with all agents mocked for integration testing
+onboarding_pipeline = kyc_verifier >> risk_assessor >> account_provisioner
 ```
 :::
 ::::
@@ -61,28 +77,28 @@ agent_chained = (
 ```python
 from google.adk.models.llm_response import LlmResponse
 
-# .mock(list) registers one before_model_callback
-assert len(agent_list._callbacks["before_model_callback"]) == 1
+# .mock(list) registers a before_model_callback
+assert len(kyc_verifier._callbacks["before_model_callback"]) == 1
 
-# The callback returns LlmResponse (bypasses actual LLM)
-cb = agent_list._callbacks["before_model_callback"][0]
+# The callback returns LlmResponse (bypasses the actual LLM)
+cb = kyc_verifier._callbacks["before_model_callback"][0]
 result = cb(callback_context=None, llm_request=None)
 assert isinstance(result, LlmResponse)
-assert result.content.parts[0].text == "Once upon a time..."
+assert result.content.parts[0].text == "KYC: approved"
 
-# List responses cycle
+# List responses cycle through deterministically
 r2 = cb(None, None)
-assert r2.content.parts[0].text == "The end."
+assert r2.content.parts[0].text == "KYC: pending review"
 r3 = cb(None, None)
-assert r3.content.parts[0].text == "Once upon a time..."  # cycles back
+assert r3.content.parts[0].text == "KYC: approved"  # cycles back
 
-# .mock(callable) also registers callback
-assert len(agent_fn._callbacks["before_model_callback"]) == 1
-cb_fn = agent_fn._callbacks["before_model_callback"][0]
+# .mock(callable) also registers a callback
+assert len(risk_assessor._callbacks["before_model_callback"]) == 1
+cb_fn = risk_assessor._callbacks["before_model_callback"][0]
 result_fn = cb_fn(None, None)
-assert result_fn.content.parts[0].text == "Mocked: I heard you"
+assert result_fn.content.parts[0].text == "risk_level: low"
 
-# Chainable: .mock() returns self
-assert agent_chained._config["instruction"] == "Analyze the data."
-assert agent_chained._config["output_key"] == "analysis"
+# Chainable: .mock() returns self, preserving all builder state
+assert account_provisioner._config["instruction"] == "Provision a new bank account for the approved customer."
+assert account_provisioner._config["output_key"] == "account_id"
 ```

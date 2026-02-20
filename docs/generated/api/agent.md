@@ -146,7 +146,7 @@ Agent(name: str)
 #### `.outputs(value: Union[str, NoneType]) -> Self`
 
 - **Maps to:** `output_key`
-- Set the `output_key` field.
+- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``.
 
 #### `.static(value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self`
 
@@ -421,6 +421,25 @@ agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
 #### `.memory_auto_save() -> Self`
 
 Auto-save session to memory after each agent run.
+
+#### `.isolate() -> Self`
+
+Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return.
+
+**Example:**
+
+```python
+# Specialist agent that completes its task without transferring
+specialist = (
+    Agent("invoice_parser", "gemini-2.5-flash")
+    .instruct("Parse the invoice and extract line items.")
+    .isolate()
+    .output_schema(Invoice)
+    .build()
+)
+```
+
+**See also:** `Agent.disallow_transfer_to_parent`, `Agent.disallow_transfer_to_peers`
 
 #### `.to_ir()`
 

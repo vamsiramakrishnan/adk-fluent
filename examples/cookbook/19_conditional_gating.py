@@ -24,8 +24,10 @@ from adk_fluent import Agent
 fraud_investigator = (
     Agent("fraud_investigator")
     .model("gemini-2.5-flash")
-    .instruct("Perform deep fraud investigation. Check transaction patterns, "
-              "verify merchant history, and flag suspicious activity.")
+    .instruct(
+        "Perform deep fraud investigation. Check transaction patterns, "
+        "verify merchant history, and flag suspicious activity."
+    )
     .proceed_if(lambda s: s.get("risk_level") == "high")
 )
 

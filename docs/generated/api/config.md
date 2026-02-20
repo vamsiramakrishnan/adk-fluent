@@ -348,7 +348,7 @@ LlmAgentConfig(name: str, instruction: str)
 #### `.outputs(value: Union[str, NoneType]) -> Self`
 
 - **Maps to:** `output_key`
-- Optional. LlmAgent.output_key.
+- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``.
 
 #### `.static(value: Union[Content, str, Image, File, Part, list[Union[str, Image, File, Part]], NoneType]) -> Self`
 

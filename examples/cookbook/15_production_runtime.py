@@ -27,8 +27,7 @@ agent = (
     Agent("store_assistant")
     .model("gemini-2.5-flash")
     .instruct(
-        "You are a helpful e-commerce assistant. Help customers "
-        "find products, check order status, and answer FAQs."
+        "You are a helpful e-commerce assistant. Help customers find products, check order status, and answer FAQs."
     )
     .describe("Production e-commerce chatbot with order tracking and FAQ support.")
 )

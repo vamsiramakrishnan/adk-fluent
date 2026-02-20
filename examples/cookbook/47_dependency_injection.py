@@ -73,5 +73,5 @@ assert dev_agent._config["_resources"] == {"db_connection": "dev_mock_db"}
 # inject_resources() wraps a function and hides injected params from the LLM schema
 wrapped = inject_resources(query_patient_records, {"db_connection": "test_db"})
 sig = inspect.signature(wrapped)
-assert "patient_id" in sig.parameters       # visible to LLM
+assert "patient_id" in sig.parameters  # visible to LLM
 assert "db_connection" not in sig.parameters  # hidden from LLM

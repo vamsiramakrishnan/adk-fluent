@@ -33,15 +33,11 @@ compliance = Preset(
 
 # Apply the preset to multiple domain-specific agents with .use()
 billing_agent = (
-    Agent("billing_agent")
-    .instruct("Handle billing inquiries, invoices, and payment disputes.")
-    .use(compliance)
+    Agent("billing_agent").instruct("Handle billing inquiries, invoices, and payment disputes.").use(compliance)
 )
 
 hr_agent = (
-    Agent("hr_agent")
-    .instruct("Answer employee questions about benefits, PTO, and company policies.")
-    .use(compliance)
+    Agent("hr_agent").instruct("Answer employee questions about benefits, PTO, and company policies.").use(compliance)
 )
 
 # --- ASSERT ---

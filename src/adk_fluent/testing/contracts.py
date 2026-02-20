@@ -56,9 +56,7 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         if reads:
             missing = reads - available_keys
             for key in sorted(missing):
-                issues.append(
-                    f"Agent '{child_name}' consumes key '{key}' but no prior step produces it"
-                )
+                issues.append(f"Agent '{child_name}' consumes key '{key}' but no prior step produces it")
 
         available_keys |= writes
 
@@ -105,18 +103,19 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
 
         for var in template_vars:
             if var not in upstream_keys:
-                issues.append({
-                    "level": "error",
-                    "agent": child_name,
-                    "message": (
-                        f"Template variable '{{{var}}}' in instruction is not "
-                        f"produced by any upstream agent"
-                    ),
-                    "hint": (
-                        f"Add .outputs('{var}') to an upstream agent, or use "
-                        f"S.capture('{var}') to capture user input into state."
-                    ),
-                })
+                issues.append(
+                    {
+                        "level": "error",
+                        "agent": child_name,
+                        "message": (
+                            f"Template variable '{{{var}}}' in instruction is not produced by any upstream agent"
+                        ),
+                        "hint": (
+                            f"Add .outputs('{var}') to an upstream agent, or use "
+                            f"S.capture('{var}') to capture user input into state."
+                        ),
+                    }
+                )
 
     # =================================================================
     # Pass 4: Channel duplication detection
@@ -148,21 +147,22 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
             prev = children[prev_idx]
             prev_output_key = getattr(prev, "output_key", None)
             if prev_output_key and prev_output_key in template_vars:
-                prev_name = getattr(prev, "name", "?")
-                issues.append({
-                    "level": "info",
-                    "agent": child_name,
-                    "message": (
-                        f"Agent '{child_name}' reads '{prev_output_key}' via both "
-                        f"state (template) and conversation history "
-                        f"(include_contents='default') -- potential channel duplication"
-                    ),
-                    "hint": (
-                        f"Consider using .history('none') on '{child_name}' to read "
-                        f"only from state, or remove '{{{prev_output_key}}}' from "
-                        f"the instruction to rely solely on conversation."
-                    ),
-                })
+                issues.append(
+                    {
+                        "level": "info",
+                        "agent": child_name,
+                        "message": (
+                            f"Agent '{child_name}' reads '{prev_output_key}' via both "
+                            f"state (template) and conversation history "
+                            f"(include_contents='default') -- potential channel duplication"
+                        ),
+                        "hint": (
+                            f"Consider using .history('none') on '{child_name}' to read "
+                            f"only from state, or remove '{{{prev_output_key}}}' from "
+                            f"the instruction to rely solely on conversation."
+                        ),
+                    }
+                )
 
     # =================================================================
     # Pass 5: Route key validation
@@ -180,18 +180,14 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         upstream_keys = produced_at[idx - 1] if idx > 0 else set()
 
         if route_key not in upstream_keys:
-            issues.append({
-                "level": "error",
-                "agent": child_name,
-                "message": (
-                    f"RouteNode reads key '{route_key}' from state but no "
-                    f"upstream agent produces it"
-                ),
-                "hint": (
-                    f"Add .outputs('{route_key}') to an upstream agent so "
-                    f"the route key is available."
-                ),
-            })
+            issues.append(
+                {
+                    "level": "error",
+                    "agent": child_name,
+                    "message": (f"RouteNode reads key '{route_key}' from state but no upstream agent produces it"),
+                    "hint": (f"Add .outputs('{route_key}') to an upstream agent so the route key is available."),
+                }
+            )
 
     # =================================================================
     # Pass 6: Data loss detection
@@ -221,20 +217,22 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
 
         if succ_include == "none":
             succ_name = getattr(successor, "name", "?")
-            issues.append({
-                "level": "error",
-                "agent": child_name,
-                "message": (
-                    f"Agent '{child_name}' has no output_key and its successor "
-                    f"'{succ_name}' has include_contents='none' -- output is "
-                    f"lost through both state and conversation channels"
-                ),
-                "hint": (
-                    f"Add .outputs('<key>') to '{child_name}' so its output "
-                    f"reaches '{succ_name}' via state, or change "
-                    f"'{succ_name}' to include conversation history."
-                ),
-            })
+            issues.append(
+                {
+                    "level": "error",
+                    "agent": child_name,
+                    "message": (
+                        f"Agent '{child_name}' has no output_key and its successor "
+                        f"'{succ_name}' has include_contents='none' -- output is "
+                        f"lost through both state and conversation channels"
+                    ),
+                    "hint": (
+                        f"Add .outputs('<key>') to '{child_name}' so its output "
+                        f"reaches '{succ_name}' via state, or change "
+                        f"'{succ_name}' to include conversation history."
+                    ),
+                }
+            )
 
     # =================================================================
     # Pass 7: Visibility coherence (advisory)
@@ -256,17 +254,19 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
             continue  # already saves to state
 
         child_name = getattr(child, "name", "?")
-        issues.append({
-            "level": "info",
-            "agent": child_name,
-            "message": (
-                f"Internal agent '{child_name}' has no output_key -- its "
-                f"output reaches downstream only via conversation history"
-            ),
-            "hint": (
-                f"Add .outputs('<key>') to '{child_name}' if downstream "
-                f"agents need structured access to its output via state."
-            ),
-        })
+        issues.append(
+            {
+                "level": "info",
+                "agent": child_name,
+                "message": (
+                    f"Internal agent '{child_name}' has no output_key -- its "
+                    f"output reaches downstream only via conversation history"
+                ),
+                "hint": (
+                    f"Add .outputs('<key>') to '{child_name}' if downstream "
+                    f"agents need structured access to its output via state."
+                ),
+            }
+        )
 
     return issues

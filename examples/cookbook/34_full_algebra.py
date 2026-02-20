@@ -33,26 +33,32 @@ class Article(BaseModel):
 pipeline = (
     # Step 1: Parallel news collection from multiple sources (|)
     (
-        Agent("wire_service").model("gemini-2.5-flash")
+        Agent("wire_service")
+        .model("gemini-2.5-flash")
         .instruct("Collect breaking news from AP, Reuters, and AFP wire services.")
-        | Agent("social_monitor").model("gemini-2.5-flash")
+        | Agent("social_monitor")
+        .model("gemini-2.5-flash")
         .instruct("Monitor social media for trending news topics and eyewitness reports.")
     )
     # Step 2: Merge all source data into unified research (S transform via >>)
     >> S.merge("wire_service", "social_monitor", into="raw_sources")
     # Step 3: Write article with typed output (@) and model fallback (//)
-    >> Agent("senior_writer").model("gemini-2.5-flash")
+    >> Agent("senior_writer")
+    .model("gemini-2.5-flash")
     .instruct("Write a balanced, fact-checked news article from the source material.")
     @ Article
-    // Agent("backup_writer").model("gemini-2.5-pro")
+    // Agent("backup_writer")
+    .model("gemini-2.5-pro")
     .instruct("Write a balanced, fact-checked news article from the source material.")
     @ Article
     # Step 4: Editorial quality loop (* until) — editor reviews until credible
     >> (
-        Agent("fact_checker").model("gemini-2.5-flash")
+        Agent("fact_checker")
+        .model("gemini-2.5-flash")
         .instruct("Verify all claims in the article against primary sources. Score credibility.")
         .outputs("credibility_score")
-        >> Agent("copy_editor").model("gemini-2.5-flash")
+        >> Agent("copy_editor")
+        .model("gemini-2.5-flash")
         .instruct("Improve clarity, fix errors, and ensure AP style compliance.")
     )
     * until(lambda s: float(s.get("credibility_score", 0)) >= 0.90, max=4)
@@ -60,25 +66,21 @@ pipeline = (
 
 # Sub-expression reuse — immutable operators make this safe.
 # An editorial review loop can be reused across different content pipelines.
-editorial_review = (
-    Agent("editor").model("gemini-2.5-flash")
-    .instruct("Review article quality: accuracy, clarity, and engagement.")
-    >> Agent("scorer").model("gemini-2.5-flash")
-    .instruct("Score the article on a 0-1 scale.")
-    .outputs("edit_score")
-)
+editorial_review = Agent("editor").model("gemini-2.5-flash").instruct(
+    "Review article quality: accuracy, clarity, and engagement."
+) >> Agent("scorer").model("gemini-2.5-flash").instruct("Score the article on a 0-1 scale.").outputs("edit_score")
 quality_gate = until(lambda s: float(s.get("edit_score", 0)) > 0.8, max=3)
 
 # Same editorial review in two independent content pipelines
 breaking_news = (
-    Agent("breaking_writer").model("gemini-2.5-flash")
-    .instruct("Write a concise breaking news alert.")
+    Agent("breaking_writer").model("gemini-2.5-flash").instruct("Write a concise breaking news alert.")
     >> editorial_review * quality_gate
     >> S.rename(edit_score="breaking_score")
 )
 
 feature_story = (
-    Agent("feature_writer").model("gemini-2.5-flash")
+    Agent("feature_writer")
+    .model("gemini-2.5-flash")
     .instruct("Write an in-depth feature story with narrative structure.")
     >> editorial_review * quality_gate
     >> S.rename(edit_score="feature_score")

@@ -628,6 +628,13 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
                 new_builders[builder_name] = builder_config
         auto["builders"] = new_builders
 
+    # Step 2b: Merge field_docs (manual wins on conflict)
+    manual_field_docs = manual.get("field_docs", {})
+    if manual_field_docs:
+        existing_fd = auto.get("field_docs", {})
+        existing_fd.update(manual_field_docs)
+        auto["field_docs"] = existing_fd
+
     # Step 3: Merge manual config into matching builders
     manual_builders = manual.get("builders", {})
     for builder_name, manual_config in manual_builders.items():
@@ -656,6 +663,9 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
         builders_list.append(builder)
 
     global_config = auto.get("global", {})
+    # Promote top-level field_docs into global_config for re-emit
+    if "field_docs" in auto:
+        global_config["field_docs"] = auto["field_docs"]
     adk_version = auto.get("meta", {}).get("adk_version", "unknown")
 
     return emit_seed_toml(builders_list, global_config, adk_version=adk_version)

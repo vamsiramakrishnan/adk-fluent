@@ -25,42 +25,34 @@ MODEL = "gemini-2.5-flash"
 helpdesk = (
     S.capture("ticket")
     >> Agent("triage")
+    .model(MODEL)
+    .instruct(
+        "You are an IT helpdesk triage agent.\n"
+        "Read the support ticket and classify it.\n"
+        "Ticket: {ticket}\n"
+        "Output the priority level: p1, p2, or p3."
+    )
+    .outputs("priority")
+    >> Route("priority")
+    .eq(
+        "p1",
+        Agent("incident_commander")
         .model(MODEL)
         .instruct(
-            "You are an IT helpdesk triage agent.\n"
-            "Read the support ticket and classify it.\n"
-            "Ticket: {ticket}\n"
-            "Output the priority level: p1, p2, or p3."
-        )
-        .outputs("priority")
-    >> Route("priority")
-        .eq("p1",
-            Agent("incident_commander")
-            .model(MODEL)
-            .instruct(
-                "CRITICAL INCIDENT.\n"
-                "Original ticket: {ticket}\n"
-                "Coordinate immediate response. Page on-call engineer."
-            )
-        )
-        .eq("p2",
-            Agent("senior_support")
-            .model(MODEL)
-            .instruct(
-                "Priority ticket.\n"
-                "Ticket: {ticket}\n"
-                "Investigate and provide a resolution plan within 4 hours."
-            )
-        )
-        .otherwise(
-            Agent("support_bot")
-            .model(MODEL)
-            .instruct(
-                "Routine support request.\n"
-                "Ticket: {ticket}\n"
-                "Provide self-service instructions or FAQ links."
-            )
-        )
+            "CRITICAL INCIDENT.\nOriginal ticket: {ticket}\nCoordinate immediate response. Page on-call engineer."
+        ),
+    )
+    .eq(
+        "p2",
+        Agent("senior_support")
+        .model(MODEL)
+        .instruct("Priority ticket.\nTicket: {ticket}\nInvestigate and provide a resolution plan within 4 hours."),
+    )
+    .otherwise(
+        Agent("support_bot")
+        .model(MODEL)
+        .instruct("Routine support request.\nTicket: {ticket}\nProvide self-service instructions or FAQ links.")
+    )
 )
 
 # Verify data contracts before deployment

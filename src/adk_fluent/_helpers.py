@@ -33,6 +33,7 @@ __all__ = [
     "_hide_agent",
     "_add_memory",
     "_add_memory_auto_save",
+    "_isolate_agent",
 ]
 
 
@@ -192,6 +193,17 @@ def _show_agent(builder):
 def _hide_agent(builder):
     """Force this agent's events to be internal (override topology inference)."""
     builder._config["_visibility_override"] = "internal"
+    return builder
+
+
+def _isolate_agent(builder):
+    """Prevent this agent from transferring to parent or peers.
+
+    Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True.
+    Use for specialist agents that should complete their task and return.
+    """
+    builder._config["disallow_transfer_to_parent"] = True
+    builder._config["disallow_transfer_to_peers"] = True
     return builder
 
 

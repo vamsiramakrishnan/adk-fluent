@@ -11,20 +11,18 @@ from adk_fluent import Agent
 base_copywriter = (
     Agent("copywriter")
     .model("gemini-2.5-flash")
-    .instruct("Write compelling marketing copy for product launches. "
-              "Focus on benefits, not features.")
+    .instruct("Write compelling marketing copy for product launches. Focus on benefits, not features.")
 )
 
 # with_() creates independent copies with overrides -- perfect for A/B testing
 variant_a = base_copywriter.with_(
     name="copywriter_formal",
     instruct="Write formal, authoritative marketing copy for enterprise products. "
-             "Use data-driven language and industry terminology."
+    "Use data-driven language and industry terminology.",
 )
 variant_b = base_copywriter.with_(
     name="copywriter_casual",
-    instruct="Write casual, conversational marketing copy for consumer products. "
-             "Use humor and relatable language."
+    instruct="Write casual, conversational marketing copy for consumer products. Use humor and relatable language.",
 )
 
 # Original is unchanged -- variants are fully independent

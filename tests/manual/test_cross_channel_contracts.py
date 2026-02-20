@@ -9,19 +9,15 @@ from adk_fluent.testing import check_contracts
 
 class TestTemplateVariableResolution:
     def test_resolved_template_var_no_issue(self):
-        pipeline = (
-            Agent("classifier").model("m").instruct("Classify.").outputs("intent")
-            >> Agent("handler").model("m").instruct("Intent: {intent}")
-        )
+        pipeline = Agent("classifier").model("m").instruct("Classify.").outputs("intent") >> Agent("handler").model(
+            "m"
+        ).instruct("Intent: {intent}")
         issues = check_contracts(pipeline.to_ir())
         errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
         assert len(errors) == 0
 
     def test_unresolved_template_var_reports_error(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Do stuff.")
-            >> Agent("b").model("m").instruct("Summary: {summary}")
-        )
+        pipeline = Agent("a").model("m").instruct("Do stuff.") >> Agent("b").model("m").instruct("Summary: {summary}")
         issues = check_contracts(pipeline.to_ir())
         errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
         assert any("summary" in str(i) for i in errors)
@@ -29,10 +25,9 @@ class TestTemplateVariableResolution:
 
 class TestChannelDuplication:
     def test_duplication_warning(self):
-        pipeline = (
-            Agent("classifier").model("m").instruct("Classify.").outputs("intent")
-            >> Agent("handler").model("m").instruct("Intent: {intent}")
-        )
+        pipeline = Agent("classifier").model("m").instruct("Classify.").outputs("intent") >> Agent("handler").model(
+            "m"
+        ).instruct("Intent: {intent}")
         issues = check_contracts(pipeline.to_ir())
         info = [i for i in issues if isinstance(i, dict) and i.get("level") == "info"]
         assert any("duplication" in str(i).lower() or "duplicate" in str(i).lower() for i in info)
@@ -40,18 +35,16 @@ class TestChannelDuplication:
 
 class TestRouteKeyValidation:
     def test_route_key_satisfied(self):
-        pipeline = (
-            Agent("classifier").model("m").instruct("Classify.").outputs("intent")
-            >> Route("intent").eq("booking", Agent("booker").model("m").instruct("Book."))
+        pipeline = Agent("classifier").model("m").instruct("Classify.").outputs("intent") >> Route("intent").eq(
+            "booking", Agent("booker").model("m").instruct("Book.")
         )
         issues = check_contracts(pipeline.to_ir())
         errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
         assert len(errors) == 0
 
     def test_route_key_missing(self):
-        pipeline = (
-            Agent("classifier").model("m").instruct("Classify.")
-            >> Route("intent").eq("booking", Agent("booker").model("m").instruct("Book."))
+        pipeline = Agent("classifier").model("m").instruct("Classify.") >> Route("intent").eq(
+            "booking", Agent("booker").model("m").instruct("Book.")
         )
         issues = check_contracts(pipeline.to_ir())
         errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
@@ -60,9 +53,8 @@ class TestRouteKeyValidation:
 
 class TestDataLossDetection:
     def test_no_data_loss_with_outputs(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Do.").outputs("result")
-            >> Agent("b").model("m").instruct("Use: {result}")
+        pipeline = Agent("a").model("m").instruct("Do.").outputs("result") >> Agent("b").model("m").instruct(
+            "Use: {result}"
         )
         issues = check_contracts(pipeline.to_ir())
         errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
@@ -71,10 +63,7 @@ class TestDataLossDetection:
 
 class TestVisibilityCoherence:
     def test_internal_agent_without_output_key_info(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Process.")
-            >> Agent("b").model("m").instruct("Consume.")
-        )
+        pipeline = Agent("a").model("m").instruct("Process.") >> Agent("b").model("m").instruct("Consume.")
         issues = check_contracts(pipeline.to_ir())
         # Should have at least one info about "a" being internal without output_key
         info = [i for i in issues if isinstance(i, dict) and i.get("level") == "info"]

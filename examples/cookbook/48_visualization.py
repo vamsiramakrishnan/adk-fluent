@@ -12,11 +12,7 @@ from adk_fluent import Agent
 # The team needs architecture diagrams for runbooks and design reviews.
 # With .to_mermaid(), diagrams are always in sync with the code.
 
-incident_pipeline = (
-    Agent("alert_triage")
-    >> Agent("severity_classifier")
-    >> Agent("responder_dispatch")
-)
+incident_pipeline = Agent("alert_triage") >> Agent("severity_classifier") >> Agent("responder_dispatch")
 mermaid = incident_pipeline.to_mermaid()
 
 # Build the pipeline for deployment

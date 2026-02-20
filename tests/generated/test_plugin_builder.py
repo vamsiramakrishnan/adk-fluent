@@ -27,20 +27,17 @@ class TestRecordingsPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = RecordingsPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = RecordingsPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -58,20 +55,17 @@ class TestReplayPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = ReplayPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = ReplayPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -85,14 +79,13 @@ class TestBasePluginBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BasePlugin('test_name')
+        builder = BasePlugin("test_name")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BasePlugin('test_name')
+        builder = BasePlugin("test_name")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -102,28 +95,25 @@ class TestBigQueryAgentAnalyticsPluginBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
+        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.location() returns the builder instance for chaining."""
-        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
+        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
         result = builder.location("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .location() stores the value in builder._config."""
-        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
+        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
         builder.location("test_value")
         assert builder._config["location"] == "test_value"
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
+        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
@@ -137,20 +127,17 @@ class TestContextFilterPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = ContextFilterPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = ContextFilterPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -168,20 +155,17 @@ class TestDebugLoggingPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = DebugLoggingPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = DebugLoggingPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -199,20 +183,17 @@ class TestGlobalInstructionPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = GlobalInstructionPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = GlobalInstructionPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -230,20 +211,17 @@ class TestLoggingPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = LoggingPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = LoggingPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -261,20 +239,17 @@ class TestMultimodalToolResultsPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = MultimodalToolResultsPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = MultimodalToolResultsPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -292,20 +267,17 @@ class TestReflectAndRetryToolPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = ReflectAndRetryToolPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = ReflectAndRetryToolPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -323,20 +295,17 @@ class TestSaveFilesAsArtifactsPluginBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = SaveFilesAsArtifactsPlugin()
         result = builder.name("test_value")
         assert result is builder
 
-
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = SaveFilesAsArtifactsPlugin()
         builder.name("test_value")
         assert builder._config["name"] == "test_value"
-
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -350,13 +319,12 @@ class TestAgentSimulatorPluginBuilder:
 
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = AgentSimulatorPlugin('test_simulator_engine')
+        builder = AgentSimulatorPlugin("test_simulator_engine")
         assert builder is not None
         assert isinstance(builder._config, dict)
 
-
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = AgentSimulatorPlugin('test_simulator_engine')
+        builder = AgentSimulatorPlugin("test_simulator_engine")
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")

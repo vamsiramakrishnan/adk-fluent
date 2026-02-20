@@ -23,9 +23,8 @@ from adk_fluent import Agent
 # Scenario: A loan application pipeline where we want to inspect and
 # optimize the pipeline structure before deployment.
 
-pipeline = (
-    Agent("credit_check").instruct("Run credit check on the applicant.")
-    >> Agent("underwriter").instruct("Evaluate loan eligibility based on credit report.")
+pipeline = Agent("credit_check").instruct("Run credit check on the applicant.") >> Agent("underwriter").instruct(
+    "Evaluate loan eligibility based on credit report."
 )
 
 # Inspect the IR tree (frozen dataclasses) -- useful for:

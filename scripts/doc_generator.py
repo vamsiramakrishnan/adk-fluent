@@ -840,7 +840,7 @@ def generate_docs(
             # Find the end of the table (blank line after last row) and insert rows
             table_rows = ""
             toctree_entries = ""
-            for stem, title in hand_written:
+            for stem, _title in hand_written:
                 table_rows += f"| `{stem}` | — | [{stem}]({stem}.md) |\n"
                 toctree_entries += f"{stem}\n"
 
@@ -854,7 +854,7 @@ def generate_docs(
                 # Detect end of table: first blank line after table rows
                 if not table_done and line == "" and new_lines and new_lines[-1].startswith("|"):
                     # Insert hand-written table rows before the blank line
-                    for stem, title in hand_written:
+                    for stem, _title in hand_written:
                         new_lines.append(f"| `{stem}` | — | [{stem}]({stem}.md) |")
                     table_done = True
 

@@ -27,25 +27,25 @@ onboarding_loop = (
 
 # Default max is 10 — used for compliance checks that may take several rounds
 compliance_check = (
-    Agent("kyc_screener").model("gemini-2.5-flash")
-    .instruct("Screen customer against KYC/AML watchlists.")
-    >> Agent("risk_assessor").model("gemini-2.5-flash")
+    Agent("kyc_screener").model("gemini-2.5-flash").instruct("Screen customer against KYC/AML watchlists.")
+    >> Agent("risk_assessor")
+    .model("gemini-2.5-flash")
     .instruct("Assess customer risk level based on screening results.")
 ) * until(lambda s: s.get("kyc_clear"))
 
 # Works in larger expressions: full customer onboarding pipeline
 full_onboarding = (
-    Agent("intake_agent").model("gemini-2.5-flash")
-    .instruct("Collect customer information and upload instructions.")
+    Agent("intake_agent").model("gemini-2.5-flash").instruct("Collect customer information and upload instructions.")
     >> (
-        Agent("document_validator").model("gemini-2.5-flash")
+        Agent("document_validator")
+        .model("gemini-2.5-flash")
         .instruct("Validate documents meet format and quality requirements.")
-        >> Agent("identity_verifier").model("gemini-2.5-flash")
+        >> Agent("identity_verifier")
+        .model("gemini-2.5-flash")
         .instruct("Verify identity using biometric and document matching.")
     )
     * until(lambda s: s.get("verification_passed"), max=3)
-    >> Agent("welcome_agent").model("gemini-2.5-flash")
-    .instruct("Send welcome package and account activation details.")
+    >> Agent("welcome_agent").model("gemini-2.5-flash").instruct("Send welcome package and account activation details.")
 )
 
 # int * agent still works — fixed retry count for simple cases

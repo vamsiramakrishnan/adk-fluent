@@ -18,31 +18,28 @@ MODEL = "gemini-2.5-flash"
 
 content_pipeline = (
     Agent("drafter")
-        .model(MODEL)
-        .instruct(
-            "Write a first draft of the article based on the research notes.\n"
-            "Focus on clarity and structure. Don't worry about polish yet."
-        )
+    .model(MODEL)
+    .instruct(
+        "Write a first draft of the article based on the research notes.\n"
+        "Focus on clarity and structure. Don't worry about polish yet."
+    )
     >> Agent("fact_checker")
-        .model(MODEL)
-        .instruct(
-            "Review the draft for factual accuracy.\n"
-            "Flag any unsupported claims. Add source annotations.\n"
-            "Output the corrected draft with inline notes."
-        )
+    .model(MODEL)
+    .instruct(
+        "Review the draft for factual accuracy.\n"
+        "Flag any unsupported claims. Add source annotations.\n"
+        "Output the corrected draft with inline notes."
+    )
     >> Agent("compliance")
-        .model(MODEL)
-        .instruct(
-            "Review for brand guidelines, legal requirements, and tone.\n"
-            "Flag anything that needs legal review."
-        )
+    .model(MODEL)
+    .instruct("Review for brand guidelines, legal requirements, and tone.\nFlag anything that needs legal review.")
     >> Agent("publisher")
-        .model(MODEL)
-        .instruct(
-            "Produce the final published version.\n"
-            "Incorporate fact-check corrections and compliance feedback.\n"
-            "Remove all internal annotations."
-        )
+    .model(MODEL)
+    .instruct(
+        "Produce the final published version.\n"
+        "Incorporate fact-check corrections and compliance feedback.\n"
+        "Remove all internal annotations."
+    )
 )
 
 # Infer visibility from pipeline topology

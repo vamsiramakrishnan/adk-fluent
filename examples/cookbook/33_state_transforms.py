@@ -84,26 +84,31 @@ guarded = S.guard(lambda s: "patient_id" in s, msg="Missing required patient_id"
 
 # Compose with >> in a clinical data pipeline
 pipeline = (
-    Agent("data_extractor").model("gemini-2.5-flash")
+    Agent("data_extractor")
+    .model("gemini-2.5-flash")
     .instruct("Extract structured clinical data from the patient records.")
     >> S.pick("clinical_findings", "lab_results")
     >> S.rename(clinical_findings="analysis_input")
     >> S.default(confidence_interval=0.95)
-    >> Agent("statistical_analyzer").model("gemini-2.5-flash")
+    >> Agent("statistical_analyzer")
+    .model("gemini-2.5-flash")
     .instruct("Perform statistical analysis on the clinical data.")
 )
 
 # Full research pipeline with parallel data collection and S transforms
 research_pipeline = (
     (
-        Agent("literature_agent").model("gemini-2.5-flash")
+        Agent("literature_agent")
+        .model("gemini-2.5-flash")
         .instruct("Search medical literature databases for relevant studies.")
-        | Agent("trial_agent").model("gemini-2.5-flash")
+        | Agent("trial_agent")
+        .model("gemini-2.5-flash")
         .instruct("Query clinical trial registries for comparable trials.")
     )
     >> S.merge("literature_agent", "trial_agent", into="combined_evidence")
     >> S.default(confidence_interval=0.95, sample_size=0)
-    >> Agent("report_writer").model("gemini-2.5-flash")
+    >> Agent("report_writer")
+    .model("gemini-2.5-flash")
     .instruct("Write a systematic review report from the combined evidence.")
     >> S.compute(
         word_count=lambda s: len(s.get("report", "").split()),

@@ -27,10 +27,7 @@ class TestClassifierRouterPattern:
     def test_builds_successfully(self):
         pipeline = (
             S.capture("user_message")
-            >> Agent("classifier")
-            .model("gemini-2.5-flash")
-            .instruct("Classify the user's intent.")
-            .outputs("intent")
+            >> Agent("classifier").model("gemini-2.5-flash").instruct("Classify the user's intent.").outputs("intent")
             >> Route("intent")
             .eq(
                 "booking",
@@ -53,17 +50,10 @@ class TestClassifierRouterPattern:
     def test_contract_check_passes(self):
         pipeline = (
             S.capture("user_message")
-            >> Agent("classifier")
-            .model("gemini-2.5-flash")
-            .instruct("Classify.")
-            .outputs("intent")
-            >> Route("intent")
-            .eq(
+            >> Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").outputs("intent")
+            >> Route("intent").eq(
                 "booking",
-                Agent("booker")
-                .model("gemini-2.5-flash")
-                .instruct("Book: {intent}")
-                .context(C.from_state("intent")),
+                Agent("booker").model("gemini-2.5-flash").instruct("Book: {intent}").context(C.from_state("intent")),
             )
         )
         issues = check_contracts(pipeline.to_ir())
@@ -71,13 +61,9 @@ class TestClassifierRouterPattern:
         assert len(errors) == 0
 
     def test_visibility_inferred(self):
-        pipeline = (
-            Agent("classifier")
-            .model("gemini-2.5-flash")
-            .instruct("Classify.")
-            .outputs("intent")
-            >> Agent("handler").model("gemini-2.5-flash").instruct("Handle: {intent}")
-        )
+        pipeline = Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").outputs("intent") >> Agent(
+            "handler"
+        ).model("gemini-2.5-flash").instruct("Handle: {intent}")
         ir = pipeline.to_ir()
         vis = infer_visibility(ir)
         assert vis["classifier"] == "internal"
@@ -104,10 +90,9 @@ class TestContextWithPipeline:
         assert callable(built.instruction)
 
     def test_context_from_state_in_pipeline(self):
-        pipeline = (
-            Agent("researcher").model("gemini-2.5-flash").instruct("Research.").outputs("findings")
-            >> Agent("writer").model("gemini-2.5-flash").instruct("Write a report.").context(C.from_state("findings"))
-        )
+        pipeline = Agent("researcher").model("gemini-2.5-flash").instruct("Research.").outputs("findings") >> Agent(
+            "writer"
+        ).model("gemini-2.5-flash").instruct("Write a report.").context(C.from_state("findings"))
         built = pipeline.build()
         writer = built.sub_agents[1]
         assert writer.include_contents == "none"
@@ -148,10 +133,7 @@ class TestDraftReviewEditPattern:
     def test_draft_review_edit_builds(self):
         pipeline = (
             Agent("drafter").model("gemini-2.5-flash").instruct("Write initial draft.")
-            >> Agent("reviewer")
-            .model("gemini-2.5-flash")
-            .instruct("Review the draft.")
-            .context(C.user_only())
+            >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review the draft.").context(C.user_only())
             >> Agent("editor")
             .model("gemini-2.5-flash")
             .instruct("Edit based on review.")
@@ -195,10 +177,9 @@ class TestMemoryIntegration:
         assert len(built.tools) >= 1
 
     def test_memory_in_pipeline(self):
-        pipeline = (
-            Agent("a").model("gemini-2.5-flash").instruct("Answer questions.").memory("preload")
-            >> Agent("b").model("gemini-2.5-flash").instruct("Summarize.")
-        )
+        pipeline = Agent("a").model("gemini-2.5-flash").instruct("Answer questions.").memory("preload") >> Agent(
+            "b"
+        ).model("gemini-2.5-flash").instruct("Summarize.")
         built = pipeline.build()
         assert len(built.sub_agents[0].tools) >= 1
 
@@ -212,25 +193,20 @@ class TestIRFirstBuildIntegration:
     """build() runs contracts by default; unchecked/strict control checking."""
 
     def test_pipeline_build_runs_contracts(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Classify.").outputs("intent")
-            >> Agent("b").model("m").instruct("Handle: {intent}")
+        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+            "Handle: {intent}"
         )
         built = pipeline.build()  # Should succeed with advisory diagnostics
         assert built is not None
 
     def test_pipeline_unchecked_skips_contracts(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Do.")
-            >> Agent("b").model("m").instruct("Use: {missing_key}")
-        )
+        pipeline = Agent("a").model("m").instruct("Do.") >> Agent("b").model("m").instruct("Use: {missing_key}")
         built = pipeline.unchecked().build()
         assert built is not None
 
     def test_pipeline_strict_succeeds_with_valid_contracts(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Classify.").outputs("intent")
-            >> Agent("b").model("m").instruct("Handle: {intent}")
+        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+            "Handle: {intent}"
         )
         built = pipeline.strict().build()
         assert built is not None
@@ -245,28 +221,21 @@ class TestPipelinePolicies:
     """Pipeline has transparent/filtered/annotated policy methods."""
 
     def test_transparent_policy(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Classify.").outputs("intent")
-            >> Agent("b").model("m").instruct("Handle.")
+        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+            "Handle."
         )
         result = pipeline.transparent()
         assert result is pipeline
         assert pipeline._config["_visibility_policy"] == "transparent"
 
     def test_filtered_policy(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Classify.")
-            >> Agent("b").model("m").instruct("Handle.")
-        )
+        pipeline = Agent("a").model("m").instruct("Classify.") >> Agent("b").model("m").instruct("Handle.")
         result = pipeline.filtered()
         assert result is pipeline
         assert pipeline._config["_visibility_policy"] == "filtered"
 
     def test_annotated_policy(self):
-        pipeline = (
-            Agent("a").model("m").instruct("Classify.")
-            >> Agent("b").model("m").instruct("Handle.")
-        )
+        pipeline = Agent("a").model("m").instruct("Classify.") >> Agent("b").model("m").instruct("Handle.")
         result = pipeline.annotated()
         assert result is pipeline
         assert pipeline._config["_visibility_policy"] == "annotate"

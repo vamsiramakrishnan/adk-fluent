@@ -40,16 +40,12 @@ contract_pipeline = (
         lambda s: s.get("liability_risk") == "high",
         message="High liability risk detected. Senior counsel approval required before proceeding.",
     )
-    >> Agent("contract_finalizer")
-    .model("gemini-2.5-flash")
-    .instruct("Finalize the contract with approved terms.")
+    >> Agent("contract_finalizer").model("gemini-2.5-flash").instruct("Finalize the contract with approved terms.")
 )
 
 # Custom gate key for tracking specific approval states
 compliance_review = (
-    Agent("compliance_checker")
-    .model("gemini-2.5-flash")
-    .instruct("Check regulatory compliance of the proposed terms.")
+    Agent("compliance_checker").model("gemini-2.5-flash").instruct("Check regulatory compliance of the proposed terms.")
     >> gate(
         lambda s: True,
         message="Compliance officer must review before filing.",
@@ -62,9 +58,7 @@ compliance_review = (
 
 # Multiple gates in a pipeline -- multi-stage legal review
 multi_stage_review = (
-    Agent("contract_drafter")
-    .model("gemini-2.5-flash")
-    .instruct("Draft the merger agreement based on term sheet.")
+    Agent("contract_drafter").model("gemini-2.5-flash").instruct("Draft the merger agreement based on term sheet.")
     >> gate(
         lambda s: s.get("deal_value_usd", 0) > 10_000_000,
         message="Deal exceeds $10M threshold. Board approval required.",

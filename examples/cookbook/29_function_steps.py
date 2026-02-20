@@ -40,10 +40,12 @@ def normalize_currency(state):
 
 # >> fn: function becomes a zero-cost workflow node (no LLM call)
 etl_pipeline = (
-    Agent("financial_extractor").model("gemini-2.5-flash")
+    Agent("financial_extractor")
+    .model("gemini-2.5-flash")
     .instruct("Extract financial line items from the uploaded invoice PDF.")
     >> normalize_currency
-    >> Agent("report_loader").model("gemini-2.5-flash")
+    >> Agent("report_loader")
+    .model("gemini-2.5-flash")
     .instruct("Format the normalized data into a financial summary report.")
 )
 

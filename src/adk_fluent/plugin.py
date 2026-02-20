@@ -31,6 +31,7 @@ from adk_fluent._base import BuilderBase
 # Builder: RecordingsPlugin
 # ======================================================================
 
+
 class RecordingsPlugin(BuilderBase):
     """Plugin for recording ADK agent interactions."""
 
@@ -38,10 +39,11 @@ class RecordingsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name'}
+    _KNOWN_PARAMS: set[str] = {"name"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -73,6 +75,7 @@ class RecordingsPlugin(BuilderBase):
 # Builder: ReplayPlugin
 # ======================================================================
 
+
 class ReplayPlugin(BuilderBase):
     """Plugin for replaying ADK agent interactions from recordings."""
 
@@ -80,10 +83,11 @@ class ReplayPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name'}
+    _KNOWN_PARAMS: set[str] = {"name"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -115,6 +119,7 @@ class ReplayPlugin(BuilderBase):
 # Builder: BasePlugin
 # ======================================================================
 
+
 class BasePlugin(BuilderBase):
     """Base class for creating plugins."""
 
@@ -122,8 +127,7 @@ class BasePlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name'}
-
+    _KNOWN_PARAMS: set[str] = {"name"}
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -152,6 +156,7 @@ class BasePlugin(BuilderBase):
 # Builder: BigQueryAgentAnalyticsPlugin
 # ======================================================================
 
+
 class BigQueryAgentAnalyticsPlugin(BuilderBase):
     """BigQuery Agent Analytics Plugin (v2.0 using Write API)."""
 
@@ -159,8 +164,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'dataset_id', 'table_id', 'location', 'project_id', 'config'}
-
+    _KNOWN_PARAMS: set[str] = {"dataset_id", "project_id", "config", "table_id", "location"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
@@ -178,12 +182,10 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
         self._config["table_id"] = value
         return self
 
-
     def config(self, value: Optional[BigQueryLoggerConfig]) -> Self:
         """Set the ``config`` field."""
         self._config["config"] = value
         return self
-
 
     def location(self, value: str) -> Self:
         """Set the ``location`` field."""
@@ -206,6 +208,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
 # Builder: ContextFilterPlugin
 # ======================================================================
 
+
 class ContextFilterPlugin(BuilderBase):
     """A plugin that filters the LLM context to reduce its size."""
 
@@ -213,10 +216,11 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name', 'num_invocations_to_keep', 'custom_filter'}
+    _KNOWN_PARAMS: set[str] = {"num_invocations_to_keep", "name", "custom_filter"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -232,12 +236,10 @@ class ContextFilterPlugin(BuilderBase):
         self._config["num_invocations_to_keep"] = value
         return self
 
-
     def custom_filter(self, value: Optional[Callable[[list[types.Content]], list[types.Content]]]) -> Self:
         """Set the ``custom_filter`` field."""
         self._config["custom_filter"] = value
         return self
-
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -260,6 +262,7 @@ class ContextFilterPlugin(BuilderBase):
 # Builder: DebugLoggingPlugin
 # ======================================================================
 
+
 class DebugLoggingPlugin(BuilderBase):
     """A plugin that captures complete debug information to a file."""
 
@@ -267,10 +270,11 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name', 'include_session_state', 'include_system_instruction', 'output_path'}
+    _KNOWN_PARAMS: set[str] = {"output_path", "name", "include_session_state", "include_system_instruction"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -286,18 +290,15 @@ class DebugLoggingPlugin(BuilderBase):
         self._config["name"] = value
         return self
 
-
     def output_path(self, value: str) -> Self:
         """Set the ``output_path`` field."""
         self._config["output_path"] = value
         return self
 
-
     def include_session_state(self, value: bool) -> Self:
         """Set the ``include_session_state`` field."""
         self._config["include_session_state"] = value
         return self
-
 
     def include_system_instruction(self, value: bool) -> Self:
         """Set the ``include_system_instruction`` field."""
@@ -320,6 +321,7 @@ class DebugLoggingPlugin(BuilderBase):
 # Builder: GlobalInstructionPlugin
 # ======================================================================
 
+
 class GlobalInstructionPlugin(BuilderBase):
     """Plugin that provides global instructions functionality at the App level."""
 
@@ -327,10 +329,11 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name', 'global_instruction'}
+    _KNOWN_PARAMS: set[str] = {"global_instruction", "name"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -345,7 +348,6 @@ class GlobalInstructionPlugin(BuilderBase):
         """Set the ``global_instruction`` field."""
         self._config["global_instruction"] = value
         return self
-
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -368,6 +370,7 @@ class GlobalInstructionPlugin(BuilderBase):
 # Builder: LoggingPlugin
 # ======================================================================
 
+
 class LoggingPlugin(BuilderBase):
     """A plugin that logs important information at each callback point."""
 
@@ -375,10 +378,11 @@ class LoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name'}
+    _KNOWN_PARAMS: set[str] = {"name"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -410,6 +414,7 @@ class LoggingPlugin(BuilderBase):
 # Builder: MultimodalToolResultsPlugin
 # ======================================================================
 
+
 class MultimodalToolResultsPlugin(BuilderBase):
     """A plugin that modifies function tool responses to support returning list of parts directly."""
 
@@ -417,10 +422,11 @@ class MultimodalToolResultsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name'}
+    _KNOWN_PARAMS: set[str] = {"name"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -452,6 +458,7 @@ class MultimodalToolResultsPlugin(BuilderBase):
 # Builder: ReflectAndRetryToolPlugin
 # ======================================================================
 
+
 class ReflectAndRetryToolPlugin(BuilderBase):
     """Provides self-healing, concurrent-safe error recovery for tool failures."""
 
@@ -459,10 +466,11 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'throw_exception_if_retry_exceeded', 'name', 'max_retries', 'tracking_scope'}
+    _KNOWN_PARAMS: set[str] = {"name", "tracking_scope", "throw_exception_if_retry_exceeded", "max_retries"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -478,18 +486,15 @@ class ReflectAndRetryToolPlugin(BuilderBase):
         self._config["name"] = value
         return self
 
-
     def max_retries(self, value: int) -> Self:
         """Set the ``max_retries`` field."""
         self._config["max_retries"] = value
         return self
 
-
     def throw_exception_if_retry_exceeded(self, value: bool) -> Self:
         """Set the ``throw_exception_if_retry_exceeded`` field."""
         self._config["throw_exception_if_retry_exceeded"] = value
         return self
-
 
     def tracking_scope(self, value: TrackingScope) -> Self:
         """Set the ``tracking_scope`` field."""
@@ -512,6 +517,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
 # Builder: SaveFilesAsArtifactsPlugin
 # ======================================================================
 
+
 class SaveFilesAsArtifactsPlugin(BuilderBase):
     """A plugin that saves files embedded in user messages as artifacts."""
 
@@ -519,10 +525,11 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'name'}
+    _KNOWN_PARAMS: set[str] = {"name"}
 
-
-    def __init__(self, ) -> None:
+    def __init__(
+        self,
+    ) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
@@ -554,6 +561,7 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
 # Builder: AgentSimulatorPlugin
 # ======================================================================
 
+
 class AgentSimulatorPlugin(BuilderBase):
     """ADK Plugin for AgentSimulator."""
 
@@ -561,8 +569,7 @@ class AgentSimulatorPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {'simulator_engine'}
-
+    _KNOWN_PARAMS: set[str] = {"simulator_engine"}
 
     def __init__(self, simulator_engine: str) -> None:
         self._config: dict[str, Any] = {"simulator_engine": simulator_engine}

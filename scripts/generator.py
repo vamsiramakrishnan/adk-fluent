@@ -645,11 +645,7 @@ def gen_runtime_module(specs_for_module: list[BuilderSpec]) -> str:
 def gen_stub_method(method_name: str, type_hint: str, doc: str = "") -> str:
     """Generate a single .pyi stub method."""
     if doc:
-        return (
-            f'    def {method_name}(self, value: {type_hint}) -> Self:\n'
-            f'        """{doc}"""\n'
-            f'        ...'
-        )
+        return f'    def {method_name}(self, value: {type_hint}) -> Self:\n        """{doc}"""\n        ...'
     return f"    def {method_name}(self, value: {type_hint}) -> Self: ..."
 
 
@@ -676,21 +672,21 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
             doc = field_info.get("description", "")
         if not doc:
             doc = f"Set the ``{field_name}`` field."
-        lines.append(f'    def {fluent_name}(self, value: {type_str}) -> Self:')
+        lines.append(f"    def {fluent_name}(self, value: {type_str}) -> Self:")
         lines.append(f'        """{doc}"""')
-        lines.append('        ...')
+        lines.append("        ...")
 
     # Callback methods
     for short_name, full_name in spec.callback_aliases.items():
-        lines.append(f'    def {short_name}(self, fn: Callable) -> Self:')
+        lines.append(f"    def {short_name}(self, fn: Callable) -> Self:")
         lines.append(f'        """Append callback to ``{full_name}``. Multiple calls accumulate."""')
-        lines.append('        ...')
+        lines.append("        ...")
 
     # Conditional callback stubs
     for short_name, full_name in spec.callback_aliases.items():
-        lines.append(f'    def {short_name}_if(self, condition: bool, fn: Callable) -> Self:')
+        lines.append(f"    def {short_name}_if(self, condition: bool, fn: Callable) -> Self:")
         lines.append(f'        """Append callback to ``{full_name}`` only if *condition* is True."""')
-        lines.append('        ...')
+        lines.append("        ...")
 
     # All remaining fields (not aliased, not skipped)
     aliased_fields = set(spec.aliases.values())
@@ -715,9 +711,9 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
 
             type_str = param.get("type_str", "Any")
             doc = param.get("description", f"Set the ``{pname}`` parameter.")
-            lines.append(f'    def {pname}(self, value: {type_str}) -> Self:')
+            lines.append(f"    def {pname}(self, value: {type_str}) -> Self:")
             lines.append(f'        """{doc}"""')
-            lines.append('        ...')
+            lines.append("        ...")
     else:
         # Pydantic mode: list Pydantic fields
         for field in spec.fields:
@@ -733,9 +729,9 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
 
             type_str = field["type_str"]
             doc = spec.field_docs.get(fname, field.get("description", f"Set the ``{fname}`` field."))
-            lines.append(f'    def {fname}(self, value: {type_str}) -> Self:')
+            lines.append(f"    def {fname}(self, value: {type_str}) -> Self:")
             lines.append(f'        """{doc}"""')
-            lines.append('        ...')
+            lines.append("        ...")
 
     # Extra methods
     for extra in spec.extras:
@@ -744,9 +740,9 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
         behavior = extra.get("behavior", "")
         prefix = "async " if behavior in ("runtime_helper_async", "runtime_helper_async_gen") else ""
         if doc:
-            lines.append(f'    {prefix}def {extra["name"]}{sig}:')
+            lines.append(f"    {prefix}def {extra['name']}{sig}:")
             lines.append(f'        """{doc}"""')
-            lines.append('        ...')
+            lines.append("        ...")
         else:
             lines.append(f"    {prefix}def {extra['name']}{sig}: ...")
 
@@ -755,16 +751,16 @@ def gen_stub_class(spec: BuilderSpec, adk_version: str) -> str:
         t_doc = terminal.get("doc", "")
         if "signature" in terminal:
             if t_doc:
-                lines.append(f'    def {terminal["name"]}{terminal["signature"]}:')
+                lines.append(f"    def {terminal['name']}{terminal['signature']}:")
                 lines.append(f'        """{t_doc}"""')
-                lines.append('        ...')
+                lines.append("        ...")
             else:
                 lines.append(f"    def {terminal['name']}{terminal['signature']}: ...")
         elif "returns" in terminal:
             if t_doc:
-                lines.append(f'    def {terminal["name"]}(self) -> {terminal["returns"]}:')
+                lines.append(f"    def {terminal['name']}(self) -> {terminal['returns']}:")
                 lines.append(f'        """{t_doc}"""')
-                lines.append('        ...')
+                lines.append("        ...")
             else:
                 lines.append(f"    def {terminal['name']}(self) -> {terminal['returns']}: ...")
 

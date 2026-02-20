@@ -45,13 +45,10 @@ class PurchaseOrder(BaseModel):
 
 # Composes with >> — typed parser feeds structured data into downstream agents
 accounts_pipeline = (
-    Agent("ocr_agent").model("gemini-2.5-flash")
-    .instruct("Perform OCR on the uploaded document and extract raw text.")
-    >> Agent("invoice_parser").model("gemini-2.5-flash")
-    .instruct("Parse the raw text into structured invoice fields.")
+    Agent("ocr_agent").model("gemini-2.5-flash").instruct("Perform OCR on the uploaded document and extract raw text.")
+    >> Agent("invoice_parser").model("gemini-2.5-flash").instruct("Parse the raw text into structured invoice fields.")
     @ Invoice
-    >> Agent("bookkeeper").model("gemini-2.5-flash")
-    .instruct("Record the parsed invoice in the general ledger.")
+    >> Agent("bookkeeper").model("gemini-2.5-flash").instruct("Record the parsed invoice in the general ledger.")
 )
 
 # @ preserves all existing config — output_key and schema coexist

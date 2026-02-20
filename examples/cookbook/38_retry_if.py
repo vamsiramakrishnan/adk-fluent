@@ -19,17 +19,21 @@ from adk_fluent import Agent, Loop
 payment_processor = (
     Agent("payment_processor")
     .model("gemini-2.5-flash")
-    .instruct("Process the payment through the gateway. Report status as 'success', 'transient_error', or 'permanent_error'.")
+    .instruct(
+        "Process the payment through the gateway. Report status as 'success', 'transient_error', or 'permanent_error'."
+    )
     .outputs("payment_status")
     .retry_if(lambda s: s.get("payment_status") == "transient_error", max_retries=3)
 )
 
 # retry_if on a pipeline -- retry the entire charge-then-verify flow
 charge_and_verify = (
-    Agent("charge_agent").model("gemini-2.5-flash")
+    Agent("charge_agent")
+    .model("gemini-2.5-flash")
     .instruct("Submit charge to payment gateway.")
     .outputs("charge_result")
-    >> Agent("verification_agent").model("gemini-2.5-flash")
+    >> Agent("verification_agent")
+    .model("gemini-2.5-flash")
     .instruct("Verify the charge was recorded by the bank.")
     .outputs("verified")
 ).retry_if(lambda s: s.get("verified") != "confirmed", max_retries=5)
@@ -62,7 +66,7 @@ assert charge_and_verify._config["max_iterations"] == 5
 
 # The predicate is inverted: retry_if(p) stores not-p as until_predicate
 until_pred = payment_processor._config["_until_predicate"]
-assert until_pred({"payment_status": "success"}) is True          # exit: stop retrying
+assert until_pred({"payment_status": "success"}) is True  # exit: stop retrying
 assert until_pred({"payment_status": "transient_error"}) is False  # continue retrying
 
 # Both retry_if and loop_until produce Loop builders with identical structure

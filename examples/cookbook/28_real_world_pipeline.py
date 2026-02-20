@@ -38,27 +38,15 @@ equity_analysis = (
     .use(production)
 )
 
-fixed_income_analysis = (
-    Agent("credit_analyst")
-    .instruct("Analyze credit risk, yield curves, and duration.")
-    .use(production)
-    >> Agent("rate_modeler")
-    .instruct("Model interest rate scenarios and their impact on bond prices.")
-    .use(production)
-)
+fixed_income_analysis = Agent("credit_analyst").instruct("Analyze credit risk, yield curves, and duration.").use(
+    production
+) >> Agent("rate_modeler").instruct("Model interest rate scenarios and their impact on bond prices.").use(production)
 
 alternative_analysis = (
-    (
-        Agent("quant_modeler")
-        .instruct("Build quantitative models for alternative assets.")
-        .use(production)
-        | Agent("market_sentiment")
-        .instruct("Analyze market sentiment from news and social media.")
-        .use(production)
-    )
-    >> Agent("risk_aggregator")
-    .instruct("Aggregate risk factors from quantitative and sentiment analysis.")
-    .use(production)
+    Agent("quant_modeler").instruct("Build quantitative models for alternative assets.").use(production)
+    | Agent("market_sentiment").instruct("Analyze market sentiment from news and social media.").use(production)
+) >> Agent("risk_aggregator").instruct("Aggregate risk factors from quantitative and sentiment analysis.").use(
+    production
 )
 
 # Step 3: Quality review loop — portfolio manager reviews until satisfied
@@ -87,9 +75,9 @@ report_generator = (
 pipeline = (
     asset_classifier
     >> Route("asset_class")
-        .eq("equity", equity_analysis)
-        .eq("fixed_income", fixed_income_analysis)
-        .eq("alternative", alternative_analysis)
+    .eq("equity", equity_analysis)
+    .eq("fixed_income", fixed_income_analysis)
+    .eq("alternative", alternative_analysis)
     >> quality_review
     >> report_generator
 )

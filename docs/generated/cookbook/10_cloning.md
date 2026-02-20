@@ -1,26 +1,62 @@
-# Agent Cloning with .clone()
+# A/B Testing Agent Variants -- Agent Cloning with .clone()
 
-*How to clone and customize builders.*
+Demonstrates .clone() for creating independent agent variants from
+a shared base configuration.  The scenario: A/B testing two customer
+support agents -- one using a formal tone and one using a casual tone
+-- while sharing the same underlying tool (order lookup).
+
+*How to attach tools to an agent using the fluent API.*
 
 _Source: `10_cloning.py`_
 
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python
-# Native ADK has no clone mechanism. You must manually copy all parameters:
-#   base_args = dict(model="gemini-2.5-flash", instruction="Be helpful.")
-#   math_agent = LlmAgent(name="math", **base_args, tools=[calculator])
-#   code_agent = LlmAgent(name="code", **base_args, tools=[code_executor])
+# Native ADK has no clone mechanism. You must manually duplicate all parameters:
+#   from google.adk.agents.llm_agent import LlmAgent
+#
+#   def lookup_order(order_id: str) -> str:
+#       return f"Order {order_id}: shipped, arriving Thursday"
+#
+#   formal = LlmAgent(
+#       name="formal",
+#       model="gemini-2.5-flash",
+#       instruction="Use formal, professional language when helping customers.",
+#       tools=[lookup_order],
+#   )
+#   casual = LlmAgent(
+#       name="casual",
+#       model="gemini-2.5-flash",
+#       instruction="Use friendly, casual language when helping customers.",
+#       tools=[lookup_order],
+#   )
 ```
 :::
 :::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
-base = Agent("base").model("gemini-2.5-flash").instruct("Be helpful.")
 
-math_agent = base.clone("math").instruct("Solve math problems.")
-code_agent = base.clone("code").instruct("Write Python code.")
+def lookup_order(order_id: str) -> str:
+    """Look up the status of a customer order by its ID."""
+    return f"Order {order_id}: shipped, arriving Thursday"
+
+
+base = (
+    Agent("support_base")
+    .model("gemini-2.5-flash")
+    .instruct("You are a customer support agent. Help customers with order inquiries.")
+    .tool(lookup_order)
+)
+
+variant_a = base.clone("formal_support").instruct(
+    "You are a customer support agent. Use formal, professional language. "
+    "Address the customer as Sir or Madam. Be thorough and precise."
+)
+variant_b = base.clone("casual_support").instruct(
+    "You are a customer support agent. Use friendly, casual language. "
+    "Be warm and personable. Use the customer's first name."
+)
 ```
 :::
 ::::
@@ -28,12 +64,16 @@ code_agent = base.clone("code").instruct("Write Python code.")
 ## Equivalence
 
 ```python
-# Clones are independent
-assert math_agent._config["name"] == "math"
-assert code_agent._config["name"] == "code"
-assert math_agent._config["instruction"] == "Solve math problems."
-assert code_agent._config["instruction"] == "Write Python code."
-# Original is unchanged
-assert base._config["name"] == "base"
-assert base._config["instruction"] == "Be helpful."
+# Clones are independent with their own names
+assert variant_a._config["name"] == "formal_support"
+assert variant_b._config["name"] == "casual_support"
+# Each clone has its own instruction
+assert "formal" in variant_a._config["instruction"]
+assert "casual" in variant_b._config["instruction"]
+# Original base is unchanged
+assert base._config["name"] == "support_base"
+assert "order inquiries" in base._config["instruction"]
+# Both clones inherited the tool
+assert len(variant_a._lists["tools"]) == 1
+assert len(variant_b._lists["tools"]) == 1
 ```

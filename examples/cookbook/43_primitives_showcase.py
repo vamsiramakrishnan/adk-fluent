@@ -61,10 +61,7 @@ express_handler = Agent("express_handler", MODEL).instruct("Process express deli
 pickup_handler = Agent("pickup_handler", MODEL).instruct("Process store pickup order.")
 
 order_route = (
-    Route("order_type")
-    .eq("standard", standard_handler)
-    .eq("express", express_handler)
-    .otherwise(pickup_handler)
+    Route("order_type").eq("standard", standard_handler).eq("express", express_handler).otherwise(pickup_handler)
 )
 
 routed_pipeline = order_parser >> order_route
@@ -117,9 +114,7 @@ log_step = S.log("order_id", "total")
 assert callable(log_step)
 
 # S.compute -- derive shipping cost from order weight and destination
-compute_step = S.compute(
-    shipping_cost=lambda s: s.get("weight_kg", 0) * s.get("rate_per_kg", 5.0)
-)
+compute_step = S.compute(shipping_cost=lambda s: s.get("weight_kg", 0) * s.get("rate_per_kg", 5.0))
 assert callable(compute_step)
 
 # --- 6. Full e-commerce pipeline: all primitives in one expression ---
@@ -162,7 +157,9 @@ assert len(built_coord.sub_agents) == 2
 
 # --- 8. include_history() -- stateless payment processor ---
 
-stateless_processor = Agent("payment_gateway", MODEL).include_history("none").instruct("Process payment using only state data.")
+stateless_processor = (
+    Agent("payment_gateway", MODEL).include_history("none").instruct("Process payment using only state data.")
+)
 assert stateless_processor._config["include_contents"] == "none"
 
 # .history() still works as short alias

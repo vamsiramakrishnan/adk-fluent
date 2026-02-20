@@ -12,6 +12,20 @@
 #
 
 # ---------------------------------------------------------------------------
+# FIELD DOCSTRINGS
+# ---------------------------------------------------------------------------
+# Override auto-generated field docstrings in builders and .pyi stubs.
+# Keys are field names (or alias names); values are the docstring text.
+
+[field_docs]
+output_schema = "Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."
+input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent."
+output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``."
+outputs = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."
+disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
+disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
+
+# ---------------------------------------------------------------------------
 # BUILDER RENAMES
 # ---------------------------------------------------------------------------
 # Maps ADK class names to friendlier builder names.
@@ -195,6 +209,28 @@ signature = "(self) -> Self"
 doc = "Auto-save session to memory after each agent run."
 behavior = "runtime_helper_ctx"
 helper_func = "_add_memory_auto_save"
+
+# ---------------------------------------------------------------------------
+# TRANSFER CONTROL EXTRAS
+# ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "isolate"
+signature = "(self) -> Self"
+doc = "Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."
+behavior = "runtime_helper"
+helper_func = "_isolate_agent"
+example = '''
+# Specialist agent that completes its task without transferring
+specialist = (
+    Agent("invoice_parser", "gemini-2.5-flash")
+    .instruct("Parse the invoice and extract line items.")
+    .isolate()
+    .output_schema(Invoice)
+    .build()
+)
+'''
+see_also = ["Agent.disallow_transfer_to_parent", "Agent.disallow_transfer_to_peers"]
 
 # ---------------------------------------------------------------------------
 # IR CONVERSION EXTRAS

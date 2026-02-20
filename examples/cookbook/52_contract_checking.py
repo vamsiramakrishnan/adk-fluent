@@ -15,17 +15,10 @@ MODEL = "gemini-2.5-flash"
 # === Scenario 1: Valid research pipeline ===
 # Researcher outputs "findings" and "sources", writer reads them via {template}.
 
-research_pipeline = (
-    Agent("researcher")
-        .model(MODEL)
-        .instruct("Research the given topic thoroughly. Cite your sources.")
-        .outputs("findings")
-    >> Agent("writer")
-        .model(MODEL)
-        .instruct(
-            "Write a report based on the research.\n"
-            "Findings: {findings}"
-        )
+research_pipeline = Agent("researcher").model(MODEL).instruct(
+    "Research the given topic thoroughly. Cite your sources."
+).outputs("findings") >> Agent("writer").model(MODEL).instruct(
+    "Write a report based on the research.\nFindings: {findings}"
 )
 
 valid_issues = check_contracts(research_pipeline.to_ir())
@@ -35,13 +28,8 @@ valid_errors = [i for i in valid_issues if isinstance(i, dict) and i.get("level"
 # Summarizer reads {analysis} but nobody writes it.
 
 broken_pipeline = (
-    Agent("collector")
-        .model(MODEL)
-        .instruct("Collect data from available sources.")
-        .outputs("raw_data")
-    >> Agent("summarizer")
-        .model(MODEL)
-        .instruct("Summarize the analysis: {analysis}")  # Bug: should be {raw_data}
+    Agent("collector").model(MODEL).instruct("Collect data from available sources.").outputs("raw_data")
+    >> Agent("summarizer").model(MODEL).instruct("Summarize the analysis: {analysis}")  # Bug: should be {raw_data}
 )
 
 broken_issues = check_contracts(broken_pipeline.to_ir())
@@ -61,16 +49,8 @@ unchecked_built = broken_pipeline.unchecked().build()
 
 order_pipeline = (
     S.capture("customer_request")
-    >> Agent("parser")
-        .model(MODEL)
-        .instruct("Parse the order: {customer_request}")
-        .outputs("order_details")
-    >> Agent("fulfillment")
-        .model(MODEL)
-        .instruct(
-            "Process the parsed order.\n"
-            "Order details: {order_details}"
-        )
+    >> Agent("parser").model(MODEL).instruct("Parse the order: {customer_request}").outputs("order_details")
+    >> Agent("fulfillment").model(MODEL).instruct("Process the parsed order.\nOrder details: {order_details}")
 )
 
 order_issues = check_contracts(order_pipeline.to_ir())

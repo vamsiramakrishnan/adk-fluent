@@ -1,4 +1,4 @@
-# Presets: Reusable Configuration Bundles
+# Enterprise Agent with Shared Compliance Preset
 
 *How to define and apply reusable configuration presets.*
 
@@ -8,7 +8,7 @@ _Source: `22_presets.py`_
 :::{tab-item} Native ADK
 ```python
 # Native ADK has no preset mechanism. Reusing config requires:
-#   base_kwargs = dict(model="gemini-2.5-flash", before_model_callback=my_cb)
+#   base_kwargs = dict(model="gemini-2.5-flash", before_model_callback=audit_log)
 #   agent1 = LlmAgent(name="a1", instruction="Do X.", **base_kwargs)
 #   agent2 = LlmAgent(name="a2", instruction="Do Y.", **base_kwargs)
 #
@@ -22,27 +22,31 @@ from adk_fluent import Agent
 from adk_fluent.presets import Preset
 
 
-def log_before(callback_context, llm_request):
-    """Log before model calls."""
+def audit_before_model(callback_context, llm_request):
+    """Log all LLM requests for SOC2 compliance audit trail."""
     pass
 
 
-def log_after(callback_context, llm_response):
-    """Log after model calls."""
+def audit_after_model(callback_context, llm_response):
+    """Log all LLM responses for compliance review."""
     pass
 
 
-# Define reusable presets
-production = Preset(
+# Define a reusable compliance preset for all enterprise agents
+compliance = Preset(
     model="gemini-2.5-flash",
-    before_model=log_before,
-    after_model=log_after,
+    before_model=audit_before_model,
+    after_model=audit_after_model,
 )
 
-# Apply to any builder with .use()
-agent_a = Agent("service_a").instruct("Handle service A requests.").use(production)
+# Apply the preset to multiple domain-specific agents with .use()
+billing_agent = (
+    Agent("billing_agent").instruct("Handle billing inquiries, invoices, and payment disputes.").use(compliance)
+)
 
-agent_b = Agent("service_b").instruct("Handle service B requests.").use(production)
+hr_agent = (
+    Agent("hr_agent").instruct("Answer employee questions about benefits, PTO, and company policies.").use(compliance)
+)
 ```
 :::
 ::::
@@ -51,15 +55,15 @@ agent_b = Agent("service_b").instruct("Handle service B requests.").use(producti
 
 ```python
 # Both agents got the model from preset
-assert agent_a._config["model"] == "gemini-2.5-flash"
-assert agent_b._config["model"] == "gemini-2.5-flash"
+assert billing_agent._config["model"] == "gemini-2.5-flash"
+assert hr_agent._config["model"] == "gemini-2.5-flash"
 
-# Both agents got the callbacks
-assert log_before in agent_a._callbacks["before_model_callback"]
-assert log_after in agent_a._callbacks["after_model_callback"]
-assert log_before in agent_b._callbacks["before_model_callback"]
-assert log_after in agent_b._callbacks["after_model_callback"]
+# Both agents got the compliance audit callbacks
+assert audit_before_model in billing_agent._callbacks["before_model_callback"]
+assert audit_after_model in billing_agent._callbacks["after_model_callback"]
+assert audit_before_model in hr_agent._callbacks["before_model_callback"]
+assert audit_after_model in hr_agent._callbacks["after_model_callback"]
 
-# .use() returns self for chaining
-assert agent_a._config["instruction"] == "Handle service A requests."
+# .use() returns self for chaining -- instructions are preserved
+assert billing_agent._config["instruction"] == "Handle billing inquiries, invoices, and payment disputes."
 ```

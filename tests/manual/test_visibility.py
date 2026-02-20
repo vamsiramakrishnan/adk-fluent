@@ -1,6 +1,5 @@
 """Tests for visibility inference and VisibilityPlugin."""
 
-
 from adk_fluent._ir import CaptureNode, RouteNode, TapNode, TransformNode
 from adk_fluent._ir_generated import (
     AgentNode,

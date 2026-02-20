@@ -10,8 +10,10 @@ execution
 callbacks
 presets
 state-transforms
+structured-data
 context-engineering
 visibility
+transfer-control
 memory
 ir-and-backends
 middleware

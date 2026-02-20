@@ -64,9 +64,7 @@ feedback_pipeline = (
     .outputs("feedback_entries")
     >> map_over(
         "feedback_entries",
-        Agent("sentiment_analyzer")
-        .model("gemini-2.5-flash")
-        .instruct("Analyze sentiment of this feedback entry."),
+        Agent("sentiment_analyzer").model("gemini-2.5-flash").instruct("Analyze sentiment of this feedback entry."),
     )
     >> Agent("summary_writer")
     .model("gemini-2.5-flash")

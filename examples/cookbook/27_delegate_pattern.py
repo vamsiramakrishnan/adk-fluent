@@ -18,8 +18,7 @@ coordinator_native = LlmAgent(
     name="tech_lead",
     model="gemini-2.5-flash",
     instruction=(
-        "You are a senior tech lead. Analyze architecture requests and "
-        "delegate to the appropriate specialist."
+        "You are a senior tech lead. Analyze architecture requests and delegate to the appropriate specialist."
     ),
     tools=[AgentTool(agent=database_specialist)],
 )

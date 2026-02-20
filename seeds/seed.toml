@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-18T23:50:32.629391+00:00"
+generated_at = "2026-02-20T05:18:53.857363+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -10,6 +10,14 @@ output_dir = "src/adk_fluent"
 skip_fields = ["parent_agent"]
 additive_fields = ["after_agent_callback", "after_model_callback", "after_tool_callback", "before_agent_callback", "before_model_callback", "before_tool_callback", "on_model_error_callback", "on_tool_error_callback"]
 list_extend_fields = ["plugins", "sub_agents", "tools"]
+
+[field_docs]
+disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
+disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
+input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent."
+output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``."
+output_schema = "Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."
+outputs = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."
 
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
@@ -341,6 +349,24 @@ signature = "(self) -> Self"
 doc = "Auto-save session to memory after each agent run."
 behavior = "runtime_helper_ctx"
 helper_func = "_add_memory_auto_save"
+
+[[builders.Agent.extras]]
+name = "isolate"
+signature = "(self) -> Self"
+doc = "Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."
+behavior = "runtime_helper"
+helper_func = "_isolate_agent"
+example = '''
+# Specialist agent that completes its task without transferring
+specialist = (
+    Agent("invoice_parser", "gemini-2.5-flash")
+    .instruct("Parse the invoice and extract line items.")
+    .isolate()
+    .output_schema(Invoice)
+    .build()
+)
+'''
+see_also = ["Agent.disallow_transfer_to_parent", "Agent.disallow_transfer_to_peers"]
 
 [[builders.Agent.extras]]
 name = "to_ir"

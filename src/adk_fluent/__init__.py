@@ -308,6 +308,7 @@ __all__ = [
     "_hide_agent",
     "_add_memory",
     "_add_memory_auto_save",
+    "_isolate_agent",
     "TransformNode",
     "TapNode",
     "FallbackNode",
@@ -394,6 +395,7 @@ from ._helpers import _show_agent
 from ._helpers import _hide_agent
 from ._helpers import _add_memory
 from ._helpers import _add_memory_auto_save
+from ._helpers import _isolate_agent
 from ._ir import TransformNode
 from ._ir import TapNode
 from ._ir import FallbackNode

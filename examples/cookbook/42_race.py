@@ -42,9 +42,7 @@ semantic_search = (
     .instruct("Perform semantic similarity search for conceptually related cases.")
 )
 citation_search = (
-    Agent("citation_search")
-    .model("gemini-2.5-flash")
-    .instruct("Follow citation networks from known relevant cases.")
+    Agent("citation_search").model("gemini-2.5-flash").instruct("Follow citation networks from known relevant cases.")
 )
 
 best_strategy = race(keyword_search, semantic_search, citation_search)
@@ -55,12 +53,8 @@ research_pipeline = (
     .model("gemini-2.5-flash")
     .instruct("Classify the legal research query by jurisdiction and area of law.")
     >> race(
-        Agent("federal_search")
-        .model("gemini-2.5-flash")
-        .instruct("Search federal case law databases."),
-        Agent("state_search")
-        .model("gemini-2.5-flash")
-        .instruct("Search state case law databases."),
+        Agent("federal_search").model("gemini-2.5-flash").instruct("Search federal case law databases."),
+        Agent("state_search").model("gemini-2.5-flash").instruct("Search state case law databases."),
     )
     >> Agent("citation_formatter")
     .model("gemini-2.5-flash")

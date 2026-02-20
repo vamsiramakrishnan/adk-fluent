@@ -25,16 +25,14 @@ fanout_native = ParallelAgent(
             name="academic_analyst",
             model="gemini-2.5-flash",
             instruction=(
-                "Search academic databases for recent research papers and "
-                "industry reports relevant to this market."
+                "Search academic databases for recent research papers and industry reports relevant to this market."
             ),
         ),
         LlmAgent(
             name="social_analyst",
             model="gemini-2.5-flash",
             instruction=(
-                "Analyze social media sentiment and trending discussions "
-                "about products and brands in this market."
+                "Analyze social media sentiment and trending discussions about products and brands in this market."
             ),
         ),
     ],
@@ -56,18 +54,12 @@ fanout_fluent = (
     .branch(
         Agent("academic_analyst")
         .model("gemini-2.5-flash")
-        .instruct(
-            "Search academic databases for recent research papers and "
-            "industry reports relevant to this market."
-        )
+        .instruct("Search academic databases for recent research papers and industry reports relevant to this market.")
     )
     .branch(
         Agent("social_analyst")
         .model("gemini-2.5-flash")
-        .instruct(
-            "Analyze social media sentiment and trending discussions "
-            "about products and brands in this market."
-        )
+        .instruct("Analyze social media sentiment and trending discussions about products and brands in this market.")
     )
     .build()
 )

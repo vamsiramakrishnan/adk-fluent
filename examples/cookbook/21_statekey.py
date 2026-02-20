@@ -28,7 +28,7 @@ store_version = StateKey("store_version", scope="app", type=str, default="v2.1")
 
 # --- ASSERT ---
 # Key construction with correct scope prefixes
-assert order_count.key == "order_count"           # session scope = no prefix
+assert order_count.key == "order_count"  # session scope = no prefix
 assert cart_items.key == "temp:cart_items"
 assert customer_tier.key == "user:customer_tier"
 assert store_version.key == "app:store_version"

@@ -31,10 +31,12 @@ from adk_fluent import Agent, Pipeline, tap
 # tap(): creates a pure observation step — reads state, never mutates.
 # Perfect for monitoring ML pipeline health without affecting predictions.
 ml_pipeline = (
-    Agent("feature_engineer").model("gemini-2.5-flash")
+    Agent("feature_engineer")
+    .model("gemini-2.5-flash")
     .instruct("Extract and normalize features from the raw input data.")
     >> tap(lambda s: print(f"Features extracted: {len(s)} keys in state"))
-    >> Agent("inference_engine").model("gemini-2.5-flash")
+    >> Agent("inference_engine")
+    .model("gemini-2.5-flash")
     .instruct("Run inference on the prepared features and return predictions.")
 )
 
@@ -48,16 +50,19 @@ def log_prediction_metrics(state):
 
 
 pipeline_with_monitoring = (
-    Agent("model_server").model("gemini-2.5-flash")
+    Agent("model_server")
+    .model("gemini-2.5-flash")
     .instruct("Execute the ML model and return predictions with confidence scores.")
     >> tap(log_prediction_metrics)
-    >> Agent("response_formatter").model("gemini-2.5-flash")
+    >> Agent("response_formatter")
+    .model("gemini-2.5-flash")
     .instruct("Format the prediction into a human-readable response.")
 )
 
 # .tap() method on any builder — inline monitoring for quick debugging
 pipeline_method = (
-    Agent("anomaly_detector").model("gemini-2.5-flash")
+    Agent("anomaly_detector")
+    .model("gemini-2.5-flash")
     .instruct("Detect anomalies in the incoming data stream.")
     .tap(lambda s: print(f"Anomaly detection complete, state keys: {list(s.keys())}"))
 )
