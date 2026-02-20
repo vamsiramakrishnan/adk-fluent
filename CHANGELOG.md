@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-20
+
+### Added
+- **Intelligent Codegen**: Type-driven inference engine replaces hard-coded lookup tables for aliases, field policies, extras, and parent references
+- **Code IR**: Structured intermediate representation (`code_ir.py`) is now the sole emission path for `.py`, `.pyi`, and test scaffolds
+- **Auto-generating README**: `README.template.md` + `readme_generator.py` produce `README.md` with live Mermaid diagrams and verified quick-start code
+- **Concept harvesting**: `concepts_generator.py` compiles architectural theory into `architecture-and-concepts.md`
+- **Visual cookbooks**: Cookbook recipes execute in a sandbox to auto-render Mermaid architecture DAGs
+- **Semantic API reference**: Methods grouped by category (Core Configuration, Callbacks, Control Flow) with inline code examples from docstrings
+- **Context engineering**: `Agent.context()`, `C` module (context transforms), `S.capture()` for history-to-state bridging
+- **Visibility inference**: `VisibilityPlugin` and event visibility analysis
+- **Contract checker**: Cross-channel coherence analysis for inter-agent data flow
+- **Transfer control**: `.isolate()` for specialist agents, `.delegate()` for coordinator pattern
+- **Structured outputs**: `@` operator and `.output_schema()` for Pydantic-enforced JSON output
+
+### Changed
+- Code generation pipeline uses `ruff check --fix || true` → `ruff format` → `ruff check` for lint-clean output
+- CI codegen steps aligned with justfile pipeline
+- Generated imports use isort-compatible grouping (future/stdlib/third-party/first-party)
+- `seed.manual.toml` now includes `delegate` extra for seed regeneration resilience
+
+### Fixed
+- 145 test failures caused by seed regeneration stripping signatures from auto-inferred extras
+- `infer_extras()` now includes `signature` and `doc` fields for list-append extras
+- Ruff SIM105, SIM110, SIM103, F841, B011, B007 violations across scripts and tests
+- Doc generator tests updated to match new semantic category headers
+
+### Removed
+- Old string-concatenation code generation functions (16 `gen_*` functions, ~765 lines)
+- `--use-ir` CLI flag (IR is now the only path)
+
 ## [0.5.2] - 2026-02-18
 
 ### Fixed
@@ -112,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI/CD with GitHub Actions
 - PyPI publishing via Trusted Publishing (OIDC)
 
+[0.6.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.2...v0.6.0
 [0.5.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.4.0...v0.5.0
