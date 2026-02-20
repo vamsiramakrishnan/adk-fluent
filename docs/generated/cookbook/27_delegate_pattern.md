@@ -4,6 +4,17 @@
 
 _Source: `27_delegate_pattern.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    c["senior_architect"]
+    d0["database_specialist"]
+    c -.->|delegates| d0
+    d1["frontend_specialist"]
+    c -.->|delegates| d1
+```
+
 ::::{tab-set}
 :::{tab-item} Native ADK
 ```python

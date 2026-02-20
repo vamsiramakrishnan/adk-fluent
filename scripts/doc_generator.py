@@ -613,8 +613,9 @@ def _get_mermaid_from_cookbook(filepath: str) -> str:
         spec = importlib.util.spec_from_file_location("mod", filepath)
         mod = importlib.util.module_from_spec(spec)
 
-        # Monkeypatch build on all generated builder classes in adk_fluent
+        # Monkeypatch build on all generated builder classes in adk_fluent + Route
         import adk_fluent
+        from adk_fluent._routing import Route
 
         patched = {}
         for name in dir(adk_fluent):
@@ -628,6 +629,12 @@ def _get_mermaid_from_cookbook(filepath: str) -> str:
 
                 obj.build = mock_build
 
+        # Route is already in adk_fluent namespace, so the loop above covers it.
+        # Only patch if the loop missed it (shouldn't happen, but defensive).
+        if Route not in patched:
+            patched[Route] = Route.build
+            Route.build = lambda self, *a, **kw: self
+
         with contextlib.suppress(Exception):
             spec.loader.exec_module(mod)
 
@@ -635,24 +642,52 @@ def _get_mermaid_from_cookbook(filepath: str) -> str:
         for obj, orig_build in patched.items():
             obj.build = orig_build
 
-        # Now find the largest/most complex builder
+        # Now find the largest/most complex builder or Route
         from adk_fluent._base import BuilderBase
+        from adk_fluent._routing import Route
 
-        best_builder = None
+        best_mermaid = ""
         max_nodes = 0
 
         for name in dir(mod):
             obj = getattr(mod, name)
-            if isinstance(obj, BuilderBase):
+            if isinstance(obj, (BuilderBase, Route)):
                 with contextlib.suppress(Exception):
                     mermaid = obj.to_mermaid()
                     nodes = mermaid.count("    n")  # rough heuristic
                     if nodes > max_nodes:
                         max_nodes = nodes
-                        best_builder = obj
+                        best_mermaid = mermaid
 
-        if best_builder and max_nodes >= 2:  # At least a couple of nodes
-            return best_builder.to_mermaid()
+        if max_nodes >= 2:  # At least a couple of nodes
+            return best_mermaid
+
+        # Fallback: detect delegate patterns (AgentTool wrapping agents)
+        # These don't produce multi-node IR but show coordinator→specialist topology
+        from google.adk.tools.agent_tool import AgentTool
+
+        for name in dir(mod):
+            obj = getattr(mod, name)
+            if not isinstance(obj, BuilderBase) or not obj._lists.get("tools"):
+                continue
+            # Filter to only AgentTool instances (not plain function tools)
+            agent_tools = [t for t in obj._lists["tools"] if isinstance(t, AgentTool)]
+            if len(agent_tools) < 1:
+                continue
+            coordinator_name = obj._config.get("name", "coordinator")
+            mermaid_lines = ["graph TD"]
+            mermaid_lines.append(f'    c["{coordinator_name}"]')
+            for i, at in enumerate(agent_tools):
+                inner = at.agent
+                d_name = f"specialist_{i}"
+                if isinstance(inner, BuilderBase):
+                    d_name = inner._config.get("name", d_name)
+                elif hasattr(inner, "name"):
+                    d_name = inner.name
+                mermaid_lines.append(f'    d{i}["{d_name}"]')
+                mermaid_lines.append(f"    c -.->|delegates| d{i}")
+            return "\n".join(mermaid_lines)
+
     except Exception:  # noqa: SIM105
         pass
     return ""

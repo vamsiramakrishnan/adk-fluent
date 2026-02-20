@@ -142,6 +142,12 @@ class Route:
         name = f"route_{self._key}" if self._key else "route"
         return _make_route_agent(name, built_rules, built_default, sub_agents)
 
+    def to_mermaid(self) -> str:
+        """Generate a Mermaid graph visualization of this Route's branching structure."""
+        from adk_fluent.viz import ir_to_mermaid
+
+        return ir_to_mermaid(self.to_ir())
+
     def __repr__(self) -> str:
         key_str = f"'{self._key}'" if self._key else "multi-key"
         rules_str = f"{len(self._rules)} rules"
