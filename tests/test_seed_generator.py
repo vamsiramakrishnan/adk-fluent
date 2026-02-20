@@ -426,6 +426,7 @@ def test_infer_extras_unknown_class_gets_generic_adders():
 # --- Parent Reference Detection (A5) ---
 def test_detect_parent_ref_from_mro():
     from scripts.seed_generator import is_parent_reference
+
     mro = ["LlmAgent", "BaseAgent", "BaseModel"]
     assert is_parent_reference("parent_agent", "BaseAgent | None", mro) is True
     assert is_parent_reference("parent_agent", "BaseAgent | None", ["Unrelated"]) is False

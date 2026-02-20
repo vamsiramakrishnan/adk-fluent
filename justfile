@@ -56,8 +56,9 @@ generate: _require-manifest _require-seed
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
     @uv run python {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
-    @uv run ruff check --fix .
+    @uv run ruff check --fix . || true
     @uv run ruff format .
+    @uv run ruff check .
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed

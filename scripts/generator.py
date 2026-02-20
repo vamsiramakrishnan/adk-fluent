@@ -348,12 +348,14 @@ def _parse_signature(sig: str) -> tuple[list[Param], str | None]:
             name = part.strip()
             type_str = None
 
-        params.append(Param(
-            name=name,
-            type=type_str,
-            default=default,
-            keyword_only=kw_only,
-        ))
+        params.append(
+            Param(
+                name=name,
+                type=type_str,
+                default=default,
+                keyword_only=kw_only,
+            )
+        )
 
     return params, return_type
 
@@ -363,7 +365,9 @@ def _ir_class_attrs(spec: BuilderSpec) -> list[ClassAttr]:
     attrs: list[ClassAttr] = []
 
     attrs.append(ClassAttr("_ALIASES", "dict[str, str]", repr(spec.aliases) if spec.aliases else "{}"))
-    attrs.append(ClassAttr("_CALLBACK_ALIASES", "dict[str, str]", repr(spec.callback_aliases) if spec.callback_aliases else "{}"))
+    attrs.append(
+        ClassAttr("_CALLBACK_ALIASES", "dict[str, str]", repr(spec.callback_aliases) if spec.callback_aliases else "{}")
+    )
 
     additive = spec.additive_fields & {f["name"] for f in spec.fields}
     attrs.append(ClassAttr("_ADDITIVE_FIELDS", "set[str]", repr(additive) if additive else "set()"))
@@ -388,7 +392,7 @@ def _ir_init_method(spec: BuilderSpec) -> MethodNode:
     params: list[Param] = [Param("self")]
     for arg in spec.constructor_args:
         params.append(Param(arg, type="str"))
-    for arg in (spec.optional_constructor_args or []):
+    for arg in spec.optional_constructor_args or []:
         params.append(Param(arg, type="str | None", default="None"))
 
     body: list = []
@@ -402,11 +406,13 @@ def _ir_init_method(spec: BuilderSpec) -> MethodNode:
     body.append(AssignStmt("self._callbacks: dict[str, list[Callable]]", "defaultdict(list)"))
     body.append(AssignStmt("self._lists: dict[str, list]", "defaultdict(list)"))
 
-    for arg in (spec.optional_constructor_args or []):
-        body.append(IfStmt(
-            condition=f"{arg} is not None",
-            body=(SubscriptAssign("self._config", arg, arg),),
-        ))
+    for arg in spec.optional_constructor_args or []:
+        body.append(
+            IfStmt(
+                condition=f"{arg} is not None",
+                body=(SubscriptAssign("self._config", arg, arg),),
+            )
+        )
 
     return MethodNode(name="__init__", params=params, returns="None", body=body)
 
@@ -425,16 +431,18 @@ def _ir_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
         if not doc and field_info:
             doc = field_info.get("description", "")
 
-        methods.append(MethodNode(
-            name=fluent_name,
-            params=[Param("self"), Param("value", type=type_hint)],
-            returns="Self",
-            doc=doc or f"Set the `{field_name}` field.",
-            body=[
-                SubscriptAssign("self._config", field_name, "value"),
-                ReturnStmt("self"),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name=fluent_name,
+                params=[Param("self"), Param("value", type=type_hint)],
+                returns="Self",
+                doc=doc or f"Set the `{field_name}` field.",
+                body=[
+                    SubscriptAssign("self._config", field_name, "value"),
+                    ReturnStmt("self"),
+                ],
+            )
+        )
 
     return methods
 
@@ -445,30 +453,34 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
 
     for short_name, full_name in spec.callback_aliases.items():
         # Variadic version
-        methods.append(MethodNode(
-            name=short_name,
-            params=[Param("self"), Param("*fns", type="Callable")],
-            returns="Self",
-            doc=f"Append callback(s) to `{full_name}`. Multiple calls accumulate.",
-            body=[
-                ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=full_name),
-                ReturnStmt("self"),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name=short_name,
+                params=[Param("self"), Param("*fns", type="Callable")],
+                returns="Self",
+                doc=f"Append callback(s) to `{full_name}`. Multiple calls accumulate.",
+                body=[
+                    ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=full_name),
+                    ReturnStmt("self"),
+                ],
+            )
+        )
         # Conditional version
-        methods.append(MethodNode(
-            name=f"{short_name}_if",
-            params=[Param("self"), Param("condition", type="bool"), Param("fn", type="Callable")],
-            returns="Self",
-            doc=f"Append callback to `{full_name}` only if condition is True.",
-            body=[
-                IfStmt(
-                    condition="condition",
-                    body=(AppendStmt("self._callbacks", full_name, "fn"),),
-                ),
-                ReturnStmt("self"),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name=f"{short_name}_if",
+                params=[Param("self"), Param("condition", type="bool"), Param("fn", type="Callable")],
+                returns="Self",
+                doc=f"Append callback to `{full_name}` only if condition is True.",
+                body=[
+                    IfStmt(
+                        condition="condition",
+                        body=(AppendStmt("self._callbacks", full_name, "fn"),),
+                    ),
+                    ReturnStmt("self"),
+                ],
+            )
+        )
 
     return methods
 
@@ -507,16 +519,18 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
             if pname in spec.constructor_args:
                 continue
             type_str = param.get("type_str", "Any")
-            methods.append(MethodNode(
-                name=pname,
-                params=[Param("self"), Param("value", type=type_str)],
-                returns="Self",
-                doc=f"Set the ``{pname}`` field.",
-                body=[
-                    SubscriptAssign("self._config", pname, "value"),
-                    ReturnStmt("self"),
-                ],
-            ))
+            methods.append(
+                MethodNode(
+                    name=pname,
+                    params=[Param("self"), Param("value", type=type_str)],
+                    returns="Self",
+                    doc=f"Set the ``{pname}`` field.",
+                    body=[
+                        SubscriptAssign("self._config", pname, "value"),
+                        ReturnStmt("self"),
+                    ],
+                )
+            )
     else:
         for field in spec.fields:
             fname = field["name"]
@@ -525,29 +539,33 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
             if fname in spec.constructor_args:
                 continue
             if field.get("is_callback") and fname in spec.additive_fields:
-                methods.append(MethodNode(
-                    name=fname,
-                    params=[Param("self"), Param("*fns", type="Callable")],
-                    returns="Self",
-                    doc=f"Append callback(s) to ``{fname}``. Multiple calls accumulate.",
-                    body=[
-                        ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=fname),
-                        ReturnStmt("self"),
-                    ],
-                ))
+                methods.append(
+                    MethodNode(
+                        name=fname,
+                        params=[Param("self"), Param("*fns", type="Callable")],
+                        returns="Self",
+                        doc=f"Append callback(s) to ``{fname}``. Multiple calls accumulate.",
+                        body=[
+                            ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=fname),
+                            ReturnStmt("self"),
+                        ],
+                    )
+                )
             else:
                 type_str = field["type_str"]
                 doc = spec.field_docs.get(fname, field.get("description", ""))
-                methods.append(MethodNode(
-                    name=fname,
-                    params=[Param("self"), Param("value", type=type_str)],
-                    returns="Self",
-                    doc=doc or f"Set the ``{fname}`` field.",
-                    body=[
-                        SubscriptAssign("self._config", fname, "value"),
-                        ReturnStmt("self"),
-                    ],
-                ))
+                methods.append(
+                    MethodNode(
+                        name=fname,
+                        params=[Param("self"), Param("value", type=type_str)],
+                        returns="Self",
+                        doc=doc or f"Set the ``{fname}`` field.",
+                        body=[
+                            SubscriptAssign("self._config", fname, "value"),
+                            ReturnStmt("self"),
+                        ],
+                    )
+                )
 
     return methods
 
@@ -600,72 +618,86 @@ def _ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
                 param_name = sig.split("self, ")[1].split(":")[0].strip()
             else:
                 param_name = "new_name"
-            body.append(ImportStmt(
-                module="adk_fluent._helpers",
-                name="deep_clone_builder",
-                call=f"return deep_clone_builder(self, {param_name})",
-            ))
+            body.append(
+                ImportStmt(
+                    module="adk_fluent._helpers",
+                    name="deep_clone_builder",
+                    call=f"return deep_clone_builder(self, {param_name})",
+                )
+            )
 
         elif behavior == "runtime_helper":
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
-            body.append(ImportStmt(
-                module="adk_fluent._helpers",
-                name=helper_func,
-                call=f"return {helper_func}(self, {args_fwd})",
-            ))
+            body.append(
+                ImportStmt(
+                    module="adk_fluent._helpers",
+                    name=helper_func,
+                    call=f"return {helper_func}(self, {args_fwd})",
+                )
+            )
 
         elif behavior == "runtime_helper_async":
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
-            body.append(ImportStmt(
-                module="adk_fluent._helpers",
-                name=helper_func,
-                call=f"return await {helper_func}(self, {args_fwd})",
-            ))
+            body.append(
+                ImportStmt(
+                    module="adk_fluent._helpers",
+                    name=helper_func,
+                    call=f"return await {helper_func}(self, {args_fwd})",
+                )
+            )
 
         elif behavior == "runtime_helper_async_gen":
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
-            body.append(RawStmt(
-                f"from adk_fluent._helpers import {helper_func}\n"
-                f"async for chunk in {helper_func}(self, {args_fwd}):\n"
-                f"    yield chunk"
-            ))
+            body.append(
+                RawStmt(
+                    f"from adk_fluent._helpers import {helper_func}\n"
+                    f"async for chunk in {helper_func}(self, {args_fwd}):\n"
+                    f"    yield chunk"
+                )
+            )
 
         elif behavior == "runtime_helper_ctx":
             helper_func = extra.get("helper_func", name)
-            body.append(ImportStmt(
-                module="adk_fluent._helpers",
-                name=helper_func,
-                call=f"return {helper_func}(self)",
-            ))
+            body.append(
+                ImportStmt(
+                    module="adk_fluent._helpers",
+                    name=helper_func,
+                    call=f"return {helper_func}(self)",
+                )
+            )
 
         elif behavior == "deprecation_alias":
             target_method = extra.get("target_method", name)
-            body.append(RawStmt(
-                f"import warnings\n"
-                f"warnings.warn(\n"
-                f'    ".{name}() is deprecated, use .{target_method}() instead",\n'
-                f"    DeprecationWarning,\n"
-                f"    stacklevel=2,\n"
-                f")\n"
-                f"return self.{target_method}(agent)"
-            ))
+            body.append(
+                RawStmt(
+                    f"import warnings\n"
+                    f"warnings.warn(\n"
+                    f'    ".{name}() is deprecated, use .{target_method}() instead",\n'
+                    f"    DeprecationWarning,\n"
+                    f"    stacklevel=2,\n"
+                    f")\n"
+                    f"return self.{target_method}(agent)"
+                )
+            )
 
         else:
             # custom / unknown
             body.append(RawStmt('raise NotImplementedError("Implement in hand-written layer")'))
 
-        methods.append(MethodNode(
-            name=name,
-            params=params,
-            returns=return_type,
-            doc=doc,
-            body=body,
-            is_async=is_async,
-            is_generator=is_generator,
-        ))
+        methods.append(
+            MethodNode(
+                name=name,
+                params=params,
+                returns=return_type,
+                doc=doc,
+                body=body,
+                is_async=is_async,
+                is_generator=is_generator,
+            )
+        )
 
     return methods
 
@@ -776,9 +808,6 @@ def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str) -> Modul
     )
 
 
-
-
-
 def _test_value_for_type(type_str: str) -> str:
     """Generate a reasonable test value for a given type string."""
     ts = type_str.lower().strip()
@@ -819,15 +848,17 @@ def spec_to_ir_test(spec: BuilderSpec) -> ClassNode:
 
     # test_builder_creation
     if spec.is_composite or spec.is_standalone:
-        methods.append(MethodNode(
-            name="test_builder_creation",
-            params=[Param("self")],
-            doc="Smoke test: builder creates without crashing.",
-            body=[
-                AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
-                RawStmt("assert builder is not None"),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name="test_builder_creation",
+                params=[Param("self")],
+                doc="Smoke test: builder creates without crashing.",
+                body=[
+                    AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
+                    RawStmt("assert builder is not None"),
+                ],
+            )
+        )
         return ClassNode(
             name=class_name,
             doc=f"Tests for {spec.name} builder mechanics.",
@@ -869,16 +900,18 @@ def spec_to_ir_test(spec: BuilderSpec) -> ClassNode:
             break
 
     # test_builder_creation
-    methods.append(MethodNode(
-        name="test_builder_creation",
-        params=[Param("self")],
-        doc="Builder constructor stores args in _config.",
-        body=[
-            AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
-            RawStmt("assert builder is not None"),
-            RawStmt("assert isinstance(builder._config, dict)"),
-        ],
-    ))
+    methods.append(
+        MethodNode(
+            name="test_builder_creation",
+            params=[Param("self")],
+            doc="Builder constructor stores args in _config.",
+            body=[
+                AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
+                RawStmt("assert builder is not None"),
+                RawStmt("assert isinstance(builder._config, dict)"),
+            ],
+        )
+    )
 
     # test_chaining_returns_self
     chain_method = None
@@ -890,65 +923,73 @@ def spec_to_ir_test(spec: BuilderSpec) -> ClassNode:
         chain_arg = config_test_value or '"test_value"'
 
     if chain_method:
-        methods.append(MethodNode(
-            name="test_chaining_returns_self",
-            params=[Param("self")],
-            doc=f".{chain_method}() returns the builder instance for chaining.",
-            body=[
-                AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
-                AssignStmt("result", f"builder.{chain_method}({chain_arg})"),
-                RawStmt("assert result is builder"),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name="test_chaining_returns_self",
+                params=[Param("self")],
+                doc=f".{chain_method}() returns the builder instance for chaining.",
+                body=[
+                    AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
+                    AssignStmt("result", f"builder.{chain_method}({chain_arg})"),
+                    RawStmt("assert result is builder"),
+                ],
+            )
+        )
 
     # test_config_accumulation
     if config_test_field:
-        methods.append(MethodNode(
-            name="test_config_accumulation",
-            params=[Param("self")],
-            doc=f"Setting .{config_test_field}() stores the value in builder._config.",
-            body=[
-                AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
-                RawStmt(f"builder.{config_test_field}({config_test_value})"),
-                RawStmt(f'assert builder._config["{config_test_field}"] == {config_test_value}'),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name="test_config_accumulation",
+                params=[Param("self")],
+                doc=f"Setting .{config_test_field}() stores the value in builder._config.",
+                body=[
+                    AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
+                    RawStmt(f"builder.{config_test_field}({config_test_value})"),
+                    RawStmt(f'assert builder._config["{config_test_field}"] == {config_test_value}'),
+                ],
+            )
+        )
 
     # test_callback_accumulation
     if spec.callback_aliases:
         first_cb_short, first_cb_full = next(iter(spec.callback_aliases.items()))
-        methods.append(MethodNode(
-            name="test_callback_accumulation",
-            params=[Param("self")],
-            doc=f"Multiple .{first_cb_short}() calls accumulate in builder._callbacks.",
-            body=[
-                RawStmt("fn1 = lambda ctx: None"),
-                RawStmt("fn2 = lambda ctx: None"),
-                RawStmt(
-                    f"builder = (\n"
-                    f"    {spec.name}({constructor_args_str})\n"
-                    f"    .{first_cb_short}(fn1)\n"
-                    f"    .{first_cb_short}(fn2)\n"
-                    f")"
-                ),
-                RawStmt(f'assert builder._callbacks["{first_cb_full}"] == [fn1, fn2]'),
-            ],
-        ))
+        methods.append(
+            MethodNode(
+                name="test_callback_accumulation",
+                params=[Param("self")],
+                doc=f"Multiple .{first_cb_short}() calls accumulate in builder._callbacks.",
+                body=[
+                    RawStmt("fn1 = lambda ctx: None"),
+                    RawStmt("fn2 = lambda ctx: None"),
+                    RawStmt(
+                        f"builder = (\n"
+                        f"    {spec.name}({constructor_args_str})\n"
+                        f"    .{first_cb_short}(fn1)\n"
+                        f"    .{first_cb_short}(fn2)\n"
+                        f")"
+                    ),
+                    RawStmt(f'assert builder._callbacks["{first_cb_full}"] == [fn1, fn2]'),
+                ],
+            )
+        )
 
     # test_typo_detection
     match_str = "not a recognized parameter" if spec.inspection_mode == "init_signature" else "not a recognized field"
-    methods.append(MethodNode(
-        name="test_typo_detection",
-        params=[Param("self")],
-        doc="Typos in method names raise clear AttributeError.",
-        body=[
-            AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
-            RawStmt(
-                f'with pytest.raises(AttributeError, match="{match_str}"):\n'
-                f'    builder.zzz_not_a_real_field("oops")'
-            ),
-        ],
-    ))
+    methods.append(
+        MethodNode(
+            name="test_typo_detection",
+            params=[Param("self")],
+            doc="Typos in method names raise clear AttributeError.",
+            body=[
+                AssignStmt("builder", f"{spec.name}({constructor_args_str})"),
+                RawStmt(
+                    f'with pytest.raises(AttributeError, match="{match_str}"):\n'
+                    f'    builder.zzz_not_a_real_field("oops")'
+                ),
+            ],
+        )
+    )
 
     return ClassNode(
         name=class_name,

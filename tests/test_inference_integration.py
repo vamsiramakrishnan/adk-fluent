@@ -1,7 +1,9 @@
 """End-to-end test: verify the inference engine produces valid output
 from a real ADK manifest scan."""
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
@@ -88,10 +90,12 @@ def test_inferred_seed_has_derived_aliases():
 
 def test_full_pipeline_scan_seed_no_crash():
     """Run scan -> seed and verify no crashes with real ADK data."""
+    import json
+    import tempfile
+    from pathlib import Path
+
     from scripts.scanner import manifest_to_dict, scan_all
     from scripts.seed_generator import generate_seed_from_manifest
-    import tempfile, json
-    from pathlib import Path
 
     manifest = scan_all()
     manifest_dict = manifest_to_dict(manifest)

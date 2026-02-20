@@ -106,9 +106,7 @@ _LIST_EXTEND_FIELDS = frozenset({"tools", "sub_agents", "plugins"})
 
 _PRIMITIVE_TYPES = frozenset({"str", "int", "float", "bool", "bytes"})
 
-_PYDANTIC_INTERNALS = frozenset(
-    {"model_config", "model_fields", "model_computed_fields", "model_post_init"}
-)
+_PYDANTIC_INTERNALS = frozenset({"model_config", "model_fields", "model_computed_fields", "model_post_init"})
 
 
 def is_parent_reference(field_name: str, type_str: str, mro_chain: list[str]) -> bool:
@@ -119,10 +117,7 @@ def is_parent_reference(field_name: str, type_str: str, mro_chain: list[str]) ->
     if not has_parent_name:
         return False
     # Check if the field type references a class in the MRO
-    for cls_name in mro_chain:
-        if cls_name in type_str:
-            return True
-    return False
+    return any(cls_name in type_str for cls_name in mro_chain)
 
 
 def _unwrap_optional(type_str: str) -> str:
@@ -134,7 +129,7 @@ def _unwrap_optional(type_str: str) -> str:
 
     # Union[X, NoneType]
     if s.startswith("Union[") and s.endswith("]"):
-        inner = s[len("Union["):-1]
+        inner = s[len("Union[") : -1]
         parts = [p.strip() for p in inner.split(",")]
         non_none = [p for p in parts if p != "NoneType"]
         if len(non_none) == 1:
@@ -142,7 +137,7 @@ def _unwrap_optional(type_str: str) -> str:
 
     # Optional[X]
     if s.startswith("Optional[") and s.endswith("]"):
-        return s[len("Optional["):-1].strip()
+        return s[len("Optional[") : -1].strip()
 
     # X | None  (pipe-union syntax, PEP 604)
     if " | " in s:
@@ -167,13 +162,11 @@ def _is_list_of_complex_type(type_str: str) -> bool:
     # Match patterns like "list[Foo]", "List[Foo]"
     for prefix in ("list[", "List["):
         if s.startswith(prefix) and s.endswith("]"):
-            inner = s[len(prefix):-1].strip()
+            inner = s[len(prefix) : -1].strip()
             # Inner may be a union like "BaseTool | None"; take the first element
             parts = [p.strip() for p in inner.replace(",", "|").split("|")]
             first = parts[0]
-            if first in _PRIMITIVE_TYPES:
-                return False
-            return True
+            return first not in _PRIMITIVE_TYPES
     return False
 
 
@@ -266,13 +259,13 @@ _SEMANTIC_OVERRIDES = {
 # ---------------------------------------------------------------------------
 
 _ALIAS_SUFFIX_RULES: list[tuple[str, str]] = [
-    ("ription", "ribe"),       # description -> describe
-    ("ruction", "ruct"),       # instruction -> instruct
-    ("uration", "ure"),        # configuration -> configure
-    ("ution", "ute"),          # execution -> execute
-    ("etion", "ete"),          # completion -> complete, deletion -> delete
-    ("ation", "ate"),          # generation -> generate
-    ("ment", ""),              # deployment -> deploy
+    ("ription", "ribe"),  # description -> describe
+    ("ruction", "ruct"),  # instruction -> instruct
+    ("uration", "ure"),  # configuration -> configure
+    ("ution", "ute"),  # execution -> execute
+    ("etion", "ete"),  # completion -> complete, deletion -> delete
+    ("ation", "ate"),  # generation -> generate
+    ("ment", ""),  # deployment -> deploy
 ]
 
 _MIN_ALIAS_FIELD_LEN = 8
@@ -510,7 +503,7 @@ def _inner_type_name(type_str: str) -> str:
     s = _unwrap_optional(type_str)
     for prefix in ("list[", "List["):
         if s.startswith(prefix) and s.endswith("]"):
-            return s[len(prefix):-1].strip()
+            return s[len(prefix) : -1].strip()
     return s
 
 
@@ -541,8 +534,6 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
             continue
 
         singular = _singular_name(fname)
-        inner = _inner_type_name(ftype)
-
         # Check for a semantic alias override
         alias_map = _CONTAINER_ALIASES.get(class_name, {})
         alias = alias_map.get(singular)  # e.g. "step" for sub_agent
@@ -550,28 +541,34 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
         if alias and alias != singular:
             # Emit the semantic alias first
             if alias not in seen_names:
-                extras.append({
-                    "name": alias,
-                    "behavior": "list_append",
-                    "target_field": fname,
-                })
+                extras.append(
+                    {
+                        "name": alias,
+                        "behavior": "list_append",
+                        "target_field": fname,
+                    }
+                )
                 seen_names.add(alias)
             # Also emit the generic singular form
             if singular not in seen_names:
-                extras.append({
-                    "name": singular,
-                    "behavior": "list_append",
-                    "target_field": fname,
-                })
+                extras.append(
+                    {
+                        "name": singular,
+                        "behavior": "list_append",
+                        "target_field": fname,
+                    }
+                )
                 seen_names.add(singular)
         else:
             # No alias — just the singular adder
             if singular not in seen_names:
-                extras.append({
-                    "name": singular,
-                    "behavior": "list_append",
-                    "target_field": fname,
-                })
+                extras.append(
+                    {
+                        "name": singular,
+                        "behavior": "list_append",
+                        "target_field": fname,
+                    }
+                )
                 seen_names.add(singular)
 
     return extras

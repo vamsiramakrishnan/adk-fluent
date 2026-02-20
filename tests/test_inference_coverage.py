@@ -1,7 +1,9 @@
 """Verify that seed.manual.toml only contains true exceptions — things
 that genuinely cannot be inferred from type information."""
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
@@ -25,7 +27,7 @@ def test_manual_seed_only_contains_non_inferrable_extras():
         for extra in config.get("extras", []):
             behavior = extra.get("behavior", "custom")
             if behavior in INFERRABLE_BEHAVIORS:
-                assert False, (
+                raise AssertionError(
                     f"seed.manual.toml[{builder_name}].extras has inferrable "
                     f"extra '{extra['name']}' with behavior '{behavior}'. "
                     f"This should be auto-inferred, not manually specified."

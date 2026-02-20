@@ -1,13 +1,25 @@
 """Tests for the Code IR data model."""
 
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts.code_ir import (
-    ModuleNode, ClassNode, ClassAttr, MethodNode, Param,
-    AssignStmt, ReturnStmt, SubscriptAssign, AppendStmt,
-    ForAppendStmt, IfStmt, ImportStmt, RawStmt,
-    emit_python, emit_stub,
+    AppendStmt,
+    ClassAttr,
+    ClassNode,
+    ForAppendStmt,
+    IfStmt,
+    ImportStmt,
+    MethodNode,
+    ModuleNode,
+    Param,
+    RawStmt,
+    ReturnStmt,
+    SubscriptAssign,
+    emit_python,
+    emit_stub,
 )
 
 
@@ -96,9 +108,10 @@ def test_emit_python_conditional():
         params=[Param("self"), Param("condition", type="bool"), Param("fn", type="Callable")],
         returns="Self",
         body=[
-            IfStmt(condition="condition", body=(
-                AppendStmt(target="self._callbacks", key="before_model_callback", value="fn"),
-            )),
+            IfStmt(
+                condition="condition",
+                body=(AppendStmt(target="self._callbacks", key="before_model_callback", value="fn"),),
+            ),
             ReturnStmt("self"),
         ],
     )
@@ -204,7 +217,9 @@ def test_emit_python_raw_stmt():
         params=[Param("self"), Param("fn", type="Callable")],
         returns="Self",
         body=[
-            RawStmt('self._callbacks["before_model_callback"].append(fn)\nself._callbacks["after_model_callback"].append(fn)'),
+            RawStmt(
+                'self._callbacks["before_model_callback"].append(fn)\nself._callbacks["after_model_callback"].append(fn)'
+            ),
             ReturnStmt("self"),
         ],
     )
@@ -215,8 +230,8 @@ def test_emit_python_raw_stmt():
 
 def test_roundtrip_builder_spec_to_ir_to_python():
     """BuilderSpec -> IR -> Python source should produce valid code."""
-    from scripts.generator import spec_to_ir, BuilderSpec
     from scripts.code_ir import emit_python
+    from scripts.generator import BuilderSpec, spec_to_ir
 
     spec = BuilderSpec(
         name="TestBuilder",
@@ -233,7 +248,13 @@ def test_roundtrip_builder_spec_to_ir_to_python():
         list_extend_fields=set(),
         fields=[
             {"name": "name", "type_str": "str", "required": True, "is_callback": False},
-            {"name": "instruction", "type_str": "str | None", "required": False, "is_callback": False, "description": ""},
+            {
+                "name": "instruction",
+                "type_str": "str | None",
+                "required": False,
+                "is_callback": False,
+                "description": "",
+            },
             {"name": "before_model_callback", "type_str": "Callable | None", "required": False, "is_callback": True},
         ],
         terminals=[{"name": "build", "returns": "TestClass"}],
@@ -258,8 +279,8 @@ def test_roundtrip_builder_spec_to_ir_to_python():
 
 def test_stub_emission_from_spec():
     """spec_to_ir → emit_stub should produce valid .pyi content."""
-    from scripts.generator import spec_to_ir, BuilderSpec
     from scripts.code_ir import emit_stub
+    from scripts.generator import BuilderSpec, spec_to_ir
 
     spec = BuilderSpec(
         name="TestBuilder",
@@ -276,7 +297,13 @@ def test_stub_emission_from_spec():
         list_extend_fields=set(),
         fields=[
             {"name": "name", "type_str": "str", "required": True, "is_callback": False},
-            {"name": "instruction", "type_str": "str | None", "required": False, "is_callback": False, "description": ""},
+            {
+                "name": "instruction",
+                "type_str": "str | None",
+                "required": False,
+                "is_callback": False,
+                "description": "",
+            },
         ],
         terminals=[{"name": "build", "returns": "TestClass"}],
         extras=[],
@@ -295,8 +322,8 @@ def test_stub_emission_from_spec():
 
 def test_test_generation_from_ir():
     """spec_to_ir_test should produce a test class with standard test methods."""
-    from scripts.generator import spec_to_ir_test, BuilderSpec
     from scripts.code_ir import emit_python
+    from scripts.generator import BuilderSpec, spec_to_ir_test
 
     spec = BuilderSpec(
         name="TestBuilder",
@@ -313,7 +340,13 @@ def test_test_generation_from_ir():
         list_extend_fields=set(),
         fields=[
             {"name": "name", "type_str": "str", "required": True, "is_callback": False},
-            {"name": "instruction", "type_str": "str | None", "required": False, "is_callback": False, "description": ""},
+            {
+                "name": "instruction",
+                "type_str": "str | None",
+                "required": False,
+                "is_callback": False,
+                "description": "",
+            },
             {"name": "before_model_callback", "type_str": "Callable | None", "required": False, "is_callback": True},
         ],
         terminals=[{"name": "build", "returns": "TestClass"}],

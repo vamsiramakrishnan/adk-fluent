@@ -8,22 +8,23 @@ that can be validated, transformed, and emitted to multiple targets
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Union
-
 
 # ---------------------------------------------------------------------------
 # Statement Nodes (frozen dataclasses)
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class ReturnStmt:
     """return <expr>"""
+
     expr: str
 
 
 @dataclass(frozen=True)
 class AssignStmt:
     """<target> = <value>"""
+
     target: str
     value: str
 
@@ -31,6 +32,7 @@ class AssignStmt:
 @dataclass(frozen=True)
 class SubscriptAssign:
     """<target>[<key>] = <value>"""
+
     target: str
     key: str
     value: str
@@ -39,6 +41,7 @@ class SubscriptAssign:
 @dataclass(frozen=True)
 class AppendStmt:
     """<target>[<key>].append(<value>)"""
+
     target: str
     key: str
     value: str
@@ -47,6 +50,7 @@ class AppendStmt:
 @dataclass(frozen=True)
 class ForAppendStmt:
     """for <var> in <iterable>: <target>[<key>].append(<var>)"""
+
     var: str
     iterable: str
     target: str
@@ -56,6 +60,7 @@ class ForAppendStmt:
 @dataclass(frozen=True)
 class IfStmt:
     """if <condition>: <body>"""
+
     condition: str
     body: tuple  # tuple of statement nodes (frozen requires tuple, not list)
 
@@ -63,6 +68,7 @@ class IfStmt:
 @dataclass(frozen=True)
 class ImportStmt:
     """from <module> import <name>; then execute <call>"""
+
     module: str
     name: str
     call: str
@@ -71,22 +77,22 @@ class ImportStmt:
 @dataclass(frozen=True)
 class RawStmt:
     """Escape hatch for complex statements that don't fit the IR."""
+
     code: str
 
 
-Stmt = Union[
-    ReturnStmt, AssignStmt, SubscriptAssign, AppendStmt,
-    ForAppendStmt, IfStmt, ImportStmt, RawStmt,
-]
+Stmt = ReturnStmt | AssignStmt | SubscriptAssign | AppendStmt | ForAppendStmt | IfStmt | ImportStmt | RawStmt
 
 
 # ---------------------------------------------------------------------------
 # Structural Nodes
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class Param:
     """A method parameter."""
+
     name: str
     type: str | None = None
     default: str | None = None
@@ -96,6 +102,7 @@ class Param:
 @dataclass
 class MethodNode:
     """A method in a class."""
+
     name: str
     params: list[Param] = field(default_factory=list)
     returns: str | None = None
@@ -108,6 +115,7 @@ class MethodNode:
 @dataclass
 class ClassAttr:
     """A class-level attribute."""
+
     name: str
     type_hint: str
     value: str  # repr of the value
@@ -116,6 +124,7 @@ class ClassAttr:
 @dataclass
 class ClassNode:
     """A builder class."""
+
     name: str
     bases: list[str] = field(default_factory=list)
     doc: str = ""
@@ -126,6 +135,7 @@ class ClassNode:
 @dataclass
 class ModuleNode:
     """A Python module."""
+
     doc: str = ""
     imports: list[str] = field(default_factory=list)
     classes: list[ClassNode] = field(default_factory=list)
@@ -134,6 +144,86 @@ class ModuleNode:
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+# Known stdlib / built-in modules used by generated code
+_STDLIB_PREFIXES = frozenset(
+    {
+        "collections",
+        "typing",
+        "dataclasses",
+        "abc",
+        "os",
+        "sys",
+        "json",
+        "pathlib",
+        "functools",
+        "itertools",
+        "contextlib",
+        "warnings",
+        "copy",
+        "io",
+        "re",
+        "enum",
+        "datetime",
+    }
+)
+
+# Known first-party prefixes
+_FIRST_PARTY_PREFIXES = frozenset({"adk_fluent"})
+
+
+def _classify_import(line: str) -> int:
+    """Classify an import line into a group for isort-compatible ordering.
+
+    Returns 0=future, 1=stdlib, 2=third-party, 3=first-party.
+    """
+    stripped = line.strip()
+    if stripped.startswith("from __future__"):
+        return 0
+
+    # Extract the top-level module name
+    if stripped.startswith("from "):
+        module = stripped.split()[1].split(".")[0]
+    elif stripped.startswith("import "):
+        module = stripped.split()[1].split(".")[0].rstrip(",")
+    else:
+        return 2  # default to third-party
+
+    if module in _FIRST_PARTY_PREFIXES:
+        return 3
+    if module in _STDLIB_PREFIXES:
+        return 1
+    return 2  # third-party (google.adk, etc.)
+
+
+def _sort_and_group_imports(raw_lines: list[str]) -> list[str]:
+    """Sort and group imports into future / stdlib / third-party / first-party.
+
+    Produces isort/ruff-compatible import blocks separated by blank lines.
+    """
+    groups: dict[int, list[str]] = {0: [], 1: [], 2: [], 3: []}
+    for line in raw_lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        group = _classify_import(stripped)
+        if stripped not in groups[group]:
+            groups[group].append(stripped)
+
+    # Sort within each group
+    for g in groups.values():
+        g.sort()
+
+    # Combine with blank line separators
+    result: list[str] = []
+    for key in (0, 1, 2, 3):
+        if groups[key]:
+            if result:
+                result.append("")
+            result.extend(groups[key])
+
+    return result
+
 
 def _emit_param(p: Param) -> str:
     """Format a single parameter."""
@@ -252,17 +342,15 @@ def _emit_module_python(mod: ModuleNode) -> str:
         lines.append(f'"""{mod.doc}"""')
         lines.append("")
 
-    # Deduplicate and sort imports
+    # Deduplicate, sort, and group imports (isort-compatible)
     if mod.imports:
-        unique_imports = sorted(set(mod.imports))
-        for imp in unique_imports:
-            lines.append(imp)
-        lines.append("")
+        grouped = _sort_and_group_imports(mod.imports)
+        lines.extend(grouped)
 
-    for i, cls in enumerate(mod.classes):
-        if i > 0:
-            lines.append("")
-            lines.append("")
+    for cls in mod.classes:
+        # PEP 8: two blank lines before top-level class definitions
+        lines.append("")
+        lines.append("")
         lines.append(_emit_class_python(cls))
 
     lines.append("")
@@ -309,11 +397,10 @@ def _emit_module_stub(mod: ModuleNode) -> str:
         lines.append(f'"""{mod.doc}"""')
         lines.append("")
 
-    # Deduplicate and sort imports
+    # Deduplicate, sort, and group imports (isort-compatible)
     if mod.imports:
-        unique_imports = sorted(set(mod.imports))
-        for imp in unique_imports:
-            lines.append(imp)
+        grouped = _sort_and_group_imports(mod.imports)
+        lines.extend(grouped)
         lines.append("")
 
     for i, cls in enumerate(mod.classes):
@@ -329,6 +416,7 @@ def _emit_module_stub(mod: ModuleNode) -> str:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def emit_python(node: MethodNode | ClassNode | ModuleNode) -> str:
     """Emit Python source code from an IR node."""
