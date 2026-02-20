@@ -57,12 +57,12 @@ seed: _require-manifest
 # --- Generate code ---
 generate: _require-manifest _require-seed
     @echo "Generating code from seed + manifest..."
+    @# Make files writable for generation
+    @chmod -R +w {{OUTPUT_DIR}} {{TEST_DIR}} || true
     @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
     @uv run python {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
-    @# Make files writable for Ruff
-    @chmod -R +w {{OUTPUT_DIR}} {{TEST_DIR}} || true
     @uv run ruff check --fix . || true
     @uv run ruff format .
     @uv run ruff check .
@@ -99,7 +99,7 @@ test:
 # --- Type checking ---
 typecheck:
     @echo "Type-checking generated stubs..."
-    @uv run pyright {{OUTPUT_DIR}}/ --pythonversion 3.12
+    @uv run pyright {{OUTPUT_DIR}}/*.pyi --pythonversion 3.12
 
 # --- Watch mode ---
 watch:

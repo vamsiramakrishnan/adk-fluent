@@ -1,6 +1,6 @@
 {
   "adk_version": "1.25.0",
-  "scan_timestamp": "2026-02-20T08:00:54.590289+00:00",
+  "scan_timestamp": "2026-02-20T10:12:07.156242+00:00",
   "python_version": "3.11.7",
   "total_classes": 443,
   "total_fields": 779,
@@ -203,7 +203,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -215,7 +215,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1483,7 +1483,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1495,7 +1495,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1519,7 +1519,7 @@
         },
         {
           "name": "instruction",
-          "type_str": "str | Callable[ReadonlyContext, str | Awaitable[str]]",
+          "type_str": "str | Callable[[ReadonlyContext], str | Awaitable[str]]",
           "type_raw": "typing.Union[str, typing.Callable[[google.adk.agents.readonly_context.ReadonlyContext], typing.Union[str, typing.Awaitable[str]]]]",
           "default": "''",
           "required": false,
@@ -1531,7 +1531,7 @@
         },
         {
           "name": "global_instruction",
-          "type_str": "str | Callable[ReadonlyContext, str | Awaitable[str]]",
+          "type_str": "str | Callable[[ReadonlyContext], str | Awaitable[str]]",
           "type_raw": "typing.Union[str, typing.Callable[[google.adk.agents.readonly_context.ReadonlyContext], typing.Union[str, typing.Awaitable[str]]]]",
           "default": "''",
           "required": false,
@@ -1555,7 +1555,7 @@
         },
         {
           "name": "tools",
-          "type_str": "list[Callable | BaseTool | BaseToolset]",
+          "type_str": "list[Callable[..., Any] | BaseTool | BaseToolset]",
           "type_raw": "list[typing.Union[typing.Callable, google.adk.tools.base_tool.BaseTool, google.adk.tools.base_toolset.BaseToolset]]",
           "default": "list()",
           "required": false,
@@ -1675,7 +1675,7 @@
         },
         {
           "name": "before_model_callback",
-          "type_str": "Callable[CallbackContext, LlmRequest, Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[CallbackContext, LlmRequest, Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
+          "type_str": "Callable[[CallbackContext, LlmRequest], Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[[CallbackContext, LlmRequest], Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1687,7 +1687,7 @@
         },
         {
           "name": "after_model_callback",
-          "type_str": "Callable[CallbackContext, LlmResponse, Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[CallbackContext, LlmResponse, Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
+          "type_str": "Callable[[CallbackContext, LlmResponse], Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[[CallbackContext, LlmResponse], Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_response.LlmResponse], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_response.LlmResponse], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1699,7 +1699,7 @@
         },
         {
           "name": "on_model_error_callback",
-          "type_str": "Callable[CallbackContext, LlmRequest, Exception, Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[CallbackContext, LlmRequest, Exception, Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
+          "type_str": "Callable[[CallbackContext, LlmRequest, Exception], Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[[CallbackContext, LlmRequest, Exception], Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest, Exception], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest, Exception], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1711,7 +1711,7 @@
         },
         {
           "name": "before_tool_callback",
-          "type_str": "Callable[BaseTool, dict[str, Any], ToolContext, Awaitable[dict | None] | dict | None] | list[Callable[BaseTool, dict[str, Any], ToolContext, Awaitable[dict | None] | dict | None]] | None",
+          "type_str": "Callable[[BaseTool, dict[str, Any], ToolContext], Awaitable[dict | None] | dict | None] | list[Callable[[BaseTool, dict[str, Any], ToolContext], Awaitable[dict | None] | dict | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]], list[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1723,7 +1723,7 @@
         },
         {
           "name": "after_tool_callback",
-          "type_str": "Callable[BaseTool, dict[str, Any], ToolContext, dict, Awaitable[dict | None] | dict | None] | list[Callable[BaseTool, dict[str, Any], ToolContext, dict, Awaitable[dict | None] | dict | None]] | None",
+          "type_str": "Callable[[BaseTool, dict[str, Any], ToolContext, dict], Awaitable[dict | None] | dict | None] | list[Callable[[BaseTool, dict[str, Any], ToolContext, dict], Awaitable[dict | None] | dict | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, dict], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]], list[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, dict], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1735,7 +1735,7 @@
         },
         {
           "name": "on_tool_error_callback",
-          "type_str": "Callable[BaseTool, dict[str, Any], ToolContext, Exception, Awaitable[dict | None] | dict | None] | list[Callable[BaseTool, dict[str, Any], ToolContext, Exception, Awaitable[dict | None] | dict | None]] | None",
+          "type_str": "Callable[[BaseTool, dict[str, Any], ToolContext, Exception], Awaitable[dict | None] | dict | None] | list[Callable[[BaseTool, dict[str, Any], ToolContext, Exception], Awaitable[dict | None] | dict | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, Exception], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]], list[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, Exception], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2215,7 +2215,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2227,7 +2227,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2610,7 +2610,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2622,7 +2622,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -3256,7 +3256,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -3268,7 +3268,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -15467,21 +15467,21 @@
         {
           "name": "auto_rater_response_parser",
           "type_str": "AutoRaterResponseParser",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7c89b4ca0690>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x79a8cdba8950>",
           "required": false,
           "position": 2
         },
         {
           "name": "per_invocation_results_aggregator",
           "type_str": "PerInvocationResultsAggregator",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7c89b4ca06d0>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x79a8cdba8990>",
           "required": false,
           "position": 3
         },
         {
           "name": "invocation_results_summarizer",
           "type_str": "InvocationResultsSummarizer",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7c89b4ca0710>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x79a8cdba89d0>",
           "required": false,
           "position": 4
         },
@@ -26135,7 +26135,7 @@
           "name": "httpx_client_factory",
           "type_str": "CheckableMcpHttpClientFactory",
           "type_raw": "<class 'google.adk.tools.mcp_tool.mcp_session_manager.CheckableMcpHttpClientFactory'>",
-          "default": "<function create_mcp_http_client at 0x7c89be575a80>",
+          "default": "<function create_mcp_http_client at 0x79a8d747da80>",
           "required": false,
           "is_callback": false,
           "is_list": false,

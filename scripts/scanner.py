@@ -261,6 +261,7 @@ def _type_to_str(annotation: Any) -> str:
     args = getattr(annotation, "__args__", None)
 
     if origin is not None:
+        import collections.abc
         import typing
 
         # Union[X, Y] / Optional[X] → X | Y
@@ -272,6 +273,20 @@ def _type_to_str(annotation: Any) -> str:
         if origin is typing.Literal:
             args_str = ", ".join(repr(a) for a in args)
             return f"Literal[{args_str}]"
+
+        # Callable[[ParamTypes], ReturnType] — needs special handling
+        # because __args__ flattens the parameter list
+        if origin is collections.abc.Callable:
+            proper_args = typing.get_args(annotation)
+            if proper_args and len(proper_args) == 2:
+                params, ret = proper_args
+                ret_str = _type_to_str(ret)
+                if params is ...:
+                    return f"Callable[..., {ret_str}]"
+                if isinstance(params, list):
+                    param_strs = [_type_to_str(p) for p in params]
+                    return f"Callable[[{', '.join(param_strs)}], {ret_str}]"
+            return "Callable[..., Any]"
 
         origin_name = getattr(origin, "__name__", str(origin))
 

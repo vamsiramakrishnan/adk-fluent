@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-20T08:01:06.117077+00:00"
+generated_at = "2026-02-20T10:12:17.781068+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -211,7 +211,7 @@ target_field = "sub_agents"
 
 [[builders.Agent.extras]]
 name = "tool"
-signature = "(self, fn_or_tool, *, require_confirmation: bool = False) -> Self"
+signature = "(self, fn_or_tool: Any, *, require_confirmation: bool = False) -> Self"
 doc = "Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."
 behavior = "runtime_helper"
 helper_func = "_add_tool"
@@ -226,7 +226,7 @@ see_also = ["FunctionTool", "Agent.guardrail"]
 
 [[builders.Agent.extras]]
 name = "guardrail"
-signature = "(self, fn: Callable) -> Self"
+signature = "(self, fn: Callable[..., Any]) -> Self"
 doc = "Attach a guardrail function as both before_model and after_model callback."
 behavior = "dual_callback"
 target_fields = ["before_model_callback", "after_model_callback"]
@@ -301,7 +301,7 @@ helper_func = "run_map_async"
 
 [[builders.Agent.extras]]
 name = "events"
-signature = "(self, prompt: str) -> AsyncIterator"
+signature = "(self, prompt: str) -> AsyncIterator[Any]"
 doc = "Stream raw ADK Event objects. Yields every event including state deltas and function calls."
 behavior = "runtime_helper_async_gen"
 helper_func = "run_events"
@@ -369,7 +369,7 @@ helper_func = "_add_memory_auto_save"
 
 [[builders.Agent.extras]]
 name = "delegate"
-signature = "(self, agent) -> Self"
+signature = "(self, agent: Any) -> Self"
 doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
 behavior = "runtime_helper"
 helper_func = "delegate_agent"

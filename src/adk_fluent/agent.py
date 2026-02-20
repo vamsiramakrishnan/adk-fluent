@@ -94,14 +94,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_tool_callback",
         "after_agent_callback",
-        "after_model_callback",
         "on_model_error_callback",
-        "before_model_callback",
-        "before_tool_callback",
+        "after_tool_callback",
+        "after_model_callback",
         "before_agent_callback",
+        "before_tool_callback",
         "on_tool_error_callback",
+        "before_model_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -117,7 +117,7 @@ class Agent(BuilderBase):
         self._config["description"] = value
         return self
 
-    def global_instruct(self, value: str | Callable[ReadonlyContext, str | Awaitable[str]]) -> Self:
+    def global_instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the `global_instruction` field."""
         self._config["global_instruction"] = value
         return self
@@ -132,7 +132,7 @@ class Agent(BuilderBase):
         self._config["include_contents"] = value
         return self
 
-    def instruct(self, value: str | Callable[ReadonlyContext, str | Awaitable[str]]) -> Self:
+    def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the `instruction` field."""
         self._config["instruction"] = value
         return self
@@ -258,7 +258,7 @@ class Agent(BuilderBase):
         self._config["model"] = value
         return self
 
-    def tools(self, value: list[Callable | BaseTool | BaseToolset]) -> Self:
+    def tools(self, value: list[Callable[..., Any] | BaseTool | BaseToolset]) -> Self:
         """Set the ``tools`` field."""
         self._config["tools"] = value
         return self
@@ -303,13 +303,13 @@ class Agent(BuilderBase):
         self._lists["sub_agents"].append(value)
         return self
 
-    def tool(self, fn_or_tool, *, require_confirmation: bool = False) -> Self:
+    def tool(self, fn_or_tool: Any, *, require_confirmation: bool = False) -> Self:
         """Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."""
         from adk_fluent._helpers import _add_tool
 
         return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
 
-    def guardrail(self, fn: Callable) -> Self:
+    def guardrail(self, fn: Callable[..., Any]) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""
         self._callbacks["before_model_callback"].append(fn)
         self._callbacks["after_model_callback"].append(fn)
@@ -360,7 +360,7 @@ class Agent(BuilderBase):
 
         return await run_map_async(self, prompts, concurrency=concurrency)
 
-    async def events(self, prompt: str) -> AsyncIterator:
+    async def events(self, prompt: str) -> AsyncIterator[Any]:
         """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
         from adk_fluent._helpers import run_events
 
@@ -396,7 +396,7 @@ class Agent(BuilderBase):
 
         return _add_memory_auto_save(self)
 
-    def delegate(self, agent) -> Self:
+    def delegate(self, agent: Any) -> Self:
         """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
         from adk_fluent._helpers import delegate_agent
 

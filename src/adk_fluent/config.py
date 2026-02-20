@@ -896,7 +896,7 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"stage", "default_on"}
+    _KNOWN_PARAMS: set[str] = {"default_on", "stage"}
 
     def __init__(self, stage: str) -> None:
         self._config: dict[str, Any] = {"stage": stage}
@@ -920,7 +920,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_cache_duration_seconds", "max_cache_size_bytes", "auto_flush_threshold"}
+    _KNOWN_PARAMS: set[str] = {"max_cache_duration_seconds", "auto_flush_threshold", "max_cache_size_bytes"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -994,23 +994,23 @@ class BigQueryLoggerConfig(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "retry_config",
-        "event_allowlist",
-        "gcs_bucket_name",
-        "batch_flush_interval",
-        "enabled",
-        "log_session_metadata",
-        "shutdown_timeout",
-        "event_denylist",
-        "content_formatter",
-        "connection_id",
-        "custom_tags",
         "max_content_length",
-        "batch_size",
-        "queue_max_size",
+        "custom_tags",
         "clustering_fields",
+        "content_formatter",
+        "batch_flush_interval",
+        "gcs_bucket_name",
         "log_multi_modal_content",
+        "shutdown_timeout",
         "table_id",
+        "log_session_metadata",
+        "retry_config",
+        "queue_max_size",
+        "event_denylist",
+        "connection_id",
+        "event_allowlist",
+        "enabled",
+        "batch_size",
     }
 
     def __init__(self) -> None:
@@ -1115,7 +1115,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"initial_delay", "max_delay", "max_retries", "multiplier"}
+    _KNOWN_PARAMS: set[str] = {"max_delay", "initial_delay", "max_retries", "multiplier"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

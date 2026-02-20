@@ -783,6 +783,10 @@ def _build_type_import_map(manifest: dict) -> dict[str, str]:
     missing from ``type_raw`` (e.g. types from forward-reference annotations).
     """
     type_map: dict[str, str] = {}
+
+    # Phase 0: apply explicit overrides (correct defining modules)
+    type_map.update(_IMPORT_OVERRIDES)
+
     # Phase 1: extract from fully-qualified type_raw strings
     for cls in manifest.get("classes", []):
         all_params = cls.get("fields", []) + cls.get("init_params", [])
@@ -845,11 +849,151 @@ def _build_type_import_map(manifest: dict) -> dict[str, str]:
         except ImportError:
             pass
 
-    # Add pydantic BaseModel if referenced
+    # Add pydantic BaseModel if referenced (fallback if override not present)
     if "BaseModel" not in type_map:
         type_map["BaseModel"] = "from pydantic import BaseModel"
 
     return type_map
+
+
+# --- Import correctness overrides ---
+# Maps type names to their correct import statements, overriding runtime
+# discovery.  Needed because pkgutil.walk_packages finds types in the first
+# module that has the attribute, but pyright requires imports from the
+# defining module (where __module__ matches or the symbol is assigned).
+_IMPORT_OVERRIDES: dict[str, str] = {
+    # Pydantic
+    "BaseModel": "from pydantic import BaseModel",
+    # FastAPI OpenAPI models (re-exported by ADK but not in their __all__)
+    "OAuth2": "from fastapi.openapi.models import OAuth2",
+    "HTTPBearer": "from fastapi.openapi.models import HTTPBearer",
+    "APIKey": "from fastapi.openapi.models import APIKey",
+    "HTTPBase": "from fastapi.openapi.models import HTTPBase",
+    "OpenIdConnect": "from fastapi.openapi.models import OpenIdConnect",
+    "Operation": "from fastapi.openapi.models import Operation",
+    # MCP protocol types
+    "StdioServerParameters": "from mcp.client.stdio import StdioServerParameters",
+    "ProgressFnT": "from mcp.shared.session import ProgressFnT",
+    # ADK types where runtime discovery finds wrong re-exporting module
+    "ToolPredicate": "from google.adk.tools.base_toolset import ToolPredicate",
+    "APIHubClient": "from google.adk.tools.apihub_tool.clients.apihub_client import APIHubClient",
+    "BigQueryToolConfig": "from google.adk.tools.bigquery.config import BigQueryToolConfig",
+    "BigtableToolSettings": "from google.adk.tools.bigtable.settings import BigtableToolSettings",
+    "SpannerToolSettings": "from google.adk.tools.spanner.settings import SpannerToolSettings",
+    # AuthScheme is a Union alias defined at module level in auth_schemes
+    "AuthScheme": "from google.adk.auth.auth_schemes import AuthScheme",
+    # google.genai.types that appear without module prefix after normalization
+    "VertexAISearchDataStoreSpec": "from google.genai.types import VertexAISearchDataStoreSpec",
+    "ThinkingConfig": "from google.genai.types import ThinkingConfig",
+}
+
+# Types that cannot be resolved at stub-generation time (optional deps,
+# private internals, forward-only references).  Replaced with ``Any``.
+_UNRESOLVABLE_TYPES: set[str] = {
+    "Task",  # asyncio.Task (appears as bare "Task" from string annotation)
+    "CredentialConfig",  # toolbox_adk.CredentialConfig (optional dependency)
+    "_ArtifactEntry",  # private internal type
+}
+
+# Module-qualified prefixes in type_str that should be stripped.
+# In ADK, "types.X" always means "google.genai.types.X".
+_MODULE_PREFIX_REWRITES: dict[str, str] = {
+    "types.": "",
+    "genai_types.": "",
+}
+
+# Module-qualified prefixes that need stdlib imports (kept in type string).
+_STDLIB_MODULE_REFS: dict[str, str] = {
+    "ssl.": "import ssl",
+}
+
+
+def _normalize_stub_classes(classes: list[ClassNode]) -> list[str]:
+    """Normalize type references in stub class method signatures.
+
+    Resolves module-qualified types (``types.Content`` → ``Content``),
+    replaces unresolvable types with ``Any``, and tracks additional
+    import lines needed (e.g., ``import ssl``).
+
+    Mutates *classes* in place and returns extra import lines.
+    """
+    extra_imports: list[str] = []
+    needs_ssl = False
+
+    def _normalize_type(type_str: str | None) -> str | None:
+        nonlocal needs_ssl
+        if type_str is None:
+            return None
+        result = type_str
+        # Resolve module-qualified types (types.Content → Content)
+        for prefix, replacement in _MODULE_PREFIX_REWRITES.items():
+            result = result.replace(prefix, replacement)
+        # Check for stdlib module refs (ssl.SSLContext → keep, add import)
+        for prefix, _import_line in _STDLIB_MODULE_REFS.items():
+            if prefix in result:
+                needs_ssl = True
+        # Replace unresolvable types with Any
+        for utype in _UNRESOLVABLE_TYPES:
+            result = re.sub(rf"\b{re.escape(utype)}\b", "Any", result)
+        # Ensure bare Callable has type args (pyright requires them)
+        result = re.sub(r"\bCallable\b(?!\[)", "Callable[..., Any]", result)
+        # Ensure bare AsyncIterator has type args
+        result = re.sub(r"\bAsyncIterator\b(?!\[)", "AsyncIterator[Any]", result)
+        return result
+
+    for cls in classes:
+        for method in cls.methods:
+            new_params = []
+            for param in method.params:
+                new_type = _normalize_type(param.type)
+                if new_type != param.type:
+                    new_params.append(
+                        Param(name=param.name, type=new_type, default=param.default, keyword_only=param.keyword_only)
+                    )
+                else:
+                    new_params.append(param)
+            method.params = new_params
+            method.returns = _normalize_type(method.returns)
+
+    if needs_ssl:
+        extra_imports.append("import ssl")
+
+    return extra_imports
+
+
+def _resolve_stub_name_conflicts(classes: list[ClassNode], already_imported: set[str]) -> None:
+    """Resolve name conflicts where a type import name matches a builder class.
+
+    When a builder class ``Foo`` exists in the module AND ``Foo`` is used
+    as a parameter type in another builder's methods, the bare import
+    ``from ... import Foo`` conflicts with ``class Foo(BuilderBase):``.
+
+    This function updates method signatures to use ``_ADK_Foo`` (which is
+    already imported as the build-target alias) instead of bare ``Foo``.
+    """
+    builder_names = {cls.name for cls in classes}
+
+    for cls in classes:
+        for method in cls.methods:
+            new_params = []
+            for param in method.params:
+                if param.type:
+                    new_type = param.type
+                    for bname in builder_names:
+                        # Only replace if the _ADK_ aliased import exists
+                        if bname in new_type and f"_ADK_{bname}" in already_imported:
+                            new_type = re.sub(rf"\b(?<!_ADK_){bname}\b", f"_ADK_{bname}", new_type)
+                    if new_type != param.type:
+                        new_params.append(
+                            Param(
+                                name=param.name, type=new_type, default=param.default, keyword_only=param.keyword_only
+                            )
+                        )
+                    else:
+                        new_params.append(param)
+                else:
+                    new_params.append(param)
+            method.params = new_params
 
 
 # Stdlib typing names that need explicit imports when referenced in stubs.
@@ -870,13 +1014,21 @@ def _collect_stub_type_refs(classes: list[ClassNode]) -> set[str]:
     """Walk all method signatures in *classes* and return referenced type names."""
     refs: set[str] = set()
     _IDENT = re.compile(r"\b([A-Z]\w+)")
+    # Strip Literal[...] contents so string values like Literal['BaseAgent']
+    # don't create false-positive type references.
+    _LITERAL_CONTENT = re.compile(r"(Literal\[)[^\]]*\]")
+
+    def _scan(type_str: str) -> None:
+        cleaned = _LITERAL_CONTENT.sub(r"\1]", type_str)
+        refs.update(_IDENT.findall(cleaned))
+
     for cls in classes:
         for method in cls.methods:
             for param in method.params:
                 if param.type:
-                    refs.update(_IDENT.findall(param.type))
+                    _scan(param.type)
             if method.returns:
-                refs.update(_IDENT.findall(method.returns))
+                _scan(method.returns)
     return refs
 
 
@@ -894,11 +1046,14 @@ def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str, *, manif
 
     classes = [spec_to_ir(spec) for spec in specs]
 
+    # --- Pre-processing: normalize types in method signatures ---
+    extra_imports = _normalize_stub_classes(classes)
+
     # Collect all type names referenced in method signatures
     refs = _collect_stub_type_refs(classes)
 
     # --- Build imports based on what's actually referenced ---
-    all_import_lines: list[str] = []
+    all_import_lines: list[str] = list(extra_imports)
     already_imported: set[str] = set()
 
     # 1. Base stdlib typing imports — only include names that are referenced
@@ -918,6 +1073,7 @@ def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str, *, manif
     already_imported.add("BuilderBase")
 
     # 3. ADK source class imports (build targets)
+    builder_names = {cls.name for cls in classes}
     for spec in specs:
         if not spec.is_composite and not spec.is_standalone:
             module_path = ".".join(spec.source_class.split(".")[:-1])
@@ -947,9 +1103,17 @@ def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str, *, manif
         for name in sorted(refs):
             if name in already_imported:
                 continue
+            # Skip types that conflict with builder class names — these
+            # are already imported as _ADK_ aliases via build targets.
+            if name in builder_names and f"_ADK_{name}" in already_imported:
+                continue
             if name in type_map:
                 all_import_lines.append(type_map[name])
                 already_imported.add(name)
+
+    # 6. Resolve name conflicts: update method signatures to use _ADK_ prefix
+    # where a bare type name would shadow a builder class definition.
+    _resolve_stub_name_conflicts(classes, already_imported)
 
     header = (
         f"AUTO-GENERATED by adk-fluent generator -- do not edit manually\n"
@@ -1241,7 +1405,7 @@ def _discover_manual_exports(output_dir: str) -> list[tuple[str, list[str]]]:
 
 
 def _write_file(path: Path, content: str):
-    """Write content to a file and make it read-only (0o444).
+    """Write content to a file.
     If the file exists and is read-only, make it writable first.
     """
     if path.exists():
@@ -1251,8 +1415,6 @@ def _write_file(path: Path, content: str):
             os.chmod(path, current_mode | stat.S_IWUSR)
 
     path.write_text(content)
-    # Make it read-only: r--r--r--
-    os.chmod(path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
 
 
 def generate_all(

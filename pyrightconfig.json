@@ -1,0 +1,7 @@
+{
+  "include": ["src/adk_fluent"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "standard",
+  "reportMissingTypeStubs": false,
+  "reportMissingModuleSource": false
+}
