@@ -104,11 +104,123 @@ _ALWAYS_SKIP = frozenset(
 
 _LIST_EXTEND_FIELDS = frozenset({"tools", "sub_agents", "plugins"})
 
+_PRIMITIVE_TYPES = frozenset({"str", "int", "float", "bool", "bytes"})
+
+_PYDANTIC_INTERNALS = frozenset(
+    {"model_config", "model_fields", "model_computed_fields", "model_post_init"}
+)
+
+
+def is_parent_reference(field_name: str, type_str: str, mro_chain: list[str]) -> bool:
+    """Detect if a field is a parent/back-reference by checking if its type
+    appears in the class's MRO and the field name suggests parentage."""
+    parent_indicators = {"parent", "owner", "container"}
+    has_parent_name = any(ind in field_name for ind in parent_indicators)
+    if not has_parent_name:
+        return False
+    # Check if the field type references a class in the MRO
+    for cls_name in mro_chain:
+        if cls_name in type_str:
+            return True
+    return False
+
+
+def _unwrap_optional(type_str: str) -> str:
+    """Unwrap ``Union[X, NoneType]``, ``Optional[X]``, and ``X | None`` to just ``X``.
+
+    If *type_str* is not an optional wrapper, return it unchanged.
+    """
+    s = type_str.strip()
+
+    # Union[X, NoneType]
+    if s.startswith("Union[") and s.endswith("]"):
+        inner = s[len("Union["):-1]
+        parts = [p.strip() for p in inner.split(",")]
+        non_none = [p for p in parts if p != "NoneType"]
+        if len(non_none) == 1:
+            return non_none[0]
+
+    # Optional[X]
+    if s.startswith("Optional[") and s.endswith("]"):
+        return s[len("Optional["):-1].strip()
+
+    # X | None  (pipe-union syntax, PEP 604)
+    if " | " in s:
+        parts = [p.strip() for p in s.split("|")]
+        non_none = [p for p in parts if p.strip() != "None"]
+        if len(non_none) == 1:
+            return non_none[0]
+
+    return s
+
+
+def _is_list_of_complex_type(type_str: str) -> bool:
+    """Return True if *type_str* looks like ``list[SomeComplexType]``.
+
+    Handles ``Union[list[X], NoneType]``, ``Optional[list[X]]``, and
+    ``list[X] | None`` wrappers by unwrapping them first.
+
+    Primitive element types (str, int, float, bool, bytes) are **not**
+    considered complex, so ``list[str]`` returns False.
+    """
+    s = _unwrap_optional(type_str)
+    # Match patterns like "list[Foo]", "List[Foo]"
+    for prefix in ("list[", "List["):
+        if s.startswith(prefix) and s.endswith("]"):
+            inner = s[len(prefix):-1].strip()
+            # Inner may be a union like "BaseTool | None"; take the first element
+            parts = [p.strip() for p in inner.replace(",", "|").split("|")]
+            first = parts[0]
+            if first in _PRIMITIVE_TYPES:
+                return False
+            return True
+    return False
+
+
+def infer_field_policy(
+    field_name: str,
+    type_str: str,
+    is_callback: bool,
+    *,
+    is_parent_ref: bool = False,
+) -> str:
+    """Infer the field policy from type information rather than hard-coded sets.
+
+    Returns one of: "skip", "additive", "list_extend", "normal".
+
+    Rules (checked in priority order):
+        1. Private fields (``_`` prefix) -> skip
+        2. Pydantic internals -> skip
+        3. Parent reference fields -> skip
+        4. Callable fields with ``_callback`` in the name -> additive
+        5. ``list[ComplexType]`` fields -> list_extend
+        6. Everything else -> normal
+    """
+    # 1. Private fields
+    if field_name.startswith("_"):
+        return "skip"
+    # 2. Pydantic internals
+    if field_name in _PYDANTIC_INTERNALS:
+        return "skip"
+    # 3. Parent reference
+    if is_parent_ref:
+        return "skip"
+    # 4. Callback fields
+    if is_callback and "_callback" in field_name:
+        return "additive"
+    # 5. List of complex type
+    if _is_list_of_complex_type(type_str):
+        return "list_extend"
+    # 6. Default
+    return "normal"
+
 
 def get_field_policy(field_name: str, type_str: str, is_callback: bool) -> str:
     """Determine how a field should be handled in the fluent builder.
 
     Returns one of: "skip", "additive", "list_extend", "normal".
+
+    .. deprecated:: Use :func:`infer_field_policy` instead.
     """
     # Internal / private fields
     if field_name in _ALWAYS_SKIP or field_name.startswith("_"):
@@ -126,6 +238,7 @@ def get_field_policy(field_name: str, type_str: str, is_callback: bool) -> str:
 # TASK 7: ALIAS ENGINE
 # ---------------------------------------------------------------------------
 
+# DEPRECATED: use derive_alias/derive_aliases instead
 _FIELD_ALIAS_TABLE = {
     "instruction": "instruct",
     "description": "describe",
@@ -141,7 +254,68 @@ _EXTRA_ALIASES = {
     "include_history": "include_contents",
 }
 
+# Semantic overrides from _FIELD_ALIAS_TABLE that cannot be derived morphologically.
+_SEMANTIC_OVERRIDES = {
+    "outputs": "output_key",
+    "history": "include_contents",
+    "static": "static_instruction",
+}
 
+# ---------------------------------------------------------------------------
+# MORPHOLOGICAL ALIAS DERIVATION (A2)
+# ---------------------------------------------------------------------------
+
+_ALIAS_SUFFIX_RULES: list[tuple[str, str]] = [
+    ("ription", "ribe"),       # description -> describe
+    ("ruction", "ruct"),       # instruction -> instruct
+    ("uration", "ure"),        # configuration -> configure
+    ("ution", "ute"),          # execution -> execute
+    ("etion", "ete"),          # completion -> complete, deletion -> delete
+    ("ation", "ate"),          # generation -> generate
+    ("ment", ""),              # deployment -> deploy
+]
+
+_MIN_ALIAS_FIELD_LEN = 8
+
+
+def derive_alias(field_name: str) -> str | None:
+    """Derive a short alias from a field name using morphological suffix rules.
+
+    Returns None if no rule matches or the name is too short (< 8 chars).
+    """
+    if len(field_name) < _MIN_ALIAS_FIELD_LEN:
+        return None
+    for suffix, replacement in _ALIAS_SUFFIX_RULES:
+        if field_name.endswith(suffix):
+            candidate = field_name[: -len(suffix)] + replacement
+            if candidate and len(candidate) < len(field_name):
+                return candidate
+    return None
+
+
+def derive_aliases(
+    field_names: list[str],
+    *,
+    overrides: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Batch-derive short aliases from field names.
+
+    Returns ``{alias: field_name}``.  Applies morphological derivation first,
+    then applies *overrides* (which take precedence over derived aliases).
+    """
+    aliases: dict[str, str] = {}
+    for field_name in field_names:
+        alias = derive_alias(field_name)
+        if alias is not None:
+            aliases[alias] = field_name
+    if overrides:
+        for alias, field_name in overrides.items():
+            if field_name in field_names:
+                aliases[alias] = field_name
+    return aliases
+
+
+# DEPRECATED: use derive_alias/derive_aliases instead
 def generate_aliases(field_names: list[str]) -> dict[str, str]:
     """Generate ergonomic aliases for fields.
 
@@ -303,6 +477,115 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
 
     # Non-agent classes get no extras
     return extras
+
+
+# ---------------------------------------------------------------------------
+# TYPE-DRIVEN EXTRAS INFERENCE (A3)
+# ---------------------------------------------------------------------------
+
+
+def _singular_name(plural_field: str) -> str:
+    """Derive the singular form of a plural field name.
+
+    ``tools`` -> ``tool``, ``sub_agents`` -> ``sub_agent``,
+    ``plugins`` -> ``plugin``.
+
+    Simple rule: strip trailing ``"s"`` unless the name ends in ``"ss"``.
+    """
+    if plural_field.endswith("ss"):
+        return plural_field
+    if plural_field.endswith("s"):
+        return plural_field[:-1]
+    return plural_field
+
+
+def _inner_type_name(type_str: str) -> str:
+    """Extract the inner element type from ``list[X]``.
+
+    Handles ``Union[list[X], NoneType]`` and ``list[X] | None`` by
+    unwrapping the optional layer first.
+
+    Returns the raw *type_str* unchanged if it is not a list type.
+    """
+    s = _unwrap_optional(type_str)
+    for prefix in ("list[", "List["):
+        if s.startswith(prefix) and s.endswith("]"):
+            return s[len(prefix):-1].strip()
+    return s
+
+
+_CONTAINER_ALIASES: dict[str, dict[str, str]] = {
+    "SequentialAgent": {"sub_agent": "step"},
+    "LoopAgent": {"sub_agent": "step"},
+    "ParallelAgent": {"sub_agent": "branch"},
+}
+
+
+def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
+    """Infer extra (non-field) methods from field type information.
+
+    Any ``list[ComplexType]`` field produces a singular adder method with
+    ``list_append`` behavior.  For well-known container agents the method
+    is given a semantic name (step, branch) via ``_CONTAINER_ALIASES``;
+    when the alias differs from the generic singular, **both** names are
+    emitted.
+    """
+    extras: list[dict] = []
+    seen_names: set[str] = set()
+
+    for f in fields:
+        fname = f["name"]
+        ftype = f.get("type_str", "")
+
+        if not _is_list_of_complex_type(ftype):
+            continue
+
+        singular = _singular_name(fname)
+        inner = _inner_type_name(ftype)
+
+        # Check for a semantic alias override
+        alias_map = _CONTAINER_ALIASES.get(class_name, {})
+        alias = alias_map.get(singular)  # e.g. "step" for sub_agent
+
+        if alias and alias != singular:
+            # Emit the semantic alias first
+            if alias not in seen_names:
+                extras.append({
+                    "name": alias,
+                    "behavior": "list_append",
+                    "target_field": fname,
+                })
+                seen_names.add(alias)
+            # Also emit the generic singular form
+            if singular not in seen_names:
+                extras.append({
+                    "name": singular,
+                    "behavior": "list_append",
+                    "target_field": fname,
+                })
+                seen_names.add(singular)
+        else:
+            # No alias — just the singular adder
+            if singular not in seen_names:
+                extras.append({
+                    "name": singular,
+                    "behavior": "list_append",
+                    "target_field": fname,
+                })
+                seen_names.add(singular)
+
+    return extras
+
+
+def merge_extras(inferred: list[dict], manual: list[dict]) -> list[dict]:
+    """Merge inferred extras with manual overrides.
+
+    Manual entries win on name conflicts (matched by the ``name`` field).
+    """
+    manual_names = {e["name"] for e in manual}
+    merged = [e for e in inferred if e["name"] not in manual_names]
+    merged.extend(manual)
+    return merged
 
 
 # ---------------------------------------------------------------------------
@@ -501,7 +784,8 @@ def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None =
             fname = f["name"]
             ftype = f.get("type_str", "")
             is_cb = f.get("is_callback", False)
-            policy = get_field_policy(fname, ftype, is_cb)
+            is_parent_ref = is_parent_reference(fname, ftype, mro_chain)
+            policy = infer_field_policy(fname, ftype, is_cb, is_parent_ref=is_parent_ref)
 
             if policy == "skip":
                 global_skip.add(fname)
@@ -513,16 +797,17 @@ def generate_seed_from_manifest(manifest: dict, renames: dict[str, str] | None =
 
             all_field_names.append(fname)
 
-        # Step 4c: Aliases
-        aliases = generate_aliases(all_field_names)
+        # Step 4c: Aliases (morphological derivation + semantic overrides)
+        _overrides = {**_SEMANTIC_OVERRIDES, **_EXTRA_ALIASES}
+        aliases = derive_aliases(all_field_names, overrides=_overrides)
         cb_aliases = generate_callback_aliases(callback_fields)
 
         # Step 4d: Output module
         output_module = determine_output_module(name, tag, module)
 
-        # Step 4e: Extras
+        # Step 4e: Extras (type-driven inference replaces class-name switch)
         source_class = cls_info.get("qualname", f"{module}.{name}")
-        extras = generate_extras(name, tag, source_class)
+        extras = infer_extras(name, tag, fields)
 
         # Step 5: Builder name
         builder_name = _builder_name_for_class(name, tag, renames)

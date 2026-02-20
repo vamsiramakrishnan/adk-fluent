@@ -128,12 +128,108 @@ def test_field_policy_normal():
     assert get_field_policy("instruction", "str | Callable", False) == "normal"
 
 
+# --- Type-Driven Field Policies ---
+def test_field_policy_infers_list_extend_from_type():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("tools", "list[BaseTool]", False) == "list_extend"
+    assert infer_field_policy("sub_agents", "list[BaseAgent]", False) == "list_extend"
+    assert infer_field_policy("artifacts", "list[Artifact]", False) == "list_extend"
+    assert infer_field_policy("examples", "list[Example]", False) == "list_extend"
+    # Union-wrapped lists (common in Pydantic Optional fields)
+    assert infer_field_policy("sub_agents", "Union[list[AgentRefConfig], NoneType]", False) == "list_extend"
+    assert infer_field_policy("tools", "Union[list[ToolConfig], NoneType]", False) == "list_extend"
+    # Pipe-union syntax
+    assert infer_field_policy("plugins", "list[BasePlugin] | None", False) == "list_extend"
+
+
+def test_field_policy_infers_additive_from_callback():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("before_model_callback", "Callable | None", True) == "additive"
+    assert infer_field_policy("on_error_callback", "Callable | None", True) == "additive"
+
+
+def test_field_policy_infers_skip_from_internals():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("model_config", "ConfigDict", False) == "skip"
+    assert infer_field_policy("model_fields", "dict", False) == "skip"
+    assert infer_field_policy("_private", "str", False) == "skip"
+    assert infer_field_policy("parent_agent", "BaseAgent | None", False, is_parent_ref=True) == "skip"
+
+
+def test_field_policy_normal_fallback():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("instruction", "str | None", False) == "normal"
+    assert infer_field_policy("temperature", "float", False) == "normal"
+
+
+def test_field_policy_list_of_primitives_is_normal():
+    from scripts.seed_generator import infer_field_policy
+
+    assert infer_field_policy("tags", "list[str]", False) == "normal"
+    assert infer_field_policy("names", "list[int]", False) == "normal"
+
+
 # --- Aliases ---
 def test_generate_aliases():
     from scripts.seed_generator import generate_aliases
 
     aliases = generate_aliases(["instruction", "description", "model", "tools"])
     assert aliases == {"instruct": "instruction", "describe": "description"}
+
+
+# --- Morphological Alias Derivation ---
+def test_derive_alias_strips_tion_suffix():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("instruction") == "instruct"
+    assert derive_alias("description") == "describe"
+    assert derive_alias("configuration") == "configure"
+    assert derive_alias("execution") == "execute"
+
+
+def test_derive_alias_strips_ment_suffix():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("deployment") == "deploy"
+    assert derive_alias("assignment") == "assign"
+
+
+def test_derive_alias_returns_none_for_short_names():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("model") is None
+    assert derive_alias("name") is None
+    assert derive_alias("tools") is None
+
+
+def test_derive_alias_returns_none_for_no_pattern():
+    from scripts.seed_generator import derive_alias
+
+    assert derive_alias("temperature") is None
+    assert derive_alias("max_tokens") is None
+
+
+def test_derive_aliases_batch():
+    from scripts.seed_generator import derive_aliases
+
+    fields = ["instruction", "description", "model", "tools", "temperature"]
+    aliases = derive_aliases(fields)
+    assert aliases == {"instruct": "instruction", "describe": "description"}
+
+
+def test_derive_aliases_with_overrides():
+    from scripts.seed_generator import derive_aliases
+
+    fields = ["instruction", "output_key", "include_contents"]
+    overrides = {"outputs": "output_key", "history": "include_contents"}
+    aliases = derive_aliases(fields, overrides=overrides)
+    assert aliases["instruct"] == "instruction"  # Derived
+    assert aliases["outputs"] == "output_key"  # Override
+    assert aliases["history"] == "include_contents"  # Override
 
 
 def test_generate_callback_aliases():
@@ -256,3 +352,83 @@ def test_generate_seed_from_manifest_end_to_end():
     # Must include LlmAgent as "Agent"
     assert "Agent" in parsed["builders"]
     assert "Pipeline" in parsed["builders"]  # SequentialAgent renamed
+
+
+# --- Type-Driven Extras ---
+def test_infer_extras_singular_adder_for_list_field():
+    from scripts.seed_generator import infer_extras
+
+    fields = [
+        {"name": "tools", "type_str": "list[BaseTool]", "is_callback": False},
+        {"name": "sub_agents", "type_str": "list[BaseAgent]", "is_callback": False},
+    ]
+    extras = infer_extras("SomeAgent", "agent", fields)
+    tool_extra = next((e for e in extras if e["name"] == "tool"), None)
+    assert tool_extra is not None
+    assert tool_extra["behavior"] == "list_append"
+    assert tool_extra["target_field"] == "tools"
+    sub_agent_extra = next((e for e in extras if e["name"] == "sub_agent"), None)
+    assert sub_agent_extra is not None
+    assert sub_agent_extra["behavior"] == "list_append"
+    assert sub_agent_extra["target_field"] == "sub_agents"
+
+
+def test_infer_extras_step_for_sub_agents_in_sequential():
+    from scripts.seed_generator import infer_extras
+
+    fields = [{"name": "sub_agents", "type_str": "list[BaseAgent]", "is_callback": False}]
+    extras = infer_extras("SequentialAgent", "agent", fields)
+    step = next((e for e in extras if e["name"] == "step"), None)
+    assert step is not None
+    assert step["target_field"] == "sub_agents"
+
+
+def test_infer_extras_branch_for_parallel():
+    from scripts.seed_generator import infer_extras
+
+    fields = [{"name": "sub_agents", "type_str": "list[BaseAgent]", "is_callback": False}]
+    extras = infer_extras("ParallelAgent", "agent", fields)
+    branch = next((e for e in extras if e["name"] == "branch"), None)
+    assert branch is not None
+
+
+def test_infer_extras_no_duplicates_with_manual():
+    from scripts.seed_generator import merge_extras
+
+    inferred = [
+        {"name": "tool", "behavior": "list_append", "target_field": "tools"},
+    ]
+    manual = [
+        {
+            "name": "tool",
+            "behavior": "runtime_helper",
+            "helper_func": "_add_tool",
+            "signature": "(self, fn_or_tool, *, require_confirmation: bool = False) -> Self",
+        },
+    ]
+    merged = merge_extras(inferred, manual)
+    assert len([e for e in merged if e["name"] == "tool"]) == 1
+    assert merged[0]["behavior"] == "runtime_helper"
+
+
+def test_infer_extras_unknown_class_gets_generic_adders():
+    from scripts.seed_generator import infer_extras
+
+    fields = [
+        {"name": "evaluators", "type_str": "list[BaseEvaluator]", "is_callback": False},
+    ]
+    extras = infer_extras("EvalSuite", "eval", fields)
+    evaluator_extra = next((e for e in extras if e["name"] == "evaluator"), None)
+    assert evaluator_extra is not None
+    assert evaluator_extra["target_field"] == "evaluators"
+
+
+# --- Parent Reference Detection (A5) ---
+def test_detect_parent_ref_from_mro():
+    from scripts.seed_generator import is_parent_reference
+    mro = ["LlmAgent", "BaseAgent", "BaseModel"]
+    assert is_parent_reference("parent_agent", "BaseAgent | None", mro) is True
+    assert is_parent_reference("parent_agent", "BaseAgent | None", ["Unrelated"]) is False
+    assert is_parent_reference("delegate", "BaseAgent | None", mro) is False  # name doesn't match
+    assert is_parent_reference("model", "str", mro) is False
+    assert is_parent_reference("owner_agent", "BaseAgent | None", mro) is True
