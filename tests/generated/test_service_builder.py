@@ -106,6 +106,18 @@ class TestPerAgentDatabaseSessionServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.app_name_to_dir() returns the builder instance for chaining."""
+        builder = PerAgentDatabaseSessionService("test_agents_root")
+        result = builder.app_name_to_dir(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .app_name_to_dir() stores the value in builder._config."""
+        builder = PerAgentDatabaseSessionService("test_agents_root")
+        builder.app_name_to_dir(None)
+        assert builder._config["app_name_to_dir"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = PerAgentDatabaseSessionService("test_agents_root")
@@ -154,6 +166,18 @@ class TestVertexAiMemoryBankServiceBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.project() returns the builder instance for chaining."""
+        builder = VertexAiMemoryBankService()
+        result = builder.project("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .project() stores the value in builder._config."""
+        builder = VertexAiMemoryBankService()
+        builder.project("test_value")
+        assert builder._config["project"] == "test_value"
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiMemoryBankService()
@@ -171,16 +195,16 @@ class TestVertexAiRagMemoryServiceBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.vector_distance_threshold() returns the builder instance for chaining."""
+        """.rag_corpus() returns the builder instance for chaining."""
         builder = VertexAiRagMemoryService()
-        result = builder.vector_distance_threshold(0.5)
+        result = builder.rag_corpus("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .vector_distance_threshold() stores the value in builder._config."""
+        """Setting .rag_corpus() stores the value in builder._config."""
         builder = VertexAiRagMemoryService()
-        builder.vector_distance_threshold(0.5)
-        assert builder._config["vector_distance_threshold"] == 0.5
+        builder.rag_corpus("test_value")
+        assert builder._config["rag_corpus"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -261,6 +285,18 @@ class TestVertexAiSessionServiceBuilder:
         builder = VertexAiSessionService()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.project() returns the builder instance for chaining."""
+        builder = VertexAiSessionService()
+        result = builder.project("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .project() stores the value in builder._config."""
+        builder = VertexAiSessionService()
+        builder.project("test_value")
+        assert builder._config["project"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""

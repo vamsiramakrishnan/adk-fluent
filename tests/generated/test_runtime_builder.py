@@ -43,16 +43,16 @@ class TestInMemoryRunnerBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.plugin_close_timeout() returns the builder instance for chaining."""
+        """.agent() returns the builder instance for chaining."""
         builder = InMemoryRunner()
-        result = builder.plugin_close_timeout(0.5)
+        result = builder.agent(None)
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .plugin_close_timeout() stores the value in builder._config."""
+        """Setting .agent() stores the value in builder._config."""
         builder = InMemoryRunner()
-        builder.plugin_close_timeout(0.5)
-        assert builder._config["plugin_close_timeout"] == 0.5
+        builder.agent(None)
+        assert builder._config["agent"] == None
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -71,16 +71,16 @@ class TestRunnerBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.plugin_close_timeout() returns the builder instance for chaining."""
+        """.app() returns the builder instance for chaining."""
         builder = Runner("test_session_service")
-        result = builder.plugin_close_timeout(0.5)
+        result = builder.app(None)
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .plugin_close_timeout() stores the value in builder._config."""
+        """Setting .app() stores the value in builder._config."""
         builder = Runner("test_session_service")
-        builder.plugin_close_timeout(0.5)
-        assert builder._config["plugin_close_timeout"] == 0.5
+        builder.app(None)
+        assert builder._config["app"] == None
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""

@@ -177,21 +177,108 @@ def discover_classes(modules: list[str]) -> list[tuple[type, str]]:
 # ---------------------------------------------------------------------------
 
 
+def _normalize_type_str(s: str) -> str:
+    """Normalize a string type annotation to modern Python 3.10+ syntax.
+
+    Handles PEP 585 (``List`` → ``list``) and PEP 604 (``Optional`` → ``| None``,
+    ``Union`` → ``|``).  Works on string annotations that the scanner receives
+    from forward references or manually annotated types.
+    """
+    import re
+
+    # PEP 585: List → list, Dict → dict, etc.
+    for old, new in (
+        ("List[", "list["),
+        ("Dict[", "dict["),
+        ("Tuple[", "tuple["),
+        ("Set[", "set["),
+        ("FrozenSet[", "frozenset["),
+    ):
+        s = s.replace(old, new)
+
+    # Optional[X] → X | None
+    m = re.match(r"^Optional\[(.+)\]$", s)
+    if m:
+        inner = _normalize_type_str(m.group(1))
+        return f"{inner} | None"
+
+    # Union[X, Y, ...] → X | Y | ...
+    m = re.match(r"^Union\[(.+)\]$", s)
+    if m:
+        # Simple split on top-level commas (respects bracket nesting)
+        parts = _split_union_args(m.group(1))
+        normalized = [_normalize_type_str(p.strip()) for p in parts]
+        # Replace NoneType with None
+        normalized = ["None" if p == "NoneType" else p for p in normalized]
+        return " | ".join(normalized)
+
+    return s
+
+
+def _split_union_args(s: str) -> list[str]:
+    """Split Union arguments at top-level commas, respecting bracket nesting."""
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in s:
+        if ch in "([":
+            depth += 1
+            current.append(ch)
+        elif ch in ")]":
+            depth -= 1
+            current.append(ch)
+        elif ch == "," and depth == 0:
+            parts.append("".join(current))
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        parts.append("".join(current))
+    return parts
+
+
 def _type_to_str(annotation: Any) -> str:
-    """Convert a type annotation to a readable string."""
+    """Convert a type annotation to a readable string.
+
+    Outputs modern Python 3.10+ syntax:
+    - ``X | None`` instead of ``Optional[X]`` or ``Union[X, NoneType]``
+    - ``X | Y``    instead of ``Union[X, Y]``
+    - ``list[X]``  instead of ``List[X]`` (PEP 585)
+    """
     if annotation is inspect.Parameter.empty:
         return "Any"
 
-    # Handle string annotations
+    # NoneType → None
+    if annotation is type(None):
+        return "None"
+
+    # Handle string annotations — normalize to modern syntax
     if isinstance(annotation, str):
-        return annotation
+        return _normalize_type_str(annotation)
 
     # Handle typing constructs
     origin = getattr(annotation, "__origin__", None)
     args = getattr(annotation, "__args__", None)
 
     if origin is not None:
+        import typing
+
+        # Union[X, Y] / Optional[X] → X | Y
+        if origin is typing.Union:
+            parts = [_type_to_str(a) for a in args]
+            return " | ".join(parts)
+
+        # Literal["x", "y"] — values must be repr'd to preserve quotes
+        if origin is typing.Literal:
+            args_str = ", ".join(repr(a) for a in args)
+            return f"Literal[{args_str}]"
+
         origin_name = getattr(origin, "__name__", str(origin))
+
+        # PEP 585: List → list, Dict → dict, etc.
+        _PEP585 = {"List": "list", "Dict": "dict", "Tuple": "tuple", "Set": "set", "FrozenSet": "frozenset"}
+        origin_name = _PEP585.get(origin_name, origin_name)
+
         if args:
             args_str = ", ".join(_type_to_str(a) for a in args)
             return f"{origin_name}[{args_str}]"
@@ -206,6 +293,9 @@ def _type_to_str(annotation: Any) -> str:
     # Clean up common prefixes
     for prefix in ("typing.", "typing_extensions.", "google.genai.types."):
         s = s.replace(prefix, "")
+    # PEP 585 cleanup for string fallback
+    for old, new in (("List[", "list["), ("Dict[", "dict["), ("Tuple[", "tuple["), ("Set[", "set[")):
+        s = s.replace(old, new)
     return s
 
 

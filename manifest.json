@@ -1,6 +1,6 @@
 {
   "adk_version": "1.25.0",
-  "scan_timestamp": "2026-02-20T06:36:15.939317+00:00",
+  "scan_timestamp": "2026-02-20T08:00:54.590289+00:00",
   "python_version": "3.11.7",
   "total_classes": 443,
   "total_fields": 779,
@@ -21,7 +21,7 @@
       "fields": [
         {
           "name": "task",
-          "type_str": "Union[Task, NoneType]",
+          "type_str": "Task | None",
           "type_raw": "typing.Optional[_asyncio.Task]",
           "default": "None",
           "required": false,
@@ -33,7 +33,7 @@
         },
         {
           "name": "stream",
-          "type_str": "Union[LiveRequestQueue, NoneType]",
+          "type_str": "LiveRequestQueue | None",
           "type_raw": "typing.Optional[google.adk.agents.live_request_queue.LiveRequestQueue]",
           "default": "None",
           "required": false,
@@ -179,7 +179,7 @@
         },
         {
           "name": "parent_agent",
-          "type_str": "Union[BaseAgent, NoneType]",
+          "type_str": "BaseAgent | None",
           "type_raw": "typing.Optional[google.adk.agents.base_agent.BaseAgent]",
           "default": "None",
           "required": false,
@@ -203,7 +203,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -215,7 +215,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -337,7 +337,7 @@
       "fields": [
         {
           "name": "agent_class",
-          "type_str": "Union[Literal[BaseAgent], str]",
+          "type_str": "Literal['BaseAgent'] | str",
           "type_raw": "typing.Union[typing.Literal['BaseAgent'], str]",
           "default": "'BaseAgent'",
           "required": false,
@@ -373,36 +373,36 @@
         },
         {
           "name": "sub_agents",
-          "type_str": "Union[list[AgentRefConfig], NoneType]",
+          "type_str": "list[AgentRefConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.AgentRefConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The sub-agents of the agent.",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "before_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The before_agent_callbacks of the agent.\n\nExample:\n\n  ```\n  before_agent_callbacks:\n    - name: my_library.security_callbacks.before_agent_callback\n  ```",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "after_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The after_agent_callbacks of the agent.",
           "inherited_from": null,
           "validators": []
@@ -491,7 +491,7 @@
         },
         {
           "name": "event_actions",
-          "type_str": "Optional[EventActions]",
+          "type_str": "EventActions | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -513,7 +513,7 @@
       "fields": [
         {
           "name": "config_path",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -525,7 +525,7 @@
         },
         {
           "name": "code",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -587,7 +587,7 @@
       "fields": [
         {
           "name": "name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -672,12 +672,12 @@
         },
         {
           "name": "args",
-          "type_str": "Union[list[ArgumentConfig], NoneType]",
+          "type_str": "list[ArgumentConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.ArgumentConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -820,7 +820,7 @@
       "fields": [
         {
           "name": "artifact_service",
-          "type_str": "Union[BaseArtifactService, NoneType]",
+          "type_str": "BaseArtifactService | None",
           "type_raw": "typing.Optional[google.adk.artifacts.base_artifact_service.BaseArtifactService]",
           "default": "None",
           "required": false,
@@ -844,7 +844,7 @@
         },
         {
           "name": "memory_service",
-          "type_str": "Union[BaseMemoryService, NoneType]",
+          "type_str": "BaseMemoryService | None",
           "type_raw": "typing.Optional[google.adk.memory.base_memory_service.BaseMemoryService]",
           "default": "None",
           "required": false,
@@ -856,7 +856,7 @@
         },
         {
           "name": "credential_service",
-          "type_str": "Union[BaseCredentialService, NoneType]",
+          "type_str": "BaseCredentialService | None",
           "type_raw": "typing.Optional[google.adk.auth.credential_service.base_credential_service.BaseCredentialService]",
           "default": "None",
           "required": false,
@@ -868,7 +868,7 @@
         },
         {
           "name": "context_cache_config",
-          "type_str": "Union[ContextCacheConfig, NoneType]",
+          "type_str": "ContextCacheConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.context_cache_config.ContextCacheConfig]",
           "default": "None",
           "required": false,
@@ -892,7 +892,7 @@
         },
         {
           "name": "branch",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -916,7 +916,7 @@
         },
         {
           "name": "user_content",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": "None",
           "required": false,
@@ -976,7 +976,7 @@
         },
         {
           "name": "live_request_queue",
-          "type_str": "Union[LiveRequestQueue, NoneType]",
+          "type_str": "LiveRequestQueue | None",
           "type_raw": "typing.Optional[google.adk.agents.live_request_queue.LiveRequestQueue]",
           "default": "None",
           "required": false,
@@ -988,7 +988,7 @@
         },
         {
           "name": "active_streaming_tools",
-          "type_str": "Union[dict[str, ActiveStreamingTool], NoneType]",
+          "type_str": "dict[str, ActiveStreamingTool] | None",
           "type_raw": "typing.Optional[dict[str, google.adk.agents.active_streaming_tool.ActiveStreamingTool]]",
           "default": "None",
           "required": false,
@@ -1000,19 +1000,19 @@
         },
         {
           "name": "transcription_cache",
-          "type_str": "Union[list[TranscriptionEntry], NoneType]",
+          "type_str": "list[TranscriptionEntry] | None",
           "type_raw": "typing.Optional[list[google.adk.agents.transcription_entry.TranscriptionEntry]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "live_session_resumption_handle",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -1024,31 +1024,31 @@
         },
         {
           "name": "input_realtime_cache",
-          "type_str": "Union[list[RealtimeCacheEntry], NoneType]",
+          "type_str": "list[RealtimeCacheEntry] | None",
           "type_raw": "typing.Optional[list[google.adk.agents.invocation_context.RealtimeCacheEntry]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "output_realtime_cache",
-          "type_str": "Union[list[RealtimeCacheEntry], NoneType]",
+          "type_str": "list[RealtimeCacheEntry] | None",
           "type_raw": "typing.Optional[list[google.adk.agents.invocation_context.RealtimeCacheEntry]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "run_config",
-          "type_str": "Union[RunConfig, NoneType]",
+          "type_str": "RunConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.run_config.RunConfig]",
           "default": "None",
           "required": false,
@@ -1060,7 +1060,7 @@
         },
         {
           "name": "resumability_config",
-          "type_str": "Union[ResumabilityConfig, NoneType]",
+          "type_str": "ResumabilityConfig | None",
           "type_raw": "typing.Optional[google.adk.apps.app.ResumabilityConfig]",
           "default": "None",
           "required": false,
@@ -1084,12 +1084,12 @@
         },
         {
           "name": "canonical_tools_cache",
-          "type_str": "Union[list[BaseTool], NoneType]",
+          "type_str": "list[BaseTool] | None",
           "type_raw": "typing.Optional[list[google.adk.tools.base_tool.BaseTool]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -1298,7 +1298,7 @@
       "fields": [
         {
           "name": "content",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": "None",
           "required": false,
@@ -1310,7 +1310,7 @@
         },
         {
           "name": "blob",
-          "type_str": "Union[Blob, NoneType]",
+          "type_str": "Blob | None",
           "type_raw": "typing.Optional[google.genai.types.Blob]",
           "default": "None",
           "required": false,
@@ -1322,7 +1322,7 @@
         },
         {
           "name": "activity_start",
-          "type_str": "Union[ActivityStart, NoneType]",
+          "type_str": "ActivityStart | None",
           "type_raw": "typing.Optional[google.genai.types.ActivityStart]",
           "default": "None",
           "required": false,
@@ -1334,7 +1334,7 @@
         },
         {
           "name": "activity_end",
-          "type_str": "Union[ActivityEnd, NoneType]",
+          "type_str": "ActivityEnd | None",
           "type_raw": "typing.Optional[google.genai.types.ActivityEnd]",
           "default": "None",
           "required": false,
@@ -1459,7 +1459,7 @@
         },
         {
           "name": "parent_agent",
-          "type_str": "Union[BaseAgent, NoneType]",
+          "type_str": "BaseAgent | None",
           "type_raw": "typing.Optional[google.adk.agents.base_agent.BaseAgent]",
           "default": "None",
           "required": false,
@@ -1483,7 +1483,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1495,7 +1495,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1507,7 +1507,7 @@
         },
         {
           "name": "model",
-          "type_str": "Union[str, BaseLlm]",
+          "type_str": "str | BaseLlm",
           "type_raw": "typing.Union[str, google.adk.models.base_llm.BaseLlm]",
           "default": "''",
           "required": false,
@@ -1519,7 +1519,7 @@
         },
         {
           "name": "instruction",
-          "type_str": "Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]",
+          "type_str": "str | Callable[ReadonlyContext, str | Awaitable[str]]",
           "type_raw": "typing.Union[str, typing.Callable[[google.adk.agents.readonly_context.ReadonlyContext], typing.Union[str, typing.Awaitable[str]]]]",
           "default": "''",
           "required": false,
@@ -1531,7 +1531,7 @@
         },
         {
           "name": "global_instruction",
-          "type_str": "Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]",
+          "type_str": "str | Callable[ReadonlyContext, str | Awaitable[str]]",
           "type_raw": "typing.Union[str, typing.Callable[[google.adk.agents.readonly_context.ReadonlyContext], typing.Union[str, typing.Awaitable[str]]]]",
           "default": "''",
           "required": false,
@@ -1543,7 +1543,7 @@
         },
         {
           "name": "static_instruction",
-          "type_str": "Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]",
+          "type_str": "Content | str | File | Part | list[str | File | Part] | None",
           "type_raw": "typing.Union[google.genai.types.Content, str, google.genai.types.File, google.genai.types.Part, list[typing.Union[str, google.genai.types.File, google.genai.types.Part]], NoneType]",
           "default": "None",
           "required": false,
@@ -1555,7 +1555,7 @@
         },
         {
           "name": "tools",
-          "type_str": "list[Union[Callable, BaseTool, BaseToolset]]",
+          "type_str": "list[Callable | BaseTool | BaseToolset]",
           "type_raw": "list[typing.Union[typing.Callable, google.adk.tools.base_tool.BaseTool, google.adk.tools.base_toolset.BaseToolset]]",
           "default": "list()",
           "required": false,
@@ -1567,7 +1567,7 @@
         },
         {
           "name": "generate_content_config",
-          "type_str": "Union[GenerateContentConfig, NoneType]",
+          "type_str": "GenerateContentConfig | None",
           "type_raw": "typing.Optional[google.genai.types.GenerateContentConfig]",
           "default": "None",
           "required": false,
@@ -1603,7 +1603,7 @@
         },
         {
           "name": "include_contents",
-          "type_str": "Literal[default, none]",
+          "type_str": "Literal['default', 'none']",
           "type_raw": "typing.Literal['default', 'none']",
           "default": "'default'",
           "required": false,
@@ -1615,7 +1615,7 @@
         },
         {
           "name": "input_schema",
-          "type_str": "Union[type[BaseModel], NoneType]",
+          "type_str": "type[BaseModel] | None",
           "type_raw": "typing.Optional[type[pydantic.main.BaseModel]]",
           "default": "None",
           "required": false,
@@ -1627,7 +1627,7 @@
         },
         {
           "name": "output_schema",
-          "type_str": "Union[type[BaseModel], NoneType]",
+          "type_str": "type[BaseModel] | None",
           "type_raw": "typing.Optional[type[pydantic.main.BaseModel]]",
           "default": "None",
           "required": false,
@@ -1639,7 +1639,7 @@
         },
         {
           "name": "output_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -1651,7 +1651,7 @@
         },
         {
           "name": "planner",
-          "type_str": "Union[BasePlanner, NoneType]",
+          "type_str": "BasePlanner | None",
           "type_raw": "typing.Optional[google.adk.planners.base_planner.BasePlanner]",
           "default": "None",
           "required": false,
@@ -1663,7 +1663,7 @@
         },
         {
           "name": "code_executor",
-          "type_str": "Union[BaseCodeExecutor, NoneType]",
+          "type_str": "BaseCodeExecutor | None",
           "type_raw": "typing.Optional[google.adk.code_executors.base_code_executor.BaseCodeExecutor]",
           "default": "None",
           "required": false,
@@ -1675,7 +1675,7 @@
         },
         {
           "name": "before_model_callback",
-          "type_str": "Union[Callable[CallbackContext, LlmRequest, Union[Awaitable[Union[LlmResponse, NoneType]], LlmResponse, NoneType]], list[Callable[CallbackContext, LlmRequest, Union[Awaitable[Union[LlmResponse, NoneType]], LlmResponse, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, LlmRequest, Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[CallbackContext, LlmRequest, Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1687,7 +1687,7 @@
         },
         {
           "name": "after_model_callback",
-          "type_str": "Union[Callable[CallbackContext, LlmResponse, Union[Awaitable[Union[LlmResponse, NoneType]], LlmResponse, NoneType]], list[Callable[CallbackContext, LlmResponse, Union[Awaitable[Union[LlmResponse, NoneType]], LlmResponse, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, LlmResponse, Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[CallbackContext, LlmResponse, Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_response.LlmResponse], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_response.LlmResponse], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1699,7 +1699,7 @@
         },
         {
           "name": "on_model_error_callback",
-          "type_str": "Union[Callable[CallbackContext, LlmRequest, Exception, Union[Awaitable[Union[LlmResponse, NoneType]], LlmResponse, NoneType]], list[Callable[CallbackContext, LlmRequest, Exception, Union[Awaitable[Union[LlmResponse, NoneType]], LlmResponse, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, LlmRequest, Exception, Awaitable[LlmResponse | None] | LlmResponse | None] | list[Callable[CallbackContext, LlmRequest, Exception, Awaitable[LlmResponse | None] | LlmResponse | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest, Exception], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext, google.adk.models.llm_request.LlmRequest, Exception], typing.Union[typing.Awaitable[typing.Optional[google.adk.models.llm_response.LlmResponse]], google.adk.models.llm_response.LlmResponse, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1711,7 +1711,7 @@
         },
         {
           "name": "before_tool_callback",
-          "type_str": "Union[Callable[BaseTool, dict[str, Any], ToolContext, Union[Awaitable[Union[dict, NoneType]], dict, NoneType]], list[Callable[BaseTool, dict[str, Any], ToolContext, Union[Awaitable[Union[dict, NoneType]], dict, NoneType]]], NoneType]",
+          "type_str": "Callable[BaseTool, dict[str, Any], ToolContext, Awaitable[dict | None] | dict | None] | list[Callable[BaseTool, dict[str, Any], ToolContext, Awaitable[dict | None] | dict | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]], list[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1723,7 +1723,7 @@
         },
         {
           "name": "after_tool_callback",
-          "type_str": "Union[Callable[BaseTool, dict[str, Any], ToolContext, dict, Union[Awaitable[Union[dict, NoneType]], dict, NoneType]], list[Callable[BaseTool, dict[str, Any], ToolContext, dict, Union[Awaitable[Union[dict, NoneType]], dict, NoneType]]], NoneType]",
+          "type_str": "Callable[BaseTool, dict[str, Any], ToolContext, dict, Awaitable[dict | None] | dict | None] | list[Callable[BaseTool, dict[str, Any], ToolContext, dict, Awaitable[dict | None] | dict | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, dict], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]], list[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, dict], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1735,7 +1735,7 @@
         },
         {
           "name": "on_tool_error_callback",
-          "type_str": "Union[Callable[BaseTool, dict[str, Any], ToolContext, Exception, Union[Awaitable[Union[dict, NoneType]], dict, NoneType]], list[Callable[BaseTool, dict[str, Any], ToolContext, Exception, Union[Awaitable[Union[dict, NoneType]], dict, NoneType]]], NoneType]",
+          "type_str": "Callable[BaseTool, dict[str, Any], ToolContext, Exception, Awaitable[dict | None] | dict | None] | list[Callable[BaseTool, dict[str, Any], ToolContext, Exception, Awaitable[dict | None] | dict | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, Exception], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]], list[typing.Callable[[google.adk.tools.base_tool.BaseTool, dict[str, typing.Any], google.adk.tools.tool_context.ToolContext, Exception], typing.Union[typing.Awaitable[typing.Optional[dict]], dict, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -1875,43 +1875,43 @@
         },
         {
           "name": "sub_agents",
-          "type_str": "Union[list[AgentRefConfig], NoneType]",
+          "type_str": "list[AgentRefConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.AgentRefConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The sub-agents of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "before_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The before_agent_callbacks of the agent.\n\nExample:\n\n  ```\n  before_agent_callbacks:\n    - name: my_library.security_callbacks.before_agent_callback\n  ```",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "after_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The after_agent_callbacks of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "model",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -1923,7 +1923,7 @@
         },
         {
           "name": "model_code",
-          "type_str": "Union[CodeConfig, NoneType]",
+          "type_str": "CodeConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.common_configs.CodeConfig]",
           "default": "None",
           "required": false,
@@ -1947,7 +1947,7 @@
         },
         {
           "name": "static_instruction",
-          "type_str": "Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]",
+          "type_str": "Content | str | File | Part | list[str | File | Part] | None",
           "type_raw": "typing.Union[google.genai.types.Content, str, google.genai.types.File, google.genai.types.Part, list[typing.Union[str, google.genai.types.File, google.genai.types.Part]], NoneType]",
           "default": "None",
           "required": false,
@@ -1959,7 +1959,7 @@
         },
         {
           "name": "disallow_transfer_to_parent",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -1971,7 +1971,7 @@
         },
         {
           "name": "disallow_transfer_to_peers",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -1983,7 +1983,7 @@
         },
         {
           "name": "input_schema",
-          "type_str": "Union[CodeConfig, NoneType]",
+          "type_str": "CodeConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.common_configs.CodeConfig]",
           "default": "None",
           "required": false,
@@ -1995,7 +1995,7 @@
         },
         {
           "name": "output_schema",
-          "type_str": "Union[CodeConfig, NoneType]",
+          "type_str": "CodeConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.common_configs.CodeConfig]",
           "default": "None",
           "required": false,
@@ -2007,7 +2007,7 @@
         },
         {
           "name": "output_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -2019,7 +2019,7 @@
         },
         {
           "name": "include_contents",
-          "type_str": "Literal[default, none]",
+          "type_str": "Literal['default', 'none']",
           "type_raw": "typing.Literal['default', 'none']",
           "default": "'default'",
           "required": false,
@@ -2031,67 +2031,67 @@
         },
         {
           "name": "tools",
-          "type_str": "Union[list[ToolConfig], NoneType]",
+          "type_str": "list[ToolConfig] | None",
           "type_raw": "typing.Optional[list[google.adk.tools.tool_configs.ToolConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. LlmAgent.tools.\n\nExamples:\n\n  For ADK built-in tools in `google.adk.tools` package, they can be referenced\n  directly with the name:\n\n    ```\n    tools:\n      - name: google_search\n      - name: load_memory\n    ```\n\n  For user-defined tools, they can be referenced with fully qualified name:\n\n    ```\n    tools:\n      - name: my_library.my_tools.my_tool\n    ```\n\n  For tools that needs to be created via functions:\n\n    ```\n    tools:\n      - name: my_library.my_tools.create_tool\n        args:\n          - name: param1\n            value: value1\n          - name: param2\n            value: value2\n    ```\n\n  For more advanced tools, instead of specifying arguments in config, it's\n  recommended to define them in Python files and reference them. E.g.,\n\n    ```\n    # tools.py\n    my_mcp_toolset = McpToolset(\n        connection_params=StdioServerParameters(\n            command=\"npx\",\n            args=[\"-y\", \"@notionhq/notion-mcp-server\"],\n            env={\"OPENAPI_MCP_HEADERS\": NOTION_HEADERS},\n        )\n    )\n    ```\n\n  Then, reference the toolset in config:\n\n  ```\n  tools:\n    - name: tools.my_mcp_toolset\n  ```",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "before_model_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. LlmAgent.before_model_callbacks.\n\nExample:\n\n  ```\n  before_model_callbacks:\n    - name: my_library.callbacks.before_model_callback\n  ```",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "after_model_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. LlmAgent.after_model_callbacks.",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "before_tool_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. LlmAgent.before_tool_callbacks.",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "after_tool_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. LlmAgent.after_tool_callbacks.",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "generate_content_config",
-          "type_str": "Union[GenerateContentConfig, NoneType]",
+          "type_str": "GenerateContentConfig | None",
           "type_raw": "typing.Optional[google.genai.types.GenerateContentConfig]",
           "default": "None",
           "required": false,
@@ -2191,7 +2191,7 @@
         },
         {
           "name": "parent_agent",
-          "type_str": "Union[BaseAgent, NoneType]",
+          "type_str": "BaseAgent | None",
           "type_raw": "typing.Optional[google.adk.agents.base_agent.BaseAgent]",
           "default": "None",
           "required": false,
@@ -2215,7 +2215,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2227,7 +2227,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2239,7 +2239,7 @@
         },
         {
           "name": "max_iterations",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -2422,43 +2422,43 @@
         },
         {
           "name": "sub_agents",
-          "type_str": "Union[list[AgentRefConfig], NoneType]",
+          "type_str": "list[AgentRefConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.AgentRefConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The sub-agents of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "before_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The before_agent_callbacks of the agent.\n\nExample:\n\n  ```\n  before_agent_callbacks:\n    - name: my_library.security_callbacks.before_agent_callback\n  ```",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "after_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The after_agent_callbacks of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "max_iterations",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -2586,7 +2586,7 @@
         },
         {
           "name": "parent_agent",
-          "type_str": "Union[BaseAgent, NoneType]",
+          "type_str": "BaseAgent | None",
           "type_raw": "typing.Optional[google.adk.agents.base_agent.BaseAgent]",
           "default": "None",
           "required": false,
@@ -2610,7 +2610,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2622,7 +2622,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -2729,36 +2729,36 @@
         },
         {
           "name": "sub_agents",
-          "type_str": "Union[list[AgentRefConfig], NoneType]",
+          "type_str": "list[AgentRefConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.AgentRefConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The sub-agents of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "before_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The before_agent_callbacks of the agent.\n\nExample:\n\n  ```\n  before_agent_callbacks:\n    - name: my_library.security_callbacks.before_agent_callback\n  ```",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "after_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The after_agent_callbacks of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
@@ -2843,7 +2843,7 @@
       "fields": [
         {
           "name": "speech_config",
-          "type_str": "Union[SpeechConfig, NoneType]",
+          "type_str": "SpeechConfig | None",
           "type_raw": "typing.Optional[google.genai.types.SpeechConfig]",
           "default": "None",
           "required": false,
@@ -2855,12 +2855,12 @@
         },
         {
           "name": "response_modalities",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[list[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -2903,7 +2903,7 @@
         },
         {
           "name": "output_audio_transcription",
-          "type_str": "Union[AudioTranscriptionConfig, NoneType]",
+          "type_str": "AudioTranscriptionConfig | None",
           "type_raw": "typing.Optional[google.genai.types.AudioTranscriptionConfig]",
           "default": "AudioTranscriptionConfig()",
           "required": false,
@@ -2915,7 +2915,7 @@
         },
         {
           "name": "input_audio_transcription",
-          "type_str": "Union[AudioTranscriptionConfig, NoneType]",
+          "type_str": "AudioTranscriptionConfig | None",
           "type_raw": "typing.Optional[google.genai.types.AudioTranscriptionConfig]",
           "default": "AudioTranscriptionConfig()",
           "required": false,
@@ -2927,7 +2927,7 @@
         },
         {
           "name": "realtime_input_config",
-          "type_str": "Union[RealtimeInputConfig, NoneType]",
+          "type_str": "RealtimeInputConfig | None",
           "type_raw": "typing.Optional[google.genai.types.RealtimeInputConfig]",
           "default": "None",
           "required": false,
@@ -2939,7 +2939,7 @@
         },
         {
           "name": "enable_affective_dialog",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -2951,7 +2951,7 @@
         },
         {
           "name": "proactivity",
-          "type_str": "Union[ProactivityConfig, NoneType]",
+          "type_str": "ProactivityConfig | None",
           "type_raw": "typing.Optional[google.genai.types.ProactivityConfig]",
           "default": "None",
           "required": false,
@@ -2963,7 +2963,7 @@
         },
         {
           "name": "session_resumption",
-          "type_str": "Union[SessionResumptionConfig, NoneType]",
+          "type_str": "SessionResumptionConfig | None",
           "type_raw": "typing.Optional[google.genai.types.SessionResumptionConfig]",
           "default": "None",
           "required": false,
@@ -2975,7 +2975,7 @@
         },
         {
           "name": "context_window_compression",
-          "type_str": "Union[ContextWindowCompressionConfig, NoneType]",
+          "type_str": "ContextWindowCompressionConfig | None",
           "type_raw": "typing.Optional[google.genai.types.ContextWindowCompressionConfig]",
           "default": "None",
           "required": false,
@@ -2999,7 +2999,7 @@
         },
         {
           "name": "tool_thread_pool_config",
-          "type_str": "Union[ToolThreadPoolConfig, NoneType]",
+          "type_str": "ToolThreadPoolConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.run_config.ToolThreadPoolConfig]",
           "default": "None",
           "required": false,
@@ -3035,7 +3035,7 @@
         },
         {
           "name": "custom_metadata",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -3232,7 +3232,7 @@
         },
         {
           "name": "parent_agent",
-          "type_str": "Union[BaseAgent, NoneType]",
+          "type_str": "BaseAgent | None",
           "type_raw": "typing.Optional[google.adk.agents.base_agent.BaseAgent]",
           "default": "None",
           "required": false,
@@ -3256,7 +3256,7 @@
         },
         {
           "name": "before_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -3268,7 +3268,7 @@
         },
         {
           "name": "after_agent_callback",
-          "type_str": "Union[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]], list[Callable[CallbackContext, Union[Awaitable[Union[Content, NoneType]], Content, NoneType]]], NoneType]",
+          "type_str": "Callable[CallbackContext, Awaitable[Content | None] | Content | None] | list[Callable[CallbackContext, Awaitable[Content | None] | Content | None]] | None",
           "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
           "default": "None",
           "required": false,
@@ -3436,36 +3436,36 @@
         },
         {
           "name": "sub_agents",
-          "type_str": "Union[list[AgentRefConfig], NoneType]",
+          "type_str": "list[AgentRefConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.AgentRefConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The sub-agents of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "before_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The before_agent_callbacks of the agent.\n\nExample:\n\n  ```\n  before_agent_callbacks:\n    - name: my_library.security_callbacks.before_agent_callback\n  ```",
           "inherited_from": "BaseAgentConfig",
           "validators": []
         },
         {
           "name": "after_agent_callbacks",
-          "type_str": "Union[list[CodeConfig], NoneType]",
+          "type_str": "list[CodeConfig] | None",
           "type_raw": "typing.Optional[typing.List[google.adk.agents.common_configs.CodeConfig]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Optional. The after_agent_callbacks of the agent.",
           "inherited_from": "BaseAgentConfig",
           "validators": []
@@ -3518,7 +3518,7 @@
       "fields": [
         {
           "name": "role",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -3530,7 +3530,7 @@
         },
         {
           "name": "data",
-          "type_str": "Union[Blob, Content]",
+          "type_str": "Blob | Content",
           "type_raw": "typing.Union[google.genai.types.Blob, google.genai.types.Content]",
           "default": null,
           "required": true,
@@ -3627,7 +3627,7 @@
         },
         {
           "name": "events_compaction_config",
-          "type_str": "Union[EventsCompactionConfig, NoneType]",
+          "type_str": "EventsCompactionConfig | None",
           "type_raw": "typing.Optional[google.adk.apps.app.EventsCompactionConfig]",
           "default": "None",
           "required": false,
@@ -3639,7 +3639,7 @@
         },
         {
           "name": "context_cache_config",
-          "type_str": "Union[ContextCacheConfig, NoneType]",
+          "type_str": "ContextCacheConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.context_cache_config.ContextCacheConfig]",
           "default": "None",
           "required": false,
@@ -3651,7 +3651,7 @@
         },
         {
           "name": "resumability_config",
-          "type_str": "Union[ResumabilityConfig, NoneType]",
+          "type_str": "ResumabilityConfig | None",
           "type_raw": "typing.Optional[google.adk.apps.app.ResumabilityConfig]",
           "default": "None",
           "required": false,
@@ -3716,7 +3716,7 @@
       "fields": [
         {
           "name": "summarizer",
-          "type_str": "Union[BaseEventsSummarizer, NoneType]",
+          "type_str": "BaseEventsSummarizer | None",
           "type_raw": "typing.Optional[google.adk.apps.base_events_summarizer.BaseEventsSummarizer]",
           "default": "None",
           "required": false,
@@ -3752,7 +3752,7 @@
         },
         {
           "name": "token_threshold",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -3764,7 +3764,7 @@
         },
         {
           "name": "event_retention_size",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -3939,7 +3939,7 @@
         },
         {
           "name": "prompt_template",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -4046,7 +4046,7 @@
         },
         {
           "name": "mime_type",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4237,7 +4237,7 @@
         },
         {
           "name": "mime_type",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4435,7 +4435,7 @@
         },
         {
           "name": "resource_ref",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4447,7 +4447,7 @@
         },
         {
           "name": "api_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4459,7 +4459,7 @@
         },
         {
           "name": "http",
-          "type_str": "Union[HttpAuth, NoneType]",
+          "type_str": "HttpAuth | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.HttpAuth]",
           "default": "None",
           "required": false,
@@ -4471,7 +4471,7 @@
         },
         {
           "name": "service_account",
-          "type_str": "Union[ServiceAccount, NoneType]",
+          "type_str": "ServiceAccount | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.ServiceAccount]",
           "default": "None",
           "required": false,
@@ -4483,7 +4483,7 @@
         },
         {
           "name": "oauth2",
-          "type_str": "Union[OAuth2Auth, NoneType]",
+          "type_str": "OAuth2Auth | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.OAuth2Auth]",
           "default": "None",
           "required": false,
@@ -4702,7 +4702,7 @@
         },
         {
           "name": "additional_headers",
-          "type_str": "Union[dict[str, str], NoneType]",
+          "type_str": "dict[str, str] | None",
           "type_raw": "typing.Optional[typing.Dict[str, str]]",
           "default": "None",
           "required": false,
@@ -4765,7 +4765,7 @@
       "fields": [
         {
           "name": "username",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4777,7 +4777,7 @@
         },
         {
           "name": "password",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4789,7 +4789,7 @@
         },
         {
           "name": "token",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4852,7 +4852,7 @@
       "fields": [
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4864,7 +4864,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4876,7 +4876,7 @@
         },
         {
           "name": "auth_uri",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4888,7 +4888,7 @@
         },
         {
           "name": "state",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4900,7 +4900,7 @@
         },
         {
           "name": "redirect_uri",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4912,7 +4912,7 @@
         },
         {
           "name": "auth_response_uri",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4924,7 +4924,7 @@
         },
         {
           "name": "auth_code",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4936,7 +4936,7 @@
         },
         {
           "name": "access_token",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4948,7 +4948,7 @@
         },
         {
           "name": "refresh_token",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4960,7 +4960,7 @@
         },
         {
           "name": "expires_at",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -4972,7 +4972,7 @@
         },
         {
           "name": "expires_in",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -4984,7 +4984,7 @@
         },
         {
           "name": "audience",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -4996,7 +4996,7 @@
         },
         {
           "name": "token_endpoint_auth_method",
-          "type_str": "Union[Literal[client_secret_basic, client_secret_post, client_secret_jwt, private_key_jwt], NoneType]",
+          "type_str": "Literal['client_secret_basic', 'client_secret_post', 'client_secret_jwt', 'private_key_jwt'] | None",
           "type_raw": "typing.Optional[typing.Literal['client_secret_basic', 'client_secret_post', 'client_secret_jwt', 'private_key_jwt']]",
           "default": "'client_secret_basic'",
           "required": false,
@@ -5069,7 +5069,7 @@
       "fields": [
         {
           "name": "service_account_credential",
-          "type_str": "Union[ServiceAccountCredential, NoneType]",
+          "type_str": "ServiceAccountCredential | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.ServiceAccountCredential]",
           "default": "None",
           "required": false,
@@ -5093,7 +5093,7 @@
         },
         {
           "name": "use_default_credential",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "False",
           "required": false,
@@ -5415,7 +5415,7 @@
         },
         {
           "name": "issuer_url",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -5609,7 +5609,7 @@
         },
         {
           "name": "userinfo_endpoint",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -5621,7 +5621,7 @@
         },
         {
           "name": "revocation_endpoint",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -5633,36 +5633,36 @@
         },
         {
           "name": "token_endpoint_auth_methods_supported",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "grant_types_supported",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -5724,7 +5724,7 @@
       "fields": [
         {
           "name": "auth_scheme",
-          "type_str": "Union[APIKey, HTTPBase, OAuth2, OpenIdConnect, HTTPBearer, OpenIdConnectWithConfig]",
+          "type_str": "APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig",
           "type_raw": "typing.Union[fastapi.openapi.models.APIKey, fastapi.openapi.models.HTTPBase, fastapi.openapi.models.OAuth2, fastapi.openapi.models.OpenIdConnect, fastapi.openapi.models.HTTPBearer, google.adk.auth.auth_schemes.OpenIdConnectWithConfig]",
           "default": null,
           "required": true,
@@ -5736,7 +5736,7 @@
         },
         {
           "name": "raw_auth_credential",
-          "type_str": "Union[AuthCredential, NoneType]",
+          "type_str": "AuthCredential | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.AuthCredential]",
           "default": "None",
           "required": false,
@@ -5748,7 +5748,7 @@
         },
         {
           "name": "exchanged_auth_credential",
-          "type_str": "Union[AuthCredential, NoneType]",
+          "type_str": "AuthCredential | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.AuthCredential]",
           "default": "None",
           "required": false,
@@ -5760,7 +5760,7 @@
         },
         {
           "name": "credential_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -6227,19 +6227,19 @@
         },
         {
           "name": "scopes_supported",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "registration_endpoint",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -6690,28 +6690,28 @@
         },
         {
           "name": "extra_plugins",
-          "type_str": "Optional[list[str]]",
+          "type_str": "list[str] | None",
           "default": "None",
           "required": false,
           "position": 8
         },
         {
           "name": "logo_text",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 9
         },
         {
           "name": "logo_image_url",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 10
         },
         {
           "name": "url_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 11
@@ -6808,7 +6808,7 @@
         },
         {
           "name": "language",
-          "type_str": "Literal[yaml, python]",
+          "type_str": "Literal['yaml', 'python']",
           "type_raw": "typing.Literal['yaml', 'python']",
           "default": null,
           "required": true,
@@ -6946,7 +6946,7 @@
       "fields": [
         {
           "name": "session_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -6958,7 +6958,7 @@
         },
         {
           "name": "state",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -6970,12 +6970,12 @@
         },
         {
           "name": "events",
-          "type_str": "Union[list[Event], NoneType]",
+          "type_str": "list[Event] | None",
           "type_raw": "typing.Optional[list[google.adk.events.event.Event]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "A list of events to initialize the session with.",
           "inherited_from": null,
           "validators": []
@@ -7045,7 +7045,7 @@
         },
         {
           "name": "eval_set_result_name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -7538,7 +7538,7 @@
         },
         {
           "name": "state_delta",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -7550,7 +7550,7 @@
         },
         {
           "name": "invocation_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -7954,7 +7954,7 @@
         },
         {
           "name": "custom_metadata",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -8308,7 +8308,7 @@
         },
         {
           "name": "error_message",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -8561,7 +8561,7 @@
       "fields": [
         {
           "name": "text",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -8573,7 +8573,7 @@
         },
         {
           "name": "content",
-          "type_str": "Union[UserContent, NoneType]",
+          "type_str": "UserContent | None",
           "type_raw": "typing.Optional[google.genai.types.UserContent]",
           "default": "None",
           "required": false,
@@ -8585,7 +8585,7 @@
         },
         {
           "name": "state_delta",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -8689,7 +8689,7 @@
       "fields": [
         {
           "name": "llm_request",
-          "type_str": "Union[LlmRequest, NoneType]",
+          "type_str": "LlmRequest | None",
           "type_raw": "typing.Optional[google.adk.models.llm_request.LlmRequest]",
           "default": "None",
           "required": false,
@@ -8701,7 +8701,7 @@
         },
         {
           "name": "llm_response",
-          "type_str": "Union[LlmResponse, NoneType]",
+          "type_str": "LlmResponse | None",
           "type_raw": "typing.Optional[google.adk.models.llm_response.LlmResponse]",
           "default": "None",
           "required": false,
@@ -8786,7 +8786,7 @@
         },
         {
           "name": "llm_recording",
-          "type_str": "Union[LlmRecording, NoneType]",
+          "type_str": "LlmRecording | None",
           "type_raw": "typing.Optional[google.adk.cli.plugins.recordings_schema.LlmRecording]",
           "default": "None",
           "required": false,
@@ -8798,7 +8798,7 @@
         },
         {
           "name": "tool_recording",
-          "type_str": "Union[ToolRecording, NoneType]",
+          "type_str": "ToolRecording | None",
           "type_raw": "typing.Optional[google.adk.cli.plugins.recordings_schema.ToolRecording]",
           "default": "None",
           "required": false,
@@ -8921,7 +8921,7 @@
       "fields": [
         {
           "name": "tool_call",
-          "type_str": "Union[FunctionCall, NoneType]",
+          "type_str": "FunctionCall | None",
           "type_raw": "typing.Optional[google.genai.types.FunctionCall]",
           "default": "None",
           "required": false,
@@ -8933,7 +8933,7 @@
         },
         {
           "name": "tool_response",
-          "type_str": "Union[FunctionResponse, NoneType]",
+          "type_str": "FunctionResponse | None",
           "type_raw": "typing.Optional[google.genai.types.FunctionResponse]",
           "default": "None",
           "required": false,
@@ -9455,7 +9455,7 @@
         },
         {
           "name": "app_name_to_dir",
-          "type_str": "Optional[Mapping[str, str]]",
+          "type_str": "Mapping[str, str] | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -9899,7 +9899,7 @@
         },
         {
           "name": "execution_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -10806,7 +10806,7 @@
       "fields": [
         {
           "name": "labels",
-          "type_str": "Union[dict[str, str], NoneType]",
+          "type_str": "dict[str, str] | None",
           "type_raw": "typing.Optional[dict[str, str]]",
           "default": "None",
           "required": false,
@@ -10903,12 +10903,12 @@
         },
         {
           "name": "eval_case_ids",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[list[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "ID of the eval cases for which inferences need to be\ngenerated.\n\nAll the eval case ids should belong to the EvalSet.\n\nIf the list of eval case ids are empty or not specified, then all the eval cases\nin an eval set are evaluated.\n      ",
           "inherited_from": null,
           "validators": []
@@ -11014,19 +11014,19 @@
         },
         {
           "name": "inferences",
-          "type_str": "Union[list[Invocation], NoneType]",
+          "type_str": "list[Invocation] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_case.Invocation]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "Inferences obtained from the Agent for the eval case.",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "session_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": null,
           "required": true,
@@ -11050,7 +11050,7 @@
         },
         {
           "name": "error_message",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -11343,19 +11343,19 @@
         },
         {
           "name": "conversation",
-          "type_str": "Union[list[Invocation], NoneType]",
+          "type_str": "list[Invocation] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_case.Invocation]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "conversation_scenario",
-          "type_str": "Union[ConversationScenario, NoneType]",
+          "type_str": "ConversationScenario | None",
           "type_raw": "typing.Optional[google.adk.evaluation.conversation_scenarios.ConversationScenario]",
           "default": "None",
           "required": false,
@@ -11367,7 +11367,7 @@
         },
         {
           "name": "session_input",
-          "type_str": "Union[SessionInput, NoneType]",
+          "type_str": "SessionInput | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_case.SessionInput]",
           "default": "None",
           "required": false,
@@ -11391,19 +11391,19 @@
         },
         {
           "name": "rubrics",
-          "type_str": "Union[list[Rubric], NoneType]",
+          "type_str": "list[Rubric] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_rubrics.Rubric]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "final_session_state",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "dict()",
           "required": false,
@@ -11582,7 +11582,7 @@
         },
         {
           "name": "final_response",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": "None",
           "required": false,
@@ -11594,7 +11594,7 @@
         },
         {
           "name": "intermediate_data",
-          "type_str": "Union[IntermediateData, InvocationEvents, NoneType]",
+          "type_str": "IntermediateData | InvocationEvents | None",
           "type_raw": "typing.Union[google.adk.evaluation.eval_case.IntermediateData, google.adk.evaluation.eval_case.InvocationEvents, NoneType]",
           "default": "None",
           "required": false,
@@ -11618,19 +11618,19 @@
         },
         {
           "name": "rubrics",
-          "type_str": "Union[list[Rubric], NoneType]",
+          "type_str": "list[Rubric] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_rubrics.Rubric]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "app_details",
-          "type_str": "Union[AppDetails, NoneType]",
+          "type_str": "AppDetails | None",
           "type_raw": "typing.Optional[google.adk.evaluation.app_details.AppDetails]",
           "default": "None",
           "required": false,
@@ -11709,7 +11709,7 @@
         },
         {
           "name": "content",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": null,
           "required": true,
@@ -11930,7 +11930,7 @@
         },
         {
           "name": "metric_info",
-          "type_str": "Union[MetricInfo, NoneType]",
+          "type_str": "MetricInfo | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_metrics.MetricInfo]",
           "default": "None",
           "required": false,
@@ -12005,7 +12005,7 @@
       "fields": [
         {
           "name": "criteria",
-          "type_str": "dict[str, Union[float, BaseCriterion]]",
+          "type_str": "dict[str, float | BaseCriterion]",
           "type_raw": "dict[str, typing.Union[float, google.adk.evaluation.eval_metrics.BaseCriterion]]",
           "default": "dict()",
           "required": false,
@@ -12017,7 +12017,7 @@
         },
         {
           "name": "custom_metrics",
-          "type_str": "Union[dict[str, CustomMetricConfig], NoneType]",
+          "type_str": "dict[str, CustomMetricConfig] | None",
           "type_raw": "typing.Optional[dict[str, google.adk.evaluation.eval_config.CustomMetricConfig]]",
           "default": "None",
           "required": false,
@@ -12029,7 +12029,7 @@
         },
         {
           "name": "user_simulator_config",
-          "type_str": "Union[BaseUserSimulatorConfig, NoneType]",
+          "type_str": "BaseUserSimulatorConfig | None",
           "type_raw": "typing.Optional[google.adk.evaluation.simulation.user_simulator.BaseUserSimulatorConfig]",
           "default": "None",
           "required": false,
@@ -12164,7 +12164,7 @@
         },
         {
           "name": "threshold",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -12176,7 +12176,7 @@
         },
         {
           "name": "criterion",
-          "type_str": "Union[BaseCriterion, NoneType]",
+          "type_str": "BaseCriterion | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_metrics.BaseCriterion]",
           "default": "None",
           "required": false,
@@ -12188,7 +12188,7 @@
         },
         {
           "name": "custom_function_path",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -12265,7 +12265,7 @@
         },
         {
           "name": "threshold",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -12277,7 +12277,7 @@
         },
         {
           "name": "criterion",
-          "type_str": "Union[BaseCriterion, NoneType]",
+          "type_str": "BaseCriterion | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_metrics.BaseCriterion]",
           "default": "None",
           "required": false,
@@ -12289,7 +12289,7 @@
         },
         {
           "name": "custom_function_path",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -12301,7 +12301,7 @@
         },
         {
           "name": "score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -12388,12 +12388,12 @@
       "fields": [
         {
           "name": "rubric_scores",
-          "type_str": "Union[list[RubricScore], NoneType]",
+          "type_str": "list[RubricScore] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_rubrics.RubricScore]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "The scores obtained after applying the rubrics to the Agent's response.",
           "inherited_from": null,
           "validators": []
@@ -12461,7 +12461,7 @@
         },
         {
           "name": "expected_invocation",
-          "type_str": "Union[Invocation, NoneType]",
+          "type_str": "Invocation | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_case.Invocation]",
           "default": "None",
           "required": false,
@@ -12768,7 +12768,7 @@
         },
         {
           "name": "judge_model_config",
-          "type_str": "Optional[Union[GenerateContentConfig, NoneType]]",
+          "type_str": "Optional[GenerateContentConfig | None]",
           "type_raw": "typing.Annotated[typing.Optional[google.genai.types.GenerateContentConfig], SkipJsonSchema()]",
           "default": "None",
           "required": false,
@@ -13125,7 +13125,7 @@
       "fields": [
         {
           "name": "interval",
-          "type_str": "Union[Interval, NoneType]",
+          "type_str": "Interval | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_metrics.Interval]",
           "default": "None",
           "required": false,
@@ -13379,7 +13379,7 @@
       "fields": [
         {
           "name": "eval_set_file",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13427,12 +13427,12 @@
         },
         {
           "name": "eval_metric_results",
-          "type_str": "Union[list[tuple[EvalMetric, EvalMetricResult]], NoneType]",
+          "type_str": "list[tuple[EvalMetric, EvalMetricResult]] | None",
           "type_raw": "typing.Optional[list[tuple[google.adk.evaluation.eval_metrics.EvalMetric, google.adk.evaluation.eval_metrics.EvalMetricResult]]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "This field is deprecated, use overall_eval_metric_results instead.",
           "inherited_from": null,
           "validators": []
@@ -13475,7 +13475,7 @@
         },
         {
           "name": "session_details",
-          "type_str": "Union[Session, NoneType]",
+          "type_str": "Session | None",
           "type_raw": "typing.Optional[google.adk.sessions.session.Session]",
           "default": "None",
           "required": false,
@@ -13487,7 +13487,7 @@
         },
         {
           "name": "user_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13568,7 +13568,7 @@
         },
         {
           "name": "eval_set_result_name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13693,7 +13693,7 @@
         },
         {
           "name": "description",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13705,7 +13705,7 @@
         },
         {
           "name": "type",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13769,7 +13769,7 @@
       "fields": [
         {
           "name": "text_property",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": null,
           "required": true,
@@ -13842,7 +13842,7 @@
         },
         {
           "name": "rationale",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13854,7 +13854,7 @@
         },
         {
           "name": "score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -13928,7 +13928,7 @@
         },
         {
           "name": "name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -13940,7 +13940,7 @@
         },
         {
           "name": "description",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -14247,7 +14247,7 @@
       "fields": [
         {
           "name": "overall_score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -14283,12 +14283,12 @@
         },
         {
           "name": "overall_rubric_scores",
-          "type_str": "Union[list[RubricScore], NoneType]",
+          "type_str": "list[RubricScore] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_rubrics.RubricScore]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -14395,7 +14395,7 @@
         },
         {
           "name": "expected_invocation",
-          "type_str": "Union[Invocation, NoneType]",
+          "type_str": "Invocation | None",
           "type_raw": "typing.Optional[google.adk.evaluation.eval_case.Invocation]",
           "default": "None",
           "required": false,
@@ -14407,7 +14407,7 @@
         },
         {
           "name": "score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -14431,12 +14431,12 @@
         },
         {
           "name": "rubric_scores",
-          "type_str": "Union[list[RubricScore], NoneType]",
+          "type_str": "list[RubricScore] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_rubrics.RubricScore]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -14704,7 +14704,7 @@
       "fields": [
         {
           "name": "score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -14716,12 +14716,12 @@
         },
         {
           "name": "rubric_scores",
-          "type_str": "Union[list[RubricScore], NoneType]",
+          "type_str": "list[RubricScore] | None",
           "type_raw": "typing.Optional[list[google.adk.evaluation.eval_rubrics.RubricScore]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -15467,27 +15467,27 @@
         {
           "name": "auto_rater_response_parser",
           "type_str": "AutoRaterResponseParser",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x79006ca03990>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7c89b4ca0690>",
           "required": false,
           "position": 2
         },
         {
           "name": "per_invocation_results_aggregator",
           "type_str": "PerInvocationResultsAggregator",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x79006ca039d0>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7c89b4ca06d0>",
           "required": false,
           "position": 3
         },
         {
           "name": "invocation_results_summarizer",
           "type_str": "InvocationResultsSummarizer",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x79006ca03a10>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7c89b4ca0710>",
           "required": false,
           "position": 4
         },
         {
           "name": "rubric_type",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 5
@@ -15510,7 +15510,7 @@
       "fields": [
         {
           "name": "property_text",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -15522,7 +15522,7 @@
         },
         {
           "name": "rationale",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -15534,7 +15534,7 @@
         },
         {
           "name": "score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -15750,7 +15750,7 @@
         },
         {
           "name": "custom_instructions",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -15934,7 +15934,7 @@
         },
         {
           "name": "user_message",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": "None",
           "required": false,
@@ -16071,7 +16071,7 @@
       "init_params": [
         {
           "name": "user_simulator_config",
-          "type_str": "Optional[BaseUserSimulatorConfig]",
+          "type_str": "BaseUserSimulatorConfig | None",
           "default": "None",
           "required": false,
           "position": 0
@@ -16102,14 +16102,14 @@
       "init_params": [
         {
           "name": "threshold",
-          "type_str": "Optional[float]",
+          "type_str": "float | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "eval_metric",
-          "type_str": "Optional[EvalMetric]",
+          "type_str": "EvalMetric | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -16132,7 +16132,7 @@
       "fields": [
         {
           "name": "model_version",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -16144,7 +16144,7 @@
         },
         {
           "name": "content",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": "None",
           "required": false,
@@ -16156,7 +16156,7 @@
         },
         {
           "name": "grounding_metadata",
-          "type_str": "Union[GroundingMetadata, NoneType]",
+          "type_str": "GroundingMetadata | None",
           "type_raw": "typing.Optional[google.genai.types.GroundingMetadata]",
           "default": "None",
           "required": false,
@@ -16168,7 +16168,7 @@
         },
         {
           "name": "partial",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -16180,7 +16180,7 @@
         },
         {
           "name": "turn_complete",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -16192,7 +16192,7 @@
         },
         {
           "name": "finish_reason",
-          "type_str": "Union[FinishReason, NoneType]",
+          "type_str": "FinishReason | None",
           "type_raw": "typing.Optional[google.genai.types.FinishReason]",
           "default": "None",
           "required": false,
@@ -16204,7 +16204,7 @@
         },
         {
           "name": "error_code",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -16216,7 +16216,7 @@
         },
         {
           "name": "error_message",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -16228,7 +16228,7 @@
         },
         {
           "name": "interrupted",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -16240,7 +16240,7 @@
         },
         {
           "name": "custom_metadata",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -16252,7 +16252,7 @@
         },
         {
           "name": "usage_metadata",
-          "type_str": "Union[GenerateContentResponseUsageMetadata, NoneType]",
+          "type_str": "GenerateContentResponseUsageMetadata | None",
           "type_raw": "typing.Optional[google.genai.types.GenerateContentResponseUsageMetadata]",
           "default": "None",
           "required": false,
@@ -16264,7 +16264,7 @@
         },
         {
           "name": "live_session_resumption_update",
-          "type_str": "Union[LiveServerSessionResumptionUpdate, NoneType]",
+          "type_str": "LiveServerSessionResumptionUpdate | None",
           "type_raw": "typing.Optional[google.genai.types.LiveServerSessionResumptionUpdate]",
           "default": "None",
           "required": false,
@@ -16276,7 +16276,7 @@
         },
         {
           "name": "input_transcription",
-          "type_str": "Union[Transcription, NoneType]",
+          "type_str": "Transcription | None",
           "type_raw": "typing.Optional[google.genai.types.Transcription]",
           "default": "None",
           "required": false,
@@ -16288,7 +16288,7 @@
         },
         {
           "name": "output_transcription",
-          "type_str": "Union[Transcription, NoneType]",
+          "type_str": "Transcription | None",
           "type_raw": "typing.Optional[google.genai.types.Transcription]",
           "default": "None",
           "required": false,
@@ -16300,7 +16300,7 @@
         },
         {
           "name": "avg_logprobs",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -16312,7 +16312,7 @@
         },
         {
           "name": "logprobs_result",
-          "type_str": "Union[LogprobsResult, NoneType]",
+          "type_str": "LogprobsResult | None",
           "type_raw": "typing.Optional[google.genai.types.LogprobsResult]",
           "default": "None",
           "required": false,
@@ -16324,7 +16324,7 @@
         },
         {
           "name": "cache_metadata",
-          "type_str": "Union[CacheMetadata, NoneType]",
+          "type_str": "CacheMetadata | None",
           "type_raw": "typing.Optional[google.adk.models.cache_metadata.CacheMetadata]",
           "default": "None",
           "required": false,
@@ -16336,7 +16336,7 @@
         },
         {
           "name": "citation_metadata",
-          "type_str": "Union[CitationMetadata, NoneType]",
+          "type_str": "CitationMetadata | None",
           "type_raw": "typing.Optional[google.genai.types.CitationMetadata]",
           "default": "None",
           "required": false,
@@ -16348,7 +16348,7 @@
         },
         {
           "name": "interaction_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -16396,7 +16396,7 @@
         },
         {
           "name": "long_running_tool_ids",
-          "type_str": "Union[set[str], NoneType]",
+          "type_str": "set[str] | None",
           "type_raw": "typing.Optional[set[str]]",
           "default": "None",
           "required": false,
@@ -16408,7 +16408,7 @@
         },
         {
           "name": "branch",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -16504,7 +16504,7 @@
       "fields": [
         {
           "name": "skip_summarization",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -16540,7 +16540,7 @@
         },
         {
           "name": "transfer_to_agent",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -16552,7 +16552,7 @@
         },
         {
           "name": "escalate",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -16588,7 +16588,7 @@
         },
         {
           "name": "compaction",
-          "type_str": "Union[EventCompaction, NoneType]",
+          "type_str": "EventCompaction | None",
           "type_raw": "typing.Optional[google.adk.events.event_actions.EventCompaction]",
           "default": "None",
           "required": false,
@@ -16600,7 +16600,7 @@
         },
         {
           "name": "end_of_agent",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -16612,7 +16612,7 @@
         },
         {
           "name": "agent_state",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -16624,7 +16624,7 @@
         },
         {
           "name": "rewind_before_invocation_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -17587,7 +17587,7 @@
         },
         {
           "name": "id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -17599,7 +17599,7 @@
         },
         {
           "name": "author",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -17611,7 +17611,7 @@
         },
         {
           "name": "timestamp",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -17685,28 +17685,28 @@
       "init_params": [
         {
           "name": "project",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "location",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "agent_engine_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "express_mode_api_key",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -17738,14 +17738,14 @@
       "init_params": [
         {
           "name": "rag_corpus",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "similarity_top_k",
-          "type_str": "Optional[int]",
+          "type_str": "int | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -17788,7 +17788,7 @@
         },
         {
           "name": "base_url",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -17800,7 +17800,7 @@
         },
         {
           "name": "speech_config",
-          "type_str": "Union[SpeechConfig, NoneType]",
+          "type_str": "SpeechConfig | None",
           "type_raw": "typing.Optional[google.genai.types.SpeechConfig]",
           "default": "None",
           "required": false,
@@ -17824,7 +17824,7 @@
         },
         {
           "name": "retry_options",
-          "type_str": "Union[HttpRetryOptions, NoneType]",
+          "type_str": "HttpRetryOptions | None",
           "type_raw": "typing.Optional[google.genai.types.HttpRetryOptions]",
           "default": "None",
           "required": false,
@@ -17985,7 +17985,7 @@
       "fields": [
         {
           "name": "cache_name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -17997,7 +17997,7 @@
         },
         {
           "name": "expire_time",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -18021,7 +18021,7 @@
         },
         {
           "name": "invocations_used",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -18045,7 +18045,7 @@
         },
         {
           "name": "created_at",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -18202,7 +18202,7 @@
         },
         {
           "name": "base_url",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18214,7 +18214,7 @@
         },
         {
           "name": "speech_config",
-          "type_str": "Union[SpeechConfig, NoneType]",
+          "type_str": "SpeechConfig | None",
           "type_raw": "typing.Optional[google.genai.types.SpeechConfig]",
           "default": "None",
           "required": false,
@@ -18238,7 +18238,7 @@
         },
         {
           "name": "retry_options",
-          "type_str": "Union[HttpRetryOptions, NoneType]",
+          "type_str": "HttpRetryOptions | None",
           "type_raw": "typing.Optional[google.genai.types.HttpRetryOptions]",
           "default": "None",
           "required": false,
@@ -18416,7 +18416,7 @@
         },
         {
           "name": "base_url",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18428,7 +18428,7 @@
         },
         {
           "name": "speech_config",
-          "type_str": "Union[SpeechConfig, NoneType]",
+          "type_str": "SpeechConfig | None",
           "type_raw": "typing.Optional[google.genai.types.SpeechConfig]",
           "default": "None",
           "required": false,
@@ -18452,7 +18452,7 @@
         },
         {
           "name": "retry_options",
-          "type_str": "Union[HttpRetryOptions, NoneType]",
+          "type_str": "HttpRetryOptions | None",
           "type_raw": "typing.Optional[google.genai.types.HttpRetryOptions]",
           "default": "None",
           "required": false,
@@ -18518,7 +18518,7 @@
       "fields": [
         {
           "name": "model",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18578,7 +18578,7 @@
         },
         {
           "name": "cache_config",
-          "type_str": "Union[ContextCacheConfig, NoneType]",
+          "type_str": "ContextCacheConfig | None",
           "type_raw": "typing.Optional[google.adk.agents.context_cache_config.ContextCacheConfig]",
           "default": "None",
           "required": false,
@@ -18590,7 +18590,7 @@
         },
         {
           "name": "cache_metadata",
-          "type_str": "Union[CacheMetadata, NoneType]",
+          "type_str": "CacheMetadata | None",
           "type_raw": "typing.Optional[google.adk.models.cache_metadata.CacheMetadata]",
           "default": "None",
           "required": false,
@@ -18602,7 +18602,7 @@
         },
         {
           "name": "cacheable_contents_token_count",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -18614,7 +18614,7 @@
         },
         {
           "name": "previous_interaction_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18685,7 +18685,7 @@
       "fields": [
         {
           "name": "model_version",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18697,7 +18697,7 @@
         },
         {
           "name": "content",
-          "type_str": "Union[Content, NoneType]",
+          "type_str": "Content | None",
           "type_raw": "typing.Optional[google.genai.types.Content]",
           "default": "None",
           "required": false,
@@ -18709,7 +18709,7 @@
         },
         {
           "name": "grounding_metadata",
-          "type_str": "Union[GroundingMetadata, NoneType]",
+          "type_str": "GroundingMetadata | None",
           "type_raw": "typing.Optional[google.genai.types.GroundingMetadata]",
           "default": "None",
           "required": false,
@@ -18721,7 +18721,7 @@
         },
         {
           "name": "partial",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -18733,7 +18733,7 @@
         },
         {
           "name": "turn_complete",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -18745,7 +18745,7 @@
         },
         {
           "name": "finish_reason",
-          "type_str": "Union[FinishReason, NoneType]",
+          "type_str": "FinishReason | None",
           "type_raw": "typing.Optional[google.genai.types.FinishReason]",
           "default": "None",
           "required": false,
@@ -18757,7 +18757,7 @@
         },
         {
           "name": "error_code",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18769,7 +18769,7 @@
         },
         {
           "name": "error_message",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -18781,7 +18781,7 @@
         },
         {
           "name": "interrupted",
-          "type_str": "Union[bool, NoneType]",
+          "type_str": "bool | None",
           "type_raw": "typing.Optional[bool]",
           "default": "None",
           "required": false,
@@ -18793,7 +18793,7 @@
         },
         {
           "name": "custom_metadata",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -18805,7 +18805,7 @@
         },
         {
           "name": "usage_metadata",
-          "type_str": "Union[GenerateContentResponseUsageMetadata, NoneType]",
+          "type_str": "GenerateContentResponseUsageMetadata | None",
           "type_raw": "typing.Optional[google.genai.types.GenerateContentResponseUsageMetadata]",
           "default": "None",
           "required": false,
@@ -18817,7 +18817,7 @@
         },
         {
           "name": "live_session_resumption_update",
-          "type_str": "Union[LiveServerSessionResumptionUpdate, NoneType]",
+          "type_str": "LiveServerSessionResumptionUpdate | None",
           "type_raw": "typing.Optional[google.genai.types.LiveServerSessionResumptionUpdate]",
           "default": "None",
           "required": false,
@@ -18829,7 +18829,7 @@
         },
         {
           "name": "input_transcription",
-          "type_str": "Union[Transcription, NoneType]",
+          "type_str": "Transcription | None",
           "type_raw": "typing.Optional[google.genai.types.Transcription]",
           "default": "None",
           "required": false,
@@ -18841,7 +18841,7 @@
         },
         {
           "name": "output_transcription",
-          "type_str": "Union[Transcription, NoneType]",
+          "type_str": "Transcription | None",
           "type_raw": "typing.Optional[google.genai.types.Transcription]",
           "default": "None",
           "required": false,
@@ -18853,7 +18853,7 @@
         },
         {
           "name": "avg_logprobs",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -18865,7 +18865,7 @@
         },
         {
           "name": "logprobs_result",
-          "type_str": "Union[LogprobsResult, NoneType]",
+          "type_str": "LogprobsResult | None",
           "type_raw": "typing.Optional[google.genai.types.LogprobsResult]",
           "default": "None",
           "required": false,
@@ -18877,7 +18877,7 @@
         },
         {
           "name": "cache_metadata",
-          "type_str": "Union[CacheMetadata, NoneType]",
+          "type_str": "CacheMetadata | None",
           "type_raw": "typing.Optional[google.adk.models.cache_metadata.CacheMetadata]",
           "default": "None",
           "required": false,
@@ -18889,7 +18889,7 @@
         },
         {
           "name": "citation_metadata",
-          "type_str": "Union[CitationMetadata, NoneType]",
+          "type_str": "CitationMetadata | None",
           "type_raw": "typing.Optional[google.genai.types.CitationMetadata]",
           "default": "None",
           "required": false,
@@ -18901,7 +18901,7 @@
         },
         {
           "name": "interaction_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -19065,7 +19065,7 @@
         },
         {
           "name": "overall_score",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -19261,7 +19261,7 @@
         },
         {
           "name": "data",
-          "type_str": "Union[dict[str, dict[str, Any]], NoneType]",
+          "type_str": "dict[str, dict[str, Any]] | None",
           "type_raw": "typing.Optional[dict[str, dict[str, typing.Any]]]",
           "default": "None",
           "required": false,
@@ -19755,14 +19755,14 @@
         },
         {
           "name": "table_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "config",
-          "type_str": "Optional[BigQueryLoggerConfig]",
+          "type_str": "BigQueryLoggerConfig | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -19884,21 +19884,21 @@
         },
         {
           "name": "content_formatter",
-          "type_str": "Optional[Callable[[Any, str], Any]]",
+          "type_str": "Callable[[Any, str], Any] | None",
           "default": "None",
           "required": false,
           "position": 12
         },
         {
           "name": "gcs_bucket_name",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 13
         },
         {
           "name": "connection_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 14
@@ -19983,7 +19983,7 @@
         },
         {
           "name": "storage_client",
-          "type_str": "Optional[storage.Client]",
+          "type_str": "storage.Client | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -20009,7 +20009,7 @@
       "init_params": [
         {
           "name": "offloader",
-          "type_str": "Optional[GCSOffloader]",
+          "type_str": "GCSOffloader | None",
           "default": null,
           "required": true,
           "position": 0
@@ -20037,7 +20037,7 @@
         },
         {
           "name": "connection_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -20167,14 +20167,14 @@
       "init_params": [
         {
           "name": "num_invocations_to_keep",
-          "type_str": "Optional[int]",
+          "type_str": "int | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "custom_filter",
-          "type_str": "Optional[Callable[[list[types.Content]], list[types.Content]]]",
+          "type_str": "Callable[[list[types.Content]], list[types.Content]] | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -20286,7 +20286,7 @@
       "init_params": [
         {
           "name": "global_instruction",
-          "type_str": "Union[str, InstructionProvider]",
+          "type_str": "str | InstructionProvider",
           "default": "''",
           "required": false,
           "position": 0
@@ -20417,7 +20417,7 @@
       "init_params": [
         {
           "name": "plugins",
-          "type_str": "Optional[List[BasePlugin]]",
+          "type_str": "list[BasePlugin] | None",
           "default": "None",
           "required": false,
           "position": 0
@@ -20711,28 +20711,28 @@
       "init_params": [
         {
           "name": "agent",
-          "type_str": "Optional[BaseAgent]",
+          "type_str": "BaseAgent | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "app_name",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "plugins",
-          "type_str": "Optional[list[BasePlugin]]",
+          "type_str": "list[BasePlugin] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "app",
-          "type_str": "Optional[App]",
+          "type_str": "App | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -20771,35 +20771,35 @@
       "init_params": [
         {
           "name": "app",
-          "type_str": "Optional[App]",
+          "type_str": "App | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "app_name",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "agent",
-          "type_str": "Optional[BaseAgent]",
+          "type_str": "BaseAgent | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "plugins",
-          "type_str": "Optional[List[BasePlugin]]",
+          "type_str": "list[BasePlugin] | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "artifact_service",
-          "type_str": "Optional[BaseArtifactService]",
+          "type_str": "BaseArtifactService | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -20813,14 +20813,14 @@
         },
         {
           "name": "memory_service",
-          "type_str": "Optional[BaseMemoryService]",
+          "type_str": "BaseMemoryService | None",
           "default": "None",
           "required": false,
           "position": 6
         },
         {
           "name": "credential_service",
-          "type_str": "Optional[BaseCredentialService]",
+          "type_str": "BaseCredentialService | None",
           "default": "None",
           "required": false,
           "position": 7
@@ -20896,7 +20896,7 @@
       "fields": [
         {
           "name": "num_recent_events",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -20908,7 +20908,7 @@
         },
         {
           "name": "after_timestamp",
-          "type_str": "Union[float, NoneType]",
+          "type_str": "float | None",
           "type_raw": "typing.Optional[float]",
           "default": "None",
           "required": false,
@@ -21309,28 +21309,28 @@
       "init_params": [
         {
           "name": "project",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "location",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "agent_engine_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "express_mode_api_key",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -21376,7 +21376,7 @@
         },
         {
           "name": "license",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21388,7 +21388,7 @@
         },
         {
           "name": "compatibility",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21400,7 +21400,7 @@
         },
         {
           "name": "allowed_tools",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21791,7 +21791,7 @@
       "fields": [
         {
           "name": "credentials",
-          "type_str": "Union[Credentials, NoneType]",
+          "type_str": "Credentials | None",
           "type_raw": "typing.Optional[google.auth.credentials.Credentials]",
           "default": "None",
           "required": false,
@@ -21803,7 +21803,7 @@
         },
         {
           "name": "external_access_token_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21815,7 +21815,7 @@
         },
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21827,7 +21827,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21839,12 +21839,12 @@
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -21965,7 +21965,7 @@
         },
         {
           "name": "tracing_path",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -21977,7 +21977,7 @@
         },
         {
           "name": "environment_data",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -22127,7 +22127,7 @@
         },
         {
           "name": "match_args",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[typing.Dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -22151,7 +22151,7 @@
         },
         {
           "name": "random_seed",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -22163,7 +22163,7 @@
         },
         {
           "name": "injected_error",
-          "type_str": "Union[InjectedError, NoneType]",
+          "type_str": "InjectedError | None",
           "type_raw": "typing.Optional[google.adk.tools.agent_simulator.agent_simulator_config.InjectedError]",
           "default": "None",
           "required": false,
@@ -22175,7 +22175,7 @@
         },
         {
           "name": "injected_response",
-          "type_str": "Union[dict[str, Any], NoneType]",
+          "type_str": "dict[str, Any] | None",
           "type_raw": "typing.Optional[typing.Dict[str, typing.Any]]",
           "default": "None",
           "required": false,
@@ -22942,14 +22942,14 @@
         },
         {
           "name": "access_token",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "service_account_json",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -22977,28 +22977,28 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[AuthScheme]",
+          "type_str": "AuthScheme | None",
           "default": "None",
           "required": false,
           "position": 6
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[AuthCredential]",
+          "type_str": "AuthCredential | None",
           "default": "None",
           "required": false,
           "position": 7
         },
         {
           "name": "apihub_client",
-          "type_str": "Optional[APIHubClient]",
+          "type_str": "APIHubClient | None",
           "default": "None",
           "required": false,
           "position": 8
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 9
@@ -23031,14 +23031,14 @@
       "init_params": [
         {
           "name": "access_token",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "service_account_json",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -23100,14 +23100,14 @@
       "init_params": [
         {
           "name": "service_account_json",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "auth_token",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -23156,84 +23156,84 @@
         },
         {
           "name": "connection_template_override",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "integration",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "triggers",
-          "type_str": "Optional[List[str]]",
+          "type_str": "list[str] | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "connection",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 5
         },
         {
           "name": "entity_operations",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 6
         },
         {
           "name": "actions",
-          "type_str": "Optional[list[str]]",
+          "type_str": "list[str] | None",
           "default": "None",
           "required": false,
           "position": 7
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "''",
           "required": false,
           "position": 8
         },
         {
           "name": "tool_instructions",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "''",
           "required": false,
           "position": 9
         },
         {
           "name": "service_account_json",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 10
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[AuthScheme]",
+          "type_str": "AuthScheme | None",
           "default": "None",
           "required": false,
           "position": 11
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[AuthCredential]",
+          "type_str": "AuthCredential | None",
           "default": "None",
           "required": false,
           "position": 12
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 13
@@ -23328,14 +23328,14 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[Union[AuthScheme, str]]",
+          "type_str": "AuthScheme | str | None",
           "default": "None",
           "required": false,
           "position": 9
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[Union[AuthCredential, str]]",
+          "type_str": "AuthCredential | str | None",
           "default": "None",
           "required": false,
           "position": 10
@@ -23382,7 +23382,7 @@
         },
         {
           "name": "response_for_auth_required",
-          "type_str": "Optional[Union[dict[str, Any], str]]",
+          "type_str": "dict[str, Any] | str | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -23435,7 +23435,7 @@
         },
         {
           "name": "response_for_auth_required",
-          "type_str": "Optional[Union[dict[str, Any], str]]",
+          "type_str": "dict[str, Any] | str | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -23487,7 +23487,7 @@
         },
         {
           "name": "custom_metadata",
-          "type_str": "Optional[dict[str, Any]]",
+          "type_str": "dict[str, Any] | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -23521,14 +23521,14 @@
       "init_params": [
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -23586,7 +23586,7 @@
       "fields": [
         {
           "name": "credentials",
-          "type_str": "Union[Credentials, NoneType]",
+          "type_str": "Credentials | None",
           "type_raw": "typing.Optional[google.auth.credentials.Credentials]",
           "default": "None",
           "required": false,
@@ -23598,7 +23598,7 @@
         },
         {
           "name": "external_access_token_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23610,7 +23610,7 @@
         },
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23622,7 +23622,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23634,12 +23634,12 @@
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": "BaseGoogleCredentialsConfig",
           "validators": []
@@ -23705,21 +23705,21 @@
       "init_params": [
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "credentials_config",
-          "type_str": "Optional[BigQueryCredentialsConfig]",
+          "type_str": "BigQueryCredentialsConfig | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "bigquery_tool_config",
-          "type_str": "Optional[BigQueryToolConfig]",
+          "type_str": "BigQueryToolConfig | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -23753,7 +23753,7 @@
         },
         {
           "name": "maximum_bytes_billed",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -23777,7 +23777,7 @@
         },
         {
           "name": "application_name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23789,7 +23789,7 @@
         },
         {
           "name": "compute_project_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23801,7 +23801,7 @@
         },
         {
           "name": "location",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23813,7 +23813,7 @@
         },
         {
           "name": "job_labels",
-          "type_str": "Union[dict[str, str], NoneType]",
+          "type_str": "dict[str, str] | None",
           "type_raw": "typing.Optional[dict[str, str]]",
           "default": "None",
           "required": false,
@@ -23917,7 +23917,7 @@
       "fields": [
         {
           "name": "credentials",
-          "type_str": "Union[Credentials, NoneType]",
+          "type_str": "Credentials | None",
           "type_raw": "typing.Optional[google.auth.credentials.Credentials]",
           "default": "None",
           "required": false,
@@ -23929,7 +23929,7 @@
         },
         {
           "name": "external_access_token_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23941,7 +23941,7 @@
         },
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23953,7 +23953,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -23965,12 +23965,12 @@
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": "BaseGoogleCredentialsConfig",
           "validators": []
@@ -24036,21 +24036,21 @@
       "init_params": [
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "credentials_config",
-          "type_str": "Optional[BigtableCredentialsConfig]",
+          "type_str": "BigtableCredentialsConfig | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "bigtable_tool_settings",
-          "type_str": "Optional[BigtableToolSettings]",
+          "type_str": "BigtableToolSettings | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -24281,7 +24281,7 @@
         },
         {
           "name": "url",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -24486,7 +24486,7 @@
       "fields": [
         {
           "name": "credentials",
-          "type_str": "Union[Credentials, NoneType]",
+          "type_str": "Credentials | None",
           "type_raw": "typing.Optional[google.auth.credentials.Credentials]",
           "default": "None",
           "required": false,
@@ -24498,7 +24498,7 @@
         },
         {
           "name": "external_access_token_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -24510,7 +24510,7 @@
         },
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -24522,7 +24522,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -24534,12 +24534,12 @@
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": "BaseGoogleCredentialsConfig",
           "validators": []
@@ -24605,21 +24605,21 @@
       "init_params": [
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "credentials_config",
-          "type_str": "Optional[DataAgentCredentialsConfig]",
+          "type_str": "DataAgentCredentialsConfig | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "data_agent_tool_config",
-          "type_str": "Optional[DataAgentToolConfig]",
+          "type_str": "DataAgentToolConfig | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -24653,35 +24653,35 @@
       "init_params": [
         {
           "name": "data_store_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "data_store_specs",
-          "type_str": "Optional[list[types.VertexAISearchDataStoreSpec]]",
+          "type_str": "list[types.VertexAISearchDataStoreSpec] | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "search_engine_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "filter",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "max_results",
-          "type_str": "Optional[int]",
+          "type_str": "int | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -24737,7 +24737,7 @@
       "init_params": [
         {
           "name": "examples",
-          "type_str": "Union[list[Example], BaseExampleProvider]",
+          "type_str": "list[Example] | BaseExampleProvider",
           "default": null,
           "required": true,
           "position": 0
@@ -24760,12 +24760,12 @@
       "fields": [
         {
           "name": "examples",
-          "type_str": "Union[list[Example], str]",
+          "type_str": "list[Example] | str",
           "type_raw": "typing.Union[list[google.adk.examples.example.Example], str]",
           "default": null,
           "required": true,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -24837,7 +24837,7 @@
         },
         {
           "name": "require_confirmation",
-          "type_str": "Union[bool, Callable[..., bool]]",
+          "type_str": "bool | Callable[..., bool]",
           "default": "False",
           "required": false,
           "position": 1
@@ -24878,28 +24878,28 @@
         },
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "additional_headers",
-          "type_str": "Optional[Dict[str, str]]",
+          "type_str": "dict[str, str] | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -24951,42 +24951,42 @@
         },
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 5
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 6
         },
         {
           "name": "additional_headers",
-          "type_str": "Optional[Dict[str, str]]",
+          "type_str": "dict[str, str] | None",
           "default": "None",
           "required": false,
           "position": 7
@@ -25025,35 +25025,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25092,35 +25092,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25159,35 +25159,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25226,35 +25226,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25293,35 +25293,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25360,35 +25360,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25427,35 +25427,35 @@
       "init_params": [
         {
           "name": "client_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "client_secret",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "service_account",
-          "type_str": "Optional[ServiceAccount]",
+          "type_str": "ServiceAccount | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 4
@@ -25627,14 +25627,14 @@
         },
         {
           "name": "credentials_config",
-          "type_str": "Optional[BaseGoogleCredentialsConfig]",
+          "type_str": "BaseGoogleCredentialsConfig | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_settings",
-          "type_str": "Optional[BaseModel]",
+          "type_str": "BaseModel | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -25872,7 +25872,7 @@
       "init_params": [
         {
           "name": "connection_params",
-          "type_str": "Union[StdioServerParameters, StdioConnectionParams, SseConnectionParams, StreamableHTTPConnectionParams]",
+          "type_str": "StdioServerParameters | StdioConnectionParams | SseConnectionParams | StreamableHTTPConnectionParams",
           "default": null,
           "required": true,
           "position": 0
@@ -26135,7 +26135,7 @@
           "name": "httpx_client_factory",
           "type_str": "CheckableMcpHttpClientFactory",
           "type_raw": "<class 'google.adk.tools.mcp_tool.mcp_session_manager.CheckableMcpHttpClientFactory'>",
-          "default": "<function create_mcp_http_client at 0x790076298680>",
+          "default": "<function create_mcp_http_client at 0x7c89be575a80>",
           "required": false,
           "is_callback": false,
           "is_list": false,
@@ -26266,35 +26266,35 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[AuthScheme]",
+          "type_str": "AuthScheme | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[AuthCredential]",
+          "type_str": "AuthCredential | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "require_confirmation",
-          "type_str": "Union[bool, Callable[..., bool]]",
+          "type_str": "bool | Callable[..., bool]",
           "default": "False",
           "required": false,
           "position": 4
         },
         {
           "name": "header_provider",
-          "type_str": "Optional[Callable[[ReadonlyContext], Dict[str, str]]]",
+          "type_str": "Callable[[ReadonlyContext], dict[str, str]] | None",
           "default": "None",
           "required": false,
           "position": 5
         },
         {
           "name": "progress_callback",
-          "type_str": "Optional[Union[ProgressFnT, ProgressCallbackFactory]]",
+          "type_str": "ProgressFnT | ProgressCallbackFactory | None",
           "default": "None",
           "required": false,
           "position": 6
@@ -26413,21 +26413,21 @@
       "init_params": [
         {
           "name": "connection_params",
-          "type_str": "Union[StdioServerParameters, StdioConnectionParams, SseConnectionParams, StreamableHTTPConnectionParams]",
+          "type_str": "StdioServerParameters | StdioConnectionParams | SseConnectionParams | StreamableHTTPConnectionParams",
           "default": null,
           "required": true,
           "position": 0
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -26441,42 +26441,42 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[AuthScheme]",
+          "type_str": "AuthScheme | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[AuthCredential]",
+          "type_str": "AuthCredential | None",
           "default": "None",
           "required": false,
           "position": 5
         },
         {
           "name": "require_confirmation",
-          "type_str": "Union[bool, Callable[..., bool]]",
+          "type_str": "bool | Callable[..., bool]",
           "default": "False",
           "required": false,
           "position": 6
         },
         {
           "name": "header_provider",
-          "type_str": "Optional[Callable[[ReadonlyContext], Dict[str, str]]]",
+          "type_str": "Callable[[ReadonlyContext], dict[str, str]] | None",
           "default": "None",
           "required": false,
           "position": 7
         },
         {
           "name": "progress_callback",
-          "type_str": "Optional[Union[ProgressFnT, ProgressCallbackFactory]]",
+          "type_str": "ProgressFnT | ProgressCallbackFactory | None",
           "default": "None",
           "required": false,
           "position": 8
         },
         {
           "name": "use_mcp_resources",
-          "type_str": "Optional[bool]",
+          "type_str": "bool | None",
           "default": "False",
           "required": false,
           "position": 9
@@ -26499,7 +26499,7 @@
       "fields": [
         {
           "name": "stdio_server_params",
-          "type_str": "Union[StdioServerParameters, NoneType]",
+          "type_str": "StdioServerParameters | None",
           "type_raw": "typing.Optional[mcp.client.stdio.StdioServerParameters]",
           "default": "None",
           "required": false,
@@ -26511,7 +26511,7 @@
         },
         {
           "name": "stdio_connection_params",
-          "type_str": "Union[StdioConnectionParams, NoneType]",
+          "type_str": "StdioConnectionParams | None",
           "type_raw": "typing.Optional[google.adk.tools.mcp_tool.mcp_session_manager.StdioConnectionParams]",
           "default": "None",
           "required": false,
@@ -26523,7 +26523,7 @@
         },
         {
           "name": "sse_connection_params",
-          "type_str": "Union[SseConnectionParams, NoneType]",
+          "type_str": "SseConnectionParams | None",
           "type_raw": "typing.Optional[google.adk.tools.mcp_tool.mcp_session_manager.SseConnectionParams]",
           "default": "None",
           "required": false,
@@ -26535,7 +26535,7 @@
         },
         {
           "name": "streamable_http_connection_params",
-          "type_str": "Union[StreamableHTTPConnectionParams, NoneType]",
+          "type_str": "StreamableHTTPConnectionParams | None",
           "type_raw": "typing.Optional[google.adk.tools.mcp_tool.mcp_session_manager.StreamableHTTPConnectionParams]",
           "default": "None",
           "required": false,
@@ -26547,19 +26547,19 @@
         },
         {
           "name": "tool_filter",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -26571,7 +26571,7 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Union[APIKey, HTTPBase, OAuth2, OpenIdConnect, HTTPBearer, OpenIdConnectWithConfig, NoneType]",
+          "type_str": "APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig | None",
           "type_raw": "typing.Union[fastapi.openapi.models.APIKey, fastapi.openapi.models.HTTPBase, fastapi.openapi.models.OAuth2, fastapi.openapi.models.OpenIdConnect, fastapi.openapi.models.HTTPBearer, google.adk.auth.auth_schemes.OpenIdConnectWithConfig, NoneType]",
           "default": "None",
           "required": false,
@@ -26583,7 +26583,7 @@
         },
         {
           "name": "auth_credential",
-          "type_str": "Union[AuthCredential, NoneType]",
+          "type_str": "AuthCredential | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.AuthCredential]",
           "default": "None",
           "required": false,
@@ -26676,14 +26676,14 @@
         },
         {
           "name": "timeout",
-          "type_str": "Optional[float]",
+          "type_str": "float | None",
           "default": null,
           "required": true,
           "position": 1
         },
         {
           "name": "sse_read_timeout",
-          "type_str": "Optional[float]",
+          "type_str": "float | None",
           "default": null,
           "required": true,
           "position": 2
@@ -26760,7 +26760,7 @@
         },
         {
           "name": "redirect_uri",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": null,
           "required": true,
@@ -26831,7 +26831,7 @@
       "init_params": [
         {
           "name": "custom_exchangers",
-          "type_str": "Optional[Dict[str, Type[BaseAuthCredentialExchanger]]]",
+          "type_str": "dict[str, Type[BaseAuthCredentialExchanger]] | None",
           "default": "None",
           "required": false,
           "position": 0
@@ -27014,7 +27014,7 @@
         },
         {
           "name": "param_schema",
-          "type_str": "Union[str, Schema]",
+          "type_str": "str | Schema",
           "type_raw": "typing.Union[str, fastapi.openapi.models.Schema]",
           "default": null,
           "required": true,
@@ -27026,7 +27026,7 @@
         },
         {
           "name": "description",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "''",
           "required": false,
@@ -27038,7 +27038,7 @@
         },
         {
           "name": "py_name",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "''",
           "required": false,
@@ -27403,7 +27403,7 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Union[APIKey, HTTPBase, OAuth2, OpenIdConnect, HTTPBearer, OpenIdConnectWithConfig, NoneType]",
+          "type_str": "APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig | None",
           "type_raw": "typing.Union[fastapi.openapi.models.APIKey, fastapi.openapi.models.HTTPBase, fastapi.openapi.models.OAuth2, fastapi.openapi.models.OpenIdConnect, fastapi.openapi.models.HTTPBearer, google.adk.auth.auth_schemes.OpenIdConnectWithConfig, NoneType]",
           "default": "None",
           "required": false,
@@ -27415,7 +27415,7 @@
         },
         {
           "name": "auth_credential",
-          "type_str": "Union[AuthCredential, NoneType]",
+          "type_str": "AuthCredential | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.AuthCredential]",
           "default": "None",
           "required": false,
@@ -27427,7 +27427,7 @@
         },
         {
           "name": "additional_context",
-          "type_str": "Union[Any, NoneType]",
+          "type_str": "Any | None",
           "type_raw": "typing.Optional[typing.Any]",
           "default": "None",
           "required": false,
@@ -27510,14 +27510,14 @@
       "init_params": [
         {
           "name": "spec_dict",
-          "type_str": "Optional[Dict[str, Any]]",
+          "type_str": "dict[str, Any] | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "spec_str",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
@@ -27531,49 +27531,49 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[AuthScheme]",
+          "type_str": "AuthScheme | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[AuthCredential]",
+          "type_str": "AuthCredential | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "credential_key",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 5
         },
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 6
         },
         {
           "name": "tool_name_prefix",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 7
         },
         {
           "name": "ssl_verify",
-          "type_str": "Optional[Union[bool, str, ssl.SSLContext]]",
+          "type_str": "bool | str | ssl.SSLContext | None",
           "default": "None",
           "required": false,
           "position": 8
         },
         {
           "name": "header_provider",
-          "type_str": "Optional[Callable[[ReadonlyContext], Dict[str, str]]]",
+          "type_str": "Callable[[ReadonlyContext], dict[str, str]] | None",
           "default": "None",
           "required": false,
           "position": 9
@@ -27609,7 +27609,7 @@
       "init_params": [
         {
           "name": "operation",
-          "type_str": "Union[Operation, Dict[str, Any], str]",
+          "type_str": "Operation | dict[str, Any] | str",
           "default": null,
           "required": true,
           "position": 0
@@ -27670,28 +27670,28 @@
         },
         {
           "name": "endpoint",
-          "type_str": "Union[OperationEndpoint, str]",
+          "type_str": "OperationEndpoint | str",
           "default": null,
           "required": true,
           "position": 2
         },
         {
           "name": "operation",
-          "type_str": "Union[Operation, str]",
+          "type_str": "Operation | str",
           "default": null,
           "required": true,
           "position": 3
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[Union[AuthScheme, str]]",
+          "type_str": "AuthScheme | str | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[Union[AuthCredential, str]]",
+          "type_str": "AuthCredential | str | None",
           "default": "None",
           "required": false,
           "position": 5
@@ -27705,21 +27705,21 @@
         },
         {
           "name": "ssl_verify",
-          "type_str": "Optional[Union[bool, str, ssl.SSLContext]]",
+          "type_str": "bool | str | ssl.SSLContext | None",
           "default": "None",
           "required": false,
           "position": 7
         },
         {
           "name": "header_provider",
-          "type_str": "Optional[Callable[[ReadonlyContext], Dict[str, str]]]",
+          "type_str": "Callable[[ReadonlyContext], dict[str, str]] | None",
           "default": "None",
           "required": false,
           "position": 8
         },
         {
           "name": "credential_key",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 9
@@ -27741,7 +27741,7 @@
       "fields": [
         {
           "name": "state",
-          "type_str": "Literal[pending, done]",
+          "type_str": "Literal['pending', 'done']",
           "type_raw": "typing.Literal['pending', 'done']",
           "default": null,
           "required": true,
@@ -27753,7 +27753,7 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Union[APIKey, HTTPBase, OAuth2, OpenIdConnect, HTTPBearer, OpenIdConnectWithConfig, NoneType]",
+          "type_str": "APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig | None",
           "type_raw": "typing.Union[fastapi.openapi.models.APIKey, fastapi.openapi.models.HTTPBase, fastapi.openapi.models.OAuth2, fastapi.openapi.models.OpenIdConnect, fastapi.openapi.models.HTTPBearer, google.adk.auth.auth_schemes.OpenIdConnectWithConfig, NoneType]",
           "default": "None",
           "required": false,
@@ -27765,7 +27765,7 @@
         },
         {
           "name": "auth_credential",
-          "type_str": "Union[AuthCredential, NoneType]",
+          "type_str": "AuthCredential | None",
           "type_raw": "typing.Optional[google.adk.auth.auth_credential.AuthCredential]",
           "default": "None",
           "required": false,
@@ -27839,35 +27839,35 @@
         },
         {
           "name": "auth_scheme",
-          "type_str": "Optional[AuthScheme]",
+          "type_str": "AuthScheme | None",
           "default": null,
           "required": true,
           "position": 1
         },
         {
           "name": "auth_credential",
-          "type_str": "Optional[AuthCredential]",
+          "type_str": "AuthCredential | None",
           "default": null,
           "required": true,
           "position": 2
         },
         {
           "name": "credential_exchanger",
-          "type_str": "Optional[BaseAuthCredentialExchanger]",
+          "type_str": "BaseAuthCredentialExchanger | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "credential_store",
-          "type_str": "Optional['ToolContextCredentialStore']",
+          "type_str": "'ToolContextCredentialStore' | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "credential_key",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 5
@@ -28003,7 +28003,7 @@
       "fields": [
         {
           "name": "credentials",
-          "type_str": "Union[Credentials, NoneType]",
+          "type_str": "Credentials | None",
           "type_raw": "typing.Optional[google.auth.credentials.Credentials]",
           "default": "None",
           "required": false,
@@ -28015,7 +28015,7 @@
         },
         {
           "name": "external_access_token_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -28027,7 +28027,7 @@
         },
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -28039,7 +28039,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -28051,12 +28051,12 @@
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": "BaseGoogleCredentialsConfig",
           "validators": []
@@ -28189,7 +28189,7 @@
         },
         {
           "name": "custom_metadata",
-          "type_str": "Optional[dict[str, Any]]",
+          "type_str": "dict[str, Any] | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -28561,7 +28561,7 @@
         },
         {
           "name": "vector_store_settings",
-          "type_str": "Union[SpannerVectorStoreSettings, NoneType]",
+          "type_str": "SpannerVectorStoreSettings | None",
           "type_raw": "typing.Optional[google.adk.tools.spanner.settings.SpannerVectorStoreSettings]",
           "default": "None",
           "required": false,
@@ -28732,7 +28732,7 @@
         },
         {
           "name": "nearest_neighbors_algorithm",
-          "type_str": "Literal[EXACT_NEAREST_NEIGHBORS, APPROXIMATE_NEAREST_NEIGHBORS]",
+          "type_str": "Literal['EXACT_NEAREST_NEIGHBORS', 'APPROXIMATE_NEAREST_NEIGHBORS']",
           "type_raw": "typing.Literal['EXACT_NEAREST_NEIGHBORS', 'APPROXIMATE_NEAREST_NEIGHBORS']",
           "default": "'EXACT_NEAREST_NEIGHBORS'",
           "required": false,
@@ -28768,7 +28768,7 @@
         },
         {
           "name": "num_leaves_to_search",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -28780,7 +28780,7 @@
         },
         {
           "name": "additional_filter",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -28792,7 +28792,7 @@
         },
         {
           "name": "vector_search_index_settings",
-          "type_str": "Union[VectorSearchIndexSettings, NoneType]",
+          "type_str": "VectorSearchIndexSettings | None",
           "type_raw": "typing.Optional[google.adk.tools.spanner.settings.VectorSearchIndexSettings]",
           "default": "None",
           "required": false,
@@ -28804,24 +28804,24 @@
         },
         {
           "name": "additional_columns_to_setup",
-          "type_str": "Union[list[TableColumn], NoneType]",
+          "type_str": "list[TableColumn] | None",
           "type_raw": "typing.Optional[list[google.adk.tools.spanner.settings.TableColumn]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "primary_key_columns",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[list[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -28990,24 +28990,24 @@
         },
         {
           "name": "additional_key_columns",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[list[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
         },
         {
           "name": "additional_storing_columns",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[list[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": null,
           "validators": []
@@ -29038,7 +29038,7 @@
         },
         {
           "name": "num_branches",
-          "type_str": "Union[int, NoneType]",
+          "type_str": "int | None",
           "type_raw": "typing.Optional[int]",
           "default": "None",
           "required": false,
@@ -29104,7 +29104,7 @@
       "fields": [
         {
           "name": "credentials",
-          "type_str": "Union[Credentials, NoneType]",
+          "type_str": "Credentials | None",
           "type_raw": "typing.Optional[google.auth.credentials.Credentials]",
           "default": "None",
           "required": false,
@@ -29116,7 +29116,7 @@
         },
         {
           "name": "external_access_token_key",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -29128,7 +29128,7 @@
         },
         {
           "name": "client_id",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -29140,7 +29140,7 @@
         },
         {
           "name": "client_secret",
-          "type_str": "Union[str, NoneType]",
+          "type_str": "str | None",
           "type_raw": "typing.Optional[str]",
           "default": "None",
           "required": false,
@@ -29152,12 +29152,12 @@
         },
         {
           "name": "scopes",
-          "type_str": "Union[list[str], NoneType]",
+          "type_str": "list[str] | None",
           "type_raw": "typing.Optional[typing.List[str]]",
           "default": "None",
           "required": false,
           "is_callback": false,
-          "is_list": false,
+          "is_list": true,
           "description": "",
           "inherited_from": "BaseGoogleCredentialsConfig",
           "validators": []
@@ -29223,21 +29223,21 @@
       "init_params": [
         {
           "name": "tool_filter",
-          "type_str": "Optional[Union[ToolPredicate, List[str]]]",
+          "type_str": "ToolPredicate | list[str] | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "credentials_config",
-          "type_str": "Optional[SpannerCredentialsConfig]",
+          "type_str": "SpannerCredentialsConfig | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "spanner_tool_settings",
-          "type_str": "Optional[SpannerToolSettings]",
+          "type_str": "SpannerToolSettings | None",
           "default": "None",
           "required": false,
           "position": 2
@@ -29413,7 +29413,7 @@
         },
         {
           "name": "args",
-          "type_str": "Union[ToolArgsConfig, NoneType]",
+          "type_str": "ToolArgsConfig | None",
           "type_raw": "typing.Optional[google.adk.tools.tool_configs.ToolArgsConfig]",
           "default": "None",
           "required": false,
@@ -29498,7 +29498,7 @@
         },
         {
           "name": "payload",
-          "type_str": "Union[Any, NoneType]",
+          "type_str": "Any | None",
           "type_raw": "typing.Optional[typing.Any]",
           "default": "None",
           "required": false,
@@ -29594,21 +29594,21 @@
         },
         {
           "name": "function_call_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "event_actions",
-          "type_str": "Optional[EventActions]",
+          "type_str": "EventActions | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "tool_confirmation",
-          "type_str": "Optional[ToolConfirmation]",
+          "type_str": "ToolConfirmation | None",
           "default": "None",
           "required": false,
           "position": 3
@@ -29650,42 +29650,42 @@
         },
         {
           "name": "toolset_name",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "tool_names",
-          "type_str": "Optional[List[str]]",
+          "type_str": "list[str] | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "auth_token_getters",
-          "type_str": "Optional[Mapping[str, Callable[[], str]]]",
+          "type_str": "Mapping[str, Callable[[], str]] | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "bound_params",
-          "type_str": "Optional[Mapping[str, Union[Callable[[], Any], Any]]]",
+          "type_str": "Mapping[str, Union[Callable[[], Any], Any]] | None",
           "default": "None",
           "required": false,
           "position": 4
         },
         {
           "name": "credentials",
-          "type_str": "Optional[CredentialConfig]",
+          "type_str": "CredentialConfig | None",
           "default": "None",
           "required": false,
           "position": 5
         },
         {
           "name": "additional_headers",
-          "type_str": "Optional[Mapping[str, str]]",
+          "type_str": "Mapping[str, str] | None",
           "default": "None",
           "required": false,
           "position": 6
@@ -29781,35 +29781,35 @@
       "init_params": [
         {
           "name": "data_store_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 0
         },
         {
           "name": "data_store_specs",
-          "type_str": "Optional[list[types.VertexAISearchDataStoreSpec]]",
+          "type_str": "list[types.VertexAISearchDataStoreSpec] | None",
           "default": "None",
           "required": false,
           "position": 1
         },
         {
           "name": "search_engine_id",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 2
         },
         {
           "name": "filter",
-          "type_str": "Optional[str]",
+          "type_str": "str | None",
           "default": "None",
           "required": false,
           "position": 3
         },
         {
           "name": "max_results",
-          "type_str": "Optional[int]",
+          "type_str": "int | None",
           "default": "None",
           "required": false,
           "position": 4

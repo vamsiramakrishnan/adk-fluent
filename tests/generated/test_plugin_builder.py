@@ -100,16 +100,16 @@ class TestBigQueryAgentAnalyticsPluginBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.location() returns the builder instance for chaining."""
+        """.table_id() returns the builder instance for chaining."""
         builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
-        result = builder.location("test_value")
+        result = builder.table_id("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .location() stores the value in builder._config."""
+        """Setting .table_id() stores the value in builder._config."""
         builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
-        builder.location("test_value")
-        assert builder._config["location"] == "test_value"
+        builder.table_id("test_value")
+        assert builder._config["table_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -128,16 +128,16 @@ class TestContextFilterPluginBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.name() returns the builder instance for chaining."""
+        """.num_invocations_to_keep() returns the builder instance for chaining."""
         builder = ContextFilterPlugin()
-        result = builder.name("test_value")
+        result = builder.num_invocations_to_keep(None)
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .name() stores the value in builder._config."""
+        """Setting .num_invocations_to_keep() stores the value in builder._config."""
         builder = ContextFilterPlugin()
-        builder.name("test_value")
-        assert builder._config["name"] == "test_value"
+        builder.num_invocations_to_keep(None)
+        assert builder._config["num_invocations_to_keep"] == None
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -184,16 +184,16 @@ class TestGlobalInstructionPluginBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.name() returns the builder instance for chaining."""
+        """.global_instruction() returns the builder instance for chaining."""
         builder = GlobalInstructionPlugin()
-        result = builder.name("test_value")
+        result = builder.global_instruction("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .name() stores the value in builder._config."""
+        """Setting .global_instruction() stores the value in builder._config."""
         builder = GlobalInstructionPlugin()
-        builder.name("test_value")
-        assert builder._config["name"] == "test_value"
+        builder.global_instruction("test_value")
+        assert builder._config["global_instruction"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""

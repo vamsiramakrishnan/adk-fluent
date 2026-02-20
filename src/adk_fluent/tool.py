@@ -78,12 +78,12 @@ class ActiveStreamingTool(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def task(self, value: Union[Task, NoneType]) -> Self:
+    def task(self, value: Task | None) -> Self:
         """Set the ``task`` field."""
         self._config["task"] = value
         return self
 
-    def stream(self, value: Union[LiveRequestQueue, NoneType]) -> Self:
+    def stream(self, value: LiveRequestQueue | None) -> Self:
         """Set the ``stream`` field."""
         self._config["stream"] = value
         return self
@@ -100,7 +100,7 @@ class AgentTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"include_plugins", "agent", "skip_summarization"}
+    _KNOWN_PARAMS: set[str] = {"skip_summarization", "include_plugins", "agent"}
 
     def __init__(self, agent: str) -> None:
         self._config: dict[str, Any] = {"agent": agent}
@@ -130,16 +130,16 @@ class APIHubToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "auth_scheme",
-        "access_token",
-        "name",
-        "auth_credential",
-        "description",
-        "lazy_load_spec",
         "apihub_client",
-        "apihub_resource_name",
-        "service_account_json",
+        "description",
+        "name",
         "tool_filter",
+        "auth_scheme",
+        "auth_credential",
+        "service_account_json",
+        "lazy_load_spec",
+        "apihub_resource_name",
+        "access_token",
     }
 
     def __init__(self, apihub_resource_name: str) -> None:
@@ -147,12 +147,12 @@ class APIHubToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def access_token(self, value: Optional[str]) -> Self:
+    def access_token(self, value: str | None) -> Self:
         """Set the ``access_token`` field."""
         self._config["access_token"] = value
         return self
 
-    def service_account_json(self, value: Optional[str]) -> Self:
+    def service_account_json(self, value: str | None) -> Self:
         """Set the ``service_account_json`` field."""
         self._config["service_account_json"] = value
         return self
@@ -172,22 +172,22 @@ class APIHubToolset(BuilderBase):
         self._config["lazy_load_spec"] = value
         return self
 
-    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+    def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+    def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
 
-    def apihub_client(self, value: Optional[APIHubClient]) -> Self:
+    def apihub_client(self, value: APIHubClient | None) -> Self:
         """Set the ``apihub_client`` field."""
         self._config["apihub_client"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
@@ -205,20 +205,20 @@ class ApplicationIntegrationToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "project",
         "connection",
-        "auth_scheme",
-        "integration",
-        "actions",
-        "tool_name_prefix",
-        "auth_credential",
-        "location",
-        "service_account_json",
-        "triggers",
         "tool_instructions",
-        "connection_template_override",
-        "entity_operations",
+        "auth_scheme",
+        "location",
+        "auth_credential",
+        "integration",
+        "tool_name_prefix",
+        "triggers",
+        "service_account_json",
         "tool_filter",
+        "entity_operations",
+        "connection_template_override",
+        "actions",
+        "project",
     }
 
     def __init__(self, project: str, location: str) -> None:
@@ -226,62 +226,62 @@ class ApplicationIntegrationToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def connection_template_override(self, value: Optional[str]) -> Self:
+    def connection_template_override(self, value: str | None) -> Self:
         """Set the ``connection_template_override`` field."""
         self._config["connection_template_override"] = value
         return self
 
-    def integration(self, value: Optional[str]) -> Self:
+    def integration(self, value: str | None) -> Self:
         """Set the ``integration`` field."""
         self._config["integration"] = value
         return self
 
-    def triggers(self, value: Optional[List[str]]) -> Self:
+    def triggers(self, value: list[str] | None) -> Self:
         """Set the ``triggers`` field."""
         self._config["triggers"] = value
         return self
 
-    def connection(self, value: Optional[str]) -> Self:
+    def connection(self, value: str | None) -> Self:
         """Set the ``connection`` field."""
         self._config["connection"] = value
         return self
 
-    def entity_operations(self, value: Optional[str]) -> Self:
+    def entity_operations(self, value: str | None) -> Self:
         """Set the ``entity_operations`` field."""
         self._config["entity_operations"] = value
         return self
 
-    def actions(self, value: Optional[list[str]]) -> Self:
+    def actions(self, value: list[str] | None) -> Self:
         """Set the ``actions`` field."""
         self._config["actions"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
 
-    def tool_instructions(self, value: Optional[str]) -> Self:
+    def tool_instructions(self, value: str | None) -> Self:
         """Set the ``tool_instructions`` field."""
         self._config["tool_instructions"] = value
         return self
 
-    def service_account_json(self, value: Optional[str]) -> Self:
+    def service_account_json(self, value: str | None) -> Self:
         """Set the ``service_account_json`` field."""
         self._config["service_account_json"] = value
         return self
 
-    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+    def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+    def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
@@ -299,17 +299,17 @@ class IntegrationConnectorTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
+        "description",
+        "name",
+        "connection_name",
+        "connection_service_name",
+        "action",
         "auth_scheme",
         "entity",
-        "name",
-        "auth_credential",
-        "description",
-        "operation",
-        "action",
-        "connection_name",
         "rest_api_tool",
-        "connection_service_name",
+        "auth_credential",
         "connection_host",
+        "operation",
     }
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
@@ -347,12 +347,12 @@ class IntegrationConnectorTool(BuilderBase):
         self._config["rest_api_tool"] = value
         return self
 
-    def auth_scheme(self, value: Optional[Union[AuthScheme, str]]) -> Self:
+    def auth_scheme(self, value: AuthScheme | str | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[Union[AuthCredential, str]]) -> Self:
+    def auth_credential(self, value: AuthCredential | str | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
@@ -369,7 +369,7 @@ class BaseAuthenticatedTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"auth_config", "response_for_auth_required", "name", "description"}
+    _KNOWN_PARAMS: set[str] = {"description", "name", "auth_config", "response_for_auth_required"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
@@ -381,7 +381,7 @@ class BaseAuthenticatedTool(BuilderBase):
         self._config["auth_config"] = value
         return self
 
-    def response_for_auth_required(self, value: Optional[Union[dict[str, Any], str]]) -> Self:
+    def response_for_auth_required(self, value: dict[str, Any] | str | None) -> Self:
         """Set the ``response_for_auth_required`` field."""
         self._config["response_for_auth_required"] = value
         return self
@@ -398,7 +398,7 @@ class BaseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"description", "is_long_running", "name", "custom_metadata"}
+    _KNOWN_PARAMS: set[str] = {"description", "name", "is_long_running", "custom_metadata"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
@@ -410,7 +410,7 @@ class BaseTool(BuilderBase):
         self._config["is_long_running"] = value
         return self
 
-    def custom_metadata(self, value: Optional[dict[str, Any]]) -> Self:
+    def custom_metadata(self, value: dict[str, Any] | None) -> Self:
         """Set the ``custom_metadata`` field."""
         self._config["custom_metadata"] = value
         return self
@@ -434,12 +434,12 @@ class BaseToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -456,24 +456,24 @@ class BigQueryToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"bigquery_tool_config", "tool_filter", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"bigquery_tool_config", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def credentials_config(self, value: Optional[BigQueryCredentialsConfig]) -> Self:
+    def credentials_config(self, value: BigQueryCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
         self._config["credentials_config"] = value
         return self
 
-    def bigquery_tool_config(self, value: Optional[BigQueryToolConfig]) -> Self:
+    def bigquery_tool_config(self, value: BigQueryToolConfig | None) -> Self:
         """Set the ``bigquery_tool_config`` field."""
         self._config["bigquery_tool_config"] = value
         return self
@@ -490,24 +490,24 @@ class BigtableToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"bigtable_tool_settings", "tool_filter", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"bigtable_tool_settings", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def credentials_config(self, value: Optional[BigtableCredentialsConfig]) -> Self:
+    def credentials_config(self, value: BigtableCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
         self._config["credentials_config"] = value
         return self
 
-    def bigtable_tool_settings(self, value: Optional[BigtableToolSettings]) -> Self:
+    def bigtable_tool_settings(self, value: BigtableToolSettings | None) -> Self:
         """Set the ``bigtable_tool_settings`` field."""
         self._config["bigtable_tool_settings"] = value
         return self
@@ -524,7 +524,7 @@ class ComputerUseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"func", "virtual_screen_size", "screen_size"}
+    _KNOWN_PARAMS: set[str] = {"func", "screen_size", "virtual_screen_size"}
 
     def __init__(self, func: str, screen_size: str) -> None:
         self._config: dict[str, Any] = {"func": func, "screen_size": screen_size}
@@ -567,24 +567,24 @@ class DataAgentToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_filter", "credentials_config", "data_agent_tool_config"}
+    _KNOWN_PARAMS: set[str] = {"credentials_config", "data_agent_tool_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def credentials_config(self, value: Optional[DataAgentCredentialsConfig]) -> Self:
+    def credentials_config(self, value: DataAgentCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
         self._config["credentials_config"] = value
         return self
 
-    def data_agent_tool_config(self, value: Optional[DataAgentToolConfig]) -> Self:
+    def data_agent_tool_config(self, value: DataAgentToolConfig | None) -> Self:
         """Set the ``data_agent_tool_config`` field."""
         self._config["data_agent_tool_config"] = value
         return self
@@ -601,34 +601,34 @@ class DiscoveryEngineSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_results", "data_store_id", "data_store_specs", "filter", "search_engine_id"}
+    _KNOWN_PARAMS: set[str] = {"data_store_id", "filter", "max_results", "search_engine_id", "data_store_specs"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def data_store_id(self, value: Optional[str]) -> Self:
+    def data_store_id(self, value: str | None) -> Self:
         """Set the ``data_store_id`` field."""
         self._config["data_store_id"] = value
         return self
 
-    def data_store_specs(self, value: Optional[list[types.VertexAISearchDataStoreSpec]]) -> Self:
+    def data_store_specs(self, value: list[types.VertexAISearchDataStoreSpec] | None) -> Self:
         """Set the ``data_store_specs`` field."""
         self._config["data_store_specs"] = value
         return self
 
-    def search_engine_id(self, value: Optional[str]) -> Self:
+    def search_engine_id(self, value: str | None) -> Self:
         """Set the ``search_engine_id`` field."""
         self._config["search_engine_id"] = value
         return self
 
-    def filter(self, value: Optional[str]) -> Self:
+    def filter(self, value: str | None) -> Self:
         """Set the ``filter`` field."""
         self._config["filter"] = value
         return self
 
-    def max_results(self, value: Optional[int]) -> Self:
+    def max_results(self, value: int | None) -> Self:
         """Set the ``max_results`` field."""
         self._config["max_results"] = value
         return self
@@ -690,7 +690,7 @@ class FunctionTool(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def require_confirmation(self, value: Union[bool, Callable[..., bool]]) -> Self:
+    def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
         self._config["require_confirmation"] = value
         return self
@@ -707,29 +707,29 @@ class GoogleApiTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "rest_api_tool", "additional_headers", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "rest_api_tool", "additional_headers", "client_secret", "service_account"}
 
     def __init__(self, rest_api_tool: str) -> None:
         self._config: dict[str, Any] = {"rest_api_tool": rest_api_tool}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def additional_headers(self, value: Optional[Dict[str, str]]) -> Self:
+    def additional_headers(self, value: dict[str, str] | None) -> Self:
         """Set the ``additional_headers`` field."""
         self._config["additional_headers"] = value
         return self
@@ -747,13 +747,13 @@ class GoogleApiToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "api_version",
         "client_id",
-        "client_secret",
         "tool_filter",
+        "api_version",
         "api_name",
         "tool_name_prefix",
         "additional_headers",
+        "client_secret",
         "service_account",
     }
 
@@ -762,32 +762,32 @@ class GoogleApiToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
 
-    def additional_headers(self, value: Optional[Dict[str, str]]) -> Self:
+    def additional_headers(self, value: dict[str, str] | None) -> Self:
         """Set the ``additional_headers`` field."""
         self._config["additional_headers"] = value
         return self
@@ -804,34 +804,34 @@ class CalendarToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "service_account", "tool_filter"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "tool_filter", "service_account"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -848,34 +848,34 @@ class DocsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "service_account", "tool_filter"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "tool_filter", "service_account"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -892,34 +892,34 @@ class GmailToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "service_account", "tool_filter"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "tool_filter", "service_account"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -936,34 +936,34 @@ class SheetsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "service_account", "tool_filter"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "tool_filter", "service_account"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -980,34 +980,34 @@ class SlidesToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "service_account", "tool_filter"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "tool_filter", "service_account"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -1024,34 +1024,34 @@ class YoutubeToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "service_account", "tool_filter"}
+    _KNOWN_PARAMS: set[str] = {"client_id", "client_secret", "tool_name_prefix", "tool_filter", "service_account"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def client_id(self, value: Optional[str]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Optional[str]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def service_account(self, value: Optional[ServiceAccount]) -> Self:
+    def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
         self._config["service_account"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -1135,19 +1135,19 @@ class GoogleTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"func", "tool_settings", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"func", "credentials_config", "tool_settings"}
 
     def __init__(self, func: str) -> None:
         self._config: dict[str, Any] = {"func": func}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials_config(self, value: Optional[BaseGoogleCredentialsConfig]) -> Self:
+    def credentials_config(self, value: BaseGoogleCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
         self._config["credentials_config"] = value
         return self
 
-    def tool_settings(self, value: Optional[BaseModel]) -> Self:
+    def tool_settings(self, value: BaseModel | None) -> Self:
         """Set the ``tool_settings`` field."""
         self._config["tool_settings"] = value
         return self
@@ -1260,13 +1260,13 @@ class McpTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "auth_scheme",
-        "mcp_session_manager",
-        "mcp_tool",
         "header_provider",
-        "require_confirmation",
-        "auth_credential",
         "progress_callback",
+        "mcp_tool",
+        "auth_scheme",
+        "auth_credential",
+        "require_confirmation",
+        "mcp_session_manager",
     }
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
@@ -1274,27 +1274,27 @@ class McpTool(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+    def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+    def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
 
-    def require_confirmation(self, value: Union[bool, Callable[..., bool]]) -> Self:
+    def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
         self._config["require_confirmation"] = value
         return self
 
-    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self._config["header_provider"] = value
         return self
 
-    def progress_callback(self, value: Optional[Union[ProgressFnT, ProgressCallbackFactory]]) -> Self:
+    def progress_callback(self, value: ProgressFnT | ProgressCallbackFactory | None) -> Self:
         """Set the ``progress_callback`` field."""
         self._config["progress_callback"] = value
         return self
@@ -1331,16 +1331,16 @@ class McpToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "auth_scheme",
         "header_provider",
-        "connection_params",
-        "errlog",
-        "auth_credential",
-        "require_confirmation",
-        "tool_name_prefix",
         "progress_callback",
-        "use_mcp_resources",
+        "auth_scheme",
+        "auth_credential",
+        "tool_name_prefix",
+        "errlog",
         "tool_filter",
+        "require_confirmation",
+        "connection_params",
+        "use_mcp_resources",
     }
 
     def __init__(self, connection_params: str) -> None:
@@ -1348,12 +1348,12 @@ class McpToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
@@ -1363,32 +1363,32 @@ class McpToolset(BuilderBase):
         self._config["errlog"] = value
         return self
 
-    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+    def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+    def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
 
-    def require_confirmation(self, value: Union[bool, Callable[..., bool]]) -> Self:
+    def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
         self._config["require_confirmation"] = value
         return self
 
-    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self._config["header_provider"] = value
         return self
 
-    def progress_callback(self, value: Optional[Union[ProgressFnT, ProgressCallbackFactory]]) -> Self:
+    def progress_callback(self, value: ProgressFnT | ProgressCallbackFactory | None) -> Self:
         """Set the ``progress_callback`` field."""
         self._config["progress_callback"] = value
         return self
 
-    def use_mcp_resources(self, value: Optional[bool]) -> Self:
+    def use_mcp_resources(self, value: bool | None) -> Self:
         """Set the ``use_mcp_resources`` field."""
         self._config["use_mcp_resources"] = value
         return self
@@ -1406,15 +1406,15 @@ class OpenAPIToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "auth_scheme",
-        "spec_str_type",
         "header_provider",
+        "auth_scheme",
         "spec_dict",
-        "tool_name_prefix",
         "auth_credential",
+        "spec_str",
         "ssl_verify",
         "credential_key",
-        "spec_str",
+        "tool_name_prefix",
+        "spec_str_type",
         "tool_filter",
     }
 
@@ -1423,12 +1423,12 @@ class OpenAPIToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def spec_dict(self, value: Optional[Dict[str, Any]]) -> Self:
+    def spec_dict(self, value: dict[str, Any] | None) -> Self:
         """Set the ``spec_dict`` field."""
         self._config["spec_dict"] = value
         return self
 
-    def spec_str(self, value: Optional[str]) -> Self:
+    def spec_str(self, value: str | None) -> Self:
         """Set the ``spec_str`` field."""
         self._config["spec_str"] = value
         return self
@@ -1438,37 +1438,37 @@ class OpenAPIToolset(BuilderBase):
         self._config["spec_str_type"] = value
         return self
 
-    def auth_scheme(self, value: Optional[AuthScheme]) -> Self:
+    def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[AuthCredential]) -> Self:
+    def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
 
-    def credential_key(self, value: Optional[str]) -> Self:
+    def credential_key(self, value: str | None) -> Self:
         """Set the ``credential_key`` field."""
         self._config["credential_key"] = value
         return self
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def tool_name_prefix(self, value: Optional[str]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
 
-    def ssl_verify(self, value: Optional[Union[bool, str, ssl.SSLContext]]) -> Self:
+    def ssl_verify(self, value: bool | str | ssl.SSLContext | None) -> Self:
         """Set the ``ssl_verify`` field."""
         self._config["ssl_verify"] = value
         return self
 
-    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self._config["header_provider"] = value
         return self
@@ -1486,16 +1486,16 @@ class RestApiTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
+        "description",
+        "header_provider",
+        "name",
         "endpoint",
         "auth_scheme",
-        "name",
-        "header_provider",
-        "auth_credential",
-        "description",
         "ssl_verify",
-        "operation",
-        "credential_key",
+        "auth_credential",
         "should_parse_operation",
+        "credential_key",
+        "operation",
     }
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
@@ -1503,17 +1503,17 @@ class RestApiTool(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def operation(self, value: Union[Operation, str]) -> Self:
+    def operation(self, value: Operation | str) -> Self:
         """Set the ``operation`` field."""
         self._config["operation"] = value
         return self
 
-    def auth_scheme(self, value: Optional[Union[AuthScheme, str]]) -> Self:
+    def auth_scheme(self, value: AuthScheme | str | None) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Optional[Union[AuthCredential, str]]) -> Self:
+    def auth_credential(self, value: AuthCredential | str | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
@@ -1523,17 +1523,17 @@ class RestApiTool(BuilderBase):
         self._config["should_parse_operation"] = value
         return self
 
-    def ssl_verify(self, value: Optional[Union[bool, str, ssl.SSLContext]]) -> Self:
+    def ssl_verify(self, value: bool | str | ssl.SSLContext | None) -> Self:
         """Set the ``ssl_verify`` field."""
         self._config["ssl_verify"] = value
         return self
 
-    def header_provider(self, value: Optional[Callable[[ReadonlyContext], Dict[str, str]]]) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self._config["header_provider"] = value
         return self
 
-    def credential_key(self, value: Optional[str]) -> Self:
+    def credential_key(self, value: str | None) -> Self:
         """Set the ``credential_key`` field."""
         self._config["credential_key"] = value
         return self
@@ -1569,7 +1569,7 @@ class PubSubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"pubsub_tool_config", "tool_filter", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"credentials_config", "pubsub_tool_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1603,7 +1603,7 @@ class BaseRetrievalTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"description", "is_long_running", "name", "custom_metadata"}
+    _KNOWN_PARAMS: set[str] = {"description", "name", "is_long_running", "custom_metadata"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
@@ -1615,7 +1615,7 @@ class BaseRetrievalTool(BuilderBase):
         self._config["is_long_running"] = value
         return self
 
-    def custom_metadata(self, value: Optional[dict[str, Any]]) -> Self:
+    def custom_metadata(self, value: dict[str, Any] | None) -> Self:
         """Set the ``custom_metadata`` field."""
         self._config["custom_metadata"] = value
         return self
@@ -1708,24 +1708,24 @@ class SpannerToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_filter", "credentials_config", "spanner_tool_settings"}
+    _KNOWN_PARAMS: set[str] = {"credentials_config", "spanner_tool_settings", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def tool_filter(self, value: Optional[Union[ToolPredicate, List[str]]]) -> Self:
+    def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def credentials_config(self, value: Optional[SpannerCredentialsConfig]) -> Self:
+    def credentials_config(self, value: SpannerCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
         self._config["credentials_config"] = value
         return self
 
-    def spanner_tool_settings(self, value: Optional[SpannerToolSettings]) -> Self:
+    def spanner_tool_settings(self, value: SpannerToolSettings | None) -> Self:
         """Set the ``spanner_tool_settings`` field."""
         self._config["spanner_tool_settings"] = value
         return self
@@ -1743,13 +1743,13 @@ class ToolboxToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "bound_params",
+        "credentials",
         "auth_token_getters",
+        "bound_params",
+        "additional_headers",
         "tool_names",
         "toolset_name",
-        "credentials",
         "server_url",
-        "additional_headers",
     }
 
     def __init__(self, server_url: str, kwargs: str) -> None:
@@ -1757,32 +1757,32 @@ class ToolboxToolset(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def toolset_name(self, value: Optional[str]) -> Self:
+    def toolset_name(self, value: str | None) -> Self:
         """Set the ``toolset_name`` field."""
         self._config["toolset_name"] = value
         return self
 
-    def tool_names(self, value: Optional[List[str]]) -> Self:
+    def tool_names(self, value: list[str] | None) -> Self:
         """Set the ``tool_names`` field."""
         self._config["tool_names"] = value
         return self
 
-    def auth_token_getters(self, value: Optional[Mapping[str, Callable[[], str]]]) -> Self:
+    def auth_token_getters(self, value: Mapping[str, Callable[[], str]] | None) -> Self:
         """Set the ``auth_token_getters`` field."""
         self._config["auth_token_getters"] = value
         return self
 
-    def bound_params(self, value: Optional[Mapping[str, Union[Callable[[], Any], Any]]]) -> Self:
+    def bound_params(self, value: Mapping[str, Union[Callable[[], Any], Any]] | None) -> Self:
         """Set the ``bound_params`` field."""
         self._config["bound_params"] = value
         return self
 
-    def credentials(self, value: Optional[CredentialConfig]) -> Self:
+    def credentials(self, value: CredentialConfig | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def additional_headers(self, value: Optional[Mapping[str, str]]) -> Self:
+    def additional_headers(self, value: Mapping[str, str] | None) -> Self:
         """Set the ``additional_headers`` field."""
         self._config["additional_headers"] = value
         return self
@@ -1838,12 +1838,12 @@ class VertexAiSearchTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
+        "data_store_id",
+        "filter",
         "bypass_multi_tools_limit",
         "max_results",
-        "data_store_id",
-        "data_store_specs",
-        "filter",
         "search_engine_id",
+        "data_store_specs",
     }
 
     def __init__(self) -> None:
@@ -1851,27 +1851,27 @@ class VertexAiSearchTool(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def data_store_id(self, value: Optional[str]) -> Self:
+    def data_store_id(self, value: str | None) -> Self:
         """Set the ``data_store_id`` field."""
         self._config["data_store_id"] = value
         return self
 
-    def data_store_specs(self, value: Optional[list[types.VertexAISearchDataStoreSpec]]) -> Self:
+    def data_store_specs(self, value: list[types.VertexAISearchDataStoreSpec] | None) -> Self:
         """Set the ``data_store_specs`` field."""
         self._config["data_store_specs"] = value
         return self
 
-    def search_engine_id(self, value: Optional[str]) -> Self:
+    def search_engine_id(self, value: str | None) -> Self:
         """Set the ``search_engine_id`` field."""
         self._config["search_engine_id"] = value
         return self
 
-    def filter(self, value: Optional[str]) -> Self:
+    def filter(self, value: str | None) -> Self:
         """Set the ``filter`` field."""
         self._config["filter"] = value
         return self
 
-    def max_results(self, value: Optional[int]) -> Self:
+    def max_results(self, value: int | None) -> Self:
         """Set the ``max_results`` field."""
         self._config["max_results"] = value
         return self

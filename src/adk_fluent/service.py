@@ -112,14 +112,14 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"app_name_to_dir", "agents_root"}
+    _KNOWN_PARAMS: set[str] = {"agents_root", "app_name_to_dir"}
 
     def __init__(self, agents_root: str) -> None:
         self._config: dict[str, Any] = {"agents_root": agents_root}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def app_name_to_dir(self, value: Optional[Mapping[str, str]]) -> Self:
+    def app_name_to_dir(self, value: Mapping[str, str] | None) -> Self:
         """Set the ``app_name_to_dir`` field."""
         self._config["app_name_to_dir"] = value
         return self
@@ -174,29 +174,29 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project", "express_mode_api_key", "location", "agent_engine_id"}
+    _KNOWN_PARAMS: set[str] = {"express_mode_api_key", "project", "agent_engine_id", "location"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def project(self, value: Optional[str]) -> Self:
+    def project(self, value: str | None) -> Self:
         """Set the ``project`` field."""
         self._config["project"] = value
         return self
 
-    def location(self, value: Optional[str]) -> Self:
+    def location(self, value: str | None) -> Self:
         """Set the ``location`` field."""
         self._config["location"] = value
         return self
 
-    def agent_engine_id(self, value: Optional[str]) -> Self:
+    def agent_engine_id(self, value: str | None) -> Self:
         """Set the ``agent_engine_id`` field."""
         self._config["agent_engine_id"] = value
         return self
 
-    def express_mode_api_key(self, value: Optional[str]) -> Self:
+    def express_mode_api_key(self, value: str | None) -> Self:
         """Set the ``express_mode_api_key`` field."""
         self._config["express_mode_api_key"] = value
         return self
@@ -213,19 +213,19 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"rag_corpus", "similarity_top_k", "vector_distance_threshold"}
+    _KNOWN_PARAMS: set[str] = {"similarity_top_k", "vector_distance_threshold", "rag_corpus"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def rag_corpus(self, value: Optional[str]) -> Self:
+    def rag_corpus(self, value: str | None) -> Self:
         """Set the ``rag_corpus`` field."""
         self._config["rag_corpus"] = value
         return self
 
-    def similarity_top_k(self, value: Optional[int]) -> Self:
+    def similarity_top_k(self, value: int | None) -> Self:
         """Set the ``similarity_top_k`` field."""
         self._config["similarity_top_k"] = value
         return self
@@ -323,29 +323,29 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project", "express_mode_api_key", "location", "agent_engine_id"}
+    _KNOWN_PARAMS: set[str] = {"express_mode_api_key", "project", "agent_engine_id", "location"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def project(self, value: Optional[str]) -> Self:
+    def project(self, value: str | None) -> Self:
         """Set the ``project`` field."""
         self._config["project"] = value
         return self
 
-    def location(self, value: Optional[str]) -> Self:
+    def location(self, value: str | None) -> Self:
         """Set the ``location`` field."""
         self._config["location"] = value
         return self
 
-    def agent_engine_id(self, value: Optional[str]) -> Self:
+    def agent_engine_id(self, value: str | None) -> Self:
         """Set the ``agent_engine_id`` field."""
         self._config["agent_engine_id"] = value
         return self
 
-    def express_mode_api_key(self, value: Optional[str]) -> Self:
+    def express_mode_api_key(self, value: str | None) -> Self:
         """Set the ``express_mode_api_key`` field."""
         self._config["express_mode_api_key"] = value
         return self

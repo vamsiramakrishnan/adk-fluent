@@ -123,16 +123,16 @@ class TestAPIHubToolsetBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.name() returns the builder instance for chaining."""
+        """.access_token() returns the builder instance for chaining."""
         builder = APIHubToolset("test_apihub_resource_name")
-        result = builder.name("test_value")
+        result = builder.access_token("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .name() stores the value in builder._config."""
+        """Setting .access_token() stores the value in builder._config."""
         builder = APIHubToolset("test_apihub_resource_name")
-        builder.name("test_value")
-        assert builder._config["name"] == "test_value"
+        builder.access_token("test_value")
+        assert builder._config["access_token"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -149,6 +149,18 @@ class TestApplicationIntegrationToolsetBuilder:
         builder = ApplicationIntegrationToolset("test_project", "test_location")
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.connection_template_override() returns the builder instance for chaining."""
+        builder = ApplicationIntegrationToolset("test_project", "test_location")
+        result = builder.connection_template_override("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .connection_template_override() stores the value in builder._config."""
+        builder = ApplicationIntegrationToolset("test_project", "test_location")
+        builder.connection_template_override("test_value")
+        assert builder._config["connection_template_override"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -194,6 +206,18 @@ class TestBaseAuthenticatedToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.response_for_auth_required() returns the builder instance for chaining."""
+        builder = BaseAuthenticatedTool("test_name", "test_description")
+        result = builder.response_for_auth_required("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .response_for_auth_required() stores the value in builder._config."""
+        builder = BaseAuthenticatedTool("test_name", "test_description")
+        builder.response_for_auth_required("test_value")
+        assert builder._config["response_for_auth_required"] == "test_value"
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseAuthenticatedTool("test_name", "test_description")
@@ -238,6 +262,18 @@ class TestBaseToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.tool_filter() returns the builder instance for chaining."""
+        builder = BaseToolset()
+        result = builder.tool_filter(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .tool_filter() stores the value in builder._config."""
+        builder = BaseToolset()
+        builder.tool_filter(None)
+        assert builder._config["tool_filter"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseToolset()
@@ -254,6 +290,18 @@ class TestBigQueryToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.tool_filter() returns the builder instance for chaining."""
+        builder = BigQueryToolset()
+        result = builder.tool_filter(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .tool_filter() stores the value in builder._config."""
+        builder = BigQueryToolset()
+        builder.tool_filter(None)
+        assert builder._config["tool_filter"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BigQueryToolset()
@@ -269,6 +317,18 @@ class TestBigtableToolsetBuilder:
         builder = BigtableToolset()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.tool_filter() returns the builder instance for chaining."""
+        builder = BigtableToolset()
+        result = builder.tool_filter(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .tool_filter() stores the value in builder._config."""
+        builder = BigtableToolset()
+        builder.tool_filter(None)
+        assert builder._config["tool_filter"] == None
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -318,6 +378,18 @@ class TestDataAgentToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.tool_filter() returns the builder instance for chaining."""
+        builder = DataAgentToolset()
+        result = builder.tool_filter(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .tool_filter() stores the value in builder._config."""
+        builder = DataAgentToolset()
+        builder.tool_filter(None)
+        assert builder._config["tool_filter"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = DataAgentToolset()
@@ -333,6 +405,18 @@ class TestDiscoveryEngineSearchToolBuilder:
         builder = DiscoveryEngineSearchTool()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.data_store_id() returns the builder instance for chaining."""
+        builder = DiscoveryEngineSearchTool()
+        result = builder.data_store_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .data_store_id() stores the value in builder._config."""
+        builder = DiscoveryEngineSearchTool()
+        builder.data_store_id("test_value")
+        assert builder._config["data_store_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -398,6 +482,18 @@ class TestGoogleApiToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = GoogleApiTool("test_rest_api_tool")
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = GoogleApiTool("test_rest_api_tool")
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleApiTool("test_rest_api_tool")
@@ -413,6 +509,18 @@ class TestGoogleApiToolsetBuilder:
         builder = GoogleApiToolset("test_api_name", "test_api_version")
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = GoogleApiToolset("test_api_name", "test_api_version")
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = GoogleApiToolset("test_api_name", "test_api_version")
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -430,6 +538,18 @@ class TestCalendarToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = CalendarToolset()
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = CalendarToolset()
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = CalendarToolset()
@@ -445,6 +565,18 @@ class TestDocsToolsetBuilder:
         builder = DocsToolset()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = DocsToolset()
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = DocsToolset()
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -462,6 +594,18 @@ class TestGmailToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = GmailToolset()
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = GmailToolset()
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GmailToolset()
@@ -477,6 +621,18 @@ class TestSheetsToolsetBuilder:
         builder = SheetsToolset()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = SheetsToolset()
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = SheetsToolset()
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -494,6 +650,18 @@ class TestSlidesToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = SlidesToolset()
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = SlidesToolset()
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SlidesToolset()
@@ -509,6 +677,18 @@ class TestYoutubeToolsetBuilder:
         builder = YoutubeToolset()
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.client_id() returns the builder instance for chaining."""
+        builder = YoutubeToolset()
+        result = builder.client_id("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .client_id() stores the value in builder._config."""
+        builder = YoutubeToolset()
+        builder.client_id("test_value")
+        assert builder._config["client_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -585,6 +765,18 @@ class TestGoogleToolBuilder:
         builder = GoogleTool("test_func")
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.credentials_config() returns the builder instance for chaining."""
+        builder = GoogleTool("test_func")
+        result = builder.credentials_config(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .credentials_config() stores the value in builder._config."""
+        builder = GoogleTool("test_func")
+        builder.credentials_config(None)
+        assert builder._config["credentials_config"] == None
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -682,6 +874,18 @@ class TestMcpToolBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.auth_scheme() returns the builder instance for chaining."""
+        builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
+        result = builder.auth_scheme(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .auth_scheme() stores the value in builder._config."""
+        builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
+        builder.auth_scheme(None)
+        assert builder._config["auth_scheme"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
@@ -714,6 +918,18 @@ class TestMcpToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.tool_filter() returns the builder instance for chaining."""
+        builder = McpToolset("test_connection_params")
+        result = builder.tool_filter(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .tool_filter() stores the value in builder._config."""
+        builder = McpToolset("test_connection_params")
+        builder.tool_filter(None)
+        assert builder._config["tool_filter"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = McpToolset("test_connection_params")
@@ -730,6 +946,18 @@ class TestOpenAPIToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.spec_dict() returns the builder instance for chaining."""
+        builder = OpenAPIToolset()
+        result = builder.spec_dict({})
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .spec_dict() stores the value in builder._config."""
+        builder = OpenAPIToolset()
+        builder.spec_dict({})
+        assert builder._config["spec_dict"] == {}
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = OpenAPIToolset()
@@ -745,6 +973,18 @@ class TestRestApiToolBuilder:
         builder = RestApiTool("test_name", "test_description", "test_endpoint")
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.operation() returns the builder instance for chaining."""
+        builder = RestApiTool("test_name", "test_description", "test_endpoint")
+        result = builder.operation("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .operation() stores the value in builder._config."""
+        builder = RestApiTool("test_name", "test_description", "test_endpoint")
+        builder.operation("test_value")
+        assert builder._config["operation"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -898,6 +1138,18 @@ class TestSpannerToolsetBuilder:
         assert builder is not None
         assert isinstance(builder._config, dict)
 
+    def test_chaining_returns_self(self):
+        """.tool_filter() returns the builder instance for chaining."""
+        builder = SpannerToolset()
+        result = builder.tool_filter(None)
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .tool_filter() stores the value in builder._config."""
+        builder = SpannerToolset()
+        builder.tool_filter(None)
+        assert builder._config["tool_filter"] == None
+
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SpannerToolset()
@@ -913,6 +1165,18 @@ class TestToolboxToolsetBuilder:
         builder = ToolboxToolset("test_server_url", "test_kwargs")
         assert builder is not None
         assert isinstance(builder._config, dict)
+
+    def test_chaining_returns_self(self):
+        """.toolset_name() returns the builder instance for chaining."""
+        builder = ToolboxToolset("test_server_url", "test_kwargs")
+        result = builder.toolset_name("test_value")
+        assert result is builder
+
+    def test_config_accumulation(self):
+        """Setting .toolset_name() stores the value in builder._config."""
+        builder = ToolboxToolset("test_server_url", "test_kwargs")
+        builder.toolset_name("test_value")
+        assert builder._config["toolset_name"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -963,16 +1227,16 @@ class TestVertexAiSearchToolBuilder:
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
-        """.bypass_multi_tools_limit() returns the builder instance for chaining."""
+        """.data_store_id() returns the builder instance for chaining."""
         builder = VertexAiSearchTool()
-        result = builder.bypass_multi_tools_limit(True)
+        result = builder.data_store_id("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .bypass_multi_tools_limit() stores the value in builder._config."""
+        """Setting .data_store_id() stores the value in builder._config."""
         builder = VertexAiSearchTool()
-        builder.bypass_multi_tools_limit(True)
-        assert builder._config["bypass_multi_tools_limit"] == True
+        builder.data_store_id("test_value")
+        assert builder._config["data_store_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""

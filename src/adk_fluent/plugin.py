@@ -101,19 +101,19 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project_id", "dataset_id", "location", "config", "table_id"}
+    _KNOWN_PARAMS: set[str] = {"config", "project_id", "location", "table_id", "dataset_id"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def table_id(self, value: Optional[str]) -> Self:
+    def table_id(self, value: str | None) -> Self:
         """Set the ``table_id`` field."""
         self._config["table_id"] = value
         return self
 
-    def config(self, value: Optional[BigQueryLoggerConfig]) -> Self:
+    def config(self, value: BigQueryLoggerConfig | None) -> Self:
         """Set the ``config`` field."""
         self._config["config"] = value
         return self
@@ -135,19 +135,19 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name", "num_invocations_to_keep", "custom_filter"}
+    _KNOWN_PARAMS: set[str] = {"num_invocations_to_keep", "custom_filter", "name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def num_invocations_to_keep(self, value: Optional[int]) -> Self:
+    def num_invocations_to_keep(self, value: int | None) -> Self:
         """Set the ``num_invocations_to_keep`` field."""
         self._config["num_invocations_to_keep"] = value
         return self
 
-    def custom_filter(self, value: Optional[Callable[[list[types.Content]], list[types.Content]]]) -> Self:
+    def custom_filter(self, value: Callable[[list[types.Content]], list[types.Content]] | None) -> Self:
         """Set the ``custom_filter`` field."""
         self._config["custom_filter"] = value
         return self
@@ -169,7 +169,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"output_path", "include_session_state", "include_system_instruction", "name"}
+    _KNOWN_PARAMS: set[str] = {"include_session_state", "name", "output_path", "include_system_instruction"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -215,7 +215,7 @@ class GlobalInstructionPlugin(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def global_instruction(self, value: Union[str, InstructionProvider]) -> Self:
+    def global_instruction(self, value: str | InstructionProvider) -> Self:
         """Set the ``global_instruction`` field."""
         self._config["global_instruction"] = value
         return self
@@ -285,7 +285,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"throw_exception_if_retry_exceeded", "max_retries", "name", "tracking_scope"}
+    _KNOWN_PARAMS: set[str] = {"tracking_scope", "max_retries", "name", "throw_exception_if_retry_exceeded"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

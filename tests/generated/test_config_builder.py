@@ -76,10 +76,10 @@ class TestBaseAgentConfigBuilder:
         assert result is builder
 
     def test_config_accumulation(self):
-        """Setting .sub_agents() stores the value in builder._config."""
+        """Setting .agent_class() stores the value in builder._config."""
         builder = BaseAgentConfig("test_name")
-        builder.sub_agents(None)
-        assert builder._config["sub_agents"] == None
+        builder.agent_class("test_value")
+        assert builder._config["agent_class"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -100,14 +100,14 @@ class TestAgentRefConfigBuilder:
     def test_chaining_returns_self(self):
         """.config_path() returns the builder instance for chaining."""
         builder = AgentRefConfig()
-        result = builder.config_path(None)
+        result = builder.config_path("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
         """Setting .config_path() stores the value in builder._config."""
         builder = AgentRefConfig()
-        builder.config_path(None)
-        assert builder._config["config_path"] == None
+        builder.config_path("test_value")
+        assert builder._config["config_path"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -128,14 +128,14 @@ class TestArgumentConfigBuilder:
     def test_chaining_returns_self(self):
         """.name() returns the builder instance for chaining."""
         builder = ArgumentConfig("test_value")
-        result = builder.name(None)
+        result = builder.name("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
         """Setting .name() stores the value in builder._config."""
         builder = ArgumentConfig("test_value")
-        builder.name(None)
-        assert builder._config["name"] == None
+        builder.name("test_value")
+        assert builder._config["name"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
@@ -156,14 +156,14 @@ class TestCodeConfigBuilder:
     def test_chaining_returns_self(self):
         """.args() returns the builder instance for chaining."""
         builder = CodeConfig("test_name")
-        result = builder.args(None)
+        result = builder.args([])
         assert result is builder
 
     def test_config_accumulation(self):
         """Setting .args() stores the value in builder._config."""
         builder = CodeConfig("test_name")
-        builder.args(None)
-        assert builder._config["args"] == None
+        builder.args([])
+        assert builder._config["args"] == []
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""

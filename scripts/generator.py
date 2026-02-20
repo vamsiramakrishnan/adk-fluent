@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import stat
 import sys
 from collections import defaultdict
@@ -458,7 +459,7 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
         methods.append(
             MethodNode(
                 name=short_name,
-                params=[Param("self"), Param("*fns", type="Callable")],
+                params=[Param("self"), Param("*fns", type="Callable[..., Any]")],
                 returns="Self",
                 doc=f"Append callback(s) to `{full_name}`. Multiple calls accumulate.",
                 body=[
@@ -471,7 +472,7 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
         methods.append(
             MethodNode(
                 name=f"{short_name}_if",
-                params=[Param("self"), Param("condition", type="bool"), Param("fn", type="Callable")],
+                params=[Param("self"), Param("condition", type="bool"), Param("fn", type="Callable[..., Any]")],
                 returns="Self",
                 doc=f"Append callback to `{full_name}` only if condition is True.",
                 body=[
@@ -544,7 +545,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                 methods.append(
                     MethodNode(
                         name=fname,
-                        params=[Param("self"), Param("*fns", type="Callable")],
+                        params=[Param("self"), Param("*fns", type="Callable[..., Any]")],
                         returns="Self",
                         doc=f"Append callback(s) to ``{fname}``. Multiple calls accumulate.",
                         body=[
@@ -771,20 +772,152 @@ def specs_to_ir_module(specs: list[BuilderSpec]) -> ModuleNode:
     )
 
 
-def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str) -> ModuleNode:
+def _build_type_import_map(manifest: dict) -> dict[str, str]:
+    """Build a map of short type names to their fully-qualified import paths.
+
+    Scans all ``type_raw`` fields in the manifest to discover every ADK/genai
+    type and its module path, producing entries like:
+        ``{"BaseAgent": "from google.adk.agents.base_agent import BaseAgent"}``
+
+    Also performs runtime discovery for types referenced in ``type_str`` but
+    missing from ``type_raw`` (e.g. types from forward-reference annotations).
+    """
+    type_map: dict[str, str] = {}
+    # Phase 1: extract from fully-qualified type_raw strings
+    for cls in manifest.get("classes", []):
+        all_params = cls.get("fields", []) + cls.get("init_params", [])
+        for field in all_params:
+            raw = field.get("type_raw", "")
+            for fqn in re.findall(r"(google\.\w+(?:\.\w+)+)", raw):
+                short_name = fqn.split(".")[-1]
+                module_path = ".".join(fqn.split(".")[:-1])
+                if short_name not in type_map:
+                    type_map[short_name] = f"from {module_path} import {short_name}"
+
+    # Phase 2: collect type names from type_str that we can't resolve yet
+    _IDENT = re.compile(r"\b([A-Z]\w+)")
+    _SKIP = {
+        "Any",
+        "Self",
+        "None",
+        "Callable",
+        "AsyncGenerator",
+        "BuilderBase",
+        "Union",
+        "Optional",
+        "Literal",
+        "List",
+        "Dict",
+        "Tuple",
+        "Set",
+    }
+    unresolved: set[str] = set()
+    for cls in manifest.get("classes", []):
+        # Scan both fields and init_params for type references
+        all_params = cls.get("fields", []) + cls.get("init_params", [])
+        for field in all_params:
+            for name in _IDENT.findall(field.get("type_str", "")):
+                if name not in type_map and name not in _SKIP:
+                    unresolved.add(name)
+
+    # Phase 3: runtime discovery for unresolved types
+    if unresolved:
+        import importlib
+        import pkgutil
+
+        try:
+            import google.adk
+
+            for _imp, modname, _ispkg in pkgutil.walk_packages(google.adk.__path__, "google.adk."):
+                if not unresolved:
+                    break
+                try:
+                    mod = importlib.import_module(modname)
+                except Exception:
+                    continue
+                found = []
+                for name in unresolved:
+                    if hasattr(mod, name):
+                        type_map[name] = f"from {modname} import {name}"
+                        found.append(name)
+                for name in found:
+                    unresolved.discard(name)
+        except ImportError:
+            pass
+
+    # Add pydantic BaseModel if referenced
+    if "BaseModel" not in type_map:
+        type_map["BaseModel"] = "from pydantic import BaseModel"
+
+    return type_map
+
+
+# Stdlib typing names that need explicit imports when referenced in stubs.
+_TYPING_NAMES: dict[str, str] = {
+    "Union": "typing",
+    "Optional": "typing",
+    "Literal": "typing",
+    "Awaitable": "collections.abc",
+    "AsyncIterator": "collections.abc",
+    "Mapping": "collections.abc",
+    "Sequence": "collections.abc",
+    "Dict": "typing",
+    "TextIO": "typing",
+}
+
+
+def _collect_stub_type_refs(classes: list[ClassNode]) -> set[str]:
+    """Walk all method signatures in *classes* and return referenced type names."""
+    refs: set[str] = set()
+    _IDENT = re.compile(r"\b([A-Z]\w+)")
+    for cls in classes:
+        for method in cls.methods:
+            for param in method.params:
+                if param.type:
+                    refs.update(_IDENT.findall(param.type))
+            if method.returns:
+                refs.update(_IDENT.findall(method.returns))
+    return refs
+
+
+def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str, *, manifest: dict | None = None) -> ModuleNode:
     """Build a ModuleNode suitable for stub (.pyi) emission.
 
     Reuses spec_to_ir() since emit_stub() already ignores method bodies
     and just outputs ``...`` for each method.
+
+    When *manifest* is provided, the emitted imports are auto-discovered
+    from type references in method signatures so that pyright/mypy can
+    resolve every annotation.
     """
     timestamp = datetime.now(UTC).isoformat()
 
-    all_import_lines: list[str] = [
-        "from collections.abc import AsyncGenerator, Callable",
-        "from typing import Any, Self",
-        "from adk_fluent._base import BuilderBase",
-    ]
+    classes = [spec_to_ir(spec) for spec in specs]
 
+    # Collect all type names referenced in method signatures
+    refs = _collect_stub_type_refs(classes)
+
+    # --- Build imports based on what's actually referenced ---
+    all_import_lines: list[str] = []
+    already_imported: set[str] = set()
+
+    # 1. Base stdlib typing imports — only include names that are referenced
+    _BASE_COLLECTIONS = {"AsyncGenerator", "Callable"}
+    _BASE_TYPING = {"Any", "Self"}
+    needed_collections = sorted(_BASE_COLLECTIONS & refs)
+    needed_typing = sorted(_BASE_TYPING & refs)
+    if needed_collections:
+        all_import_lines.append(f"from collections.abc import {', '.join(needed_collections)}")
+        already_imported.update(needed_collections)
+    if needed_typing:
+        all_import_lines.append(f"from typing import {', '.join(needed_typing)}")
+        already_imported.update(needed_typing)
+
+    # 2. Internal import — always needed for base class
+    all_import_lines.append("from adk_fluent._base import BuilderBase")
+    already_imported.add("BuilderBase")
+
+    # 3. ADK source class imports (build targets)
     for spec in specs:
         if not spec.is_composite and not spec.is_standalone:
             module_path = ".".join(spec.source_class.split(".")[:-1])
@@ -794,8 +927,29 @@ def specs_to_ir_stub_module(specs: list[BuilderSpec], adk_version: str) -> Modul
                 all_import_lines.append(f"from {module_path} import {class_name} as {import_name}")
             else:
                 all_import_lines.append(f"from {module_path} import {class_name}")
+            already_imported.add(import_name)
 
-    classes = [spec_to_ir(spec) for spec in specs]
+    # 4. Additional stdlib typing imports (Union, Optional, Literal, etc.)
+    typing_needed: dict[str, list[str]] = {}
+    for name in sorted(refs):
+        if name in already_imported:
+            continue
+        if name in _TYPING_NAMES:
+            module = _TYPING_NAMES[name]
+            typing_needed.setdefault(module, []).append(name)
+            already_imported.add(name)
+    for module, names in sorted(typing_needed.items()):
+        all_import_lines.append(f"from {module} import {', '.join(sorted(names))}")
+
+    # 5. Domain type imports (ADK/genai types) from manifest
+    if manifest:
+        type_map = _build_type_import_map(manifest)
+        for name in sorted(refs):
+            if name in already_imported:
+                continue
+            if name in type_map:
+                all_import_lines.append(type_map[name])
+                already_imported.add(name)
 
     header = (
         f"AUTO-GENERATED by adk-fluent generator -- do not edit manually\n"
@@ -1175,7 +1329,7 @@ def generate_all(
     # --- Generate .pyi stubs ---
     if not tests_only:
         for module_name, module_specs in by_module.items():
-            ir_stub_module = specs_to_ir_stub_module(module_specs, adk_version)
+            ir_stub_module = specs_to_ir_stub_module(module_specs, adk_version, manifest=manifest)
             stub = emit_stub(ir_stub_module)
             filepath = output_path / f"{module_name}.pyi"
             _write_file(filepath, stub)

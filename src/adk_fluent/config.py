@@ -87,17 +87,17 @@ class BaseAgentConfig(BuilderBase):
         self._config["description"] = value
         return self
 
-    def agent_class(self, value: Union[Literal[BaseAgent], str]) -> Self:
+    def agent_class(self, value: Literal[BaseAgent] | str) -> Self:
         """Required. The class of the agent. The value is used to differentiate among different agent classes."""
         self._config["agent_class"] = value
         return self
 
-    def sub_agents(self, value: Union[list[AgentRefConfig], NoneType]) -> Self:
+    def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
         self._config["sub_agents"] = value
         return self
 
-    def before_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The before_agent_callbacks of the agent.
 
         Example:
@@ -109,7 +109,7 @@ class BaseAgentConfig(BuilderBase):
         self._config["before_agent_callbacks"] = value
         return self
 
-    def after_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
         self._config["after_agent_callbacks"] = value
         return self
@@ -148,12 +148,12 @@ class AgentRefConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def config_path(self, value: Union[str, NoneType]) -> Self:
+    def config_path(self, value: str | None) -> Self:
         """Set the ``config_path`` field."""
         self._config["config_path"] = value
         return self
 
-    def code(self, value: Union[str, NoneType]) -> Self:
+    def code(self, value: str | None) -> Self:
         """Set the ``code`` field."""
         self._config["code"] = value
         return self
@@ -177,7 +177,7 @@ class ArgumentConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def name(self, value: Union[str, NoneType]) -> Self:
+    def name(self, value: str | None) -> Self:
         """Set the ``name`` field."""
         self._config["name"] = value
         return self
@@ -201,7 +201,7 @@ class CodeConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def args(self, value: Union[list[ArgumentConfig], NoneType]) -> Self:
+    def args(self, value: list[ArgumentConfig] | None) -> Self:
         """Set the ``args`` field."""
         self._config["args"] = value
         return self
@@ -292,17 +292,17 @@ class LlmAgentConfig(BuilderBase):
         self._config["instruction"] = value
         return self
 
-    def outputs(self, value: Union[str, NoneType]) -> Self:
+    def outputs(self, value: str | None) -> Self:
         """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."""
         self._config["output_key"] = value
         return self
 
-    def static(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+    def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
         self._config["static_instruction"] = value
         return self
 
-    def static_instruct(self, value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self:
+    def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
         self._config["static_instruction"] = value
         return self
@@ -312,12 +312,12 @@ class LlmAgentConfig(BuilderBase):
         self._config["agent_class"] = value
         return self
 
-    def sub_agents(self, value: Union[list[AgentRefConfig], NoneType]) -> Self:
+    def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
         self._config["sub_agents"] = value
         return self
 
-    def before_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The before_agent_callbacks of the agent.
 
         Example:
@@ -329,42 +329,42 @@ class LlmAgentConfig(BuilderBase):
         self._config["before_agent_callbacks"] = value
         return self
 
-    def after_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
         self._config["after_agent_callbacks"] = value
         return self
 
-    def model(self, value: Union[str, NoneType]) -> Self:
+    def model(self, value: str | None) -> Self:
         """Optional. LlmAgent.model. Provide a model name string (e.g. "gemini-2.0-flash"). If not set, the model will be inherited from the ancestor or fall back to the system default (gemini-2.5-flash unless overridden via LlmAgent.set_default_model). To construct a model instance from code, use model_code."""
         self._config["model"] = value
         return self
 
-    def model_code(self, value: Union[CodeConfig, NoneType]) -> Self:
+    def model_code(self, value: CodeConfig | None) -> Self:
         """Optional. A CodeConfig that instantiates a BaseLlm implementation such as LiteLlm with custom arguments (API base, fallbacks, etc.). Cannot be set together with `model`."""
         self._config["model_code"] = value
         return self
 
-    def disallow_transfer_to_parent(self, value: Union[bool, NoneType]) -> Self:
+    def disallow_transfer_to_parent(self, value: bool | None) -> Self:
         """Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."""
         self._config["disallow_transfer_to_parent"] = value
         return self
 
-    def disallow_transfer_to_peers(self, value: Union[bool, NoneType]) -> Self:
+    def disallow_transfer_to_peers(self, value: bool | None) -> Self:
         """Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."""
         self._config["disallow_transfer_to_peers"] = value
         return self
 
-    def input_schema(self, value: Union[CodeConfig, NoneType]) -> Self:
+    def input_schema(self, value: CodeConfig | None) -> Self:
         """Schema defining the expected input structure when this agent is invoked as a tool by another agent."""
         self._config["input_schema"] = value
         return self
 
-    def output_schema(self, value: Union[CodeConfig, NoneType]) -> Self:
+    def output_schema(self, value: CodeConfig | None) -> Self:
         """Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."""
         self._config["output_schema"] = value
         return self
 
-    def tools(self, value: Union[list[ToolConfig], NoneType]) -> Self:
+    def tools(self, value: list[ToolConfig] | None) -> Self:
         """Optional. LlmAgent.tools.
 
         Examples:
@@ -420,7 +420,7 @@ class LlmAgentConfig(BuilderBase):
         self._config["tools"] = value
         return self
 
-    def before_model_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_model_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.before_model_callbacks.
 
         Example:
@@ -432,22 +432,22 @@ class LlmAgentConfig(BuilderBase):
         self._config["before_model_callbacks"] = value
         return self
 
-    def after_model_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_model_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.after_model_callbacks."""
         self._config["after_model_callbacks"] = value
         return self
 
-    def before_tool_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_tool_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.before_tool_callbacks."""
         self._config["before_tool_callbacks"] = value
         return self
 
-    def after_tool_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_tool_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.after_tool_callbacks."""
         self._config["after_tool_callbacks"] = value
         return self
 
-    def generate_content_config(self, value: Union[GenerateContentConfig, NoneType]) -> Self:
+    def generate_content_config(self, value: GenerateContentConfig | None) -> Self:
         """Optional. LlmAgent.generate_content_config."""
         self._config["generate_content_config"] = value
         return self
@@ -521,12 +521,12 @@ class LoopAgentConfig(BuilderBase):
         self._config["agent_class"] = value
         return self
 
-    def sub_agents(self, value: Union[list[AgentRefConfig], NoneType]) -> Self:
+    def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
         self._config["sub_agents"] = value
         return self
 
-    def before_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The before_agent_callbacks of the agent.
 
         Example:
@@ -538,12 +538,12 @@ class LoopAgentConfig(BuilderBase):
         self._config["before_agent_callbacks"] = value
         return self
 
-    def after_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
         self._config["after_agent_callbacks"] = value
         return self
 
-    def max_iterations(self, value: Union[int, NoneType]) -> Self:
+    def max_iterations(self, value: int | None) -> Self:
         """Optional. LoopAgent.max_iterations."""
         self._config["max_iterations"] = value
         return self
@@ -592,12 +592,12 @@ class ParallelAgentConfig(BuilderBase):
         self._config["agent_class"] = value
         return self
 
-    def sub_agents(self, value: Union[list[AgentRefConfig], NoneType]) -> Self:
+    def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
         self._config["sub_agents"] = value
         return self
 
-    def before_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The before_agent_callbacks of the agent.
 
         Example:
@@ -609,7 +609,7 @@ class ParallelAgentConfig(BuilderBase):
         self._config["before_agent_callbacks"] = value
         return self
 
-    def after_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
         self._config["after_agent_callbacks"] = value
         return self
@@ -651,22 +651,22 @@ class RunConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def input_audio_transcribe(self, value: Union[AudioTranscriptionConfig, NoneType]) -> Self:
+    def input_audio_transcribe(self, value: AudioTranscriptionConfig | None) -> Self:
         """Set the `input_audio_transcription` field."""
         self._config["input_audio_transcription"] = value
         return self
 
-    def output_audio_transcribe(self, value: Union[AudioTranscriptionConfig, NoneType]) -> Self:
+    def output_audio_transcribe(self, value: AudioTranscriptionConfig | None) -> Self:
         """Set the `output_audio_transcription` field."""
         self._config["output_audio_transcription"] = value
         return self
 
-    def speech_config(self, value: Union[SpeechConfig, NoneType]) -> Self:
+    def speech_config(self, value: SpeechConfig | None) -> Self:
         """Set the ``speech_config`` field."""
         self._config["speech_config"] = value
         return self
 
-    def response_modalities(self, value: Union[list[str], NoneType]) -> Self:
+    def response_modalities(self, value: list[str] | None) -> Self:
         """Set the ``response_modalities`` field."""
         self._config["response_modalities"] = value
         return self
@@ -686,27 +686,27 @@ class RunConfig(BuilderBase):
         self._config["streaming_mode"] = value
         return self
 
-    def realtime_input_config(self, value: Union[RealtimeInputConfig, NoneType]) -> Self:
+    def realtime_input_config(self, value: RealtimeInputConfig | None) -> Self:
         """Set the ``realtime_input_config`` field."""
         self._config["realtime_input_config"] = value
         return self
 
-    def enable_affective_dialog(self, value: Union[bool, NoneType]) -> Self:
+    def enable_affective_dialog(self, value: bool | None) -> Self:
         """Set the ``enable_affective_dialog`` field."""
         self._config["enable_affective_dialog"] = value
         return self
 
-    def proactivity(self, value: Union[ProactivityConfig, NoneType]) -> Self:
+    def proactivity(self, value: ProactivityConfig | None) -> Self:
         """Set the ``proactivity`` field."""
         self._config["proactivity"] = value
         return self
 
-    def session_resumption(self, value: Union[SessionResumptionConfig, NoneType]) -> Self:
+    def session_resumption(self, value: SessionResumptionConfig | None) -> Self:
         """Set the ``session_resumption`` field."""
         self._config["session_resumption"] = value
         return self
 
-    def context_window_compression(self, value: Union[ContextWindowCompressionConfig, NoneType]) -> Self:
+    def context_window_compression(self, value: ContextWindowCompressionConfig | None) -> Self:
         """Set the ``context_window_compression`` field."""
         self._config["context_window_compression"] = value
         return self
@@ -716,7 +716,7 @@ class RunConfig(BuilderBase):
         self._config["save_live_blob"] = value
         return self
 
-    def tool_thread_pool_config(self, value: Union[ToolThreadPoolConfig, NoneType]) -> Self:
+    def tool_thread_pool_config(self, value: ToolThreadPoolConfig | None) -> Self:
         """Set the ``tool_thread_pool_config`` field."""
         self._config["tool_thread_pool_config"] = value
         return self
@@ -731,7 +731,7 @@ class RunConfig(BuilderBase):
         self._config["max_llm_calls"] = value
         return self
 
-    def custom_metadata(self, value: Union[dict[str, Any], NoneType]) -> Self:
+    def custom_metadata(self, value: dict[str, Any] | None) -> Self:
         """Set the ``custom_metadata`` field."""
         self._config["custom_metadata"] = value
         return self
@@ -789,12 +789,12 @@ class SequentialAgentConfig(BuilderBase):
         self._config["agent_class"] = value
         return self
 
-    def sub_agents(self, value: Union[list[AgentRefConfig], NoneType]) -> Self:
+    def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
         self._config["sub_agents"] = value
         return self
 
-    def before_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def before_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The before_agent_callbacks of the agent.
 
         Example:
@@ -806,7 +806,7 @@ class SequentialAgentConfig(BuilderBase):
         self._config["before_agent_callbacks"] = value
         return self
 
-    def after_agent_callbacks(self, value: Union[list[CodeConfig], NoneType]) -> Self:
+    def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
         self._config["after_agent_callbacks"] = value
         return self
@@ -845,17 +845,17 @@ class EventsCompactionConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def summarizer(self, value: Union[BaseEventsSummarizer, NoneType]) -> Self:
+    def summarizer(self, value: BaseEventsSummarizer | None) -> Self:
         """Set the ``summarizer`` field."""
         self._config["summarizer"] = value
         return self
 
-    def token_threshold(self, value: Union[int, NoneType]) -> Self:
+    def token_threshold(self, value: int | None) -> Self:
         """Set the ``token_threshold`` field."""
         self._config["token_threshold"] = value
         return self
 
-    def event_retention_size(self, value: Union[int, NoneType]) -> Self:
+    def event_retention_size(self, value: int | None) -> Self:
         """Set the ``event_retention_size`` field."""
         self._config["event_retention_size"] = value
         return self
@@ -896,7 +896,7 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"default_on", "stage"}
+    _KNOWN_PARAMS: set[str] = {"stage", "default_on"}
 
     def __init__(self, stage: str) -> None:
         self._config: dict[str, Any] = {"stage": stage}
@@ -920,7 +920,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_cache_duration_seconds", "auto_flush_threshold", "max_cache_size_bytes"}
+    _KNOWN_PARAMS: set[str] = {"max_cache_duration_seconds", "max_cache_size_bytes", "auto_flush_threshold"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -994,23 +994,23 @@ class BigQueryLoggerConfig(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "connection_id",
-        "log_session_metadata",
-        "custom_tags",
         "retry_config",
-        "gcs_bucket_name",
-        "shutdown_timeout",
-        "clustering_fields",
-        "queue_max_size",
-        "enabled",
         "event_allowlist",
+        "gcs_bucket_name",
         "batch_flush_interval",
-        "max_content_length",
-        "content_formatter",
-        "table_id",
-        "log_multi_modal_content",
-        "batch_size",
+        "enabled",
+        "log_session_metadata",
+        "shutdown_timeout",
         "event_denylist",
+        "content_formatter",
+        "connection_id",
+        "custom_tags",
+        "max_content_length",
+        "batch_size",
+        "queue_max_size",
+        "clustering_fields",
+        "log_multi_modal_content",
+        "table_id",
     }
 
     def __init__(self) -> None:
@@ -1078,17 +1078,17 @@ class BigQueryLoggerConfig(BuilderBase):
         self._config["queue_max_size"] = value
         return self
 
-    def content_formatter(self, value: Optional[Callable[[Any, str], Any]]) -> Self:
+    def content_formatter(self, value: Callable[[Any, str], Any] | None) -> Self:
         """Set the ``content_formatter`` field."""
         self._config["content_formatter"] = value
         return self
 
-    def gcs_bucket_name(self, value: Optional[str]) -> Self:
+    def gcs_bucket_name(self, value: str | None) -> Self:
         """Set the ``gcs_bucket_name`` field."""
         self._config["gcs_bucket_name"] = value
         return self
 
-    def connection_id(self, value: Optional[str]) -> Self:
+    def connection_id(self, value: str | None) -> Self:
         """Set the ``connection_id`` field."""
         self._config["connection_id"] = value
         return self
@@ -1115,7 +1115,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_retries", "multiplier", "initial_delay", "max_delay"}
+    _KNOWN_PARAMS: set[str] = {"initial_delay", "max_delay", "max_retries", "multiplier"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1161,12 +1161,12 @@ class GetSessionConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def num_recent_events(self, value: Union[int, NoneType]) -> Self:
+    def num_recent_events(self, value: int | None) -> Self:
         """Set the ``num_recent_events`` field."""
         self._config["num_recent_events"] = value
         return self
 
-    def after_timestamp(self, value: Union[float, NoneType]) -> Self:
+    def after_timestamp(self, value: float | None) -> Self:
         """Set the ``after_timestamp`` field."""
         self._config["after_timestamp"] = value
         return self
@@ -1190,27 +1190,27 @@ class BaseGoogleCredentialsConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials(self, value: Union[Credentials, NoneType]) -> Self:
+    def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def external_access_token_key(self, value: Union[str, NoneType]) -> Self:
+    def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
         self._config["external_access_token_key"] = value
         return self
 
-    def client_id(self, value: Union[str, NoneType]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Union[str, NoneType]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def scopes(self, value: Union[list[str], NoneType]) -> Self:
+    def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
         self._config["scopes"] = value
         return self
@@ -1249,12 +1249,12 @@ class AgentSimulatorConfig(BuilderBase):
         self._config["simulation_model"] = value
         return self
 
-    def tracing_path(self, value: Union[str, NoneType]) -> Self:
+    def tracing_path(self, value: str | None) -> Self:
         """Set the ``tracing_path`` field."""
         self._config["tracing_path"] = value
         return self
 
-    def environment_data(self, value: Union[str, NoneType]) -> Self:
+    def environment_data(self, value: str | None) -> Self:
         """Set the ``environment_data`` field."""
         self._config["environment_data"] = value
         return self
@@ -1288,7 +1288,7 @@ class InjectionConfig(BuilderBase):
         self._config["injection_probability"] = value
         return self
 
-    def match_args(self, value: Union[dict[str, Any], NoneType]) -> Self:
+    def match_args(self, value: dict[str, Any] | None) -> Self:
         """Set the ``match_args`` field."""
         self._config["match_args"] = value
         return self
@@ -1298,17 +1298,17 @@ class InjectionConfig(BuilderBase):
         self._config["injected_latency_seconds"] = value
         return self
 
-    def random_seed(self, value: Union[int, NoneType]) -> Self:
+    def random_seed(self, value: int | None) -> Self:
         """Set the ``random_seed`` field."""
         self._config["random_seed"] = value
         return self
 
-    def injected_error(self, value: Union[InjectedError, NoneType]) -> Self:
+    def injected_error(self, value: InjectedError | None) -> Self:
         """Set the ``injected_error`` field."""
         self._config["injected_error"] = value
         return self
 
-    def injected_response(self, value: Union[dict[str, Any], NoneType]) -> Self:
+    def injected_response(self, value: dict[str, Any] | None) -> Self:
         """Set the ``injected_response`` field."""
         self._config["injected_response"] = value
         return self
@@ -1395,27 +1395,27 @@ class BigQueryCredentialsConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials(self, value: Union[Credentials, NoneType]) -> Self:
+    def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def external_access_token_key(self, value: Union[str, NoneType]) -> Self:
+    def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
         self._config["external_access_token_key"] = value
         return self
 
-    def client_id(self, value: Union[str, NoneType]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Union[str, NoneType]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def scopes(self, value: Union[list[str], NoneType]) -> Self:
+    def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
         self._config["scopes"] = value
         return self
@@ -1439,7 +1439,7 @@ class BigQueryToolConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def locate(self, value: Union[str, NoneType]) -> Self:
+    def locate(self, value: str | None) -> Self:
         """Set the `location` field."""
         self._config["location"] = value
         return self
@@ -1449,7 +1449,7 @@ class BigQueryToolConfig(BuilderBase):
         self._config["write_mode"] = value
         return self
 
-    def maximum_bytes_billed(self, value: Union[int, NoneType]) -> Self:
+    def maximum_bytes_billed(self, value: int | None) -> Self:
         """Set the ``maximum_bytes_billed`` field."""
         self._config["maximum_bytes_billed"] = value
         return self
@@ -1459,17 +1459,17 @@ class BigQueryToolConfig(BuilderBase):
         self._config["max_query_result_rows"] = value
         return self
 
-    def application_name(self, value: Union[str, NoneType]) -> Self:
+    def application_name(self, value: str | None) -> Self:
         """Set the ``application_name`` field."""
         self._config["application_name"] = value
         return self
 
-    def compute_project_id(self, value: Union[str, NoneType]) -> Self:
+    def compute_project_id(self, value: str | None) -> Self:
         """Set the ``compute_project_id`` field."""
         self._config["compute_project_id"] = value
         return self
 
-    def job_labels(self, value: Union[dict[str, str], NoneType]) -> Self:
+    def job_labels(self, value: dict[str, str] | None) -> Self:
         """Set the ``job_labels`` field."""
         self._config["job_labels"] = value
         return self
@@ -1493,27 +1493,27 @@ class BigtableCredentialsConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials(self, value: Union[Credentials, NoneType]) -> Self:
+    def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def external_access_token_key(self, value: Union[str, NoneType]) -> Self:
+    def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
         self._config["external_access_token_key"] = value
         return self
 
-    def client_id(self, value: Union[str, NoneType]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Union[str, NoneType]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def scopes(self, value: Union[list[str], NoneType]) -> Self:
+    def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
         self._config["scopes"] = value
         return self
@@ -1561,27 +1561,27 @@ class DataAgentCredentialsConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials(self, value: Union[Credentials, NoneType]) -> Self:
+    def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def external_access_token_key(self, value: Union[str, NoneType]) -> Self:
+    def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
         self._config["external_access_token_key"] = value
         return self
 
-    def client_id(self, value: Union[str, NoneType]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Union[str, NoneType]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def scopes(self, value: Union[list[str], NoneType]) -> Self:
+    def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
         self._config["scopes"] = value
         return self
@@ -1624,44 +1624,44 @@ class McpToolsetConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def stdio_server_params(self, value: Union[StdioServerParameters, NoneType]) -> Self:
+    def stdio_server_params(self, value: StdioServerParameters | None) -> Self:
         """Set the ``stdio_server_params`` field."""
         self._config["stdio_server_params"] = value
         return self
 
-    def stdio_connection_params(self, value: Union[StdioConnectionParams, NoneType]) -> Self:
+    def stdio_connection_params(self, value: StdioConnectionParams | None) -> Self:
         """Set the ``stdio_connection_params`` field."""
         self._config["stdio_connection_params"] = value
         return self
 
-    def sse_connection_params(self, value: Union[SseConnectionParams, NoneType]) -> Self:
+    def sse_connection_params(self, value: SseConnectionParams | None) -> Self:
         """Set the ``sse_connection_params`` field."""
         self._config["sse_connection_params"] = value
         return self
 
-    def streamable_http_connection_params(self, value: Union[StreamableHTTPConnectionParams, NoneType]) -> Self:
+    def streamable_http_connection_params(self, value: StreamableHTTPConnectionParams | None) -> Self:
         """Set the ``streamable_http_connection_params`` field."""
         self._config["streamable_http_connection_params"] = value
         return self
 
-    def tool_filter(self, value: Union[list[str], NoneType]) -> Self:
+    def tool_filter(self, value: list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
         self._config["tool_filter"] = value
         return self
 
-    def tool_name_prefix(self, value: Union[str, NoneType]) -> Self:
+    def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
         self._config["tool_name_prefix"] = value
         return self
 
     def auth_scheme(
-        self, value: Union[APIKey, HTTPBase, OAuth2, OpenIdConnect, HTTPBearer, OpenIdConnectWithConfig, NoneType]
+        self, value: APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig | None
     ) -> Self:
         """Set the ``auth_scheme`` field."""
         self._config["auth_scheme"] = value
         return self
 
-    def auth_credential(self, value: Union[AuthCredential, NoneType]) -> Self:
+    def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
         self._config["auth_credential"] = value
         return self
@@ -1714,27 +1714,27 @@ class PubSubCredentialsConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials(self, value: Union[Credentials, NoneType]) -> Self:
+    def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def external_access_token_key(self, value: Union[str, NoneType]) -> Self:
+    def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
         self._config["external_access_token_key"] = value
         return self
 
-    def client_id(self, value: Union[str, NoneType]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Union[str, NoneType]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def scopes(self, value: Union[list[str], NoneType]) -> Self:
+    def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
         self._config["scopes"] = value
         return self
@@ -1758,27 +1758,27 @@ class SpannerCredentialsConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def credentials(self, value: Union[Credentials, NoneType]) -> Self:
+    def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
         self._config["credentials"] = value
         return self
 
-    def external_access_token_key(self, value: Union[str, NoneType]) -> Self:
+    def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
         self._config["external_access_token_key"] = value
         return self
 
-    def client_id(self, value: Union[str, NoneType]) -> Self:
+    def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
         self._config["client_id"] = value
         return self
 
-    def client_secret(self, value: Union[str, NoneType]) -> Self:
+    def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
         self._config["client_secret"] = value
         return self
 
-    def scopes(self, value: Union[list[str], NoneType]) -> Self:
+    def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
         self._config["scopes"] = value
         return self
@@ -1840,7 +1840,7 @@ class ToolConfig(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def args(self, value: Union[ToolArgsConfig, NoneType]) -> Self:
+    def args(self, value: ToolArgsConfig | None) -> Self:
         """The args for the tool."""
         self._config["args"] = value
         return self

@@ -31,17 +31,17 @@ class App(BuilderBase):
         self._config["plugins"] = value
         return self
 
-    def events_compaction_config(self, value: Union[EventsCompactionConfig, NoneType]) -> Self:
+    def events_compaction_config(self, value: EventsCompactionConfig | None) -> Self:
         """Set the ``events_compaction_config`` field."""
         self._config["events_compaction_config"] = value
         return self
 
-    def context_cache_config(self, value: Union[ContextCacheConfig, NoneType]) -> Self:
+    def context_cache_config(self, value: ContextCacheConfig | None) -> Self:
         """Set the ``context_cache_config`` field."""
         self._config["context_cache_config"] = value
         return self
 
-    def resumability_config(self, value: Union[ResumabilityConfig, NoneType]) -> Self:
+    def resumability_config(self, value: ResumabilityConfig | None) -> Self:
         """Set the ``resumability_config`` field."""
         self._config["resumability_config"] = value
         return self
@@ -63,29 +63,29 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"app_name", "agent", "plugin_close_timeout", "app", "plugins"}
+    _KNOWN_PARAMS: set[str] = {"plugin_close_timeout", "app", "agent", "plugins", "app_name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def agent(self, value: Optional[BaseAgent]) -> Self:
+    def agent(self, value: BaseAgent | None) -> Self:
         """Set the ``agent`` field."""
         self._config["agent"] = value
         return self
 
-    def app_name(self, value: Optional[str]) -> Self:
+    def app_name(self, value: str | None) -> Self:
         """Set the ``app_name`` field."""
         self._config["app_name"] = value
         return self
 
-    def plugins(self, value: Optional[list[BasePlugin]]) -> Self:
+    def plugins(self, value: list[BasePlugin] | None) -> Self:
         """Set the ``plugins`` field."""
         self._config["plugins"] = value
         return self
 
-    def app(self, value: Optional[App]) -> Self:
+    def app(self, value: App | None) -> Self:
         """Set the ``app`` field."""
         self._config["app"] = value
         return self
@@ -108,16 +108,16 @@ class Runner(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "memory_service",
-        "auto_create_session",
         "session_service",
-        "app_name",
-        "artifact_service",
-        "agent",
-        "plugin_close_timeout",
-        "app",
         "credential_service",
+        "plugin_close_timeout",
+        "memory_service",
+        "artifact_service",
+        "auto_create_session",
+        "app",
+        "agent",
         "plugins",
+        "app_name",
     }
 
     def __init__(self, session_service: str) -> None:
@@ -125,37 +125,37 @@ class Runner(BuilderBase):
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
 
-    def app(self, value: Optional[App]) -> Self:
+    def app(self, value: App | None) -> Self:
         """Set the ``app`` field."""
         self._config["app"] = value
         return self
 
-    def app_name(self, value: Optional[str]) -> Self:
+    def app_name(self, value: str | None) -> Self:
         """Set the ``app_name`` field."""
         self._config["app_name"] = value
         return self
 
-    def agent(self, value: Optional[BaseAgent]) -> Self:
+    def agent(self, value: BaseAgent | None) -> Self:
         """Set the ``agent`` field."""
         self._config["agent"] = value
         return self
 
-    def plugins(self, value: Optional[List[BasePlugin]]) -> Self:
+    def plugins(self, value: list[BasePlugin] | None) -> Self:
         """Set the ``plugins`` field."""
         self._config["plugins"] = value
         return self
 
-    def artifact_service(self, value: Optional[BaseArtifactService]) -> Self:
+    def artifact_service(self, value: BaseArtifactService | None) -> Self:
         """Set the ``artifact_service`` field."""
         self._config["artifact_service"] = value
         return self
 
-    def memory_service(self, value: Optional[BaseMemoryService]) -> Self:
+    def memory_service(self, value: BaseMemoryService | None) -> Self:
         """Set the ``memory_service`` field."""
         self._config["memory_service"] = value
         return self
 
-    def credential_service(self, value: Optional[BaseCredentialService]) -> Self:
+    def credential_service(self, value: BaseCredentialService | None) -> Self:
         """Set the ``credential_service`` field."""
         self._config["credential_service"] = value
         return self

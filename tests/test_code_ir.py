@@ -270,7 +270,7 @@ def test_roundtrip_builder_spec_to_ir_to_python():
     assert "class TestBuilder(BuilderBase):" in source
     assert "def __init__(self, name: str)" in source
     assert "def instruct(self, value: str" in source
-    assert "def before_model(self, *fns: Callable) -> Self:" in source
+    assert "def before_model(self, *fns: Callable[..., Any]) -> Self:" in source
     assert "def before_model_if(self, condition: bool" in source
     assert "def build(self)" in source
     assert 'self._config["instruction"] = value' in source
