@@ -8,27 +8,53 @@ on:
     branches: [master]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ---------------------------------------------------------------------------
-  # LINT — ruff check + format check
+  # LINT — pre-commit (ruff format/check, mdformat, trailing whitespace, etc.)
   # ---------------------------------------------------------------------------
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
+          enable-cache: true
 
-      - name: Install ruff
-        run: pip install ruff
+      - uses: taiki-e/install-action@just
 
-      - name: Ruff check
-        run: ruff check .
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-      - name: Ruff format check
-        run: ruff format --check .
+      - name: Run Pre-commit Hooks
+        run: uv run pre-commit run --all-files
+
+  # ---------------------------------------------------------------------------
+  # TYPECHECK — validates generated stubs against source
+  # ---------------------------------------------------------------------------
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - uses: taiki-e/install-action@just
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Generate Code and Stubs
+        run: just scan seed generate
+
+      - name: Run pyright Typecheck
+        run: just typecheck
 
   # ---------------------------------------------------------------------------
   # TEST — runs on every push and PR, across Python versions
@@ -41,27 +67,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
 
+      - uses: taiki-e/install-action@just
+
       - name: Install dependencies
-        run: |
-          pip install google-adk pytest pytest-asyncio pytest-cov ruff
-          pip install -e ".[dev]"
+        run: uv sync --all-extras
 
-      - name: Run codegen pipeline
-        run: |
-          python scripts/scanner.py -o manifest.json
-          python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
-          python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
-          python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
-          ruff check --fix . || true
-          ruff format .
-          ruff check .
+      - name: Generate Code
+        run: just scan seed generate
 
-      - name: Run tests with coverage
-        run: pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=xml --cov-report=term-missing
+      - name: Run Tests with coverage
+        run: uv run pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
@@ -76,32 +96,25 @@ jobs:
   # BUILD — produces the wheel and sdist
   # ---------------------------------------------------------------------------
   build:
-    needs: [lint, test]
+    needs: [lint, typecheck, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
+          enable-cache: true
+
+      - uses: taiki-e/install-action@just
 
       - name: Install dependencies
-        run: |
-          pip install google-adk hatch ruff
-          pip install -e ".[dev]"
+        run: uv sync --all-extras
 
-      - name: Run codegen pipeline
-        run: |
-          python scripts/scanner.py -o manifest.json
-          python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
-          python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
-          python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
-          ruff check --fix . || true
-          ruff format .
-          ruff check .
+      - name: Generate Code
+        run: just scan seed generate
 
       - name: Build package
-        run: hatch build
+        run: uv run hatch build
 
       - uses: actions/upload-artifact@v4
         with:
@@ -109,16 +122,7 @@ jobs:
           path: dist/
 
   # ---------------------------------------------------------------------------
-  # PUBLISH — PyPI via Trusted Publishing (OIDC, no tokens needed)
-  #
-  # Setup (one-time):
-  #   1. Go to https://pypi.org/manage/project/adk-fluent/settings/publishing/
-  #   2. Add a "GitHub Actions" trusted publisher:
-  #        Owner:      vamsiramakrishnan
-  #        Repository: adk-fluent
-  #        Workflow:   ci.yml
-  #        Environment: pypi
-  #   3. That's it — no API tokens or secrets to manage.
+  # PUBLISH — PyPI via Trusted Publishing
   # ---------------------------------------------------------------------------
   publish-pypi:
     needs: build

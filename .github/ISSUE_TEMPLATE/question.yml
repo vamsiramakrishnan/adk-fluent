@@ -1,0 +1,25 @@
+name: Question / Q&A
+description: Ask a question about how to use adk-fluent
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest! We're here to help you get the most out of adk-fluent.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What are you trying to achieve? Where are you stuck?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context or Code Snippet
+      description: Share any code you've written or additional context that would help us understand your goal.
+      render: python
+    validations:
+      required: false
