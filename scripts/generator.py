@@ -21,6 +21,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import stat
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -1084,6 +1086,21 @@ def _discover_manual_exports(output_dir: str) -> list[tuple[str, list[str]]]:
     return result
 
 
+def _write_file(path: Path, content: str):
+    """Write content to a file and make it read-only (0o444).
+    If the file exists and is read-only, make it writable first.
+    """
+    if path.exists():
+        # Make it writable if it's read-only
+        current_mode = os.stat(path).st_mode
+        if not current_mode & stat.S_IWUSR:
+            os.chmod(path, current_mode | stat.S_IWUSR)
+
+    path.write_text(content)
+    # Make it read-only: r--r--r--
+    os.chmod(path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+
+
 def generate_all(
     seed_path: str,
     manifest_path: str,
@@ -1113,7 +1130,7 @@ def generate_all(
             ir_module = specs_to_ir_module(module_specs)
             code = emit_python(ir_module)
             filepath = output_path / f"{module_name}.py"
-            filepath.write_text(code)
+            _write_file(filepath, code)
             print(f"  Generated: {filepath}")
 
         # Auto-discover manual module exports first (needed for __all__)
@@ -1152,7 +1169,7 @@ def generate_all(
             init_lines.extend(manual_import_lines)
 
         init_path = output_path / "__init__.py"
-        init_path.write_text("\n".join(init_lines) + "\n")
+        _write_file(init_path, "\n".join(init_lines) + "\n")
         print(f"  Generated: {init_path}")
 
     # --- Generate .pyi stubs ---
@@ -1161,7 +1178,7 @@ def generate_all(
             ir_stub_module = specs_to_ir_stub_module(module_specs, adk_version)
             stub = emit_stub(ir_stub_module)
             filepath = output_path / f"{module_name}.pyi"
-            filepath.write_text(stub)
+            _write_file(filepath, stub)
             print(f"  Generated: {filepath}")
 
     # --- Generate test scaffolds ---
@@ -1173,7 +1190,7 @@ def generate_all(
             ir_test_module = specs_to_ir_test_module(module_specs)
             test_code = emit_python(ir_test_module)
             filepath = test_path / f"test_{module_name}_builder.py"
-            filepath.write_text(test_code)
+            _write_file(filepath, test_code)
             print(f"  Generated: {filepath}")
 
     # --- Summary ---

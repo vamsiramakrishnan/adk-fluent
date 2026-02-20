@@ -13,6 +13,11 @@
 #   just diff       → Show what changed since last scan
 #   just clean      → Remove generated files
 #
+#   --- 100x DX COMMANDS ---
+#   just watch      → Auto-run generate+test on changes
+#   just repl       → Pre-loaded IPython playground
+#   just add-cookbook "Name" → Scaffold new example
+#
 # First-time setup:
 #   uv venv .venv && source .venv/bin/activate
 #   uv pip install google-adk pytest pyright
@@ -56,9 +61,14 @@ generate: _require-manifest _require-seed
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
     @uv run python {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
+    @# Make files writable for Ruff
+    @chmod -R +w {{OUTPUT_DIR}} {{TEST_DIR}} || true
     @uv run ruff check --fix . || true
     @uv run ruff format .
     @uv run ruff check .
+    @# Re-apply read-only trap
+    @chmod -R -w {{OUTPUT_DIR}} {{TEST_DIR}} || true
+    @chmod +w {{OUTPUT_DIR}}/__init__.py {{OUTPUT_DIR}}/_base.py {{OUTPUT_DIR}}/_routing.py {{OUTPUT_DIR}}/_transforms.py {{OUTPUT_DIR}}/_prompt.py {{OUTPUT_DIR}}/_helpers.py {{OUTPUT_DIR}}/_context.py {{OUTPUT_DIR}}/_visibility.py || true
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed
@@ -90,6 +100,11 @@ test:
 typecheck:
     @echo "Type-checking generated stubs..."
     @uv run pyright {{OUTPUT_DIR}}/ --pythonversion 3.12
+
+# --- Watch mode ---
+watch:
+    @echo "Watching for changes..."
+    @uv run watchfiles "just generate test typecheck" scripts/ seeds/ src/ tests/ manual/
 
 # --- Documentation ---
 docs: _require-manifest _require-seed
@@ -128,9 +143,17 @@ docs-build: docs
 
 # --- Sphinx live preview ---
 docs-serve: docs
-    @echo "Building and serving docs at http://localhost:8000..."
-    @uv run sphinx-build -b html docs/ {{SPHINX_OUT}}
-    @cd {{SPHINX_OUT}} && python -m http.server 8000
+    @echo "Serving docs with live reload at http://localhost:8000..."
+    @uv run sphinx-autobuild docs/ {{SPHINX_OUT}} --watch {{DOC_DIR}} --watch src/ --port 8000
+
+# --- REPL ---
+repl:
+    @echo "Starting ADK-Fluent playground..."
+    @uv run ipython -i -c "from adk_fluent import *; print('\nADK-Fluent playground loaded! (Agent, Pipeline, S, C available)')"
+
+# --- Add Cookbook ---
+add-cookbook name:
+    @uv run python scripts/add_cookbook.py "{{name}}"
 
 # --- Cookbook generation ---
 cookbook-gen: _require-manifest _require-seed
@@ -204,12 +227,15 @@ help:
     @echo "  just lint           Run ruff check + format check"
     @echo "  just test           Run pytest suite"
     @echo "  just typecheck      Run pyright type-check"
+    @echo "  just watch          Auto-run generate+test on changes"
+    @echo "  just repl           Pre-loaded IPython playground"
+    @echo "  just add-cookbook   Scaffold new example"
     @echo "  just docs           Generate all documentation"
     @echo "  just docs-api       Generate API reference only"
     @echo "  just docs-cookbook   Generate cookbook only"
     @echo "  just docs-migration Generate migration guide only"
     @echo "  just docs-build     Build Sphinx HTML documentation"
-    @echo "  just docs-serve     Build and serve docs at localhost:8000"
+    @echo "  just docs-serve     Build and serve docs with live reload"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"
