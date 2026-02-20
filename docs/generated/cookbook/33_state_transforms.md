@@ -24,8 +24,9 @@ graph TD
     n7 --> n8
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires custom BaseAgent subclasses for any state transform.
 # In a clinical research pipeline, each data cleaning step becomes a class:
@@ -48,8 +49,10 @@ class RenameForReport(NativeBaseAgent):
 
 # Each transform = a new class. No composability.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, S, Pipeline
 from adk_fluent._transforms import StateDelta, StateReplacement
@@ -143,6 +146,7 @@ research_pipeline = (
     )
 )
 ```
+
 :::
 ::::
 

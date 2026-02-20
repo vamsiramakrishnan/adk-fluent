@@ -76,12 +76,12 @@ Use `.isolate()` for any agent that should complete its task and return to the c
 
 All four combinations of the two flags and their resulting behavior:
 
-| `disallow_transfer_to_parent` | `disallow_transfer_to_peers` | Behavior |
-|:----:|:----:|------|
-| `False` | `False` | **Full transfer.** Agent can transfer to parent, siblings, and its own children. Default behavior. |
-| `True` | `False` | **Peers only.** Agent can transfer to siblings but not back to parent. Useful for peer-to-peer handoff chains. |
-| `False` | `True` | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing. |
-| `True` | `True` | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically. This is what `.isolate()` sets. |
+| `disallow_transfer_to_parent` | `disallow_transfer_to_peers` | Behavior                                                                                                                                   |
+| :---------------------------: | :--------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------ |
+|            `False`            |           `False`            | **Full transfer.** Agent can transfer to parent, siblings, and its own children. Default behavior.                                         |
+|            `True`             |           `False`            | **Peers only.** Agent can transfer to siblings but not back to parent. Useful for peer-to-peer handoff chains.                             |
+|            `False`            |            `True`            | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing.                       |
+|            `True`             |            `True`            | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically. This is what `.isolate()` sets. |
 
 ## Common Patterns
 

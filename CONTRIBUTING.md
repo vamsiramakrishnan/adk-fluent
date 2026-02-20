@@ -38,57 +38,57 @@ scanner.py --> manifest.json --> seed_generator.py --> seed.toml --> generator.p
 
 ### Key directories
 
-| Path | What it is | Hand-written? |
-|------|-----------|---------------|
-| `src/adk_fluent/agent.py` | Agent builder | Auto-generated |
-| `src/adk_fluent/workflow.py` | Pipeline/FanOut/Loop builders | Auto-generated |
-| `src/adk_fluent/_base.py` | Operators, primitives | Hand-written |
-| `src/adk_fluent/_routing.py` | Route builder | Hand-written |
-| `src/adk_fluent/_transforms.py` | S.* state transforms | Hand-written |
-| `src/adk_fluent/_prompt.py` | Prompt builder | Hand-written |
-| `scripts/` | Codegen pipeline | Hand-written |
-| `seeds/seed.toml` | Generator configuration | Auto-generated + manual overrides |
-| `seeds/seed.manual.toml` | Manual overrides merged into seed | Hand-written |
-| `examples/cookbook/` | 43 runnable examples | Hand-written |
-| `tests/generated/` | Auto-generated tests | Auto-generated |
-| `tests/manual/` | Hand-written tests | Hand-written |
+| Path                            | What it is                        | Hand-written?                     |
+| ------------------------------- | --------------------------------- | --------------------------------- |
+| `src/adk_fluent/agent.py`       | Agent builder                     | Auto-generated                    |
+| `src/adk_fluent/workflow.py`    | Pipeline/FanOut/Loop builders     | Auto-generated                    |
+| `src/adk_fluent/_base.py`       | Operators, primitives             | Hand-written                      |
+| `src/adk_fluent/_routing.py`    | Route builder                     | Hand-written                      |
+| `src/adk_fluent/_transforms.py` | S.\* state transforms             | Hand-written                      |
+| `src/adk_fluent/_prompt.py`     | Prompt builder                    | Hand-written                      |
+| `scripts/`                      | Codegen pipeline                  | Hand-written                      |
+| `seeds/seed.toml`               | Generator configuration           | Auto-generated + manual overrides |
+| `seeds/seed.manual.toml`        | Manual overrides merged into seed | Hand-written                      |
+| `examples/cookbook/`            | 43 runnable examples              | Hand-written                      |
+| `tests/generated/`              | Auto-generated tests              | Auto-generated                    |
+| `tests/manual/`                 | Hand-written tests                | Hand-written                      |
 
 ### Important: editing generated files
 
 Files in `src/adk_fluent/agent.py`, `workflow.py`, and other generated modules will be **overwritten** when the generator runs. To make persistent changes:
 
 1. Update `scripts/seed_generator.py` (for extras, aliases, docstrings)
-2. Update `seeds/seed.toml` or `seeds/seed.manual.toml` (for config)
-3. Update `scripts/generator.py` (for new behavior types)
-4. Regenerate: `just generate`
-5. Verify the generated output matches your intent
+1. Update `seeds/seed.toml` or `seeds/seed.manual.toml` (for config)
+1. Update `scripts/generator.py` (for new behavior types)
+1. Regenerate: `just generate`
+1. Verify the generated output matches your intent
 
 ## Making Changes
 
 ### Bug fixes and small improvements
 
 1. Fork the repo and create a branch: `git checkout -b fix/description`
-2. Make your changes
-3. Run tests: `just test`
-4. Commit with a descriptive message
-5. Open a PR
+1. Make your changes
+1. Run tests: `just test`
+1. Commit with a descriptive message
+1. Open a PR
 
 ### New features
 
 1. Open an issue first to discuss the approach
-2. Fork and branch: `git checkout -b feat/description`
-3. Add tests in `tests/manual/` for hand-written code
-4. Add a cookbook example in `examples/cookbook/` if applicable
-5. Run the full suite: `just test`
-6. Open a PR
+1. Fork and branch: `git checkout -b feat/description`
+1. Add tests in `tests/manual/` for hand-written code
+1. Add a cookbook example in `examples/cookbook/` if applicable
+1. Run the full suite: `just test`
+1. Open a PR
 
 ### Adding a new primitive or operator
 
 1. Implement in `src/adk_fluent/_base.py`
-2. Export from `src/adk_fluent/__init__.py`
-3. Add tests in `tests/manual/`
-4. Add a cookbook example
-5. Update the README expression language tables
+1. Export from `src/adk_fluent/__init__.py`
+1. Add tests in `tests/manual/`
+1. Add a cookbook example
+1. Update the README expression language tables
 
 ## Code Style
 
@@ -126,8 +126,8 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ## Pull Request Process
 
 1. Update the CHANGELOG.md with your changes under `[Unreleased]`
-2. Ensure all tests pass and pre-commit hooks are clean
-3. The PR will be reviewed and merged by a maintainer
+1. Ensure all tests pass and pre-commit hooks are clean
+1. The PR will be reviewed and merged by a maintainer
 
 ## License
 

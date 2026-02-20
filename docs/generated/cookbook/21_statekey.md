@@ -4,8 +4,9 @@
 
 _Source: `21_statekey.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK uses raw string keys and untyped state access:
 #   ctx.state["order_count"] = ctx.state.get("order_count", 0) + 1
@@ -14,8 +15,10 @@ _Source: `21_statekey.py`_
 # Problems: typos are silent, no type hints, scope prefixes are manual,
 # and there's no way to set defaults or validate types.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import StateKey
 
@@ -34,6 +37,7 @@ store_version = StateKey("store_version", scope="app", type=str, default="v2.1")
 #   order_count.increment(ctx)          # Convenience for numerics
 #   cart_items.append(ctx, {"sku": "LAPTOP-001", "qty": 1})
 ```
+
 :::
 ::::
 

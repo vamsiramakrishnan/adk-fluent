@@ -26,26 +26,26 @@ In multi-agent pipelines, every agent shares the same conversation session. With
 Context engineering solves three problems:
 
 1. **Token budgets.** LLMs have finite context windows. Passing the full history to every agent burns tokens on content that does not help the current task.
-2. **Irrelevant history.** A classifier agent does not need to see the drafts produced by a writer agent three steps earlier. Passing them in adds noise.
-3. **Leaked reasoning.** When agents see each other's chain-of-thought, they anchor on prior conclusions instead of reasoning independently.
+1. **Irrelevant history.** A classifier agent does not need to see the drafts produced by a writer agent three steps earlier. Passing them in adds noise.
+1. **Leaked reasoning.** When agents see each other's chain-of-thought, they anchor on prior conclusions instead of reasoning independently.
 
 `C` primitives let you declare exactly what each agent should see -- and nothing more.
 
 ## Primitives Reference
 
-| Factory | Purpose |
-|---------|---------|
-| `C.none()` | Suppress all conversation history |
-| `C.default()` | Keep default history (pass-through) |
-| `C.user_only()` | Include only user messages |
-| `C.from_state(*keys)` | Inject state keys into instruction |
-| `C.from_agents(*names)` | Include user + named agent outputs |
-| `C.exclude_agents(*names)` | Exclude named agent outputs |
-| `C.window(n=)` | Last N turn-pairs only |
-| `C.template(str)` | Render template from state |
-| `C.capture(key)` | Capture user message to state |
-| `C.budget(max_tokens=)` | Token budget constraint |
-| `C.priority(tier=)` | Priority tier for ordering |
+| Factory                    | Purpose                             |
+| -------------------------- | ----------------------------------- |
+| `C.none()`                 | Suppress all conversation history   |
+| `C.default()`              | Keep default history (pass-through) |
+| `C.user_only()`            | Include only user messages          |
+| `C.from_state(*keys)`      | Inject state keys into instruction  |
+| `C.from_agents(*names)`    | Include user + named agent outputs  |
+| `C.exclude_agents(*names)` | Exclude named agent outputs         |
+| `C.window(n=)`             | Last N turn-pairs only              |
+| `C.template(str)`          | Render template from state          |
+| `C.capture(key)`           | Capture user message to state       |
+| `C.budget(max_tokens=)`    | Token budget constraint             |
+| `C.priority(tier=)`        | Priority tier for ordering          |
 
 ## `C.none()`
 

@@ -4,17 +4,17 @@ Nine operators compose any agent topology. All operators are **immutable** -- su
 
 ## Operator Summary
 
-| Operator | Meaning | ADK Type |
-|----------|---------|----------|
-| `a >> b` | Sequence | `SequentialAgent` |
-| `a >> fn` | Function step | Zero-cost transform |
-| `a \| b` | Parallel | `ParallelAgent` |
-| `a * 3` | Loop (fixed) | `LoopAgent` |
-| `a * until(pred)` | Loop (conditional) | `LoopAgent` + checkpoint |
-| `a @ Schema` | Typed output | `output_schema` |
-| `a // b` | Fallback | First-success chain |
-| `Route("key").eq(...)` | Branch | Deterministic routing |
-| `S.pick(...)`, `S.rename(...)` | State transforms | Dict operations via `>>` |
+| Operator                       | Meaning            | ADK Type                 |
+| ------------------------------ | ------------------ | ------------------------ |
+| `a >> b`                       | Sequence           | `SequentialAgent`        |
+| `a >> fn`                      | Function step      | Zero-cost transform      |
+| `a \| b`                       | Parallel           | `ParallelAgent`          |
+| `a * 3`                        | Loop (fixed)       | `LoopAgent`              |
+| `a * until(pred)`              | Loop (conditional) | `LoopAgent` + checkpoint |
+| `a @ Schema`                   | Typed output       | `output_schema`          |
+| `a // b`                       | Fallback           | First-success chain      |
+| `Route("key").eq(...)`         | Branch             | Deterministic routing    |
+| `S.pick(...)`, `S.rename(...)` | State transforms   | Dict operations via `>>` |
 
 ## Immutability
 

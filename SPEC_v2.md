@@ -1,10 +1,10 @@
 # ADK-FLUENT: Complete Specification v2
 
-**Status:** Supersedes SPEC.md and SPEC_ADDENDUM.md  
-**Architecture:** Scanner + Seed + Generator (codegen pipeline)  
-**Position:** Community extension library for google-adk  
+**Status:** Supersedes SPEC.md and SPEC_ADDENDUM.md\
+**Architecture:** Scanner + Seed + Generator (codegen pipeline)\
+**Position:** Community extension library for google-adk
 
----
+______________________________________________________________________
 
 ## 1. Executive Summary
 
@@ -21,7 +21,7 @@ seed.toml (human intent)  +  manifest.json (machine truth)  →  generated code
 
 **The maintenance cost of tracking ADK upstream: merge one auto-PR per release cycle.**
 
----
+______________________________________________________________________
 
 ## 2. Architecture Overview
 
@@ -76,22 +76,23 @@ The solution exploits ADK's own architectural decision: **everything is Pydantic
 **Principle: the source of truth is the thing being wrapped, not the wrapper.**
 
 This is the same pattern behind:
+
 - SQLAlchemy: reads DB schema → generates accessors
 - Django REST Framework: reads model fields → generates serializers
 - numpy/pandas: C runtime + .pyi stubs for DX
 
 ### 2.3 What Humans Edit vs What Machines Generate
 
-| Artifact | Created By | Edited By | When |
-|---|---|---|---|
-| `seed.toml` | Human (once) | Human (rarely) | When adding aliases, new builders, or behaviors |
-| `manifest.json` | Scanner (automated) | Never | Every scan (weekly CI) |
-| `src/adk_fluent/*.py` | Generator | Never | Every generation run |
-| `src/adk_fluent/*.pyi` | Generator | Never | Every generation run |
-| `tests/generated/*` | Generator | Never | Every generation run |
-| `tests/manual/*` | Human | Human | For edge cases the generator can't cover |
+| Artifact               | Created By          | Edited By      | When                                            |
+| ---------------------- | ------------------- | -------------- | ----------------------------------------------- |
+| `seed.toml`            | Human (once)        | Human (rarely) | When adding aliases, new builders, or behaviors |
+| `manifest.json`        | Scanner (automated) | Never          | Every scan (weekly CI)                          |
+| `src/adk_fluent/*.py`  | Generator           | Never          | Every generation run                            |
+| `src/adk_fluent/*.pyi` | Generator           | Never          | Every generation run                            |
+| `tests/generated/*`    | Generator           | Never          | Every generation run                            |
+| `tests/manual/*`       | Human               | Human          | For edge cases the generator can't cover        |
 
----
+______________________________________________________________________
 
 ## 3. The Scanner (`scripts/scanner.py`)
 
@@ -118,17 +119,17 @@ SCAN_TARGETS = [
 
 For each class, the scanner extracts:
 
-| Data | Source | Purpose |
-|---|---|---|
-| Field names | `cls.model_fields.keys()` | Method names for stubs |
-| Field types | `get_type_hints(cls)` | Type annotations for stubs |
-| Field defaults | `field_info.default` | Whether field is required |
-| Field descriptions | `field_info.description` | Docstrings for generated methods |
-| Is callback? | Heuristic: `Callable` in type | Identify additive fields |
-| Is list? | Heuristic: `list[` prefix | Identify extend fields |
-| Inherited from? | Walk `__mro__` | Track field origin |
-| Validators | `__validators__` | Document constraints |
-| Own vs inherited | Compare against parent `model_fields` | Minimize redundant generation |
+| Data               | Source                                | Purpose                          |
+| ------------------ | ------------------------------------- | -------------------------------- |
+| Field names        | `cls.model_fields.keys()`             | Method names for stubs           |
+| Field types        | `get_type_hints(cls)`                 | Type annotations for stubs       |
+| Field defaults     | `field_info.default`                  | Whether field is required        |
+| Field descriptions | `field_info.description`              | Docstrings for generated methods |
+| Is callback?       | Heuristic: `Callable` in type         | Identify additive fields         |
+| Is list?           | Heuristic: `list[` prefix             | Identify extend fields           |
+| Inherited from?    | Walk `__mro__`                        | Track field origin               |
+| Validators         | `__validators__`                      | Document constraints             |
+| Own vs inherited   | Compare against parent `model_fields` | Minimize redundant generation    |
 
 ### 3.4 Manifest Format
 
@@ -175,6 +176,7 @@ python scripts/scanner.py --diff manifest.previous.json
 ```
 
 Output:
+
 ```json
 {
   "adk_version_old": "1.24.0",
@@ -191,13 +193,14 @@ Output:
 }
 ```
 
----
+______________________________________________________________________
 
 ## 4. The Seed (`seeds/seed.toml`)
 
 ### 4.1 Philosophy
 
 The seed encodes **human ergonomic intent** — decisions a machine can't make:
+
 - Should `instruction` be aliased to `instruct`? (Yes — better verb form)
 - Should `before_model_callback` be additive or replace? (Additive — accumulate)
 - Should `parent_agent` be exposed? (No — managed internally)
@@ -246,26 +249,26 @@ signature = "(self, query: str, *, user_id: str = 'default') -> str"
 
 ### 4.3 Seed Modification Scenarios
 
-| Scenario | Seed Change | Generator Impact |
-|---|---|---|
-| ADK adds `safety_config` field | **Nothing** — `__getattr__` handles it, stubs auto-regenerate | Auto-PR with updated `.pyi` |
-| You want `.safe(config)` alias | Add `safe = "safety_config"` to `[builders.Agent.aliases]` | Regenerate: new explicit method + stub |
-| ADK adds new callback field | Add to `[global] additive_fields` | Regenerate: proper append semantics |
-| ADK adds new agent type `PlannerAgent` | Add new `[builders.Planner]` section | Regenerate: new builder class |
-| ADK removes a field | **Nothing** — scanner detects, diff reports, tests fail naturally | Fix tests, release |
-| ADK renames a field | Update alias if needed | Regenerate |
+| Scenario                               | Seed Change                                                       | Generator Impact                       |
+| -------------------------------------- | ----------------------------------------------------------------- | -------------------------------------- |
+| ADK adds `safety_config` field         | **Nothing** — `__getattr__` handles it, stubs auto-regenerate     | Auto-PR with updated `.pyi`            |
+| You want `.safe(config)` alias         | Add `safe = "safety_config"` to `[builders.Agent.aliases]`        | Regenerate: new explicit method + stub |
+| ADK adds new callback field            | Add to `[global] additive_fields`                                 | Regenerate: proper append semantics    |
+| ADK adds new agent type `PlannerAgent` | Add new `[builders.Planner]` section                              | Regenerate: new builder class          |
+| ADK removes a field                    | **Nothing** — scanner detects, diff reports, tests fail naturally | Fix tests, release                     |
+| ADK renames a field                    | Update alias if needed                                            | Regenerate                             |
 
 ### 4.4 Builder Types
 
 The seed supports four source types:
 
-| Source Type | Example | Pydantic Introspection | `__getattr__` |
-|---|---|---|---|
-| ADK BaseModel | `google.adk.agents.LlmAgent` | Yes | Yes |
-| `__composite__` | Runtime (Runner + services) | No | No |
-| `__standalone__` | MiddlewareStack | No | No |
+| Source Type      | Example                      | Pydantic Introspection | `__getattr__` |
+| ---------------- | ---------------------------- | ---------------------- | ------------- |
+| ADK BaseModel    | `google.adk.agents.LlmAgent` | Yes                    | Yes           |
+| `__composite__`  | Runtime (Runner + services)  | No                     | No            |
+| `__standalone__` | MiddlewareStack              | No                     | No            |
 
----
+______________________________________________________________________
 
 ## 5. The Generator (`scripts/generator.py`)
 
@@ -274,17 +277,20 @@ The seed supports four source types:
 For each builder defined in the seed:
 
 **Runtime `.py` file:**
+
 - Alias constants (`_ALIASES`, `_CALLBACK_ALIASES`, `_ADDITIVE_FIELDS`)
 - Builder class with `__init__`, alias methods, callback methods, extra methods
 - `__getattr__` forwarding validated against `SourceClass.model_fields`
 - `build()` terminal that resolves to native ADK constructor
 
 **Type stub `.pyi` file:**
+
 - Full method signatures with proper types from manifest
 - Covers aliases + callbacks + every non-skipped Pydantic field
 - Enables IDE autocomplete and pyright/mypy strict mode
 
 **Test scaffold `.py` file:**
+
 - Equivalence tests: fluent chain produces same object as native construction
 - Alias tests: `.instruct("x")` sets `instruction = "x"`
 - `__getattr__` tests: forwarded fields work correctly
@@ -371,19 +377,21 @@ class Agent:
     def ask(self, query: str, *, user_id: str = ...) -> str: ...
 ```
 
----
+______________________________________________________________________
 
 ## 6. Fluent API Surface (Unchanged from v1)
 
 The user-facing API is identical to the original spec. What changes is *how it's built*.
 
 ### Level 0 — One-Shot
+
 ```python
 from adk_fluent import Agent
 response = Agent("helper", "gemini-2.5-flash").ask("What is the capital of France?")
 ```
 
 ### Level 1 — Tools and Configuration
+
 ```python
 agent = (
     Agent("assistant", "gemini-2.5-flash")
@@ -395,6 +403,7 @@ agent = (
 ```
 
 ### Level 2 — Composable Middleware
+
 ```python
 agent = (
     Agent("secure_agent", MODEL)
@@ -406,6 +415,7 @@ agent = (
 ```
 
 ### Level 3 — Workflow Composition
+
 ```python
 pipeline = (
     Pipeline("CodePipeline")
@@ -417,6 +427,7 @@ pipeline = (
 ```
 
 ### Level 4 — Team Coordination
+
 ```python
 helpdesk = (
     Team("HelpDesk", MODEL)
@@ -428,6 +439,7 @@ helpdesk = (
 ```
 
 ### Level 5 — Production Runtime
+
 ```python
 app = (
     Runtime("my_app")
@@ -439,7 +451,7 @@ app = (
 )
 ```
 
----
+______________________________________________________________________
 
 ## 7. Development Workflow
 
@@ -500,7 +512,7 @@ ADK releases new version
     └─ No PR created → No changes needed (zero work)
 ```
 
----
+______________________________________________________________________
 
 ## 8. Project Structure
 
@@ -547,22 +559,22 @@ adk-fluent/
     └── SPEC_v2.md                     # This document
 ```
 
----
+______________________________________________________________________
 
 ## 9. Maintenance Ledger
 
-| Component | How Maintained | Effort per ADK Release |
-|---|---|---|
-| `seed.toml` | Human edits when taste changes | **Near zero** (stable) |
-| `scanner.py` | Only if ADK changes introspection API | **Zero** (Pydantic is stable) |
-| `generator.py` | Only if codegen templates need improvement | **Zero** (templates are stable) |
-| `manifest.json` | Auto-generated weekly | **Zero** |
-| `src/adk_fluent/*.py` | Auto-generated | **Zero** |
-| `src/adk_fluent/*.pyi` | Auto-generated | **Zero** |
-| `tests/generated/*` | Auto-generated | **Zero** |
-| Overall per release | Merge one auto-PR | **~30 seconds** |
+| Component              | How Maintained                             | Effort per ADK Release          |
+| ---------------------- | ------------------------------------------ | ------------------------------- |
+| `seed.toml`            | Human edits when taste changes             | **Near zero** (stable)          |
+| `scanner.py`           | Only if ADK changes introspection API      | **Zero** (Pydantic is stable)   |
+| `generator.py`         | Only if codegen templates need improvement | **Zero** (templates are stable) |
+| `manifest.json`        | Auto-generated weekly                      | **Zero**                        |
+| `src/adk_fluent/*.py`  | Auto-generated                             | **Zero**                        |
+| `src/adk_fluent/*.pyi` | Auto-generated                             | **Zero**                        |
+| `tests/generated/*`    | Auto-generated                             | **Zero**                        |
+| Overall per release    | Merge one auto-PR                          | **~30 seconds**                 |
 
----
+______________________________________________________________________
 
 ## 10. Design Decisions Log
 
@@ -591,30 +603,31 @@ adk-fluent/
 - Enables CI to detect changes between runs
 - Provides a human-readable audit trail of what ADK looked like at each release
 
----
+______________________________________________________________________
 
 ## 11. Success Metrics (Unchanged)
 
-| Metric | Target |
-|---|---|
-| Lines-to-first-response | ≤ 3 lines (vs 22 today) |
-| Time-to-first-demo | ≤ 5 minutes (vs 20 today) |
-| ADK CLI compatibility | 100% |
-| Type-check pass rate | 100% strict |
-| Maintenance per ADK release | ≤ 1 auto-PR merge |
-| Time from ADK release to stub update | ≤ 7 days (weekly CI) |
+| Metric                               | Target                    |
+| ------------------------------------ | ------------------------- |
+| Lines-to-first-response              | ≤ 3 lines (vs 22 today)   |
+| Time-to-first-demo                   | ≤ 5 minutes (vs 20 today) |
+| ADK CLI compatibility                | 100%                      |
+| Type-check pass rate                 | 100% strict               |
+| Maintenance per ADK release          | ≤ 1 auto-PR merge         |
+| Time from ADK release to stub update | ≤ 7 days (weekly CI)      |
 
----
+______________________________________________________________________
 
 ## 12. Versioning
 
-| adk-fluent | google-adk | Notes |
-|---|---|---|
-| 0.1.x | >= 1.20.0 | Initial release, codegen pipeline |
-| 0.2.x | >= 1.22.0 | Streaming support, live API |
-| 1.0.0 | >= 2.0.0 | Stable API, post ADK 2.0 |
+| adk-fluent | google-adk | Notes                             |
+| ---------- | ---------- | --------------------------------- |
+| 0.1.x      | >= 1.20.0  | Initial release, codegen pipeline |
+| 0.2.x      | >= 1.22.0  | Streaming support, live API       |
+| 1.0.0      | >= 2.0.0   | Stable API, post ADK 2.0          |
 
 SemVer rules:
+
 - **MAJOR**: Breaking changes to fluent API surface *or* seed.toml format
 - **MINOR**: New builders, new seed features, new terminal methods
 - **PATCH**: Stub regeneration, bug fixes, generator improvements

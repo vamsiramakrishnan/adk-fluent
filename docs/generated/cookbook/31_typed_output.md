@@ -16,8 +16,9 @@ graph TD
     n3 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from pydantic import BaseModel
@@ -37,8 +38,10 @@ parser_native = LlmAgent(
     output_schema=Invoice,
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -80,6 +83,7 @@ detailed_parser = (
     @ PurchaseOrder
 )
 ```
+
 :::
 ::::
 

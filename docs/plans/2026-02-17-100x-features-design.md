@@ -8,25 +8,25 @@
 
 **Tech Stack:** Python 3.11+, existing codegen pipeline, Pydantic for structured output, PyYAML (optional) for YAML serialization.
 
----
+______________________________________________________________________
 
 ## Feature List
 
-| # | Feature | Location | Type |
-|---|---------|----------|------|
-| 1 | `__repr__` | `_base.py` (BuilderBase) | Builder mechanic |
-| 2 | `>>` / `|` / `*` operators | `_base.py` (BuilderBase) | Builder mechanic |
-| 3 | `.output(Model)` structured returns | `_base.py` + `_helpers.py` | Runtime |
-| 4 | `.validate()` / `.explain()` | `_base.py` (BuilderBase) | Builder mechanic |
-| 5 | `@agent` decorator | `decorators.py` | Syntax sugar |
-| 6 | `.to_dict()` / `.from_dict()` / `.to_yaml()` | `_base.py` (BuilderBase) | Builder mechanic |
-| 7 | `.with_()` immutable variants | `_base.py` (BuilderBase) | Builder mechanic |
-| 8 | `.map()` batch execution | `_helpers.py` + Agent extra | Runtime |
-| 9 | Preset stacks (`.use()`) | `_base.py` + `presets.py` | Builder mechanic |
-| 10 | `.debug()` trace mode | `_base.py` + `_helpers.py` | Runtime |
-| 11 | `.retry()` / `.fallback()` | Agent extra + `_helpers.py` | Runtime |
+| #   | Feature                                      | Location                    | Type                     |
+| --- | -------------------------------------------- | --------------------------- | ------------------------ |
+| 1   | `__repr__`                                   | `_base.py` (BuilderBase)    | Builder mechanic         |
+| 2   | `>>` / \`                                    | `/`\*\` operators           | `_base.py` (BuilderBase) |
+| 3   | `.output(Model)` structured returns          | `_base.py` + `_helpers.py`  | Runtime                  |
+| 4   | `.validate()` / `.explain()`                 | `_base.py` (BuilderBase)    | Builder mechanic         |
+| 5   | `@agent` decorator                           | `decorators.py`             | Syntax sugar             |
+| 6   | `.to_dict()` / `.from_dict()` / `.to_yaml()` | `_base.py` (BuilderBase)    | Builder mechanic         |
+| 7   | `.with_()` immutable variants                | `_base.py` (BuilderBase)    | Builder mechanic         |
+| 8   | `.map()` batch execution                     | `_helpers.py` + Agent extra | Runtime                  |
+| 9   | Preset stacks (`.use()`)                     | `_base.py` + `presets.py`   | Builder mechanic         |
+| 10  | `.debug()` trace mode                        | `_base.py` + `_helpers.py`  | Runtime                  |
+| 11  | `.retry()` / `.fallback()`                   | Agent extra + `_helpers.py` | Runtime                  |
 
----
+______________________________________________________________________
 
 ## 1. Foundation: BuilderBase Mixin
 
@@ -49,7 +49,7 @@ class Agent(BuilderBase):
 - Change class declaration from `class {Name}:` to `class {Name}(BuilderBase):`
 - No other changes to generated code
 
----
+______________________________________________________________________
 
 ## 2. `__repr__` — Readable Builder State
 
@@ -82,7 +82,7 @@ def __repr__(self) -> str:
 
 Helper `_reverse_alias` checks `_ALIASES` dict to show `.instruct()` instead of `.instruction()`. Helper `_format_value` truncates long strings and shows callable names.
 
----
+______________________________________________________________________
 
 ## 3. Operator Composition
 
@@ -133,7 +133,7 @@ full = (web | db) >> writer >> (critic >> reviser) * 3 >> editor
 
 **Import resolution:** `Pipeline`, `FanOut`, `Loop` are imported lazily inside operator methods to avoid circular imports, since those classes also inherit from `BuilderBase`.
 
----
+______________________________________________________________________
 
 ## 4. `.validate()` / `.explain()`
 
@@ -160,7 +160,7 @@ def explain(self) -> str:
     return "\n".join(lines)
 ```
 
----
+______________________________________________________________________
 
 ## 5. `@agent` Decorator
 
@@ -218,7 +218,7 @@ def log_it(ctx):
     print(f"Calling model...")
 ```
 
----
+______________________________________________________________________
 
 ## 6. Serialization
 
@@ -261,7 +261,7 @@ def from_yaml(cls, yaml_str: str) -> Self:
 
 **Trade-off:** Callbacks can't be deserialized from qualnames automatically. This is documented. `from_dict` is for config-driven setups where tools/callbacks are registered separately.
 
----
+______________________________________________________________________
 
 ## 7. `.with_()` — Immutable Variants
 
@@ -279,7 +279,7 @@ def with_(self, **overrides) -> Self:
     return clone
 ```
 
----
+______________________________________________________________________
 
 ## 8. `.map()` — Batch Execution
 
@@ -310,7 +310,7 @@ behavior = "runtime_helper"
 helper_func = "run_map"
 ```
 
----
+______________________________________________________________________
 
 ## 9. Presets (`.use()`)
 
@@ -348,7 +348,7 @@ def use(self, preset) -> Self:
 
 The existing `.apply(MiddlewareStack)` extra on Agent is replaced — `.use(Preset)` is the implementation.
 
----
+______________________________________________________________________
 
 ## 10. `.debug()` — Trace Mode
 
@@ -373,7 +373,7 @@ In `_helpers.py`, `run_one_shot_async` checks `builder._config.get("_debug")` an
 
 Uses `time.perf_counter()` for timing. Output goes to `sys.stderr` (not stdout) to avoid polluting return values.
 
----
+______________________________________________________________________
 
 ## 11. `.retry()` / `.fallback()`
 
@@ -392,31 +392,31 @@ def fallback(self, model: str) -> Self:
 In `_helpers.py`, `run_one_shot_async` wraps execution:
 
 1. Try primary model up to `max_attempts` times with exponential backoff
-2. On exhaustion, try each fallback model in order
-3. Raise original exception if all fail
+1. On exhaustion, try each fallback model in order
+1. Raise original exception if all fail
 
----
+______________________________________________________________________
 
 ## Testing Strategy
 
-- **Pure builder mechanics** (repr, operators, validate, with_, to_dict, presets): Unit tests with no LLM calls. Assert builder state, type of composed objects, serialization round-trips.
+- **Pure builder mechanics** (repr, operators, validate, with\_, to_dict, presets): Unit tests with no LLM calls. Assert builder state, type of composed objects, serialization round-trips.
 - **Runtime features** (structured output, map, retry, debug): Mock-based tests using patched `InMemoryRunner`. No real API calls.
 - **Decorator**: Unit tests that verify builder state after decoration.
 - **Cookbook examples**: Add examples 16-26 covering each new feature.
 
 ## Files Changed/Created
 
-| File | Action |
-|------|--------|
-| `src/adk_fluent/_base.py` | CREATE — BuilderBase mixin |
-| `src/adk_fluent/presets.py` | CREATE — Preset class |
-| `src/adk_fluent/decorators.py` | CREATE — @agent decorator |
-| `scripts/generator.py` | MODIFY — emit BuilderBase inheritance |
-| `seeds/seed.toml` | MODIFY — add map, retry, fallback, output extras |
-| `src/adk_fluent/_helpers.py` | MODIFY — structured output, map, retry, debug, fallback |
-| `src/adk_fluent/agent.py` | REGENERATE |
-| `src/adk_fluent/workflow.py` | REGENERATE |
-| `src/adk_fluent/*.py` | REGENERATE (all modules) |
-| `src/adk_fluent/__init__.py` | REGENERATE + add Preset, agent imports |
-| `tests/manual/test_*.py` | CREATE — tests for each feature |
-| `examples/cookbook/16-26_*.py` | CREATE — cookbook examples |
+| File                           | Action                                                  |
+| ------------------------------ | ------------------------------------------------------- |
+| `src/adk_fluent/_base.py`      | CREATE — BuilderBase mixin                              |
+| `src/adk_fluent/presets.py`    | CREATE — Preset class                                   |
+| `src/adk_fluent/decorators.py` | CREATE — @agent decorator                               |
+| `scripts/generator.py`         | MODIFY — emit BuilderBase inheritance                   |
+| `seeds/seed.toml`              | MODIFY — add map, retry, fallback, output extras        |
+| `src/adk_fluent/_helpers.py`   | MODIFY — structured output, map, retry, debug, fallback |
+| `src/adk_fluent/agent.py`      | REGENERATE                                              |
+| `src/adk_fluent/workflow.py`   | REGENERATE                                              |
+| `src/adk_fluent/*.py`          | REGENERATE (all modules)                                |
+| `src/adk_fluent/__init__.py`   | REGENERATE + add Preset, agent imports                  |
+| `tests/manual/test_*.py`       | CREATE — tests for each feature                         |
+| `examples/cookbook/16-26_*.py` | CREATE — cookbook examples                              |

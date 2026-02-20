@@ -239,11 +239,11 @@ root_agent = (
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-| ------ | ------ | ------ | --------- |
-| Agent definition files | 4 | 1 | 75% |
-| Total files | 12 | 4 | 67% |
-| Directories | 6 | 1 | 83% |
-| `import` statements (agent files) | 15 | 12 | 20% |
-| Constants/config files | 1 | 0 | 100% |
-| `__init__.py` files | 6 | 1 | 83% |
+| Metric                            | Native | Fluent | Reduction |
+| --------------------------------- | ------ | ------ | --------- |
+| Agent definition files            | 4      | 1      | 75%       |
+| Total files                       | 12     | 4      | 67%       |
+| Directories                       | 6      | 1      | 83%       |
+| `import` statements (agent files) | 15     | 12     | 20%       |
+| Constants/config files            | 1      | 0      | 100%      |
+| `__init__.py` files               | 6      | 1      | 83%       |

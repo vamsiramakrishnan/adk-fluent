@@ -24,6 +24,7 @@ just scan
 ```
 
 The manifest captures:
+
 - Class names, module paths, and MRO chains
 - Field names, types, defaults, and validators
 - Callback fields and their signatures
@@ -46,6 +47,7 @@ just seed
 ### Stage 3: Code Generator (`scripts/generator.py`)
 
 Combines `seed.toml` and `manifest.json` to emit:
+
 - Fluent builder classes (`.py` files in `src/adk_fluent/`)
 - `.pyi` type stubs for IDE autocomplete
 - Test scaffolds (in `tests/generated/`)
@@ -67,6 +69,7 @@ just docs
 ```
 
 Sub-commands for targeted generation:
+
 - `just docs-api` -- API reference only
 - `just docs-cookbook` -- Cookbook only
 - `just docs-migration` -- Migration guide only
@@ -105,17 +108,17 @@ The scanner discovers new classes, the seed generator classifies them, and the c
 
 ## Other Commands
 
-| Command | Description |
-|---------|-------------|
-| `just all` | Full pipeline: scan -> seed -> generate -> docs |
-| `just scan` | Introspect ADK -> manifest.json |
-| `just seed` | manifest.json -> seed.toml |
-| `just generate` | seed.toml + manifest.json -> code |
-| `just stubs` | Regenerate `.pyi` stubs only |
-| `just test` | Run pytest suite (780+ tests) |
-| `just typecheck` | Run pyright type-check |
-| `just docs` | Generate all documentation |
-| `just cookbook-gen` | Generate cookbook example stubs |
-| `just agents` | Convert cookbook -> `adk web` agent folders |
-| `just diff` | Show changes since last scan |
-| `just clean` | Remove generated files |
+| Command             | Description                                     |
+| ------------------- | ----------------------------------------------- |
+| `just all`          | Full pipeline: scan -> seed -> generate -> docs |
+| `just scan`         | Introspect ADK -> manifest.json                 |
+| `just seed`         | manifest.json -> seed.toml                      |
+| `just generate`     | seed.toml + manifest.json -> code               |
+| `just stubs`        | Regenerate `.pyi` stubs only                    |
+| `just test`         | Run pytest suite (780+ tests)                   |
+| `just typecheck`    | Run pyright type-check                          |
+| `just docs`         | Generate all documentation                      |
+| `just cookbook-gen` | Generate cookbook example stubs                 |
+| `just agents`       | Convert cookbook -> `adk web` agent folders     |
+| `just diff`         | Show changes since last scan                    |
+| `just clean`        | Remove generated files                          |

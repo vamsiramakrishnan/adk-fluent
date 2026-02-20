@@ -24,11 +24,11 @@ vis = infer_visibility(pipeline.to_ir())
 
 ## Policies Reference
 
-| Policy | Behavior |
-|--------|----------|
+| Policy               | Behavior                                               |
+| -------------------- | ------------------------------------------------------ |
 | `filtered` (default) | Terminal agents = user-facing, intermediate = internal |
-| `transparent` | All agents user-facing (useful for debugging) |
-| `annotate` | All events pass through with metadata tags |
+| `transparent`        | All agents user-facing (useful for debugging)          |
+| `annotate`           | All events pass through with metadata tags             |
 
 ## Pipeline-Level Policies
 

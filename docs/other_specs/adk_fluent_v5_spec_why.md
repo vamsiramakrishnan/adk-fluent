@@ -6,7 +6,7 @@ This appendix makes the case for every major v5 feature by putting native ADK co
 
 Some features clear the bar decisively. Others need honest caveats. One (dependency injection) we argue against.
 
----
+______________________________________________________________________
 
 ## 1. The Composition Problem: Where ADK's Pythonic Simplicity Breaks Down
 
@@ -85,7 +85,7 @@ This isn't syntactic sugar. The `>>` operator produces a `SequentialAgent` with 
 
 **The win scales with complexity.** Three agents, the ADK version is tolerable. Ten agents with parallel branches, routing, and loops? The ADK version becomes a wall of constructors where the topology vanishes. The fluent version stays readable because topology *is* the syntax.
 
----
+______________________________________________________________________
 
 ## 2. State: The Largest Source of Runtime Failures
 
@@ -156,7 +156,7 @@ pipeline = (
 
 **Backward compatible:** `StateSchema` is opt-in. Existing untyped agents keep working. Mixed typed/untyped pipelines work — the checker only enforces types where both sides declare them.
 
----
+______________________________________________________________________
 
 ## 3. The Operator Algebra: Topology as Syntax
 
@@ -244,7 +244,7 @@ pipeline = (
 
 Eight lines. The topology is the code. Parallel (`|`), sequential (`>>`), state transform (`S.merge`), deterministic routing (`Route`). Each produces the corresponding ADK agent type. No custom `BaseAgent` subclasses, no `_run_async_impl`, no `EventActions(escalate=True)`.
 
----
+______________________________________________________________________
 
 ## 4. Zero-Cost State Transforms: What ADK Forces You to Put in Agents
 
@@ -284,11 +284,11 @@ pipeline = (
 )
 ```
 
-Each `S.*` call returns a plain function. `>>` wraps it in a `TransformNode` that compiles to a zero-cost `FnAgent` — a `BaseAgent` subclass that reads state, applies the function, writes the delta, and yields exactly one event. No LLM call. No token cost. The IR knows it's a transform (not an agent), so `estimate_cost()` correctly reports $0 for these steps and the Mermaid visualization renders them as arrows rather than boxes.
+Each `S.*` call returns a plain function. `>>` wraps it in a `TransformNode` that compiles to a zero-cost `FnAgent` — a `BaseAgent` subclass that reads state, applies the function, writes the delta, and yields exactly one event. No LLM call. No token cost. The IR knows it's a transform (not an agent), so `estimate_cost()` correctly reports \$0 for these steps and the Mermaid visualization renders them as arrows rather than boxes.
 
 This pattern — functional state transforms between agents — comes directly from pipeline architectures in data engineering (Spark transforms, dbt macros, Unix pipes). It's not a new idea. It's an idea ADK doesn't provide a first-class primitive for.
 
----
+______________________________________________________________________
 
 ## 5. Deterministic Routing Without LLM Delegation
 
@@ -337,7 +337,7 @@ pipeline = (
 
 You can also route on thresholds (`Route("score").gt(0.8, premium).otherwise(basic)`), substring matches (`Route("text").contains("URGENT", escalation)`), or arbitrary predicates (`Route().when(lambda s: complex_logic(s), handler)`). All zero-cost. All visible in the IR.
 
----
+______________________________________________________________________
 
 ## 6. Cost Simulation: Know What You'll Spend Before You Spend It
 
@@ -363,13 +363,13 @@ estimate = estimate_cost(
 # estimate.cost_per_invocation → $0.00472
 ```
 
-This works because the IR knows the graph topology, each node's model, and the cost-per-token rates for each model. `TransformNode` and `RouteNode` contribute $0. `ParallelNode` costs are additive. `LoopNode` costs multiply by expected iterations. Branch probabilities weight the cost of `RouteNode` branches.
+This works because the IR knows the graph topology, each node's model, and the cost-per-token rates for each model. `TransformNode` and `RouteNode` contribute \$0. `ParallelNode` costs are additive. `LoopNode` costs multiply by expected iterations. Branch probabilities weight the cost of `RouteNode` branches.
 
 **Why this matters for enterprise:** At Google Cloud, the question a CTO asks before approving an AI deployment isn't "does it work?" — it's "what will it cost at 10,000 invocations per day?" Being able to answer that from the IR, before writing a single prompt, before making a single API call, is the difference between a POC that gets approved and one that dies in committee.
 
-The v5 `CostAttributionMiddleware` then emits OTel metrics (`adk_fluent.llm.cost`, `adk_fluent.llm.tokens`) during execution, allowing you to compare estimates against actuals. The spec targets <20% estimation error.
+The v5 `CostAttributionMiddleware` then emits OTel metrics (`adk_fluent.llm.cost`, `adk_fluent.llm.tokens`) during execution, allowing you to compare estimates against actuals. The spec targets \<20% estimation error.
 
----
+______________________________________________________________________
 
 ## 7. Evaluation: Fluent Cases That Run on ADK's Infrastructure
 
@@ -438,6 +438,7 @@ report = await suite.run()
 `FluentCase` compiles to ADK's `EvalCase` with `Invocation` objects. `FluentEvalSuite.run()` calls `LocalEvalService.evaluate()` internally. The output `.to_eval_set_file("billing.evalset.json")` produces a file that `adk eval` can consume directly. The web UI's golden dataset capture produces files that `FluentEvalSuite.from_eval_set()` can load.
 
 **What v5 adds that ADK doesn't have:**
+
 - **Tag-based aggregation:** "How do billing cases perform vs. technical cases?" ADK reports per-case; you aggregate manually.
 - **Regression detection:** `report.compare(baseline_report)` diffs scores and flags regressions. ADK has no built-in baseline comparison.
 - **Sub-graph targeting:** `FluentCase(target_node="classifier")` evaluates just the classifier agent, not the whole pipeline. ADK evaluates the root agent.
@@ -446,7 +447,7 @@ report = await suite.run()
 
 **What v5 does NOT build:** Its own trajectory evaluator, response evaluator, user simulator, multi-run aggregation, `.evalset.json` format, or eval CLI. Those are ADK's. Building parallel versions would be the DI mistake — engineering effort that doesn't produce user value.
 
----
+______________________________________________________________________
 
 ## 8. Telemetry: Enrich ADK's Spans, Don't Duplicate Them
 
@@ -475,7 +476,7 @@ class OTelEnrichmentMiddleware:
 
 Three consequences: (1) `adk_fluent.*` attributes show up in ADK's web UI trace viewer automatically. (2) Cloud Trace / Datadog / Grafana see enriched spans with no additional exporter configuration. (3) The `adk_fluent.llm.cost` OTel counter is a real metric that Prometheus can scrape, alert on, and dashboard — not a log entry someone has to parse.
 
----
+______________________________________________________________________
 
 ## 9. Contract Checking: Catch Wiring Bugs Before LLM Calls
 
@@ -502,7 +503,7 @@ if report.errors:
 
 This is the "dry-run your architecture" principle. Every production concern — data flow, types, streaming semantics, modality compatibility, cost configuration — is verifiable from the IR without making a single LLM call. The IR is a structural artifact, not just an intermediate representation; it's the thing you analyze, visualize, cost-estimate, and contract-check.
 
----
+______________________________________________________________________
 
 ## 10. What About Dependency Injection?
 
@@ -529,7 +530,7 @@ Closure-based injection is simpler, more Pythonic, and more transparent than a D
 
 **Our recommendation:** Don't build a DI framework. Tool closures + ADK's app-level service configuration cover the real needs. If v4's DI model stays in the spec, it should be documented as "available for advanced cases" rather than a primary pattern. The progressive disclosure curve should lead users toward tool closures first.
 
----
+______________________________________________________________________
 
 ## 11. Replay and Time-Travel Debugging: The Production Debugging Story
 
@@ -559,7 +560,7 @@ Change the pipeline, replay the same recording, diff the events. You see exactly
 
 The Recorder builds on ADK's `InMemoryExporter` for span data and the middleware event hooks for `AgentEvent` capture. The ReplayerBackend intercepts `call_llm` spans and returns recorded responses instead of calling the LLM. Mismatch strategies (error, skip, live) handle cases where the pipeline has changed.
 
----
+______________________________________________________________________
 
 ## 12. What v5 Does NOT Do (And Why)
 
@@ -577,28 +578,28 @@ The Recorder builds on ADK's `InMemoryExporter` for span data and the middleware
 
 The principle is consistent: **build what ADK doesn't have, wrap what ADK has but isn't fluent, never replace what ADK already does well.**
 
----
+______________________________________________________________________
 
 ## 13. The Progressive Disclosure Ladder
 
 One of v5's structural contributions is making the complexity curve explicit. You adopt features as you need them — nothing forces you up the ladder:
 
-| Level | What You Use | What You Get | ADK Equivalent |
-|---|---|---|---|
-| 0 | `Agent("x").instruct("...").build()` | Fluent single agent | Same as native ADK with less typing |
-| 1 | `a >> b`, `a \| b`, `a * 3` | Pipeline composition | Manual SequentialAgent/ParallelAgent/LoopAgent |
-| 2 | `S.pick()`, `Route()`, `until()` | State transforms, routing, conditional loops | Custom BaseAgent subclasses |
-| 3 | `.to_ir()`, `check_contracts()` | Static analysis, visualization | Nothing (ADK has no IR) |
-| 4 | `StateSchema`, `check_all()` | Typed state, full contract checking | Nothing |
-| 5 | `estimate_cost()`, `ModelSelectorNode` | Cost simulation and governance | Nothing |
-| 6 | `FluentEvalSuite`, `FluentCase` | Eval authoring over ADK's engine | Raw `.evalset.json` + `adk eval` CLI |
-| 7 | `Recorder`, `ReplayerBackend` | Deterministic replay and diff | ADK's RecordingsPlugin (different scope) |
-| 8 | `OTelEnrichmentMiddleware` | Pipeline-aware telemetry | ADK's built-in OTel (extended, not replaced) |
-| 9 | `RemoteAgentNode`, `ExecutionBoundary` | Distributed, cross-system pipelines | Manual A2A integration + custom deployment |
+| Level | What You Use                           | What You Get                                 | ADK Equivalent                                 |
+| ----- | -------------------------------------- | -------------------------------------------- | ---------------------------------------------- |
+| 0     | `Agent("x").instruct("...").build()`   | Fluent single agent                          | Same as native ADK with less typing            |
+| 1     | `a >> b`, `a \| b`, `a * 3`            | Pipeline composition                         | Manual SequentialAgent/ParallelAgent/LoopAgent |
+| 2     | `S.pick()`, `Route()`, `until()`       | State transforms, routing, conditional loops | Custom BaseAgent subclasses                    |
+| 3     | `.to_ir()`, `check_contracts()`        | Static analysis, visualization               | Nothing (ADK has no IR)                        |
+| 4     | `StateSchema`, `check_all()`           | Typed state, full contract checking          | Nothing                                        |
+| 5     | `estimate_cost()`, `ModelSelectorNode` | Cost simulation and governance               | Nothing                                        |
+| 6     | `FluentEvalSuite`, `FluentCase`        | Eval authoring over ADK's engine             | Raw `.evalset.json` + `adk eval` CLI           |
+| 7     | `Recorder`, `ReplayerBackend`          | Deterministic replay and diff                | ADK's RecordingsPlugin (different scope)       |
+| 8     | `OTelEnrichmentMiddleware`             | Pipeline-aware telemetry                     | ADK's built-in OTel (extended, not replaced)   |
+| 9     | `RemoteAgentNode`, `ExecutionBoundary` | Distributed, cross-system pipelines          | Manual A2A integration + custom deployment     |
 
 Level 0 users get IDE autocomplete and typo detection. Level 2 users get readable pipeline topology. Level 4+ users get production infrastructure. Every level produces native ADK objects. No level requires the levels above it.
 
----
+______________________________________________________________________
 
 ## 14. Summary: The Real Wins
 
@@ -606,27 +607,27 @@ The features that clear the bar decisively:
 
 1. **Composition operators** (`>>`, `|`, `*`, `//`) — topology as syntax. This is the core value proposition and it's already shipped. Not debatable.
 
-2. **Typed state** (`StateSchema`) — catches the most common production failures at build time. Same pattern as Pydantic over dicts. High confidence this earns its complexity.
+1. **Typed state** (`StateSchema`) — catches the most common production failures at build time. Same pattern as Pydantic over dicts. High confidence this earns its complexity.
 
-3. **Zero-cost transforms** (`S.*`) — fills a real gap. ADK has no "transform state without an LLM call" primitive. Every team builds this ad hoc.
+1. **Zero-cost transforms** (`S.*`) — fills a real gap. ADK has no "transform state without an LLM call" primitive. Every team builds this ad hoc.
 
-4. **Deterministic routing** (`Route`) — same. ADK's routing is LLM-driven. When you already have the classification result in state, you need an if-statement, not another LLM call.
+1. **Deterministic routing** (`Route`) — same. ADK's routing is LLM-driven. When you already have the classification result in state, you need an if-statement, not another LLM call.
 
-5. **Cost simulation** (`estimate_cost`) — no ADK equivalent. Enables budget conversations before deployment. Enterprise-critical.
+1. **Cost simulation** (`estimate_cost`) — no ADK equivalent. Enables budget conversations before deployment. Enterprise-critical.
 
-6. **Contract checking** (`check_all`) — no ADK equivalent. Static analysis on agent pipelines is a new capability, not a convenience wrapper.
+1. **Contract checking** (`check_all`) — no ADK equivalent. Static analysis on agent pipelines is a new capability, not a convenience wrapper.
 
 The features that are strong but require ADK's infrastructure to mature:
 
 7. **Evaluation harness** — good fluent API over a good ADK engine. Value depends on how stable ADK's eval API is across releases.
 
-8. **Telemetry enrichment** — correct architecture (enrich, don't duplicate). Value depends on teams actually using OTel dashboards.
+1. **Telemetry enrichment** — correct architecture (enrich, don't duplicate). Value depends on teams actually using OTel dashboards.
 
 The features that are forward-looking (less immediate ROI):
 
 9. **Streaming edge semantics** — matters when you build real-time UIs over agent pipelines. Most teams don't today.
 
-10. **A2A interop, execution boundaries** — matters for large-scale distributed deployments. Most teams are single-process today.
+1. **A2A interop, execution boundaries** — matters for large-scale distributed deployments. Most teams are single-process today.
 
 The feature we'd reconsider:
 

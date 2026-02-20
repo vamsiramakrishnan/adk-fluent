@@ -2,25 +2,28 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
----
+______________________________________________________________________
 
 ## Phase Roadmap
 
 v5.1 is split into five phases. Each phase gets its own plan document when started. Phases B+E can run in parallel.
 
-| Phase | Name | Tasks | Depends On | Plan Document |
-|-------|------|-------|------------|---------------|
-| **A** | Foundation | 10 | Phase 4 (done) | This document |
-| **B** | C Atoms (No LLM) | TBD | Phase A | `docs/plans/YYYY-MM-DD-v51-phase-b-c-atoms.md` |
-| **C** | C Atoms (LLM-Powered) | TBD | Phase B | `docs/plans/YYYY-MM-DD-v51-phase-c-llm-atoms.md` |
-| **D** | Scratchpads + Sugar | TBD | Phase B | `docs/plans/YYYY-MM-DD-v51-phase-d-scratchpads.md` |
-| **E** | Typed State | TBD | Phase A | `docs/plans/YYYY-MM-DD-v51-phase-e-typed-state.md` |
+| Phase | Name                  | Tasks | Depends On     | Plan Document                                      |
+| ----- | --------------------- | ----- | -------------- | -------------------------------------------------- |
+| **A** | Foundation            | 10    | Phase 4 (done) | This document                                      |
+| **B** | C Atoms (No LLM)      | TBD   | Phase A        | `docs/plans/YYYY-MM-DD-v51-phase-b-c-atoms.md`     |
+| **C** | C Atoms (LLM-Powered) | TBD   | Phase B        | `docs/plans/YYYY-MM-DD-v51-phase-c-llm-atoms.md`   |
+| **D** | Scratchpads + Sugar   | TBD   | Phase B        | `docs/plans/YYYY-MM-DD-v51-phase-d-scratchpads.md` |
+| **E** | Typed State           | TBD   | Phase A        | `docs/plans/YYYY-MM-DD-v51-phase-e-typed-state.md` |
 
 ### Phase A — Foundation (this document)
+
 S.capture, C module core (9 primitives: none, default, user_only, from_agents, exclude_agents, window, from_state, template, capture), Agent.context(), Event Visibility with pipeline policies, cross-channel contract checker, memory integration, IR-first build path, OTel enrichment middleware.
 
 ### Phase B — C Atoms (No LLM)
+
 The five-verb atomic primitives that don't require LLM calls (from v51_context.md §2, §3, §5, §6):
+
 - **SELECT:** C.select(author=, type=, tag=), C.recent(decay=, half_life=)
 - **COMPRESS:** C.compact(strategy=), C.truncate(max_tokens=, strategy=), C.project(fields=), C.dedup(strategy="exact"|"structural")
 - **BUDGET:** C.budget(max_tokens=, overflow=), C.priority(tier=), C.fit(strategy="strict")
@@ -28,7 +31,9 @@ The five-verb atomic primitives that don't require LLM calls (from v51_context.m
 - **Composition:** `+`/`|` operator type rules (§9.2), CComposite/CPipe rendering
 
 ### Phase C — C Atoms (LLM-Powered)
+
 Primitives that require LLM calls with caching via companion FnAgents (from v51_context.md §3, §4, §6):
+
 - **COMPRESS:** C.summarize(scope=, model=, schema=), C.dedup(strategy="semantic")
 - **SELECT:** C.relevant(query_key=, top_k=, model=)
 - **WRITE:** C.extract(schema=, key=), C.distill(key=, model=)
@@ -36,20 +41,24 @@ Primitives that require LLM calls with caching via companion FnAgents (from v51_
 - **BUDGET:** C.fit(strategy="cascade"|"compact_then_summarize")
 
 ### Phase D — Scratchpads + Molecule Sugar
+
 Structured note-taking and higher-level convenience methods (from v51_context.md §4, §7.4):
+
 - **WRITE:** C.notes(key=, format=), C.write_notes(key=, strategy=)
 - **Sugar:** C.rolling(n, summarize=), C.from_agents_windowed(...), C.user(strategy=), C.manus_cascade(budget=)
 - Note lifecycle management (merge, consolidate, decay)
 
 ### Phase E — Typed State (StateSchema)
+
 Typed state declarations with scope annotations (from v5 §1.2–1.7, gap_analysis §1, v51_spec §3.3):
+
 - StateSchema base class with Annotated type hints
 - Scope prefixes (session, app:, user:, temp:) as type annotations
 - CapturedBy annotation for C.capture provenance
 - Typed contract checking (key type mismatches, scope confusion)
 - IDE autocomplete for state keys
 
----
+______________________________________________________________________
 
 ## Phase A — Foundation
 
@@ -60,6 +69,7 @@ Typed state declarations with scope annotations (from v5 §1.2–1.7, gap_analys
 **Tech Stack:** Python 3.11+, google-adk 1.25.0+, frozen dataclasses for IR, BaseAgent subclasses for compilation targets, BasePlugin for visibility, pytest for testing.
 
 **Key ADK compilation targets verified:**
+
 - `LlmAgent.instruction` accepts `Callable[[ReadonlyContext], str | Awaitable[str]]` (InstructionProvider)
 - `LlmAgent.include_contents` accepts `Literal['default', 'none']`
 - `ReadonlyContext` exposes `.state`, `.session` (with `.events`), `.user_content`, `.agent_name`
@@ -67,7 +77,7 @@ Typed state declarations with scope annotations (from v5 §1.2–1.7, gap_analys
 - `Event.custom_metadata: Optional[dict[str, Any]]` is a first-class field
 - `PreloadMemoryTool()` and `LoadMemoryTool()` take no init args
 
----
+______________________________________________________________________
 
 ## Phase 5i: S.capture() and Foundation
 
@@ -76,6 +86,7 @@ Typed state declarations with scope annotations (from v5 §1.2–1.7, gap_analys
 `S.capture(key)` reads the most recent user message from session events and writes it to state. This is the explicit bridge between conversation history (Channel 1) and session state (Channel 2) that ADK doesn't provide. It compiles to a `CaptureAgent(BaseAgent)` that scans `ctx.session.events` in reverse.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_transforms.py` (add `S.capture()` static method)
 - Modify: `src/adk_fluent/_base.py` (add `CaptureAgent` class)
 - Modify: `src/adk_fluent/_ir.py` (add `CaptureNode` IR type, update `Node` union)
@@ -190,7 +201,7 @@ class CaptureNode:
 
 Update `__all__` to include `"CaptureNode"`. Update `Node` union to include `CaptureNode`.
 
-**Step 4: Implement CaptureAgent in _base.py**
+**Step 4: Implement CaptureAgent in \_base.py**
 
 Add to `src/adk_fluent/_base.py` after `TapAgent`:
 
@@ -307,7 +318,7 @@ git add src/adk_fluent/_ir.py src/adk_fluent/_base.py src/adk_fluent/_transforms
 git commit -m "feat: add S.capture() to bridge conversation history to session state"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5i-core: C Module — Context Engineering Foundation
 
@@ -316,6 +327,7 @@ git commit -m "feat: add S.capture() to bridge conversation history to session s
 The C module's foundation: the `CTransform` protocol, composition operators (`+` and `|`), and the two boundary primitives `C.none()` and `C.default()`.
 
 **Files:**
+
 - Create: `src/adk_fluent/_context.py`
 - Test: `tests/manual/test_context.py`
 
@@ -487,7 +499,7 @@ class TestCPriority:
 Run: `pytest tests/manual/test_context.py -v`
 Expected: FAIL — `_context` module doesn't exist
 
-**Step 3: Implement _context.py**
+**Step 3: Implement \_context.py**
 
 ```python
 # src/adk_fluent/_context.py
@@ -910,13 +922,14 @@ git add src/adk_fluent/_context.py tests/manual/test_context.py
 git commit -m "feat: add C module with core context engineering primitives"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Agent.context() — Wire C into Agent Builder
 
 Add `.context(C.xxx)` to the Agent builder so developers can declare per-agent context transforms. This modifies how the agent compiles to an LlmAgent — setting `include_contents` and `instruction` based on the C transform.
 
 **Files:**
+
 - Modify: `src/adk_fluent/agent.py` (add `.context()` method)
 - Modify: `src/adk_fluent/_helpers.py` (update `_agent_to_ir` to carry context spec)
 - Modify: `src/adk_fluent/_ir_generated.py` (add `context_spec` field to AgentNode)
@@ -1125,7 +1138,7 @@ git add src/adk_fluent/agent.py src/adk_fluent/_base.py src/adk_fluent/_context.
 git commit -m "feat: add Agent.context() to wire C transforms into agent compilation"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5j: Event Visibility
 
@@ -1134,6 +1147,7 @@ git commit -m "feat: add Agent.context() to wire C transforms into agent compila
 Topology-inferred event visibility: terminal agents are user-facing, intermediate agents are internal. Compiles to `BasePlugin.on_event_callback`.
 
 **Files:**
+
 - Create: `src/adk_fluent/_visibility.py`
 - Modify: `src/adk_fluent/backends/adk.py` (attach VisibilityPlugin when pipeline has non-trivial topology)
 - Test: `tests/manual/test_visibility.py`
@@ -1338,7 +1352,7 @@ class TestVisibilityPluginContentStripping:
 Run: `pytest tests/manual/test_visibility.py -v`
 Expected: FAIL — `_visibility` module doesn't exist
 
-**Step 3: Implement _visibility.py**
+**Step 3: Implement \_visibility.py**
 
 ```python
 # src/adk_fluent/_visibility.py
@@ -1576,7 +1590,7 @@ git add src/adk_fluent/_visibility.py src/adk_fluent/_base.py src/adk_fluent/age
 git commit -m "feat: add event visibility with pipeline policies, content stripping, error pass-through"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5k: Cross-Channel Contract Checker
 
@@ -1585,6 +1599,7 @@ git commit -m "feat: add event visibility with pipeline policies, content stripp
 Expand `check_contracts` from simple read/write key checking to cross-channel coherence analysis: template variables, output_key reachability, channel duplication, data loss detection.
 
 **Files:**
+
 - Modify: `src/adk_fluent/testing/contracts.py`
 - Test: `tests/manual/test_cross_channel_contracts.py`
 
@@ -1963,7 +1978,7 @@ git add src/adk_fluent/testing/contracts.py tests/manual/test_cross_channel_cont
 git commit -m "feat: expand contract checker with cross-channel coherence analysis"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5-memory: Memory Integration
 
@@ -1972,6 +1987,7 @@ git commit -m "feat: expand contract checker with cross-channel coherence analys
 Add `.memory()` builder method to Agent for `PreloadMemoryTool` and `LoadMemoryTool`. Following the ADK tide principle — these are pass-through to ADK's native memory tools, not custom implementations.
 
 **Files:**
+
 - Modify: `src/adk_fluent/agent.py` (add `.memory()` method)
 - Test: `tests/manual/test_memory.py`
 
@@ -2102,7 +2118,7 @@ git add src/adk_fluent/agent.py tests/manual/test_memory.py
 git commit -m "feat: add .memory() and .memory_auto_save() for fluent memory integration"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5-exports: Wire into Public API
 
@@ -2111,6 +2127,7 @@ git commit -m "feat: add .memory() and .memory_auto_save() for fluent memory int
 Add new public API exports and update `__all__`.
 
 **Files:**
+
 - Modify: `src/adk_fluent/__init__.py` (add exports)
 - Test: `tests/manual/test_public_api.py`
 
@@ -2188,7 +2205,7 @@ git add src/adk_fluent/__init__.py tests/manual/test_public_api.py
 git commit -m "feat: export C module and visibility from public API"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5-integration: Integration Tests
 
@@ -2197,6 +2214,7 @@ git commit -m "feat: export C module and visibility from public API"
 Verify the full pipeline: S.capture + C.context + visibility + contract checking all work together.
 
 **Files:**
+
 - Test: `tests/manual/test_v51_integration.py`
 
 **Step 1: Write the integration tests**
@@ -2458,7 +2476,7 @@ git add tests/manual/test_v51_integration.py
 git commit -m "test: add v5.1 end-to-end integration tests"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5-build: IR-First Build Path
 
@@ -2467,6 +2485,7 @@ git commit -m "test: add v5.1 end-to-end integration tests"
 Per appendix_f Q1: "IR should be invisible — `.build()` should internally use IR." Per appendix_f Q3: "Contract checking should be DEFAULT, not opt-in." This task rewires `.build()` on all builders (Agent, Pipeline, FanOut, Loop) to internally go through `.to_ir() → check_contracts() → backend.compile()` instead of direct ADK constructor calls. The `build(check=False)` escape hatch skips contract checking for cases where speed matters or contracts are known to be fine.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (update `BuilderBase.build()` path)
 - Modify: `src/adk_fluent/agent.py` (Agent.build override if needed)
 - Test: `tests/manual/test_ir_first_build.py`
@@ -2564,9 +2583,9 @@ Expected: FAIL — `build()` doesn't accept `check` parameter
 The key change is in `_base.py`'s `BuilderBase`. For compound builders (Pipeline, FanOut, Loop), `build()` should:
 
 1. Call `self.to_ir()` to get the IR tree
-2. Call `check_contracts(ir)` (unless `check=False`)
-3. Call `ADKBackend().compile(ir, config)` to get the native agent
-4. Return the native agent
+1. Call `check_contracts(ir)` (unless `check=False`)
+1. Call `ADKBackend().compile(ir, config)` to get the native agent
+1. Return the native agent
 
 For `Agent` (single agent, not compound), the current direct-construction path is kept since single agents don't benefit from IR-based contract checking. But when `Agent` is part of a pipeline, the pipeline's IR path handles it.
 
@@ -2652,7 +2671,7 @@ git add src/adk_fluent/_base.py src/adk_fluent/agent.py tests/manual/test_ir_fir
 git commit -m "feat: IR-first build path with default contract checking (appendix_f Q1, Q3)"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5-otel: OTel Enrichment Middleware
 
@@ -2661,6 +2680,7 @@ git commit -m "feat: IR-first build path with default contract checking (appendi
 Per v5.1 spec §8: "adk-fluent's telemetry strategy is span enrichment — adding pipeline-level metadata to ADK's existing spans, not creating parallel spans." This replaces v4's `structured_log` middleware with `OTelEnrichmentMiddleware` that annotates ADK's existing OTel spans with adk-fluent metadata (pipeline name, node type, cost estimates).
 
 **Files:**
+
 - Modify: `src/adk_fluent/middleware.py` (add `otel_enrichment` middleware)
 - Test: `tests/manual/test_otel_enrichment.py`
 
@@ -2806,22 +2826,22 @@ git add src/adk_fluent/middleware.py tests/manual/test_otel_enrichment.py
 git commit -m "feat: add OTel enrichment middleware (enrich ADK spans, don't duplicate)"
 ```
 
----
+______________________________________________________________________
 
 ## Summary of Deliverables
 
-| Phase | Task | Files Created/Modified | Lines Added (est.) |
-|-------|------|----------------------|-------------------|
-| 5i: S.capture() | 1 | `_transforms.py`, `_base.py`, `_ir.py`, `backends/adk.py` | ~80 |
-| 5i-core: C Module | 2 | `_context.py` (new) | ~350 |
-| 5i-wire: Agent.context() | 3 | `agent.py`, `_base.py`, `_context.py` | ~80 |
-| 5j: Visibility | 4 | `_visibility.py` (new), `_base.py`, `agent.py` | ~220 |
-| 5k: Contracts | 5 | `testing/contracts.py` | ~180 |
-| 5-memory: Memory | 6 | `agent.py` | ~40 |
-| 5-exports: Public API | 7 | `__init__.py` | ~5 |
-| 5-integration: Tests | 8 | 7 new test files | ~450 |
-| 5-build: IR-first | 9 | `_base.py`, `agent.py` | ~60 |
-| 5-otel: OTel enrichment | 10 | `middleware.py` | ~70 |
+| Phase                    | Task | Files Created/Modified                                    | Lines Added (est.) |
+| ------------------------ | ---- | --------------------------------------------------------- | ------------------ |
+| 5i: S.capture()          | 1    | `_transforms.py`, `_base.py`, `_ir.py`, `backends/adk.py` | ~80                |
+| 5i-core: C Module        | 2    | `_context.py` (new)                                       | ~350               |
+| 5i-wire: Agent.context() | 3    | `agent.py`, `_base.py`, `_context.py`                     | ~80                |
+| 5j: Visibility           | 4    | `_visibility.py` (new), `_base.py`, `agent.py`            | ~220               |
+| 5k: Contracts            | 5    | `testing/contracts.py`                                    | ~180               |
+| 5-memory: Memory         | 6    | `agent.py`                                                | ~40                |
+| 5-exports: Public API    | 7    | `__init__.py`                                             | ~5                 |
+| 5-integration: Tests     | 8    | 7 new test files                                          | ~450               |
+| 5-build: IR-first        | 9    | `_base.py`, `agent.py`                                    | ~60                |
+| 5-otel: OTel enrichment  | 10   | `middleware.py`                                           | ~70                |
 
 **Total:** ~2 new files, ~9 modified files, ~1535 lines of new code + tests.
 

@@ -22,8 +22,9 @@ graph TD
     n3 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # In native ADK, a 4-agent support pipeline where each agent sees all
 # conversation history — including internal classifier reasoning and
@@ -33,8 +34,10 @@ graph TD
 # session.events and inject state keys. That's ~40 lines of boilerplate
 # per agent.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, S, C
 from adk_fluent._routing import Route
@@ -85,6 +88,7 @@ support_pipeline = (
 
 built = support_pipeline.build()
 ```
+
 :::
 ::::
 

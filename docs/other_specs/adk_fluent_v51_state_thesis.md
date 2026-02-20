@@ -28,7 +28,6 @@ booker (instruction="Help book. The intent is: {intent}") runs
 
 This duplication is not a bug. It's the natural consequence of three independent channels converging on one LLM prompt. The developer is expected to manage this. Most don't realize it's happening.
 
-
 ## What include_contents Actually Does
 
 The source (`contents.py`) reveals `include_contents='none'` finds the most recent user message or other-agent reply and only includes events from that point forward. In a pipeline:
@@ -48,7 +47,6 @@ The user's original message is lost. `include_contents='none'` was designed for 
 
 There is no `include_contents='user_only'` or `include_contents='exclude_agents'`. The switch is binary: everything, or current turn. ADK has no mechanism for topology-aware content filtering.
 
-
 ## What output_key Actually Does
 
 `__maybe_save_output_to_state` runs inside `LlmAgent._run_async_impl`:
@@ -62,7 +60,6 @@ async for event in self._llm_flow.run_async(ctx):
 It mutates the event's `state_delta` field in-place. It does not suppress, replace, or redirect the content. The event still carries full text. `append_event` in the Runner then: (1) appends the event to `session.events`, and (2) applies `state_delta` to `session.state`. Both writes happen atomically from the same event.
 
 `output_key` is therefore a *duplication* mechanism, not a *routing* mechanism. It copies the LLM's text response into state under a named key. The original text still exists in conversation history. Downstream agents get it through both channels.
-
 
 ## What the S Module Does Today
 
@@ -89,7 +86,6 @@ pipeline = (
 `S.log` → debug print
 
 These operate exclusively on Channel 2 (session state). They don't touch Channel 1 (conversation history) or Channel 3 (instruction templating). FnAgent writes directly to `ctx.session.state` and yields nothing — no events, no state_delta, no conversation history entry.
-
 
 ## What's Actually Missing
 
@@ -119,7 +115,6 @@ The build-time check the developer actually needs isn't "does key X exist in sta
 - Agent A has `output_key="intent"` but agent B has `include_contents='default'`. B will see "booking" twice (state + conversation). Is this intentional?
 - Agent A has no `output_key` and B has `include_contents='none'`. A's output reaches B through neither channel. Data is lost.
 - Route reads `state["intent"]` but classifier has no `output_key`. Route will read stale or missing state.
-
 
 ## What the Thoughtful Library Does
 
@@ -213,7 +208,6 @@ pipeline = (
 
 The S module exists for when the developer needs explicit wiring — renaming keys, merging outputs, computing derived values, guarding invariants. But for the straight-through case of "produce data, consume data," `>>` plus `.outputs()` plus `{template}` should be sufficient.
 
-
 ## What This Means for adk-fluent
 
 The changes are surgical, not architectural:
@@ -227,7 +221,6 @@ The changes are surgical, not architectural:
 **Default inference** — When compiling IR to ADK agents, apply smart defaults. Agent with output_key + successor → suggest internal visibility. Agent with only `{template}` vars in instruction → candidate for include_contents='none'. These are suggestions in diagnostics, not forced overrides. ~30 lines in backend.
 
 The S module stays as-is. It's already clean. The improvement is in making the *pipeline operator* smart enough that developers rarely need S transforms for the common case, and in making the *contract checker* articulate enough that developers understand what's happening across all three channels without reading ADK source code.
-
 
 ## The Principle
 

@@ -15,8 +15,9 @@ graph TD
     n1 --> n3
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in conditional retry. You'd need to:
 #   1. Wrap the agent in a LoopAgent
@@ -25,8 +26,10 @@ graph TD
 # For a payment gateway integration, this means 30+ lines of boilerplate
 # just to handle transient 503 errors.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Loop
 
@@ -70,6 +73,7 @@ via_loop = (
     .loop_until(lambda s: s.get("sync_status") == "complete", max_iterations=4)
 )
 ```
+
 :::
 ::::
 

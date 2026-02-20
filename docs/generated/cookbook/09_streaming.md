@@ -1,6 +1,6 @@
 # Live Sports Commentary -- Streaming with .stream()
 
-Demonstrates the .stream() method for token-by-token output.  The
+Demonstrates the .stream() method for token-by-token output. The
 scenario: a live sports commentary agent that streams play-by-play
 narration as it generates, providing real-time updates to viewers.
 No LLM calls are made here -- we only verify builder mechanics.
@@ -9,8 +9,9 @@ No LLM calls are made here -- we only verify builder mechanics.
 
 _Source: `09_streaming.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires manual event iteration:
 #   async for event in runner.run_async(user_id="u", session_id=s.id, new_message=content):
@@ -19,8 +20,10 @@ _Source: `09_streaming.py`_
 #               if part.text:
 #                   print(part.text, end="")
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -43,6 +46,7 @@ builder = (
     )
 )
 ```
+
 :::
 ::::
 

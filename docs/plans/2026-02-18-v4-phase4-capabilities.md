@@ -8,11 +8,12 @@
 
 **Tech Stack:** Python 3.10+, dataclasses, Pydantic (for schema introspection), google-adk 1.25.0
 
----
+______________________________________________________________________
 
 ### Task 1: `.produces()` / `.consumes()` on builders + IR wiring
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (add `produces()` and `consumes()` methods to BuilderBase)
 - Modify: `src/adk_fluent/agent.py` (wire through `to_ir()`)
 - Modify: `src/adk_fluent/workflow.py` (wire through `to_ir()` on Pipeline/FanOut/Loop)
@@ -172,11 +173,12 @@ git add tests/manual/test_contracts.py src/adk_fluent/_base.py src/adk_fluent/ag
 git commit -m "feat: add produces/consumes contract annotations on builders"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: `check_contracts()` utility
 
 **Files:**
+
 - Create: `src/adk_fluent/testing/__init__.py`
 - Create: `src/adk_fluent/testing/contracts.py`
 - Test: `tests/manual/test_check_contracts.py`
@@ -272,6 +274,7 @@ Expected: FAIL — `from adk_fluent.testing import check_contracts` fails
 **Step 3: Implement check_contracts**
 
 Create `src/adk_fluent/testing/__init__.py`:
+
 ```python
 """Testing utilities for adk-fluent."""
 from adk_fluent.testing.contracts import check_contracts
@@ -280,6 +283,7 @@ __all__ = ["check_contracts"]
 ```
 
 Create `src/adk_fluent/testing/contracts.py`:
+
 ```python
 """Inter-agent contract verification."""
 from __future__ import annotations
@@ -335,11 +339,12 @@ git add src/adk_fluent/testing/ tests/manual/test_check_contracts.py
 git commit -m "feat: add check_contracts() for inter-agent data flow verification"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: ToolConfirmation + ExecutionConfig compaction wiring
 
 **Files:**
+
 - Modify: `src/adk_fluent/agent.py` (update `.tool()` to accept `require_confirmation`)
 - Modify: `src/adk_fluent/backends/adk.py` (wire compaction config to App)
 - Test: `tests/manual/test_tool_confirmation.py`
@@ -442,6 +447,7 @@ Expected: FAIL
 **Step 3: Implement**
 
 In `src/adk_fluent/agent.py`, update the `.tool()` method signature:
+
 ```python
 def tool(self, fn_or_tool: Callable | BaseTool, *, require_confirmation: bool = False) -> Self:
     """Add a single tool (appends). Multiple .tool() calls accumulate."""
@@ -453,6 +459,7 @@ def tool(self, fn_or_tool: Callable | BaseTool, *, require_confirmation: bool = 
 ```
 
 In `src/adk_fluent/backends/adk.py`, update `compile()` to wire compaction:
+
 ```python
 # After resumability section
 if cfg.compaction:
@@ -480,11 +487,12 @@ git add src/adk_fluent/agent.py src/adk_fluent/backends/adk.py tests/manual/test
 git commit -m "feat: add ToolConfirmation pass-through and wire compaction to App"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Resource DI with `_inject_resources()`
 
 **Files:**
+
 - Create: `src/adk_fluent/di.py`
 - Modify: `src/adk_fluent/_base.py` (add `.inject()` method)
 - Modify: `src/adk_fluent/__init__.py` (export)
@@ -593,6 +601,7 @@ Expected: FAIL — `from adk_fluent.di import inject_resources` fails
 **Step 3: Implement**
 
 Create `src/adk_fluent/di.py`:
+
 ```python
 """Resource dependency injection for tool functions."""
 from __future__ import annotations
@@ -633,6 +642,7 @@ def inject_resources(fn: Callable, resources: dict[str, Any]) -> Callable:
 ```
 
 In `src/adk_fluent/_base.py`, add to BuilderBase (after `consumes()`):
+
 ```python
 def inject(self, **resources: Any) -> Self:
     """Register resources for dependency injection into tool functions.
@@ -662,11 +672,12 @@ git add src/adk_fluent/di.py src/adk_fluent/_base.py tests/manual/test_di.py
 git commit -m "feat: add resource DI with inject_resources and .inject() builder method"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Mock backend + AgentHarness for testing
 
 **Files:**
+
 - Create: `src/adk_fluent/testing/mock_backend.py`
 - Create: `src/adk_fluent/testing/harness.py`
 - Modify: `src/adk_fluent/testing/__init__.py` (add exports)
@@ -767,6 +778,7 @@ Expected: FAIL — import fails
 **Step 3: Implement**
 
 Create `src/adk_fluent/testing/mock_backend.py`:
+
 ```python
 """Mock backend for deterministic testing without LLM calls."""
 from __future__ import annotations
@@ -837,6 +849,7 @@ def mock_backend(responses: dict[str, Any]) -> MockBackend:
 ```
 
 Create `src/adk_fluent/testing/harness.py`:
+
 ```python
 """Test harness for agent builders."""
 from __future__ import annotations
@@ -875,6 +888,7 @@ class AgentHarness:
 ```
 
 Update `src/adk_fluent/testing/__init__.py`:
+
 ```python
 """Testing utilities for adk-fluent."""
 from adk_fluent.testing.contracts import check_contracts
@@ -901,11 +915,12 @@ git add src/adk_fluent/testing/ tests/manual/test_mock_backend.py
 git commit -m "feat: add mock_backend and AgentHarness for deterministic testing"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Graph visualization + exports
 
 **Files:**
+
 - Create: `src/adk_fluent/viz.py`
 - Modify: `src/adk_fluent/_base.py` (add `.to_mermaid()`)
 - Modify: `src/adk_fluent/__init__.py` (add all Phase 4 exports)
@@ -992,6 +1007,7 @@ Expected: FAIL — `to_mermaid` not found
 **Step 3: Implement**
 
 Create `src/adk_fluent/viz.py`:
+
 ```python
 """Graph visualization for IR node trees."""
 from __future__ import annotations
@@ -1089,6 +1105,7 @@ def ir_to_mermaid(node: Any, *, show_contracts: bool = True) -> str:
 ```
 
 In `src/adk_fluent/_base.py`, add to BuilderBase (after `consumes()`):
+
 ```python
 def to_mermaid(self) -> str:
     """Generate a Mermaid graph visualization of this builder's IR tree."""
@@ -1097,6 +1114,7 @@ def to_mermaid(self) -> str:
 ```
 
 Update `src/adk_fluent/__init__.py` to add Phase 4 exports to `__all__`:
+
 ```python
 # Add to __all__:
 "check_contracts",

@@ -23,8 +23,9 @@ graph TD
     n1 --> n5
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in fallback mechanism. You'd need:
 #   1. Custom BaseAgent subclass with try/except logic
@@ -32,8 +33,10 @@ graph TD
 #   3. Manual error handling and re-delegation
 # This is ~30 lines per fallback chain.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._base import _FallbackBuilder
@@ -90,6 +93,7 @@ fallback_with_default = Agent("primary_search").model("gemini-2.5-flash").instru
     lambda s: {"result": "No results found. Please contact support."}
 )
 ```
+
 :::
 ::::
 

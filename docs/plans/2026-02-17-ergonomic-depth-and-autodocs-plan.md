@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+, google-adk >= 1.20.0, pytest, TOML (seed), JSON (manifest), Markdown (docs output).
 
----
+______________________________________________________________________
 
 ## Group 1: Runtime Helpers — Clone & Callback Combinators (TDD)
 
@@ -17,6 +17,7 @@ These are pure-logic features with no external dependencies. Full TDD.
 ### Task 1: Test and implement `.clone()` helper
 
 **Files:**
+
 - Create: `tests/manual/test_clone.py`
 - Create: `src/adk_fluent/_helpers.py`
 
@@ -139,11 +140,12 @@ git add tests/manual/test_clone.py src/adk_fluent/_helpers.py
 git commit -m "feat: add clone() helper with deep-copy semantics"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Test and implement variadic callback methods
 
 **Files:**
+
 - Create: `tests/manual/test_variadic_callbacks.py`
 - Modify: `src/adk_fluent/agent.py` (temporarily, until generator handles it)
 
@@ -243,11 +245,12 @@ git add scripts/generator.py tests/manual/test_variadic_callbacks.py
 git commit -m "feat: variadic callback methods — .before_model(fn1, fn2, fn3)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Test and implement `.guardrail()` method
 
 **Files:**
+
 - Create: `tests/manual/test_guardrail.py`
 - Modify: `scripts/generator.py` (add dual_callback behavior)
 - Modify: `seeds/seed.toml` (add guardrail extra to Agent)
@@ -346,11 +349,12 @@ git add scripts/generator.py seeds/seed.toml tests/manual/test_guardrail.py
 git commit -m "feat: add .guardrail() dual-callback method for Agent builder"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Test and implement conditional callbacks (`.before_model_if()`)
 
 **Files:**
+
 - Create: `tests/manual/test_conditional_callbacks.py`
 - Modify: `scripts/generator.py` (emit `_if` variants)
 
@@ -444,13 +448,14 @@ git add scripts/generator.py tests/manual/test_conditional_callbacks.py
 git commit -m "feat: conditional callback methods — .before_model_if(cond, fn)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Wire `.clone()` into the generator
 
 Now that `.clone()` works via manual insertion (Task 1), make the generator emit it automatically.
 
 **Files:**
+
 - Modify: `scripts/generator.py` (add `deep_copy` behavior)
 - Modify: `seeds/seed.toml` (add clone extra to Agent, Pipeline, FanOut, Loop)
 
@@ -507,6 +512,7 @@ Expected: All 7 tests still PASS.
 ```bash
 grep -n "def clone" src/adk_fluent/agent.py src/adk_fluent/workflow.py
 ```
+
 Expected: `.clone()` appears in both files.
 
 **Step 5: Commit**
@@ -516,7 +522,7 @@ git add scripts/generator.py seeds/seed.toml
 git commit -m "feat: generate .clone() for Agent, Pipeline, FanOut, Loop builders"
 ```
 
----
+______________________________________________________________________
 
 ## Group 2: Runtime Helpers — Ask, Stream, Test, Session
 
@@ -525,6 +531,7 @@ These features require ADK runtime (InMemoryRunner, sessions). Tests need mockin
 ### Task 6: Implement `.ask()` and `.ask_async()` helpers
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py`
 - Create: `tests/manual/test_ask.py`
 - Modify: `seeds/seed.toml` (add ask/ask_async terminals to Agent)
@@ -656,11 +663,12 @@ git add src/adk_fluent/_helpers.py tests/manual/test_ask.py seeds/seed.toml scri
 git commit -m "feat: add .ask() and .ask_async() one-shot execution"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Implement `.stream()` helper
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py`
 - Create: `tests/manual/test_stream.py`
 - Modify: `seeds/seed.toml`
@@ -748,11 +756,12 @@ git add src/adk_fluent/_helpers.py tests/manual/test_stream.py seeds/seed.toml s
 git commit -m "feat: add .stream() async generator for streaming responses"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Implement `.test()` method
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py`
 - Create: `tests/manual/test_inline_test.py`
 - Modify: `seeds/seed.toml`
@@ -894,11 +903,12 @@ git add src/adk_fluent/_helpers.py tests/manual/test_inline_test.py seeds/seed.t
 git commit -m "feat: add .test() inline agent testing method"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Implement `.session()` context manager
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py`
 - Create: `tests/manual/test_session.py`
 - Modify: `seeds/seed.toml`
@@ -1007,7 +1017,7 @@ git add src/adk_fluent/_helpers.py tests/manual/test_session.py seeds/seed.toml 
 git commit -m "feat: add .session() async context manager for interactive chat"
 ```
 
----
+______________________________________________________________________
 
 ## Group 3: Update Stubs
 
@@ -1016,6 +1026,7 @@ git commit -m "feat: add .session() async context manager for interactive chat"
 After all features are added, the `.pyi` stubs need to reflect the new methods.
 
 **Files:**
+
 - Modify: `scripts/generator.py` (stub generation for new behaviors)
 - Regenerate: `src/adk_fluent/*.pyi`
 
@@ -1066,13 +1077,14 @@ git add src/adk_fluent/
 git commit -m "feat: regenerate all builders with new ergonomic methods + stubs"
 ```
 
----
+______________________________________________________________________
 
 ## Group 4: Documentation Generator
 
 ### Task 11: Create `scripts/doc_generator.py` — API reference
 
 **Files:**
+
 - Create: `scripts/doc_generator.py`
 - Create: `tests/test_doc_generator.py`
 
@@ -1257,11 +1269,12 @@ git add scripts/doc_generator.py tests/test_doc_generator.py
 git commit -m "feat: add doc_generator.py with API reference generation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 12: Add cookbook processor to doc_generator.py
 
 **Files:**
+
 - Modify: `scripts/doc_generator.py`
 - Modify: `tests/test_doc_generator.py`
 - Create: `examples/cookbook/01_simple_agent.py` (first example as test fixture)
@@ -1319,7 +1332,7 @@ assert True
 
 **Step 2: Implement cookbook processor**
 
-```python
+````python
 def process_cookbook_file(filepath: str) -> dict:
     """Parse an annotated cookbook example file into sections."""
     text = Path(filepath).read_text()
@@ -1361,7 +1374,7 @@ def cookbook_to_markdown(parsed: dict) -> str:
 
 ```python
 {parsed['native']}
-```
+````
 
 ## adk-fluent
 
@@ -1374,8 +1387,10 @@ def cookbook_to_markdown(parsed: dict) -> str:
 ```python
 {parsed['assertion']}
 ```
+
 """
-```
+
+````
 
 **Step 3: Create first cookbook example**
 
@@ -1409,7 +1424,7 @@ assert type(agent_native) == type(agent_fluent)
 assert agent_native.name == agent_fluent.name
 assert agent_native.model == agent_fluent.model
 assert agent_native.instruction == agent_fluent.instruction
-```
+````
 
 **Step 4: Run tests and commit**
 
@@ -1419,11 +1434,12 @@ git add scripts/doc_generator.py tests/test_doc_generator.py examples/cookbook/0
 git commit -m "feat: add cookbook processor with marker-based example parsing"
 ```
 
----
+______________________________________________________________________
 
 ### Task 13: Add migration guide generator
 
 **Files:**
+
 - Modify: `scripts/doc_generator.py`
 - Modify: `tests/test_doc_generator.py`
 
@@ -1505,11 +1521,12 @@ git add scripts/doc_generator.py tests/test_doc_generator.py
 git commit -m "feat: add migration guide generator"
 ```
 
----
+______________________________________________________________________
 
 ### Task 14: Add CLI and orchestrator to doc_generator.py
 
 **Files:**
+
 - Modify: `scripts/doc_generator.py`
 
 **Step 1: Add the main orchestrator**
@@ -1632,13 +1649,14 @@ git add scripts/doc_generator.py
 git commit -m "feat: add doc_generator.py CLI with api/cookbook/migration targets"
 ```
 
----
+______________________________________________________________________
 
 ## Group 5: Justfile & Pipeline Integration
 
 ### Task 15: Update justfile with documentation targets
 
 **Files:**
+
 - Modify: `justfile`
 
 **Step 1: Add doc targets to justfile**
@@ -1733,13 +1751,14 @@ git add justfile
 git commit -m "feat: add docs, docs-api, docs-cookbook, docs-migration to justfile"
 ```
 
----
+______________________________________________________________________
 
 ## Group 6: Cookbook Examples
 
 ### Task 16: Create remaining cookbook examples
 
 **Files:**
+
 - Create: `examples/cookbook/02_agent_with_tools.py`
 - Create: `examples/cookbook/03_callbacks.py`
 - Create: `examples/cookbook/04_sequential_pipeline.py`
@@ -1825,7 +1844,7 @@ git add examples/cookbook/ docs/generated/cookbook/
 git commit -m "feat: add 15 cookbook examples with native vs fluent comparisons"
 ```
 
----
+______________________________________________________________________
 
 ## Group 7: Final Integration
 
@@ -1872,23 +1891,24 @@ git add -A
 git commit -m "feat: complete ergonomic depth features + auto-generated documentation system"
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Group | Tasks | Description |
-|-------|-------|-------------|
-| 1 | 1-5 | Clone, variadic callbacks, guardrail, conditional callbacks (TDD) |
-| 2 | 6-9 | Ask, stream, test, session (runtime helpers) |
-| 3 | 10 | Regenerate stubs with all new methods |
-| 4 | 11-14 | Documentation generator (API ref, cookbook, migration) |
-| 5 | 15 | Justfile integration |
-| 6 | 16 | 15 cookbook examples |
-| 7 | 17 | Full pipeline verification |
+| Group | Tasks | Description                                                       |
+| ----- | ----- | ----------------------------------------------------------------- |
+| 1     | 1-5   | Clone, variadic callbacks, guardrail, conditional callbacks (TDD) |
+| 2     | 6-9   | Ask, stream, test, session (runtime helpers)                      |
+| 3     | 10    | Regenerate stubs with all new methods                             |
+| 4     | 11-14 | Documentation generator (API ref, cookbook, migration)            |
+| 5     | 15    | Justfile integration                                              |
+| 6     | 16    | 15 cookbook examples                                              |
+| 7     | 17    | Full pipeline verification                                        |
 
 **Total: 17 tasks, ~50 bite-sized steps.**
 
 **Key files created:**
+
 - `src/adk_fluent/_helpers.py` — runtime implementations
 - `scripts/doc_generator.py` — documentation generator
 - `tests/manual/test_*.py` — 6 test files for new features
@@ -1896,6 +1916,7 @@ git commit -m "feat: complete ergonomic depth features + auto-generated document
 - `docs/generated/` — auto-generated documentation output
 
 **Key files modified:**
+
 - `scripts/generator.py` — new behaviors (deep_copy, dual_callback, runtime_helper, variadic/conditional callbacks)
 - `seeds/seed.toml` — new extras and terminals for Agent builder
 - `justfile` — docs targets

@@ -15,8 +15,9 @@ graph TD
     n1 --> n3
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in conditional loop exit. You'd need to:
 #   1. Create a custom BaseAgent that evaluates a predicate
@@ -24,8 +25,10 @@ graph TD
 #   3. Manually wire it into the LoopAgent's sub_agents
 # This is ~30 lines of boilerplate per loop condition.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Loop
 
@@ -69,6 +72,7 @@ cover_letter_loop = (
     .max_iterations(10)
 )
 ```
+
 :::
 ::::
 
@@ -95,6 +99,6 @@ checkpoint = built.sub_agents[-1]
 assert checkpoint.name == "_until_check"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Loop](../api/workflow.md#builder-Loop)
 :::

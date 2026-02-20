@@ -2,18 +2,18 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.4.x   | Yes                |
-| < 0.4   | No                 |
+| Version | Supported |
+| ------- | --------- |
+| 0.4.x   | Yes       |
+| < 0.4   | No        |
 
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
-2. Email the maintainers or use [GitHub's private vulnerability reporting](https://github.com/vamsiramakrishnan/adk-fluent/security/advisories/new)
-3. Include a description of the vulnerability and steps to reproduce
+1. Email the maintainers or use [GitHub's private vulnerability reporting](https://github.com/vamsiramakrishnan/adk-fluent/security/advisories/new)
+1. Include a description of the vulnerability and steps to reproduce
 
 We will acknowledge receipt within 48 hours and provide a fix timeline within 7 days.
 

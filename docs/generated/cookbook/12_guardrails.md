@@ -1,7 +1,7 @@
 # Medical Advice Safety Guardrails -- Guardrails with .guardrail()
 
 Demonstrates the .guardrail() method that registers a function as
-both a before_model and after_model callback in one call.  The
+both a before_model and after_model callback in one call. The
 scenario: a medical information agent with safety guardrails that
 screen requests and responses for dangerous self-diagnosis or
 treatment recommendations.
@@ -10,8 +10,9 @@ treatment recommendations.
 
 _Source: `12_guardrails.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -39,8 +40,10 @@ agent_native = LlmAgent(
     after_model_callback=medical_safety_screen,
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -57,6 +60,7 @@ builder = (
     .guardrail(medical_safety_screen)
 )
 ```
+
 :::
 ::::
 

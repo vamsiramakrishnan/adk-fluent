@@ -21,8 +21,9 @@ graph TD
     n1 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -60,8 +61,10 @@ coordinator_native = LlmAgent(
     ],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -94,6 +97,7 @@ coordinator_fluent = (
     .build()
 )
 ```
+
 :::
 ::::
 

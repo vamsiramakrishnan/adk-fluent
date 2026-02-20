@@ -1,11 +1,11 @@
 # ADK-FLUENT: Specification v5 — Production Agent Systems
 
-**Status:** Supersedes SPEC_v4.md  
-**ADK Baseline:** google-adk v1.25.0+ (`adk-python` main branch, Feb 2026)  
-**Philosophy:** The expression graph is the product. ADK is one backend. The IR evolves with ADK automatically. Every cross-cutting concern — telemetry, evaluation, cost — extends ADK's existing infrastructure rather than replacing it.  
+**Status:** Supersedes SPEC_v4.md\
+**ADK Baseline:** google-adk v1.25.0+ (`adk-python` main branch, Feb 2026)\
+**Philosophy:** The expression graph is the product. ADK is one backend. The IR evolves with ADK automatically. Every cross-cutting concern — telemetry, evaluation, cost — extends ADK's existing infrastructure rather than replacing it.\
 **Architecture:** Expression IR → Backend Protocol → ADK (or anything else)
 
----
+______________________________________________________________________
 
 ## 0. Preamble: What Changed Since v4
 
@@ -13,22 +13,22 @@ v4 established the seed-based IR generator, the 13-callback middleware protocol 
 
 v5 addresses what v4 left unmodeled: the production realities of enterprise agent systems. Crucially, v5 applies the Tide Principle to two areas that v4's drafting process missed: **telemetry** and **evaluation**. Both ADK subsystems are mature, opinionated, and structurally integrated — building parallel versions would violate the core design philosophy.
 
-| v4 State | v5 Change | Rationale |
-|---|---|---|
-| State is `dict[str, Any]` with string-key conventions | **`StateSchema`**: typed, scoped, validated at build time | Largest source of runtime errors in production pipelines |
-| Streaming is `ExecutionConfig.streaming_mode` (a runtime flag) | **Stream edge semantics**: IR-level buffering and backpressure | Streaming changes composition semantics; a runtime toggle is insufficient |
-| `cost_tracker` middleware (observability only) | **Cost-aware routing**: `ModelSelectorNode` with budget constraints, OTel metric emission | Enterprise buyers need cost governance, not just cost visibility |
-| No cross-system interop | **A2A boundary nodes**: `RemoteAgentNode`, `AgentCard` | Agent-to-Agent protocol interop for federated enterprise deployments |
-| Mock-based testing only | **Evaluation harness**: fluent API over ADK's `EvalSet`/`LocalEvalService` | Mock tests verify mechanics; evals verify reasoning — using ADK's existing infrastructure |
-| No telemetry awareness | **OTel integration**: enrichment of ADK's span hierarchy, not parallel capture | ADK already emits OTel spans at every lifecycle point; duplicating is wasteful |
-| Content is strings | **Multi-modal content spec**: declared modality contracts | Prevents routing video to text-only agents |
-| No replay capability | **Event replay and time-travel debugging**: built on ADK's `InMemoryExporter` | Production debugging requires reproducing event streams locally |
-| Single-process execution assumed | **Execution boundaries**: serialization and queue annotations | Conglomerate-scale deployments require distributed execution |
-| Decisions implicit | **ADR appendix**: rejected alternatives documented | Spec consumers need "why not" as much as "what" |
+| v4 State                                                       | v5 Change                                                                                 | Rationale                                                                                 |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| State is `dict[str, Any]` with string-key conventions          | **`StateSchema`**: typed, scoped, validated at build time                                 | Largest source of runtime errors in production pipelines                                  |
+| Streaming is `ExecutionConfig.streaming_mode` (a runtime flag) | **Stream edge semantics**: IR-level buffering and backpressure                            | Streaming changes composition semantics; a runtime toggle is insufficient                 |
+| `cost_tracker` middleware (observability only)                 | **Cost-aware routing**: `ModelSelectorNode` with budget constraints, OTel metric emission | Enterprise buyers need cost governance, not just cost visibility                          |
+| No cross-system interop                                        | **A2A boundary nodes**: `RemoteAgentNode`, `AgentCard`                                    | Agent-to-Agent protocol interop for federated enterprise deployments                      |
+| Mock-based testing only                                        | **Evaluation harness**: fluent API over ADK's `EvalSet`/`LocalEvalService`                | Mock tests verify mechanics; evals verify reasoning — using ADK's existing infrastructure |
+| No telemetry awareness                                         | **OTel integration**: enrichment of ADK's span hierarchy, not parallel capture            | ADK already emits OTel spans at every lifecycle point; duplicating is wasteful            |
+| Content is strings                                             | **Multi-modal content spec**: declared modality contracts                                 | Prevents routing video to text-only agents                                                |
+| No replay capability                                           | **Event replay and time-travel debugging**: built on ADK's `InMemoryExporter`             | Production debugging requires reproducing event streams locally                           |
+| Single-process execution assumed                               | **Execution boundaries**: serialization and queue annotations                             | Conglomerate-scale deployments require distributed execution                              |
+| Decisions implicit                                             | **ADR appendix**: rejected alternatives documented                                        | Spec consumers need "why not" as much as "what"                                           |
 
 v4's core constructs — the IR node types, the `Backend` protocol, the `Middleware` protocol, the ADK construct map (§1), the disfluency catalog (§2), the state transform semantics (§6), the dependency injection model (§8), and the module architecture (§10) — are **incorporated by reference** and not repeated except where v5 modifies them.
 
----
+______________________________________________________________________
 
 ## 1. Typed State System
 
@@ -63,13 +63,13 @@ class BillingState(StateSchema):
 
 **Scope annotations compile to ADK prefix conventions:**
 
-| Annotation | ADK Key | Persistence |
-|---|---|---|
-| (default) | `intent` | Session storage |
-| `SessionScoped` | `intent` | Session storage |
-| `UserScoped` | `user:user_tier` | User storage (cross-session) |
-| `AppScoped` | `app:app_version` | App storage (cross-user) |
-| `Temp` | `temp:scratch` | Ephemeral (never persisted) |
+| Annotation      | ADK Key           | Persistence                  |
+| --------------- | ----------------- | ---------------------------- |
+| (default)       | `intent`          | Session storage              |
+| `SessionScoped` | `intent`          | Session storage              |
+| `UserScoped`    | `user:user_tier`  | User storage (cross-session) |
+| `AppScoped`     | `app:app_version` | App storage (cross-user)     |
+| `Temp`          | `temp:scratch`    | Ephemeral (never persisted)  |
 
 ### 1.3 Schema-Bound Agents
 
@@ -99,9 +99,10 @@ def create_ticket(query: str, tool_context: Context) -> str:
 ```
 
 **Implementation:** `StateSchema.bind(ctx)` returns a descriptor proxy that:
+
 1. Reads: `ctx.state[prefix + field_name]` with type validation
-2. Writes: `ctx.state[prefix + field_name] = value` with type check
-3. Raises `StateKeyError` (not `KeyError`) with diagnostic context on missing keys
+1. Writes: `ctx.state[prefix + field_name] = value` with type check
+1. Raises `StateKeyError` (not `KeyError`) with diagnostic context on missing keys
 
 ### 1.5 Pipeline-Wide Contract Checking
 
@@ -157,7 +158,7 @@ class BillingPipelineState(ClassifierState, ResolverState):
 
 Multiple inheritance on `StateSchema` produces a merged schema. Field name collisions across parent schemas raise `SchemaCompositionError` at class definition time if types differ.
 
----
+______________________________________________________________________
 
 ## 2. Streaming Edge Semantics
 
@@ -185,11 +186,11 @@ class EdgeSemantics:
     merge: Literal["wait_all", "first_complete", "interleave"] = "wait_all"
 ```
 
-| Mode | Behavior | Use Case |
-|---|---|---|
-| `full` | Downstream waits for complete output | Default; safe for all compositions |
-| `chunked` | Downstream receives content in chunks of `chunk_size` tokens | Progressive UI rendering |
-| `token` | Downstream receives each token as emitted | Real-time typing indicators |
+| Mode      | Behavior                                                     | Use Case                           |
+| --------- | ------------------------------------------------------------ | ---------------------------------- |
+| `full`    | Downstream waits for complete output                         | Default; safe for all compositions |
+| `chunked` | Downstream receives content in chunks of `chunk_size` tokens | Progressive UI rendering           |
+| `token`   | Downstream receives each token as emitted                    | Real-time typing indicators        |
 
 ### 2.3 Builder API and IR Representation
 
@@ -231,7 +232,7 @@ def check_streaming_contracts(root: Node) -> list[StreamingIssue]:
     return issues
 ```
 
----
+______________________________________________________________________
 
 ## 3. Cost-Aware Routing
 
@@ -260,12 +261,12 @@ class ModelSelectorNode:
     fallback_model: str | None = None
 ```
 
-| Strategy | Behavior |
-|---|---|
-| `cost_optimized` | Cheapest candidate whose `condition` passes |
-| `quality_optimized` | Highest `quality_tier` whose `condition` passes |
-| `budget_bounded` | Cheapest candidate; switch to `fallback_model` when budget exhausted |
-| `adaptive` | Start cheap; promote on quality feedback |
+| Strategy            | Behavior                                                             |
+| ------------------- | -------------------------------------------------------------------- |
+| `cost_optimized`    | Cheapest candidate whose `condition` passes                          |
+| `quality_optimized` | Highest `quality_tier` whose `condition` passes                      |
+| `budget_bounded`    | Cheapest candidate; switch to `fallback_model` when budget exhausted |
+| `adaptive`          | Start cheap; promote on quality feedback                             |
 
 ### 3.3 Builder API
 
@@ -347,7 +348,7 @@ class CostAttributionMiddleware:
 
 **Bridge between estimated and actual cost:** `VizBackend` renders `estimate_cost()` data per node. OTel metrics capture actual cost. Dashboards compare both using shared `agent_name` labels.
 
----
+______________________________________________________________________
 
 ## 4. A2A Protocol Interop
 
@@ -412,7 +413,7 @@ agents = await directory.discover(capabilities=["process_refund"])
 pipeline = Agent("classifier") >> RemoteAgent.from_card(agents[0]) >> Agent("responder")
 ```
 
----
+______________________________________________________________________
 
 ## 5. Telemetry Integration
 
@@ -425,6 +426,7 @@ ADK provides an integrated OpenTelemetry implementation following Semantic Conve
 **Centralized tracer:** `telemetry.tracing.tracer` — a single OTel tracer across all ADK modules.
 
 **Span hierarchy:**
+
 ```
 invocation                    (Runner.run_async — top-level)
   └── invoke_agent            (BaseAgent.run_async — @final)
@@ -434,6 +436,7 @@ invocation                    (Runner.run_async — top-level)
 ```
 
 **Span attributes (OTel GenAI conventions):**
+
 - `gen_ai.agent.name`, `gen_ai.agent.description`, `gen_ai.operation.name` on `invoke_agent`
 - `gen_ai.request.model`, `gen_ai.system`, `gcp.vertex.agent.event_id` on `call_llm`
 - `gen_ai.tool.name`, `gen_ai.tool.description`, `gen_ai.tool.call.id` on `execute_tool`
@@ -442,6 +445,7 @@ invocation                    (Runner.run_async — top-level)
 **Content capture:** Toggled via `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`. When enabled, `trace_call_llm` records request/response content in span attributes.
 
 **Built-in exporters:**
+
 - `InMemoryExporter` — stores spans indexed by session ID (dev/debug)
 - `ApiServerSpanExporter` — indexes by event ID (web UI `/debug/trace/:event_id`)
 - `CloudTraceSpanExporter` — production export via `--trace_to_cloud`
@@ -531,7 +535,7 @@ config = ExecutionConfig(
 
 `TelemetryConfig` compiles to environment variables and exporter setup by the ADK backend.
 
----
+______________________________________________________________________
 
 ## 6. Evaluation Harness
 
@@ -542,27 +546,32 @@ config = ExecutionConfig(
 ADK has a mature evaluation framework:
 
 **Data model:**
+
 - `EvalSet` → Pydantic model containing multiple `EvalCase` objects
 - `EvalCase` → multi-turn conversation with expected tool trajectories, intermediate agent responses, and reference final responses
 - `EvalSetsManager` / `InMemoryEvalSetsManager` / `LocalEvalSetsManager` → dataset CRUD
 
 **Evaluation service:**
+
 - `LocalEvalService` → orchestrates inference (running the agent) + evaluation (scoring)
 - `EvaluationGenerator` → runs agent turn-by-turn, intercepts tool calls for mocking via `mock_tool_output`
 - `InferenceConfig` / `InferenceRequest` → controls agent inference
 - `EvaluateConfig` / `EvaluateRequest` → controls metric evaluation
 
 **Built-in evaluators via `MetricEvaluatorRegistry`:**
+
 - `TrajectoryEvaluator` → compares actual vs expected tool call sequences
 - `ResponseEvaluator` → ROUGE (`response_match_score`) + LLM-as-judge (`response_evaluation_score`)
 - `_CustomMetricEvaluator` → user-provided evaluation functions
 
 **Built-in metrics (`PrebuiltMetrics`):**
+
 - `tool_trajectory_avg_score` — 1.0 = perfect trajectory match
 - `response_match_score` — ROUGE text similarity
 - `response_evaluation_score` — LLM-as-judge (source notes: "not very stable")
 
 **Infrastructure:**
+
 - `num_runs` — run each case multiple times, aggregate scores
 - `EvalCaseResult` → per-case results with per-metric breakdowns and `EvalStatus`
 - `LlmBackedUserSimulatorCriterion` + `UserSimulatorProvider` → dynamic multi-turn evals
@@ -851,7 +860,7 @@ python -c "from my_pipeline import suite; suite.to_eval_set_file('billing.evalse
 adk eval my_agent/ billing.evalset.json --num_runs 3 --print_detailed_results
 ```
 
----
+______________________________________________________________________
 
 ## 7. Multi-Modal Content Contracts
 
@@ -889,7 +898,7 @@ agent = (
 
 Verifies that producer output modalities are accepted by downstream consumers. Mismatches flagged at build time.
 
----
+______________________________________________________________________
 
 ## 8. Event Replay and Time-Travel Debugging
 
@@ -981,7 +990,7 @@ diff = diff_events(recording.events, new_events)
 print(diff.summary)
 ```
 
----
+______________________________________________________________________
 
 ## 9. Execution Boundaries for Distributed Pipelines
 
@@ -1014,7 +1023,7 @@ pipeline = (
 
 Backend splits pipeline at boundaries into separate `App` objects. Each independently deployable with its own `ResumabilityConfig`. State serialization uses `StateSchema` when available.
 
----
+______________________________________________________________________
 
 ## 10. Unified Contract Checker
 
@@ -1041,7 +1050,7 @@ def register_checker(fn: Callable) -> None:
     _CHECKERS.append(fn)
 ```
 
----
+______________________________________________________________________
 
 ## 11. Updated Middleware
 
@@ -1059,10 +1068,10 @@ from adk_fluent.middleware import (
 )
 ```
 
-**Removed:** `structured_log` → replaced by `otel_enrichment`.  
+**Removed:** `structured_log` → replaced by `otel_enrichment`.\
 **Removed:** `cost_tracker` → replaced by `cost_attribution` with OTel metrics.
 
----
+______________________________________________________________________
 
 ## 12. Module Architecture
 
@@ -1120,112 +1129,124 @@ adk_fluent/
     ir_generator.py  builder_generator.py  backend_generator.py  diff_report.py
 ```
 
----
+______________________________________________________________________
 
 ## 13. Migration Path
 
 ### Phase 1–4: v4 Phases (Retained)
 
 ### Phase 5a: Typed State (Foundation)
+
 ### Phase 5b: Telemetry Integration (Must precede 5c, 5f, 5g)
+
 1. `OTelEnrichmentMiddleware` — annotate ADK's spans
-2. OTel metric definitions
-3. `TelemetryConfig` pass-through
-4. Replace `structured_log` → `otel_enrichment`, `cost_tracker` → `cost_attribution`
+1. OTel metric definitions
+1. `TelemetryConfig` pass-through
+1. Replace `structured_log` → `otel_enrichment`, `cost_tracker` → `cost_attribution`
 
 ### Phase 5c: Cost-Aware Routing (Depends on 5b)
+
 ### Phase 5d: Streaming Edge Semantics
+
 ### Phase 5e: A2A Interop (Parallel Track)
+
 ### Phase 5f: Evaluation Harness (Depends on 5a, 5b)
+
 1. `FluentEvalSuite` → `EvalSet`/`LocalEvalService` compilation
-2. `FluentCase` → `EvalCase` conversion
-3. `FluentJudge` → `MetricEvaluatorRegistry` registration
-4. `FluentEvalReport` wrapping `EvalCaseResult` + tags/regression
-5. `UserSimulation` → `UserSimulatorProvider` compilation
-6. File format interop (`.evalset.json` ↔ fluent YAML)
-7. Sub-graph targeting and typed state assertions
+1. `FluentCase` → `EvalCase` conversion
+1. `FluentJudge` → `MetricEvaluatorRegistry` registration
+1. `FluentEvalReport` wrapping `EvalCaseResult` + tags/regression
+1. `UserSimulation` → `UserSimulatorProvider` compilation
+1. File format interop (`.evalset.json` ↔ fluent YAML)
+1. Sub-graph targeting and typed state assertions
 
 ### Phase 5g: Replay (Depends on 5b)
+
 ### Phase 5h: Execution Boundaries
 
----
+______________________________________________________________________
 
 ## 14. Design Principles
 
 ### 14.1 The Tide Principle (Strengthened)
+
 > If ADK gets better, adk-fluent gets better for free.
 
 v5 extends this explicitly to **telemetry** (enrich ADK's OTel spans), **evaluation** (compile to ADK's `EvalSet`/`LocalEvalService`), and **cost** (emit via OTel).
 
 ### 14.2 Progressive Disclosure
-| Level | Imports | Capability |
-|---|---|---|
-| 0 | `adk_fluent` | Agent, Pipeline, FanOut, Loop, S, Route |
-| 1 | `adk_fluent.config` | ExecutionConfig, TelemetryConfig |
-| 2 | `adk_fluent.middleware` | Built-in middleware |
-| 3 | `adk_fluent.state` | StateSchema, typed state |
-| 4 | `adk_fluent.cost` | Cost modeling, model selection |
-| 5 | `adk_fluent.eval` | Evaluation (fluent API over ADK's eval) |
-| 6 | `adk_fluent.a2a` | Remote agents, Agent Cards |
-| 7 | `adk_fluent.debug` | Recording, replay (built on ADK's OTel) |
-| 8 | `adk_fluent.distributed` | Execution boundaries |
+
+| Level | Imports                  | Capability                              |
+| ----- | ------------------------ | --------------------------------------- |
+| 0     | `adk_fluent`             | Agent, Pipeline, FanOut, Loop, S, Route |
+| 1     | `adk_fluent.config`      | ExecutionConfig, TelemetryConfig        |
+| 2     | `adk_fluent.middleware`  | Built-in middleware                     |
+| 3     | `adk_fluent.state`       | StateSchema, typed state                |
+| 4     | `adk_fluent.cost`        | Cost modeling, model selection          |
+| 5     | `adk_fluent.eval`        | Evaluation (fluent API over ADK's eval) |
+| 6     | `adk_fluent.a2a`         | Remote agents, Agent Cards              |
+| 7     | `adk_fluent.debug`       | Recording, replay (built on ADK's OTel) |
+| 8     | `adk_fluent.distributed` | Execution boundaries                    |
 
 ### 14.3 Dry Run Your Architecture
+
 Every production concern is verifiable before a single LLM call.
 
 ### 14.4 Zero Surprise
+
 - `FluentEvalSuite` compiles to ADK's `EvalSet` (compatible with `adk eval` CLI)
 - `OTelEnrichmentMiddleware` annotates existing spans (no duplicate telemetry)
 - `Recorder` uses ADK's `InMemoryExporter` (no parallel capture)
 - `CostAttributionMiddleware` emits OTel metrics (visible in Cloud Monitoring)
 
----
+______________________________________________________________________
 
 ## 15. Success Criteria
 
 v4 criteria retained. v5 adds:
 
-| # | Criterion | Measurement |
-|---|---|---|
-| 8 | Typed state catches errors at build time | Zero runtime `KeyError` in typed pipelines |
-| 9 | Cost estimation within 20% of actual | `estimate_cost()` vs OTel `adk_fluent.llm.cost` |
-| 10 | Eval runs via ADK's `LocalEvalService` | Valid `EvalCaseResult` objects produced |
-| 11 | Eval output compatible with `adk eval` CLI | `.to_eval_set_file()` runnable by `adk eval` |
-| 12 | No duplicate telemetry | Span count with middleware ≤ span count without |
-| 13 | `adk_fluent.*` attributes visible in ADK web UI | Appear in `/debug/trace/:event_id` |
-| 14 | Replay deterministic | Empty diff on unmodified pipeline replay |
-| 15 | `check_all()` < 100ms | 100-node graphs |
+| #   | Criterion                                       | Measurement                                     |
+| --- | ----------------------------------------------- | ----------------------------------------------- |
+| 8   | Typed state catches errors at build time        | Zero runtime `KeyError` in typed pipelines      |
+| 9   | Cost estimation within 20% of actual            | `estimate_cost()` vs OTel `adk_fluent.llm.cost` |
+| 10  | Eval runs via ADK's `LocalEvalService`          | Valid `EvalCaseResult` objects produced         |
+| 11  | Eval output compatible with `adk eval` CLI      | `.to_eval_set_file()` runnable by `adk eval`    |
+| 12  | No duplicate telemetry                          | Span count with middleware ≤ span count without |
+| 13  | `adk_fluent.*` attributes visible in ADK web UI | Appear in `/debug/trace/:event_id`              |
+| 14  | Replay deterministic                            | Empty diff on unmodified pipeline replay        |
+| 15  | `check_all()` < 100ms                           | 100-node graphs                                 |
 
----
+______________________________________________________________________
 
 ## 16. Performance Budgets
 
-| Operation | Budget |
-|---|---|
-| IR compilation (100 nodes) | < 50ms |
-| Contract checking (100 nodes, full v5) | < 100ms |
-| Cost estimation (100 nodes) | < 10ms |
-| Backend compile (100 nodes → ADK App) | < 200ms |
-| Runtime dispatch overhead per event | < 1% of LLM latency |
-| OTel enrichment per span | < 0.5ms |
-| State schema bind() per access | < 0.1ms |
-| FluentCase → EvalCase compilation | < 1ms per case |
-| Test suite (1000 tests, mock) | < 10s |
-| Eval suite (100 cases, mock) | < 60s |
+| Operation                              | Budget              |
+| -------------------------------------- | ------------------- |
+| IR compilation (100 nodes)             | < 50ms              |
+| Contract checking (100 nodes, full v5) | < 100ms             |
+| Cost estimation (100 nodes)            | < 10ms              |
+| Backend compile (100 nodes → ADK App)  | < 200ms             |
+| Runtime dispatch overhead per event    | < 1% of LLM latency |
+| OTel enrichment per span               | < 0.5ms             |
+| State schema bind() per access         | < 0.1ms             |
+| FluentCase → EvalCase compilation      | < 1ms per case      |
+| Test suite (1000 tests, mock)          | < 10s               |
+| Eval suite (100 cases, mock)           | < 60s               |
 
----
+______________________________________________________________________
 
 ## 17. Compatibility Matrix
 
-| ADK Version | adk-fluent v5 | Notes |
-|---|---|---|
-| v1.25.0+ | Full support | Baseline |
-| v1.24.x | Core, no error callbacks | `on_model_error_callback` unavailable |
-| v1.23.x | Core, limited eval | `MetricEvaluatorRegistry` available |
-| v1.22.x | Core, basic eval | `AgentEvaluator.evaluate()` only |
-| < v1.22.0 | Not supported | Missing eval module and OTel Semantic Conventions 1.37 |
+| ADK Version | adk-fluent v5            | Notes                                                  |
+| ----------- | ------------------------ | ------------------------------------------------------ |
+| v1.25.0+    | Full support             | Baseline                                               |
+| v1.24.x     | Core, no error callbacks | `on_model_error_callback` unavailable                  |
+| v1.23.x     | Core, limited eval       | `MetricEvaluatorRegistry` available                    |
+| v1.22.x     | Core, basic eval         | `AgentEvaluator.evaluate()` only                       |
+| < v1.22.0   | Not supported            | Missing eval module and OTel Semantic Conventions 1.37 |
 
 **Behavioral changes requiring manual review:**
+
 - `@final` on `BaseAgent.run_async()` — breaks custom agent compilation
 - `PluginManager` execution order — breaks middleware priority
 - `State._delta` semantics — breaks state transforms
@@ -1233,7 +1254,7 @@ v4 criteria retained. v5 adds:
 - `MetricEvaluatorRegistry` API — breaks FluentJudge compilation
 - `EvalCase`/`EvalSet` Pydantic schema — breaks FluentCase compilation
 
----
+______________________________________________________________________
 
 ## Appendix A: Architectural Decision Records
 
@@ -1282,28 +1303,28 @@ v4 criteria retained. v5 adds:
 
 **Rejected:** Independent `EvalSuite` with own `Case`/`Judge`/`Report`. Violates Tide Principle.
 
----
+______________________________________________________________________
 
 ## Appendix B: Glossary
 
-| Term | Definition |
-|---|---|
-| **IR** | Intermediate Representation — frozen dataclass graph before compilation |
-| **Backend** | Protocol that compiles IR to a runnable and executes it |
-| **Middleware** | Composable cross-cutting behavior, compiled to an ADK plugin |
-| **StateSchema** | Typed declaration of pipeline state with scope annotations |
-| **ContentSpec** | Declaration of agent input/output modalities |
-| **EdgeSemantics** | How data flows between IR nodes (buffering, merge strategy) |
-| **ExecutionBoundary** | IR annotation for distributed pipeline splitting |
-| **AgentEvent** | Backend-agnostic representation of an ADK Event |
-| **AgentCard** | A2A capability advertisement from pipeline IR |
-| **Recording** | Captured events + OTel spans for deterministic replay |
-| **FluentEvalSuite** | Fluent builder compiling to ADK's `EvalSet`/`LocalEvalService` |
-| **FluentCase** | Evaluation case compiling to ADK's `EvalCase` |
-| **FluentJudge** | Custom evaluator registering into ADK's `MetricEvaluatorRegistry` |
-| **OTel Enrichment** | Adding adk-fluent metadata to ADK's existing OTel spans |
-| **Seed-based IR** | IR nodes generated from ADK's Pydantic model introspection |
+| Term                  | Definition                                                              |
+| --------------------- | ----------------------------------------------------------------------- |
+| **IR**                | Intermediate Representation — frozen dataclass graph before compilation |
+| **Backend**           | Protocol that compiles IR to a runnable and executes it                 |
+| **Middleware**        | Composable cross-cutting behavior, compiled to an ADK plugin            |
+| **StateSchema**       | Typed declaration of pipeline state with scope annotations              |
+| **ContentSpec**       | Declaration of agent input/output modalities                            |
+| **EdgeSemantics**     | How data flows between IR nodes (buffering, merge strategy)             |
+| **ExecutionBoundary** | IR annotation for distributed pipeline splitting                        |
+| **AgentEvent**        | Backend-agnostic representation of an ADK Event                         |
+| **AgentCard**         | A2A capability advertisement from pipeline IR                           |
+| **Recording**         | Captured events + OTel spans for deterministic replay                   |
+| **FluentEvalSuite**   | Fluent builder compiling to ADK's `EvalSet`/`LocalEvalService`          |
+| **FluentCase**        | Evaluation case compiling to ADK's `EvalCase`                           |
+| **FluentJudge**       | Custom evaluator registering into ADK's `MetricEvaluatorRegistry`       |
+| **OTel Enrichment**   | Adding adk-fluent metadata to ADK's existing OTel spans                 |
+| **Seed-based IR**     | IR nodes generated from ADK's Pydantic model introspection              |
 
----
+______________________________________________________________________
 
 *"v4 made the IR the product. v5 makes the IR a complete model of production agent systems — but only by extending ADK's own infrastructure for telemetry and evaluation, not by rebuilding it. The Tide Principle is not just about agent compilation. It applies everywhere."*

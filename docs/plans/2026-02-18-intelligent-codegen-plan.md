@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+, dataclasses for IR nodes, `ast` module for validation, hashlib for content addressing. No new dependencies.
 
----
+______________________________________________________________________
 
 ## Phase A: Inference Engine
 
@@ -17,6 +17,7 @@
 ### Task A1: Type-Driven Field Policy Inference
 
 **Files:**
+
 - Modify: `scripts/seed_generator.py:92-122` (field policy engine)
 - Modify: `tests/test_seed_generator.py:104-128` (field policy tests)
 
@@ -175,11 +176,12 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(codegen): replace hard-coded field policies with type-driven inference"
 ```
 
----
+______________________________________________________________________
 
 ### Task A2: Morphological Alias Derivation
 
 **Files:**
+
 - Modify: `scripts/seed_generator.py:126-159` (alias engine)
 - Modify: `tests/test_seed_generator.py:131-143` (alias tests)
 
@@ -342,11 +344,12 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(codegen): derive aliases morphologically instead of lookup table"
 ```
 
----
+______________________________________________________________________
 
 ### Task A3: Type-Driven Extras Inference
 
 **Files:**
+
 - Modify: `scripts/seed_generator.py:222-305` (extras engine)
 - Modify: `tests/test_seed_generator.py:178-197` (extras tests)
 
@@ -550,11 +553,12 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(codegen): infer extras from list field types instead of class-name switch"
 ```
 
----
+______________________________________________________________________
 
 ### Task A4: Shrink seed.manual.toml to True Exceptions
 
 **Files:**
+
 - Modify: `seeds/seed.manual.toml`
 - Modify: `scripts/seed_generator.py` (override format)
 - Create: `tests/test_inference_coverage.py`
@@ -614,6 +618,7 @@ Expected: FAIL — identifies `list_append` and `field_set` extras in manual tha
 **Step 3: Remove inferrable entries from seed.manual.toml**
 
 Remove these entries from `seeds/seed.manual.toml` since they're now auto-inferred by `infer_extras`:
+
 - `[[builders.Agent.extras]]` with `behavior = "list_append"` (tool as list_append, sub_agent as list_append)
 - `[[builders.Pipeline.extras]]` step entries
 - `[[builders.FanOut.extras]]` branch/step entries
@@ -634,11 +639,12 @@ git add seeds/seed.manual.toml scripts/seed_generator.py tests/test_inference_co
 git commit -m "refactor(codegen): remove inferrable extras from manual seed — now auto-derived"
 ```
 
----
+______________________________________________________________________
 
 ### Task A5: Parent Reference Detection from MRO
 
 **Files:**
+
 - Modify: `scripts/seed_generator.py` (detect parent refs from MRO, not field name)
 - Modify: `tests/test_seed_generator.py`
 
@@ -685,11 +691,12 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(codegen): detect parent references from MRO instead of hard-coded name"
 ```
 
----
+______________________________________________________________________
 
 ### Task A6: Integration — Full Pipeline Equivalence Test
 
 **Files:**
+
 - Create: `tests/test_inference_integration.py`
 
 **Step 1: Write integration test**
@@ -780,7 +787,7 @@ git add tests/test_inference_integration.py
 git commit -m "test(codegen): add integration tests for inference engine equivalence"
 ```
 
----
+______________________________________________________________________
 
 ## Phase B: AST-Based Emission
 
@@ -789,6 +796,7 @@ git commit -m "test(codegen): add integration tests for inference engine equival
 ### Task B1: Define the Code IR Data Model
 
 **Files:**
+
 - Create: `scripts/code_ir.py`
 - Create: `tests/test_code_ir.py`
 
@@ -1203,12 +1211,13 @@ git add scripts/code_ir.py tests/test_code_ir.py
 git commit -m "feat(codegen): add Code IR data model with Python and stub emitters"
 ```
 
----
+______________________________________________________________________
 
 ### Task B2: Convert Generator to Produce IR Instead of Strings
 
 **Files:**
-- Modify: `scripts/generator.py` (replace gen_* functions with IR-producing equivalents)
+
+- Modify: `scripts/generator.py` (replace gen\_\* functions with IR-producing equivalents)
 - Modify: `tests/test_code_ir.py` (add round-trip tests)
 
 **Step 1: Write failing round-trip test**
@@ -1416,11 +1425,12 @@ git add scripts/generator.py scripts/code_ir.py tests/test_code_ir.py
 git commit -m "feat(codegen): add IR-based emission path parallel to string emission"
 ```
 
----
+______________________________________________________________________
 
 ### Task B3: Migrate Stub and Test Generation to IR
 
 **Files:**
+
 - Modify: `scripts/generator.py` (stub and test gen via IR)
 - Modify: `scripts/code_ir.py` (add test-specific nodes if needed)
 - Modify: `tests/test_code_ir.py`
@@ -1453,12 +1463,13 @@ For tests, add a `emit_test` function that generates pytest assertions from IR m
 git commit -m "feat(codegen): emit stubs and test scaffolds from Code IR"
 ```
 
----
+______________________________________________________________________
 
 ### Task B4: Remove Old String Emission, Make IR the Default
 
 **Files:**
-- Modify: `scripts/generator.py` (remove old gen_* string functions)
+
+- Modify: `scripts/generator.py` (remove old gen\_\* string functions)
 - Modify: `justfile` (remove --use-ir flag, IR is now default)
 
 **Step 1: Remove old functions**
@@ -1482,7 +1493,7 @@ git add scripts/generator.py justfile
 git commit -m "refactor(codegen): remove string emission, IR is now the only code generation path"
 ```
 
----
+______________________________________________________________________
 
 ## Phase C: Reactive Pipeline
 
@@ -1491,6 +1502,7 @@ git commit -m "refactor(codegen): remove string emission, IR is now the only cod
 ### Task C1: Content-Addressed Hashing
 
 **Files:**
+
 - Create: `scripts/pipeline.py`
 - Create: `tests/test_pipeline.py`
 
@@ -1626,11 +1638,12 @@ git add scripts/pipeline.py tests/test_pipeline.py
 git commit -m "feat(codegen): add content-addressed hashing for pipeline caching"
 ```
 
----
+______________________________________________________________________
 
 ### Task C2: Dependency Graph and Incremental Rebuild
 
 **Files:**
+
 - Modify: `scripts/pipeline.py` (add PipelineRunner)
 - Modify: `tests/test_pipeline.py`
 
@@ -1753,11 +1766,12 @@ git add scripts/pipeline.py tests/test_pipeline.py
 git commit -m "feat(codegen): add incremental pipeline runner with stage skipping"
 ```
 
----
+______________________________________________________________________
 
 ### Task C3: Change Report Generation
 
 **Files:**
+
 - Modify: `scripts/pipeline.py`
 - Modify: `tests/test_pipeline.py`
 
@@ -1818,11 +1832,12 @@ git add scripts/pipeline.py tests/test_pipeline.py
 git commit -m "feat(codegen): add change report generation for pipeline runs"
 ```
 
----
+______________________________________________________________________
 
 ### Task C4: Wire Pipeline into justfile
 
 **Files:**
+
 - Modify: `scripts/pipeline.py` (add CLI entry point)
 - Modify: `justfile` (add `just pipeline` target)
 
@@ -1886,14 +1901,14 @@ git add scripts/pipeline.py justfile
 git commit -m "feat(codegen): wire incremental pipeline into justfile"
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Phase | Tasks | What Changes | Key Metric |
-|-------|-------|-------------|------------|
-| **A: Inference Engine** | A1-A6 | seed_generator.py derives behavior from types, not lookup tables | seed.manual.toml shrinks from 179 lines to ~40 |
+| Phase                     | Tasks | What Changes                                                     | Key Metric                                                   |
+| ------------------------- | ----- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| **A: Inference Engine**   | A1-A6 | seed_generator.py derives behavior from types, not lookup tables | seed.manual.toml shrinks from 179 lines to ~40               |
 | **B: AST-Based Emission** | B1-B4 | generator.py builds IR nodes, validates structure, emits from IR | generator.py complexity drops, output validated before write |
-| **C: Reactive Pipeline** | C1-C4 | Content-addressed caching, incremental rebuilds, change reports | Full pipeline skips unchanged stages, produces audit trail |
+| **C: Reactive Pipeline**  | C1-C4 | Content-addressed caching, incremental rebuilds, change reports  | Full pipeline skips unchanged stages, produces audit trail   |
 
 Each phase is independently deployable. Phase A is the highest-leverage change. Phase B compounds with A. Phase C is infrastructure polish.

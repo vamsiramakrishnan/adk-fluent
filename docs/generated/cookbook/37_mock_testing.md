@@ -16,8 +16,9 @@ graph TD
     n3 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK uses before_model_callback to bypass the LLM during tests:
 #
@@ -41,8 +42,10 @@ graph TD
 # For a multi-step onboarding pipeline, you'd need one callback per agent,
 # making test setup verbose and fragile.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -81,6 +84,7 @@ account_provisioner = (
 # Full onboarding pipeline with all agents mocked for integration testing
 onboarding_pipeline = kyc_verifier >> risk_assessor >> account_provisioner
 ```
+
 :::
 ::::
 

@@ -13,18 +13,18 @@ The Intermediate Representation (IR) decouples the fluent builder API from ADK. 
 
 Every builder maps to an IR node type:
 
-| Builder | IR Node | ADK Type |
-|---------|---------|----------|
-| `Agent` | `AgentNode` | `LlmAgent` |
-| `Pipeline` / `>>` | `SequenceNode` | `SequentialAgent` |
-| `FanOut` / `\|` | `ParallelNode` | `ParallelAgent` |
-| `Loop` / `*` | `LoopNode` | `LoopAgent` |
-| `>> fn` | `TransformNode` | `FnAgent` (custom) |
-| `tap(fn)` | `TapNode` | `TapAgent` (custom) |
-| `a // b` | `FallbackNode` | `FallbackAgent` (custom) |
-| `race(a, b)` | `RaceNode` | `RaceAgent` (custom) |
-| `gate(pred)` | `GateNode` | `GateAgent` (custom) |
-| `Route(...)` | `RouteNode` | `_RouteAgent` (custom) |
+| Builder           | IR Node         | ADK Type                 |
+| ----------------- | --------------- | ------------------------ |
+| `Agent`           | `AgentNode`     | `LlmAgent`               |
+| `Pipeline` / `>>` | `SequenceNode`  | `SequentialAgent`        |
+| `FanOut` / `\|`   | `ParallelNode`  | `ParallelAgent`          |
+| `Loop` / `*`      | `LoopNode`      | `LoopAgent`              |
+| `>> fn`           | `TransformNode` | `FnAgent` (custom)       |
+| `tap(fn)`         | `TapNode`       | `TapAgent` (custom)      |
+| `a // b`          | `FallbackNode`  | `FallbackAgent` (custom) |
+| `race(a, b)`      | `RaceNode`      | `RaceAgent` (custom)     |
+| `gate(pred)`      | `GateNode`      | `GateAgent` (custom)     |
+| `Route(...)`      | `RouteNode`     | `_RouteAgent` (custom)   |
 
 IR nodes are frozen dataclasses -- immutable and safe to inspect:
 
@@ -87,12 +87,12 @@ config = ExecutionConfig(
 )
 ```
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `app_name` | `str` | `"adk_fluent_app"` | Application name |
-| `resumable` | `bool` | `False` | Enable session resumability |
-| `compaction` | `CompactionConfig \| None` | `None` | Event compaction settings |
-| `middlewares` | `tuple` | `()` | Middleware stack |
+| Field         | Type                       | Default            | Description                 |
+| ------------- | -------------------------- | ------------------ | --------------------------- |
+| `app_name`    | `str`                      | `"adk_fluent_app"` | Application name            |
+| `resumable`   | `bool`                     | `False`            | Enable session resumability |
+| `compaction`  | `CompactionConfig \| None` | `None`             | Event compaction settings   |
+| `middlewares` | `tuple`                    | `()`               | Middleware stack            |
 
 ## Visualization
 
@@ -106,6 +106,7 @@ print(pipeline.to_mermaid())
 ```
 
 Output:
+
 ```
 graph TD
     n1[["classifier_then_resolver_then_responder (sequence)"]]

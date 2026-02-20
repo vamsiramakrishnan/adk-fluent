@@ -1,7 +1,7 @@
 # Insurance Claim Processing: Structured Data Pipelines
 
 Demonstrates structured output schemas and the @ operator for typed
-agent responses.  The scenario: an insurance company processes claims
+agent responses. The scenario: an insurance company processes claims
 through a pipeline -- first ingesting claim details into a structured
 form, then assessing risk, then summarizing the outcome.
 
@@ -21,8 +21,9 @@ graph TD
     n3 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from pydantic import BaseModel
 from google.adk.agents.llm_agent import LlmAgent
@@ -65,8 +66,10 @@ risk_native = LlmAgent(
     output_key="risk_report",
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -109,6 +112,7 @@ summary_agent = (
 )
 pipeline = intake_fluent >> risk_fluent >> summary_agent
 ```
+
 :::
 ::::
 

@@ -676,12 +676,12 @@ root_agent = (
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-| ------ | ------ | ------ | --------- |
-| Agent definition files | 7 | 1 | 86% |
-| Prompt files | 7 | 1 | 86% |
-| Total Python files | 22 | 3 | 86% |
-| Directories | 15 | 1 | 93% |
-| `__init__.py` files | 9 | 1 | 89% |
-| `import` statements | 50+ | 22 | 56% |
-| `AgentTool(agent=...)` calls | 14 | 0 | 100% |
+| Metric                       | Native | Fluent | Reduction |
+| ---------------------------- | ------ | ------ | --------- |
+| Agent definition files       | 7      | 1      | 86%       |
+| Prompt files                 | 7      | 1      | 86%       |
+| Total Python files           | 22     | 3      | 86%       |
+| Directories                  | 15     | 1      | 93%       |
+| `__init__.py` files          | 9      | 1      | 89%       |
+| `import` statements          | 50+    | 22     | 56%       |
+| `AgentTool(agent=...)` calls | 14     | 0      | 100%      |

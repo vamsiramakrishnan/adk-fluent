@@ -98,23 +98,26 @@ docs/
 ### New `docs` stage in `.gitlab-ci.yml`
 
 Runs after `test`, before `build`:
+
 1. Runs codegen pipeline (scanner → seed → generator)
-2. Runs `doc_generator.py` to produce enriched Markdown
-3. Runs `sphinx-build` to validate the docs compile
-4. Stores HTML artifacts
+1. Runs `doc_generator.py` to produce enriched Markdown
+1. Runs `sphinx-build` to validate the docs compile
+1. Stores HTML artifacts
 
 Triggered on: version tags, manual web runs, and changes to docs/scripts/seeds.
 
 ### `.readthedocs.yaml`
 
 RTD config that:
+
 1. Installs google-adk and project in editable mode
-2. Runs the pre-build codegen pipeline (scanner → seed → generator → doc_generator)
-3. Builds Sphinx from `docs/conf.py`
+1. Runs the pre-build codegen pipeline (scanner → seed → generator → doc_generator)
+1. Builds Sphinx from `docs/conf.py`
 
 ### `pyproject.toml`
 
 New `docs` optional dependency group:
+
 ```
 docs = ["sphinx", "myst-parser", "sphinx-design", "furo", "sphinx-copybutton"]
 ```

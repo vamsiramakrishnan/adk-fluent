@@ -356,9 +356,9 @@ root_agent = llm_auditor.build()
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-| ------ | ------ | ------ | --------- |
-| Agent definition files | 3 | 1 | 67% |
-| Total files | 8 | 3 | 63% |
-| Directories | 4 | 1 | 75% |
-| `import` statements (agent files) | 11 | 5 | 55% |
+| Metric                            | Native | Fluent | Reduction |
+| --------------------------------- | ------ | ------ | --------- |
+| Agent definition files            | 3      | 1      | 67%       |
+| Total files                       | 8      | 3      | 63%       |
+| Directories                       | 4      | 1      | 75%       |
+| `import` statements (agent files) | 11     | 5      | 55%       |

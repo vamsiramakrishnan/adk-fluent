@@ -25,16 +25,16 @@ agent = Agent("reviewer").model("gemini-2.5-flash").instruct(prompt).build()
 
 Sections are emitted in a fixed order regardless of call order: role, context, task, constraints, format, examples.
 
-| Method | Description |
-|--------|-------------|
-| `.role(text)` | Agent persona (emitted without header) |
-| `.context(text)` | Background information |
-| `.task(text)` | Primary objective |
-| `.constraint(text)` | Rules to follow (multiple calls accumulate) |
-| `.format(text)` | Desired output format |
-| `.example(text)` | Few-shot examples (multiple calls accumulate) |
-| `.section(name, text)` | Custom named section |
-| `.build()` / `str()` | Compile to instruction string |
+| Method                 | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `.role(text)`          | Agent persona (emitted without header)        |
+| `.context(text)`       | Background information                        |
+| `.task(text)`          | Primary objective                             |
+| `.constraint(text)`    | Rules to follow (multiple calls accumulate)   |
+| `.format(text)`        | Desired output format                         |
+| `.example(text)`       | Few-shot examples (multiple calls accumulate) |
+| `.section(name, text)` | Custom named section                          |
+| `.build()` / `str()`   | Compile to instruction string                 |
 
 ### `.role(text)`
 

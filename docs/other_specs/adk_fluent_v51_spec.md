@@ -1,11 +1,11 @@
 # ADK-FLUENT: Specification v5.1 — Context-Aware Agent Composition
 
-**Status:** Supersedes SPEC_v5.md  
-**ADK Baseline:** google-adk v1.25.0+ (`adk-python` main branch, Feb 2026)  
-**Philosophy:** The expression graph is the product. ADK is one backend. The IR evolves with ADK automatically. Every cross-cutting concern — telemetry, evaluation, context — extends ADK's existing infrastructure rather than replacing it.  
+**Status:** Supersedes SPEC_v5.md\
+**ADK Baseline:** google-adk v1.25.0+ (`adk-python` main branch, Feb 2026)\
+**Philosophy:** The expression graph is the product. ADK is one backend. The IR evolves with ADK automatically. Every cross-cutting concern — telemetry, evaluation, context — extends ADK's existing infrastructure rather than replacing it.\
 **Architecture:** Expression IR → Backend Protocol → ADK (or anything else)
 
----
+______________________________________________________________________
 
 ## 0. Preamble: What Changed Since v5
 
@@ -13,17 +13,17 @@ v5 established typed state, streaming edges, cost routing, A2A, telemetry, evalu
 
 v5.1 addresses the foundational problem that v5 left unmodeled: **agents in a DAG don't just execute in sequence — each agent has a different view of the world, and that view must be engineered.** ADK provides three independent communication channels (conversation history, session state, instruction templating) with minimal coordination between them. Developers manage this coordination manually. Most don't realize the coordination is needed.
 
-| v5 State | v5.1 Change | Rationale |
-|---|---|---|
-| `include_contents` is binary (all or nothing) | **Context Engineering (C module)**: declarative content transforms per agent | ADK's two-mode switch is insufficient for DAG composition; downstream agents need selective context |
-| `output_key` is a storage mechanism | **`.outputs()` as role declaration**: data producer semantics for visibility, context, contracts | output_key duplicates text into state AND conversation; the library should manage the coordination |
-| All events reach client | **Event Visibility**: topology-inferred presentation filtering via `on_event_callback` plugin | Intermediate agent outputs leak to users; topology determines which agents are user-facing |
-| Contract checking is state-only | **Cross-channel contract validation**: state + contents + instructions analyzed together | A state contract can pass while the developer loses data because include_contents is wrong |
-| S module transforms state between agents | **S module + C module**: state transforms AND content transforms as orthogonal capabilities | State is one of three channels; the library needs to address all three |
+| v5 State                                      | v5.1 Change                                                                                      | Rationale                                                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `include_contents` is binary (all or nothing) | **Context Engineering (C module)**: declarative content transforms per agent                     | ADK's two-mode switch is insufficient for DAG composition; downstream agents need selective context |
+| `output_key` is a storage mechanism           | **`.outputs()` as role declaration**: data producer semantics for visibility, context, contracts | output_key duplicates text into state AND conversation; the library should manage the coordination  |
+| All events reach client                       | **Event Visibility**: topology-inferred presentation filtering via `on_event_callback` plugin    | Intermediate agent outputs leak to users; topology determines which agents are user-facing          |
+| Contract checking is state-only               | **Cross-channel contract validation**: state + contents + instructions analyzed together         | A state contract can pass while the developer loses data because include_contents is wrong          |
+| S module transforms state between agents      | **S module + C module**: state transforms AND content transforms as orthogonal capabilities      | State is one of three channels; the library needs to address all three                              |
 
 v5's sections on streaming, cost routing, A2A, telemetry, evaluation, multi-modal, replay, and execution boundaries are **incorporated by reference** and not repeated. Their section numbers are preserved.
 
----
+______________________________________________________________________
 
 ## 1. ADK's Three Communication Channels
 
@@ -97,7 +97,7 @@ This means an `InstructionProvider` can read all three channels and assemble con
 
 This is the compilation target for Context Engineering.
 
----
+______________________________________________________________________
 
 ## 2. Context Engineering — The C Module
 
@@ -115,20 +115,20 @@ from adk_fluent import C
 
 **Content Filters** — what events to include in the agent's context:
 
-| Transform | Effect | Compiles To |
-|---|---|---|
-| `C.default()` | Full conversation history | `include_contents='default'` |
-| `C.none()` | No conversation history; all context from state/instruction | `include_contents='none'` |
-| `C.user_only()` | Only user messages (exclude all intermediate agent outputs) | InstructionProvider + `include_contents='none'` |
-| `C.from_agents("a", "b")` | User messages + outputs from named agents only | InstructionProvider + `include_contents='none'` |
-| `C.exclude_agents("classifier")` | Full history minus named agents | InstructionProvider + `include_contents='none'` |
-| `C.last_n_turns(n)` | Only the last N user-agent turn pairs | InstructionProvider + `include_contents='none'` |
+| Transform                        | Effect                                                      | Compiles To                                     |
+| -------------------------------- | ----------------------------------------------------------- | ----------------------------------------------- |
+| `C.default()`                    | Full conversation history                                   | `include_contents='default'`                    |
+| `C.none()`                       | No conversation history; all context from state/instruction | `include_contents='none'`                       |
+| `C.user_only()`                  | Only user messages (exclude all intermediate agent outputs) | InstructionProvider + `include_contents='none'` |
+| `C.from_agents("a", "b")`        | User messages + outputs from named agents only              | InstructionProvider + `include_contents='none'` |
+| `C.exclude_agents("classifier")` | Full history minus named agents                             | InstructionProvider + `include_contents='none'` |
+| `C.last_n_turns(n)`              | Only the last N user-agent turn pairs                       | InstructionProvider + `include_contents='none'` |
 
 **Context Captures** — bridge conversation into state for downstream agents:
 
-| Transform | Effect | Compiles To |
-|---|---|---|
-| `C.capture("user_message")` | Snapshot latest user message text into state | FnAgent reading from session.events |
+| Transform                         | Effect                                             | Compiles To                         |
+| --------------------------------- | -------------------------------------------------- | ----------------------------------- |
+| `C.capture("user_message")`       | Snapshot latest user message text into state       | FnAgent reading from session.events |
 | `C.capture_turns("history", n=5)` | Snapshot last N turns as formatted text into state | FnAgent reading from session.events |
 
 **Context Templates** — declare exactly what the agent should see:
@@ -155,9 +155,10 @@ pipeline = (
 ```
 
 The library infers:
+
 - `classifier` has `.outputs("intent")` and a successor → data producer, internal visibility
 - `Route` reads `"intent"` from state → contract satisfied
-- `booker` is terminal → user-facing, `C.default()` 
+- `booker` is terminal → user-facing, `C.default()`
 - Diagnostic: "booker will see classifier's raw text 'booking' in conversation AND 'booking' via state in instruction. Consider `C.user_only()` if instruction provides full context."
 
 **Pattern 2: Explicit context capture**
@@ -241,6 +242,7 @@ def _compile_context_filter(developer_instruction: str, filter_spec: CFilter) ->
 ```
 
 The compiled agent gets:
+
 - `include_contents='none'` (suppress ADK's default content assembly)
 - `instruction=_instruction_provider` (custom context assembly)
 - `bypass_state_injection=True` (InstructionProvider handles its own templating)
@@ -275,9 +277,9 @@ def _compile_template(developer_instruction: str, template: str) -> InstructionP
 
 1. **Multi-modal content in filtered context.** When C compiles to InstructionProvider, conversation history becomes text in the system instruction. Images, audio, and other modalities in prior events are lost. For agents that need multi-modal history, use `C.default()`.
 
-2. **Tool call/response chains.** Proper tool execution requires tool calls and responses in `contents` format, not in system instruction text. Agents with tools that reference prior tool interactions should use `C.default()` or `C.from_agents()` with the tool-using agent included.
+1. **Tool call/response chains.** Proper tool execution requires tool calls and responses in `contents` format, not in system instruction text. Agents with tools that reference prior tool interactions should use `C.default()` or `C.from_agents()` with the tool-using agent included.
 
-3. **Context caching optimization.** ADK's context cache works on `contents`. When C moves conversation into the system instruction, caching behavior changes. For latency-sensitive agents with stable conversation prefixes, `C.default()` may be more efficient.
+1. **Context caching optimization.** ADK's context cache works on `contents`. When C moves conversation into the system instruction, caching behavior changes. For latency-sensitive agents with stable conversation prefixes, `C.default()` may be more efficient.
 
 **The diagnostic tells the developer.** When a C transform might lose multi-modal content or break tool chains, the contract checker flags it:
 
@@ -309,7 +311,7 @@ pipeline = (
 
 `S` reshapes the data. `C` controls the view. The execution DAG runs left to right. The information-flow DAG — which agent sees what data through which channel — is declared by `S` and `C` together.
 
----
+______________________________________________________________________
 
 ## 3. Typed State & Data Flow
 
@@ -328,9 +330,9 @@ classifier = Agent("classifier").instruct("Classify intent.").outputs("intent")
 This declaration triggers four consequences:
 
 1. **ADK compilation:** `output_key="intent"` set on the LlmAgent.
-2. **Visibility inference:** Agent has a successor and produces data → classified as `internal` (see §4).
-3. **Contract validation:** Downstream agents that reference `{intent}` in instructions or `Route("intent")` in routing are validated.
-4. **Context engineering hint:** Downstream agents are informed that `"intent"` is available from state, enabling `C.from_state("intent")`.
+1. **Visibility inference:** Agent has a successor and produces data → classified as `internal` (see §4).
+1. **Contract validation:** Downstream agents that reference `{intent}` in instructions or `Route("intent")` in routing are validated.
+1. **Context engineering hint:** Downstream agents are informed that `"intent"` is available from state, enabling `C.from_state("intent")`.
 
 Without `.outputs()`, an agent's text goes only to conversation history (Channel 1). With `.outputs()`, it goes to both conversation history AND state (Channel 2). The library uses this distinction to infer visibility, suggest C transforms, and validate contracts.
 
@@ -382,7 +384,7 @@ When the developer writes `a >> b`, the library records the execution edge AND a
 
 This metadata feeds the contract checker (§13) and enables topology-inferred defaults for visibility (§4) and context (§2).
 
----
+______________________________________________________________________
 
 ## 4. Event Visibility
 
@@ -500,7 +502,7 @@ pipeline = (classifier >> booker).filtered()              # only terminal visibl
 - **Callbacks:** `before_agent_callback` and `after_agent_callback` fire for all agents.
 - **Replay:** Session replay sees all events. Visibility metadata allows reconstructing filtered view.
 
----
+______________________________________________________________________
 
 ## 5. Streaming Edge Semantics
 
@@ -528,11 +530,11 @@ class EdgeSemantics:
     merge: Literal["wait_all", "first_complete", "interleave"] = "wait_all"
 ```
 
-| Mode | Behavior | Use Case |
-|---|---|---|
-| `full` | Downstream waits for complete output | Default; safe for all compositions |
-| `chunked` | Downstream receives content in chunks of `chunk_size` tokens | Progressive UI rendering |
-| `token` | Downstream receives each token as emitted | Real-time typing indicators |
+| Mode      | Behavior                                                     | Use Case                           |
+| --------- | ------------------------------------------------------------ | ---------------------------------- |
+| `full`    | Downstream waits for complete output                         | Default; safe for all compositions |
+| `chunked` | Downstream receives content in chunks of `chunk_size` tokens | Progressive UI rendering           |
+| `token`   | Downstream receives each token as emitted                    | Real-time typing indicators        |
 
 ### 5.3 Builder API and IR Representation
 
@@ -574,7 +576,7 @@ def check_streaming_contracts(root: Node) -> list[StreamingIssue]:
     return issues
 ```
 
----
+______________________________________________________________________
 
 ## 6. Cost-Aware Routing
 
@@ -603,12 +605,12 @@ class ModelSelectorNode:
     fallback_model: str | None = None
 ```
 
-| Strategy | Behavior |
-|---|---|
-| `cost_optimized` | Cheapest candidate whose `condition` passes |
-| `quality_optimized` | Highest `quality_tier` whose `condition` passes |
-| `budget_bounded` | Cheapest candidate; switch to `fallback_model` when budget exhausted |
-| `adaptive` | Start cheap; promote on quality feedback |
+| Strategy            | Behavior                                                             |
+| ------------------- | -------------------------------------------------------------------- |
+| `cost_optimized`    | Cheapest candidate whose `condition` passes                          |
+| `quality_optimized` | Highest `quality_tier` whose `condition` passes                      |
+| `budget_bounded`    | Cheapest candidate; switch to `fallback_model` when budget exhausted |
+| `adaptive`          | Start cheap; promote on quality feedback                             |
 
 ### 6.3 Builder API
 
@@ -690,7 +692,7 @@ class CostAttributionMiddleware:
 
 **Bridge between estimated and actual cost:** `VizBackend` renders `estimate_cost()` data per node. OTel metrics capture actual cost. Dashboards compare both using shared `agent_name` labels.
 
----
+______________________________________________________________________
 
 ## 7. A2A Protocol Interop
 
@@ -755,7 +757,7 @@ agents = await directory.discover(capabilities=["process_refund"])
 pipeline = Agent("classifier") >> RemoteAgent.from_card(agents[0]) >> Agent("responder")
 ```
 
----
+______________________________________________________________________
 
 ## 8. Telemetry Integration
 
@@ -768,6 +770,7 @@ ADK provides an integrated OpenTelemetry implementation following Semantic Conve
 **Centralized tracer:** `telemetry.tracing.tracer` — a single OTel tracer across all ADK modules.
 
 **Span hierarchy:**
+
 ```
 invocation                    (Runner.run_async — top-level)
   └── invoke_agent            (BaseAgent.run_async — @final)
@@ -777,6 +780,7 @@ invocation                    (Runner.run_async — top-level)
 ```
 
 **Span attributes (OTel GenAI conventions):**
+
 - `gen_ai.agent.name`, `gen_ai.agent.description`, `gen_ai.operation.name` on `invoke_agent`
 - `gen_ai.request.model`, `gen_ai.system`, `gcp.vertex.agent.event_id` on `call_llm`
 - `gen_ai.tool.name`, `gen_ai.tool.description`, `gen_ai.tool.call.id` on `execute_tool`
@@ -785,6 +789,7 @@ invocation                    (Runner.run_async — top-level)
 **Content capture:** Toggled via `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`. When enabled, `trace_call_llm` records request/response content in span attributes.
 
 **Built-in exporters:**
+
 - `InMemoryExporter` — stores spans indexed by session ID (dev/debug)
 - `ApiServerSpanExporter` — indexes by event ID (web UI `/debug/trace/:event_id`)
 - `CloudTraceSpanExporter` — production export via `--trace_to_cloud`
@@ -874,7 +879,7 @@ config = ExecutionConfig(
 
 `TelemetryConfig` compiles to environment variables and exporter setup by the ADK backend.
 
----
+______________________________________________________________________
 
 ## 9. Evaluation Harness
 
@@ -885,27 +890,32 @@ config = ExecutionConfig(
 ADK has a mature evaluation framework:
 
 **Data model:**
+
 - `EvalSet` → Pydantic model containing multiple `EvalCase` objects
 - `EvalCase` → multi-turn conversation with expected tool trajectories, intermediate agent responses, and reference final responses
 - `EvalSetsManager` / `InMemoryEvalSetsManager` / `LocalEvalSetsManager` → dataset CRUD
 
 **Evaluation service:**
+
 - `LocalEvalService` → orchestrates inference (running the agent) + evaluation (scoring)
 - `EvaluationGenerator` → runs agent turn-by-turn, intercepts tool calls for mocking via `mock_tool_output`
 - `InferenceConfig` / `InferenceRequest` → controls agent inference
 - `EvaluateConfig` / `EvaluateRequest` → controls metric evaluation
 
 **Built-in evaluators via `MetricEvaluatorRegistry`:**
+
 - `TrajectoryEvaluator` → compares actual vs expected tool call sequences
 - `ResponseEvaluator` → ROUGE (`response_match_score`) + LLM-as-judge (`response_evaluation_score`)
 - `_CustomMetricEvaluator` → user-provided evaluation functions
 
 **Built-in metrics (`PrebuiltMetrics`):**
+
 - `tool_trajectory_avg_score` — 1.0 = perfect trajectory match
 - `response_match_score` — ROUGE text similarity
 - `response_evaluation_score` — LLM-as-judge (source notes: "not very stable")
 
 **Infrastructure:**
+
 - `num_runs` — run each case multiple times, aggregate scores
 - `EvalCaseResult` → per-case results with per-metric breakdowns and `EvalStatus`
 - `LlmBackedUserSimulatorCriterion` + `UserSimulatorProvider` → dynamic multi-turn evals
@@ -1194,7 +1204,7 @@ python -c "from my_pipeline import suite; suite.to_eval_set_file('billing.evalse
 adk eval my_agent/ billing.evalset.json --num_runs 3 --print_detailed_results
 ```
 
----
+______________________________________________________________________
 
 ## 10. Multi-Modal Content Contracts
 
@@ -1232,7 +1242,7 @@ agent = (
 
 Verifies that producer output modalities are accepted by downstream consumers. Mismatches flagged at build time.
 
----
+______________________________________________________________________
 
 ## 11. Event Replay and Time-Travel Debugging
 
@@ -1324,7 +1334,7 @@ diff = diff_events(recording.events, new_events)
 print(diff.summary)
 ```
 
----
+______________________________________________________________________
 
 ## 12. Execution Boundaries for Distributed Pipelines
 
@@ -1357,10 +1367,9 @@ pipeline = (
 
 Backend splits pipeline at boundaries into separate `App` objects. Each independently deployable with its own `ResumabilityConfig`. State serialization uses `StateSchema` when available.
 
----
+______________________________________________________________________
 
-
----
+______________________________________________________________________
 
 ## 13. Unified Contract Checker
 
@@ -1462,7 +1471,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
 
 Diagnostics are **advisory by default**. `check_all(..., strict=True)` promotes INFO and WARN to errors.
 
----
+______________________________________________________________________
 
 ## 14. Updated Middleware
 
@@ -1483,7 +1492,7 @@ from adk_fluent.middleware import (
 
 **New:** `visibility` — compiles to `VisibilityPlugin`, attached automatically when pipeline has non-trivial topology.
 
----
+______________________________________________________________________
 
 ## 15. Module Architecture
 
@@ -1523,7 +1532,7 @@ adk_fluent/
 
 **New files:** `_context.py` (~200 lines), `_visibility.py` (~150 lines). Contract checker expansion in `contracts.py` (~150 lines).
 
----
+______________________________________________________________________
 
 ## 16. Migration Path
 
@@ -1540,32 +1549,32 @@ adk_fluent/
 **Depends on:** 5a (state system), Phase 4 (FnAgent, backend)
 
 1. `C.capture()` and `C.none()` — simplest transforms, FnAgent compilation
-2. `C.user_only()`, `C.from_agents()`, `C.exclude_agents()` — InstructionProvider compilation
-3. `C.template()` — template-based context assembly
-4. `C.last_n_turns()` — history windowing
-5. Topology-inferred context defaults (suggest C transforms in diagnostics)
+1. `C.user_only()`, `C.from_agents()`, `C.exclude_agents()` — InstructionProvider compilation
+1. `C.template()` — template-based context assembly
+1. `C.last_n_turns()` — history windowing
+1. Topology-inferred context defaults (suggest C transforms in diagnostics)
 
 ### Phase 5j: Event Visibility (New)
 
 **Depends on:** Phase 4 (IR topology), 5i (context engineering for coherent UX)
 
 1. `infer_visibility()` — IR topology analysis
-2. `VisibilityPlugin` — on_event_callback implementation
-3. Builder API: `.show()`, `.hide()`, `.transparent()`, `.filtered()`
-4. Mermaid annotations for visibility in `viz.py`
-5. `adk web` integration guidance
+1. `VisibilityPlugin` — on_event_callback implementation
+1. Builder API: `.show()`, `.hide()`, `.transparent()`, `.filtered()`
+1. Mermaid annotations for visibility in `viz.py`
+1. `adk web` integration guidance
 
 ### Phase 5k: Cross-Channel Contract Checker (New)
 
 **Depends on:** 5a, 5i, 5j
 
-1. `check_template_contracts` — {variable} resolution across graph
-2. `check_output_key_contracts` — .outputs() reaches consumers
-3. `check_channel_coherence` — duplication and data loss detection
-4. `check_visibility_contracts` — topology inference consistency
-5. Plain-language diagnostic formatting
+1. `check_template_contracts` — \{variable} resolution across graph
+1. `check_output_key_contracts` — .outputs() reaches consumers
+1. `check_channel_coherence` — duplication and data loss detection
+1. `check_visibility_contracts` — topology inference consistency
+1. Plain-language diagnostic formatting
 
----
+______________________________________________________________________
 
 ## 17. Design Principles
 
@@ -1576,6 +1585,7 @@ Retained from v5. Extended: Context Engineering uses ADK's `InstructionProvider`
 ### 17.2 Progressive Disclosure
 
 Retained from v5. Context Engineering follows this precisely:
+
 - **Level 0:** No C transforms. Pipeline works with ADK defaults. Diagnostics suggest improvements.
 - **Level 1:** `.outputs()` + topology inference. Visibility and basic context handled automatically.
 - **Level 2:** Explicit C transforms for agents that need selective context.
@@ -1591,51 +1601,51 @@ The S module is for when the developer needs to be the plumber. The C module is 
 
 ### 17.5 Zero Surprise — Retained
 
----
+______________________________________________________________________
 
 ## 18. Success Criteria
 
 Retained from v5, with additions:
 
-| Criterion | Target | Measurement |
-|---|---|---|
-| Context Engineering reduces client-visible noise | Zero intermediate events in default `filtered` mode | Event count comparison: with/without visibility |
-| C transforms prevent data duplication | Agents with `.outputs()` predecessors get duplication diagnostic | Contract checker coverage of all pipelines |
-| Cross-channel contract checker catches 90%+ of state/context bugs | Coverage of template vars, output_keys, include_contents combinations | Integration test suite |
-| InstructionProvider compilation is correct | Filtered context matches expected content | Unit tests with session event fixtures |
+| Criterion                                                         | Target                                                                | Measurement                                     |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------- |
+| Context Engineering reduces client-visible noise                  | Zero intermediate events in default `filtered` mode                   | Event count comparison: with/without visibility |
+| C transforms prevent data duplication                             | Agents with `.outputs()` predecessors get duplication diagnostic      | Contract checker coverage of all pipelines      |
+| Cross-channel contract checker catches 90%+ of state/context bugs | Coverage of template vars, output_keys, include_contents combinations | Integration test suite                          |
+| InstructionProvider compilation is correct                        | Filtered context matches expected content                             | Unit tests with session event fixtures          |
 
----
+______________________________________________________________________
 
 ## 19. Performance Budgets
 
 Retained from v5, with additions:
 
-| Operation | Budget | Mechanism |
-|---|---|---|
-| C.capture() execution | < 1ms | Single reverse scan of session.events |
-| InstructionProvider (C filter) | < 5ms | Event filtering + string formatting |
-| Visibility inference | < 1ms at build time | Single DAG traversal |
-| VisibilityPlugin per event | < 0.1ms | Dictionary lookup + metadata write |
-| Cross-channel contract check | < 50ms | Single DAG traversal with multi-channel analysis |
+| Operation                      | Budget              | Mechanism                                        |
+| ------------------------------ | ------------------- | ------------------------------------------------ |
+| C.capture() execution          | < 1ms               | Single reverse scan of session.events            |
+| InstructionProvider (C filter) | < 5ms               | Event filtering + string formatting              |
+| Visibility inference           | < 1ms at build time | Single DAG traversal                             |
+| VisibilityPlugin per event     | < 0.1ms             | Dictionary lookup + metadata write               |
+| Cross-channel contract check   | < 50ms              | Single DAG traversal with multi-channel analysis |
 
----
+______________________________________________________________________
 
 ## 20. Compatibility Matrix
 
 Retained from v5, with additions:
 
-| Feature | ADK Mechanism | adk-fluent Compilation |
-|---|---|---|
-| C.default() | `include_contents='default'` | Direct pass-through |
-| C.none() | `include_contents='none'` | Direct pass-through |
-| C.user_only() | InstructionProvider + `include_contents='none'` | Generated callable |
-| C.from_state() | InstructionProvider + `include_contents='none'` | Generated callable |
-| C.capture() | FnAgent reading session.events | CaptureAgent subclass |
-| Event visibility | `BasePlugin.on_event_callback` + `Event.custom_metadata` | VisibilityPlugin |
-| .outputs() | `LlmAgent.output_key` | Direct pass-through + metadata |
-| .show() / .hide() | `Event.custom_metadata` via VisibilityPlugin | Visibility override in IR |
+| Feature           | ADK Mechanism                                            | adk-fluent Compilation         |
+| ----------------- | -------------------------------------------------------- | ------------------------------ |
+| C.default()       | `include_contents='default'`                             | Direct pass-through            |
+| C.none()          | `include_contents='none'`                                | Direct pass-through            |
+| C.user_only()     | InstructionProvider + `include_contents='none'`          | Generated callable             |
+| C.from_state()    | InstructionProvider + `include_contents='none'`          | Generated callable             |
+| C.capture()       | FnAgent reading session.events                           | CaptureAgent subclass          |
+| Event visibility  | `BasePlugin.on_event_callback` + `Event.custom_metadata` | VisibilityPlugin               |
+| .outputs()        | `LlmAgent.output_key`                                    | Direct pass-through + metadata |
+| .show() / .hide() | `Event.custom_metadata` via VisibilityPlugin             | Visibility override in IR      |
 
----
+______________________________________________________________________
 
 ## Appendix A: Architectural Decision Records
 
@@ -1671,42 +1681,42 @@ Retained from v5, with additions:
 
 **Rationale:** `.outputs("intent")` tells the library four things: the agent produces structured data, the data has a name, downstream agents can read it from state, and the agent is likely an internal data producer (not user-facing). This single declaration drives visibility inference, context engineering hints, and contract validation. Treating it as sugar would miss the architectural signal — that the agent's text is data, not conversation.
 
----
+______________________________________________________________________
 
 ## Appendix B: Glossary
 
 Retained from v5, with additions:
 
-| Term | Definition |
-|---|---|
-| **C Module** | Context transform library controlling what conversation history each agent sees |
-| **CFilter** | A declarative specification of which events to include in an agent's context |
+| Term                    | Definition                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **C Module**            | Context transform library controlling what conversation history each agent sees                            |
+| **CFilter**             | A declarative specification of which events to include in an agent's context                               |
 | **InstructionProvider** | ADK callable receiving ReadonlyContext, returning instruction string — compilation target for C transforms |
-| **Visibility** | Classification of whether an agent's events are shown to the end user (user/internal/zero_cost) |
-| **VisibilityPlugin** | BasePlugin that annotates/filters events based on topology-inferred visibility |
-| **Channel Coherence** | Property of a pipeline where data flows correctly across all three communication channels |
-| **Data Loss** | Contract violation where an agent's output reaches no downstream consumer through any channel |
-| **Channel Duplication** | Diagnostic where the same data reaches an agent through multiple channels simultaneously |
+| **Visibility**          | Classification of whether an agent's events are shown to the end user (user/internal/zero_cost)            |
+| **VisibilityPlugin**    | BasePlugin that annotates/filters events based on topology-inferred visibility                             |
+| **Channel Coherence**   | Property of a pipeline where data flows correctly across all three communication channels                  |
+| **Data Loss**           | Contract violation where an agent's output reaches no downstream consumer through any channel              |
+| **Channel Duplication** | Diagnostic where the same data reaches an agent through multiple channels simultaneously                   |
 
----
+______________________________________________________________________
 
 ## Appendix C: ADK Source Verification Index
 
 All mechanism claims in this specification are verified against `google-adk v1.25.0` source. This index maps claims to source locations for future re-verification as ADK evolves.
 
-| Claim | Source Location |
-|---|---|
-| Events recorded before plugin runs | `Runner._exec_with_plugin`: `append_event()` at L88, `run_on_event_callback()` at L115 |
-| `output_key` mutates event, doesn't suppress | `LlmAgent.__maybe_save_output_to_state`: writes to `state_delta`, returns void |
-| `include_contents='none'` scans for latest turn | `contents._get_current_turn_contents`: reverse scan for user/other-agent |
-| InstructionProvider bypasses state injection | `instructions._process_agent_instruction`: `bypass_state_injection=True` for callables |
-| ReadonlyContext exposes session.events | `ReadonlyContext.session` → `Session.events` field |
-| `custom_metadata` is first-class Event field | `Event.custom_metadata: Optional[dict[str, Any]]` |
-| FnAgent yields nothing | Source: `adk_fluent._base.FnAgent._run_async_impl` — no yield statements |
-| `state_delta` applied in `append_event` | `InMemorySessionService.append_event`: extracts and applies state deltas |
-| `is_final_response()` returns True for any text | Checks: not function_calls, not partial, not trailing code execution |
-| SequentialAgent yields all sub-agent events | `SequentialAgent._run_async_impl`: `async for event in agen: yield event` |
+| Claim                                           | Source Location                                                                        |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Events recorded before plugin runs              | `Runner._exec_with_plugin`: `append_event()` at L88, `run_on_event_callback()` at L115 |
+| `output_key` mutates event, doesn't suppress    | `LlmAgent.__maybe_save_output_to_state`: writes to `state_delta`, returns void         |
+| `include_contents='none'` scans for latest turn | `contents._get_current_turn_contents`: reverse scan for user/other-agent               |
+| InstructionProvider bypasses state injection    | `instructions._process_agent_instruction`: `bypass_state_injection=True` for callables |
+| ReadonlyContext exposes session.events          | `ReadonlyContext.session` → `Session.events` field                                     |
+| `custom_metadata` is first-class Event field    | `Event.custom_metadata: Optional[dict[str, Any]]`                                      |
+| FnAgent yields nothing                          | Source: `adk_fluent._base.FnAgent._run_async_impl` — no yield statements               |
+| `state_delta` applied in `append_event`         | `InMemorySessionService.append_event`: extracts and applies state deltas               |
+| `is_final_response()` returns True for any text | Checks: not function_calls, not partial, not trailing code execution                   |
+| SequentialAgent yields all sub-agent events     | `SequentialAgent._run_async_impl`: `async for event in agen: yield event`              |
 
----
+______________________________________________________________________
 
 *"v4 made the IR the product. v5 made it model production concerns. v5.1 addresses the compositional reality: in a DAG, each agent has a different view of the world. Context Engineering makes that view explicit, controllable, and validatable — but only by compiling to ADK's own InstructionProvider, BasePlugin, and include_contents mechanisms. The three channels are ADK's. The coordination is ours."*

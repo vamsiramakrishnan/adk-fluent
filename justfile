@@ -72,6 +72,14 @@ lint:
     @echo "Running lint checks..."
     @uv run ruff check .
     @uv run ruff format --check .
+    @uv run mdformat --check .
+
+# --- Format ---
+format:
+    @echo "Formatting codebase..."
+    @uv run ruff check --fix . || true
+    @uv run ruff format .
+    @uv run mdformat .
 
 # --- Tests ---
 test:

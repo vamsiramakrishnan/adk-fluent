@@ -2,12 +2,13 @@
 
 ## Builders in this module
 
-| Builder | Description |
-|---------|-------------|
+| Builder                        | Description                                         |
+| ------------------------------ | --------------------------------------------------- |
 | [BaseAgent](builder-BaseAgent) | Base class for all agents in Agent Development Kit. |
-| [Agent](builder-Agent) | LLM-based Agent. |
+| [Agent](builder-Agent)         | LLM-based Agent.                                    |
 
 (builder-BaseAgent)=
+
 ## BaseAgent
 
 > Fluent builder for `google.adk.agents.base_agent.BaseAgent`
@@ -32,9 +33,9 @@ result = (
 BaseAgent(name: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `str` |
+| Argument | Type  |
+| -------- | ----- |
+| `name`   | `str` |
 
 ### Core Configuration
 
@@ -45,7 +46,7 @@ BaseAgent(name: str)
 
 #### `.sub_agent(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 ### Callbacks
 
@@ -53,7 +54,7 @@ Append to ``sub_agents`` (lazy — built at .build() time).
 
 Append callback(s) to `after_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -65,7 +66,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -83,13 +84,14 @@ Resolve into a native ADK BaseAgent.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
+| Field                | Type              |
+| -------------------- | ----------------- |
 | `.sub_agents(value)` | `list[BaseAgent]` |
 
----
+______________________________________________________________________
 
 (builder-Agent)=
+
 ## Agent
 
 > Fluent builder for `google.adk.agents.llm_agent.LlmAgent`
@@ -114,9 +116,9 @@ result = (
 Agent(name: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `str` |
+| Argument | Type  |
+| -------- | ----- |
+| `name`   | `str` |
 
 ### Core Configuration
 
@@ -143,7 +145,7 @@ Agent(name: str)
 #### `.outputs(value: Union[str, NoneType]) -> Self`
 
 - **Maps to:** `output_key`
-- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``.
+- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: `.outputs(key)`.
 
 #### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
@@ -152,7 +154,7 @@ Agent(name: str)
 
 #### `.sub_agent(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 #### `.tool(fn_or_tool, *, require_confirmation: bool = False) -> Self`
 
@@ -254,7 +256,7 @@ Convert this Agent builder to an AgentNode IR node.
 
 Append callback(s) to `after_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -266,7 +268,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 
 Append callback(s) to `after_model_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -278,7 +280,7 @@ Append callback to `after_model_callback` only if `condition` is `True`.
 
 Append callback(s) to `after_tool_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -290,7 +292,7 @@ Append callback to `after_tool_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -302,7 +304,7 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_model_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -314,7 +316,7 @@ Append callback to `before_model_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_tool_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -343,7 +345,7 @@ agent = Agent("safe", "gemini-2.5-flash").guardrail(safety_check).build()
 
 Append callback(s) to `on_model_error_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -355,7 +357,7 @@ Append callback to `on_model_error_callback` only if `condition` is `True`.
 
 Append callback(s) to `on_tool_error_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -460,15 +462,15 @@ Run a smoke test. Calls .ask() internally, asserts output matches condition.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.sub_agents(value)` | `list[BaseAgent]` |
-| `.model(value)` | `Union[str, BaseLlm]` |
-| `.tools(value)` | `list[Union[Callable, BaseTool, BaseToolset]]` |
-| `.generate_content_config(value)` | `Union[GenerateContentConfig, NoneType]` |
-| `.disallow_transfer_to_parent(value)` | `bool` |
-| `.disallow_transfer_to_peers(value)` | `bool` |
-| `.input_schema(value)` | `Union[type[BaseModel], NoneType]` |
-| `.output_schema(value)` | `Union[type[BaseModel], NoneType]` |
-| `.planner(value)` | `Union[BasePlanner, NoneType]` |
-| `.code_executor(value)` | `Union[BaseCodeExecutor, NoneType]` |
+| Field                                 | Type                                           |
+| ------------------------------------- | ---------------------------------------------- |
+| `.sub_agents(value)`                  | `list[BaseAgent]`                              |
+| `.model(value)`                       | `Union[str, BaseLlm]`                          |
+| `.tools(value)`                       | `list[Union[Callable, BaseTool, BaseToolset]]` |
+| `.generate_content_config(value)`     | `Union[GenerateContentConfig, NoneType]`       |
+| `.disallow_transfer_to_parent(value)` | `bool`                                         |
+| `.disallow_transfer_to_peers(value)`  | `bool`                                         |
+| `.input_schema(value)`                | `Union[type[BaseModel], NoneType]`             |
+| `.output_schema(value)`               | `Union[type[BaseModel], NoneType]`             |
+| `.planner(value)`                     | `Union[BasePlanner, NoneType]`                 |
+| `.code_executor(value)`               | `Union[BaseCodeExecutor, NoneType]`            |

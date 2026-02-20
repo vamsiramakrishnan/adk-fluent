@@ -9,10 +9,12 @@
 **Tech Stack:** Python 3.11+, google-adk ≥1.25.0, dataclasses (frozen), typing.Protocol
 
 **Reference Specs:**
+
 - `docs/other_specs/adk_fluent_v4_spec.md` — §3 (IR), §4 (Backend Protocol)
 - `docs/other_specs/adk_fluent_v3_spec.docx` — event-stream fidelity, delta-based state
 
 **Key Design Decisions:**
+
 - `build()` is **unchanged** — returns ADK objects directly (backward compat)
 - `to_ir()` is **new** — returns IR tree (the expression graph)
 - IR nodes are **frozen dataclasses** — immutable, hashable, serializable
@@ -21,19 +23,19 @@
 - `Backend` is a `Protocol` with `compile()`, `run()`, `stream()` methods
 - `AgentEvent` is a **backend-agnostic event** type (not ADK's `Event`)
 
----
+______________________________________________________________________
 
 ## Context: Key Files
 
-| File | Role |
-|------|------|
-| `src/adk_fluent/_base.py` | BuilderBase mixin, operators, 7 primitive builders |
-| `src/adk_fluent/_routing.py` | Route builder + _RouteAgent + _CheckpointAgent |
+| File                            | Role                                               |
+| ------------------------------- | -------------------------------------------------- |
+| `src/adk_fluent/_base.py`       | BuilderBase mixin, operators, 7 primitive builders |
+| `src/adk_fluent/_routing.py`    | Route builder + \_RouteAgent + \_CheckpointAgent   |
 | `src/adk_fluent/_transforms.py` | S transform factories, StateDelta/StateReplacement |
-| `src/adk_fluent/_helpers.py` | Execution helpers (run_one_shot, run_stream, etc.) |
-| `scripts/scanner.py` | Introspects ADK, produces manifest.json |
-| `scripts/generator.py` | Generates builder classes from manifest + seed |
-| `manifest.json` | Machine truth about ADK classes |
+| `src/adk_fluent/_helpers.py`    | Execution helpers (run_one_shot, run_stream, etc.) |
+| `scripts/scanner.py`            | Introspects ADK, produces manifest.json            |
+| `scripts/generator.py`          | Generates builder classes from manifest + seed     |
+| `manifest.json`                 | Machine truth about ADK classes                    |
 
 ## Codegen Pipeline (Extended)
 
@@ -44,13 +46,14 @@ python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_f
 python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py   # NEW
 ```
 
----
+______________________________________________________________________
 
 ### Task 1: Hand-Written IR Nodes for adk-fluent Primitives
 
 **Problem:** adk-fluent has 8 primitive concepts (fn_step, tap, fallback, race, gate, map_over, timeout, route) with no ADK counterpart. These need hand-written IR node types.
 
 **Files:**
+
 - Create: `src/adk_fluent/_ir.py`
 - Create: `tests/manual/test_ir_nodes.py`
 
@@ -169,6 +172,7 @@ def test_node_union_includes_primitive_types():
 ```bash
 pytest tests/manual/test_ir_nodes.py -v
 ```
+
 Expected: FAIL — `_ir` module doesn't exist
 
 **Step 3: Implement `_ir.py`**
@@ -365,6 +369,7 @@ Node = Union[
 ```bash
 pytest tests/manual/test_ir_nodes.py -v
 ```
+
 Expected: All PASS
 
 **Step 5: Commit**
@@ -374,13 +379,14 @@ git add src/adk_fluent/_ir.py tests/manual/test_ir_nodes.py
 git commit -m "feat: add hand-written IR node types for adk-fluent primitives"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: IR Generator Script + Generated IR Nodes
 
 **Problem:** ADK agent types (LlmAgent, SequentialAgent, ParallelAgent, LoopAgent) need IR node types that mirror their Pydantic fields. These should be auto-generated from `manifest.json` so they evolve with ADK.
 
 **Files:**
+
 - Create: `scripts/ir_generator.py`
 - Create: `src/adk_fluent/_ir_generated.py` (generated output)
 - Modify: `.github/workflows/ci.yml` (add ir_generator to pipeline)
@@ -484,6 +490,7 @@ def test_all_node_type_union():
 ```bash
 pytest tests/manual/test_ir_generated.py -v
 ```
+
 Expected: FAIL — `_ir_generated` module doesn't exist
 
 **Step 3: Create the IR generator script**
@@ -746,6 +753,7 @@ python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generat
 ```bash
 pytest tests/manual/test_ir_generated.py -v
 ```
+
 Expected: All PASS
 
 **Step 6: Update CI pipeline**
@@ -768,13 +776,14 @@ git add scripts/ir_generator.py src/adk_fluent/_ir_generated.py tests/manual/tes
 git commit -m "feat: add seed-based IR generator that produces IR nodes from ADK manifest"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Add `to_ir()` to Primitive Builders
 
-**Problem:** The 8 primitive builders (_FnStepBuilder, _TapBuilder, _FallbackBuilder, _GateBuilder, _RaceBuilder, _MapOverBuilder, _TimeoutBuilder) and Route need `to_ir()` methods that return the corresponding IR node types.
+**Problem:** The 8 primitive builders (\_FnStepBuilder, \_TapBuilder, \_FallbackBuilder, \_GateBuilder, \_RaceBuilder, \_MapOverBuilder, \_TimeoutBuilder) and Route need `to_ir()` methods that return the corresponding IR node types.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py`
 - Modify: `src/adk_fluent/_routing.py`
 - Create: `tests/manual/test_to_ir_primitives.py`
@@ -886,6 +895,7 @@ def test_nested_to_ir_recursion():
 ```bash
 pytest tests/manual/test_to_ir_primitives.py -v
 ```
+
 Expected: FAIL — `to_ir()` doesn't exist
 
 **Step 3: Add `to_ir()` to BuilderBase**
@@ -1022,6 +1032,7 @@ def to_ir(self):
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS
 
 **Step 7: Commit**
@@ -1031,13 +1042,14 @@ git add src/adk_fluent/_base.py src/adk_fluent/_routing.py tests/manual/test_to_
 git commit -m "feat: add to_ir() to all primitive builders and Route"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Add `to_ir()` to Generated Builders
 
 **Problem:** Generated builders (Agent, Pipeline, FanOut, Loop, and all config/tool/service builders) need `to_ir()` methods. The generator must emit these alongside `build()`.
 
 **Files:**
+
 - Modify: `scripts/generator.py` (add `gen_to_ir_method()`)
 - Regenerate: All generated files
 - Create: `tests/manual/test_to_ir_generated.py`
@@ -1235,6 +1247,7 @@ python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generat
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS
 
 **Step 5: Commit**
@@ -1244,13 +1257,14 @@ git add scripts/generator.py seeds/seed.manual.toml src/adk_fluent/*.py tests/ma
 git commit -m "feat: add to_ir() to generated builders with data-flow analysis"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Backend Protocol + AgentEvent Convenience
 
 **Problem:** Need a formal protocol for backends that can compile IR and execute it. The `AgentEvent` type is already defined in `_ir.py` (Task 1); this task adds the protocol and convenience functions.
 
 **Files:**
+
 - Create: `src/adk_fluent/backends/__init__.py`
 - Create: `src/adk_fluent/backends/_protocol.py`
 - Create: `tests/manual/test_backend_protocol.py`
@@ -1351,6 +1365,7 @@ def final_text(events: list[AgentEvent]) -> str:
 ```bash
 pytest tests/manual/test_backend_protocol.py -v
 ```
+
 Expected: All PASS
 
 **Step 4: Commit**
@@ -1360,13 +1375,14 @@ git add src/adk_fluent/backends/ tests/manual/test_backend_protocol.py
 git commit -m "feat: add Backend protocol and AgentEvent convenience functions"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: ADK Backend — Compile IR to Native ADK Objects
 
 **Problem:** Need a concrete backend that compiles IR nodes into native ADK objects (LlmAgent, SequentialAgent, etc.) and executes them via Runner.
 
 **Files:**
+
 - Create: `src/adk_fluent/backends/adk.py`
 - Create: `tests/manual/test_adk_backend.py`
 
@@ -1778,6 +1794,7 @@ class ADKBackend:
 ```bash
 pytest tests/manual/test_adk_backend.py -v --tb=short
 ```
+
 Expected: All PASS (the compile tests don't need API keys — they just construct ADK objects)
 
 **Step 4: Commit**
@@ -1787,13 +1804,14 @@ git add src/adk_fluent/backends/adk.py tests/manual/test_adk_backend.py
 git commit -m "feat: add ADK backend that compiles IR to native ADK objects"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Wire Builder Convenience Methods Through IR
 
 **Problem:** Users need high-level methods (`to_app()`, `run()`, `stream()`) that go through the IR → backend path, while keeping `build()` backward compatible.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (add `to_app`, `run`, `stream` to BuilderBase)
 - Modify: `src/adk_fluent/__init__.py` (export new types)
 - Create: `tests/manual/test_ir_convenience.py`
@@ -1886,6 +1904,7 @@ from .backends.adk import ADKBackend
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS
 
 **Step 5: Commit**
@@ -1895,19 +1914,22 @@ git add src/adk_fluent/_base.py src/adk_fluent/__init__.py tests/manual/test_ir_
 git commit -m "feat: wire to_app() convenience method through IR + backend"
 ```
 
----
+______________________________________________________________________
 
 ## Post-Implementation Verification
 
 After all 7 tasks are complete:
 
 1. **Full test suite:**
+
    ```bash
    pytest tests/ -v --tb=short
    ```
+
    Expected: All 909+ tests PASS (plus ~60 new IR tests)
 
-2. **Codegen pipeline (extended):**
+1. **Codegen pipeline (extended):**
+
    ```bash
    python scripts/scanner.py -o manifest.json
    python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
@@ -1915,9 +1937,11 @@ After all 7 tasks are complete:
    python scripts/ir_generator.py manifest.json --output /tmp/regen-check/_ir_generated.py
    diff -r src/adk_fluent /tmp/regen-check
    ```
+
    Expected: No meaningful diff
 
-3. **Round-trip verification:**
+1. **Round-trip verification:**
+
    ```python
    python -c "
    from adk_fluent import Agent
@@ -1931,24 +1955,27 @@ After all 7 tasks are complete:
    print('App:', app.name, '- root:', type(app.root_agent).__name__)
    "
    ```
+
    Expected: No errors
 
-4. **Imports:**
+1. **Imports:**
+
    ```bash
    python -c "from adk_fluent import Agent, S, tap, ExecutionConfig, ADKBackend, AgentEvent, final_text"
    ```
+
    Expected: No import errors
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Task | What | Impact |
-|------|------|--------|
-| 1 | Hand-written IR nodes | TransformNode, TapNode, GateNode, etc. + ExecutionConfig + AgentEvent |
-| 2 | IR generator script | Auto-generate AgentNode, SequenceNode, etc. from ADK manifest |
-| 3 | Primitive builder `to_ir()` | 8 primitives + Route produce IR trees |
-| 4 | Generated builder `to_ir()` | Agent, Pipeline, FanOut, Loop produce IR trees with data-flow |
-| 5 | Backend protocol | Formal `Backend` protocol + `final_text()` utility |
-| 6 | ADK backend | Compile IR → ADK objects + run/stream execution |
-| 7 | Builder convenience | `to_app()` wired through IR, backward-compat `build()` preserved |
+| Task | What                        | Impact                                                                |
+| ---- | --------------------------- | --------------------------------------------------------------------- |
+| 1    | Hand-written IR nodes       | TransformNode, TapNode, GateNode, etc. + ExecutionConfig + AgentEvent |
+| 2    | IR generator script         | Auto-generate AgentNode, SequenceNode, etc. from ADK manifest         |
+| 3    | Primitive builder `to_ir()` | 8 primitives + Route produce IR trees                                 |
+| 4    | Generated builder `to_ir()` | Agent, Pipeline, FanOut, Loop produce IR trees with data-flow         |
+| 5    | Backend protocol            | Formal `Backend` protocol + `final_text()` utility                    |
+| 6    | ADK backend                 | Compile IR → ADK objects + run/stream execution                       |
+| 7    | Builder convenience         | `to_app()` wired through IR, backward-compat `build()` preserved      |

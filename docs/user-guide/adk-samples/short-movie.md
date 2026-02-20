@@ -279,10 +279,10 @@ root_agent = (
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-| ------ | ------ | ------ | --------- |
-| Agent definition files | 5 | 1 | 80% |
-| Prompt files | 6 (.txt) | 1 (.py) | 83% |
-| Total files | 14 | 4 | 71% |
-| Directories | 4 | 1 | 75% |
-| `import` statements (agent files) | 12 | 4 | 67% |
+| Metric                            | Native   | Fluent  | Reduction |
+| --------------------------------- | -------- | ------- | --------- |
+| Agent definition files            | 5        | 1       | 80%       |
+| Prompt files                      | 6 (.txt) | 1 (.py) | 83%       |
+| Total files                       | 14       | 4       | 71%       |
+| Directories                       | 4        | 1       | 75%       |
+| `import` statements (agent files) | 12       | 4       | 67%       |

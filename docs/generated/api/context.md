@@ -23,6 +23,7 @@ Include only user messages from conversation history. Creates an instruction pro
 Read named keys from session state and inject them into the agent's instruction. Keys are available as `{key}` template variables.
 
 **Parameters:**
+
 - `*keys` — State key names to read
 
 ### `C.from_agents(*names) -> CFromAgents`
@@ -30,6 +31,7 @@ Read named keys from session state and inject them into the agent's instruction.
 Include user messages plus outputs from named agents. Creates an instruction provider that filters events by agent name.
 
 **Parameters:**
+
 - `*names` — Agent names whose outputs to include
 
 ### `C.exclude_agents(*names) -> CExcludeAgents`
@@ -37,6 +39,7 @@ Include user messages plus outputs from named agents. Creates an instruction pro
 Exclude outputs from named agents. Inverse of `from_agents`.
 
 **Parameters:**
+
 - `*names` — Agent names whose outputs to exclude
 
 ### `C.window(n) -> CWindow`
@@ -44,6 +47,7 @@ Exclude outputs from named agents. Inverse of `from_agents`.
 Include only the last N turn-pairs from conversation history.
 
 **Parameters:**
+
 - `n` — Number of turn-pairs to include
 
 **Alias:** `C.last_n_turns(n)` is equivalent.
@@ -53,6 +57,7 @@ Include only the last N turn-pairs from conversation history.
 Render a template string with `{key}` placeholders filled from session state. Sets `include_contents="none"` — all context comes from the rendered template.
 
 **Parameters:**
+
 - `template` — Template string with `{key}` placeholders
 
 ### `C.capture(key) -> Callable`
@@ -60,6 +65,7 @@ Render a template string with `{key}` placeholders filled from session state. Se
 Capture the user's most recent message into session state under the given key. Delegates to `S.capture(key)`.
 
 **Parameters:**
+
 - `key` — State key to store the captured message
 
 ### `C.budget(max_tokens=8000, overflow="truncate_oldest") -> CBudget`
@@ -67,6 +73,7 @@ Capture the user's most recent message into session state under the given key. D
 Declare a token budget constraint for context.
 
 **Parameters:**
+
 - `max_tokens` — Maximum token budget (default: 8000)
 - `overflow` — Strategy when budget exceeded (default: "truncate_oldest")
 
@@ -75,6 +82,7 @@ Declare a token budget constraint for context.
 Assign a priority tier for context ordering.
 
 **Parameters:**
+
 - `tier` — Priority tier (0 = highest, default: 2)
 
 ## Composition Operators
@@ -97,19 +105,19 @@ ctx = C.window(n=5) | C.from_state("summary")
 
 ## Types
 
-| Type | Description |
-|------|-------------|
-| `CTransform` | Base protocol for all context transforms |
-| `CComposite` | Union of multiple transforms (via `+`) |
-| `CPipe` | Piped transforms (via `\|`) |
-| `CFromState` | State key reader |
-| `CWindow` | Turn-pair windowing |
-| `CUserOnly` | User message filter |
-| `CFromAgents` | Agent output selector |
-| `CExcludeAgents` | Agent output excluder |
-| `CTemplate` | Template renderer |
-| `CBudget` | Token budget constraint |
-| `CPriority` | Priority tier |
+| Type             | Description                              |
+| ---------------- | ---------------------------------------- |
+| `CTransform`     | Base protocol for all context transforms |
+| `CComposite`     | Union of multiple transforms (via `+`)   |
+| `CPipe`          | Piped transforms (via `\|`)              |
+| `CFromState`     | State key reader                         |
+| `CWindow`        | Turn-pair windowing                      |
+| `CUserOnly`      | User message filter                      |
+| `CFromAgents`    | Agent output selector                    |
+| `CExcludeAgents` | Agent output excluder                    |
+| `CTemplate`      | Template renderer                        |
+| `CBudget`        | Token budget constraint                  |
+| `CPriority`      | Priority tier                            |
 
 ## Internal
 

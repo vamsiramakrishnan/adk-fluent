@@ -20,8 +20,9 @@ graph TD
     n3 --> n6
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK's ParallelAgent runs all branches and merges results.
 # There is no built-in "first to finish" mechanism. You'd need to:
@@ -31,8 +32,10 @@ graph TD
 #   4. Cancel remaining tasks
 # This is ~40 lines of async boilerplate.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, race
 
@@ -85,6 +88,7 @@ research_pipeline = (
     .instruct("Format the search results with proper Bluebook citations.")
 )
 ```
+
 :::
 ::::
 

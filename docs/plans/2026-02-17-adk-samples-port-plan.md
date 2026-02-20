@@ -8,11 +8,12 @@
 
 **Tech Stack:** adk-fluent (Python), Sphinx/Markdown docs, Google ADK
 
----
+______________________________________________________________________
 
 ### Task 1: Create directory structure and index page
 
 **Files:**
+
 - Create: `examples/llm_auditor/__init__.py`
 - Create: `examples/financial_advisor/__init__.py`
 - Create: `examples/short_movie/__init__.py`
@@ -65,11 +66,12 @@ git add examples/llm_auditor examples/financial_advisor examples/short_movie exa
 git commit -m "chore: scaffold directories for ADK sample ports"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Port LLM Auditor
 
 **Files:**
+
 - Create: `examples/llm_auditor/agent.py`
 - Create: `examples/llm_auditor/prompt.py`
 - Create: `docs/user-guide/adk-samples/llm-auditor.md`
@@ -284,11 +286,12 @@ git add examples/llm_auditor/ docs/user-guide/adk-samples/llm-auditor.md
 git commit -m "feat: port LLM Auditor sample to fluent API with comparison docs"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Port Financial Advisor
 
 **Files:**
+
 - Create: `examples/financial_advisor/agent.py`
 - Create: `examples/financial_advisor/prompt.py`
 - Create: `docs/user-guide/adk-samples/financial-advisor.md`
@@ -380,6 +383,7 @@ root_agent = (
 Create `docs/user-guide/adk-samples/financial-advisor.md` with side-by-side comparison.
 
 Key metrics to highlight:
+
 - Native: 8 Python files across 5 directories, ~50 LOC of agent definitions + imports
 - Fluent: 2 files, ~45 LOC of agent definitions
 - Key wins: no `AgentTool` imports, no `__init__.py` re-exports, flat structure
@@ -391,11 +395,12 @@ git add examples/financial_advisor/ docs/user-guide/adk-samples/financial-adviso
 git commit -m "feat: port Financial Advisor sample to fluent API with comparison docs"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Port Short Movie Agents
 
 **Files:**
+
 - Create: `examples/short_movie/agent.py`
 - Create: `examples/short_movie/prompt.py`
 - Create: `examples/short_movie/tools.py`
@@ -492,6 +497,7 @@ root_agent = (
 Create `docs/user-guide/adk-samples/short-movie.md`.
 
 Key metrics:
+
 - Native: 5 agent files + utils + prompt files across nested directories (~200 LOC agent code)
 - Fluent: 3 files (agent.py, prompt.py, tools.py), ~50 LOC agent code
 - Key wins: no try/except agent creation boilerplate, no `load_prompt_from_file` utility, flat structure
@@ -503,16 +509,18 @@ git add examples/short_movie/ docs/user-guide/adk-samples/short-movie.md
 git commit -m "feat: port Short Movie Agents sample to fluent API with comparison docs"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Port Deep Search
 
 **Files:**
+
 - Create: `examples/deep_search/agent.py`
 - Create: `examples/deep_search/prompt.py`
 - Create: `docs/user-guide/adk-samples/deep-search.md`
 
 This is the most complex port. The original uses:
+
 - `SequentialAgent` with nested `LoopAgent`
 - Custom `BaseAgent` subclass (`EscalationChecker`)
 - Pydantic `output_schema` for structured output
@@ -666,6 +674,7 @@ root_agent = (
 Create `docs/user-guide/adk-samples/deep-search.md`.
 
 Key points to highlight:
+
 - `Loop("name").step().step().step().max_iterations(5)` replaces `LoopAgent(name=..., max_iterations=5, sub_agents=[...])`
 - `Pipeline("name").step().step().step().step()` replaces `SequentialAgent(name=..., sub_agents=[...])`
 - `.output_schema(Feedback)` replaces `output_schema=Feedback`
@@ -681,11 +690,12 @@ git add examples/deep_search/ docs/user-guide/adk-samples/deep-search.md
 git commit -m "feat: port Deep Search sample to fluent API with comparison docs"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Port Brand Search Optimization
 
 **Files:**
+
 - Create: `examples/brand_search/agent.py`
 - Create: `examples/brand_search/prompt.py`
 - Create: `examples/brand_search/tools.py`
@@ -807,11 +817,12 @@ git add examples/brand_search/ docs/user-guide/adk-samples/brand-search.md
 git commit -m "feat: port Brand Search Optimization sample to fluent API with comparison docs"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Port Travel Concierge
 
 **Files:**
+
 - Create: `examples/travel_concierge/agent.py`
 - Create: `examples/travel_concierge/prompt.py`
 - Create: `examples/travel_concierge/tools.py`
@@ -838,6 +849,7 @@ This file will be the largest (~100-120 LOC for agent definitions) but still dra
 Create `docs/user-guide/adk-samples/travel-concierge.md`.
 
 Key metrics:
+
 - Native: 20+ Python files, 6 directories, multiple `__init__.py` re-exports
 - Fluent: 3 files, flat directory
 - The biggest win: eliminating the entire directory tree of `sub_agents/` with `__init__.py` re-exports
@@ -849,11 +861,12 @@ git add examples/travel_concierge/ docs/user-guide/adk-samples/travel-concierge.
 git commit -m "feat: port Travel Concierge sample to fluent API with comparison docs"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Final integration and review
 
 **Files:**
+
 - Modify: `docs/user-guide/adk-samples/index.md` (update with actual metrics)
 - Modify: `docs/user-guide/index.md` (add link to adk-samples section if needed)
 

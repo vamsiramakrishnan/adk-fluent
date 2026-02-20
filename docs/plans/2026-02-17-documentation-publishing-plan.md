@@ -8,11 +8,12 @@
 
 **Tech Stack:** Sphinx, MyST-Parser, sphinx-design (tabs/cards), Furo theme, sphinx-copybutton, Read the Docs hosting.
 
----
+______________________________________________________________________
 
 ### Task 1: Add docs dependencies to pyproject.toml
 
 **Files:**
+
 - Modify: `pyproject.toml:34-41`
 
 **Step 1: Add docs optional dependency group**
@@ -38,6 +39,7 @@ docs = [
 ```
 
 Also update `[project.urls]` Documentation value from the GitLab tree URL to the future RTD URL:
+
 ```toml
 Documentation = "https://adk-fluent.readthedocs.io/"
 ```
@@ -54,11 +56,12 @@ git add pyproject.toml
 git commit -m "chore: add docs optional dependencies (sphinx, myst-parser, furo, sphinx-design)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Create Sphinx conf.py
 
 **Files:**
+
 - Create: `docs/conf.py`
 
 **Step 1: Write conf.py**
@@ -123,11 +126,12 @@ git add docs/conf.py
 git commit -m "feat: add Sphinx conf.py with MyST, Furo, sphinx-design"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Create hand-written documentation pages
 
 **Files:**
+
 - Create: `docs/index.md`
 - Create: `docs/getting-started.md`
 - Create: `docs/changelog.md`
@@ -226,6 +230,7 @@ Content adapted from README.md sections: Install, IDE Setup, Discover the API, Q
 **Step 3: Create docs/changelog.md**
 
 A stub changelog:
+
 ```markdown
 # Changelog
 
@@ -265,8 +270,9 @@ state-transforms
 ```
 
 Create each sub-page with content from README.md:
+
 - `builders.md` — How the builder pattern works, constructor args, method chaining, .build()
-- `expression-language.md` — All operators: >>, |, *, @, //, Route, S
+- `expression-language.md` — All operators: >>, |, \*, @, //, Route, S
 - `prompts.md` — Prompt builder with sections (role, context, task, constraints, format, examples)
 - `execution.md` — .ask(), .ask_async(), .stream(), .session(), .map(), .events(), .test()
 - `callbacks.md` — Callback system, additive semantics, conditional callbacks
@@ -276,6 +282,7 @@ Create each sub-page with content from README.md:
 **Step 5: Create contributing pages**
 
 `contributing/index.md`:
+
 ```markdown
 # Contributing
 
@@ -302,11 +309,12 @@ git add docs/index.md docs/getting-started.md docs/changelog.md docs/user-guide/
 git commit -m "feat: add hand-written documentation pages (guide, contributing, changelog)"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Overhaul doc_generator.py — API reference
 
 **Files:**
+
 - Modify: `scripts/doc_generator.py`
 
 This is the major overhaul. The new doc_generator.py produces MyST-flavored Markdown with cross-references, admonitions, inline examples, and auto-generated index pages.
@@ -314,6 +322,7 @@ This is the major overhaul. The new doc_generator.py produces MyST-flavored Mark
 **Step 1: Rewrite gen_api_reference_for_builder()**
 
 Changes from current:
+
 - Add inline usage example (2-3 lines) at top of each builder section showing basic construction
 - Use MyST admonitions (`:::{note}`, `:::{tip}`) for important notes like additive semantics
 - Add MyST target anchors (`(builder-Name)=`) for cross-referencing
@@ -323,17 +332,19 @@ Changes from current:
 **Step 2: Rewrite gen_api_reference_module()**
 
 Changes:
+
 - Add module-level description
 - Add a table of contents at the top listing all builders in the module
 
 **Step 3: Add gen_api_index()**
 
 New function that generates `docs/generated/api/index.md`:
+
 - Module summary table: module name, builder count, link to page
 - Total builder count
 - Toctree listing all module pages
 
-```python
+````python
 def gen_api_index(by_module: dict[str, list[BuilderSpec]]) -> str:
     lines = []
     lines.append("# API Reference")
@@ -352,7 +363,7 @@ def gen_api_index(by_module: dict[str, list[BuilderSpec]]) -> str:
         lines.append(module_name)
     lines.append("```")
     return "\n".join(lines)
-```
+````
 
 **Step 4: Run the doc generator and verify output**
 
@@ -366,22 +377,25 @@ git add scripts/doc_generator.py
 git commit -m "feat: overhaul doc_generator.py API reference with MyST cross-refs, examples, index"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Overhaul doc_generator.py — Cookbook
 
 **Files:**
+
 - Modify: `scripts/doc_generator.py`
 
 **Step 1: Rewrite cookbook_to_markdown()**
 
 Changes from current:
+
 - Use sphinx-design tab-set for native/fluent side-by-side instead of sequential sections
 - Add "What you'll learn" summary at top
 - Add cross-links to relevant API reference pages
 - Better title handling
 
 New output format per cookbook page:
+
 ```markdown
 # Simple Agent Creation
 
@@ -415,6 +429,7 @@ _Source: `01_simple_agent.py`_
 **Step 2: Add gen_cookbook_index()**
 
 New function that generates `docs/generated/cookbook/index.md`:
+
 - Categorize cookbooks: Basics (01-07), Execution (08-13), Advanced (14-20), Patterns (21+)
 - Category headers with toctree per category
 
@@ -430,16 +445,18 @@ git add scripts/doc_generator.py
 git commit -m "feat: overhaul cookbook docs with tabbed code, categories, cross-links"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Overhaul doc_generator.py — Migration guide
 
 **Files:**
+
 - Modify: `scripts/doc_generator.py`
 
 **Step 1: Enhance gen_migration_guide()**
 
 Changes:
+
 - Add before/after code snippets for the 3 most common patterns (Agent, Pipeline, FanOut)
 - Add MyST target anchors for each builder row
 - Add links from each builder name to its API reference page
@@ -456,11 +473,12 @@ git add scripts/doc_generator.py
 git commit -m "feat: enrich migration guide with code snippets and cross-links"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Full Sphinx build validation
 
 **Files:**
+
 - Possibly modify: `docs/conf.py` (fix any warnings)
 
 **Step 1: Run the full doc pipeline**
@@ -484,11 +502,12 @@ git add docs/ scripts/
 git commit -m "fix: resolve Sphinx build warnings"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Add .readthedocs.yaml
 
 **Files:**
+
 - Create: `.readthedocs.yaml`
 
 **Step 1: Write .readthedocs.yaml**
@@ -527,11 +546,12 @@ git add .readthedocs.yaml
 git commit -m "feat: add .readthedocs.yaml for automated doc builds"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Add docs stage to .gitlab-ci.yml
 
 **Files:**
+
 - Modify: `.gitlab-ci.yml:1-4` (add docs stage)
 - Modify: `.gitlab-ci.yml` (add docs job)
 
@@ -590,11 +610,12 @@ git add .gitlab-ci.yml
 git commit -m "feat: add docs stage to CI pipeline for Sphinx build validation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: Update justfile with Sphinx commands
 
 **Files:**
+
 - Modify: `justfile`
 
 **Step 1: Add docs-build and docs-serve commands**
@@ -615,11 +636,13 @@ docs-serve: docs
 ```
 
 Update the `all` recipe to include docs-build:
+
 ```just
 all: scan seed generate docs docs-build
 ```
 
 Update `clean` to also remove `docs/_build`:
+
 ```just
 clean:
     @echo "Cleaning generated files..."
@@ -640,7 +663,7 @@ git add justfile
 git commit -m "feat: add docs-build and docs-serve to justfile"
 ```
 
----
+______________________________________________________________________
 
 ### Task 11: Final integration test
 

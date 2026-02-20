@@ -5,6 +5,7 @@ Multi-agent financial advisory system with data analysis, trading strategies, ex
 ## Architecture
 
 Root coordinator delegates to 4 specialist sub-agents via AgentTool:
+
 - data_analyst_agent → market_data_analysis_output
 - trading_analyst_agent → proposed_trading_strategies_output
 - execution_analyst_agent → execution_plan_output
@@ -213,9 +214,9 @@ root_agent = (
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-| ------ | ------ | ------ | --------- |
-| Agent definition files | 5 | 1 | 80% |
-| Total Python files | 10 | 3 | 70% |
-| Directories | 5 | 1 | 80% |
-| `import` statements | 15+ | 5 | 67% |
+| Metric                 | Native | Fluent | Reduction |
+| ---------------------- | ------ | ------ | --------- |
+| Agent definition files | 5      | 1      | 80%       |
+| Total Python files     | 10     | 3      | 70%       |
+| Directories            | 5      | 1      | 80%       |
+| `import` statements    | 15+    | 5      | 67%       |

@@ -38,16 +38,19 @@ graph TD
     n13 --> n16
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # A real-world investment analysis pipeline in native ADK would be 100+ lines
 # of explicit agent construction, manual routing, callback wiring, and
 # custom BaseAgent subclasses for state logic. See below for the fluent
 # equivalent that reads like a business process document.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._routing import Route
@@ -124,6 +127,7 @@ pipeline = (
     >> report_generator
 )
 ```
+
 :::
 ::::
 
@@ -145,6 +149,6 @@ assert isinstance(built, SequentialAgent)
 assert len(built.sub_agents) >= 3
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::

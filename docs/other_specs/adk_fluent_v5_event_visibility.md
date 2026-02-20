@@ -2,22 +2,22 @@
 
 ## The Problem, Precisely Stated
 
-In a composed agent DAG like `classifier >> Route("intent").eq("booking", booker)`, every 
-LLM agent produces events that flow through a single channel to the client. ADK's 
-`SequentialAgent._run_async_impl` does a bare `yield event` for every sub-agent event. 
+In a composed agent DAG like `classifier >> Route("intent").eq("booking", booker)`, every
+LLM agent produces events that flow through a single channel to the client. ADK's
+`SequentialAgent._run_async_impl` does a bare `yield event` for every sub-agent event.
 There is no concept of "this event is for the next agent" vs "this event is for the user."
 
-The result: intermediate agents' outputs — classification labels, JSON blobs, confidence 
+The result: intermediate agents' outputs — classification labels, JSON blobs, confidence
 scores, draft text — appear as chat messages alongside the actual user-facing response.
 
-This isn't a bug. It's an architecture designed for single-agent systems extended to 
+This isn't a bug. It's an architecture designed for single-agent systems extended to
 multi-agent composition without adding a visibility layer.
 
----
+______________________________________________________________________
 
 ## What ADK Already Gives Us
 
-Reading the Events documentation and the actual source code reveals that ADK already has 
+Reading the Events documentation and the actual source code reveals that ADK already has
 most of the machinery. We don't need to fight the framework — we need to use it.
 
 ### 1. Events ARE Recorded Regardless
@@ -45,9 +45,9 @@ async for event in agen:
         yield event
 ```
 
-**This means**: Every event is recorded in `session.events` BEFORE the plugin touches it. 
-The plugin can modify what the client sees WITHOUT affecting the historical record. This 
-is exactly the separation we need: full history for debugging/audit, filtered stream for 
+**This means**: Every event is recorded in `session.events` BEFORE the plugin touches it.
+The plugin can modify what the client sees WITHOUT affecting the historical record. This
+is exactly the separation we need: full history for debugging/audit, filtered stream for
 the user.
 
 ### 2. `custom_metadata` Is a First-Class Event Field
@@ -88,13 +88,13 @@ class BasePlugin(ABC):
         pass
 ```
 
-A plugin can inspect every event, annotate it, modify it, or replace it. This runs 
+A plugin can inspect every event, annotate it, modify it, or replace it. This runs
 after persistence, before the client.
 
 ### 4. `event.author` Carries Agent Identity
 
-Every event has an `author` field — the name of the agent that produced it. Combined 
-with the topology (which we know from the IR), we know whether that agent is a terminal 
+Every event has an `author` field — the name of the agent that produced it. Combined
+with the topology (which we know from the IR), we know whether that agent is a terminal
 node or an intermediate one.
 
 ### 5. `is_final_response()` Is the Client-Side Filter
@@ -111,29 +111,31 @@ def is_final_response(self) -> bool:
     )
 ```
 
-This returns True for ANY text content event — including intermediate agents. There's 
-no topology awareness. This is the filter most clients use. And it's the source of the 
+This returns True for ANY text content event — including intermediate agents. There's
+no topology awareness. This is the filter most clients use. And it's the source of the
 "leaking intermediate messages" problem.
 
----
+______________________________________________________________________
 
 ## The Mechanism: Topology-Inferred Event Visibility
 
 ### Core Principle
 
-**In a DAG, the system can INFER which agents are user-facing from the topology.** 
+**In a DAG, the system can INFER which agents are user-facing from the topology.**
 
 A node is "terminal" (user-facing) if:
+
 - It has no successors in the sequence (last step in a pipeline)
 - It's the final branch target in a Route (the response agent, not the classifier)
 - It's explicitly marked as user-facing by the developer
 
 A node is "intermediate" (internal) if:
+
 - It has successors (not the last step)
 - It's a zero-cost node (transform, tap, route, checkpoint)
 - It's explicitly marked as internal by the developer
 
-The system should default to **inferring** visibility from topology, and allow the 
+The system should default to **inferring** visibility from topology, and allow the
 developer to **override** when inference is wrong.
 
 ### When Inference Is Right (Most Cases)
@@ -184,7 +186,7 @@ Override: mark all as user-facing, or mark pipeline as "transparent."
 analyzer >> researcher >> synthesizer
 ```
 
-Inference says only synthesizer is visible. But UX wants to show each step with 
+Inference says only synthesizer is visible. But UX wants to show each step with
 "Analyzing..." → "Researching..." → final answer.
 Override: mark all as user-facing, or use a "progressive" visibility mode.
 
@@ -195,13 +197,13 @@ agent = Agent("helper").instruct("...")
 
 No composition, no inference. Everything visible. Same as ADK today.
 
----
+______________________________________________________________________
 
 ## Implementation: Three Layers
 
 ### Layer 1: IR Topology Analysis (Build Time)
 
-The IR already knows the DAG structure. Add a function that walks the graph and 
+The IR already knows the DAG structure. Add a function that walks the graph and
 classifies each node:
 
 ```python
@@ -274,6 +276,7 @@ def infer_visibility(ir_root) -> dict[str, Literal["user", "internal", "zero_cos
 ```
 
 This produces a map like:
+
 ```python
 {
     "classifier": "internal",
@@ -383,10 +386,11 @@ root_agent = pipeline.build()  # Visibility inferred, plugin attached
 ```
 
 The `Pipeline.build()` method:
+
 1. Calls `to_ir()` to get the DAG
-2. Runs `infer_visibility()` on the IR
-3. Creates `VisibilityPlugin(visibility_map, mode="annotate")`
-4. Attaches the plugin to the resulting agent (via Runner plugins)
+1. Runs `infer_visibility()` on the IR
+1. Creates `VisibilityPlugin(visibility_map, mode="annotate")`
+1. Attaches the plugin to the resulting agent (via Runner plugins)
 
 **Level 1: Per-agent override**
 
@@ -400,7 +404,7 @@ logger = Agent("logger").instruct("...").hide()        # Override: internal
 pipeline = analyzer >> researcher >> synthesizer
 ```
 
-`.show()` and `.hide()` set `visibility` on the builder, which propagates to the IR 
+`.show()` and `.hide()` set `visibility` on the builder, which propagates to the IR
 node. `infer_visibility()` respects explicit annotations over inference.
 
 **Level 2: Pipeline-level policy**
@@ -437,26 +441,29 @@ async for event in runner.run_async(...):
             show_as_response(event)       # Normal chat message
 ```
 
----
+______________________________________________________________________
 
 ## How This Composes with ADK's Existing Mechanisms
 
 ### With `output_key`
 
 `output_key` writes LLM output to state AND yields the event. With visibility:
+
 - Internal agent with `output_key`: state write happens, content suppressed. ✅
-- Internal agent WITHOUT `output_key`: content suppressed, output lost. Contract 
-  checker warns: "Agent 'classifier' is internal but has no output_key. Its LLM 
+- Internal agent WITHOUT `output_key`: content suppressed, output lost. Contract
+  checker warns: "Agent 'classifier' is internal but has no output_key. Its LLM
   output will be suppressed and not saved to state."
 
 ### With `is_final_response()`
 
 `is_final_response()` doesn't change. The visibility layer works at a different level:
-- `is_final_response()` answers: "Is this a complete text message?" (vs tool call, 
+
+- `is_final_response()` answers: "Is this a complete text message?" (vs tool call,
   partial stream, etc.)
 - Visibility answers: "Should this complete text message be shown to the user?"
 
 A client combining both:
+
 ```python
 if event.is_final_response():
     if (event.custom_metadata or {}).get("adk_fluent.is_user_facing", True):
@@ -465,19 +472,19 @@ if event.is_final_response():
 
 ### With `adk web`
 
-adk web shows ALL events in its Events tab — this is the debugging view. Since 
-events are recorded in session history BEFORE the plugin modifies them, adk web 
+adk web shows ALL events in its Events tab — this is the debugging view. Since
+events are recorded in session history BEFORE the plugin modifies them, adk web
 always has the full picture.
 
-In "filter" mode, the chat view in adk web would show only user-facing events. 
-In "annotate" mode, adk web could be extended to show internal events differently 
-(grayed out, collapsed). Even without adk web changes, the Events tab always shows 
+In "filter" mode, the chat view in adk web would show only user-facing events.
+In "annotate" mode, adk web could be extended to show internal events differently
+(grayed out, collapsed). Even without adk web changes, the Events tab always shows
 everything.
 
 ### With OTel / Telemetry
 
-Every event still generates OTel spans (the `tracer.start_as_current_span('invoke_agent')` 
-wraps all of `run_async`). Visibility doesn't affect telemetry. You always see the full 
+Every event still generates OTel spans (the `tracer.start_as_current_span('invoke_agent')`
+wraps all of `run_async`). Visibility doesn't affect telemetry. You always see the full
 trace. The visibility metadata could be added as a span attribute for correlation:
 
 ```
@@ -487,18 +494,18 @@ adk_fluent.is_user_facing = false
 
 ### With Session History and Replay
 
-Session history is complete. If you replay the session, you see all events including 
-internal ones. The visibility annotation is in `custom_metadata`, so replay tools can 
+Session history is complete. If you replay the session, you see all events including
+internal ones. The visibility annotation is in `custom_metadata`, so replay tools can
 reconstruct the filtered view.
 
 ### With Callbacks
 
-ADK callbacks (`before_agent`, `after_agent`, etc.) fire for ALL agents, including 
-internal ones. Visibility doesn't suppress callback execution — it only affects what 
-the client stream shows. If you have a `before_agent_callback` on an internal agent, 
+ADK callbacks (`before_agent`, `after_agent`, etc.) fire for ALL agents, including
+internal ones. Visibility doesn't suppress callback execution — it only affects what
+the client stream shows. If you have a `before_agent_callback` on an internal agent,
 it still runs.
 
----
+______________________________________________________________________
 
 ## Scenarios Walked Through
 
@@ -519,12 +526,12 @@ pipeline = classifier >> Route("intent").eq("booking", booker).eq("info", info)
 
 **Event flow** (user says "I want to fly to London"):
 
-| # | Author | Content | Visibility | Client Sees? |
-|---|--------|---------|-----------|-------------|
-| 1 | user | "I want to fly to London" | — | ✅ (user input) |
-| 2 | classifier | "booking" | internal | ❌ (suppressed/annotated) |
-| 3 | route_intent | — (state only) | zero_cost | ❌ (no content) |
-| 4 | booker | "I'd be happy to help you book a flight to London! What dates?" | user | ✅ |
+| #   | Author       | Content                                                         | Visibility | Client Sees?              |
+| --- | ------------ | --------------------------------------------------------------- | ---------- | ------------------------- |
+| 1   | user         | "I want to fly to London"                                       | —          | ✅ (user input)           |
+| 2   | classifier   | "booking"                                                       | internal   | ❌ (suppressed/annotated) |
+| 3   | route_intent | — (state only)                                                  | zero_cost  | ❌ (no content)           |
+| 4   | booker       | "I'd be happy to help you book a flight to London! What dates?" | user       | ✅                        |
 
 Session history has all 4 events. Client sees events 1 and 4.
 
@@ -541,11 +548,11 @@ pipeline = drafter >> loop_until(
 )
 ```
 
-**Inferred visibility**: drafter=internal (has successor: loop), reviewer=internal (inside 
-loop body), refiner=internal (inside loop body, not last in outer pipeline... but the 
+**Inferred visibility**: drafter=internal (has successor: loop), reviewer=internal (inside
+loop body), refiner=internal (inside loop body, not last in outer pipeline... but the
 loop IS the last step).
 
-**Problem**: Who speaks to the user? The refined draft after the loop exits. But the 
+**Problem**: Who speaks to the user? The refined draft after the loop exits. But the
 loop body's last agent (refiner) writes to state, it doesn't "present" a final answer.
 
 **Solution**: Add a presenter agent, or override:
@@ -602,10 +609,10 @@ agent = Agent("helper").instruct("Help the user").build()
 runner = Runner(agent=agent, ...)
 ```
 
-No pipeline, no IR, no visibility plugin. All events visible. **Exactly like ADK today.** 
+No pipeline, no IR, no visibility plugin. All events visible. **Exactly like ADK today.**
 Zero behavioral change for non-fluent users.
 
----
+______________________________________________________________________
 
 ## The Inference Rules, Formally
 
@@ -628,48 +635,50 @@ VISIBILITY(node, has_successor) =
   | ¬has_successor  → "user"
 ```
 
-The key insight: **"has_successor" propagates downward through the graph.** A node is 
+The key insight: **"has_successor" propagates downward through the graph.** A node is
 internal not because of what IT is, but because of where it SITS in the topology.
 
----
+______________________________________________________________________
 
 ## What This Means for adk-fluent
 
 ### It's Not a Wrapper Feature — It's a Composition Feature
 
 A wrapper library (`.instruct()` instead of `instruction=`) can't do this. You need:
-1. The **IR** to know the DAG topology
-2. The **inference function** to classify nodes from topology
-3. The **plugin** to annotate/filter events at runtime
-4. The **builder API** to accept overrides
 
-These are all hand-written composition infrastructure — exactly the value proposition 
+1. The **IR** to know the DAG topology
+1. The **inference function** to classify nodes from topology
+1. The **plugin** to annotate/filter events at runtime
+1. The **builder API** to accept overrides
+
+These are all hand-written composition infrastructure — exactly the value proposition
 of adk-fluent beyond being a fluent API.
 
 ### It Uses ADK's Own Mechanisms
 
 No monkey-patching. No custom runtime. No event suppression hacks.
+
 - `custom_metadata` is a first-class Event field
 - `on_event_callback` is a first-class Plugin method
 - `session.events` records everything before the plugin runs
 - `RunConfig.custom_metadata` provides run-level metadata
 
-We're using ADK exactly as designed, applying composition knowledge that ADK doesn't 
+We're using ADK exactly as designed, applying composition knowledge that ADK doesn't
 have because ADK doesn't have an IR.
 
 ### Default Behavior Changes
 
-| Scenario | ADK Today | adk-fluent (annotate mode) | adk-fluent (filter mode) |
-|----------|-----------|---------------------------|--------------------------|
-| Single agent | All events visible | Same | Same |
-| `a >> b` | Both visible | Both visible, `a` annotated as internal | Only `b` visible |
-| `a >> Route >> b/c` | All visible | `a` annotated as internal | Only `b` or `c` visible |
-| `map_over(a) >> b` | All visible | `a` iterations annotated as internal | Only `b` visible |
-| `loop(a >> b)` | All iterations visible | Iterations annotated as internal | Only post-loop visible |
-| `.transparent()` | N/A | All annotated as user | All visible |
+| Scenario            | ADK Today              | adk-fluent (annotate mode)              | adk-fluent (filter mode) |
+| ------------------- | ---------------------- | --------------------------------------- | ------------------------ |
+| Single agent        | All events visible     | Same                                    | Same                     |
+| `a >> b`            | Both visible           | Both visible, `a` annotated as internal | Only `b` visible         |
+| `a >> Route >> b/c` | All visible            | `a` annotated as internal               | Only `b` or `c` visible  |
+| `map_over(a) >> b`  | All visible            | `a` iterations annotated as internal    | Only `b` visible         |
+| `loop(a >> b)`      | All iterations visible | Iterations annotated as internal        | Only post-loop visible   |
+| `.transparent()`    | N/A                    | All annotated as user                   | All visible              |
 
-**Recommended default**: "annotate" mode. Events flow, metadata present, client decides. 
-This is non-breaking — existing code that doesn't check `custom_metadata` sees the same 
+**Recommended default**: "annotate" mode. Events flow, metadata present, client decides.
+This is non-breaking — existing code that doesn't check `custom_metadata` sees the same
 behavior as today.
 
 ### The Codegen Angle
@@ -677,10 +686,12 @@ behavior as today.
 What should be generated vs hand-written:
 
 **Generated** (from ADK API surface):
+
 - `.show()`, `.hide()` on AgentBuilder — trivial config flags
 - `.transparent()`, `.filtered()`, `.annotated()` on Pipeline — config flags
 
 **Hand-written** (composition infrastructure):
+
 - `infer_visibility()` — topology analysis on IR
 - `VisibilityPlugin` — event annotation/filtering via ADK plugin protocol
 - Integration with `Pipeline.build()` — automatic plugin attachment
@@ -689,55 +700,55 @@ What should be generated vs hand-written:
 
 ### Lines of Code Estimate
 
-| Component | Lines | Effort |
-|-----------|-------|--------|
-| `infer_visibility()` on IR | ~80 | Medium (topology recursion) |
-| `VisibilityPlugin` | ~60 | Low (uses ADK plugin protocol) |
-| Builder API (`.show()`, `.hide()`, etc.) | ~30 | Low (config flags) |
-| Pipeline.build() integration | ~20 | Low (attach plugin to Runner) |
-| Contract checker integration | ~15 | Low (check internal + no output_key) |
-| Mermaid rendering for visibility | ~20 | Low (dashed borders for internal) |
-| **Total** | **~225** | **~2 days** |
+| Component                                | Lines    | Effort                               |
+| ---------------------------------------- | -------- | ------------------------------------ |
+| `infer_visibility()` on IR               | ~80      | Medium (topology recursion)          |
+| `VisibilityPlugin`                       | ~60      | Low (uses ADK plugin protocol)       |
+| Builder API (`.show()`, `.hide()`, etc.) | ~30      | Low (config flags)                   |
+| Pipeline.build() integration             | ~20      | Low (attach plugin to Runner)        |
+| Contract checker integration             | ~15      | Low (check internal + no output_key) |
+| Mermaid rendering for visibility         | ~20      | Low (dashed borders for internal)    |
+| **Total**                                | **~225** | **~2 days**                          |
 
----
+______________________________________________________________________
 
 ## What This Does NOT Solve
 
-1. **Streaming partial events from internal agents**: If an internal agent streams 
-   (partial=True), the filter mode needs to suppress those too. The annotation mode 
-   lets the client decide. This is an edge case but a visible one if the client renders 
+1. **Streaming partial events from internal agents**: If an internal agent streams
+   (partial=True), the filter mode needs to suppress those too. The annotation mode
+   lets the client decide. This is an edge case but a visible one if the client renders
    streaming text that then "disappears."
 
-2. **Tool calls from internal agents**: An internal classifier might call tools. Those 
-   tool call/response events still flow. Should they be suppressed? Probably not — they're 
-   infrastructure, not "speech." But the client might render them. The annotation approach 
+1. **Tool calls from internal agents**: An internal classifier might call tools. Those
+   tool call/response events still flow. Should they be suppressed? Probably not — they're
+   infrastructure, not "speech." But the client might render them. The annotation approach
    lets the client filter appropriately.
 
-3. **Error events from internal agents**: If an internal agent errors, that error should 
-   probably bubble up to the user regardless of visibility. The plugin should NOT suppress 
+1. **Error events from internal agents**: If an internal agent errors, that error should
+   probably bubble up to the user regardless of visibility. The plugin should NOT suppress
    error events.
 
-4. **Dynamic visibility**: An agent might be internal in one code path and terminal in 
-   another (e.g., a Fallback where any child might win). The static inference is 
-   conservative here — Fallback children are all marked "user." Runtime awareness would 
+1. **Dynamic visibility**: An agent might be internal in one code path and terminal in
+   another (e.g., a Fallback where any child might win). The static inference is
+   conservative here — Fallback children are all marked "user." Runtime awareness would
    need a different approach.
 
-5. **adk web integration**: adk web doesn't know about `custom_metadata` filtering. 
-   In annotate mode, it shows everything (fine for debugging). In filter mode, it would 
-   show fewer chat messages. Ideally, adk web would have a toggle: "Show all events / 
+1. **adk web integration**: adk web doesn't know about `custom_metadata` filtering.
+   In annotate mode, it shows everything (fine for debugging). In filter mode, it would
+   show fewer chat messages. Ideally, adk web would have a toggle: "Show all events /
    Show user-facing only." This is an adk-web feature request, not an adk-fluent problem.
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Question | Answer |
-|----------|--------|
-| Is this inference or annotation? | Both. Infer from topology, annotate on events, let client filter. |
-| Does the system record internal events? | Yes. Session history has everything. Plugin runs after persistence. |
-| What's the default? | "annotate" mode — non-breaking, client opts into filtering. |
-| Can the user override? | Yes. `.show()`, `.hide()`, `.transparent()`, `.filtered()`. |
-| Does this need ADK changes? | No. Uses `custom_metadata`, `on_event_callback`, `BasePlugin` — all existing. |
-| What does this need from adk-fluent? | IR topology analysis + a plugin + builder flags. ~225 lines. |
-| Is this a patch or a mechanism? | Mechanism. Topology inference → event annotation → client filtering. |
-| Why can't ADK do this itself? | ADK doesn't have an IR. It doesn't know the DAG topology at runtime. It sees individual agents yielding events, not a composed pipeline with intermediate and terminal nodes. |
+| Question                                | Answer                                                                                                                                                                        |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Is this inference or annotation?        | Both. Infer from topology, annotate on events, let client filter.                                                                                                             |
+| Does the system record internal events? | Yes. Session history has everything. Plugin runs after persistence.                                                                                                           |
+| What's the default?                     | "annotate" mode — non-breaking, client opts into filtering.                                                                                                                   |
+| Can the user override?                  | Yes. `.show()`, `.hide()`, `.transparent()`, `.filtered()`.                                                                                                                   |
+| Does this need ADK changes?             | No. Uses `custom_metadata`, `on_event_callback`, `BasePlugin` — all existing.                                                                                                 |
+| What does this need from adk-fluent?    | IR topology analysis + a plugin + builder flags. ~225 lines.                                                                                                                  |
+| Is this a patch or a mechanism?         | Mechanism. Topology inference → event annotation → client filtering.                                                                                                          |
+| Why can't ADK do this itself?           | ADK doesn't have an IR. It doesn't know the DAG topology at runtime. It sees individual agents yielding events, not a composed pipeline with intermediate and terminal nodes. |

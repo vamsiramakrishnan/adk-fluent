@@ -3,20 +3,20 @@
 **Date:** 2026-02-17
 **Goal:** Port 6 complex multi-agent ADK samples to the fluent API; create side-by-side comparison docs demonstrating advantages.
 
----
+______________________________________________________________________
 
 ## Samples to Port
 
-| # | Sample | ADK Pattern | Fluent API Highlights | Complexity |
-|---|--------|-------------|----------------------|------------|
-| 1 | LLM Auditor | `SequentialAgent` + 2 sub-agents + `after_model_callback` | `>>` operator, `.after_model()` | Low |
-| 2 | Financial Advisor | `LlmAgent` + 4 `AgentTool` sub-agents + `output_key` | `.delegate()`, `.outputs()`, `.tool(google_search)` | Medium |
-| 3 | Short Movie | 4 sequential sub-agents + Imagen/Veo tools + `output_key` | `>>` chain, `.outputs()`, custom tools | Medium |
-| 4 | Deep Search | `SequentialAgent` + `LoopAgent` + custom `BaseAgent` + Pydantic output + callbacks | `>>`, `* until()`, `@` typed output, nested `Pipeline` | High |
-| 5 | Brand Search | Router + `sub_agents` + BigQuery tool + Selenium tools | `.delegate()`, nested agents, custom tools | High |
-| 6 | Travel Concierge | 6 sub-agent groups + `AgentTool` + callbacks + JSON state | Massive boilerplate reduction, `FanOut`, presets | High |
+| #   | Sample            | ADK Pattern                                                                        | Fluent API Highlights                                  | Complexity |
+| --- | ----------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------- |
+| 1   | LLM Auditor       | `SequentialAgent` + 2 sub-agents + `after_model_callback`                          | `>>` operator, `.after_model()`                        | Low        |
+| 2   | Financial Advisor | `LlmAgent` + 4 `AgentTool` sub-agents + `output_key`                               | `.delegate()`, `.outputs()`, `.tool(google_search)`    | Medium     |
+| 3   | Short Movie       | 4 sequential sub-agents + Imagen/Veo tools + `output_key`                          | `>>` chain, `.outputs()`, custom tools                 | Medium     |
+| 4   | Deep Search       | `SequentialAgent` + `LoopAgent` + custom `BaseAgent` + Pydantic output + callbacks | `>>`, `* until()`, `@` typed output, nested `Pipeline` | High       |
+| 5   | Brand Search      | Router + `sub_agents` + BigQuery tool + Selenium tools                             | `.delegate()`, nested agents, custom tools             | High       |
+| 6   | Travel Concierge  | 6 sub-agent groups + `AgentTool` + callbacks + JSON state                          | Massive boilerplate reduction, `FanOut`, presets       | High       |
 
----
+______________________________________________________________________
 
 ## Deliverables Per Sample
 
@@ -38,7 +38,7 @@ examples/<sample>/
 
 Each page follows this structure:
 
-```markdown
+````markdown
 # <Sample Name>
 
 Brief description of what the agent does.
@@ -57,7 +57,7 @@ Diagram/description of agent hierarchy and data flow.
 # agent.py — Native ADK
 from google.adk.agents import LlmAgent, SequentialAgent
 ...
-```
+````
 
 ## Fluent API
 
@@ -70,18 +70,20 @@ from adk_fluent import Agent, Pipeline
 ## What Changed
 
 Annotated callouts on specific reductions:
+
 - "4 `AgentTool(agent=...)` wrappers → `.delegate()`"
 - "Separate `__init__.py` imports → eliminated"
 - etc.
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-|--------|--------|--------|-----------|
-| Lines of code (agent files) | X | Y | Z% |
-| Number of files | X | Y | Z |
-| Import statements | X | Y | Z% |
-```
+| Metric                      | Native | Fluent | Reduction |
+| --------------------------- | ------ | ------ | --------- |
+| Lines of code (agent files) | X      | Y      | Z%        |
+| Number of files             | X      | Y      | Z         |
+| Import statements           | X      | Y      | Z%        |
+
+````
 
 ### 3. Index Page (`docs/user-guide/adk-samples/index.md`)
 
@@ -98,9 +100,10 @@ agent = LlmAgent(name="x", model="gemini-2.5-pro", instruction=PROMPT, output_ke
 
 # Fluent
 agent = Agent("x", "gemini-2.5-pro").instruct(PROMPT).outputs("result")
-```
+````
 
 ### Sequential Composition
+
 ```python
 # Native
 pipeline = SequentialAgent(name="pipe", sub_agents=[a, b, c])
@@ -112,6 +115,7 @@ pipeline = Pipeline("pipe").step(a).step(b).step(c)
 ```
 
 ### Tool-Based Delegation
+
 ```python
 # Native
 root = LlmAgent(name="root", tools=[AgentTool(agent=sub1), AgentTool(agent=sub2)])
@@ -121,6 +125,7 @@ root = Agent("root").delegate(sub1).delegate(sub2)
 ```
 
 ### Sub-Agent Delegation
+
 ```python
 # Native
 root = LlmAgent(name="root", sub_agents=[sub1, sub2])
@@ -131,6 +136,7 @@ root = Agent("root").sub_agents(sub1, sub2)
 ```
 
 ### Callbacks
+
 ```python
 # Native
 agent = LlmAgent(name="x", after_model_callback=fn)
@@ -140,6 +146,7 @@ agent = Agent("x").after_model(fn)
 ```
 
 ### Loop with Exit Condition
+
 ```python
 # Native
 loop = LoopAgent(name="loop", max_iterations=5, sub_agents=[evaluator, checker, executor])
@@ -151,6 +158,7 @@ loop = (evaluator >> checker >> executor) * 5
 ```
 
 ### Typed Output
+
 ```python
 # Native
 agent = LlmAgent(name="x", output_schema=Feedback)
@@ -159,17 +167,17 @@ agent = LlmAgent(name="x", output_schema=Feedback)
 agent = Agent("x") @ Feedback
 ```
 
----
+______________________________________________________________________
 
 ## Decisions
 
 1. **Prompts in separate files** — Long prompts (some 200+ lines) stay in `prompt.py`
-2. **Docs use `<details>` tags** — Long prompt blocks are collapsed by default in comparisons
-3. **Port order** — LLM Auditor → Financial Advisor → Short Movie → Deep Search → Brand Search → Travel Concierge
-4. **Custom BaseAgent interop** — Deep Search's `EscalationChecker` stays as-is (fluent API wraps it, doesn't replace it)
-5. **External tools unchanged** — Selenium, BigQuery, Imagen, Veo tools stay as regular Python functions; fluent API adds them via `.tool()`
+1. **Docs use `<details>` tags** — Long prompt blocks are collapsed by default in comparisons
+1. **Port order** — LLM Auditor → Financial Advisor → Short Movie → Deep Search → Brand Search → Travel Concierge
+1. **Custom BaseAgent interop** — Deep Search's `EscalationChecker` stays as-is (fluent API wraps it, doesn't replace it)
+1. **External tools unchanged** — Selenium, BigQuery, Imagen, Veo tools stay as regular Python functions; fluent API adds them via `.tool()`
 
----
+______________________________________________________________________
 
 ## Non-Goals
 

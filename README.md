@@ -153,35 +153,34 @@ graph TD
     n3 --> n4
 ```
 
-
 ## Expression Language
 
 Nine operators compose any agent topology:
 
-| Operator | Meaning | ADK Type |
-|----------|---------|----------|
-| `a >> b` | Sequence | `SequentialAgent` |
-| `a >> fn` | Function step | Zero-cost transform |
-| `a \| b` | Parallel | `ParallelAgent` |
-| `a * 3` | Loop (fixed) | `LoopAgent` |
-| `a * until(pred)` | Loop (conditional) | `LoopAgent` + checkpoint |
-| `a @ Schema` | Typed output | `output_schema` |
-| `a // b` | Fallback | First-success chain |
-| `Route("key").eq(...)` | Branch | Deterministic routing |
-| `S.pick(...)`, `S.rename(...)` | State transforms | Dict operations via `>>` |
+| Operator                       | Meaning            | ADK Type                 |
+| ------------------------------ | ------------------ | ------------------------ |
+| `a >> b`                       | Sequence           | `SequentialAgent`        |
+| `a >> fn`                      | Function step      | Zero-cost transform      |
+| `a \| b`                       | Parallel           | `ParallelAgent`          |
+| `a * 3`                        | Loop (fixed)       | `LoopAgent`              |
+| `a * until(pred)`              | Loop (conditional) | `LoopAgent` + checkpoint |
+| `a @ Schema`                   | Typed output       | `output_schema`          |
+| `a // b`                       | Fallback           | First-success chain      |
+| `Route("key").eq(...)`         | Branch             | Deterministic routing    |
+| `S.pick(...)`, `S.rename(...)` | State transforms   | Dict operations via `>>` |
 
 Eight control loop primitives for agent orchestration:
 
-| Primitive | Purpose | ADK Mechanism |
-|-----------|---------|---------------|
-| `tap(fn)` | Observe state without mutating | Custom `BaseAgent` (no LLM) |
-| `expect(pred, msg)` | Assert state contract | Raises `ValueError` on failure |
-| `.mock(responses)` | Bypass LLM for testing | `before_model_callback` → `LlmResponse` |
-| `.retry_if(pred)` | Retry while condition holds | `LoopAgent` + checkpoint escalate |
-| `map_over(key, agent)` | Iterate agent over list | Custom `BaseAgent` loop |
-| `.timeout(seconds)` | Time-bound execution | `asyncio` deadline + cancel |
-| `gate(pred, msg)` | Human-in-the-loop approval | `EventActions(escalate=True)` |
-| `race(a, b, ...)` | First-to-finish wins | `asyncio.wait(FIRST_COMPLETED)` |
+| Primitive              | Purpose                        | ADK Mechanism                           |
+| ---------------------- | ------------------------------ | --------------------------------------- |
+| `tap(fn)`              | Observe state without mutating | Custom `BaseAgent` (no LLM)             |
+| `expect(pred, msg)`    | Assert state contract          | Raises `ValueError` on failure          |
+| `.mock(responses)`     | Bypass LLM for testing         | `before_model_callback` → `LlmResponse` |
+| `.retry_if(pred)`      | Retry while condition holds    | `LoopAgent` + checkpoint escalate       |
+| `map_over(key, agent)` | Iterate agent over list        | Custom `BaseAgent` loop                 |
+| `.timeout(seconds)`    | Time-bound execution           | `asyncio` deadline + cancel             |
+| `gate(pred, msg)`      | Human-in-the-loop approval     | `EventActions(escalate=True)`           |
+| `race(a, b, ...)`      | First-to-finish wins           | `asyncio.wait(FIRST_COMPLETED)`         |
 
 All operators are **immutable** -- sub-expressions can be safely reused:
 
@@ -256,17 +255,17 @@ pipeline = (
 )
 ```
 
-| Factory | Purpose |
-|---------|---------|
-| `S.pick(*keys)` | Keep only specified keys |
-| `S.drop(*keys)` | Remove specified keys |
-| `S.rename(**kw)` | Rename keys |
-| `S.default(**kw)` | Fill missing keys |
-| `S.merge(*keys, into=)` | Combine keys |
-| `S.transform(key, fn)` | Map a single value |
-| `S.compute(**fns)` | Derive new keys |
-| `S.guard(pred)` | Assert invariant |
-| `S.log(*keys)` | Debug-print |
+| Factory                 | Purpose                  |
+| ----------------------- | ------------------------ |
+| `S.pick(*keys)`         | Keep only specified keys |
+| `S.drop(*keys)`         | Remove specified keys    |
+| `S.rename(**kw)`        | Rename keys              |
+| `S.default(**kw)`       | Fill missing keys        |
+| `S.merge(*keys, into=)` | Combine keys             |
+| `S.transform(key, fn)`  | Map a single value       |
+| `S.compute(**fns)`      | Derive new keys          |
+| `S.guard(pred)`         | Assert invariant         |
+| `S.log(*keys)`          | Debug-print              |
 
 ### IR, Backends, and Middleware (v4)
 
@@ -494,25 +493,25 @@ The `Agent` builder wraps ADK's `LlmAgent`. Every method returns `self` for chai
 
 #### Core Configuration
 
-| Method | Alias for | Description |
-|--------|-----------|-------------|
-| `.model(name)` | `model` | LLM model identifier (`"gemini-2.5-flash"`, `"gemini-2.5-pro"`, etc.) |
+| Method                  | Alias for     | Description                                                                |
+| ----------------------- | ------------- | -------------------------------------------------------------------------- |
+| `.model(name)`          | `model`       | LLM model identifier (`"gemini-2.5-flash"`, `"gemini-2.5-pro"`, etc.)      |
 | `.instruct(text_or_fn)` | `instruction` | System instruction. Accepts a string or `Callable[[ReadonlyContext], str]` |
-| `.describe(text)` | `description` | Agent description (used in delegation and tool descriptions) |
-| `.outputs(key)` | `output_key` | Store the agent's final response in session state under this key |
-| `.tool(fn)` | — | Add a tool function or `BaseTool` instance. Multiple calls accumulate |
-| `.build()` | — | Resolve into a native ADK `LlmAgent` |
+| `.describe(text)`       | `description` | Agent description (used in delegation and tool descriptions)               |
+| `.outputs(key)`         | `output_key`  | Store the agent's final response in session state under this key           |
+| `.tool(fn)`             | —             | Add a tool function or `BaseTool` instance. Multiple calls accumulate      |
+| `.build()`              | —             | Resolve into a native ADK `LlmAgent`                                       |
 
 #### Prompt & Context Control
 
-| Method | Alias for | Description |
-|--------|-----------|-------------|
-| `.instruct(text)` | `instruction` | Dynamic instruction. Supports `{variable}` placeholders auto-resolved from session state |
-| `.instruct(fn)` | `instruction` | Callable receiving `ReadonlyContext`, returns string. Full programmatic control |
-| `.static(content)` | `static_instruction` | Cacheable instruction that never changes. Sent as system instruction for context caching |
-| `.history("none")` | `include_contents` | Control conversation history: `"default"` (full history) or `"none"` (stateless) |
-| `.global_instruct(text)` | `global_instruction` | Instruction inherited by all sub-agents |
-| `.inject_context(fn)` | — | Prepend dynamic context via `before_model_callback`. The function receives callback context, returns a string |
+| Method                   | Alias for            | Description                                                                                                   |
+| ------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `.instruct(text)`        | `instruction`        | Dynamic instruction. Supports `{variable}` placeholders auto-resolved from session state                      |
+| `.instruct(fn)`          | `instruction`        | Callable receiving `ReadonlyContext`, returns string. Full programmatic control                               |
+| `.static(content)`       | `static_instruction` | Cacheable instruction that never changes. Sent as system instruction for context caching                      |
+| `.history("none")`       | `include_contents`   | Control conversation history: `"default"` (full history) or `"none"` (stateless)                              |
+| `.global_instruct(text)` | `global_instruction` | Instruction inherited by all sub-agents                                                                       |
+| `.inject_context(fn)`    | —                    | Prepend dynamic context via `before_model_callback`. The function receives callback context, returns a string |
 
 Template variables in string instructions are auto-resolved from session state:
 
@@ -563,17 +562,17 @@ reviewer = Agent("reviewer").instruct(base_prompt + Prompt().task("Review code."
 writer   = Agent("writer").instruct(base_prompt + Prompt().task("Write documentation."))
 ```
 
-| Method | Description |
-|--------|-------------|
-| `.role(text)` | Agent persona (emitted without header) |
-| `.context(text)` | Background information |
-| `.task(text)` | Primary objective |
-| `.constraint(text)` | Rules to follow (multiple calls accumulate) |
-| `.format(text)` | Desired output format |
-| `.example(text)` | Few-shot examples (multiple calls accumulate) |
-| `.section(name, text)` | Custom named section |
-| `.merge(other)` / `+` | Combine two Prompts |
-| `.build()` / `str()` | Compile to instruction string |
+| Method                 | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `.role(text)`          | Agent persona (emitted without header)        |
+| `.context(text)`       | Background information                        |
+| `.task(text)`          | Primary objective                             |
+| `.constraint(text)`    | Rules to follow (multiple calls accumulate)   |
+| `.format(text)`        | Desired output format                         |
+| `.example(text)`       | Few-shot examples (multiple calls accumulate) |
+| `.section(name, text)` | Custom named section                          |
+| `.merge(other)` / `+`  | Combine two Prompts                           |
+| `.build()` / `str()`   | Compile to instruction string                 |
 
 #### Static Instructions & Context Caching
 
@@ -611,17 +610,17 @@ Each `.inject_context()` call accumulates. The function receives the callback co
 
 All callback methods are **additive** -- multiple calls accumulate handlers, never replace:
 
-| Method | Alias for | Description |
-|--------|-----------|-------------|
-| `.before_model(fn)` | `before_model_callback` | Runs before each LLM call. Receives `(callback_context, llm_request)` |
-| `.after_model(fn)` | `after_model_callback` | Runs after each LLM call. Receives `(callback_context, llm_response)` |
-| `.before_agent(fn)` | `before_agent_callback` | Runs before agent execution |
-| `.after_agent(fn)` | `after_agent_callback` | Runs after agent execution |
-| `.before_tool(fn)` | `before_tool_callback` | Runs before each tool call |
-| `.after_tool(fn)` | `after_tool_callback` | Runs after each tool call |
-| `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors |
-| `.on_tool_error(fn)` | `on_tool_error_callback` | Handles tool errors |
-| `.guardrail(fn)` | — | Registers `fn` as both `before_model` and `after_model` |
+| Method                | Alias for                 | Description                                                           |
+| --------------------- | ------------------------- | --------------------------------------------------------------------- |
+| `.before_model(fn)`   | `before_model_callback`   | Runs before each LLM call. Receives `(callback_context, llm_request)` |
+| `.after_model(fn)`    | `after_model_callback`    | Runs after each LLM call. Receives `(callback_context, llm_response)` |
+| `.before_agent(fn)`   | `before_agent_callback`   | Runs before agent execution                                           |
+| `.after_agent(fn)`    | `after_agent_callback`    | Runs after agent execution                                            |
+| `.before_tool(fn)`    | `before_tool_callback`    | Runs before each tool call                                            |
+| `.after_tool(fn)`     | `after_tool_callback`     | Runs after each tool call                                             |
+| `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors                                                    |
+| `.on_tool_error(fn)`  | `on_tool_error_callback`  | Handles tool errors                                                   |
+| `.guardrail(fn)`      | —                         | Registers `fn` as both `before_model` and `after_model`               |
 
 Conditional variants append only when the condition is true:
 
@@ -635,14 +634,14 @@ agent = (
 
 #### Control Flow
 
-| Method | Description |
-|--------|-------------|
-| `.proceed_if(pred)` | Only run this agent if `pred(state)` is truthy. Uses `before_agent_callback` |
-| `.loop_until(pred, max_iterations=N)` | Wrap in a loop that exits when `pred(state)` is satisfied |
-| `.retry_if(pred, max_retries=3)` | Retry while `pred(state)` returns True. Inverse of `loop_until` |
-| `.mock(responses)` | Bypass LLM with canned responses (list or callable). For testing |
-| `.tap(fn)` | Append observation step: `self >> tap(fn)`. Returns Pipeline |
-| `.timeout(seconds)` | Wrap with time limit. Raises `asyncio.TimeoutError` on expiry |
+| Method                                | Description                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| `.proceed_if(pred)`                   | Only run this agent if `pred(state)` is truthy. Uses `before_agent_callback` |
+| `.loop_until(pred, max_iterations=N)` | Wrap in a loop that exits when `pred(state)` is satisfied                    |
+| `.retry_if(pred, max_retries=3)`      | Retry while `pred(state)` returns True. Inverse of `loop_until`              |
+| `.mock(responses)`                    | Bypass LLM with canned responses (list or callable). For testing             |
+| `.tap(fn)`                            | Append observation step: `self >> tap(fn)`. Returns Pipeline                 |
+| `.timeout(seconds)`                   | Wrap with time limit. Raises `asyncio.TimeoutError` on expiry                |
 
 #### Delegation (LLM-Driven Routing)
 
@@ -662,16 +661,16 @@ coordinator = (
 
 #### One-Shot Execution
 
-| Method | Description |
-|--------|-------------|
-| `.ask(prompt)` | Send a prompt, get response text. No Runner/Session boilerplate |
-| `.ask_async(prompt)` | Async version of `.ask()` |
-| `.stream(prompt)` | Async generator yielding response text chunks |
-| `.events(prompt)` | Async generator yielding raw ADK `Event` objects |
-| `.map(prompts, concurrency=5)` | Batch execution against multiple prompts |
-| `.map_async(prompts, concurrency=5)` | Async batch execution |
-| `.session()` | Create an interactive `async with` session context manager |
-| `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output |
+| Method                                        | Description                                                     |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| `.ask(prompt)`                                | Send a prompt, get response text. No Runner/Session boilerplate |
+| `.ask_async(prompt)`                          | Async version of `.ask()`                                       |
+| `.stream(prompt)`                             | Async generator yielding response text chunks                   |
+| `.events(prompt)`                             | Async generator yielding raw ADK `Event` objects                |
+| `.map(prompts, concurrency=5)`                | Batch execution against multiple prompts                        |
+| `.map_async(prompts, concurrency=5)`          | Async batch execution                                           |
+| `.session()`                                  | Create an interactive `async with` session context manager      |
+| `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output                   |
 
 #### Cloning and Variants
 
@@ -687,11 +686,11 @@ creative = base.with_(name="creative", model="gemini-2.5-pro")
 
 #### Validation and Introspection
 
-| Method | Description |
-|--------|-------------|
-| `.validate()` | Try `.build()` and raise `ValueError` with clear message on failure. Returns `self` |
-| `.explain()` | Multi-line summary of builder state (config fields, callbacks, lists) |
-| `.to_dict()` / `.to_yaml()` | Serialize builder state (inspection only, no round-trip) |
+| Method                      | Description                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| `.validate()`               | Try `.build()` and raise `ValueError` with clear message on failure. Returns `self` |
+| `.explain()`                | Multi-line summary of builder state (config fields, callbacks, lists)               |
+| `.to_dict()` / `.to_yaml()` | Serialize builder state (inspection only, no round-trip)                            |
 
 #### Dynamic Field Forwarding
 
@@ -729,10 +728,10 @@ pipeline = (
 ).build()
 ```
 
-| Method | Description |
-|--------|-------------|
+| Method         | Description                                                        |
+| -------------- | ------------------------------------------------------------------ |
 | `.step(agent)` | Append an agent as the next step. Lazy -- built at `.build()` time |
-| `.build()` | Resolve into a native ADK `SequentialAgent` |
+| `.build()`     | Resolve into a native ADK `SequentialAgent`                        |
 
 #### FanOut (Parallel)
 
@@ -756,10 +755,10 @@ fanout = (
 ).build()
 ```
 
-| Method | Description |
-|--------|-------------|
+| Method           | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
 | `.branch(agent)` | Add a parallel branch agent. Lazy -- built at `.build()` time |
-| `.build()` | Resolve into a native ADK `ParallelAgent` |
+| `.build()`       | Resolve into a native ADK `ParallelAgent`                     |
 
 #### Loop
 
@@ -783,12 +782,12 @@ loop = (
 ) * until(lambda s: s.get("quality") == "good", max=5)
 ```
 
-| Method | Description |
-|--------|-------------|
-| `.step(agent)` | Append a step agent. Lazy -- built at `.build()` time |
-| `.max_iterations(n)` | Set maximum loop iterations |
-| `.until(pred)` | Set exit predicate. Exits when `pred(state)` is truthy |
-| `.build()` | Resolve into a native ADK `LoopAgent` |
+| Method               | Description                                            |
+| -------------------- | ------------------------------------------------------ |
+| `.step(agent)`       | Append a step agent. Lazy -- built at `.build()` time  |
+| `.max_iterations(n)` | Set maximum loop iterations                            |
+| `.until(pred)`       | Set exit predicate. Exits when `pred(state)` is truthy |
+| `.build()`           | Resolve into a native ADK `LoopAgent`                  |
 
 #### Combining Builder and Operator Styles
 
@@ -923,50 +922,50 @@ adk web race                  # race() first-to-finish
 pytest examples/cookbook/ -v
 ```
 
-| # | Example | Feature |
-|---|---------|---------|
-| 01 | Simple Agent | Basic agent creation |
-| 02 | Agent with Tools | Tool registration |
-| 03 | Callbacks | Additive callback accumulation |
-| 04 | Sequential Pipeline | Pipeline builder |
-| 05 | Parallel FanOut | FanOut builder |
-| 06 | Loop Agent | Loop builder |
-| 07 | Team Coordinator | Sub-agent delegation |
-| 08 | One-Shot Ask | `.ask()` execution |
-| 09 | Streaming | `.stream()` execution |
-| 10 | Cloning | `.clone()` deep copy |
-| 11 | Inline Testing | `.test()` smoke tests |
-| 12 | Guardrails | `.guardrail()` shorthand |
-| 13 | Interactive Session | `.session()` context manager |
-| 14 | Dynamic Forwarding | `__getattr__` field access |
-| 15 | Production Runtime | Full agent setup |
-| 16 | Operator Composition | `>>` `\|` `*` operators |
-| 17 | Route Branching | Deterministic `Route` |
-| 18 | Dict Routing | `>>` dict shorthand |
-| 19 | Conditional Gating | `.proceed_if()` |
-| 20 | Loop Until | `.loop_until()` |
-| 21 | StateKey | Typed state descriptors |
-| 22 | Presets | `Preset` + `.use()` |
-| 23 | With Variants | `.with_()` immutable copy |
-| 24 | @agent Decorator | Decorator syntax |
-| 25 | Validate & Explain | `.validate()` `.explain()` |
-| 26 | Serialization | `to_dict` / `to_yaml` |
-| 27 | Delegate Pattern | `.delegate()` |
-| 28 | Real-World Pipeline | Full composition |
-| 29 | Function Steps | `>> fn` zero-cost transforms |
-| 30 | Until Operator | `* until(pred)` conditional loops |
-| 31 | Typed Output | `@ Schema` output contracts |
-| 32 | Fallback Operator | `//` first-success chains |
-| 33 | State Transforms | `S.pick`, `S.rename`, `S.merge`, ... |
-| 34 | Full Algebra | All operators composed together |
-| 35 | Tap Observation | `tap()` pure observation steps |
-| 36 | Expect Assertions | `expect()` state contract checks |
-| 37 | Mock Testing | `.mock()` bypass LLM for tests |
-| 38 | Retry If | `.retry_if()` conditional retry |
-| 39 | Map Over | `map_over()` iterate agent over list |
-| 40 | Timeout | `.timeout()` time-bound execution |
-| 41 | Gate Approval | `gate()` human-in-the-loop |
-| 42 | Race | `race()` first-to-finish wins |
+| #   | Example              | Feature                              |
+| --- | -------------------- | ------------------------------------ |
+| 01  | Simple Agent         | Basic agent creation                 |
+| 02  | Agent with Tools     | Tool registration                    |
+| 03  | Callbacks            | Additive callback accumulation       |
+| 04  | Sequential Pipeline  | Pipeline builder                     |
+| 05  | Parallel FanOut      | FanOut builder                       |
+| 06  | Loop Agent           | Loop builder                         |
+| 07  | Team Coordinator     | Sub-agent delegation                 |
+| 08  | One-Shot Ask         | `.ask()` execution                   |
+| 09  | Streaming            | `.stream()` execution                |
+| 10  | Cloning              | `.clone()` deep copy                 |
+| 11  | Inline Testing       | `.test()` smoke tests                |
+| 12  | Guardrails           | `.guardrail()` shorthand             |
+| 13  | Interactive Session  | `.session()` context manager         |
+| 14  | Dynamic Forwarding   | `__getattr__` field access           |
+| 15  | Production Runtime   | Full agent setup                     |
+| 16  | Operator Composition | `>>` `\|` `*` operators              |
+| 17  | Route Branching      | Deterministic `Route`                |
+| 18  | Dict Routing         | `>>` dict shorthand                  |
+| 19  | Conditional Gating   | `.proceed_if()`                      |
+| 20  | Loop Until           | `.loop_until()`                      |
+| 21  | StateKey             | Typed state descriptors              |
+| 22  | Presets              | `Preset` + `.use()`                  |
+| 23  | With Variants        | `.with_()` immutable copy            |
+| 24  | @agent Decorator     | Decorator syntax                     |
+| 25  | Validate & Explain   | `.validate()` `.explain()`           |
+| 26  | Serialization        | `to_dict` / `to_yaml`                |
+| 27  | Delegate Pattern     | `.delegate()`                        |
+| 28  | Real-World Pipeline  | Full composition                     |
+| 29  | Function Steps       | `>> fn` zero-cost transforms         |
+| 30  | Until Operator       | `* until(pred)` conditional loops    |
+| 31  | Typed Output         | `@ Schema` output contracts          |
+| 32  | Fallback Operator    | `//` first-success chains            |
+| 33  | State Transforms     | `S.pick`, `S.rename`, `S.merge`, ... |
+| 34  | Full Algebra         | All operators composed together      |
+| 35  | Tap Observation      | `tap()` pure observation steps       |
+| 36  | Expect Assertions    | `expect()` state contract checks     |
+| 37  | Mock Testing         | `.mock()` bypass LLM for tests       |
+| 38  | Retry If             | `.retry_if()` conditional retry      |
+| 39  | Map Over             | `map_over()` iterate agent over list |
+| 40  | Timeout              | `.timeout()` time-bound execution    |
+| 41  | Gate Approval        | `gate()` human-in-the-loop           |
+| 42  | Race                 | `race()` first-to-finish wins        |
 
 ## How It Works
 
@@ -980,8 +979,8 @@ scanner.py ──> manifest.json ──> seed_generator.py ──> seed.toml ─
 ```
 
 1. **Scanner** introspects all ADK modules and produces `manifest.json`
-2. **Seed Generator** classifies classes and produces `seed.toml` (merged with manual extras)
-3. **Code Generator** emits fluent builders, `.pyi` type stubs, and test scaffolds
+1. **Seed Generator** classifies classes and produces `seed.toml` (merged with manual extras)
+1. **Code Generator** emits fluent builders, `.pyi` type stubs, and test scaffolds
 
 This means adk-fluent automatically stays in sync with ADK updates:
 

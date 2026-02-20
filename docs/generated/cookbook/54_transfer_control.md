@@ -2,7 +2,7 @@
 
 Demonstrates controlling how agents transfer between each other using
 disallow_transfer_to_parent, disallow_transfer_to_peers, and the
-.isolate() convenience method.  The scenario: a customer service system
+.isolate() convenience method. The scenario: a customer service system
 where a coordinator routes to specialist agents that must complete their
 task before returning control.
 
@@ -23,8 +23,9 @@ graph TD
     n1 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -77,8 +78,10 @@ coordinator_native = LlmAgent(
     sub_agents=[billing_native, technical_native, general_native],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -147,6 +150,7 @@ coordinator_fluent = (
     .build()
 )
 ```
+
 :::
 ::::
 

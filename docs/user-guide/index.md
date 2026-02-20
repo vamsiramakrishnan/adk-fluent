@@ -1,8 +1,9 @@
 # User Guide
 
 ```{toctree}
-:maxdepth: 2
-
+---
+maxdepth: 2
+---
 architecture-and-concepts
 builders
 expression-language

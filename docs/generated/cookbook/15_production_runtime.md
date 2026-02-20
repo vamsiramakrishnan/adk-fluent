@@ -4,8 +4,9 @@
 
 _Source: `15_production_runtime.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK production setup requires assembling multiple objects:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -24,8 +25,10 @@ _Source: `15_production_runtime.py`_
 #       agent=agent, app_name="ecommerce_app", session_service=session_service
 #   )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -40,6 +43,7 @@ agent = (
     .describe("Production e-commerce chatbot with order tracking and FAQ support.")
 )
 ```
+
 :::
 ::::
 
@@ -52,6 +56,6 @@ assert "e-commerce assistant" in agent._config["instruction"]
 assert "Production e-commerce chatbot" in agent._config["description"]
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Runner](../api/runtime.md#builder-Runner)
 :::

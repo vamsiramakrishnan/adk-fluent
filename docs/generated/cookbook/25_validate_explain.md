@@ -4,15 +4,18 @@
 
 _Source: `25_validate_explain.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in validation or explanation mechanism.
 # A misconfigured medical AI agent would only surface errors at runtime,
 # deep in the call stack — unacceptable for healthcare applications.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -35,6 +38,7 @@ diagnosis_agent = (
 # the builder state to verify the agent is configured correctly.
 explanation = diagnosis_agent.explain()
 ```
+
 :::
 ::::
 

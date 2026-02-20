@@ -9,27 +9,29 @@
 **Tech Stack:** Python 3.11+, google-adk ≥1.25.0, typing.Protocol, dataclasses
 
 **Reference Specs:**
+
 - `docs/other_specs/adk_fluent_v4_spec.md` — §5 (Middleware Protocol)
 - ADK `BasePlugin` — `.venv/lib/python3.11/site-packages/google/adk/plugins/base_plugin.py`
 
 **Key Design Decisions:**
+
 - Middleware is **app-global** (attached to ExecutionConfig, compiled to App.plugins). Agent callbacks are **agent-specific** (stored in IR nodes, compiled per-agent). These are separate systems.
 - The `Middleware` Protocol uses **simplified signatures** — hides ADK internals like `InvocationContext`, `BaseTool`, `BaseAgent`. The adapter translates.
 - All methods are **optional** — a middleware only implements the hooks it needs.
 - Stack execution: **in-order, first-non-None short-circuits** (matches ADK plugin semantics).
 - Built-in middleware starts small: **retry + structured_log**. More added later.
 
----
+______________________________________________________________________
 
 ## Context: Key Files
 
-| File | Role |
-|------|------|
-| `src/adk_fluent/_ir.py` | ExecutionConfig (needs `middlewares` field) |
-| `src/adk_fluent/backends/adk.py` | ADKBackend.compile() (needs plugin wiring) |
-| `src/adk_fluent/_base.py` | BuilderBase (needs `.middleware()` method) |
-| `src/adk_fluent/__init__.py` | Package exports |
-| `.venv/.../google/adk/plugins/base_plugin.py` | ADK BasePlugin (13 callbacks) |
+| File                                          | Role                                        |
+| --------------------------------------------- | ------------------------------------------- |
+| `src/adk_fluent/_ir.py`                       | ExecutionConfig (needs `middlewares` field) |
+| `src/adk_fluent/backends/adk.py`              | ADKBackend.compile() (needs plugin wiring)  |
+| `src/adk_fluent/_base.py`                     | BuilderBase (needs `.middleware()` method)  |
+| `src/adk_fluent/__init__.py`                  | Package exports                             |
+| `.venv/.../google/adk/plugins/base_plugin.py` | ADK BasePlugin (13 callbacks)               |
 
 ## ADK BasePlugin Callback Signatures (Reference)
 
@@ -60,13 +62,14 @@ CLEANUP:
 
 All BasePlugin parameters are keyword-only (`*`).
 
----
+______________________________________________________________________
 
 ### Task 1: Middleware Protocol
 
 **Problem:** Need a composable middleware abstraction with simpler signatures than ADK's BasePlugin.
 
 **Files:**
+
 - Create: `src/adk_fluent/middleware.py`
 - Create: `tests/manual/test_middleware.py`
 
@@ -114,6 +117,7 @@ def test_middleware_protocol_has_expected_methods():
 ```bash
 pytest tests/manual/test_middleware.py -v
 ```
+
 Expected: FAIL — `middleware` module doesn't exist
 
 **Step 3: Implement Middleware protocol**
@@ -222,6 +226,7 @@ class Middleware(Protocol):
 ```bash
 pytest tests/manual/test_middleware.py -v
 ```
+
 Expected: All PASS
 
 **Step 5: Run full test suite**
@@ -229,6 +234,7 @@ Expected: All PASS
 ```bash
 pytest tests/ --tb=short -q
 ```
+
 Expected: All PASS, no regressions
 
 **Step 6: Commit**
@@ -238,17 +244,18 @@ git add src/adk_fluent/middleware.py tests/manual/test_middleware.py
 git commit -m "feat: add Middleware protocol with 13 lifecycle hooks"
 ```
 
----
+______________________________________________________________________
 
-### Task 2: _MiddlewarePlugin Adapter
+### Task 2: \_MiddlewarePlugin Adapter
 
 **Problem:** Need to compile a stack of `Middleware` objects into a single ADK `BasePlugin` that can be passed to `App.plugins`.
 
 **Files:**
+
 - Modify: `src/adk_fluent/middleware.py` (add `_MiddlewarePlugin`)
 - Add tests to: `tests/manual/test_middleware.py`
 
-**Step 1: Write tests for _MiddlewarePlugin**
+**Step 1: Write tests for \_MiddlewarePlugin**
 
 Append to `tests/manual/test_middleware.py`:
 
@@ -430,6 +437,7 @@ def test_middleware_plugin_close_calls_all():
 ```bash
 pytest tests/manual/test_middleware.py -v
 ```
+
 Expected: New tests FAIL — `_MiddlewarePlugin` not implemented yet
 
 **Step 3: Implement `_MiddlewarePlugin`**
@@ -549,6 +557,7 @@ class _MiddlewarePlugin(BasePlugin):
 ```bash
 pytest tests/manual/test_middleware.py -v
 ```
+
 Expected: All PASS
 
 **Step 5: Run full test suite**
@@ -564,13 +573,14 @@ git add src/adk_fluent/middleware.py tests/manual/test_middleware.py
 git commit -m "feat: add _MiddlewarePlugin adapter that compiles middleware stack to ADK plugin"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Wire Middleware into ExecutionConfig + ADKBackend
 
 **Problem:** `ExecutionConfig` needs a `middlewares` field, and `ADKBackend.compile()` needs to compile middleware into `App.plugins`.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_ir.py` (add `middlewares` field to `ExecutionConfig`)
 - Modify: `src/adk_fluent/backends/adk.py` (compile middleware to plugins)
 - Create: `tests/manual/test_middleware_wiring.py`
@@ -682,6 +692,7 @@ def test_to_app_with_middleware():
 ```bash
 pytest tests/manual/test_middleware_wiring.py -v
 ```
+
 Expected: FAIL — `ExecutionConfig` has no `middlewares` field
 
 **Step 3: Add `middlewares` to ExecutionConfig**
@@ -724,6 +735,7 @@ After the resumability block and before `return App(**app_kwargs)`, add:
 ```bash
 pytest tests/manual/test_middleware_wiring.py -v
 ```
+
 Expected: All PASS
 
 **Step 6: Run full test suite**
@@ -739,13 +751,14 @@ git add src/adk_fluent/_ir.py src/adk_fluent/backends/adk.py tests/manual/test_m
 git commit -m "feat: wire middleware through ExecutionConfig into ADK App plugins"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Builder `.middleware()` Method
 
 **Problem:** Users need an ergonomic way to attach middleware to a builder chain without manually constructing `ExecutionConfig`.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (add `.middleware()` to BuilderBase, update `to_app()`)
 - Create: `tests/manual/test_builder_middleware.py`
 
@@ -841,6 +854,7 @@ def test_pipeline_to_app_with_middleware():
 ```bash
 pytest tests/manual/test_builder_middleware.py -v
 ```
+
 Expected: FAIL — `.middleware()` doesn't exist
 
 **Step 3: Implement `.middleware()` on BuilderBase**
@@ -909,6 +923,7 @@ if hasattr(self, "_middlewares"):
 ```bash
 pytest tests/manual/test_builder_middleware.py -v
 ```
+
 Expected: All PASS
 
 **Step 5: Run full test suite**
@@ -924,13 +939,14 @@ git add src/adk_fluent/_base.py tests/manual/test_builder_middleware.py
 git commit -m "feat: add .middleware() method to BuilderBase for ergonomic middleware attachment"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Built-in Middleware + Exports
 
 **Problem:** Provide 2 useful built-in middleware implementations and export all middleware types from `adk_fluent`.
 
 **Files:**
+
 - Modify: `src/adk_fluent/middleware.py` (add RetryMiddleware, StructuredLogMiddleware)
 - Modify: `src/adk_fluent/__init__.py` (export middleware types)
 - Create: `tests/manual/test_builtin_middleware.py`
@@ -1047,6 +1063,7 @@ def test_middleware_importable_from_top_level():
 ```bash
 pytest tests/manual/test_builtin_middleware.py -v
 ```
+
 Expected: FAIL — `RetryMiddleware` doesn't exist
 
 **Step 3: Implement built-in middleware**
@@ -1172,6 +1189,7 @@ And add to `__all__`:
 ```bash
 pytest tests/manual/test_builtin_middleware.py -v
 ```
+
 Expected: All PASS
 
 **Step 6: Run full test suite**
@@ -1187,19 +1205,22 @@ git add src/adk_fluent/middleware.py src/adk_fluent/__init__.py tests/manual/tes
 git commit -m "feat: add RetryMiddleware and StructuredLogMiddleware built-ins with exports"
 ```
 
----
+______________________________________________________________________
 
 ## Post-Implementation Verification
 
 After all 5 tasks are complete:
 
 1. **Full test suite:**
+
    ```bash
    pytest tests/ -v --tb=short
    ```
+
    Expected: All 983+ tests PASS (plus ~30 new middleware tests)
 
-2. **Round-trip verification:**
+1. **Round-trip verification:**
+
    ```python
    python -c "
    from adk_fluent import Agent, StructuredLogMiddleware
@@ -1213,15 +1234,19 @@ After all 5 tasks are complete:
    print('Plugin type:', type(app.plugins[0]).__name__)
    "
    ```
+
    Expected: No errors, 1 plugin of type `_MiddlewarePlugin`
 
-3. **Imports:**
+1. **Imports:**
+
    ```bash
    python -c "from adk_fluent import Middleware, RetryMiddleware, StructuredLogMiddleware, Agent"
    ```
+
    Expected: No import errors
 
-4. **Middleware chaining:**
+1. **Middleware chaining:**
+
    ```python
    python -c "
    from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
@@ -1233,16 +1258,17 @@ After all 5 tasks are complete:
    print('Stack size:', len(app.plugins[0]._stack))
    "
    ```
+
    Expected: 1 plugin, stack size 2
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Task | What | Impact |
-|------|------|--------|
-| 1 | Middleware Protocol | 13-method Protocol with simplified signatures |
-| 2 | _MiddlewarePlugin adapter | Compiles middleware stack → single ADK BasePlugin |
-| 3 | Wire into ExecutionConfig + ADKBackend | `middlewares` field + App.plugins integration |
-| 4 | Builder `.middleware()` method | Ergonomic attachment + operator propagation |
-| 5 | Built-in middleware + exports | RetryMiddleware, StructuredLogMiddleware, top-level exports |
+| Task | What                                   | Impact                                                      |
+| ---- | -------------------------------------- | ----------------------------------------------------------- |
+| 1    | Middleware Protocol                    | 13-method Protocol with simplified signatures               |
+| 2    | \_MiddlewarePlugin adapter             | Compiles middleware stack → single ADK BasePlugin           |
+| 3    | Wire into ExecutionConfig + ADKBackend | `middlewares` field + App.plugins integration               |
+| 4    | Builder `.middleware()` method         | Ergonomic attachment + operator propagation                 |
+| 5    | Built-in middleware + exports          | RetryMiddleware, StructuredLogMiddleware, top-level exports |

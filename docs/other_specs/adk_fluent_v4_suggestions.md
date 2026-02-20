@@ -1,11 +1,11 @@
 # ADK-FLUENT: Specification v4 — Comprehensive
 
-**Status:** Supersedes SPEC_v3.md  
-**Philosophy:** Rise with the tide of ADK, never get bolted to the ground by it  
-**Architecture:** Expression IR → Backend Protocol → ADK (or anything else)  
+**Status:** Supersedes SPEC_v3.md\
+**Philosophy:** Rise with the tide of ADK, never get bolted to the ground by it\
+**Architecture:** Expression IR → Backend Protocol → ADK (or anything else)\
 **New in v4:** Seed-based IR generation, ADK construct alignment, middleware-as-plugin compilation, scope-aware state, event-stream protocol
 
----
+______________________________________________________________________
 
 ## 0. The Meta-Pattern, Evolved
 
@@ -99,15 +99,15 @@ def generate_ir_node(adk_class: type) -> str:
 
 v4 minimizes hand-coding to three categories:
 
-| Layer | What | Why hand-written |
-|-------|------|-------------------|
-| **Expression algebra** | `>>`, `\|`, `*`, `//`, `@` operators | Semantic meaning; operators define user intent |
-| **IR extensions** | `writes_keys`, `reads_keys`, `produces`/`consumes`, transfer edges | adk-fluent concepts that don't exist in ADK |
-| **Backend behavioral code** | `_FnAgent._run_async_impl`, `_TapAgent._run_async_impl` | Custom agent types that bridge fluent transforms to ADK's event model |
+| Layer                       | What                                                               | Why hand-written                                                      |
+| --------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| **Expression algebra**      | `>>`, `\|`, `*`, `//`, `@` operators                               | Semantic meaning; operators define user intent                        |
+| **IR extensions**           | `writes_keys`, `reads_keys`, `produces`/`consumes`, transfer edges | adk-fluent concepts that don't exist in ADK                           |
+| **Backend behavioral code** | `_FnAgent._run_async_impl`, `_TapAgent._run_async_impl`            | Custom agent types that bridge fluent transforms to ADK's event model |
 
 Everything else — builder classes, IR node types, backend dispatch, tool wrappers, config stubs — is generated.
 
----
+______________________________________________________________________
 
 ## 1. ADK Construct Mapping for DevEx Alignment
 
@@ -142,23 +142,23 @@ App (name, root_agent, plugins[], context_cache_config)
 
 ### 1.2 adk-fluent Construct Mapping Table
 
-| ADK Construct | ADK Source Location | adk-fluent v4 Equivalent | Notes |
-|---------------|--------------------|-----------------------------|-------|
-| `App` | `apps/app.py:102-155` | `Pipeline.to_app()` or explicit `App(root_agent=pipeline.compile())` | adk-fluent pipelines compile to an agent tree; wrapping in App adds plugin support |
-| `Runner` | `runners.py` | `pipeline.run()` / `pipeline.stream()` auto-creates `InMemoryRunner` | The runner is infrastructure, not user-facing in adk-fluent |
-| `Session` | `sessions/session.py` | Transparent — state flows through IR, backend manages sessions | Users interact with state via `S.*` transforms, not session objects |
-| `State` | `sessions/state.py:20-82` | `S.pick()`, `S.drop()`, `S.merge()`, `S.rename()`, `S.default()` + `StateKey("app:setting")` | v4 adds scope awareness to transforms |
-| `Agent` (LlmAgent) | `agents/llm_agent.py` | `Agent("name", "model").instruct(...)` | Direct mapping; IR → `AgentNode` → backend compiles to `LlmAgent` |
-| `SequentialAgent` | `agents/sequential_agent.py` | `a >> b >> c` (the `>>` operator) | IR → `SequenceNode` |
-| `ParallelAgent` | `agents/parallel_agent.py` | `a \| b \| c` (the `\|` operator) | IR → `ParallelNode` |
-| `LoopAgent` | `agents/loop_agent.py` | `loop(body, until=predicate, max=N)` | IR → `LoopNode` |
-| `Tool` | `tools/function_tool.py` | `.tool(fn)` on Agent builder | FunctionTool wrapping happens at compile time |
-| `CallbackContext` | `agents/callback_context.py` | `.before_model(fn)`, `.after_model(fn)` on Agent builder | Callbacks flow through IR → backend compiles to ADK callbacks |
-| `ToolContext` | `tools/tool_context.py` | Auto-injected — tools with `tool_context: ToolContext` param get it | No adk-fluent wrapper needed; ADK's FunctionTool handles detection |
-| `BasePlugin` | `plugins/base_plugin.py` | `Middleware` protocol → compiled to `BasePlugin` subclass by ADK backend | v4's key insight: middleware IS plugins |
-| `PluginManager` | `plugins/plugin_manager.py` | Transparent — backend registers compiled middleware as plugins on the App | |
-| `EventActions` | `events/event_actions.py` | `AgentEvent.state_delta`, `AgentEvent.transfer_to`, `AgentEvent.escalate` | IR-level event representation |
-| `Artifact` | `artifacts/base_artifact_service.py` | `Artifact("filename")` helper + `ctx.save_artifact()` in tools | Pass-through to ADK's artifact system |
+| ADK Construct      | ADK Source Location                  | adk-fluent v4 Equivalent                                                                     | Notes                                                                              |
+| ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `App`              | `apps/app.py:102-155`                | `Pipeline.to_app()` or explicit `App(root_agent=pipeline.compile())`                         | adk-fluent pipelines compile to an agent tree; wrapping in App adds plugin support |
+| `Runner`           | `runners.py`                         | `pipeline.run()` / `pipeline.stream()` auto-creates `InMemoryRunner`                         | The runner is infrastructure, not user-facing in adk-fluent                        |
+| `Session`          | `sessions/session.py`                | Transparent — state flows through IR, backend manages sessions                               | Users interact with state via `S.*` transforms, not session objects                |
+| `State`            | `sessions/state.py:20-82`            | `S.pick()`, `S.drop()`, `S.merge()`, `S.rename()`, `S.default()` + `StateKey("app:setting")` | v4 adds scope awareness to transforms                                              |
+| `Agent` (LlmAgent) | `agents/llm_agent.py`                | `Agent("name", "model").instruct(...)`                                                       | Direct mapping; IR → `AgentNode` → backend compiles to `LlmAgent`                  |
+| `SequentialAgent`  | `agents/sequential_agent.py`         | `a >> b >> c` (the `>>` operator)                                                            | IR → `SequenceNode`                                                                |
+| `ParallelAgent`    | `agents/parallel_agent.py`           | `a \| b \| c` (the `\|` operator)                                                            | IR → `ParallelNode`                                                                |
+| `LoopAgent`        | `agents/loop_agent.py`               | `loop(body, until=predicate, max=N)`                                                         | IR → `LoopNode`                                                                    |
+| `Tool`             | `tools/function_tool.py`             | `.tool(fn)` on Agent builder                                                                 | FunctionTool wrapping happens at compile time                                      |
+| `CallbackContext`  | `agents/callback_context.py`         | `.before_model(fn)`, `.after_model(fn)` on Agent builder                                     | Callbacks flow through IR → backend compiles to ADK callbacks                      |
+| `ToolContext`      | `tools/tool_context.py`              | Auto-injected — tools with `tool_context: ToolContext` param get it                          | No adk-fluent wrapper needed; ADK's FunctionTool handles detection                 |
+| `BasePlugin`       | `plugins/base_plugin.py`             | `Middleware` protocol → compiled to `BasePlugin` subclass by ADK backend                     | v4's key insight: middleware IS plugins                                            |
+| `PluginManager`    | `plugins/plugin_manager.py`          | Transparent — backend registers compiled middleware as plugins on the App                    |                                                                                    |
+| `EventActions`     | `events/event_actions.py`            | `AgentEvent.state_delta`, `AgentEvent.transfer_to`, `AgentEvent.escalate`                    | IR-level event representation                                                      |
+| `Artifact`         | `artifacts/base_artifact_service.py` | `Artifact("filename")` helper + `ctx.save_artifact()` in tools                               | Pass-through to ADK's artifact system                                              |
 
 ### 1.3 The "Escape Hatch" Principle
 
@@ -187,7 +187,7 @@ pipeline = Agent("fluent_a") >> raw_agent >> Agent("fluent_c")
 # The IR recognizes raw ADK agents as opaque nodes
 ```
 
----
+______________________________________________________________________
 
 ## 2. Disfluency Addendums (New Findings from Codebase Examination)
 
@@ -200,6 +200,7 @@ These extend the v3 disfluency catalog with issues discovered by examining ADK's
 **v4 addendum — scope-aware transforms required:**
 
 From `state.py:23-25`:
+
 ```python
 class State:
     APP_PREFIX = "app:"
@@ -210,8 +211,8 @@ class State:
 And from `base_session_service.py`, `append_event` skips `temp:` keys and routes `app:` / `user:` keys to separate storage. This means:
 
 1. `S.pick("a")` returning a `StateReplacement` would **destroy** `app:*` and `user:*` keys — catastrophic for cross-session state
-2. `S.drop("x")` needs to know whether `x` means session-scoped `x` or could be `app:x` or `user:x`
-3. The `State` class has no `__delitem__` — you can set keys but not remove them. State "deletion" must be modeled as setting to a sentinel value or handled at the session service level.
+1. `S.drop("x")` needs to know whether `x` means session-scoped `x` or could be `app:x` or `user:x`
+1. The `State` class has no `__delitem__` — you can set keys but not remove them. State "deletion" must be modeled as setting to a sentinel value or handled at the session service level.
 
 **Revised transform semantics:**
 
@@ -244,9 +245,10 @@ class S:
 ```
 
 The ADK backend implements `REPLACE_SESSION` by:
+
 1. Scanning current state for unprefixed keys not in the replacement set
-2. Setting them to `None` in `event_actions.state_delta` (ADK treats this as "overwrite with None")
-3. Writing the replacement keys normally
+1. Setting them to `None` in `event_actions.state_delta` (ADK treats this as "overwrite with None")
+1. Writing the replacement keys normally
 
 The ADK backend implements `DELETE_KEYS` by setting those keys to `None` in `state_delta`.
 
@@ -257,9 +259,9 @@ The ADK backend implements `DELETE_KEYS` by setting those keys to `None` in `sta
 **v4 correction:** Middleware must compile into `BasePlugin` subclasses, not agent-level callbacks. Here's why (from `base_agent.py:270-301` and `plugin_manager.py:166-200`):
 
 1. **Execution order:** ADK runs plugin callbacks FIRST, then agent callbacks. If middleware compiles to agent callbacks, it runs AFTER user-defined plugins — wrong priority.
-2. **Scope:** Agent callbacks are per-agent. Plugin callbacks are global (all agents). Middleware concepts like `token_budget` and `cost_tracker` need global scope.
-3. **Short-circuit propagation:** Plugin short-circuit prevents agent callbacks from running. If we want `cache` middleware to skip the LLM call, it must be a plugin, not an agent callback.
-4. **Error handling:** Plugins have `on_model_error_callback` and `on_tool_error_callback` (added in recent ADK versions). Agent callbacks don't have error hooks.
+1. **Scope:** Agent callbacks are per-agent. Plugin callbacks are global (all agents). Middleware concepts like `token_budget` and `cost_tracker` need global scope.
+1. **Short-circuit propagation:** Plugin short-circuit prevents agent callbacks from running. If we want `cache` middleware to skip the LLM call, it must be a plugin, not an agent callback.
+1. **Error handling:** Plugins have `on_model_error_callback` and `on_tool_error_callback` (added in recent ADK versions). Agent callbacks don't have error hooks.
 
 **Revised compilation strategy:**
 
@@ -472,6 +474,7 @@ This preserves ADK's existing `ToolContext` detection while adding resource inje
 ### 2.5 Transfer-to-Agent Needs IR Awareness
 
 From `event_actions.py:53-54`:
+
 ```python
 transfer_to_agent: Optional[str] = None
 """If set, the event transfers to the specified agent."""
@@ -497,6 +500,7 @@ This lets the `VizBackend` draw transfer edges (dashed arrows) between agents, a
 ### 2.6 ExecutionConfig Should Be IR-Level
 
 From `run_config.py`, ADK's `RunConfig` carries:
+
 - `max_llm_calls: int = 500` — hard loop safety valve
 - `streaming_mode: StreamingMode` — none/sse/bidi
 - `speech_config`, `response_modalities` — multimodal settings
@@ -520,7 +524,7 @@ pipeline = (
 ).with_config(max_llm_calls=100, timeout_seconds=30)
 ```
 
----
+______________________________________________________________________
 
 ## 3. The Revised IR (Seed-Generated + Hand-Extended)
 
@@ -677,7 +681,7 @@ def enrich_agent_node(node: AgentNode) -> AgentNode:
     )
 ```
 
----
+______________________________________________________________________
 
 ## 4. Middleware Protocol — Aligned with ADK's Plugin Architecture
 
@@ -783,17 +787,17 @@ class ADKBackend:
         return agent, []
 ```
 
----
+______________________________________________________________________
 
 ## 5. Resource Lifecycle Mapping to ADK Constructs
 
 ### 5.1 Resource Scope → ADK Lifecycle Hook
 
-| Resource Scope | ADK Lifecycle Point | Implementation |
-|----------------|---------------------|----------------|
-| `"app"` | `App` initialization | Created before Runner starts; stored as closure in compiled tool functions |
-| `"session"` | `session_service.create_session()` | Initialized in `before_run_callback` plugin; stored in `app:` state or closure |
-| `"invocation"` | `Runner.run_async()` start | Initialized in `before_run_callback` plugin; stored in `temp:` state; cleaned in `after_run_callback` |
+| Resource Scope | ADK Lifecycle Point                | Implementation                                                                                        |
+| -------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `"app"`        | `App` initialization               | Created before Runner starts; stored as closure in compiled tool functions                            |
+| `"session"`    | `session_service.create_session()` | Initialized in `before_run_callback` plugin; stored in `app:` state or closure                        |
+| `"invocation"` | `Runner.run_async()` start         | Initialized in `before_run_callback` plugin; stored in `temp:` state; cleaned in `after_run_callback` |
 
 ### 5.2 The Lifespan → Plugin Bridge
 
@@ -838,7 +842,7 @@ class LifespanPlugin(BasePlugin):
                 await instance.__aexit__(None, None, None)
 ```
 
----
+______________________________________________________________________
 
 ## 6. Testing Framework — Event-Stream-Aware
 
@@ -907,58 +911,68 @@ async def test_pipeline_contracts():
     assert classifier.produces_type.is_assignable_to(resolver.consumes_type)
 ```
 
----
+______________________________________________________________________
 
 ## 7. Migration Path (v3 → v4)
 
 ### Phase 1: Seed Generator (non-breaking)
+
 1. Build `codegen/ir_seed.py` that introspects ADK's Pydantic models
-2. Generate `_ir_generated.py` with IR node types
-3. Validate generated nodes match v3's hand-written nodes
-4. Add `_ir_extensions.py` for adk-fluent-only concepts
+1. Generate `_ir_generated.py` with IR node types
+1. Validate generated nodes match v3's hand-written nodes
+1. Add `_ir_extensions.py` for adk-fluent-only concepts
 
 ### Phase 2: Event-Stream Protocol (backward-compatible)
+
 1. Define `AgentEvent` dataclass
-2. Update `Backend` protocol to return `list[AgentEvent]`
-3. ADK backend maps `Event → AgentEvent`
-4. Add `final_text()` convenience for string-only users
-5. `.ask()` calls `final_text()` internally — no user-facing change
+1. Update `Backend` protocol to return `list[AgentEvent]`
+1. ADK backend maps `Event → AgentEvent`
+1. Add `final_text()` convenience for string-only users
+1. `.ask()` calls `final_text()` internally — no user-facing change
 
 ### Phase 3: Middleware-as-Plugin (backward-compatible)
+
 1. Define `Middleware` protocol aligned with `BasePlugin` callbacks
-2. Implement `MiddlewarePlugin` compiler
-3. Build `token_budget`, `cost_tracker`, `cache`, `retry` middleware
-4. `.use(middleware)` on builders accumulates middleware stack
-5. Backend compiles stack into plugin at `App` creation time
+1. Implement `MiddlewarePlugin` compiler
+1. Build `token_budget`, `cost_tracker`, `cache`, `retry` middleware
+1. `.use(middleware)` on builders accumulates middleware stack
+1. Backend compiles stack into plugin at `App` creation time
 
 ### Phase 4: Scope-Aware State Transforms
+
 1. Revise `S.pick()`, `S.drop()` with scope-aware semantics
-2. Backend implements `REPLACE_SESSION` and `DELETE_KEYS` via state_delta
-3. Add `StateKey("app:setting")` as first-class IR concept
+1. Backend implements `REPLACE_SESSION` and `DELETE_KEYS` via state_delta
+1. Add `StateKey("app:setting")` as first-class IR concept
 
 ### Phase 5: Seed-Based IR Pipeline
-1. Run seed generator on every ADK release
-2. Diff generated IR against previous version
-3. Auto-generate backend dispatch stubs for new node types
-4. Human reviews and adds behavioral code for new capabilities
 
----
+1. Run seed generator on every ADK release
+1. Diff generated IR against previous version
+1. Auto-generate backend dispatch stubs for new node types
+1. Human reviews and adds behavioral code for new capabilities
+
+______________________________________________________________________
 
 ## 8. Design Principles (Revised)
 
 ### 8.1 The Tide Principle (Unchanged)
+
 > If ADK gets better, adk-fluent gets better for free. If ADK breaks, only the backend adapter needs fixing.
 
 ### 8.2 The Seed Principle (New)
+
 > The IR is seeded from ADK's type system, not hand-coded to match it. When ADK adds a new agent type, the seed generator discovers it. When ADK changes a field name, the seed generator catches it. The meta-pattern applies to the IR itself.
 
 ### 8.3 The Construct Alignment Principle (New)
+
 > Every adk-fluent abstraction maps to a named ADK construct. An ADK developer should be able to answer "where does this go in my App/Runner/Agent/Plugin?" for every adk-fluent feature. The escape hatch to raw ADK is always available.
 
 ### 8.4 The Event-Stream Principle (New)
+
 > The execution model is event-stream-centric with delta-based state. Every node produces events, not results. Every state change is a delta, not a replacement. The Backend protocol speaks events. The IR models the state-flow graph, not just the agent topology.
 
 ### 8.5 Progressive Disclosure of Complexity (Unchanged)
+
 ```python
 # Level 0: One import, one line
 result = Agent("helper", "gemini-2.5-flash").instruct("Help.").ask("Hi")
@@ -981,25 +995,26 @@ adk_agent = pipeline.compile()  # Native ADK SequentialAgent
 ```
 
 ### 8.6 Zero Surprise Principle (Revised)
+
 - `S.pick("a")` keeps only session-scoped "a" — `app:*` and `user:*` keys are preserved
 - Middleware runs before agent callbacks — matches ADK's plugin-first order
 - `.compile()` returns a native ADK `BaseAgent` — no wrapper types
 - `pipeline.run()` returns `list[AgentEvent]` — full event visibility
 - Typos in `Preset` fail at definition time, not runtime
 
----
+______________________________________________________________________
 
 ## 9. Success Criteria (Revised)
 
 1. **The 3-line hello world still works** — produces an ADK-compatible agent
-2. **A 100-agent enterprise pipeline** has type-checked contracts, OpenTelemetry traces (via middleware-as-plugin), cost attribution, and event-stream-aware tests
-3. **An ADK major version upgrade** requires re-running the seed generator + updating `backends/adk.py` — no user-facing changes
-4. **`pip install adk-fluent` → `Agent("x").`** shows <15 methods in autocomplete
-5. **`pipeline.visualize()`** renders the agent graph with state-flow edges and transfer edges
-6. **`pytest tests/ -v`** runs 1000+ tests against `MockBackend` with full event assertions in <10s
-7. **Existing ADK developers** can mix adk-fluent agents with raw ADK agents in the same `App`
-8. **The IR seed generator** discovers new ADK agent types automatically on each release
+1. **A 100-agent enterprise pipeline** has type-checked contracts, OpenTelemetry traces (via middleware-as-plugin), cost attribution, and event-stream-aware tests
+1. **An ADK major version upgrade** requires re-running the seed generator + updating `backends/adk.py` — no user-facing changes
+1. **`pip install adk-fluent` → `Agent("x").`** shows \<15 methods in autocomplete
+1. **`pipeline.visualize()`** renders the agent graph with state-flow edges and transfer edges
+1. **`pytest tests/ -v`** runs 1000+ tests against `MockBackend` with full event assertions in \<10s
+1. **Existing ADK developers** can mix adk-fluent agents with raw ADK agents in the same `App`
+1. **The IR seed generator** discovers new ADK agent types automatically on each release
 
----
+______________________________________________________________________
 
 *"The expression graph is the product. ADK is one backend. The seed generator ensures they stay in sync. The plugin system is the compilation target for cross-cutting concerns. The event stream is the execution model."*

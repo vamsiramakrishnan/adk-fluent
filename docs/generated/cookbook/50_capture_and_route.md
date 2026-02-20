@@ -22,8 +22,9 @@ graph TD
     n3 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # In native ADK, capturing the user's message into state for downstream
 # agents requires writing a custom BaseAgent subclass:
@@ -38,8 +39,10 @@ graph TD
 # Then manually wiring it as the first step in a SequentialAgent.
 # Route-based dispatch requires another custom agent with if/elif logic.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, S
 from adk_fluent._routing import Route
@@ -87,6 +90,7 @@ contract_errors = [i for i in issues if isinstance(i, dict) and i.get("level") =
 
 built = helpdesk.build()
 ```
+
 :::
 ::::
 

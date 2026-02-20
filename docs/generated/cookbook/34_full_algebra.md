@@ -30,8 +30,9 @@ graph TD
     n6 --> n9
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # The equivalent native ADK code would be 100+ lines of explicit agent
 # construction, custom BaseAgent subclasses for transforms and fallbacks,
@@ -39,8 +40,10 @@ graph TD
 # The fluent algebra expresses this entire news processing system as
 # a single readable expression.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from pydantic import BaseModel
 from adk_fluent import Agent, S, Pipeline, until
@@ -120,6 +123,7 @@ feature_story = (
     >> S.rename(edit_score="feature_score")
 )
 ```
+
 :::
 ::::
 

@@ -2,13 +2,14 @@
 
 ## Builders in this module
 
-| Builder | Description |
-|---------|-------------|
-| [Loop](builder-Loop) | A shell agent that run its sub-agents in a loop. |
-| [FanOut](builder-FanOut) | A shell agent that runs its sub-agents in parallel in an isolated manner. |
-| [Pipeline](builder-Pipeline) | A shell agent that runs its sub-agents in sequence. |
+| Builder                      | Description                                                               |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| [Loop](builder-Loop)         | A shell agent that run its sub-agents in a loop.                          |
+| [FanOut](builder-FanOut)     | A shell agent that runs its sub-agents in parallel in an isolated manner. |
+| [Pipeline](builder-Pipeline) | A shell agent that runs its sub-agents in sequence.                       |
 
 (builder-Loop)=
+
 ## Loop
 
 > Fluent builder for `google.adk.agents.loop_agent.LoopAgent`
@@ -33,9 +34,9 @@ result = (
 Loop(name: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `str` |
+| Argument | Type  |
+| -------- | ----- |
+| `name`   | `str` |
 
 ### Core Configuration
 
@@ -46,7 +47,7 @@ Loop(name: str)
 
 #### `.sub_agent(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 ### Configuration
 
@@ -60,7 +61,7 @@ Convert this Loop builder to a LoopNode IR node.
 
 Append callback(s) to `after_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -72,7 +73,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -88,20 +89,21 @@ Resolve into a native ADK LoopAgent.
 
 #### `.step(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.sub_agents(value)` | `list[BaseAgent]` |
+| Field                    | Type                   |
+| ------------------------ | ---------------------- |
+| `.sub_agents(value)`     | `list[BaseAgent]`      |
 | `.max_iterations(value)` | `Union[int, NoneType]` |
 
----
+______________________________________________________________________
 
 (builder-FanOut)=
+
 ## FanOut
 
 > Fluent builder for `google.adk.agents.parallel_agent.ParallelAgent`
@@ -126,9 +128,9 @@ result = (
 FanOut(name: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `str` |
+| Argument | Type  |
+| -------- | ----- |
+| `name`   | `str` |
 
 ### Core Configuration
 
@@ -139,7 +141,7 @@ FanOut(name: str)
 
 #### `.sub_agent(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 ### Configuration
 
@@ -153,7 +155,7 @@ Convert this FanOut builder to a ParallelNode IR node.
 
 Append callback(s) to `after_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -165,7 +167,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -177,7 +179,7 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 
 #### `.branch(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 #### `.build() -> ParallelAgent`
 
@@ -187,13 +189,14 @@ Resolve into a native ADK ParallelAgent.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
+| Field                | Type              |
+| -------------------- | ----------------- |
 | `.sub_agents(value)` | `list[BaseAgent]` |
 
----
+______________________________________________________________________
 
 (builder-Pipeline)=
+
 ## Pipeline
 
 > Fluent builder for `google.adk.agents.sequential_agent.SequentialAgent`
@@ -218,9 +221,9 @@ result = (
 Pipeline(name: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `str` |
+| Argument | Type  |
+| -------- | ----- |
+| `name`   | `str` |
 
 ### Core Configuration
 
@@ -231,7 +234,7 @@ Pipeline(name: str)
 
 #### `.sub_agent(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 ### Configuration
 
@@ -245,7 +248,7 @@ Convert this Pipeline builder to a SequenceNode IR node.
 
 Append callback(s) to `after_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -257,7 +260,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 
 Append callback(s) to `before_agent_callback`.
 
-:::{note}
+:::\{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -273,12 +276,12 @@ Resolve into a native ADK SequentialAgent.
 
 #### `.step(value: BaseAgent) -> Self`
 
-Append to ``sub_agents`` (lazy — built at .build() time).
+Append to `sub_agents` (lazy — built at .build() time).
 
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
+| Field                | Type              |
+| -------------------- | ----------------- |
 | `.sub_agents(value)` | `list[BaseAgent]` |

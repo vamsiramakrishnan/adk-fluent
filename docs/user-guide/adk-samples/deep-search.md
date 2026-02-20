@@ -544,11 +544,11 @@ section_researcher = (
 
 ## Metrics
 
-| Metric | Native | Fluent | Reduction |
-| ------ | ------ | ------ | --------- |
-| Agent definition files | 1 (250+ lines) | 2 (prompt.py + agent.py) | Separated concerns |
-| Nesting depth (constructors) | 4 levels | 0 (flat operators) | 100% |
-| `import` statements (agent file) | 13 | 9 | 31% |
-| Boilerplate keywords (`name=`, `model=`, `sub_agents=`) | 30+ | 0 | 100% |
-| Lines for pipeline composition | 18 | 7 | 61% |
-| Custom `BaseAgent` code for loop control | 30+ lines | 0 (replaced by `until()`) | 100% |
+| Metric                                                  | Native         | Fluent                    | Reduction          |
+| ------------------------------------------------------- | -------------- | ------------------------- | ------------------ |
+| Agent definition files                                  | 1 (250+ lines) | 2 (prompt.py + agent.py)  | Separated concerns |
+| Nesting depth (constructors)                            | 4 levels       | 0 (flat operators)        | 100%               |
+| `import` statements (agent file)                        | 13             | 9                         | 31%                |
+| Boilerplate keywords (`name=`, `model=`, `sub_agents=`) | 30+            | 0                         | 100%               |
+| Lines for pipeline composition                          | 18             | 7                         | 61%                |
+| Custom `BaseAgent` code for loop control                | 30+ lines      | 0 (replaced by `until()`) | 100%               |

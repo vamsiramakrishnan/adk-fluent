@@ -12,7 +12,7 @@
 **Virtual env:** `source .venv/bin/activate` before ALL python/pytest commands
 **Current file locations:** scanner.py, generator.py, seed.toml are at project root (not in scripts/ subdirectory)
 
----
+______________________________________________________________________
 
 ## Task 1: Reorganize project to match SPEC structure
 
@@ -46,7 +46,7 @@ source .venv/bin/activate && python scripts/scanner.py --summary
 
 Expected: Scanner runs, prints class summary (no import errors for core modules).
 
----
+______________________________________________________________________
 
 ## Task 2: Enhanced scanner — auto-discovery module walker
 
@@ -173,7 +173,7 @@ git add scripts/scanner.py tests/test_scanner.py
 git commit -m "feat(scanner): add auto-discovery of all ADK modules"
 ```
 
----
+______________________________________________________________________
 
 ## Task 3: Enhanced scanner — dual-mode introspection
 
@@ -336,7 +336,7 @@ git add scripts/scanner.py tests/test_scanner.py
 git commit -m "feat(scanner): dual-mode introspection for Pydantic and non-Pydantic classes"
 ```
 
----
+______________________________________________________________________
 
 ## Task 4: Enhanced scanner — replace scan_all with auto-discovery
 
@@ -471,7 +471,7 @@ git add scripts/scanner.py tests/test_scanner.py
 git commit -m "feat(scanner): auto-discover all ADK modules, replace hardcoded SCAN_TARGETS"
 ```
 
----
+______________________________________________________________________
 
 ## Task 5: Seed generator — classification engine
 
@@ -690,7 +690,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): classification engine for ADK classes"
 ```
 
----
+______________________________________________________________________
 
 ## Task 6: Seed generator — field policy engine
 
@@ -797,7 +797,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): field policy engine for skip/additive/list_extend"
 ```
 
----
+______________________________________________________________________
 
 ## Task 7: Seed generator — alias engine
 
@@ -927,7 +927,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): alias engine for fields and callbacks"
 ```
 
----
+______________________________________________________________________
 
 ## Task 8: Seed generator — constructor arg detection
 
@@ -1043,7 +1043,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): constructor arg detection for Pydantic and non-Pydantic"
 ```
 
----
+______________________________________________________________________
 
 ## Task 9: Seed generator — output module grouping
 
@@ -1124,7 +1124,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): output module grouping logic"
 ```
 
----
+______________________________________________________________________
 
 ## Task 10: Seed generator — extra methods engine
 
@@ -1243,7 +1243,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): extra methods engine for step/branch/tool/apply"
 ```
 
----
+______________________________________________________________________
 
 ## Task 11: Seed generator — TOML emission
 
@@ -1486,7 +1486,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): TOML emission engine"
 ```
 
----
+______________________________________________________________________
 
 ## Task 12: Seed generator — main orchestrator and CLI
 
@@ -1720,7 +1720,7 @@ git add scripts/seed_generator.py tests/test_seed_generator.py
 git commit -m "feat(seed_generator): complete orchestrator and CLI"
 ```
 
----
+______________________________________________________________________
 
 ## Task 13: Update Makefile
 
@@ -1763,7 +1763,7 @@ git add Makefile
 git commit -m "chore: add seed target to Makefile, wire full auto-pipeline"
 ```
 
----
+______________________________________________________________________
 
 ## Task 14: Generator updates — handle init_signature mode
 
@@ -1817,7 +1817,7 @@ git add scripts/generator.py
 git commit -m "feat(generator): handle init_signature mode for non-Pydantic builders"
 ```
 
----
+______________________________________________________________________
 
 ## Task 15: Full pipeline verification
 
@@ -1887,7 +1887,7 @@ git add -A
 git commit -m "feat: complete full auto-pipeline — scanner → seed_generator → generator"
 ```
 
----
+______________________________________________________________________
 
 ## Task 16: Package setup — pyproject.toml
 
@@ -2006,7 +2006,7 @@ git add pyproject.toml README.md LICENSE
 git commit -m "chore: add pyproject.toml for pip packaging"
 ```
 
----
+______________________________________________________________________
 
 ## Task 17: PyPI publication setup
 
@@ -2112,17 +2112,19 @@ publish: build
 **Step 3: Document the publication process**
 
 The publication workflow:
+
 1. Developer runs `make all` locally to verify pipeline
-2. Developer runs `make test` to verify tests pass
-3. Developer bumps version in `pyproject.toml`
-4. Developer creates a GitHub release (tag: `v0.1.0`)
-5. GitHub Actions automatically: runs pipeline → tests → builds → publishes to PyPI
+1. Developer runs `make test` to verify tests pass
+1. Developer bumps version in `pyproject.toml`
+1. Developer creates a GitHub release (tag: `v0.1.0`)
+1. GitHub Actions automatically: runs pipeline → tests → builds → publishes to PyPI
 
 For first-time PyPI setup:
+
 1. Create account at pypi.org
-2. Create project `adk-fluent`
-3. Configure trusted publishing: Settings → Publishing → Add GitHub Actions publisher
-4. Set repository owner, name, workflow filename (`publish.yml`)
+1. Create project `adk-fluent`
+1. Configure trusted publishing: Settings → Publishing → Add GitHub Actions publisher
+1. Set repository owner, name, workflow filename (`publish.yml`)
 
 **Step 4: Commit**
 
@@ -2131,7 +2133,7 @@ git add .github/workflows/publish.yml Makefile
 git commit -m "chore: add PyPI publication workflow and Makefile targets"
 ```
 
----
+______________________________________________________________________
 
 ## Task 18: ADK ecosystem registration
 

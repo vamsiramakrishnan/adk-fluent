@@ -168,14 +168,14 @@ Unlike `.build()` which returns a raw ADK agent, `.to_app()` returns a full `App
 
 ## Execution Method Summary
 
-| Method | Description |
-|--------|-------------|
-| `.ask(prompt)` | Send a prompt, get response text. No Runner/Session boilerplate |
-| `.ask_async(prompt)` | Async version of `.ask()` |
-| `.stream(prompt)` | Async generator yielding response text chunks |
-| `.events(prompt)` | Async generator yielding raw ADK `Event` objects |
-| `.map(prompts, concurrency=5)` | Batch execution against multiple prompts |
-| `.map_async(prompts, concurrency=5)` | Async batch execution |
-| `.session()` | Create an interactive `async with` session context manager |
-| `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output |
-| `.to_app(config=None)` | Compile through IR to native ADK `App` with config (resumability, compaction, middleware) |
+| Method                                        | Description                                                                               |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `.ask(prompt)`                                | Send a prompt, get response text. No Runner/Session boilerplate                           |
+| `.ask_async(prompt)`                          | Async version of `.ask()`                                                                 |
+| `.stream(prompt)`                             | Async generator yielding response text chunks                                             |
+| `.events(prompt)`                             | Async generator yielding raw ADK `Event` objects                                          |
+| `.map(prompts, concurrency=5)`                | Batch execution against multiple prompts                                                  |
+| `.map_async(prompts, concurrency=5)`          | Async batch execution                                                                     |
+| `.session()`                                  | Create an interactive `async with` session context manager                                |
+| `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output                                             |
+| `.to_app(config=None)`                        | Compile through IR to native ADK `App` with config (resumability, compaction, middleware) |

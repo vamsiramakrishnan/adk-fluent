@@ -4,7 +4,7 @@
 
 This document asks the questions a sharp beginner would ask, and the questions a skeptic would ask, and tries to answer both honestly. If a feature doesn't survive scrutiny, it says so.
 
----
+______________________________________________________________________
 
 ## Question 0: What is the mission?
 
@@ -14,7 +14,7 @@ Before any feature discussion, the mission needs to be stated plainly enough tha
 
 Everything in v5 must justify itself against that mission. If a feature doesn't make composition better or doesn't leverage the IR for something ADK can't do, it doesn't belong.
 
----
+______________________________________________________________________
 
 ## Question 1: Why should I care about an IR if `.build()` already works?
 
@@ -46,7 +46,7 @@ builder.build() → .to_ir() → check_contracts() → backend.compile() → nat
 
 The user sees the same `.build()`. But now every pipeline is checked before it runs. That's the real value of the IR — not as something you "use," but as something that's always working underneath.
 
----
+______________________________________________________________________
 
 ## Question 2: If the codegen pipeline auto-generates everything from ADK, isn't adk-fluent just a thinner wrapper that gets stale?
 
@@ -60,7 +60,7 @@ The codegen pipeline's real purpose isn't "make ADK API fluent." It's "keep the 
 
 **The risk:** If the generated surface becomes the perceived product (because it's what `__init__.py` exports and what autocomplete shows), people will correctly conclude that it's not worth a dependency. The perception must be: "adk-fluent gives me `>>`, `|`, `Route`, `S.*`, typed state, cost estimation, and contract checking. Oh, and the ADK API is fluent too, as a bonus."
 
----
+______________________________________________________________________
 
 ## Question 3: Contract checking is opt-in. Why not make it the default?
 
@@ -90,9 +90,9 @@ agent = pipeline.build()  # Internally: to_ir() → check_contracts() → compil
 
 This is where `StateSchema` becomes load-bearing. If state schemas are optional AND contract checking is default, then most users get... no checking. The schema-adoption incentive has to be strong: IDE autocomplete on state fields, type errors at write time, scoped key generation. The checking is the outcome; the autocomplete is the bait.
 
-**Implementation detail:** The check runs in <100ms for a 100-node graph (it's a topological sort + set intersection, not LLM inference). There is no reason not to run it on every build.
+**Implementation detail:** The check runs in \<100ms for a 100-node graph (it's a topological sort + set intersection, not LLM inference). There is no reason not to run it on every build.
 
----
+______________________________________________________________________
 
 ## Question 4: What are the actual programming primitives, and why do they matter?
 
@@ -102,27 +102,27 @@ This is like having `for`, `concurrent`, and `while` but no `if`, no `map`, no `
 
 **adk-fluent's primitive set:**
 
-| Primitive | Syntax | ADK Equivalent | What it eliminates |
-|---|---|---|---|
-| Sequence | `a >> b` | `SequentialAgent(sub_agents=[a, b])` | Nested constructor boilerplate |
-| Parallel | `a \| b` | `ParallelAgent(sub_agents=[a, b])` | Same |
-| Loop | `a * 5` | `LoopAgent(sub_agents=[a], max_iterations=5)` | Same |
-| Conditional exit | `(a >> b).loop_until(pred)` | `LoopAgent` + custom `exit_loop` tool + instruction to call it | LLM-dependent exit → deterministic predicate |
-| If/branch | `Route("key").eq("a", x).eq("b", y).otherwise(z)` | Custom `BaseAgent` subclass with `_run_async_impl` | Ad-hoc routing → declarative, zero-LLM-cost |
-| Transform | `>> S.rename(a="b")` | Custom `BaseAgent` or `before_agent` callback | Full agent for a dict operation → zero-cost function |
-| For-each | `map_over("items", Agent("process"))` | Custom `BaseAgent` that iterates `ctx.session.state["items"]` | Manual iteration → IR-visible parallelizable loop |
-| Fallback | `a // b` | Custom try/except in `_run_async_impl` | Manual error handling → declarative fallback chain |
-| Race | `race(a, b)` | Custom parallel + cancellation | Manual cancellation → first-to-complete primitive |
-| Gate | `gate(pred, a)` | `if pred: run(a)` in custom agent | Manual conditional → IR-visible predicated execution |
-| Tap | `a @ logger_fn` | `after_agent_callback` on next agent | Callback coupled to wrong agent → independent observation |
+| Primitive        | Syntax                                            | ADK Equivalent                                                 | What it eliminates                                        |
+| ---------------- | ------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| Sequence         | `a >> b`                                          | `SequentialAgent(sub_agents=[a, b])`                           | Nested constructor boilerplate                            |
+| Parallel         | `a \| b`                                          | `ParallelAgent(sub_agents=[a, b])`                             | Same                                                      |
+| Loop             | `a * 5`                                           | `LoopAgent(sub_agents=[a], max_iterations=5)`                  | Same                                                      |
+| Conditional exit | `(a >> b).loop_until(pred)`                       | `LoopAgent` + custom `exit_loop` tool + instruction to call it | LLM-dependent exit → deterministic predicate              |
+| If/branch        | `Route("key").eq("a", x).eq("b", y).otherwise(z)` | Custom `BaseAgent` subclass with `_run_async_impl`             | Ad-hoc routing → declarative, zero-LLM-cost               |
+| Transform        | `>> S.rename(a="b")`                              | Custom `BaseAgent` or `before_agent` callback                  | Full agent for a dict operation → zero-cost function      |
+| For-each         | `map_over("items", Agent("process"))`             | Custom `BaseAgent` that iterates `ctx.session.state["items"]`  | Manual iteration → IR-visible parallelizable loop         |
+| Fallback         | `a // b`                                          | Custom try/except in `_run_async_impl`                         | Manual error handling → declarative fallback chain        |
+| Race             | `race(a, b)`                                      | Custom parallel + cancellation                                 | Manual cancellation → first-to-complete primitive         |
+| Gate             | `gate(pred, a)`                                   | `if pred: run(a)` in custom agent                              | Manual conditional → IR-visible predicated execution      |
+| Tap              | `a @ logger_fn`                                   | `after_agent_callback` on next agent                           | Callback coupled to wrong agent → independent observation |
 
 **Why this matters beyond convenience:** Every hand-written `BaseAgent` subclass is a black box to the IR. It has no `writes_keys`, no `reads_keys`, no cost model, no streaming semantics, no visualization shape. The contract checker can't look inside it. The cost estimator can't price it. The Mermaid renderer draws it as a generic rectangle.
 
-When the same logic is expressed via `Route`, `S.rename`, or `gate`, the IR knows the semantics. The contract checker knows what keys a `Route` reads. The cost estimator knows `S.rename` costs $0. The Mermaid renderer draws `Route` as a diamond and transforms as arrows.
+When the same logic is expressed via `Route`, `S.rename`, or `gate`, the IR knows the semantics. The contract checker knows what keys a `Route` reads. The cost estimator knows `S.rename` costs \$0. The Mermaid renderer draws `Route` as a diamond and transforms as arrows.
 
 **The primitives aren't about saving keystrokes. They're about making composition semantics visible to machines.**
 
----
+______________________________________________________________________
 
 ## Question 5: Show me the full lifecycle. How does a fluent pipeline become a running agent?
 
@@ -190,10 +190,10 @@ root_agent = pipeline.build()
 **What `pipeline.ask_async()` does internally** (from `_helpers.py`):
 
 1. `builder.build()` → calls ADK constructors → native `SequentialAgent`
-2. Creates `InMemoryRunner(agent=agent, app_name=...)` — ADK's runner
-3. Creates session via `runner.session_service.create_session(...)`
-4. Calls `runner.run_async(...)` — ADK's event loop
-5. Collects text from events, returns it
+1. Creates `InMemoryRunner(agent=agent, app_name=...)` — ADK's runner
+1. Creates session via `runner.session_service.create_session(...)`
+1. Calls `runner.run_async(...)` — ADK's event loop
+1. Collects text from events, returns it
 
 There's no custom runtime. There's no custom event loop. There's no custom session management. It's ADK's `Runner`, ADK's `InMemorySessionService`, ADK's `run_async`. The fluent layer handles the plumbing so the user doesn't write 15 lines of setup for a one-shot call.
 
@@ -217,7 +217,7 @@ It mirrors ADK's `App` exactly — because it's generated from ADK's `App` class
 
 **Honest admission:** The `App`/`Runner` builders don't add much. `App(name="x", root_agent=agent, plugins=[...])` is already clean in ADK. The fluent wrapper saves maybe 2 lines. The real value is upstream — in how you build the `root_agent` that goes into the `App`.
 
----
+______________________________________________________________________
 
 ## Question 6: What is middleware actually for? Isn't it just callbacks with extra steps?
 
@@ -254,22 +254,22 @@ pipeline = (
 
 **What middleware should do (v5 list, interrogated):**
 
-| Middleware | Purpose | Is this a real need? |
-|---|---|---|
-| `RetryMiddleware` | Retry failed LLM calls with backoff | **Yes.** LLM APIs fail transiently. Every production system needs this. |
-| `OTelEnrichmentMiddleware` | Annotate ADK's OTel spans with pipeline metadata | **Yes.** Without it, traces show ADK internals but not pipeline context. |
-| `CostAttributionMiddleware` | Emit cost OTel metrics per agent | **Yes, if you care about cost.** No ADK equivalent. |
-| `TokenBudgetMiddleware` | Enforce per-invocation token limits | **Maybe.** ADK's `generate_content_config` has `max_output_tokens`. This adds *input* budget tracking — useful for cost control, but niche. |
-| `CacheMiddleware` | Cache LLM responses for identical inputs | **Maybe.** ADK has `ContextCacheConfig` for context caching. Semantic response caching is different — but complex to get right. |
-| `RateLimiterMiddleware` | Throttle LLM calls per time window | **Maybe.** Most teams handle this at the API key / quota level, not middleware. |
-| `CircuitBreakerMiddleware` | Stop calling a model that's consistently failing | **Yes.** Standard resilience pattern. Retries without circuit breaking → retry storms. |
-| `ToolApprovalMiddleware` | Require human approval before tool execution | **Yes.** ADK has `require_confirmation` on tools. This promotes it to pipeline-level policy: "all tools in this pipeline require approval." |
-| `PiiFilterMiddleware` | Scrub PII from LLM inputs/outputs | **Yes for regulated industries.** But the implementation is non-trivial — needs entity detection, not just regex. |
-| `RecorderMiddleware` | Capture events for replay | **Yes, for debugging.** The replay story (Question 8 below) depends on this. |
+| Middleware                  | Purpose                                          | Is this a real need?                                                                                                                        |
+| --------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RetryMiddleware`           | Retry failed LLM calls with backoff              | **Yes.** LLM APIs fail transiently. Every production system needs this.                                                                     |
+| `OTelEnrichmentMiddleware`  | Annotate ADK's OTel spans with pipeline metadata | **Yes.** Without it, traces show ADK internals but not pipeline context.                                                                    |
+| `CostAttributionMiddleware` | Emit cost OTel metrics per agent                 | **Yes, if you care about cost.** No ADK equivalent.                                                                                         |
+| `TokenBudgetMiddleware`     | Enforce per-invocation token limits              | **Maybe.** ADK's `generate_content_config` has `max_output_tokens`. This adds *input* budget tracking — useful for cost control, but niche. |
+| `CacheMiddleware`           | Cache LLM responses for identical inputs         | **Maybe.** ADK has `ContextCacheConfig` for context caching. Semantic response caching is different — but complex to get right.             |
+| `RateLimiterMiddleware`     | Throttle LLM calls per time window               | **Maybe.** Most teams handle this at the API key / quota level, not middleware.                                                             |
+| `CircuitBreakerMiddleware`  | Stop calling a model that's consistently failing | **Yes.** Standard resilience pattern. Retries without circuit breaking → retry storms.                                                      |
+| `ToolApprovalMiddleware`    | Require human approval before tool execution     | **Yes.** ADK has `require_confirmation` on tools. This promotes it to pipeline-level policy: "all tools in this pipeline require approval." |
+| `PiiFilterMiddleware`       | Scrub PII from LLM inputs/outputs                | **Yes for regulated industries.** But the implementation is non-trivial — needs entity detection, not just regex.                           |
+| `RecorderMiddleware`        | Capture events for replay                        | **Yes, for debugging.** The replay story (Question 8 below) depends on this.                                                                |
 
 **Honest assessment:** retry, OTel enrichment, cost attribution, circuit breaker, and tool approval are clear wins. Cache, rate limiter, and PII filter are "nice to have" that most teams will build differently. The middleware *framework* matters more than the specific built-in set — teams need the ability to write their own middleware and compose it into a stack.
 
----
+______________________________________________________________________
 
 ## Question 7: The "for-each" problem — why do better primitives enable alchemy?
 
@@ -330,7 +330,7 @@ Each primitive (`map_over`, `gate`, `>>`, `loop_until`, `S.merge`) is individual
 
 Writing this in ADK requires 3-4 custom `BaseAgent` subclasses, each with async generator plumbing, manual state management, and manual escalation. The primitives enable alchemy because they're *composable without custom code*.
 
----
+______________________________________________________________________
 
 ## Question 8: Isn't `estimate_cost()` just... multiplication? Why dress it up?
 
@@ -344,11 +344,11 @@ A pipeline with a loop runs the inner agents N times. The N depends on when the 
 
 A pipeline with `map_over("items", agent)` multiplies by the item count, which varies per invocation. The estimate uses average item counts.
 
-A pipeline with `S.rename(...)` or `Route(...)` costs $0 — no LLM call. The IR knows this because `TransformNode` and `RouteNode` are distinct from `AgentNode`.
+A pipeline with `S.rename(...)` or `Route(...)` costs \$0 — no LLM call. The IR knows this because `TransformNode` and `RouteNode` are distinct from `AgentNode`.
 
 **The IR makes cost estimation structural, not arithmetic.** Walking the IR produces a cost equation that accounts for the pipeline's actual topology. Flat multiplication doesn't.
 
----
+______________________________________________________________________
 
 ## Question 9: Does the fluent API make ADK harder to debug?
 
@@ -359,18 +359,20 @@ When something goes wrong in ADK, you look at the agent tree in the web UI, clic
 With adk-fluent, the structure is generated. `a >> b` produces a `SequentialAgent(name="a_then_b")`. The auto-generated name may not match what you expected. The web UI shows `a_then_b` as the parent, which is correct but surprising if you didn't think about the intermediate agent.
 
 **Mitigations that exist:**
+
 - You can name pipelines explicitly: `Pipeline("review_cycle").step(a).step(b)`
 - Agent names propagate: `a` and `b` keep their names as sub-agents
 - `ir_to_mermaid()` shows you the full tree before you run
 - OTel spans carry both ADK names and `adk_fluent.pipeline` attributes (with v5 enrichment)
 
 **Mitigation that should exist but doesn't:**
+
 - A `pipeline.explain()` method that prints a human-readable description of the compiled agent tree, including all auto-generated names and the ADK types they correspond to
 - Better auto-generated names: `"writer_then_reviewer"` instead of `"writer_then_reviewer_then_refactorer_then_..."` for long pipelines
 
 **The rule:** If a fluent expression makes debugging harder than the equivalent ADK code, the fluent expression has failed. Brevity that costs debuggability is a bad trade.
 
----
+______________________________________________________________________
 
 ## Question 10: What is adk-fluent NOT?
 
@@ -386,28 +388,28 @@ This is as important as what it is.
 
 **adk-fluent is NOT a no-code/low-code tool.** You write Python. The operators are Python operators. The transforms are Python lambdas. The routing predicates are Python functions. The value is in the *primitives*, not in removing code — it's in making the *right* code shorter and the *wrong* code impossible.
 
----
+______________________________________________________________________
 
 ## Question 11: What's the honest progressive disclosure curve?
 
-| You need | You use | You learn | Time to value |
-|---|---|---|---|
-| A single agent | `Agent("x").instruct("...").build()` | One class, three methods | 5 minutes |
-| A pipeline | `a >> b >> c` | `>>` operator | 10 minutes |
-| Parallel + merge | `(a \| b) >> S.merge(...)` | `\|` operator, `S` transforms | 20 minutes |
-| Conditional routing | `>> Route("key").eq(...)` | `Route` class | 20 minutes |
-| Loop with exit | `(a >> b).loop_until(pred)` | `until` primitive | 15 minutes |
-| Quick test | `pipeline.ask("test prompt")` | `.ask()` method | 5 minutes |
-| Multi-turn chat | `async with create_session(pipeline) as chat:` | `create_session` context manager | 10 minutes |
-| Deploy to `adk web` | `root_agent = pipeline.build()` | Nothing new — it's ADK | 0 minutes |
-| Typed state | `class MyState(StateSchema):` | `StateSchema`, scope annotations | 30 minutes |
-| Cost estimation | `estimate_cost(pipeline.to_ir(), assumptions)` | `.to_ir()`, `TrafficAssumptions` | 20 minutes |
-| Eval suite | `FluentEvalSuite(pipeline=..., cases=[...])` | `FluentCase`, `PrebuiltMetrics` | 30 minutes |
-| Custom middleware | `class MyMiddleware:` (13-hook protocol) | Middleware protocol | 30 minutes |
+| You need            | You use                                        | You learn                        | Time to value |
+| ------------------- | ---------------------------------------------- | -------------------------------- | ------------- |
+| A single agent      | `Agent("x").instruct("...").build()`           | One class, three methods         | 5 minutes     |
+| A pipeline          | `a >> b >> c`                                  | `>>` operator                    | 10 minutes    |
+| Parallel + merge    | `(a \| b) >> S.merge(...)`                     | `\|` operator, `S` transforms    | 20 minutes    |
+| Conditional routing | `>> Route("key").eq(...)`                      | `Route` class                    | 20 minutes    |
+| Loop with exit      | `(a >> b).loop_until(pred)`                    | `until` primitive                | 15 minutes    |
+| Quick test          | `pipeline.ask("test prompt")`                  | `.ask()` method                  | 5 minutes     |
+| Multi-turn chat     | `async with create_session(pipeline) as chat:` | `create_session` context manager | 10 minutes    |
+| Deploy to `adk web` | `root_agent = pipeline.build()`                | Nothing new — it's ADK           | 0 minutes     |
+| Typed state         | `class MyState(StateSchema):`                  | `StateSchema`, scope annotations | 30 minutes    |
+| Cost estimation     | `estimate_cost(pipeline.to_ir(), assumptions)` | `.to_ir()`, `TrafficAssumptions` | 20 minutes    |
+| Eval suite          | `FluentEvalSuite(pipeline=..., cases=[...])`   | `FluentCase`, `PrebuiltMetrics`  | 30 minutes    |
+| Custom middleware   | `class MyMiddleware:` (13-hook protocol)       | Middleware protocol              | 30 minutes    |
 
 **The break-even point:** If you're building a single agent with tools, use ADK directly. If you're composing 3+ agents with state passing, routing, or loops, adk-fluent starts paying for itself. If you need cost estimation, contract checking, or eval authoring, adk-fluent has no ADK equivalent.
 
----
+______________________________________________________________________
 
 ## Question 12: Where are the real contradictions?
 
@@ -423,7 +425,7 @@ Let's not shy away from these.
 
 **Contradiction 5: "Zero-cost transforms" vs "every >> creates a SequentialAgent."** `S.rename(a="b")` is a zero-cost function, but wrapping it in `>>` creates a `_FnStep` agent inside a `SequentialAgent`. At the ADK runtime level, this means an additional agent invocation with context creation, event emission, and callback lifecycle — for a dict key rename. The overhead is small but nonzero, and it's an artifact of expressing everything as agent composition. A native ADK callback on the next agent would be truly zero-cost at runtime, at the expense of discoverability and composability.
 
----
+______________________________________________________________________
 
 ## Question 13: What would failure look like?
 
@@ -431,17 +433,17 @@ If in a year adk-fluent hasn't succeeded, the symptoms would be:
 
 1. **Users build single agents with the fluent builders but never use `>>`.** They got a thinner ADK wrapper, not a composition system. The builders are the least valuable part.
 
-2. **Nobody adopts `StateSchema`.** Typed state remains aspirational. Contract checking has nothing to check. The IR analysis story collapses.
+1. **Nobody adopts `StateSchema`.** Typed state remains aspirational. Contract checking has nothing to check. The IR analysis story collapses.
 
-3. **The IR path is unused.** Everyone calls `.build()` directly, no one calls `.to_ir()`, and the cost estimator, contract checker, and eval harness have zero users. The hand-written layer is dead weight.
+1. **The IR path is unused.** Everyone calls `.build()` directly, no one calls `.to_ir()`, and the cost estimator, contract checker, and eval harness have zero users. The hand-written layer is dead weight.
 
-4. **ADK changes its internals and the hand-written layer breaks.** A major ADK release changes the `BaseAgent._run_async_impl` signature, the `Event` structure, or the plugin protocol. The generated builders auto-adapt; the hand-written IR, backend, and middleware break and require weeks of repair.
+1. **ADK changes its internals and the hand-written layer breaks.** A major ADK release changes the `BaseAgent._run_async_impl` signature, the `Event` structure, or the plugin protocol. The generated builders auto-adapt; the hand-written IR, backend, and middleware break and require weeks of repair.
 
-5. **The fluent syntax becomes a debugging liability.** Users can't figure out what `(a >> b | c) * until(pred)` compiled to, the auto-generated names are confusing, and the web UI shows an alien agent tree.
+1. **The fluent syntax becomes a debugging liability.** Users can't figure out what `(a >> b | c) * until(pred)` compiled to, the auto-generated names are confusing, and the web UI shows an alien agent tree.
 
 **Prevention:** Make the IR invisible (Question 1). Make checking default (Question 3). Make `StateSchema` feel like Pydantic — a natural progression, not an imposition. Invest in `.explain()` and debuggability. Test against ADK's main branch weekly.
 
----
+______________________________________________________________________
 
 ## The Bottom Line
 

@@ -9,7 +9,11 @@ extensions = [
     "sphinx_design",
     "sphinx_copybutton",
     "sphinx.ext.intersphinx",
+    "sphinxcontrib.mermaid",
 ]
+
+# Mermaid settings - use CDN for GitHub Pages (no server-side rendering needed)
+mermaid_version = "11"
 
 # MyST settings
 myst_enable_extensions = [
@@ -19,6 +23,7 @@ myst_enable_extensions = [
     "attrs_block",
 ]
 myst_heading_anchors = 3
+myst_fence_as_directive = ["mermaid"]
 
 # Intersphinx
 intersphinx_mapping = {

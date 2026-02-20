@@ -20,8 +20,9 @@ graph TD
     n5 --> n6
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires a custom BaseAgent to assert state contracts.
 # In a data analytics pipeline, every quality gate is a full class:
@@ -45,8 +46,10 @@ dashboard = LlmAgent(name="dashboard", model="gemini-2.5-flash", instruction="Ge
 
 pipeline_native = SequentialAgent(name="pipeline", sub_agents=[collector, checker, dashboard])
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, expect
 
@@ -78,6 +81,7 @@ validated_pipeline = (
     .instruct("Build the final analytics report with trend analysis and recommendations.")
 )
 ```
+
 :::
 ::::
 

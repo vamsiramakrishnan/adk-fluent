@@ -30,7 +30,6 @@ booker (instruction="Help book. The intent is: {intent}") runs
 
 This duplication is not a bug. It's the natural consequence of three independent channels converging on one LLM prompt. The developer is expected to manage this. Most don't realize it's happening.
 
-
 ## What include_contents Actually Does
 
 The source (`contents.py`) reveals `include_contents='none'` finds the most recent user message or other-agent reply and only includes events from that point forward. In a pipeline:
@@ -50,7 +49,6 @@ The user's original message is lost. `include_contents='none'` was designed for 
 
 There is no `include_contents='user_only'` or `include_contents='exclude_agents'`. The switch is binary: everything, or current turn. ADK has no mechanism for topology-aware content filtering.
 
-
 ## What output_key Actually Does
 
 `__maybe_save_output_to_state` runs inside `LlmAgent._run_async_impl`:
@@ -64,7 +62,6 @@ async for event in self._llm_flow.run_async(ctx):
 It mutates the event's `state_delta` field in-place. It does not suppress, replace, or redirect the content. The event still carries full text. `append_event` in the Runner then: (1) appends the event to `session.events`, and (2) applies `state_delta` to `session.state`. Both writes happen atomically from the same event.
 
 `output_key` is therefore a *duplication* mechanism, not a *routing* mechanism. It copies the LLM's text response into state under a named key. The original text still exists in conversation history. Downstream agents get it through both channels.
-
 
 ## What the S Module Does Today
 
@@ -91,7 +88,6 @@ pipeline = (
 `S.log` → debug print
 
 These operate exclusively on Channel 2 (session state). They don't touch Channel 1 (conversation history) or Channel 3 (instruction templating). FnAgent writes directly to `ctx.session.state` and yields nothing — no events, no state_delta, no conversation history entry.
-
 
 ## What's Actually Missing
 
@@ -122,7 +118,6 @@ The build-time check the developer actually needs isn't "does key X exist in sta
 - Agent A has no `output_key` and B has `include_contents='none'`. A's output reaches B through neither channel. Data is lost.
 - Route reads `state["intent"]` but classifier has no `output_key`. Route will read stale or missing state.
 
-
 ## What the Thoughtful Library Does
 
 The 100x team doesn't add more S transforms. The S module is already complete for explicit state manipulation. They focus on three things:
@@ -148,3 +143,4 @@ Context engineering is not just overflow handling. It is the *continuous discipl
 | **WRITE** | Produce context artifacts for future consumption | Minimal (C.capture to state) | No scratchpads, no structured extraction, no note-taking |
 | **BUDGET** | Token-aware assembly with priority tiers | None | Entirely missing |
 | **PROTECT** | Guard context quality and safety | None | No freshness, no redaction, no validation |
+```

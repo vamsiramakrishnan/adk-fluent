@@ -105,7 +105,7 @@ class TimingMiddleware:
 When `.to_app()` is called:
 
 1. Builder middleware (from `.middleware()`) is merged with `ExecutionConfig.middlewares`
-2. The middleware stack is compiled into a single `_MiddlewarePlugin` (an ADK `BasePlugin`)
-3. The plugin is attached to the `App` via `plugins=[plugin]`
+1. The middleware stack is compiled into a single `_MiddlewarePlugin` (an ADK `BasePlugin`)
+1. The plugin is attached to the `App` via `plugins=[plugin]`
 
 The stack executes in order. For non-void hooks (before_model, before_tool), the first middleware to return a non-None value short-circuits the rest.

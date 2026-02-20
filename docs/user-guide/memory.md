@@ -12,11 +12,11 @@ agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
 
 ## Modes Reference
 
-| Mode | Behavior |
-|------|----------|
-| `preload` | Load relevant memories before each turn (`PreloadMemoryTool`) |
-| `on_demand` | Agent can invoke memory tool when needed (`LoadMemoryTool`) |
-| `both` | Both preload and on-demand tools added |
+| Mode        | Behavior                                                      |
+| ----------- | ------------------------------------------------------------- |
+| `preload`   | Load relevant memories before each turn (`PreloadMemoryTool`) |
+| `on_demand` | Agent can invoke memory tool when needed (`LoadMemoryTool`)   |
+| `both`      | Both preload and on-demand tools added                        |
 
 ## `preload`
 

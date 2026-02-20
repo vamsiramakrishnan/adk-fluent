@@ -9,32 +9,34 @@
 **Tech Stack:** Python 3.11+, google-adk ≥1.20.0, pytest, ruff
 
 **Reference Specs:**
+
 - `docs/other_specs/adk_fluent_v3_spec.docx` — v3 spec with ADK runtime analysis (event-stream fidelity, delta-based state, plugin-first callbacks)
 - `docs/other_specs/adk_fluent_v4_suggestions.md` — v4 addendums (scope-aware transforms, middleware-as-plugin, seed-based IR)
 - The v3 markdown spec pasted in conversation — §1 Disfluencies
 
 **Key v4 corrections incorporated into this plan:**
+
 - Task 2: Transforms are now scope-aware — `S.pick`/`S.drop`/`S.rename` ONLY affect session-scoped (unprefixed) keys, preserving `app:`, `user:`, `temp:` prefixed keys (v4 §2.1)
 - Task 4: Callback composition follows ADK's first-non-None-wins pattern (v4 §2.2 plugin semantics)
 - Tasks 1-8 are Phase 1 foundation; Phases 2-5 (IR, event protocol, middleware-as-plugin, seed-based IR) build on this
 
----
+______________________________________________________________________
 
 ## Context: Key Files
 
-| File | Lines | Role |
-|------|-------|------|
-| `src/adk_fluent/_base.py` | 1,176 | BuilderBase mixin, operators, 7 primitive builders |
-| `src/adk_fluent/_transforms.py` | 152 | State transform factories (`S` class) |
-| `src/adk_fluent/__init__.py` | 295 | 132 flat symbol exports |
-| `src/adk_fluent/config.py` | 4,065 | 41 generated config builders |
-| `src/adk_fluent/tool.py` | 5,001 | 61 generated tool builders |
-| `src/adk_fluent/service.py` | 1,291 | 21 generated service builders |
-| `src/adk_fluent/plugin.py` | 1,093 | 14 generated plugin builders |
-| `src/adk_fluent/presets.py` | 38 | Preset class (no validation) |
-| `src/adk_fluent/decorators.py` | 42 | @agent decorator |
-| `scripts/generator.py` | ~900 | Code generator (emits builder .py files) |
-| `scripts/seed_generator.py` | ~400 | Seed TOML generator |
+| File                            | Lines | Role                                               |
+| ------------------------------- | ----- | -------------------------------------------------- |
+| `src/adk_fluent/_base.py`       | 1,176 | BuilderBase mixin, operators, 7 primitive builders |
+| `src/adk_fluent/_transforms.py` | 152   | State transform factories (`S` class)              |
+| `src/adk_fluent/__init__.py`    | 295   | 132 flat symbol exports                            |
+| `src/adk_fluent/config.py`      | 4,065 | 41 generated config builders                       |
+| `src/adk_fluent/tool.py`        | 5,001 | 61 generated tool builders                         |
+| `src/adk_fluent/service.py`     | 1,291 | 21 generated service builders                      |
+| `src/adk_fluent/plugin.py`      | 1,093 | 14 generated plugin builders                       |
+| `src/adk_fluent/presets.py`     | 38    | Preset class (no validation)                       |
+| `src/adk_fluent/decorators.py`  | 42    | @agent decorator                                   |
+| `scripts/generator.py`          | ~900  | Code generator (emits builder .py files)           |
+| `scripts/seed_generator.py`     | ~400  | Seed TOML generator                                |
 
 ## Codegen Pipeline Reminder
 
@@ -47,18 +49,20 @@ python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_f
 ```
 
 After any generator change, verify with:
+
 ```bash
 python scripts/generator.py seeds/seed.toml manifest.json --output-dir /tmp/regen-check --test-dir /tmp/regen-check-tests
 diff -r src/adk_fluent /tmp/regen-check
 ```
 
----
+______________________________________________________________________
 
 ### Task 1: Consolidate `__getattr__` into `BuilderBase`
 
 **Problem:** 127 identical `__getattr__` methods across 9 generated files (~2,500 lines of duplicated code). Each differs only in the ADK target class used for field validation.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (add `_ADK_TARGET_CLASS` + shared `__getattr__`)
 - Modify: `scripts/generator.py` (stop generating per-class `__getattr__`, emit `_ADK_TARGET_CLASS` instead)
 - Regenerate: All generated files (`agent.py`, `workflow.py`, `config.py`, `tool.py`, etc.)
@@ -184,8 +188,8 @@ class BuilderBase:
 In `scripts/generator.py`:
 
 1. Modify `gen_alias_maps()` to emit `_ADK_TARGET_CLASS = _ADK_ClassName` as a class attribute.
-2. For `init_signature` mode builders, also emit `_KNOWN_PARAMS = {...}`.
-3. Modify `gen_getattr_method()` to return an empty string (no longer generating per-class `__getattr__`).
+1. For `init_signature` mode builders, also emit `_KNOWN_PARAMS = {...}`.
+1. Modify `gen_getattr_method()` to return an empty string (no longer generating per-class `__getattr__`).
 
 ```python
 def gen_getattr_method(spec: BuilderSpec) -> str:
@@ -224,6 +228,7 @@ python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_f
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All 831+ tests PASS
 
 **Step 7: Verify regeneration consistency**
@@ -232,6 +237,7 @@ Expected: All 831+ tests PASS
 python scripts/generator.py seeds/seed.toml manifest.json --output-dir /tmp/regen-check
 diff -r src/adk_fluent /tmp/regen-check
 ```
+
 Expected: No meaningful diff
 
 **Step 8: Commit**
@@ -241,7 +247,7 @@ git add src/adk_fluent/_base.py scripts/generator.py src/adk_fluent/*.py tests/
 git commit -m "refactor: consolidate 127 __getattr__ into BuilderBase._ADK_TARGET_CLASS"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Fix State Transform Semantics (Scope-Aware)
 
@@ -250,16 +256,18 @@ git commit -m "refactor: consolidate 127 __getattr__ into BuilderBase._ADK_TARGE
 **Critical ADK constraints (from v3 docx §2.3 and v4 suggestions §2.1):**
 
 1. ADK's `State` has NO `__delitem__`. Mutations are delta-based. Keys can only be overwritten, never truly deleted.
-2. State keys have scope prefixes: `app:` (cross-session), `user:` (cross-session per user), `temp:` (ephemeral, never persisted), unprefixed (session-scoped, default).
-3. `_session_util.extract_state_delta()` routes keys by prefix to separate storage tiers. `S.pick("a")` returning a `StateReplacement` that wipes all keys would **destroy** `app:*` and `user:*` state — catastrophic.
-4. `S.pick()`/`S.drop()` must ONLY affect session-scoped (unprefixed) keys. `app:`, `user:`, `temp:` keys are preserved unconditionally.
+1. State keys have scope prefixes: `app:` (cross-session), `user:` (cross-session per user), `temp:` (ephemeral, never persisted), unprefixed (session-scoped, default).
+1. `_session_util.extract_state_delta()` routes keys by prefix to separate storage tiers. `S.pick("a")` returning a `StateReplacement` that wipes all keys would **destroy** `app:*` and `user:*` state — catastrophic.
+1. `S.pick()`/`S.drop()` must ONLY affect session-scoped (unprefixed) keys. `app:`, `user:`, `temp:` keys are preserved unconditionally.
 
 **Approach:**
+
 - `StateDelta`: additive merge (for `S.default`, `S.merge`, `S.transform`, `S.compute`, `S.set`)
 - `StateReplacement`: replace session-scoped keys only (for `S.pick`, `S.drop`, `S.rename`). Nullifies removed unprefixed keys but never touches prefixed keys.
 - Plain `dict` return: backward-compatible, treated as `StateDelta`
 
 **Files:**
+
 - Modify: `src/adk_fluent/_transforms.py`
 - Modify: `src/adk_fluent/_base.py` (update `_FnAgent` to handle `StateDelta`/`StateReplacement`)
 - Create: `tests/manual/test_transforms_v3.py`
@@ -380,6 +388,7 @@ def test_set_returns_state_delta():
 ```bash
 pytest tests/manual/test_transforms_v3.py -v
 ```
+
 Expected: FAIL — `StateDelta` and `StateReplacement` don't exist yet
 
 **Step 3: Implement `StateDelta` and `StateReplacement` types**
@@ -565,11 +574,13 @@ def build(self):
 **Step 6: Update `__all__` exports**
 
 In `src/adk_fluent/_transforms.py`:
+
 ```python
 __all__ = ["S", "StateDelta", "StateReplacement"]
 ```
 
 In `src/adk_fluent/__init__.py`, add:
+
 ```python
 from ._transforms import StateDelta, StateReplacement
 ```
@@ -579,6 +590,7 @@ from ._transforms import StateDelta, StateReplacement
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All tests PASS (including the new ones and all existing transform tests)
 
 **Step 8: Commit**
@@ -588,13 +600,14 @@ git add src/adk_fluent/_transforms.py src/adk_fluent/_base.py src/adk_fluent/__i
 git commit -m "fix: scope-aware S.pick/S.drop/S.rename — preserve app:/user:/temp: keys, use StateDelta/StateReplacement"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Hoist Inner Classes to Module Level
 
 **Problem:** 7 agent classes are defined inside `build()` methods. Each `build()` call creates a new type object. This is a memory leak in loops and defeats `isinstance` checks.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py`
 - Create: `tests/manual/test_hoisted_agents.py`
 
@@ -639,6 +652,7 @@ def test_tap_agent_is_importable():
 ```bash
 pytest tests/manual/test_hoisted_agents.py -v
 ```
+
 Expected: FAIL — inner classes are recreated each build, and not importable
 
 **Step 3: Hoist all 7 inner agent classes to module level**
@@ -646,13 +660,14 @@ Expected: FAIL — inner classes are recreated each build, and not importable
 Replace the inner class pattern in `_base.py`. Define classes at module level AFTER the imports section. Each class stores its behavioral parameters as instance attributes set via `__init__` kwargs or a custom factory method.
 
 The 7 classes to hoist:
+
 1. `_FnAgent` → `FnAgent`
-2. `_FallbackAgent` → `FallbackAgent`
-3. `_TapAgent` → `TapAgent`
-4. `_MapOverAgent` → `MapOverAgent`
-5. `_TimeoutAgent` → `TimeoutAgent`
-6. `_GateAgent` → `GateAgent`
-7. `_RaceAgent` → `RaceAgent`
+1. `_FallbackAgent` → `FallbackAgent`
+1. `_TapAgent` → `TapAgent`
+1. `_MapOverAgent` → `MapOverAgent`
+1. `_TimeoutAgent` → `TimeoutAgent`
+1. `_GateAgent` → `GateAgent`
+1. `_RaceAgent` → `RaceAgent`
 
 **Pattern for each:**
 
@@ -720,6 +735,7 @@ Test each approach. The key constraint is that `BaseAgent.__init__` must not rej
 **Step 4: Apply the same pattern to all 7 classes**
 
 Each class follows the same transformation:
+
 - Define at module level with behavioral params stored via `object.__setattr__`
 - Update the corresponding builder's `build()` to instantiate with kwargs
 - Keep the exact same `_run_async_impl` logic
@@ -729,6 +745,7 @@ Each class follows the same transformation:
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All tests PASS
 
 **Step 6: Commit**
@@ -738,13 +755,14 @@ git add src/adk_fluent/_base.py tests/manual/test_hoisted_agents.py
 git commit -m "refactor: hoist 7 inner agent classes to module level for type stability"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Compose Callbacks into Single Callables
 
 **Problem:** `_prepare_build_config()` at line 414-415 passes either a single callable or a list of callables depending on count. ADK's behavior with lists varies by field and version.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (in `_prepare_build_config`)
 - Create: `tests/manual/test_callback_composition.py`
 
@@ -816,6 +834,7 @@ def test_composed_callback_first_non_none_wins():
 ```bash
 pytest tests/manual/test_callback_composition.py -v
 ```
+
 Expected: Some FAIL (current code passes lists when multiple callbacks)
 
 **Step 3: Add `_compose_callbacks` and update `_prepare_build_config`**
@@ -864,6 +883,7 @@ config[field] = _compose_callbacks(list(fns))
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS
 
 **Step 5: Commit**
@@ -873,13 +893,14 @@ git add src/adk_fluent/_base.py tests/manual/test_callback_composition.py
 git commit -m "fix: compose multiple callbacks into single callable at build time"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Add `_UNSET` Sentinel
 
 **Problem:** Missing config keys and `None` values are indistinguishable. `model=None` means "use default" while absent means "inherit from parent" in ADK.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py`
 - Create: `tests/manual/test_unset_sentinel.py`
 
@@ -922,6 +943,7 @@ def test_none_included_in_build_config():
 ```bash
 pytest tests/manual/test_unset_sentinel.py -v
 ```
+
 Expected: FAIL — `_UNSET` doesn't exist
 
 **Step 3: Implement `_UNSET`**
@@ -956,6 +978,7 @@ config = {k: v for k, v in self._config.items()
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS
 
 **Step 5: Commit**
@@ -965,13 +988,14 @@ git add src/adk_fluent/_base.py tests/manual/test_unset_sentinel.py
 git commit -m "feat: add _UNSET sentinel to distinguish 'not set' from None"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Use Read-Only View in `tap()`
 
 **Problem:** `tap()` creates a full `dict(ctx.session.state)` copy. Since tap is observation-only, a read-only view is sufficient and avoids O(n) copy.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py` (the `TapAgent` class)
 - Create: `tests/manual/test_tap_readonly.py`
 
@@ -1036,6 +1060,7 @@ Note: We still create `dict(ctx.session.state)` once (to snapshot the proxy), th
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS
 
 **Step 4: Commit**
@@ -1045,13 +1070,14 @@ git add src/adk_fluent/_base.py tests/manual/test_tap_readonly.py
 git commit -m "fix: pass read-only MappingProxyType to tap() functions"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Validate `Preset` Fields
 
 **Problem:** `Preset(**kwargs)` accepts arbitrary keyword arguments. Typos like `Preset(modle="gemini-2.5-flash")` silently do nothing.
 
 **Files:**
+
 - Modify: `src/adk_fluent/presets.py`
 - Create: `tests/manual/test_preset_validation.py`
 
@@ -1133,6 +1159,7 @@ class Preset:
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS (check existing preset tests don't use unknown fields)
 
 **Step 4: Commit**
@@ -1142,13 +1169,14 @@ git add src/adk_fluent/presets.py tests/manual/test_preset_validation.py
 git commit -m "fix: validate Preset fields with typo suggestions"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Rename `_clone_shallow` for Clarity
 
 **Problem:** `_clone_shallow()` and `clone()` have confusing names. `_clone_shallow` sounds like a less complete `clone`, but it's the correct implementation for operator immutability.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py`
 - Test: Existing tests in `tests/manual/test_clone.py` + `tests/manual/test_algebra.py`
 
@@ -1168,11 +1196,13 @@ def _fork_for_operator(self) -> BuilderBase:
 ```
 
 Update all callers in `_base.py`:
+
 - `__rshift__` (line ~178): `clone = self._fork_for_operator()`
 - `__or__` (line ~203): `clone = self._fork_for_operator()`
 - `__matmul__` (line ~248): `clone = self._fork_for_operator()`
 
 Also update all `_clone_shallow` overrides in the primitive builder classes:
+
 - `_FnStepBuilder._clone_shallow` → `_fork_for_operator`
 - `_FallbackBuilder._clone_shallow` → `_fork_for_operator`
 - `_TapBuilder._clone_shallow` → `_fork_for_operator`
@@ -1186,6 +1216,7 @@ Also update all `_clone_shallow` overrides in the primitive builder classes:
 ```bash
 pytest tests/ -v --tb=short
 ```
+
 Expected: All PASS (no external code calls `_clone_shallow` — it's private)
 
 **Step 3: Commit**
@@ -1195,55 +1226,64 @@ git add src/adk_fluent/_base.py
 git commit -m "refactor: rename _clone_shallow → _fork_for_operator for clarity"
 ```
 
----
+______________________________________________________________________
 
 ## Post-Implementation Verification
 
 After all 8 tasks are complete:
 
 1. **Full test suite:**
+
    ```bash
    pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=term-missing
    ```
+
    Expected: All 831+ tests PASS
 
-2. **Regeneration consistency:**
+1. **Regeneration consistency:**
+
    ```bash
    python scripts/scanner.py -o manifest.json
    python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
    python scripts/generator.py seeds/seed.toml manifest.json --output-dir /tmp/final-regen
    diff -r src/adk_fluent /tmp/final-regen
    ```
+
    Expected: No diff (all changes flow through the generator)
 
-3. **Lint:**
+1. **Lint:**
+
    ```bash
    ruff check . && ruff format --check .
    ```
+
    Expected: Clean
 
-4. **Cookbook examples still work:**
+1. **Cookbook examples still work:**
+
    ```bash
    python -c "from adk_fluent import Agent, S, tap, until, gate, race, Pipeline"
    ```
+
    Expected: No import errors
 
-5. **Version bump and tag:**
+1. **Version bump and tag:**
+
    - Bump `pyproject.toml` version to `0.5.0`
    - Tag `v0.5.0`
    - Create GitHub release
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Task | What | Impact |
-|------|------|--------|
-| 1 | Consolidate `__getattr__` | -2,500 lines of duplicated code |
-| 2 | Fix state transforms | Correct `S.pick`/`S.drop`/`S.rename` semantics |
-| 3 | Hoist inner classes | Type stability, no memory leak in loops |
-| 4 | Compose callbacks | Always single callable to ADK, version-safe |
-| 5 | `_UNSET` sentinel | Distinguish "not set" from `None` |
-| 6 | Read-only tap | Enforce observation contract, minor perf |
-| 7 | Validate Preset | Catch typos at definition time |
-| 8 | Rename `_clone_shallow` | Clear intent communication |
+| Task | What                      | Impact                                         |
+| ---- | ------------------------- | ---------------------------------------------- |
+| 1    | Consolidate `__getattr__` | -2,500 lines of duplicated code                |
+| 2    | Fix state transforms      | Correct `S.pick`/`S.drop`/`S.rename` semantics |
+| 3    | Hoist inner classes       | Type stability, no memory leak in loops        |
+| 4    | Compose callbacks         | Always single callable to ADK, version-safe    |
+| 5    | `_UNSET` sentinel         | Distinguish "not set" from `None`              |
+| 6    | Read-only tap             | Enforce observation contract, minor perf       |
+| 7    | Validate Preset           | Catch typos at definition time                 |
+| 8    | Rename `_clone_shallow`   | Clear intent communication                     |

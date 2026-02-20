@@ -151,12 +151,12 @@ print(ir)  # AgentNode(name='helper', model='gemini-2.5-flash', ...)
 
 Returns a frozen dataclass IR node. Agent builders return `AgentNode`, pipelines return `SequenceNode`, etc.:
 
-| Builder | IR Node |
-|---------|---------|
-| `Agent` | `AgentNode` |
+| Builder    | IR Node        |
+| ---------- | -------------- |
+| `Agent`    | `AgentNode`    |
 | `Pipeline` | `SequenceNode` |
-| `FanOut` | `ParallelNode` |
-| `Loop` | `LoopNode` |
+| `FanOut`   | `ParallelNode` |
+| `Loop`     | `LoopNode`     |
 
 ### `.to_app(config=None)`
 
@@ -256,10 +256,10 @@ pipeline = (
 )
 ```
 
-| Method | Description |
-|--------|-------------|
+| Method         | Description                                                        |
+| -------------- | ------------------------------------------------------------------ |
 | `.step(agent)` | Append an agent as the next step. Lazy -- built at `.build()` time |
-| `.build()` | Resolve into a native ADK `SequentialAgent` |
+| `.build()`     | Resolve into a native ADK `SequentialAgent`                        |
 
 ### FanOut (Parallel)
 
@@ -274,10 +274,10 @@ fanout = (
 )
 ```
 
-| Method | Description |
-|--------|-------------|
+| Method           | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
 | `.branch(agent)` | Add a parallel branch agent. Lazy -- built at `.build()` time |
-| `.build()` | Resolve into a native ADK `ParallelAgent` |
+| `.build()`       | Resolve into a native ADK `ParallelAgent`                     |
 
 ### Loop
 
@@ -294,12 +294,12 @@ loop = (
 )
 ```
 
-| Method | Description |
-|--------|-------------|
-| `.step(agent)` | Append a step agent. Lazy -- built at `.build()` time |
-| `.max_iterations(n)` | Set maximum loop iterations |
-| `.until(pred)` | Set exit predicate. Exits when `pred(state)` is truthy |
-| `.build()` | Resolve into a native ADK `LoopAgent` |
+| Method               | Description                                            |
+| -------------------- | ------------------------------------------------------ |
+| `.step(agent)`       | Append a step agent. Lazy -- built at `.build()` time  |
+| `.max_iterations(n)` | Set maximum loop iterations                            |
+| `.until(pred)`       | Set exit predicate. Exits when `pred(state)` is truthy |
+| `.build()`           | Resolve into a native ADK `LoopAgent`                  |
 
 ## Combining Builder and Operator Styles
 

@@ -17,15 +17,18 @@ graph TD
     n1 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in visualization.
 # Complex agent trees must be manually diagrammed in Mermaid, PlantUML,
 # or draw.io -- diagrams that immediately go stale as the code evolves.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -39,6 +42,7 @@ mermaid = incident_pipeline.to_mermaid()
 # Build the pipeline for deployment
 agent_fluent = incident_pipeline.build()
 ```
+
 :::
 ::::
 

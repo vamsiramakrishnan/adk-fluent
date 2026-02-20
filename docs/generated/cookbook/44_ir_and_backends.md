@@ -14,8 +14,9 @@ graph TD
     n2 --> n3
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -33,8 +34,10 @@ underwriter = LlmAgent(
 )
 seq = SequentialAgent(name="pipeline", sub_agents=[credit_check, underwriter])
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -57,6 +60,7 @@ app = pipeline.to_app()
 # .build() still works for direct agent construction
 agent_fluent = pipeline.build()
 ```
+
 :::
 ::::
 

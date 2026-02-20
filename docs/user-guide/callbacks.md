@@ -4,16 +4,16 @@ adk-fluent provides a fluent API for attaching callbacks to agents. All callback
 
 ## Callback Methods
 
-| Method | Alias for | Description |
-|--------|-----------|-------------|
-| `.before_model(fn)` | `before_model_callback` | Runs before each LLM call. Receives `(callback_context, llm_request)` |
-| `.after_model(fn)` | `after_model_callback` | Runs after each LLM call. Receives `(callback_context, llm_response)` |
-| `.before_agent(fn)` | `before_agent_callback` | Runs before agent execution |
-| `.after_agent(fn)` | `after_agent_callback` | Runs after agent execution |
-| `.before_tool(fn)` | `before_tool_callback` | Runs before each tool call |
-| `.after_tool(fn)` | `after_tool_callback` | Runs after each tool call |
-| `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors |
-| `.on_tool_error(fn)` | `on_tool_error_callback` | Handles tool errors |
+| Method                | Alias for                 | Description                                                           |
+| --------------------- | ------------------------- | --------------------------------------------------------------------- |
+| `.before_model(fn)`   | `before_model_callback`   | Runs before each LLM call. Receives `(callback_context, llm_request)` |
+| `.after_model(fn)`    | `after_model_callback`    | Runs after each LLM call. Receives `(callback_context, llm_response)` |
+| `.before_agent(fn)`   | `before_agent_callback`   | Runs before agent execution                                           |
+| `.after_agent(fn)`    | `after_agent_callback`    | Runs after agent execution                                            |
+| `.before_tool(fn)`    | `before_tool_callback`    | Runs before each tool call                                            |
+| `.after_tool(fn)`     | `after_tool_callback`     | Runs after each tool call                                             |
+| `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors                                                    |
+| `.on_tool_error(fn)`  | `on_tool_error_callback`  | Handles tool errors                                                   |
 
 ## Additive Semantics
 
@@ -155,12 +155,12 @@ agent = (
 
 Callbacks are **per-agent** -- they apply only to the agent they're attached to. For cross-cutting concerns that should apply to the entire execution (all agents in a pipeline), use **middleware** instead.
 
-| Aspect | Callbacks | Middleware |
-|--------|-----------|------------|
-| Scope | Single agent | Entire execution |
-| Attachment | `.before_model(fn)` | `.middleware(mw)` |
-| Multiplicity | Multiple per agent | Stack of middleware on pipeline |
-| Compilation | Stored on IR node | Stored in ExecutionConfig |
+| Aspect       | Callbacks           | Middleware                      |
+| ------------ | ------------------- | ------------------------------- |
+| Scope        | Single agent        | Entire execution                |
+| Attachment   | `.before_model(fn)` | `.middleware(mw)`               |
+| Multiplicity | Multiple per agent  | Stack of middleware on pipeline |
+| Compilation  | Stored on IR node   | Stored in ExecutionConfig       |
 
 ```python
 # Per-agent callback: only affects this agent

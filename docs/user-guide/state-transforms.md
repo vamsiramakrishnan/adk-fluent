@@ -18,17 +18,17 @@ pipeline = (
 
 ## Transform Reference
 
-| Factory | Purpose |
-|---------|---------|
-| `S.pick(*keys)` | Keep only specified keys |
-| `S.drop(*keys)` | Remove specified keys |
-| `S.rename(**kw)` | Rename keys |
-| `S.default(**kw)` | Fill missing keys |
-| `S.merge(*keys, into=)` | Combine keys |
-| `S.transform(key, fn)` | Map a single value |
-| `S.compute(**fns)` | Derive new keys |
-| `S.guard(pred)` | Assert invariant |
-| `S.log(*keys)` | Debug-print |
+| Factory                 | Purpose                  |
+| ----------------------- | ------------------------ |
+| `S.pick(*keys)`         | Keep only specified keys |
+| `S.drop(*keys)`         | Remove specified keys    |
+| `S.rename(**kw)`        | Rename keys              |
+| `S.default(**kw)`       | Fill missing keys        |
+| `S.merge(*keys, into=)` | Combine keys             |
+| `S.transform(key, fn)`  | Map a single value       |
+| `S.compute(**fns)`      | Derive new keys          |
+| `S.guard(pred)`         | Assert invariant         |
+| `S.log(*keys)`          | Debug-print              |
 
 ## `S.pick(*keys)`
 

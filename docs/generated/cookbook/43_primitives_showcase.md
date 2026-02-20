@@ -16,8 +16,9 @@ graph TD
     n3 --> n4
 ```
 
-::::{tab-set}
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, S, tap, expect, gate
 from adk_fluent._routing import Route
@@ -180,5 +181,6 @@ assert stateless_processor._config["include_contents"] == "none"
 short_alias = Agent("gateway", MODEL).history("none").instruct("Process payment.")
 assert short_alias._config["include_contents"] == "none"
 ```
+
 :::
 ::::

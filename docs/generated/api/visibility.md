@@ -9,6 +9,7 @@ Event visibility controls which agent outputs are shown to end users in multi-ag
 Walk an IR tree and classify each agent's visibility.
 
 **Parameters:**
+
 - `node` — IR node (from `pipeline.to_ir()`)
 - `has_successor` — Whether this node has a successor in the pipeline (default: False)
 - `policy` — Visibility policy: `"filtered"`, `"transparent"`, or `"annotate"` (default: "filtered")
@@ -16,6 +17,7 @@ Walk an IR tree and classify each agent's visibility.
 **Returns:** Dictionary mapping agent names to visibility classifications: `"user"`, `"internal"`, or `"zero_cost"`.
 
 **Example:**
+
 ```python
 ir = pipeline.to_ir()
 vis = infer_visibility(ir)
@@ -33,6 +35,7 @@ VisibilityPlugin(visibility_map, mode="filter")
 ```
 
 **Parameters:**
+
 - `visibility_map` — Dict from `infer_visibility()`
 - `mode` — `"filter"` (strip content from internal events) or `"annotate"` (add metadata tags)
 
@@ -47,15 +50,15 @@ VisibilityPlugin(visibility_map, mode="filter")
 
 Builder methods on pipelines that configure visibility:
 
-| Method | Effect |
-|--------|--------|
-| `.transparent()` | All agents user-facing |
-| `.filtered()` | Only terminal agents user-facing |
-| `.annotated()` | All events pass through with metadata |
+| Method           | Effect                                |
+| ---------------- | ------------------------------------- |
+| `.transparent()` | All agents user-facing                |
+| `.filtered()`    | Only terminal agents user-facing      |
+| `.annotated()`   | All events pass through with metadata |
 
 ## Per-Agent Overrides
 
-| Method | Effect |
-|--------|--------|
+| Method    | Effect                               |
+| --------- | ------------------------------------ |
 | `.show()` | Force agent events to be user-facing |
-| `.hide()` | Force agent events to be internal |
+| `.hide()` | Force agent events to be internal    |

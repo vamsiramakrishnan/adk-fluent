@@ -18,8 +18,9 @@ graph TD
     n3 --> n5
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires a custom BaseAgent to iterate over list items:
 from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
@@ -47,8 +48,10 @@ sentiment_analyzer = LlmAgent(
 )
 native_mapper = MapOverAgent(name="feedback_mapper", sub_agents=[sentiment_analyzer])
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, map_over
 
@@ -93,6 +96,7 @@ feedback_pipeline = (
     .instruct("Write an executive summary of the sentiment analysis results.")
 )
 ```
+
 :::
 ::::
 
