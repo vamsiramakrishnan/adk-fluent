@@ -242,7 +242,7 @@ def _get_default_repr(field_info) -> tuple[str | None, bool]:
         return "None", False
     if isinstance(default, str):
         return repr(default), False
-    if isinstance(default, (int, float, bool)):
+    if isinstance(default, int | float | bool):
         return str(default), False
     return repr(default), False
 
@@ -365,7 +365,7 @@ def scan_class(cls) -> ClassInfo:
             continue
         if name in {f.name for f in fields}:
             continue  # Skip fields
-        if callable(member) or isinstance(member, (property, classmethod, staticmethod)):
+        if callable(member) or isinstance(member, property | classmethod | staticmethod):
             methods.append(name)
 
     return ClassInfo(

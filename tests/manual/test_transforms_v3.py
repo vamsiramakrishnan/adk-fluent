@@ -107,4 +107,4 @@ def test_plain_dict_function_still_works():
     fn = lambda state: {"new_key": state["a"] + 1}
     result = fn({"a": 1})
     assert isinstance(result, dict)
-    assert not isinstance(result, (StateDelta, StateReplacement))
+    assert not isinstance(result, StateDelta | StateReplacement)

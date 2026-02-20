@@ -651,7 +651,7 @@ def _get_mermaid_from_cookbook(filepath: str) -> str:
 
         for name in dir(mod):
             obj = getattr(mod, name)
-            if isinstance(obj, (BuilderBase, Route)):
+            if isinstance(obj, BuilderBase | Route):
                 with contextlib.suppress(Exception):
                     mermaid = obj.to_mermaid()
                     nodes = mermaid.count("    n")  # rough heuristic

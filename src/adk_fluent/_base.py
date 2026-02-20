@@ -284,11 +284,11 @@ class BuilderBase:
         from adk_fluent.workflow import Pipeline
 
         # Callable operand: wrap as zero-cost FnStep
-        if callable(other) and not isinstance(other, (BuilderBase, Route, type)):
+        if callable(other) and not isinstance(other, BuilderBase | Route | type):
             other = _fn_step(other)
 
         # Reject unsupported operands (e.g. raw types like int)
-        if not isinstance(other, (BuilderBase, Route, dict)) and not hasattr(other, "build"):
+        if not isinstance(other, BuilderBase | Route | dict) and not hasattr(other, "build"):
             return NotImplemented
 
         # Dict operand: convert to deterministic Route
@@ -347,7 +347,7 @@ class BuilderBase:
 
     def __rrshift__(self, other) -> BuilderBase:
         """Support callable >> agent syntax."""
-        if callable(other) and not isinstance(other, (BuilderBase, type)):
+        if callable(other) and not isinstance(other, BuilderBase | type):
             left = _fn_step(other)
             return left >> self
         return NotImplemented
@@ -427,7 +427,7 @@ class BuilderBase:
         from adk_fluent._routing import _make_fallback_builder
 
         # Callable on right side: wrap it
-        if callable(other) and not isinstance(other, (BuilderBase, type)):
+        if callable(other) and not isinstance(other, BuilderBase | type):
             other = _fn_step(other)
 
         # Collect children from existing fallback chains
