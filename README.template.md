@@ -12,6 +12,18 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
 [![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
 
+## Table of Contents
+- [Install](#install)
+- [Quick Start](#quick-start)
+- [Expression Language](#expression-language)
+- [Context Engineering (C Module)](#context-engineering-c-module)
+- [Fluent API Reference](#fluent-api-reference)
+- [Run with adk web](#run-with-adk-web)
+- [Cookbook](#cookbook)
+- [How It Works](#how-it-works)
+- [Features](#features)
+- [Development](#development)
+
 ## Install
 
 ```bash
