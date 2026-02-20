@@ -8,6 +8,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![Python](https://img.shields.io/pypi/pyversions/adk-fluent)](https://pypi.org/project/adk-fluent/)
 [![License](https://img.shields.io/pypi/l/adk-fluent)](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/LICENSE)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://vamsiramakrishnan.github.io/adk-fluent/)
+[![Wiki](https://img.shields.io/badge/wiki-GitHub-green)](https://github.com/vamsiramakrishnan/adk-fluent/wiki)
 [![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
 [![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
 
@@ -158,6 +159,7 @@ Nine operators compose any agent topology:
 | `a // b`                       | Fallback           | First-success chain      |
 | `Route("key").eq(...)`         | Branch             | Deterministic routing    |
 | `S.pick(...)`, `S.rename(...)` | State transforms   | Dict operations via `>>` |
+| `C.user_only()`, `C.none()`    | Context engineering| Selective Turn History   |
 
 Eight control loop primitives for agent orchestration:
 
@@ -247,7 +249,7 @@ pipeline = (
 
 | Factory                 | Purpose                  |
 | ----------------------- | ------------------------ |
-| `S.pick(*keys)`         | Keep only specified keys |
+| `S.pick(*keys) `        | Keep only specified keys |
 | `S.drop(*keys)`         | Remove specified keys    |
 | `S.rename(**kw)`        | Rename keys              |
 | `S.default(**kw)`       | Fill missing keys        |
@@ -256,6 +258,29 @@ pipeline = (
 | `S.compute(**fns)`      | Derive new keys          |
 | `S.guard(pred)`         | Assert invariant         |
 | `S.log(*keys)`          | Debug-print              |
+
+### Context Engineering (C Module)
+
+Control exactly what conversation history each agent sees. Prevents prompt pollution in complex DAGs:
+
+```python
+from adk_fluent import C
+
+pipeline = (
+    Agent("classifier").outputs("intent")
+    >> Agent("booker")
+        .instruct("Process {intent}")
+        .context(C.user_only()) # Booker sees user prompt + {intent}, but NOT classifier text
+)
+```
+
+| Transform | Purpose |
+| --- | --- |
+| `C.user_only()` | Include only original user messages |
+| `C.none()` | No turn history (stateless prompt) |
+| `C.window(n=5)` | Sliding window of last N turns |
+| `C.from_agents("a", "b")` | Include user + named agent outputs |
+| `C.capture("key")` | Snapshot user message into state |
 
 ### IR, Backends, and Middleware (v4)
 
