@@ -10,3 +10,5 @@ docs/_build/
 manifest.json
 manifest.previous.json
 .worktrees/
+.gemini
+.claude.issues/
