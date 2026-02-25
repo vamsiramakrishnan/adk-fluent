@@ -31,18 +31,18 @@ data_analyst = (
     Agent("data_analyst_agent", MODEL)
     .instruct(DATA_ANALYST_PROMPT)
     .tool(google_search)
-    .outputs("market_data_analysis_output")
+    .save_as("market_data_analysis_output")
 )
 
 trading_analyst = (
-    Agent("trading_analyst_agent", MODEL).instruct(TRADING_ANALYST_PROMPT).outputs("proposed_trading_strategies_output")
+    Agent("trading_analyst_agent", MODEL).instruct(TRADING_ANALYST_PROMPT).save_as("proposed_trading_strategies_output")
 )
 
 execution_analyst = (
-    Agent("execution_analyst_agent", MODEL).instruct(EXECUTION_ANALYST_PROMPT).outputs("execution_plan_output")
+    Agent("execution_analyst_agent", MODEL).instruct(EXECUTION_ANALYST_PROMPT).save_as("execution_plan_output")
 )
 
-risk_analyst = Agent("risk_analyst_agent", MODEL).instruct(RISK_ANALYST_PROMPT).outputs("final_risk_assessment_output")
+risk_analyst = Agent("risk_analyst_agent", MODEL).instruct(RISK_ANALYST_PROMPT).save_as("final_risk_assessment_output")
 
 # --- Root coordinator ---
 
@@ -53,7 +53,7 @@ root_agent = (
         "advice by orchestrating a series of expert subagents"
     )
     .instruct(FINANCIAL_COORDINATOR_PROMPT)
-    .outputs("financial_coordinator_output")
+    .save_as("financial_coordinator_output")
     .delegate(data_analyst)
     .delegate(trading_analyst)
     .delegate(execution_analyst)

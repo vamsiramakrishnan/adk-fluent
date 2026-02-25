@@ -188,7 +188,7 @@ class TestRouteOperatorIntegration:
 
     def test_agent_rshift_route_creates_pipeline(self):
         """agent >> Route creates a Pipeline."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         b = Agent("b").model("gemini-2.5-flash").instruct("B")
         route = Route("intent").eq("x", a).eq("y", b)
@@ -198,7 +198,7 @@ class TestRouteOperatorIntegration:
 
     def test_agent_rshift_route_has_correct_sub_agents(self):
         """Pipeline from agent >> Route has classifier + route_agent."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         route = Route("intent").eq("x", a)
 
@@ -219,7 +219,7 @@ class TestRouteOperatorIntegration:
         """agent >> dict creates deterministic Route (not LLM coordinator)."""
         from google.adk.agents.base_agent import BaseAgent
 
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         b = Agent("b").model("gemini-2.5-flash").instruct("B")
 
@@ -235,14 +235,14 @@ class TestRouteOperatorIntegration:
         assert len(built.sub_agents[1].sub_agents) == 2
 
     def test_dict_rshift_requires_outputs(self):
-        """agent >> dict raises ValueError without .outputs()."""
+        """agent >> dict raises ValueError without .save_as()."""
         classifier = Agent("classify").model("gemini-2.5-flash")
         with pytest.raises(ValueError, match="must have .outputs"):
             classifier >> {"a": Agent("x")}
 
     def test_route_followed_by_more_steps(self):
         """Route can be followed by more >> steps."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         formatter = Agent("formatter").model("gemini-2.5-flash")
 
@@ -322,7 +322,7 @@ class TestProceedIf:
 
     def test_proceed_if_in_pipeline(self):
         """proceed_if works with >> pipeline composition."""
-        validator = Agent("validate").model("gemini-2.5-flash").outputs("valid")
+        validator = Agent("validate").model("gemini-2.5-flash").save_as("valid")
         enricher = Agent("enrich").model("gemini-2.5-flash").proceed_if(lambda s: s.get("valid") == "yes")
         formatter = Agent("format").model("gemini-2.5-flash")
 
@@ -503,8 +503,8 @@ class TestFullComposition:
 
     def test_parallel_then_route(self):
         """(a | b) >> Route works."""
-        a = Agent("a").model("gemini-2.5-flash").outputs("score_a")
-        b = Agent("b").model("gemini-2.5-flash").outputs("score_b")
+        a = Agent("a").model("gemini-2.5-flash").save_as("score_a")
+        b = Agent("b").model("gemini-2.5-flash").save_as("score_b")
         handler = Agent("handler").model("gemini-2.5-flash").instruct("Handle")
 
         result = (a | b) >> Route().when(lambda s: True, handler)
@@ -512,7 +512,7 @@ class TestFullComposition:
 
     def test_route_then_more_steps(self):
         """Route >> agent works for post-routing steps."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         a = Agent("a").model("gemini-2.5-flash").instruct("A")
         formatter = Agent("format").model("gemini-2.5-flash")
 
@@ -521,7 +521,7 @@ class TestFullComposition:
 
     def test_pipeline_with_gate_and_loop(self):
         """Pipeline with proceed_if and loop_until."""
-        validator = Agent("validate").model("gemini-2.5-flash").outputs("valid")
+        validator = Agent("validate").model("gemini-2.5-flash").save_as("valid")
         enricher = Agent("enrich").model("gemini-2.5-flash").proceed_if(lambda s: s.get("valid") == "yes")
 
         flow = validator >> enricher
@@ -530,7 +530,7 @@ class TestFullComposition:
     def test_loop_until_with_pipeline(self):
         """(a >> b).loop_until() works."""
         writer = Agent("writer").model("gemini-2.5-flash").instruct("Write")
-        reviewer = Agent("reviewer").model("gemini-2.5-flash").instruct("Review").outputs("quality")
+        reviewer = Agent("reviewer").model("gemini-2.5-flash").instruct("Review").save_as("quality")
 
         result = (writer >> reviewer).loop_until(lambda s: s.get("quality") == "good", max_iterations=5)
         assert isinstance(result, Loop)

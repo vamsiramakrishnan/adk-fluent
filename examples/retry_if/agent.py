@@ -19,14 +19,14 @@ writer = (
     Agent("writer")
     .model("gemini-2.5-flash")
     .instruct("Write a high-quality draft.")
-    .outputs("quality")
+    .save_as("quality")
     .retry_if(lambda s: s.get("quality") != "good", max_retries=3)
 )
 
 # retry_if on a pipeline -- retry the whole pipeline
 pipeline_retry = (
-    Agent("drafter").model("gemini-2.5-flash").instruct("Write.").outputs("draft")
-    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Score quality.").outputs("score")
+    Agent("drafter").model("gemini-2.5-flash").instruct("Write.").save_as("draft")
+    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Score quality.").save_as("score")
 ).retry_if(lambda s: float(s.get("score", "0")) < 8.0, max_retries=5)
 
 # Equivalence: retry_if(p) == loop_until(not p)

@@ -56,7 +56,7 @@ pipeline = (
         Agent("fact_checker")
         .model("gemini-2.5-flash")
         .instruct("Verify all claims in the article against primary sources. Score credibility.")
-        .outputs("credibility_score")
+        .save_as("credibility_score")
         >> Agent("copy_editor")
         .model("gemini-2.5-flash")
         .instruct("Improve clarity, fix errors, and ensure AP style compliance.")
@@ -68,7 +68,7 @@ pipeline = (
 # An editorial review loop can be reused across different content pipelines.
 editorial_review = Agent("editor").model("gemini-2.5-flash").instruct(
     "Review article quality: accuracy, clarity, and engagement."
-) >> Agent("scorer").model("gemini-2.5-flash").instruct("Score the article on a 0-1 scale.").outputs("edit_score")
+) >> Agent("scorer").model("gemini-2.5-flash").instruct("Score the article on a 0-1 scale.").save_as("edit_score")
 quality_gate = until(lambda s: float(s.get("edit_score", 0)) > 0.8, max=3)
 
 # Same editorial review in two independent content pipelines

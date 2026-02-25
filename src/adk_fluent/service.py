@@ -174,7 +174,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project", "agent_engine_id", "express_mode_api_key", "location"}
+    _KNOWN_PARAMS: set[str] = {"project", "express_mode_api_key", "location", "agent_engine_id"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -323,7 +323,7 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"project", "agent_engine_id", "express_mode_api_key", "location"}
+    _KNOWN_PARAMS: set[str] = {"project", "express_mode_api_key", "location", "agent_engine_id"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

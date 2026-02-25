@@ -14,7 +14,7 @@ detector = (
     Agent("language_detector")
     .model("gemini-2.5-flash")
     .instruct("Detect the language of the customer message. Output exactly one of: 'english', 'spanish', 'french'.")
-    .outputs("language")
+    .save_as("language")
 )
 
 # Step 2: Dict >> creates deterministic routing (zero LLM calls for routing)

@@ -27,7 +27,7 @@ class TestClassifierRouterPattern:
     def test_builds_successfully(self):
         pipeline = (
             S.capture("user_message")
-            >> Agent("classifier").model("gemini-2.5-flash").instruct("Classify the user's intent.").outputs("intent")
+            >> Agent("classifier").model("gemini-2.5-flash").instruct("Classify the user's intent.").save_as("intent")
             >> Route("intent")
             .eq(
                 "booking",
@@ -50,7 +50,7 @@ class TestClassifierRouterPattern:
     def test_contract_check_passes(self):
         pipeline = (
             S.capture("user_message")
-            >> Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").outputs("intent")
+            >> Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").save_as("intent")
             >> Route("intent").eq(
                 "booking",
                 Agent("booker").model("gemini-2.5-flash").instruct("Book: {intent}").context(C.from_state("intent")),
@@ -61,7 +61,7 @@ class TestClassifierRouterPattern:
         assert len(errors) == 0
 
     def test_visibility_inferred(self):
-        pipeline = Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").outputs("intent") >> Agent(
+        pipeline = Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").save_as("intent") >> Agent(
             "handler"
         ).model("gemini-2.5-flash").instruct("Handle: {intent}")
         ir = pipeline.to_ir()
@@ -90,7 +90,7 @@ class TestContextWithPipeline:
         assert callable(built.instruction)
 
     def test_context_from_state_in_pipeline(self):
-        pipeline = Agent("researcher").model("gemini-2.5-flash").instruct("Research.").outputs("findings") >> Agent(
+        pipeline = Agent("researcher").model("gemini-2.5-flash").instruct("Research.").save_as("findings") >> Agent(
             "writer"
         ).model("gemini-2.5-flash").instruct("Write a report.").context(C.from_state("findings"))
         built = pipeline.build()
@@ -193,7 +193,7 @@ class TestIRFirstBuildIntegration:
     """build() runs contracts by default; unchecked/strict control checking."""
 
     def test_pipeline_build_runs_contracts(self):
-        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+        pipeline = Agent("a").model("m").instruct("Classify.").save_as("intent") >> Agent("b").model("m").instruct(
             "Handle: {intent}"
         )
         built = pipeline.build()  # Should succeed with advisory diagnostics
@@ -205,7 +205,7 @@ class TestIRFirstBuildIntegration:
         assert built is not None
 
     def test_pipeline_strict_succeeds_with_valid_contracts(self):
-        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+        pipeline = Agent("a").model("m").instruct("Classify.").save_as("intent") >> Agent("b").model("m").instruct(
             "Handle: {intent}"
         )
         built = pipeline.strict().build()
@@ -221,7 +221,7 @@ class TestPipelinePolicies:
     """Pipeline has transparent/filtered/annotated policy methods."""
 
     def test_transparent_policy(self):
-        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+        pipeline = Agent("a").model("m").instruct("Classify.").save_as("intent") >> Agent("b").model("m").instruct(
             "Handle."
         )
         result = pipeline.transparent()

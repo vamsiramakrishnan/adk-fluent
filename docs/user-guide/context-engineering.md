@@ -228,7 +228,7 @@ pipeline = (
         .model("gemini-2.5-flash")
         .instruct("Classify the user's intent.")
         .context(C.none())  # No history needed
-        .outputs("intent")
+        .save_as("intent")
     >> Agent("handler")
         .model("gemini-2.5-flash")
         .instruct("Help the user.")

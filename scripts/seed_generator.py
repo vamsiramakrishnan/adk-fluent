@@ -693,6 +693,20 @@ def emit_seed_toml(
                 lines.append(f'{alias} = "{field_name}"')
             lines.append("")
 
+        # Deprecated aliases
+        dep_aliases = builder.get("deprecated_aliases", {})
+        if dep_aliases:
+            lines.append(f"[builders.{name}.deprecated_aliases]")
+            for dep_name, dep_config in sorted(dep_aliases.items()):
+                if isinstance(dep_config, dict):
+                    parts = []
+                    for k, v in sorted(dep_config.items()):
+                        parts.append(f'{k} = "{v}"')
+                    lines.append(f"{dep_name} = {{ {', '.join(parts)} }}")
+                else:
+                    lines.append(f'{dep_name} = "{dep_config}"')
+            lines.append("")
+
         # Terminals
         for terminal in builder.get("terminals", []):
             lines.append(f"[[builders.{name}.terminals]]")
@@ -949,6 +963,24 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
         opt_args = manual_config.get("optional_constructor_args")
         if opt_args:
             auto["builders"][builder_name]["optional_constructor_args"] = opt_args
+
+        # Merge manual_aliases into aliases
+        manual_aliases = manual_config.get("manual_aliases", {})
+        if manual_aliases:
+            existing_aliases = auto["builders"][builder_name].get("aliases", {})
+            existing_aliases.update(manual_aliases)
+            auto["builders"][builder_name]["aliases"] = existing_aliases
+
+        # Merge deprecated_aliases
+        dep_aliases = manual_config.get("deprecated_aliases", {})
+        if dep_aliases:
+            existing_dep = auto["builders"][builder_name].get("deprecated_aliases", {})
+            existing_dep.update(dep_aliases)
+            auto["builders"][builder_name]["deprecated_aliases"] = existing_dep
+            # Remove deprecated names from regular aliases (they get their own methods)
+            if "aliases" in auto["builders"][builder_name]:
+                for dep_name in dep_aliases:
+                    auto["builders"][builder_name]["aliases"].pop(dep_name, None)
 
     # Re-emit the merged TOML
     builders_list = []

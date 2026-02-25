@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-20T10:12:17.781068+00:00"
+generated_at = "2026-02-25T06:36:32.341777+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -15,9 +15,9 @@ list_extend_fields = ["after_agent_callbacks", "after_model_callbacks", "after_t
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
 disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
 input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent."
-output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``."
+output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)``."
 output_schema = "Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."
-outputs = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."
+save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."
 
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
@@ -180,12 +180,9 @@ extra_skip_fields = []
 [builders.Agent.aliases]
 describe = "description"
 global_instruct = "global_instruction"
-history = "include_contents"
-include_history = "include_contents"
 instruct = "instruction"
-outputs = "output_key"
+save_as = "output_key"
 static = "static_instruction"
-static_instruct = "static_instruction"
 
 [builders.Agent.callback_aliases]
 after_agent = "after_agent_callback"
@@ -196,6 +193,12 @@ before_model = "before_model_callback"
 before_tool = "before_tool_callback"
 on_model_error = "on_model_error_callback"
 on_tool_error = "on_tool_error_callback"
+
+[builders.Agent.deprecated_aliases]
+history = { field = "include_contents", use = "context" }
+include_history = { field = "include_contents", use = "context" }
+outputs = { field = "output_key", use = "save_as" }
+static_instruct = { field = "static_instruction", use = "static" }
 
 [[builders.Agent.terminals]]
 name = "build"
@@ -401,6 +404,38 @@ specialist = (
 )
 '''
 see_also = ["Agent.disallow_transfer_to_parent", "Agent.disallow_transfer_to_peers"]
+
+[[builders.Agent.extras]]
+name = "stay"
+signature = "(self) -> Self"
+doc = "Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning."
+behavior = "runtime_helper"
+helper_func = "_stay_agent"
+example = '''
+specialist = (
+    Agent("invoice_parser", "gemini-2.5-flash")
+    .instruct("Parse the invoice.")
+    .stay()  # Must finish before returning to coordinator
+    .build()
+)
+'''
+see_also = ["Agent.isolate", "Agent.no_peers"]
+
+[[builders.Agent.extras]]
+name = "no_peers"
+signature = "(self) -> Self"
+doc = "Prevent this agent from transferring to sibling agents. The agent can still return to its parent."
+behavior = "runtime_helper"
+helper_func = "_no_peers_agent"
+example = '''
+focused = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic thoroughly.")
+    .no_peers()  # Don't hand off to sibling agents
+    .build()
+)
+'''
+see_also = ["Agent.isolate", "Agent.stay"]
 
 [[builders.Agent.extras]]
 name = "to_ir"

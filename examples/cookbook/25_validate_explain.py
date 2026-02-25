@@ -19,7 +19,7 @@ diagnosis_agent = (
         "lab results, and medical history, provide a differential diagnosis "
         "ranked by likelihood. Always include severity assessment."
     )
-    .outputs("diagnosis")
+    .save_as("diagnosis")
     .validate()  # Tries .build(), raises ValueError on failure
 )
 

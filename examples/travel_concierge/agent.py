@@ -420,7 +420,7 @@ place_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(DestinationIdeas)
-    .outputs("place")
+    .save_as("place")
     .generate_content_config(json_response_config)
 )
 
@@ -431,7 +431,7 @@ poi_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(POISuggestions)
-    .outputs("poi")
+    .save_as("poi")
     .generate_content_config(json_response_config)
 )
 
@@ -458,7 +458,7 @@ flight_search_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(FlightsSelection)
-    .outputs("flight")
+    .save_as("flight")
     .generate_content_config(json_response_config)
 )
 
@@ -469,7 +469,7 @@ flight_seat_selection_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(SeatsSelection)
-    .outputs("seat")
+    .save_as("seat")
     .generate_content_config(json_response_config)
 )
 
@@ -480,7 +480,7 @@ hotel_search_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(HotelsSelection)
-    .outputs("hotel")
+    .save_as("hotel")
     .generate_content_config(json_response_config)
 )
 
@@ -491,7 +491,7 @@ hotel_room_selection_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(RoomsSelection)
-    .outputs("room")
+    .save_as("room")
     .generate_content_config(json_response_config)
 )
 
@@ -502,7 +502,7 @@ itinerary_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(Itinerary)
-    .outputs("itinerary")
+    .save_as("itinerary")
     .generate_content_config(json_response_config)
 )
 
@@ -569,7 +569,7 @@ what_to_pack_agent = (
     .instruct(WHATTOPACK_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .outputs("what_to_pack")
+    .save_as("what_to_pack")
     .output_schema(PackingList)
 )
 
@@ -601,7 +601,7 @@ trip_monitor_agent = (
     .tool(flight_status_check)
     .tool(event_booking_check)
     .tool(weather_impact_check)
-    .outputs("daily_checks")
+    .save_as("daily_checks")
 )
 
 in_trip_agent = (

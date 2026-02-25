@@ -34,7 +34,7 @@ The `>>` operator chains agents into a sequential pipeline. Each agent runs afte
 from adk_fluent import Agent
 
 pipeline = (
-    Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").outputs("entities")
+    Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").save_as("entities")
     >> Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}.")
     >> Agent("formatter", "gemini-2.5-flash").instruct("Format output.")
 ).build()
@@ -63,9 +63,9 @@ The `|` operator runs agents in parallel:
 from adk_fluent import Agent
 
 fanout = (
-    Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_results")
-    | Agent("papers", "gemini-2.5-pro").instruct("Search papers.").outputs("paper_results")
-    | Agent("internal", "gemini-2.5-flash").instruct("Search internal docs.").outputs("internal_results")
+    Agent("web", "gemini-2.5-flash").instruct("Search web.").save_as("web_results")
+    | Agent("papers", "gemini-2.5-pro").instruct("Search papers.").save_as("paper_results")
+    | Agent("internal", "gemini-2.5-flash").instruct("Search internal docs.").save_as("internal_results")
 ).build()
 ```
 
@@ -92,7 +92,7 @@ loop = (
 from adk_fluent import until
 
 loop = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write.").outputs("quality")
+    Agent("writer").model("gemini-2.5-flash").instruct("Write.").save_as("quality")
     >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review.")
 ) * until(lambda s: s.get("quality") == "good", max=5)
 ```
@@ -136,7 +136,7 @@ Route on session state without LLM calls:
 from adk_fluent import Agent
 from adk_fluent._routing import Route
 
-classifier = Agent("classify").model("gemini-2.5-flash").instruct("Classify intent.").outputs("intent")
+classifier = Agent("classify").model("gemini-2.5-flash").instruct("Classify intent.").save_as("intent")
 booker = Agent("booker").model("gemini-2.5-flash").instruct("Book flights.")
 info = Agent("info").model("gemini-2.5-flash").instruct("Provide info.")
 
@@ -185,7 +185,7 @@ pipeline = (
     >> Agent("writer").model("gemini-2.5-flash").instruct("Write.") @ Report
        // Agent("writer_b").model("gemini-2.5-pro").instruct("Write.") @ Report
     >> (
-        Agent("critic").model("gemini-2.5-flash").instruct("Score.").outputs("confidence")
+        Agent("critic").model("gemini-2.5-flash").instruct("Score.").save_as("confidence")
         >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve.")
     ) * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
 )

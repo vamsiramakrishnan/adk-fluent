@@ -27,7 +27,7 @@ asset_classifier = (
         "Classify the investment request into one of: 'equity', 'fixed_income', "
         "or 'alternative'. Consider the asset type, risk profile, and market context."
     )
-    .outputs("asset_class")
+    .save_as("asset_class")
     .use(production)
 )
 
@@ -53,7 +53,7 @@ alternative_analysis = (
 quality_review = (
     Agent("portfolio_reviewer")
     .instruct("Review the investment analysis for completeness and accuracy. Rate quality.")
-    .outputs("review_quality")
+    .save_as("review_quality")
     .use(production)
     >> Agent("analysis_refiner")
     .instruct("Refine the analysis based on reviewer feedback. Address gaps.")

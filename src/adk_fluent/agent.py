@@ -17,7 +17,7 @@ class BaseAgent(BuilderBase):
 
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
     def __init__(self, name: str) -> None:
@@ -76,12 +76,9 @@ class Agent(BuilderBase):
     _ALIASES: dict[str, str] = {
         "describe": "description",
         "global_instruct": "global_instruction",
-        "history": "include_contents",
-        "include_history": "include_contents",
         "instruct": "instruction",
-        "outputs": "output_key",
+        "save_as": "output_key",
         "static": "static_instruction",
-        "static_instruct": "static_instruction",
     }
     _CALLBACK_ALIASES: dict[str, str] = {
         "after_agent": "after_agent_callback",
@@ -94,14 +91,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_agent_callback",
-        "on_model_error_callback",
         "after_tool_callback",
-        "after_model_callback",
         "before_agent_callback",
-        "before_tool_callback",
-        "on_tool_error_callback",
+        "on_model_error_callback",
         "before_model_callback",
+        "before_tool_callback",
+        "after_model_callback",
+        "on_tool_error_callback",
+        "after_agent_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -122,23 +119,13 @@ class Agent(BuilderBase):
         self._config["global_instruction"] = value
         return self
 
-    def history(self, value: Literal[default, none]) -> Self:
-        """Set the `include_contents` field."""
-        self._config["include_contents"] = value
-        return self
-
-    def include_history(self, value: Literal[default, none]) -> Self:
-        """Set the `include_contents` field."""
-        self._config["include_contents"] = value
-        return self
-
     def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the `instruction` field."""
         self._config["instruction"] = value
         return self
 
-    def outputs(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."""
+    def save_as(self, value: str | None) -> Self:
+        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."""
         self._config["output_key"] = value
         return self
 
@@ -147,8 +134,51 @@ class Agent(BuilderBase):
         self._config["static_instruction"] = value
         return self
 
+    def history(self, value: Literal[default, none]) -> Self:
+        """Deprecated: use ``.context()`` instead."""
+        import warnings
+
+        warnings.warn(
+            ".history() is deprecated, use .context() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["include_contents"] = value
+        return self
+
+    def include_history(self, value: Literal[default, none]) -> Self:
+        """Deprecated: use ``.context()`` instead."""
+        import warnings
+
+        warnings.warn(
+            ".include_history() is deprecated, use .context() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["include_contents"] = value
+        return self
+
+    def outputs(self, value: str | None) -> Self:
+        """Deprecated: use ``.save_as()`` instead."""
+        import warnings
+
+        warnings.warn(
+            ".outputs() is deprecated, use .save_as() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["output_key"] = value
+        return self
+
     def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
-        """Set the `static_instruction` field."""
+        """Deprecated: use ``.static()`` instead."""
+        import warnings
+
+        warnings.warn(
+            ".static_instruct() is deprecated, use .static() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._config["static_instruction"] = value
         return self
 
@@ -407,6 +437,22 @@ class Agent(BuilderBase):
         from adk_fluent._helpers import _isolate_agent
 
         return _isolate_agent(
+            self,
+        )
+
+    def stay(self) -> Self:
+        """Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning."""
+        from adk_fluent._helpers import _stay_agent
+
+        return _stay_agent(
+            self,
+        )
+
+    def no_peers(self) -> Self:
+        """Prevent this agent from transferring to sibling agents. The agent can still return to its parent."""
+        from adk_fluent._helpers import _no_peers_agent
+
+        return _no_peers_agent(
             self,
         )
 

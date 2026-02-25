@@ -56,7 +56,7 @@ detailed_parser = (
     Agent("detailed_parser")
     .model("gemini-2.5-flash")
     .instruct("Extract every line item from the purchase order with amounts.")
-    .outputs("parsed_po")
+    .save_as("parsed_po")
     @ PurchaseOrder
 )
 

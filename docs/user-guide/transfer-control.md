@@ -50,9 +50,47 @@ specialist = (
 
 Without this flag, a billing agent could decide to transfer the user to a technical support agent if it thought the question was better suited there. Setting `disallow_transfer_to_peers(True)` prevents this -- only the coordinator (parent) decides routing.
 
+### `.stay()`
+
+Prevents this agent from transferring back to its parent. The agent can still transfer to sibling agents (peers). Use this for agents that participate in peer-to-peer handoff chains where the coordinator should not regain control mid-sequence.
+
+```python
+specialist = (
+    Agent("intake", "gemini-2.5-flash")
+    .instruct("Collect information, then transfer to the diagnosis agent.")
+    .stay()
+)
+
+# Equivalent to:
+specialist = (
+    Agent("intake", "gemini-2.5-flash")
+    .instruct("Collect information, then transfer to the diagnosis agent.")
+    .disallow_transfer_to_parent(True)
+)
+```
+
+### `.no_peers()`
+
+Prevents this agent from transferring to sibling agents. The agent can still return to its parent. Use this when only the coordinator (parent) should decide lateral routing -- the specialist handles its task and hands back, but never redirects the user to a sibling on its own.
+
+```python
+specialist = (
+    Agent("billing", "gemini-2.5-flash")
+    .instruct("Handle billing inquiries.")
+    .no_peers()
+)
+
+# Equivalent to:
+specialist = (
+    Agent("billing", "gemini-2.5-flash")
+    .instruct("Handle billing inquiries.")
+    .disallow_transfer_to_peers(True)
+)
+```
+
 ### `.isolate()`
 
-A convenience method that sets both flags to `True`. This is the most common pattern for specialist agents:
+A convenience method that combines `.stay()` and `.no_peers()` -- it sets both flags to `True`. This is the most common pattern for specialist agents:
 
 ```python
 specialist = (
@@ -65,8 +103,8 @@ specialist = (
 specialist = (
     Agent("billing", "gemini-2.5-flash")
     .instruct("Handle billing inquiries.")
-    .disallow_transfer_to_parent(True)
-    .disallow_transfer_to_peers(True)
+    .stay()
+    .no_peers()
 )
 ```
 
@@ -74,14 +112,33 @@ Use `.isolate()` for any agent that should complete its task and return to the c
 
 ## Control Matrix
 
-All four combinations of the two flags and their resulting behavior:
+All four combinations of the two flags, the fluent shorthand that sets them, and their resulting behavior:
 
-| `disallow_transfer_to_parent` | `disallow_transfer_to_peers` | Behavior                                                                                                                                   |
-| :---------------------------: | :--------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------ |
-|            `False`            |           `False`            | **Full transfer.** Agent can transfer to parent, siblings, and its own children. Default behavior.                                         |
-|            `True`             |           `False`            | **Peers only.** Agent can transfer to siblings but not back to parent. Useful for peer-to-peer handoff chains.                             |
-|            `False`            |            `True`            | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing.                       |
-|            `True`             |            `True`            | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically. This is what `.isolate()` sets. |
+| `disallow_transfer_to_parent` | `disallow_transfer_to_peers` | Fluent shorthand | Behavior                                                                                                                      |
+| :---------------------------: | :--------------------------: | :--------------: | ----------------------------------------------------------------------------------------------------------------------------- |
+|            `False`            |           `False`            |    _(default)_   | **Full transfer.** Agent can transfer to parent, siblings, and its own children. Default behavior.                            |
+|            `True`             |           `False`            |    `.stay()`     | **Peers only.** Agent can transfer to siblings but not back to parent. Useful for peer-to-peer handoff chains.                |
+|            `False`            |            `True`            |   `.no_peers()`  | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing.           |
+|            `True`             |            `True`            |   `.isolate()`   | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically.                    |
+
+## Choosing the Right Method
+
+Agents can be connected in several ways depending on the execution pattern you need. This table summarizes the builder methods for adding agents to different topologies:
+
+| Builder    | Method             | What it does                                     |
+| ---------- | ------------------ | ------------------------------------------------ |
+| `Pipeline` | `.step(agent)`     | Add a sequential step                            |
+| `FanOut`   | `.branch(agent)`   | Add a parallel branch                            |
+| `Loop`     | `.step(agent)`     | Add a repeating step                             |
+| `Agent`    | `.sub_agent(agent)`| Add a child agent (transfer-based, LLM decides)  |
+| `Agent`    | `.delegate(agent)` | Add as a tool (wrapped in `AgentTool`, LLM-routed)|
+
+`.sub_agent()` and `.delegate()` both let a parent agent invoke a child, but they differ in mechanism:
+
+- **`.sub_agent(agent)`** registers the child as a transfer target. The LLM sees a `transfer_to_agent` tool with the child's name in the enum. Control fully transfers to the child agent.
+- **`.delegate(agent)`** wraps the child in an `AgentTool`. The parent LLM calls it like any other tool -- it sends input, gets a response, and stays in control. Use this when the parent needs to orchestrate multiple tool calls in a single turn.
+
+> **Note on `.save_as()`:** If your agents need to pass results through session state, use `.save_as("key")` to store an agent's response text under a state key. This replaces the older `.outputs("key")` method, which is now deprecated. The new name reads more clearly: `agent.save_as("summary")` means "save this agent's response as `summary` in session state."
 
 ## Common Patterns
 
@@ -168,7 +225,7 @@ root = (
 
 ### Sequential Handoff
 
-Peers transfer to each other in sequence, using `disallow_transfer_to_parent(True)` with `disallow_transfer_to_peers(False)` so they can hand off laterally but not escape back to the coordinator mid-sequence:
+Peers transfer to each other in sequence. Each agent uses `.stay()` so it can hand off laterally to the next peer but cannot escape back to the coordinator mid-sequence:
 
 ```python
 from adk_fluent import Agent
@@ -180,7 +237,7 @@ intake = (
         "Collect the customer's name, account number, and issue description. "
         "Then transfer to the diagnosis agent."
     )
-    .disallow_transfer_to_parent(True)
+    .stay()
 )
 
 diagnosis = (
@@ -190,7 +247,7 @@ diagnosis = (
         "Analyze the customer's issue and determine the root cause. "
         "Then transfer to the resolution agent."
     )
-    .disallow_transfer_to_parent(True)
+    .stay()
 )
 
 resolution = (

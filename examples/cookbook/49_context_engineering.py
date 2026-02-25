@@ -26,7 +26,7 @@ support_pipeline = (
         "Classify the customer's message into one of: billing, technical, general.\nCustomer said: {customer_message}"
     )
     .context(C.none())  # No history needed — just the captured message
-    .outputs("category")
+    .save_as("category")
     >> Route("category")
     .eq(
         "billing",

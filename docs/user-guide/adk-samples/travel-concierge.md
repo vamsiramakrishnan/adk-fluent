@@ -550,7 +550,7 @@ place_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(DestinationIdeas)
-    .outputs("place")
+    .save_as("place")
     .generate_content_config(json_response_config)
 )
 
@@ -561,7 +561,7 @@ poi_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(POISuggestions)
-    .outputs("poi")
+    .save_as("poi")
     .generate_content_config(json_response_config)
 )
 
@@ -583,7 +583,7 @@ flight_search_agent = (
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
     .output_schema(FlightsSelection)
-    .outputs("flight")
+    .save_as("flight")
     .generate_content_config(json_response_config)
 )
 
@@ -662,7 +662,7 @@ root_agent = (
 ## What Changed
 
 - 14x `AgentTool(agent=...)` wrapping calls replaced by `.delegate()`
-- `output_key=` replaced by `.outputs()`
+- `output_key=` replaced by `.save_as()`
 - `instruction=` replaced by `.instruct()`
 - `description=` replaced by `.describe()`
 - 30+ files across 15+ directories collapsed to 3 files in 1 directory

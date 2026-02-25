@@ -293,7 +293,7 @@ class LlmAgentConfig(BuilderBase):
         return self
 
     def outputs(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."""
+        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)``."""
         self._config["output_key"] = value
         return self
 
@@ -896,7 +896,7 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"default_on", "stage"}
+    _KNOWN_PARAMS: set[str] = {"stage", "default_on"}
 
     def __init__(self, stage: str) -> None:
         self._config: dict[str, Any] = {"stage": stage}
@@ -920,7 +920,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_cache_duration_seconds", "auto_flush_threshold", "max_cache_size_bytes"}
+    _KNOWN_PARAMS: set[str] = {"auto_flush_threshold", "max_cache_size_bytes", "max_cache_duration_seconds"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -994,23 +994,23 @@ class BigQueryLoggerConfig(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "max_content_length",
-        "custom_tags",
-        "clustering_fields",
-        "content_formatter",
-        "batch_flush_interval",
-        "gcs_bucket_name",
-        "log_multi_modal_content",
-        "shutdown_timeout",
-        "table_id",
-        "log_session_metadata",
-        "retry_config",
-        "queue_max_size",
-        "event_denylist",
         "connection_id",
+        "custom_tags",
         "event_allowlist",
+        "shutdown_timeout",
+        "retry_config",
+        "log_session_metadata",
+        "table_id",
+        "max_content_length",
+        "clustering_fields",
+        "event_denylist",
+        "batch_flush_interval",
         "enabled",
+        "queue_max_size",
         "batch_size",
+        "log_multi_modal_content",
+        "content_formatter",
+        "gcs_bucket_name",
     }
 
     def __init__(self) -> None:
@@ -1115,7 +1115,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_delay", "initial_delay", "max_retries", "multiplier"}
+    _KNOWN_PARAMS: set[str] = {"max_retries", "max_delay", "initial_delay", "multiplier"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

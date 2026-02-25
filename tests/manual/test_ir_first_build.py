@@ -17,7 +17,7 @@ class TestIRFirstBuildPath:
 
     def test_pipeline_builds_via_ir(self):
         """Pipeline.build() runs contracts by default (advisory mode)."""
-        pipeline = Agent("a").model("m").instruct("Classify.").outputs("intent") >> Agent("b").model("m").instruct(
+        pipeline = Agent("a").model("m").instruct("Classify.").save_as("intent") >> Agent("b").model("m").instruct(
             "Handle: {intent}"
         )
         built = pipeline.build()
@@ -77,7 +77,7 @@ class TestStrictWithValidPipeline:
     """strict().build() succeeds when contracts are satisfied."""
 
     def test_valid_pipeline_strict(self):
-        pipeline = Agent("classifier").model("m").instruct("Classify.").outputs("intent") >> Agent("handler").model(
+        pipeline = Agent("classifier").model("m").instruct("Classify.").save_as("intent") >> Agent("handler").model(
             "m"
         ).instruct("Handle: {intent}")
         # No error — template var is resolved

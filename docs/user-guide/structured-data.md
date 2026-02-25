@@ -2,9 +2,9 @@
 
 Agents that return free-form text are fine for chat, but production pipelines need predictable data. A classifier must emit a category string that a router can branch on. An extraction step must produce a JSON object that a downstream formatter can render. adk-fluent provides three complementary mechanisms for structured data flow: storing output in session state, enforcing typed output schemas, and declaring input schemas for tool-invoked agents.
 
-## Storing Output in State: `.outputs(key)`
+## Storing Output in State: `.save_as(key)`
 
-`.outputs(key)` is an alias for ADK's `output_key`. When an agent finishes, its response text is written to session state under the given key. Other agents can then read that value through template variable substitution in their instructions.
+`.save_as(key)` is an alias for ADK's `output_key`. When an agent finishes, its response text is written to session state under the given key. Other agents can then read that value through template variable substitution in their instructions.
 
 ### Basic usage
 
@@ -14,7 +14,7 @@ from adk_fluent import Agent
 classifier = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the customer inquiry as one of: billing, technical, account, general.")
-    .outputs("category")
+    .save_as("category")
 )
 ```
 
@@ -41,13 +41,13 @@ from adk_fluent import Agent
 pipeline = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the support ticket as: billing, technical, or account.")
-    .outputs("category")
+    .save_as("category")
     >> Agent("resolver", "gemini-2.5-flash")
     .instruct(
         "You handle {category} issues. "
         "Investigate the customer's problem and provide a resolution."
     )
-    .outputs("resolution")
+    .save_as("resolution")
     >> Agent("summarizer", "gemini-2.5-flash")
     .instruct("Summarize the resolution for the customer: {resolution}")
 )
@@ -121,7 +121,7 @@ extractor = (
     Agent("invoice_extractor", "gemini-2.5-flash")
     .instruct("Extract invoice details from the provided document text.")
     .output_schema(Invoice)
-    .outputs("invoice_data")
+    .save_as("invoice_data")
 )
 ```
 
@@ -144,15 +144,15 @@ The `@` operator is shorthand for `.output_schema()`, designed for concise expre
 extractor = (
     Agent("invoice_extractor", "gemini-2.5-flash")
     .instruct("Extract invoice details from the provided document text.")
-    .outputs("invoice_data")
+    .save_as("invoice_data")
 ) @ Invoice
 ```
 
 Both forms produce identical results. Use `@` in operator expressions where brevity matters; use `.output_schema()` in explicit builder chains where readability is the priority.
 
-### Combining with `.outputs(key)`
+### Combining with `.save_as(key)`
 
-When both `.output_schema()` and `.outputs(key)` are set, the structured JSON response is stored in session state under the given key. This is the recommended pattern for structured pipelines:
+When both `.output_schema()` and `.save_as(key)` are set, the structured JSON response is stored in session state under the given key. This is the recommended pattern for structured pipelines:
 
 ```python
 from pydantic import BaseModel, Field
@@ -167,7 +167,7 @@ analyzer = (
     Agent("sentiment_analyzer", "gemini-2.5-flash")
     .instruct("Analyze the sentiment of the provided customer review.")
     .output_schema(SentimentResult)
-    .outputs("sentiment")
+    .save_as("sentiment")
 )
 ```
 
@@ -226,7 +226,7 @@ pipeline = (
     Agent("extractor", "gemini-2.5-flash")
     .instruct("Extract the order details.")
     .output_schema(OrderDetails)
-    .outputs("order")
+    .save_as("order")
     >> Agent("fulfillment", "gemini-2.5-flash")
     .instruct("Process this order for fulfillment: {order}")
 )
@@ -278,7 +278,7 @@ fulfillment = (
 
 ### Pattern: classifier drives deterministic routing
 
-A common architecture pairs `.outputs()` with deterministic routing. The classifier stores its result, and a `Route` (or dict shorthand) branches without any additional LLM call:
+A common architecture pairs `.save_as()` with deterministic routing. The classifier stores its result, and a `Route` (or dict shorthand) branches without any additional LLM call:
 
 ```python
 from adk_fluent import Agent
@@ -287,7 +287,7 @@ from adk_fluent._routing import Route
 classifier = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the request as: refund, exchange, or inquiry.")
-    .outputs("request_type")
+    .save_as("request_type")
 )
 
 refund_agent = Agent("refund", "gemini-2.5-flash").instruct("Process the refund request.")
@@ -346,7 +346,7 @@ pipeline = (
         "Identify all parties, dates, financial terms, obligations, and jurisdiction."
     )
     .output_schema(ContractDetails)
-    .outputs("contract")
+    .save_as("contract")
 
     # Step 2: Assess risk based on extracted data
     >> Agent("risk_assessor", "gemini-2.5-flash")
@@ -357,7 +357,7 @@ pipeline = (
         "and obligation imbalances."
     )
     .output_schema(RiskAssessment)
-    .outputs("risk")
+    .save_as("risk")
 
     # Step 3: Produce a human-readable summary
     >> Agent("summarizer", "gemini-2.5-flash")
