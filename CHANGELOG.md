@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-02-25
+
+### Added
+
+- **`.isolate()` convenience method**: Sets both `disallow_transfer_to_parent` and `disallow_transfer_to_peers` in one call for specialist agents
+- **`[field_docs]` seed system**: Rich IDE docstrings for `output_schema`, `input_schema`, `output_key`, `disallow_transfer_to_parent`, `disallow_transfer_to_peers` — hover tooltips now explain behavior and constraints
+- **Structured data user guide**: `docs/user-guide/structured-data.md` — covers `.outputs()`, `.output_schema()`, `@ Schema`, `.input_schema()`, state access patterns
+- **Transfer control user guide**: `docs/user-guide/transfer-control.md` — covers control flags, `.isolate()`, control matrix, common patterns
+- **Context engineering user guide**: `docs/user-guide/context-engineering.md` — C module primitives, composition, Agent.context() integration
+- **Visibility user guide**: `docs/user-guide/visibility.md` — topology inference, policies, .show()/.hide()
+- **Memory user guide**: `docs/user-guide/memory.md` — modes, auto-save, combining with context
+- **Hand-written API reference**: `docs/generated/api/context.md`, `visibility.md`, `contracts.md`
+- **54 cookbook examples**: All rewritten with real-world scenarios (insurance, customer service, fraud detection, medical, legal, etc.)
+- **`.pyi` stub docstrings**: All generated stub methods now have descriptive docstrings for IDE hover
+- **Rich examples + see-also**: 8 key extras in seed.manual.toml enriched with inline examples and cross-references
+- **Seed merge for field_docs**: `seed_generator.py` merges `[field_docs]` from manual overlay
+
+### Fixed
+
+- Pre-existing lint issues in `doc_generator.py`, `_visibility.py`, `contracts.py` (B007, SIM102, SIM103, F841)
+- Pyright errors in generated `.pyi` stubs (147 → 0)
+
 ## [0.6.0] - 2026-02-20
 
 ### Added
