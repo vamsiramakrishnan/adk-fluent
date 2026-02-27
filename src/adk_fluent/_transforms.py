@@ -57,8 +57,8 @@ class StateReplacement:
 
 def _annotate(fn: Callable, reads: frozenset[str] | None, writes: frozenset[str] | None) -> Callable:
     """Attach _reads_keys and _writes_keys to a transform callable."""
-    fn._reads_keys = reads
-    fn._writes_keys = writes
+    fn._reads_keys = reads  # type: ignore[reportFunctionMemberAccess]  # runtime metadata
+    fn._writes_keys = writes  # type: ignore[reportFunctionMemberAccess]  # runtime metadata
     return fn
 
 
@@ -122,7 +122,7 @@ class S:
             for k, v in state.items():
                 if k.startswith(_SCOPE_PREFIXES):
                     continue  # Prefixed keys handled by FnAgent, not transform
-                new_key = mapping.get(k, k)
+                new_key = mapping.get(k, k) or k
                 out[new_key] = v
             return StateReplacement(out)
 
@@ -271,5 +271,5 @@ class S:
             return StateDelta({})
 
         _capture.__name__ = f"capture_{key}"
-        _capture._capture_key = key
+        _capture._capture_key = key  # type: ignore[reportFunctionMemberAccess]  # runtime metadata
         return _annotate(_capture, reads=frozenset(), writes=frozenset({key}))

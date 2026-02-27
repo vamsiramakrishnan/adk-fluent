@@ -34,7 +34,7 @@ def agent(name: str, **kwargs: Any) -> Callable:
             original_tool_append(tool_fn)
             return tool_fn
 
-        builder.tool = tool_decorator
+        builder.tool = tool_decorator  # type: ignore[reportAttributeAccessIssue]  # decorator override
 
         # Add .on(event_name) decorator factory
         def on(event_name: str) -> Callable:
@@ -46,7 +46,7 @@ def agent(name: str, **kwargs: Any) -> Callable:
 
             return event_decorator
 
-        builder.on = on
+        builder.on = on  # type: ignore[reportAttributeAccessIssue]  # decorator override
 
         return builder
 

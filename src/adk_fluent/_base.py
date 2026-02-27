@@ -5,10 +5,11 @@ from __future__ import annotations
 import asyncio as _asyncio
 import itertools
 import types
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from typing import Any, Self
 
 from google.adk.agents.base_agent import BaseAgent
+from google.adk.events.event import Event
 
 __all__ = [
     "BuilderError",
@@ -150,6 +151,10 @@ class BuilderBase:
     _config: dict[str, Any]
     _callbacks: dict[str, list[Callable]]
     _lists: dict[str, list]
+
+    def build(self) -> Any:
+        """Build this builder into a native ADK object. Subclasses must override."""
+        raise NotImplementedError(f"{type(self).__name__} must implement build()")
 
     # ------------------------------------------------------------------
     # Copy-on-Write: frozen builders
@@ -320,7 +325,7 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         """Create an operator-safe fork. Shares sub-builders (safe: operators never mutate children)."""
         new = object.__new__(type(self))
         new._config = dict(self._config)
@@ -385,14 +390,14 @@ class BuilderBase:
         if isinstance(self, Pipeline):
             # Clone, then append — original Pipeline unchanged
             clone = self._fork_for_operator()
-            clone.step(other)
+            clone.step(other)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
             clone._config["name"] = f"{my_name}_then_{other_name}"
             result = clone
         else:
             name = f"{my_name}_then_{other_name}"
             p = Pipeline(name)
-            p.step(self)
-            p.step(other)
+            p.step(self)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
+            p.step(other)  # type: ignore[arg-type]
             result = p
 
         # Propagate middleware from operands to result
@@ -422,14 +427,14 @@ class BuilderBase:
         if isinstance(self, FanOut):
             # Clone, then add branch — original FanOut unchanged
             clone = self._fork_for_operator()
-            clone.branch(other)
+            clone.branch(other)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
             clone._config["name"] = f"{my_name}_and_{other_name}"
             result = clone
         else:
             name = f"{my_name}_and_{other_name}"
             f = FanOut(name)
-            f.branch(self)
-            f.branch(other)
+            f.branch(self)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
+            f.branch(other)  # type: ignore[arg-type]
             result = f
 
         # Propagate middleware from operands to result
@@ -463,7 +468,7 @@ class BuilderBase:
             for item in self._lists.get("sub_agents", []):
                 loop._lists["sub_agents"].append(item)
         else:
-            loop.step(self)
+            loop.step(self)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
         return loop
 
     def __rmul__(self, iterations: int) -> BuilderBase:
@@ -695,7 +700,7 @@ class BuilderBase:
         """Build a rich.tree.Tree representing this builder's state."""
         import re
 
-        from rich.tree import Tree
+        from rich.tree import Tree  # type: ignore[reportMissingImports]
 
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
@@ -861,7 +866,7 @@ class BuilderBase:
         falls back to plain text.
         """
         try:
-            from rich.console import Console
+            from rich.console import Console  # type: ignore[reportMissingImports]
 
             tree = self._build_rich_tree()
             console = Console(record=True, width=120)
@@ -1144,7 +1149,7 @@ class BuilderBase:
         loop._config["_until_predicate"] = predicate
         return loop
 
-    def until(self, predicate: Callable) -> Self:
+    def until(self, predicate: Callable) -> BuilderBase:
         """Set exit predicate on a loop. If not already a Loop, wraps in one.
 
         Usage:
@@ -1245,7 +1250,7 @@ class BuilderBase:
     # IR conversion
     # ------------------------------------------------------------------
 
-    def to_ir(self):
+    def to_ir(self) -> Any:
         """Convert this builder to an IR node.
 
         Subclasses override to return the appropriate IR node type.
@@ -1528,7 +1533,7 @@ class _FnStepBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._fn = fn_ref
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._fn = self._fn
         return clone
@@ -1565,7 +1570,7 @@ class _CaptureBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._capture_key = capture_key
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._capture_key = self._capture_key
         return clone
@@ -1598,7 +1603,7 @@ class _FallbackBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._children = children
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._children = list(self._children)
         return clone
@@ -1658,7 +1663,7 @@ class _TapBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._fn = fn_ref
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._fn = self._fn
         return clone
@@ -1735,7 +1740,7 @@ class _MapOverBuilder(BuilderBase):
         self._item_key = item_key
         self._output_key = output_key
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._agent = self._agent
         clone._list_key = self._list_key
@@ -1790,7 +1795,7 @@ class _TimeoutBuilder(BuilderBase):
         self._agent = agent
         self._seconds = seconds
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._agent = self._agent
         clone._seconds = self._seconds
@@ -1856,7 +1861,7 @@ class _GateBuilder(BuilderBase):
         self._message = message
         self._gate_key = gate_key
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._predicate = self._predicate
         clone._message = self._message
@@ -1916,7 +1921,7 @@ class _RaceBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._agents = agents
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._agents = list(self._agents)
         return clone
@@ -1963,11 +1968,13 @@ class _RaceBuilder(BuilderBase):
 class FnAgent(BaseAgent):
     """Zero-cost function agent. No LLM call."""
 
-    def __init__(self, *, fn: Callable, **kwargs):
+    _fn_ref: Callable
+
+    def __init__(self, *, fn: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_fn_ref", fn)
 
-    async def _run_async_impl(self, ctx):
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         from adk_fluent._transforms import _SCOPE_PREFIXES, StateDelta, StateReplacement
 
         result = self._fn_ref(dict(ctx.session.state))
@@ -1985,7 +1992,8 @@ class FnAgent(BaseAgent):
         elif isinstance(result, dict):
             for k, v in result.items():
                 ctx.session.state[k] = v
-        # yield nothing — pure transform, no events
+        return
+        yield  # makes this an async generator to match base signature
 
 
 class FallbackAgent(BaseAgent):
@@ -2008,24 +2016,29 @@ class FallbackAgent(BaseAgent):
 class TapAgent(BaseAgent):
     """Zero-cost observation agent. No LLM call, no state mutation."""
 
-    def __init__(self, *, fn: Callable, **kwargs):
+    _fn_ref: Callable
+
+    def __init__(self, *, fn: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_fn_ref", fn)
 
-    async def _run_async_impl(self, ctx):
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         # Pass read-only view — tap should never mutate state
         self._fn_ref(types.MappingProxyType(dict(ctx.session.state)))
-        # Explicitly yield nothing — pure observation
+        return
+        yield  # makes this an async generator to match base signature
 
 
 class CaptureAgent(BaseAgent):
     """Capture the most recent user message from session events into state."""
 
-    def __init__(self, *, key: str, **kwargs):
+    _capture_key: str
+
+    def __init__(self, *, key: str, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_capture_key", key)
 
-    async def _run_async_impl(self, ctx):
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         for event in reversed(ctx.session.events):
             if getattr(event, "author", None) == "user":
                 parts = getattr(getattr(event, "content", None), "parts", None) or []
@@ -2033,13 +2046,18 @@ class CaptureAgent(BaseAgent):
                 if texts:
                     ctx.session.state[self._capture_key] = "\n".join(texts)
                     break
-        # yield nothing — pure capture, no events
+        return
+        yield  # makes this an async generator to match base signature
 
 
 class MapOverAgent(BaseAgent):
     """Iterates sub-agent over each item in a state list."""
 
-    def __init__(self, *, list_key: str, item_key: str, output_key: str, **kwargs):
+    _list_key: str
+    _item_key: str
+    _output_key: str
+
+    def __init__(self, *, list_key: str, item_key: str, output_key: str, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_list_key", list_key)
         object.__setattr__(self, "_item_key", item_key)
@@ -2061,7 +2079,9 @@ class MapOverAgent(BaseAgent):
 class TimeoutAgent(BaseAgent):
     """Wraps a sub-agent with a time limit."""
 
-    def __init__(self, *, seconds: float, **kwargs):
+    _seconds: float
+
+    def __init__(self, *, seconds: float, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_seconds", seconds)
 
@@ -2098,7 +2118,11 @@ class TimeoutAgent(BaseAgent):
 class GateAgent(BaseAgent):
     """Human-in-the-loop approval gate."""
 
-    def __init__(self, *, predicate: Callable, message: str, gate_key: str, **kwargs):
+    _predicate: Callable
+    _message: str
+    _gate_key: str
+
+    def __init__(self, *, predicate: Callable, message: str, gate_key: str, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_predicate", predicate)
         object.__setattr__(self, "_message", message)

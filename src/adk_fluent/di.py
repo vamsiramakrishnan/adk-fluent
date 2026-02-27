@@ -38,5 +38,5 @@ def inject_resources(fn: Callable, resources: dict[str, Any]) -> Callable:
         return fn(**kwargs)
 
     new_params = [p for name, p in sig.parameters.items() if name not in resource_params]
-    wrapped.__signature__ = sig.replace(parameters=new_params)
+    wrapped.__signature__ = sig.replace(parameters=new_params)  # type: ignore[reportAttributeAccessIssue]
     return wrapped
