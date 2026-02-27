@@ -8,6 +8,10 @@ StateReplacement:  replace session-scoped keys — unprefixed keys not in the
                    replacement are set to None; app:/user:/temp: keys are
                    NEVER touched.
 
+Each callable carries ``_reads_keys`` and ``_writes_keys`` attributes
+(frozenset[str] or None) for build-time contract tracing.  ``None`` means
+"reads/writes the full state" (opaque to the checker).
+
 Usage:
     from adk_fluent import S
 
@@ -51,6 +55,13 @@ class StateReplacement:
     new_state: dict[str, Any]
 
 
+def _annotate(fn: Callable, reads: frozenset[str] | None, writes: frozenset[str] | None) -> Callable:
+    """Attach _reads_keys and _writes_keys to a transform callable."""
+    fn._reads_keys = reads
+    fn._writes_keys = writes
+    return fn
+
+
 class S:
     """State transform factories. Each method returns a callable for use with >>.
 
@@ -62,6 +73,9 @@ class S:
 
     Plain ``dict`` returns from user-supplied callables are treated as
     ``StateDelta`` for backward compatibility.
+
+    Each returned callable carries ``_reads_keys`` and ``_writes_keys``
+    (frozenset[str] or None) for build-time contract tracing.
     """
 
     @staticmethod
@@ -75,7 +89,8 @@ class S:
             return StateReplacement({k: state[k] for k in keys if k in state and not k.startswith(_SCOPE_PREFIXES)})
 
         _pick.__name__ = f"pick_{'_'.join(keys)}"
-        return _pick
+        # pick reads everything (to know what exists), writes only the picked keys
+        return _annotate(_pick, reads=None, writes=frozenset(keys))
 
     @staticmethod
     def drop(*keys: str) -> Callable[[dict], StateReplacement]:
@@ -91,7 +106,8 @@ class S:
             )
 
         _drop.__name__ = f"drop_{'_'.join(keys)}"
-        return _drop
+        # drop reads everything, writes everything minus dropped (opaque to checker)
+        return _annotate(_drop, reads=None, writes=None)
 
     @staticmethod
     def rename(**mapping: str) -> Callable[[dict], StateReplacement]:
@@ -111,7 +127,12 @@ class S:
             return StateReplacement(out)
 
         _rename.__name__ = f"rename_{'_'.join(mapping.keys())}"
-        return _rename
+        # rename reads the old keys, writes the new keys (+ passthrough)
+        return _annotate(
+            _rename,
+            reads=frozenset(mapping.keys()),
+            writes=frozenset(mapping.values()),
+        )
 
     @staticmethod
     def default(**defaults: Any) -> Callable[[dict], StateDelta]:
@@ -125,7 +146,8 @@ class S:
             return StateDelta(updates)
 
         _default.__name__ = f"default_{'_'.join(defaults.keys())}"
-        return _default
+        # reads the keys (to check existence), writes the same keys
+        return _annotate(_default, reads=frozenset(defaults.keys()), writes=frozenset(defaults.keys()))
 
     @staticmethod
     def merge(*keys: str, into: str, fn: Callable | None = None) -> Callable[[dict], StateDelta]:
@@ -144,7 +166,7 @@ class S:
             return StateDelta({into: merged})
 
         _merge.__name__ = f"merge_{'_'.join(keys)}_into_{into}"
-        return _merge
+        return _annotate(_merge, reads=frozenset(keys), writes=frozenset({into}))
 
     @staticmethod
     def transform(key: str, fn: Callable) -> Callable[[dict], StateDelta]:
@@ -161,7 +183,7 @@ class S:
             return StateDelta({})
 
         _transform.__name__ = f"transform_{key}_{fn_name}"
-        return _transform
+        return _annotate(_transform, reads=frozenset({key}), writes=frozenset({key}))
 
     @staticmethod
     def guard(predicate: Callable[[dict], bool], msg: str = "State guard failed") -> Callable[[dict], StateDelta]:
@@ -177,7 +199,8 @@ class S:
             return StateDelta({})
 
         _guard.__name__ = "guard"
-        return _guard
+        # guard reads full state (opaque), writes nothing
+        return _annotate(_guard, reads=None, writes=frozenset())
 
     @staticmethod
     def log(*keys: str, label: str = "") -> Callable[[dict], StateDelta]:
@@ -197,7 +220,11 @@ class S:
             return StateDelta({})
 
         _log.__name__ = f"log_{'_'.join(keys) if keys else 'all'}"
-        return _log
+        return _annotate(
+            _log,
+            reads=frozenset(keys) if keys else None,
+            writes=frozenset(),
+        )
 
     @staticmethod
     def compute(**factories: Callable) -> Callable[[dict], StateDelta]:
@@ -213,7 +240,8 @@ class S:
             return StateDelta({k: fn(state) for k, fn in factories.items()})
 
         _compute.__name__ = f"compute_{'_'.join(factories.keys())}"
-        return _compute
+        # reads full state (opaque), writes the computed keys
+        return _annotate(_compute, reads=None, writes=frozenset(factories.keys()))
 
     @staticmethod
     def set(**values: Any) -> Callable[[dict], StateDelta]:
@@ -226,7 +254,8 @@ class S:
             return StateDelta(dict(values))
 
         _set.__name__ = f"set_{'_'.join(values.keys())}"
-        return _set
+        # reads nothing, writes the explicit keys
+        return _annotate(_set, reads=frozenset(), writes=frozenset(values.keys()))
 
     @staticmethod
     def capture(key: str) -> Callable[[dict], StateDelta]:
@@ -243,4 +272,4 @@ class S:
 
         _capture.__name__ = f"capture_{key}"
         _capture._capture_key = key
-        return _capture
+        return _annotate(_capture, reads=frozenset(), writes=frozenset({key}))

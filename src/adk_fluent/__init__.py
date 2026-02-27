@@ -351,6 +351,12 @@ __all__ = [
     "MockBackend",
     "AgentHarness",
     "HarnessResponse",
+    "diagnose",
+    "format_diagnosis",
+    "Diagnosis",
+    "AgentSummary",
+    "KeyFlow",
+    "ContractIssue",
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
@@ -438,3 +444,9 @@ from .testing import mock_backend
 from .testing import MockBackend
 from .testing import AgentHarness
 from .testing import HarnessResponse
+from .testing import diagnose
+from .testing import format_diagnosis
+from .testing import Diagnosis
+from .testing import AgentSummary
+from .testing import KeyFlow
+from .testing import ContractIssue

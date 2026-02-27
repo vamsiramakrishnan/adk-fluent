@@ -1045,6 +1045,33 @@ class BuilderBase:
             show_context=show_context,
         )
 
+    def diagnose(self):
+        """Return a structured Diagnosis of this builder's IR.
+
+        Returns a ``Diagnosis`` dataclass with ``agents``, ``data_flow``,
+        ``issues``, and ``topology`` fields.  Use ``.ok`` to check if
+        there are no errors.  Use ``.doctor()`` for a formatted report.
+
+        Raises NotImplementedError if this builder doesn't support IR.
+        """
+        from adk_fluent.testing.diagnosis import diagnose as _diagnose
+
+        return _diagnose(self.to_ir())
+
+    def doctor(self) -> str:
+        """Print a formatted diagnostic report and return the report text.
+
+        Combines agent summaries, data flow analysis, contract issues,
+        and Mermaid topology into a single readable report.
+        """
+        from adk_fluent.testing.diagnosis import diagnose as _diagnose
+        from adk_fluent.testing.diagnosis import format_diagnosis
+
+        diag = _diagnose(self.to_ir())
+        report = format_diagnosis(diag)
+        print(report)
+        return report
+
     def strict(self) -> Self:
         """Enable strict contract checking — build() raises ValueError on contract errors."""
         self._config["_check_mode"] = "strict"
@@ -1201,10 +1228,16 @@ class _FnStepBuilder(BuilderBase):
     def to_ir(self):
         from adk_fluent._ir import TransformNode
 
+        # Extract read/write metadata from annotated S.* callables
+        writes = getattr(self._fn, "_writes_keys", None)
+        reads = getattr(self._fn, "_reads_keys", None)
+
         return TransformNode(
             name=self._config.get("name", "fn_step"),
             fn=self._fn,
             semantics="merge",
+            affected_keys=writes,
+            reads_keys=reads,
         )
 
 

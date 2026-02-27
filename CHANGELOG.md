@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2026-02-27
+
+### Added
+
+- **Transform traceability**: All `S.*` state transform factories now carry `_reads_keys` and `_writes_keys` annotations, enabling the contract checker to trace data flow through `S.rename()`, `S.merge()`, `S.pick()`, etc.
+- **`reads_keys` on TransformNode**: IR `TransformNode` now stores which state keys a transform reads, allowing precise data-flow analysis across transform boundaries
+- **ParallelNode contract checking**: Detects `output_key` collisions and `writes_keys` overlaps between parallel branches (write isolation)
+- **LoopNode contract checking**: Validates loop body sequences using the same 11-pass analysis as `SequenceNode`
+- **Structured `.diagnose()` method**: Returns a `Diagnosis` dataclass with typed fields (`agents`, `data_flow`, `issues`, `topology`) for programmatic access to build-time analysis
+- **`.doctor()` method**: Prints a human-readable diagnostic report and returns the formatted string
+- **`format_diagnosis()` function**: Renders a `Diagnosis` into a formatted report with Agents, Data Flow, Issues, and Topology sections
+- **New dataclasses**: `Diagnosis`, `AgentSummary`, `KeyFlow`, `ContractIssue` — all exported from `adk_fluent` and `adk_fluent.testing`
+- **11-pass contract analysis**: Enhanced from 9 passes — adds transform-reads validation (Pass 10) and transform-writes tracing (integrated into Pass 2)
+- 36 new tests: transform tracing (11), parallel/loop contracts (9), diagnosis module (16)
+
+### Changed
+
+- Contract checker now dispatches by node type (`SequenceNode`, `ParallelNode`, `LoopNode`) instead of only handling sequences
+- `_FnStepBuilder.to_ir()` extracts `_reads_keys`/`_writes_keys` from annotated callables and stores them on `TransformNode`
+
+## [0.9.1] - 2026-02-27
+
+### Added
+
+- **`context_spec` preservation in IR**: `AgentNode` now carries the `CTransform` descriptor (e.g., `C.user_only()`, `C.window(n=3)`, `C.from_state()`) through to IR, enabling context-aware diagnostics
+- **Context-aware contract checking**: Passes 4 (channel duplication) and 6 (data loss) now consult `context_spec.include_contents` to avoid false positives when context is intentionally suppressed
+- **9-pass contract analysis**: Enhanced from 7 passes — adds dead-key detection (Pass 8) and type-compatibility checking (Pass 9)
+- **Rich `.explain()` output**: Rewritten to show model, instruction preview, template variables (required vs optional), data flow (reads/writes), context strategy, structured output, tools, callbacks, children, and inline contract issues with hints
+- **Data flow edges in Mermaid**: `to_mermaid(show_data_flow=True)` renders dotted arrows showing key flow between producers and consumers
+- **Context annotations in Mermaid**: `to_mermaid(show_context=True)` annotates nodes with their context strategy
+- 40 new tests: context_spec IR (8), enhanced contracts (12), rich explain (13), enhanced viz (7)
+
+### Changed
+
+- `.explain()` output format now uses structured sections with capitalized labels (e.g., "Model:", "Instruction:", "Template vars:")
+- `to_mermaid()` accepts new parameters: `show_contracts`, `show_data_flow`, `show_context`
+- `CaptureNode` gets distinctive `([capture])` shape in Mermaid diagrams
+
 ## [0.7.0] - 2026-02-25
 
 ### Added
@@ -188,3 +226,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.0...v0.5.1
 [0.5.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.1...v0.5.2
 [0.6.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.2...v0.6.0
+[0.7.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.6.0...v0.7.0
+[0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.7.0...v0.9.1
+[0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2

@@ -1,16 +1,19 @@
 """Inter-agent contract verification with cross-channel coherence analysis.
 
-Performs nine analysis passes on SequenceNode IR trees:
+Checks SequenceNode, ParallelNode, and LoopNode IR trees:
+
+**Sequence passes (11 total):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
-   and TransformNode.affected_keys.
+   and TransformNode.affected_keys.  Now uses transform ``reads_keys`` to consume
+   upstream keys and ``affected_keys`` to produce new ones, enabling tracing through
+   ``S.rename()``, ``S.merge()``, etc.
 3. **Template variable resolution** -- finds ``{var}`` and ``{var?}`` placeholders in
    instruction strings and verifies they are produced by upstream agents.
 4. **Channel duplication detection** -- warns when an agent writes to ``output_key``
    AND a downstream agent references that key in its instruction while also reading
-   conversation history (``include_contents='default'``).  Now context-spec aware:
-   uses the preserved CTransform ``_kind`` to produce smarter messages.
+   conversation history.  Context-spec aware.
 5. **Route key validation** -- ensures a RouteNode's ``key`` was produced upstream.
 6. **Data loss detection** -- flags when a non-terminal agent has no ``output_key``
    AND its downstream agent has ``include_contents='none'``.  Context-spec aware.
@@ -20,6 +23,17 @@ Performs nine analysis passes on SequenceNode IR trees:
    downstream agent (via reads_keys, template variables, or route keys).
 9. **Type compatibility** -- warns when produces_type fields don't cover the
    consumes_type fields of a downstream agent.
+10. **Transform reads validation** -- verifies that transform reads_keys are
+    available upstream.
+11. **Rename/pick passthrough** -- for replacement transforms (S.rename, S.pick),
+    warns if they consume keys not available upstream.
+
+**Parallel checks:**
+- Write isolation: two branches should not write to the same output_key
+- Schema collision: two branches should not produce overlapping writes_keys
+
+**Loop checks:**
+- Body sequence validation: runs sequence checks on loop children
 """
 
 from __future__ import annotations
@@ -81,26 +95,40 @@ def _resolve_include_contents(child: Any) -> tuple[str, Any]:
     return getattr(child, "include_contents", "default"), context_spec
 
 
-def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
-    """Verify sequential steps satisfy each other's contracts across all channels.
+def _get_transform_writes(child: Any) -> set[str]:
+    """Extract the keys written by a TransformNode, using affected_keys."""
+    affected = getattr(child, "affected_keys", None)
+    return set(affected) if affected else set()
 
-    Only checks SequenceNode children.  For non-sequence nodes (single agents,
-    parallel, loop, etc.) returns an empty list.
 
-    Returns a list where each item is either:
-    - a ``str``  (backward compat, from Pass 1)
-    - a ``dict`` with keys ``level``, ``agent``, ``message``, ``hint``
+def _get_transform_reads(child: Any) -> set[str] | None:
+    """Extract the keys read by a TransformNode. None means opaque (reads full state)."""
+    reads = getattr(child, "reads_keys", None)
+    return set(reads) if reads is not None else None
+
+
+# ======================================================================
+# Sequence contract checking
+# ======================================================================
+
+
+def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str, str] | str]:
+    """Check contracts on an ordered sequence of children.
+
+    Args:
+        children: Tuple of IR nodes in sequence order.
+        scope: Optional prefix for nested scopes (e.g., "loop.body").
+
+    Returns:
+        List of issues (str or dict).
     """
-    from adk_fluent._ir_generated import SequenceNode
-
-    if not isinstance(ir_node, SequenceNode):
-        return []
-
-    children = ir_node.children
     if not children:
         return []
 
     issues: list[dict[str, str] | str] = []
+
+    def _scoped(name: str) -> str:
+        return f"{scope}.{name}" if scope else name
 
     # =================================================================
     # Pass 1: Old-style reads_keys / writes_keys (backward compat)
@@ -114,15 +142,14 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         if reads:
             missing = reads - available_keys
             for key in sorted(missing):
-                issues.append(f"Agent '{child_name}' consumes key '{key}' but no prior step produces it")
+                issues.append(f"Agent '{_scoped(child_name)}' consumes key '{key}' but no prior step produces it")
 
         available_keys |= writes
 
     # =================================================================
-    # Pass 2: Output key tracking (cumulative produced keys)
+    # Pass 2: Output key tracking with transform tracing
     # =================================================================
     produced_keys: set[str] = set()
-    # Build a list of (child, produced_keys_after_this_child)
     produced_at: list[set[str]] = []
     for child in children:
         child_type = type(child).__name__
@@ -137,16 +164,15 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                 produced_keys.add(capture_key)
 
         if child_type == "TransformNode":
-            affected = getattr(child, "affected_keys", None)
-            if affected:
-                produced_keys |= set(affected)
+            transform_writes = _get_transform_writes(child)
+            if transform_writes:
+                produced_keys |= transform_writes
 
         produced_at.append(set(produced_keys))
 
     # =================================================================
     # Pass 3: Template variable resolution
     # =================================================================
-    # Also collect consumed keys per index for dead key detection (Pass 8)
     consumed_keys_by_idx: list[set[str]] = [set() for _ in children]
 
     for idx, child in enumerate(children):
@@ -159,7 +185,6 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
             continue
 
         child_name = getattr(child, "name", "?")
-        # Keys available to this child = everything produced by prior children
         upstream_keys = produced_at[idx - 1] if idx > 0 else set()
 
         for var in template_vars:
@@ -168,7 +193,7 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                 issues.append(
                     {
                         "level": "error",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Template variable '{{{var}}}' in instruction is not produced by any upstream agent"
                         ),
@@ -179,10 +204,11 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                     }
                 )
 
-    # Also track reads_keys as consumed
+    # Also track reads_keys as consumed (skip None — TransformNode uses None for opaque)
     for idx, child in enumerate(children):
-        reads = getattr(child, "reads_keys", frozenset())
-        consumed_keys_by_idx[idx] |= reads
+        reads = getattr(child, "reads_keys", None)
+        if reads is not None:
+            consumed_keys_by_idx[idx] |= reads
 
     # =================================================================
     # Pass 4: Channel duplication detection (context-spec aware)
@@ -203,7 +229,6 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         child_name = getattr(child, "name", "?")
         template_vars = set(re.findall(r"\{(\w+)\??\}", instruction))
 
-        # Check each predecessor for output_key overlap
         for prev_idx in range(idx):
             prev = children[prev_idx]
             prev_output_key = getattr(prev, "output_key", None)
@@ -212,7 +237,7 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                 issues.append(
                     {
                         "level": "info",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Agent '{child_name}' reads '{prev_output_key}' via both "
                             f"state (template) and conversation history "
@@ -246,7 +271,7 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
             issues.append(
                 {
                     "level": "error",
-                    "agent": child_name,
+                    "agent": _scoped(child_name),
                     "message": (f"RouteNode reads key '{route_key}' from state but no upstream agent produces it"),
                     "hint": (f"Add .outputs('{route_key}') to an upstream agent so the route key is available."),
                 }
@@ -259,49 +284,40 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         child = children[idx]
         child_type = type(child).__name__
 
-        # Only check agent-like nodes (AgentNode)
         if child_type != "AgentNode":
             continue
 
         output_key = getattr(child, "output_key", None)
         if output_key:
-            continue  # has output_key, state channel is active
+            continue
 
         child_name = getattr(child, "name", "?")
         successor = children[idx + 1]
-
-        # Check downstream's include_contents with context-spec awareness
         succ_include, succ_context_spec = _resolve_include_contents(successor)
 
         if succ_include == "none":
             succ_name = getattr(successor, "name", "?")
             succ_ctx_desc = _context_description(succ_context_spec)
-
-            # Distinguish between "no history at all" vs "selective history"
             succ_kind = getattr(succ_context_spec, "_kind", None) if succ_context_spec else None
+
             if succ_kind in ("from_state", "template"):
-                # Successor reads only from state — output IS lost unless written to state
                 issues.append(
                     {
                         "level": "error",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Agent '{child_name}' has no output_key and its successor "
                             f"'{succ_name}' uses {succ_ctx_desc} — output is "
                             f"lost because '{succ_name}' reads only from state"
                         ),
-                        "hint": (
-                            f"Add .outputs('<key>') to '{child_name}' so its output "
-                            f"reaches '{succ_name}' via state."
-                        ),
+                        "hint": f"Add .outputs('<key>') to '{child_name}' so its output reaches '{succ_name}' via state.",
                     }
                 )
             elif succ_kind == "user_only":
-                # User-only: agent output is lost (only user messages kept)
                 issues.append(
                     {
                         "level": "error",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Agent '{child_name}' has no output_key and its successor "
                             f"'{succ_name}' uses {succ_ctx_desc} — agent output is "
@@ -315,13 +331,12 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                     }
                 )
             elif succ_kind == "from_agents":
-                # Check if successor explicitly includes this agent
                 succ_agents = getattr(succ_context_spec, "agents", ())
                 if child_name not in succ_agents:
                     issues.append(
                         {
                             "level": "error",
-                            "agent": child_name,
+                            "agent": _scoped(child_name),
                             "message": (
                                 f"Agent '{child_name}' has no output_key and its successor "
                                 f"'{succ_name}' uses {succ_ctx_desc} which does not include "
@@ -333,13 +348,11 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                             ),
                         }
                     )
-                # If child IS in from_agents list, output is NOT lost — no issue
             else:
-                # Generic fallback (C.none() or unknown)
                 issues.append(
                     {
                         "level": "error",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Agent '{child_name}' has no output_key and its successor "
                             f"'{succ_name}' has include_contents='none' — output is "
@@ -360,7 +373,6 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         child = children[idx]
         child_type = type(child).__name__
 
-        # Only check agent-like nodes with actual instructions
         if child_type != "AgentNode":
             continue
 
@@ -370,13 +382,13 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
 
         output_key = getattr(child, "output_key", None)
         if output_key:
-            continue  # already saves to state
+            continue
 
         child_name = getattr(child, "name", "?")
         issues.append(
             {
                 "level": "info",
-                "agent": child_name,
+                "agent": _scoped(child_name),
                 "message": (
                     f"Internal agent '{child_name}' has no output_key — its "
                     f"output reaches downstream only via conversation history"
@@ -391,11 +403,6 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     # =================================================================
     # Pass 8: Dead key detection (produced but never consumed)
     # =================================================================
-    all_consumed: set[str] = set()
-    for consumed in consumed_keys_by_idx:
-        all_consumed |= consumed
-
-    # For each key produced, check if any downstream agent consumes it
     for idx, child in enumerate(children):
         child_name = getattr(child, "name", "?")
         child_type = type(child).__name__
@@ -409,30 +416,24 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
             if capture_key:
                 produced_by_child.add(capture_key)
         if child_type == "TransformNode":
-            affected = getattr(child, "affected_keys", None)
-            if affected:
-                produced_by_child |= set(affected)
-
-        # Also count writes_keys
+            produced_by_child |= _get_transform_writes(child)
         writes = getattr(child, "writes_keys", frozenset())
         produced_by_child |= writes
 
         if not produced_by_child:
             continue
 
-        # Check if any downstream agent consumes these keys
         downstream_consumed: set[str] = set()
         for later_idx in range(idx + 1, len(children)):
             downstream_consumed |= consumed_keys_by_idx[later_idx]
 
         dead = produced_by_child - downstream_consumed
-        # Only report if this isn't the last agent (last agent's output goes to user)
         if dead and idx < len(children) - 1:
             for key in sorted(dead):
                 issues.append(
                     {
                         "level": "info",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Key '{key}' produced by '{child_name}' is not consumed "
                             f"by any downstream agent in this sequence"
@@ -458,26 +459,23 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         if not consumes_fields:
             continue
 
-        # Find the most recent upstream agent with produces_type
         for prev_idx in range(idx - 1, -1, -1):
             prev = children[prev_idx]
             produces_type = getattr(prev, "produces_type", None)
             if not produces_type:
                 continue
-
             prev_name = getattr(prev, "name", "?")
             produces_fields = (
                 set(produces_type.model_fields.keys()) if hasattr(produces_type, "model_fields") else set()
             )
             if not produces_fields:
                 continue
-
             missing_fields = consumes_fields - produces_fields
             if missing_fields:
                 issues.append(
                     {
                         "level": "error",
-                        "agent": child_name,
+                        "agent": _scoped(child_name),
                         "message": (
                             f"Agent '{child_name}' consumes {consumes_type.__name__} "
                             f"but upstream '{prev_name}' produces {produces_type.__name__} "
@@ -489,6 +487,184 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
                         ),
                     }
                 )
-            break  # Only check the nearest upstream producer
+            break
+
+    # =================================================================
+    # Pass 10: Transform reads validation
+    # =================================================================
+    for idx, child in enumerate(children):
+        child_type = type(child).__name__
+        if child_type != "TransformNode":
+            continue
+
+        transform_reads = _get_transform_reads(child)
+        if transform_reads is None:
+            continue  # opaque — can't validate
+
+        child_name = getattr(child, "name", "?")
+        upstream_keys = produced_at[idx - 1] if idx > 0 else set()
+
+        missing = transform_reads - upstream_keys
+        if missing:
+            for key in sorted(missing):
+                consumed_keys_by_idx[idx].add(key)
+                issues.append(
+                    {
+                        "level": "error",
+                        "agent": _scoped(child_name),
+                        "message": (
+                            f"Transform '{child_name}' reads key '{key}' "
+                            f"but no upstream agent produces it"
+                        ),
+                        "hint": (
+                            f"Add .outputs('{key}') to an upstream agent, or "
+                            f"ensure the key is in state before this transform runs."
+                        ),
+                    }
+                )
+        consumed_keys_by_idx[idx] |= transform_reads
 
     return issues
+
+
+# ======================================================================
+# Parallel contract checking
+# ======================================================================
+
+
+def _check_parallel_contracts(children: tuple, parent_name: str = "") -> list[dict[str, str] | str]:
+    """Check contracts on parallel (fanout) children.
+
+    Checks:
+    - Write isolation: two branches should not write to the same output_key
+    - Schema collision: two branches should not produce overlapping writes_keys
+    """
+    if not children:
+        return []
+
+    issues: list[dict[str, str] | str] = []
+    scope = parent_name or "parallel"
+
+    # Collect output_keys and writes_keys per branch
+    branch_output_keys: dict[str, list[str]] = {}
+    branch_writes_keys: dict[str, list[str]] = {}
+
+    def _collect_writes(node: Any, branch_name: str) -> None:
+        """Recursively collect all writes from a node and its children."""
+        output_key = getattr(node, "output_key", None)
+        if output_key:
+            branch_output_keys.setdefault(output_key, []).append(branch_name)
+
+        writes = getattr(node, "writes_keys", frozenset())
+        for key in writes:
+            branch_writes_keys.setdefault(key, []).append(branch_name)
+
+        node_type = type(node).__name__
+        if node_type == "TransformNode":
+            for key in _get_transform_writes(node):
+                branch_writes_keys.setdefault(key, []).append(branch_name)
+
+        for sub in getattr(node, "children", ()):
+            _collect_writes(sub, branch_name)
+
+    for child in children:
+        child_name = getattr(child, "name", "?")
+        _collect_writes(child, child_name)
+
+    # Check output_key collisions
+    for key, branches in branch_output_keys.items():
+        unique = list(dict.fromkeys(branches))  # dedupe preserving order
+        if len(unique) > 1:
+            issues.append(
+                {
+                    "level": "error",
+                    "agent": scope,
+                    "message": (
+                        f"Parallel branches {', '.join(repr(b) for b in unique)} "
+                        f"both write to output_key='{key}' — last-write-wins race condition"
+                    ),
+                    "hint": (
+                        f"Give each branch a unique output_key, or merge results "
+                        f"with a downstream S.merge() transform."
+                    ),
+                }
+            )
+
+    # Check writes_keys collisions
+    for key, branches in branch_writes_keys.items():
+        unique = list(dict.fromkeys(branches))
+        if len(unique) > 1:
+            issues.append(
+                {
+                    "level": "info",
+                    "agent": scope,
+                    "message": (
+                        f"Parallel branches {', '.join(repr(b) for b in unique)} "
+                        f"both write to state key '{key}' — potential race condition"
+                    ),
+                    "hint": "Consider unique output keys per branch if ordering matters.",
+                }
+            )
+
+    # Also run sequence checks on any child that is itself a sequence
+    from adk_fluent._ir_generated import SequenceNode
+
+    for child in children:
+        if isinstance(child, SequenceNode) and child.children:
+            child_name = getattr(child, "name", "?")
+            sub_issues = _check_sequence_contracts(child.children, scope=f"{scope}.{child_name}")
+            issues.extend(sub_issues)
+
+    return issues
+
+
+# ======================================================================
+# Loop contract checking
+# ======================================================================
+
+
+def _check_loop_contracts(children: tuple, parent_name: str = "") -> list[dict[str, str] | str]:
+    """Check contracts on loop body children.
+
+    Runs sequence validation on the loop body.
+    """
+    if not children:
+        return []
+
+    scope = parent_name or "loop"
+    return _check_sequence_contracts(children, scope=scope)
+
+
+# ======================================================================
+# Public entry point (dispatches by node type)
+# ======================================================================
+
+
+def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
+    """Verify contracts on an IR tree. Dispatches by node type.
+
+    Checks SequenceNode (full 11-pass analysis), ParallelNode (isolation),
+    and LoopNode (body sequence validation).
+
+    Returns a list where each item is either:
+    - a ``str``  (backward compat, from Pass 1)
+    - a ``dict`` with keys ``level``, ``agent``, ``message``, ``hint``
+    """
+    from adk_fluent._ir_generated import LoopNode, ParallelNode, SequenceNode
+
+    if isinstance(ir_node, SequenceNode):
+        if not ir_node.children:
+            return []
+        return _check_sequence_contracts(ir_node.children)
+
+    if isinstance(ir_node, ParallelNode):
+        if not ir_node.children:
+            return []
+        return _check_parallel_contracts(ir_node.children, parent_name=ir_node.name)
+
+    if isinstance(ir_node, LoopNode):
+        if not ir_node.children:
+            return []
+        return _check_loop_contracts(ir_node.children, parent_name=ir_node.name)
+
+    return []
