@@ -4,28 +4,8 @@
 
 _Source: `32_fallback_operator.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1{"case_law_db_or_statute_search_and_reg_db_or_federal_register (parallel)"}
-    n2["case_law_db_or_statute_search"]
-    n3["case_law_db"]
-    n4["statute_search"]
-    n5["reg_db_or_federal_register"]
-    n6["reg_db"]
-    n7["federal_register"]
-    n2 --> n3
-    n2 --> n4
-    n1 --> n2
-    n5 --> n6
-    n5 --> n7
-    n1 --> n5
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in fallback mechanism. You'd need:
 #   1. Custom BaseAgent subclass with try/except logic
@@ -33,10 +13,8 @@ graph TD
 #   3. Manual error handling and re-delegation
 # This is ~30 lines per fallback chain.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._base import _FallbackBuilder
@@ -93,7 +71,6 @@ fallback_with_default = Agent("primary_search").model("gemini-2.5-flash").instru
     lambda s: {"result": "No results found. Please contact support."}
 )
 ```
-
 :::
 ::::
 

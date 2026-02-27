@@ -1,6 +1,6 @@
 # Travel Planner with Weather and Flight Lookup -- Agent with Tools
 
-Demonstrates attaching function tools to an agent. The scenario:
+Demonstrates attaching function tools to an agent.  The scenario:
 a travel planning assistant that can look up weather forecasts and
 search for flights to help users plan trips.
 
@@ -8,9 +8,8 @@ search for flights to help users plan trips.
 
 _Source: `02_agent_with_tools.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -36,10 +35,8 @@ agent_native = LlmAgent(
     tools=[check_weather, search_flights],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -56,7 +53,6 @@ agent_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 
@@ -68,6 +64,6 @@ assert agent_native.name == agent_fluent.name
 assert len(agent_fluent.tools) == 2
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

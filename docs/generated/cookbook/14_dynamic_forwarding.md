@@ -4,9 +4,8 @@
 
 _Source: `14_dynamic_forwarding.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -21,10 +20,8 @@ agent_native = LlmAgent(
     include_contents="none",
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -40,7 +37,6 @@ agent_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 

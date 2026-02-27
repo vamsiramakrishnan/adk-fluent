@@ -4,9 +4,8 @@
 
 _Source: `47_dependency_injection.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 import functools
 
@@ -28,10 +27,8 @@ agent_native = LlmAgent(
     tools=[functools.partial(query_patient_records_native, db_connection="prod_ehr_db")],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 import inspect
 
@@ -75,7 +72,6 @@ dev_agent = (
     .inject(db_connection="dev_mock_db")
 )
 ```
-
 :::
 ::::
 

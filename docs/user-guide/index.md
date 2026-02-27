@@ -20,5 +20,6 @@ memory
 ir-and-backends
 middleware
 testing
+error-reference
 adk-samples/index
 ```

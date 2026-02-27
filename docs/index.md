@@ -53,6 +53,14 @@ generated/cookbook/index
 
 ```{toctree}
 ---
+maxdepth: 2
+caption: Examples
+---
+runnable-examples
+```
+
+```{toctree}
+---
 maxdepth: 1
 caption: Migration
 ---

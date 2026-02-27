@@ -1,6 +1,6 @@
 # Market Research Fan-Out -- Parallel FanOut
 
-Demonstrates a ParallelAgent that runs branches concurrently. The
+Demonstrates a ParallelAgent that runs branches concurrently.  The
 scenario: a market research system that simultaneously gathers
 intelligence from web sources, academic papers, and social media
 to produce a comprehensive competitive analysis.
@@ -9,22 +9,8 @@ to produce a comprehensive competitive analysis.
 
 _Source: `05_parallel_fanout.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1{"market_research (parallel)"}
-    n2["web_analyst"]
-    n3["academic_analyst"]
-    n4["social_analyst"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.parallel_agent import ParallelAgent
@@ -57,10 +43,8 @@ fanout_native = ParallelAgent(
     ],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, FanOut
 
@@ -87,7 +71,6 @@ fanout_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 
@@ -101,6 +84,6 @@ assert fanout_fluent.sub_agents[1].name == "academic_analyst"
 assert fanout_fluent.sub_agents[2].name == "social_analyst"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FanOut](../api/workflow.md#builder-FanOut)
 :::

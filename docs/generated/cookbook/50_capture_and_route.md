@@ -4,27 +4,8 @@
 
 _Source: `50_capture_and_route.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["capture_ticket_then_triage_routed (sequence)"]]
-    n2["capture_ticket"]
-    n3["triage"]
-    n4{"route_priority (route)"}
-    n5["incident_commander"]
-    n6["senior_support"]
-    n7["support_bot"]
-    n4 --> n5
-    n4 --> n6
-    n4 -.-> n7
-    n2 --> n3
-    n3 --> n4
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # In native ADK, capturing the user's message into state for downstream
 # agents requires writing a custom BaseAgent subclass:
@@ -39,10 +20,8 @@ graph TD
 # Then manually wiring it as the first step in a SequentialAgent.
 # Route-based dispatch requires another custom agent with if/elif logic.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S
 from adk_fluent._routing import Route
@@ -61,7 +40,7 @@ helpdesk = (
         "Ticket: {ticket}\n"
         "Output the priority level: p1, p2, or p3."
     )
-    .outputs("priority")
+    .save_as("priority")
     >> Route("priority")
     .eq(
         "p1",
@@ -90,7 +69,6 @@ contract_errors = [i for i in issues if isinstance(i, dict) and i.get("level") =
 
 built = helpdesk.build()
 ```
-
 :::
 ::::
 

@@ -4,23 +4,8 @@
 
 _Source: `41_gate_approval.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["contract_drafter_then_gate_3_then_risk_disclosures_then_gate_4 (sequence)"]]
-    n2["contract_drafter"]
-    n3{{"gate_3 (gate)"}}
-    n4["risk_disclosures"]
-    n5{{"gate_4 (gate)"}}
-    n2 --> n3
-    n3 --> n4
-    n4 --> n5
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires a custom BaseAgent with EventActions(escalate=True)
 # to pause a pipeline for human approval:
@@ -45,10 +30,8 @@ graph TD
 #
 # This is ~25 lines of boilerplate per approval gate.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, gate
 
@@ -60,7 +43,7 @@ contract_pipeline = (
     Agent("clause_analyzer")
     .model("gemini-2.5-flash")
     .instruct("Analyze the contract clauses and assess liability risk level.")
-    .outputs("liability_risk")
+    .save_as("liability_risk")
     >> gate(
         lambda s: s.get("liability_risk") == "high",
         message="High liability risk detected. Senior counsel approval required before proceeding.",
@@ -97,7 +80,6 @@ multi_stage_review = (
     )
 )
 ```
-
 :::
 ::::
 

@@ -4,23 +4,8 @@
 
 _Source: `51_visibility_policies.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["drafter_then_fact_checker_then_compliance_then_publisher (sequence)"]]
-    n2["drafter"]
-    n3["fact_checker"]
-    n4["compliance"]
-    n5["publisher"]
-    n2 --> n3
-    n3 --> n4
-    n4 --> n5
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # In native ADK, a 4-agent content pipeline (draft → fact-check →
 # compliance → publish) sends all intermediate outputs to the user.
@@ -28,10 +13,8 @@ graph TD
 # the compliance report — when they only want the final published version.
 # There's no built-in way to suppress intermediate events.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 from adk_fluent._visibility import infer_visibility
@@ -91,7 +74,6 @@ prod_pipeline.filtered()
 compliance_agent = Agent("compliance").model(MODEL).instruct("Review.").show()
 cleanup_agent = Agent("cleanup").model(MODEL).instruct("Clean up.").hide()
 ```
-
 :::
 ::::
 

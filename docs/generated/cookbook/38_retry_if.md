@@ -4,20 +4,8 @@
 
 _Source: `38_retry_if.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1(("charge_agent_then_verification_agent_x5 (loop x5)"))
-    n2["charge_agent"]
-    n3["verification_agent"]
-    n1 --> n2
-    n1 --> n3
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in conditional retry. You'd need to:
 #   1. Wrap the agent in a LoopAgent
@@ -26,10 +14,8 @@ graph TD
 # For a payment gateway integration, this means 30+ lines of boilerplate
 # just to handle transient 503 errors.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -44,7 +30,7 @@ payment_processor = (
     .instruct(
         "Process the payment through the gateway. Report status as 'success', 'transient_error', or 'permanent_error'."
     )
-    .outputs("payment_status")
+    .save_as("payment_status")
     .retry_if(lambda s: s.get("payment_status") == "transient_error", max_retries=3)
 )
 
@@ -53,11 +39,11 @@ charge_and_verify = (
     Agent("charge_agent")
     .model("gemini-2.5-flash")
     .instruct("Submit charge to payment gateway.")
-    .outputs("charge_result")
+    .save_as("charge_result")
     >> Agent("verification_agent")
     .model("gemini-2.5-flash")
     .instruct("Verify the charge was recorded by the bank.")
-    .outputs("verified")
+    .save_as("verified")
 ).retry_if(lambda s: s.get("verified") != "confirmed", max_retries=5)
 
 # Equivalence: retry_if(p) == loop_until(not p)
@@ -73,7 +59,6 @@ via_loop = (
     .loop_until(lambda s: s.get("sync_status") == "complete", max_iterations=4)
 )
 ```
-
 :::
 ::::
 

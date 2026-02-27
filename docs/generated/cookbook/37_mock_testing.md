@@ -4,21 +4,8 @@
 
 _Source: `37_mock_testing.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["kyc_verifier_then_risk_assessor_then_account_provisioner (sequence)"]]
-    n2["kyc_verifier"]
-    n3["risk_assessor"]
-    n4["account_provisioner"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK uses before_model_callback to bypass the LLM during tests:
 #
@@ -42,10 +29,8 @@ graph TD
 # For a multi-step onboarding pipeline, you'd need one callback per agent,
 # making test setup verbose and fragile.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -59,7 +44,7 @@ kyc_verifier = (
     Agent("kyc_verifier")
     .model("gemini-2.5-flash")
     .instruct("Verify the customer's identity documents and return approval status.")
-    .outputs("kyc_status")
+    .save_as("kyc_status")
     .mock(["KYC: approved", "KYC: pending review"])
 )
 
@@ -68,7 +53,7 @@ risk_assessor = (
     Agent("risk_assessor")
     .model("gemini-2.5-flash")
     .instruct("Evaluate the customer's financial risk profile.")
-    .outputs("risk_level")
+    .save_as("risk_level")
     .mock(lambda req: "risk_level: low")
 )
 
@@ -78,13 +63,12 @@ account_provisioner = (
     .model("gemini-2.5-flash")
     .mock(["Account ACT-10042 created successfully."])
     .instruct("Provision a new bank account for the approved customer.")
-    .outputs("account_id")
+    .save_as("account_id")
 )
 
 # Full onboarding pipeline with all agents mocked for integration testing
 onboarding_pipeline = kyc_verifier >> risk_assessor >> account_provisioner
 ```
-
 :::
 ::::
 
