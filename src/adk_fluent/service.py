@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
 from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
@@ -24,6 +24,9 @@ from google.adk.tools._forwarding_artifact_service import ForwardingArtifactServ
 
 from adk_fluent._base import BuilderBase
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
 
 class BaseArtifactService(BuilderBase):
     """Abstract base class for artifact services."""
@@ -31,7 +34,7 @@ class BaseArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -52,7 +55,7 @@ class FileArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"root_dir"}
+    _KNOWN_PARAMS: set[str] | None = {"root_dir"}
 
     def __init__(self, root_dir: str) -> None:
         self._config: dict[str, Any] = {"root_dir": root_dir}
@@ -73,7 +76,7 @@ class GcsArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"bucket_name"}
+    _KNOWN_PARAMS: set[str] | None = {"bucket_name"}
 
     def __init__(self, bucket_name: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"bucket_name": bucket_name, "kwargs": kwargs}
@@ -102,7 +105,7 @@ class InMemoryArtifactService(BuilderBase):
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
 
-    def artifacts(self, value: dict[str, list[_ArtifactEntry]]) -> Self:
+    def artifacts(self, value: dict[str, list[Any]]) -> Self:
         """Set the ``artifacts`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["artifacts"] = value
@@ -121,7 +124,7 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"app_name_to_dir", "agents_root"}
+    _KNOWN_PARAMS: set[str] | None = {"app_name_to_dir", "agents_root"}
 
     def __init__(self, agents_root: str) -> None:
         self._config: dict[str, Any] = {"agents_root": agents_root}
@@ -148,7 +151,7 @@ class BaseMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -169,7 +172,7 @@ class InMemoryMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -190,7 +193,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"location", "agent_engine_id", "project", "express_mode_api_key"}
+    _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "project", "location"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -235,7 +238,7 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"rag_corpus", "vector_distance_threshold", "similarity_top_k"}
+    _KNOWN_PARAMS: set[str] | None = {"rag_corpus", "vector_distance_threshold", "similarity_top_k"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -274,7 +277,7 @@ class BaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -295,7 +298,7 @@ class DatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"db_url"}
+    _KNOWN_PARAMS: set[str] | None = {"db_url"}
 
     def __init__(self, db_url: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"db_url": db_url, "kwargs": kwargs}
@@ -316,7 +319,7 @@ class InMemorySessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -337,7 +340,7 @@ class SqliteSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"db_path"}
+    _KNOWN_PARAMS: set[str] | None = {"db_path"}
 
     def __init__(self, db_path: str) -> None:
         self._config: dict[str, Any] = {"db_path": db_path}
@@ -358,7 +361,7 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"location", "agent_engine_id", "project", "express_mode_api_key"}
+    _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "project", "location"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -403,7 +406,7 @@ class ForwardingArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_context"}
+    _KNOWN_PARAMS: set[str] | None = {"tool_context"}
 
     def __init__(self, tool_context: str) -> None:
         self._config: dict[str, Any] = {"tool_context": tool_context}

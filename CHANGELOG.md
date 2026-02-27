@@ -5,21 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2026-02-27
+
+### Added
+
+- **Transform traceability**: All `S.*` state transform factories now carry `_reads_keys` and `_writes_keys` annotations, enabling the contract checker to trace data flow through `S.rename()`, `S.merge()`, `S.pick()`, etc.
+- **`reads_keys` on TransformNode**: IR `TransformNode` now stores which state keys a transform reads, allowing precise data-flow analysis across transform boundaries
+- **ParallelNode contract checking**: Detects `output_key` collisions and `writes_keys` overlaps between parallel branches (write isolation)
+- **LoopNode contract checking**: Validates loop body sequences using the same 11-pass analysis as `SequenceNode`
+- **Structured `.diagnose()` method**: Returns a `Diagnosis` dataclass with typed fields (`agents`, `data_flow`, `issues`, `topology`) for programmatic access to build-time analysis
+- **`.doctor()` method**: Prints a human-readable diagnostic report and returns the formatted string
+- **`format_diagnosis()` function**: Renders a `Diagnosis` into a formatted report with Agents, Data Flow, Issues, and Topology sections
+- **New dataclasses**: `Diagnosis`, `AgentSummary`, `KeyFlow`, `ContractIssue` — all exported from `adk_fluent` and `adk_fluent.testing`
+- **11-pass contract analysis**: Enhanced from 9 passes — adds transform-reads validation (Pass 10) and transform-writes tracing (integrated into Pass 2)
+- 36 new tests: transform tracing (11), parallel/loop contracts (9), diagnosis module (16)
+
+### Changed
+
+- Contract checker now dispatches by node type (`SequenceNode`, `ParallelNode`, `LoopNode`) instead of only handling sequences
+- `_FnStepBuilder.to_ir()` extracts `_reads_keys`/`_writes_keys` from annotated callables and stores them on `TransformNode`
+
 ## [0.9.1] - 2026-02-27
 
 ### Added
 
+- **`context_spec` preservation in IR**: `AgentNode` now carries the `CTransform` descriptor (e.g., `C.user_only()`, `C.window(n=3)`, `C.from_state()`) through to IR, enabling context-aware diagnostics
+- **Context-aware contract checking**: Passes 4 (channel duplication) and 6 (data loss) now consult `context_spec.include_contents` to avoid false positives when context is intentionally suppressed
+- **9-pass contract analysis**: Enhanced from 7 passes — adds dead-key detection (Pass 8) and type-compatibility checking (Pass 9)
+- **Rich `.explain()` output**: Rewritten to show model, instruction preview, template variables (required vs optional), data flow (reads/writes), context strategy, structured output, tools, callbacks, children, and inline contract issues with hints
+- **Data flow edges in Mermaid**: `to_mermaid(show_data_flow=True)` renders dotted arrows showing key flow between producers and consumers
+- **Context annotations in Mermaid**: `to_mermaid(show_context=True)` annotates nodes with their context strategy
 - **Copy-on-Write frozen builders** (#7): Composition operators (`>>`, `|`, `*`, `@`, `//`) and `to_app()` now freeze the builder; subsequent mutations automatically fork a new clone. Backwards compatible — unfrozen chains still mutate in place.
 - **`__dir__` override** (#8): `dir(Agent("x"))` now includes all fluent method names (aliases, callbacks, ADK model fields) for REPL/IDE autocomplete.
 - **`BuilderError` exception** (#9): `.build()` failures now raise a structured `BuilderError` with per-field error messages instead of raw 30-line pydantic tracebacks. Exported from `adk_fluent`.
 - **`.native(fn)` escape hatch** (#10): Register post-build hooks that receive the raw ADK object, allowing direct mutation without abstraction lock-in. Multiple hooks chain in order.
-- **Rich `.explain()` output** (#11): `explain()` now renders a box-drawing tree via `rich` when installed, with plain-text fallback. New `inspect()` method shows full config values. `rich` added as optional dependency (`pip install adk-fluent[rich]`).
 - **`adk-fluent visualize` CLI** (#12): New CLI tool renders any builder as a Mermaid diagram. Supports `--format html|mermaid`, `--var`, `--output`, and auto-detection of BuilderBase instances in a module.
 - **Autocomplete stress tests** (#13): Pyright subprocess tests verify type resolution for chained methods, `.build()` return type, unknown method errors, and operator result types.
 - **`typecheck-core` target** (#18): New justfile target runs pyright on hand-written code only. CI now runs both stub and core type checking.
+- 40 new tests: context_spec IR (8), enhanced contracts (12), rich explain (13), enhanced viz (7)
 
 ### Changed
 
+- `.explain()` output format now uses structured sections with capitalized labels (e.g., "Model:", "Instruction:", "Template vars:")
+- `to_mermaid()` accepts new parameters: `show_contracts`, `show_data_flow`, `show_context`
+- `CaptureNode` gets distinctive `([capture])` shape in Mermaid diagrams
 - **Pyright config** (#18): `[tool.pyright]` now includes only hand-written modules and excludes generated files to eliminate false positives.
 - **Code IR**: New `ForkAndAssign` statement node emits copy-on-write guards in all generated setter methods.
 - **CI pipeline**: Added `typecheck-core` step and cookbook test run to `.github/workflows/ci.yml`.
@@ -237,3 +266,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.6.0...v0.7.0
 [0.8.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.7.0...v0.8.0
 [0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.8.0...v0.9.1
+[0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2

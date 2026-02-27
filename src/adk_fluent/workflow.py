@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.loop_agent import LoopAgent
 from google.adk.agents.parallel_agent import ParallelAgent
@@ -12,13 +12,16 @@ from google.adk.agents.sequential_agent import SequentialAgent
 
 from adk_fluent._base import BuilderBase
 
+if TYPE_CHECKING:
+    from google.adk.agents.base_agent import BaseAgent
+
 
 class Loop(BuilderBase):
     """A shell agent that run its sub-agents in a loop."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = LoopAgent
 
     def __init__(self, name: str) -> None:
@@ -103,7 +106,7 @@ class FanOut(BuilderBase):
 
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = ParallelAgent
 
     def __init__(self, name: str) -> None:
@@ -182,7 +185,7 @@ class Pipeline(BuilderBase):
 
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = SequentialAgent
 
     def __init__(self, name: str) -> None:

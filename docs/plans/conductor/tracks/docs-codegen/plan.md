@@ -6,7 +6,7 @@ The user wants to elevate the documentation and `README.md` to world-class OSS s
 
 The goal is also to innovate on the `README.md` to make it visually wonderful and functionally bulletproof.
 
-## [DONE] Phase 1: Dynamic README Generation
+## \[DONE\] Phase 1: Dynamic README Generation
 
 Currently, the `README.md` is static. We will convert it into an auto-generated artifact driven by the codegen pipeline.
 
@@ -17,7 +17,7 @@ Currently, the `README.md` is static. We will convert it into an auto-generated 
   - Automatically generate and inject a `Mermaid` architecture diagram using the library's `.to_mermaid()` capability on a sample pipeline.
 - **Hook into `justfile`**: Add `python scripts/readme_generator.py` to the `just all` target.
 
-## [DONE] Phase 2: Supercharging `scripts/doc_generator.py`
+## \[DONE\] Phase 2: Supercharging `scripts/doc_generator.py`
 
 We will enhance the existing `doc_generator.py` to produce richer, semantically grouped documentation.
 
@@ -25,7 +25,7 @@ We will enhance the existing `doc_generator.py` to produce richer, semantically 
 - **Auto-Extracting Docstring Examples**: Parse `Example:` blocks from the Python source/manifest and inject them as syntax-highlighted code blocks in the generated API markdown.
 - **Architecture & Thesis Auto-Generation**: Extract core concepts from `docs/other_specs/*` and integrate them as the front-page conceptual onboarding in `docs/generated/user-guide/`.
 
-## [DONE] Phase 3: Visuals and Aesthetics (The "Wonderful" Factor)
+## \[DONE\] Phase 3: Visuals and Aesthetics (The "Wonderful" Factor)
 
 - **Mermaid DAG Auto-rendering**: Update `cookbook_generator.py` and `doc_generator.py` to compile an agent pipeline to a Mermaid graph (`pipeline.to_mermaid()`) and inject it into the generated documentation.
 - **Side-by-Side Code Comparisons**: Ensure the cookbook generation script creates rich Sphinx `tab-set` comparisons showing Native ADK vs. Fluent ADK, proving the brevity and elegance of the library automatically.

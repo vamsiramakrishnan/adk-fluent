@@ -376,7 +376,7 @@ LlmAgentConfig(name: str, instruction: str)
 #### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
 - **Maps to:** `static_instruction`
-- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion]).
+- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
 
 #### `.sub_agent(value: AgentRefConfig) -> Self`
 
@@ -420,7 +420,7 @@ Append to `before_tool_callbacks` (lazy — built at .build() time).
 #### `.static_instruct(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
 - **Maps to:** `static_instruction`
-- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion]).
+- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
 
 ### Control Flow & Execution
 
@@ -1003,8 +1003,8 @@ These fields are available via `__getattr__` forwarding.
 | Field                             | Type                                  |
 | --------------------------------- | ------------------------------------- |
 | `.enabled(value)`                 | `bool`                                |
-| `.event_allowlist(value)`         | \`list[str]                           |
-| `.event_denylist(value)`          | \`list[str]                           |
+| `.event_allowlist(value)`         | \`list\[str\]                         |
+| `.event_denylist(value)`          | \`list\[str\]                         |
 | `.max_content_length(value)`      | `int`                                 |
 | `.table_id(value)`                | `str`                                 |
 | `.clustering_fields(value)`       | `list[str]`                           |

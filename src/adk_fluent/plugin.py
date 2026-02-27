@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
 from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
@@ -27,6 +27,12 @@ from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulat
 
 from adk_fluent._base import BuilderBase
 
+if TYPE_CHECKING:
+    from google.adk.agents.llm_agent import InstructionProvider
+    from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig
+    from google.adk.plugins.reflect_retry_tool_plugin import TrackingScope
+    from google.genai.types import Content
+
 
 class RecordingsPlugin(BuilderBase):
     """Plugin for recording ADK agent interactions."""
@@ -34,7 +40,7 @@ class RecordingsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name"}
+    _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -61,7 +67,7 @@ class ReplayPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name"}
+    _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -88,7 +94,7 @@ class BasePlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name"}
+    _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -109,7 +115,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"table_id", "dataset_id", "config", "location", "project_id"}
+    _KNOWN_PARAMS: set[str] | None = {"location", "config", "project_id", "dataset_id", "table_id"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
@@ -148,7 +154,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"num_invocations_to_keep", "custom_filter", "name"}
+    _KNOWN_PARAMS: set[str] | None = {"custom_filter", "name", "num_invocations_to_keep"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -162,7 +168,7 @@ class ContextFilterPlugin(BuilderBase):
         self._config["num_invocations_to_keep"] = value
         return self
 
-    def custom_filter(self, value: Callable[[list[types.Content]], list[types.Content]] | None) -> Self:
+    def custom_filter(self, value: Callable[[list[Content]], list[Content]] | None) -> Self:
         """Set the ``custom_filter`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["custom_filter"] = value
@@ -187,7 +193,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"output_path", "name", "include_session_state", "include_system_instruction"}
+    _KNOWN_PARAMS: set[str] | None = {"include_system_instruction", "output_path", "include_session_state", "name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -232,7 +238,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name", "global_instruction"}
+    _KNOWN_PARAMS: set[str] | None = {"name", "global_instruction"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -265,7 +271,7 @@ class LoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name"}
+    _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -292,7 +298,7 @@ class MultimodalToolResultsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name"}
+    _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -319,7 +325,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tracking_scope", "name", "max_retries", "throw_exception_if_retry_exceeded"}
+    _KNOWN_PARAMS: set[str] | None = {"tracking_scope", "throw_exception_if_retry_exceeded", "max_retries", "name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -364,7 +370,7 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"name"}
+    _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -391,7 +397,7 @@ class AgentSimulatorPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"simulator_engine"}
+    _KNOWN_PARAMS: set[str] | None = {"simulator_engine"}
 
     def __init__(self, simulator_engine: str) -> None:
         self._config: dict[str, Any] = {"simulator_engine": simulator_engine}

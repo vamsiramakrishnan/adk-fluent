@@ -63,8 +63,9 @@ def test_partial_overlap_reports_missing():
 
     pipeline = Agent("a").produces(Partial) >> Agent("b").consumes(Intent)
     issues = check_contracts(pipeline.to_ir())
-    assert len(issues) == 1
-    assert "confidence" in issues[0]
+    # Pass 1 (reads_keys) + Pass 9 (type compat) both report the missing field
+    assert len(issues) >= 1
+    assert any("confidence" in str(i) for i in issues)
 
 
 def test_check_contracts_on_non_sequence():

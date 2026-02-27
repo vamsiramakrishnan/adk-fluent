@@ -5,10 +5,11 @@ from __future__ import annotations
 import asyncio as _asyncio
 import itertools
 import types
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 from typing import Any, Self
 
 from google.adk.agents.base_agent import BaseAgent
+from google.adk.events.event import Event
 
 __all__ = [
     "BuilderError",
@@ -145,6 +146,15 @@ class BuilderBase:
     _ADDITIVE_FIELDS: set[str]
     _ADK_TARGET_CLASS: type | None = None
     _KNOWN_PARAMS: set[str] | None = None
+
+    # Instance attributes — declared here for pyright; initialized in subclass __init__
+    _config: dict[str, Any]
+    _callbacks: dict[str, list[Callable]]
+    _lists: dict[str, list]
+
+    def build(self) -> Any:
+        """Build this builder into a native ADK object. Subclasses must override."""
+        raise NotImplementedError(f"{type(self).__name__} must implement build()")
 
     # ------------------------------------------------------------------
     # Copy-on-Write: frozen builders
@@ -315,7 +325,7 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         """Create an operator-safe fork. Shares sub-builders (safe: operators never mutate children)."""
         new = object.__new__(type(self))
         new._config = dict(self._config)
@@ -380,14 +390,14 @@ class BuilderBase:
         if isinstance(self, Pipeline):
             # Clone, then append — original Pipeline unchanged
             clone = self._fork_for_operator()
-            clone.step(other)
+            clone.step(other)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
             clone._config["name"] = f"{my_name}_then_{other_name}"
             result = clone
         else:
             name = f"{my_name}_then_{other_name}"
             p = Pipeline(name)
-            p.step(self)
-            p.step(other)
+            p.step(self)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
+            p.step(other)  # type: ignore[arg-type]
             result = p
 
         # Propagate middleware from operands to result
@@ -417,14 +427,14 @@ class BuilderBase:
         if isinstance(self, FanOut):
             # Clone, then add branch — original FanOut unchanged
             clone = self._fork_for_operator()
-            clone.branch(other)
+            clone.branch(other)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
             clone._config["name"] = f"{my_name}_and_{other_name}"
             result = clone
         else:
             name = f"{my_name}_and_{other_name}"
             f = FanOut(name)
-            f.branch(self)
-            f.branch(other)
+            f.branch(self)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
+            f.branch(other)  # type: ignore[arg-type]
             result = f
 
         # Propagate middleware from operands to result
@@ -458,7 +468,7 @@ class BuilderBase:
             for item in self._lists.get("sub_agents", []):
                 loop._lists["sub_agents"].append(item)
         else:
-            loop.step(self)
+            loop.step(self)  # type: ignore[arg-type]  # accepts BuilderBase; auto-built at build()
         return loop
 
     def __rmul__(self, iterations: int) -> BuilderBase:
@@ -548,41 +558,255 @@ class BuilderBase:
         return self
 
     def _explain_plain(self) -> str:
-        """Plain-text explain fallback (no rich dependency)."""
+        """Plain-text explain fallback (no rich dependency).
+
+        Shows what the agent does, what data it reads/writes, how it sees
+        conversation history, what tools it has, and any contract issues.
+        Designed to be immediately useful for debugging data flow problems.
+        """
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
         lines = [f"{cls_name}: {name}"]
 
-        config_fields = [k for k in self._config if k != "name" and not k.startswith("_")]
-        if config_fields:
-            lines.append(f"  Config fields: {', '.join(config_fields)}")
+        # Model
+        model = self._config.get("model")
+        if model:
+            lines.append(f"  Model: {model}")
+
+        # Instruction summary
+        instruction = self._config.get("instruction", "")
+        if instruction:
+            if callable(instruction):
+                lines.append("  Instruction: <dynamic provider>")
+            elif isinstance(instruction, str):
+                import re
+
+                # Show first 80 chars + template variables
+                preview = instruction[:80].replace("\n", " ")
+                if len(instruction) > 80:
+                    preview += "..."
+                lines.append(f"  Instruction: {preview}")
+
+                # Extract template variables
+                template_vars = re.findall(r"\{(\w+)\??\}", instruction)
+                if template_vars:
+                    required = [v for v in template_vars if f"{{{v}?}}" not in instruction]
+                    optional = [v for v in template_vars if f"{{{v}?}}" in instruction]
+                    parts = []
+                    if required:
+                        parts.append(f"required: {', '.join(required)}")
+                    if optional:
+                        parts.append(f"optional: {', '.join(optional)}")
+                    lines.append(f"  Template vars: {'; '.join(parts)}")
+
+        # Data flow: reads and writes
+        produces_schema = self._config.get("_produces")
+        consumes_schema = self._config.get("_consumes")
+        output_key = self._config.get("output_key")
+
+        reads_parts = []
+        if consumes_schema:
+            fields = list(consumes_schema.model_fields.keys())
+            reads_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
+        if reads_parts:
+            lines.append(f"  Reads: {'; '.join(reads_parts)}")
+
+        writes_parts = []
+        if produces_schema:
+            fields = list(produces_schema.model_fields.keys())
+            writes_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
+        if output_key:
+            writes_parts.append(f"output_key='{output_key}'")
+        if writes_parts:
+            lines.append(f"  Writes: {'; '.join(writes_parts)}")
+
+        if not reads_parts and not writes_parts and not output_key:
+            lines.append("  Data flow: no explicit reads/writes declared")
+
+        # Context strategy
+        context_spec = self._config.get("_context_spec")
+        include_contents = self._config.get("include_contents", "default")
+        if context_spec is not None:
+            from adk_fluent.testing.contracts import _context_description
+
+            lines.append(f"  Context: {_context_description(context_spec)}")
+        elif include_contents != "default":
+            lines.append(f"  Context: include_contents='{include_contents}'")
+
+        # Output schema
+        output_schema = self._config.get("_output_schema")
+        if output_schema:
+            lines.append(f"  Structured output: {output_schema.__name__}")
+
+        # Tools
+        tools = list(self._config.get("tools", []))
+        tools.extend(self._lists.get("tools", []))
+        if tools:
+            tool_names = []
+            for t in tools:
+                if hasattr(t, "name"):
+                    tool_names.append(t.name)
+                elif hasattr(t, "__name__"):
+                    tool_names.append(t.__name__)
+                else:
+                    tool_names.append(type(t).__name__)
+            lines.append(f"  Tools ({len(tools)}): {', '.join(tool_names)}")
 
         for field, fns in self._callbacks.items():
             if fns:
                 alias = self._reverse_callback_alias(field)
                 lines.append(f"  Callback '{alias}': {len(fns)} registered")
 
+        # Sub-agents
+        children_raw = list(self._config.get("sub_agents", []))
+        children_raw.extend(self._lists.get("sub_agents", []))
+        if children_raw:
+            child_names = [
+                getattr(c, "_config", {}).get("name", "?") if hasattr(c, "_config") else str(c) for c in children_raw
+            ]
+            lines.append(f"  Children ({len(children_raw)}): {', '.join(child_names)}")
+
+        # Other list fields
         for field, items in self._lists.items():
-            if items:
+            if items and field != "sub_agents":
                 lines.append(f"  {field}: {len(items)} items")
+
+        # Contract issues (if IR is available)
+        try:
+            ir = self.to_ir()
+            from adk_fluent.testing.contracts import check_contracts
+
+            issues = check_contracts(ir)
+            if issues:
+                lines.append("  Contract issues:")
+                for issue in issues:
+                    if isinstance(issue, str):
+                        lines.append(f"    - {issue}")
+                    else:
+                        level = issue.get("level", "?")
+                        agent = issue.get("agent", "?")
+                        msg = issue.get("message", "?")
+                        hint = issue.get("hint", "")
+                        marker = "ERROR" if level == "error" else "INFO"
+                        lines.append(f"    [{marker}] {agent}: {msg}")
+                        if hint:
+                            lines.append(f"           Hint: {hint}")
+        except (NotImplementedError, Exception):
+            pass  # IR not available or conversion failed
 
         return "\n".join(lines)
 
     def _build_rich_tree(self):
         """Build a rich.tree.Tree representing this builder's state."""
-        from rich.tree import Tree
+        import re
+
+        from rich.tree import Tree  # type: ignore[reportMissingImports]
 
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
         tree = Tree(f"[bold]{cls_name}[/bold]: {name}")
 
-        config_fields = {k: v for k, v in self._config.items() if k != "name" and not k.startswith("_")}
-        if config_fields:
+        # Model
+        model = self._config.get("model")
+        if model:
+            tree.add(f"[cyan]Model[/cyan]: {model}")
+
+        # Instruction summary
+        instruction = self._config.get("instruction", "")
+        if instruction:
+            if callable(instruction):
+                tree.add("[cyan]Instruction[/cyan]: <dynamic provider>")
+            elif isinstance(instruction, str):
+                preview = instruction[:80].replace("\n", " ")
+                if len(instruction) > 80:
+                    preview += "..."
+                tree.add(f"[cyan]Instruction[/cyan]: {preview}")
+
+                template_vars = re.findall(r"\{(\w+)\??\}", instruction)
+                if template_vars:
+                    required = [v for v in template_vars if f"{{{v}?}}" not in instruction]
+                    optional = [v for v in template_vars if f"{{{v}?}}" in instruction]
+                    parts = []
+                    if required:
+                        parts.append(f"required: {', '.join(required)}")
+                    if optional:
+                        parts.append(f"optional: {', '.join(optional)}")
+                    tree.add(f"[cyan]Template vars[/cyan]: {'; '.join(parts)}")
+
+        # Data flow
+        produces_schema = self._config.get("_produces")
+        consumes_schema = self._config.get("_consumes")
+        output_key = self._config.get("output_key")
+
+        reads_parts = []
+        if consumes_schema:
+            fields = list(consumes_schema.model_fields.keys())
+            reads_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
+        if reads_parts:
+            tree.add(f"[blue]Reads[/blue]: {'; '.join(reads_parts)}")
+
+        writes_parts = []
+        if produces_schema:
+            fields = list(produces_schema.model_fields.keys())
+            writes_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
+        if output_key:
+            writes_parts.append(f"output_key='{output_key}'")
+        if writes_parts:
+            tree.add(f"[blue]Writes[/blue]: {'; '.join(writes_parts)}")
+
+        if not reads_parts and not writes_parts and not output_key:
+            tree.add("[dim]Data flow: no explicit reads/writes declared[/dim]")
+
+        # Context strategy
+        context_spec = self._config.get("_context_spec")
+        include_contents = self._config.get("include_contents", "default")
+        if context_spec is not None:
+            from adk_fluent.testing.contracts import _context_description
+
+            tree.add(f"[magenta]Context[/magenta]: {_context_description(context_spec)}")
+        elif include_contents != "default":
+            tree.add(f"[magenta]Context[/magenta]: include_contents='{include_contents}'")
+
+        # Structured output
+        output_schema = self._config.get("_output_schema")
+        if output_schema:
+            tree.add(f"[cyan]Structured output[/cyan]: {output_schema.__name__}")
+
+        # Tools
+        tools = list(self._config.get("tools", []))
+        tools.extend(self._lists.get("tools", []))
+        if tools:
+            tool_names = []
+            for t in tools:
+                if hasattr(t, "name"):
+                    tool_names.append(t.name)
+                elif hasattr(t, "__name__"):
+                    tool_names.append(t.__name__)
+                else:
+                    tool_names.append(type(t).__name__)
+            tree.add(f"[yellow]Tools ({len(tools)})[/yellow]: {', '.join(tool_names)}")
+
+        # Other config fields (not already shown)
+        _shown = {
+            "name",
+            "model",
+            "instruction",
+            "_produces",
+            "_consumes",
+            "output_key",
+            "_context_spec",
+            "include_contents",
+            "_output_schema",
+            "tools",
+        }
+        other_fields = {k: v for k, v in self._config.items() if k not in _shown and not k.startswith("_")}
+        if other_fields:
             cfg_branch = tree.add("[cyan]Config[/cyan]")
-            for k, v in config_fields.items():
+            for k, v in other_fields.items():
                 display_name = self._reverse_alias(k)
                 cfg_branch.add(f"{display_name}: {self._format_value(v)}")
 
+        # Callbacks
         for field, fns in self._callbacks.items():
             if fns:
                 alias = self._reverse_callback_alias(field)
@@ -590,14 +814,48 @@ class BuilderBase:
                 for fn in fns:
                     cb_branch.add(self._format_value(fn))
 
+        # Sub-agents and other list fields
+        children_raw = list(self._config.get("sub_agents", []))
+        children_raw.extend(self._lists.get("sub_agents", []))
+        if children_raw:
+            children_branch = tree.add(f"[yellow]Children ({len(children_raw)})[/yellow]")
+            for child in children_raw:
+                if isinstance(child, BuilderBase):
+                    children_branch.add(child._build_rich_tree())
+                else:
+                    children_branch.add(self._format_value(child))
+
         for field, items in self._lists.items():
-            if items:
+            if items and field != "sub_agents":
                 list_branch = tree.add(f"[yellow]{field}[/yellow]: {len(items)} items")
                 for item in items:
                     if isinstance(item, BuilderBase):
                         list_branch.add(item._build_rich_tree())
                     else:
                         list_branch.add(self._format_value(item))
+
+        # Contract issues
+        try:
+            ir = self.to_ir()
+            from adk_fluent.testing.contracts import check_contracts
+
+            issues = check_contracts(ir)
+            if issues:
+                issues_branch = tree.add("[red]Contract issues[/red]")
+                for issue in issues:
+                    if isinstance(issue, str):
+                        issues_branch.add(issue)
+                    else:
+                        level = issue.get("level", "?")
+                        agent = issue.get("agent", "?")
+                        msg = issue.get("message", "?")
+                        hint = issue.get("hint", "")
+                        marker = "[red]ERROR[/red]" if level == "error" else "[yellow]INFO[/yellow]"
+                        node = issues_branch.add(f"{marker} {agent}: {msg}")
+                        if hint:
+                            node.add(f"[dim]Hint: {hint}[/dim]")
+        except (NotImplementedError, Exception):
+            pass  # IR not available or conversion failed
 
         return tree
 
@@ -608,7 +866,7 @@ class BuilderBase:
         falls back to plain text.
         """
         try:
-            from rich.console import Console
+            from rich.console import Console  # type: ignore[reportMissingImports]
 
             tree = self._build_rich_tree()
             console = Console(record=True, width=120)
@@ -891,7 +1149,7 @@ class BuilderBase:
         loop._config["_until_predicate"] = predicate
         return loop
 
-    def until(self, predicate: Callable) -> Self:
+    def until(self, predicate: Callable) -> BuilderBase:
         """Set exit predicate on a loop. If not already a Loop, wraps in one.
 
         Usage:
@@ -992,7 +1250,7 @@ class BuilderBase:
     # IR conversion
     # ------------------------------------------------------------------
 
-    def to_ir(self):
+    def to_ir(self) -> Any:
         """Convert this builder to an IR node.
 
         Subclasses override to return the appropriate IR node type.
@@ -1080,11 +1338,55 @@ class BuilderBase:
         existing.update(resources)
         return self
 
-    def to_mermaid(self) -> str:
-        """Generate a Mermaid graph visualization of this builder's IR tree."""
+    def to_mermaid(
+        self,
+        *,
+        show_contracts: bool = True,
+        show_data_flow: bool = True,
+        show_context: bool = False,
+    ) -> str:
+        """Generate a Mermaid graph visualization of this builder's IR tree.
+
+        Args:
+            show_contracts: Include produces/consumes type annotations.
+            show_data_flow: Include dotted edges showing state key flow.
+            show_context: Include context strategy annotations per agent.
+        """
         from adk_fluent.viz import ir_to_mermaid
 
-        return ir_to_mermaid(self.to_ir())
+        return ir_to_mermaid(
+            self.to_ir(),
+            show_contracts=show_contracts,
+            show_data_flow=show_data_flow,
+            show_context=show_context,
+        )
+
+    def diagnose(self):
+        """Return a structured Diagnosis of this builder's IR.
+
+        Returns a ``Diagnosis`` dataclass with ``agents``, ``data_flow``,
+        ``issues``, and ``topology`` fields.  Use ``.ok`` to check if
+        there are no errors.  Use ``.doctor()`` for a formatted report.
+
+        Raises NotImplementedError if this builder doesn't support IR.
+        """
+        from adk_fluent.testing.diagnosis import diagnose as _diagnose
+
+        return _diagnose(self.to_ir())
+
+    def doctor(self) -> str:
+        """Print a formatted diagnostic report and return the report text.
+
+        Combines agent summaries, data flow analysis, contract issues,
+        and Mermaid topology into a single readable report.
+        """
+        from adk_fluent.testing.diagnosis import diagnose as _diagnose
+        from adk_fluent.testing.diagnosis import format_diagnosis
+
+        diag = _diagnose(self.to_ir())
+        report = format_diagnosis(diag)
+        print(report)
+        return report
 
     def strict(self) -> Self:
         """Enable strict contract checking — build() raises ValueError on contract errors."""
@@ -1231,7 +1533,7 @@ class _FnStepBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._fn = fn_ref
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._fn = self._fn
         return clone
@@ -1242,10 +1544,16 @@ class _FnStepBuilder(BuilderBase):
     def to_ir(self):
         from adk_fluent._ir import TransformNode
 
+        # Extract read/write metadata from annotated S.* callables
+        writes = getattr(self._fn, "_writes_keys", None)
+        reads = getattr(self._fn, "_reads_keys", None)
+
         return TransformNode(
             name=self._config.get("name", "fn_step"),
             fn=self._fn,
             semantics="merge",
+            affected_keys=writes,
+            reads_keys=reads,
         )
 
 
@@ -1262,7 +1570,7 @@ class _CaptureBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._capture_key = capture_key
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._capture_key = self._capture_key
         return clone
@@ -1295,7 +1603,7 @@ class _FallbackBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._children = children
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._children = list(self._children)
         return clone
@@ -1355,7 +1663,7 @@ class _TapBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._fn = fn_ref
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._fn = self._fn
         return clone
@@ -1432,7 +1740,7 @@ class _MapOverBuilder(BuilderBase):
         self._item_key = item_key
         self._output_key = output_key
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._agent = self._agent
         clone._list_key = self._list_key
@@ -1487,7 +1795,7 @@ class _TimeoutBuilder(BuilderBase):
         self._agent = agent
         self._seconds = seconds
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._agent = self._agent
         clone._seconds = self._seconds
@@ -1553,7 +1861,7 @@ class _GateBuilder(BuilderBase):
         self._message = message
         self._gate_key = gate_key
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._predicate = self._predicate
         clone._message = self._message
@@ -1613,7 +1921,7 @@ class _RaceBuilder(BuilderBase):
         self._lists: dict[str, list] = {}
         self._agents = agents
 
-    def _fork_for_operator(self) -> BuilderBase:
+    def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
         clone._agents = list(self._agents)
         return clone
@@ -1660,11 +1968,13 @@ class _RaceBuilder(BuilderBase):
 class FnAgent(BaseAgent):
     """Zero-cost function agent. No LLM call."""
 
-    def __init__(self, *, fn: Callable, **kwargs):
+    _fn_ref: Callable
+
+    def __init__(self, *, fn: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_fn_ref", fn)
 
-    async def _run_async_impl(self, ctx):
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         from adk_fluent._transforms import _SCOPE_PREFIXES, StateDelta, StateReplacement
 
         result = self._fn_ref(dict(ctx.session.state))
@@ -1682,7 +1992,8 @@ class FnAgent(BaseAgent):
         elif isinstance(result, dict):
             for k, v in result.items():
                 ctx.session.state[k] = v
-        # yield nothing — pure transform, no events
+        return
+        yield  # makes this an async generator to match base signature
 
 
 class FallbackAgent(BaseAgent):
@@ -1705,24 +2016,29 @@ class FallbackAgent(BaseAgent):
 class TapAgent(BaseAgent):
     """Zero-cost observation agent. No LLM call, no state mutation."""
 
-    def __init__(self, *, fn: Callable, **kwargs):
+    _fn_ref: Callable
+
+    def __init__(self, *, fn: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_fn_ref", fn)
 
-    async def _run_async_impl(self, ctx):
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         # Pass read-only view — tap should never mutate state
         self._fn_ref(types.MappingProxyType(dict(ctx.session.state)))
-        # Explicitly yield nothing — pure observation
+        return
+        yield  # makes this an async generator to match base signature
 
 
 class CaptureAgent(BaseAgent):
     """Capture the most recent user message from session events into state."""
 
-    def __init__(self, *, key: str, **kwargs):
+    _capture_key: str
+
+    def __init__(self, *, key: str, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_capture_key", key)
 
-    async def _run_async_impl(self, ctx):
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         for event in reversed(ctx.session.events):
             if getattr(event, "author", None) == "user":
                 parts = getattr(getattr(event, "content", None), "parts", None) or []
@@ -1730,13 +2046,18 @@ class CaptureAgent(BaseAgent):
                 if texts:
                     ctx.session.state[self._capture_key] = "\n".join(texts)
                     break
-        # yield nothing — pure capture, no events
+        return
+        yield  # makes this an async generator to match base signature
 
 
 class MapOverAgent(BaseAgent):
     """Iterates sub-agent over each item in a state list."""
 
-    def __init__(self, *, list_key: str, item_key: str, output_key: str, **kwargs):
+    _list_key: str
+    _item_key: str
+    _output_key: str
+
+    def __init__(self, *, list_key: str, item_key: str, output_key: str, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_list_key", list_key)
         object.__setattr__(self, "_item_key", item_key)
@@ -1758,7 +2079,9 @@ class MapOverAgent(BaseAgent):
 class TimeoutAgent(BaseAgent):
     """Wraps a sub-agent with a time limit."""
 
-    def __init__(self, *, seconds: float, **kwargs):
+    _seconds: float
+
+    def __init__(self, *, seconds: float, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_seconds", seconds)
 
@@ -1795,7 +2118,11 @@ class TimeoutAgent(BaseAgent):
 class GateAgent(BaseAgent):
     """Human-in-the-loop approval gate."""
 
-    def __init__(self, *, predicate: Callable, message: str, gate_key: str, **kwargs):
+    _predicate: Callable
+    _message: str
+    _gate_key: str
+
+    def __init__(self, *, predicate: Callable, message: str, gate_key: str, **kwargs: Any):
         super().__init__(**kwargs)
         object.__setattr__(self, "_predicate", predicate)
         object.__setattr__(self, "_message", message)

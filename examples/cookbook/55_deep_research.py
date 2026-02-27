@@ -92,10 +92,7 @@ quality_loop = (
     .save_as("quality_score")
     >> Agent("revision_agent")
     .model(MODEL)
-    .instruct(
-        "Revise the synthesis based on reviewer feedback. "
-        "Address gaps and improve weak sections."
-    )
+    .instruct("Revise the synthesis based on reviewer feedback. Address gaps and improve weak sections.")
     .context(C.from_state("synthesis", "quality_score"))
     .save_as("synthesis")
 ).loop_until(lambda s: float(s.get("quality_score", 0)) >= 0.85, max_iterations=3)
@@ -104,22 +101,13 @@ quality_loop = (
 report_writer = (
     Agent("report_writer")
     .model(MODEL)
-    .instruct(
-        "Write the final research report with executive summary, "
-        "key findings, and confidence assessment."
-    )
+    .instruct("Write the final research report with executive summary, key findings, and confidence assessment.")
     .context(C.from_state("synthesis"))
     @ ResearchReport
 )
 
 # Compose the full deep research pipeline
-deep_research = (
-    query_analyzer
-    >> parallel_search
-    >> synthesizer
-    >> quality_loop
-    >> report_writer
-)
+deep_research = query_analyzer >> parallel_search >> synthesizer >> quality_loop >> report_writer
 
 # --- ASSERT ---
 # Pipeline builds correctly

@@ -315,7 +315,7 @@ ______________________________________________________________________
 
 ## 2. Updated Disfluencies (v3 + New Findings from v1.25.0)
 
-### 2.1–2.11 [Retained from v3]
+### 2.1–2.11 \[Retained from v3\]
 
 All eleven disfluencies from v3 §1 remain valid and are incorporated by reference. The proposed fixes are unchanged. Summary:
 
@@ -420,7 +420,7 @@ def generate_ir_module(output_path: str):
     for node_name, adk_class in AGENT_CLASSES.items():
         fields = scan_adk_fields(adk_class)
         lines.append(generate_node_class(node_name, fields))
-    
+
     write_file(output_path, '\n'.join(lines))
 ```
 

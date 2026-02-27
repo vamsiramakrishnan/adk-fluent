@@ -51,7 +51,8 @@ class TransformNode:
     fn: Callable
     semantics: Literal["merge", "replace_session", "delete_keys"] = "merge"
     scope: Literal["session", "all"] = "session"
-    affected_keys: frozenset[str] | None = None
+    affected_keys: frozenset[str] | None = None  # keys this transform writes
+    reads_keys: frozenset[str] | None = None  # keys this transform reads (None = opaque/full state)
 
 
 @dataclass(frozen=True)

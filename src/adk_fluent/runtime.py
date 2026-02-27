@@ -4,13 +4,22 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.apps.app import App as _ADK_App
 from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
 from google.adk.runners import Runner as _ADK_Runner
 
 from adk_fluent._base import BuilderBase
+
+if TYPE_CHECKING:
+    from google.adk.agents.base_agent import BaseAgent
+    from google.adk.agents.context_cache_config import ContextCacheConfig
+    from google.adk.apps.app import EventsCompactionConfig, ResumabilityConfig
+    from google.adk.artifacts.base_artifact_service import BaseArtifactService
+    from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
+    from google.adk.memory.base_memory_service import BaseMemoryService
+    from google.adk.plugins.base_plugin import BasePlugin
 
 
 class App(BuilderBase):
@@ -70,7 +79,7 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"app", "plugins", "agent", "app_name", "plugin_close_timeout"}
+    _KNOWN_PARAMS: set[str] | None = {"plugin_close_timeout", "app", "app_name", "plugins", "agent"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -121,17 +130,17 @@ class Runner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {
-        "auto_create_session",
-        "session_service",
-        "app",
-        "plugins",
-        "artifact_service",
-        "agent",
-        "credential_service",
+    _KNOWN_PARAMS: set[str] | None = {
         "memory_service",
-        "app_name",
+        "artifact_service",
         "plugin_close_timeout",
+        "app",
+        "app_name",
+        "credential_service",
+        "plugins",
+        "session_service",
+        "agent",
+        "auto_create_session",
     }
 
     def __init__(self, session_service: str) -> None:

@@ -19,7 +19,7 @@ class BasePlanner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
@@ -40,7 +40,7 @@ class BuiltInPlanner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"thinking_config"}
+    _KNOWN_PARAMS: set[str] | None = {"thinking_config"}
 
     def __init__(self, thinking_config: str) -> None:
         self._config: dict[str, Any] = {"thinking_config": thinking_config}
@@ -61,7 +61,7 @@ class PlanReActPlanner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}

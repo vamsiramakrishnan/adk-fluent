@@ -9,12 +9,12 @@
 Three rules borrowed from the best Python APIs (requests, click, pydantic):
 
 1. **Verbs reveal intent** — `save_as("key")` not `outputs("key")`, `stay()` not `disallow_transfer_to_parent(True)`
-2. **One way per concept** — deprecate redundant paths, don't add more
-3. **Progressive disclosure** — Tier 1 imports for 90% of users, Tier 2/3 for power users
+1. **One way per concept** — deprecate redundant paths, don't add more
+1. **Progressive disclosure** — Tier 1 imports for 90% of users, Tier 2/3 for power users
 
 **Strategy:** Surgical aliases + deprecations. Zero breaking changes. Add the better name, deprecate the old one, remove in v1.0. All changes flow through the seed → codegen pipeline since builders are generated.
 
----
+______________________________________________________________________
 
 ## Fix 1: `outputs("key")` → `save_as("key")`
 
@@ -83,13 +83,14 @@ agent.save_as("result")   # "save the response as 'result' in state" (storage)
 agent @ Invoice.save_as("parsed")  # both — crystal clear
 ```
 
----
+______________________________________________________________________
 
 ## Fix 2: `history()` / `include_history()` → `context()`
 
 ### Problem
 
 Three ways to control conversation context:
+
 - `.history(n)` — limits turn count
 - `.include_history(False)` — boolean toggle
 - `.context(C.none())` — full context control via C module
@@ -134,7 +135,7 @@ def history(self, value) -> Self:
     return self
 ```
 
----
+______________________________________________________________________
 
 ## Fix 3: `disallow_transfer_to_*` → `stay()` / `no_peers()`
 
@@ -191,7 +192,7 @@ def _no_peers_agent(builder):
     return builder
 ```
 
----
+______________________________________________________________________
 
 ## Fix 4: `static_instruct()` → deprecate
 
@@ -210,7 +211,7 @@ static_instruct = { field = "static_instruction", use = "static" }
 
 Remove `static_instruct` from `[builders.Agent.aliases]`.
 
----
+______________________________________________________________________
 
 ## Fix 5: `_if` callbacks — Docs, not API change
 
@@ -221,6 +222,7 @@ Remove `static_instruct` from `[builders.Agent.aliases]`.
 ### Solution
 
 No API change. Improve docs:
+
 - Enrich `.pyi` stub docstrings for `_if` variants via `field_docs`
 - Add cookbook example showing conditional callbacks
 
@@ -233,7 +235,7 @@ No API change. Improve docs:
 # No change needed — current docs are adequate.
 ```
 
----
+______________________________________________________________________
 
 ## Fix 6: Topology naming — Document, don't change
 
@@ -254,15 +256,15 @@ No API change. Improve docs:
 
 Current state is correct. No code change. Add a "Choosing the right method" table to the transfer control user guide.
 
-| Builder | Method | Metaphor |
-|---------|--------|----------|
-| Pipeline | `.step(agent)` | Sequential step in a chain |
-| FanOut | `.branch(agent)` | Parallel branch |
-| Loop | `.step(agent)` | Step that repeats |
-| Agent | `.sub_agent(agent)` | Generic child agent |
-| Agent | `.delegate(agent)` | Tool-wrapped agent (LLM routes) |
+| Builder  | Method              | Metaphor                        |
+| -------- | ------------------- | ------------------------------- |
+| Pipeline | `.step(agent)`      | Sequential step in a chain      |
+| FanOut   | `.branch(agent)`    | Parallel branch                 |
+| Loop     | `.step(agent)`      | Step that repeats               |
+| Agent    | `.sub_agent(agent)` | Generic child agent             |
+| Agent    | `.delegate(agent)`  | Tool-wrapped agent (LLM routes) |
 
----
+______________________________________________________________________
 
 ## Fix 7: Expression readability — Convention, not API
 
@@ -286,7 +288,7 @@ flow = research | review
 
 Add "Pipeline Readability" section to the user guide.
 
----
+______________________________________________________________________
 
 ## Fix 8: `Agent.route()` factory
 
@@ -324,13 +326,14 @@ helper_func = "_create_route"
 Wait — this should be a classmethod/staticmethod, not an instance method. The pattern is `Agent.route("name")`, not `Agent("name").route()`. Since the codegen doesn't support classmethods, we handle this differently: add it as a hand-written `@staticmethod` directly on the `Agent` class via post-generation patching.
 
 **Alternative approach:** Since `Route` is already importable from `adk_fluent`, and adding a classmethod requires hand-written post-gen code, the simpler fix is:
+
 1. Keep `Route` as a standalone import (it IS a standalone concept)
-2. Ensure `Route` is in Tier 1 imports
-3. Document the pattern clearly
+1. Ensure `Route` is in Tier 1 imports
+1. Document the pattern clearly
 
 **Decision:** Skip the classmethod. `Route` is a first-class builder, not a factory of Agent. It belongs as a standalone import. Fix this with namespace tiering (Fix 9) and documentation.
 
----
+______________________________________________________________________
 
 ## Fix 9: Namespace tiering
 
@@ -378,20 +381,20 @@ from adk_fluent import C, S, Route, Prompt
 __all__ = ["Agent", "Pipeline", "FanOut", "Loop", "C", "S", "Route", "Prompt"]
 ```
 
----
+______________________________________________________________________
 
 ## Summary Matrix
 
-| # | Fix | Type | Breaking? | Files changed |
-|---|-----|------|-----------|---------------|
-| 1 | `save_as` alias | Seed + codegen | No | seed.manual.toml, generator.py, field_docs |
-| 2 | Deprecate `history`/`include_history` | Seed + codegen | No | seed.manual.toml, generator.py |
-| 3 | `stay()` / `no_peers()` helpers | Seed + helpers | No | seed.manual.toml, _helpers.py |
-| 4 | Deprecate `static_instruct` | Seed + codegen | No | seed.manual.toml |
-| 5 | `_if` docs | Docs only | No | cookbook, user guide |
-| 6 | Topology docs | Docs only | No | user guide |
-| 7 | Readability guide | Docs only | No | user guide |
-| 8 | Route stays standalone | Docs + tier | No | prelude.py, user guide |
-| 9 | Namespace tiering | Init + new module | No | __init__.py template, prelude.py |
+| #   | Fix                                   | Type              | Breaking? | Files changed                              |
+| --- | ------------------------------------- | ----------------- | --------- | ------------------------------------------ |
+| 1   | `save_as` alias                       | Seed + codegen    | No        | seed.manual.toml, generator.py, field_docs |
+| 2   | Deprecate `history`/`include_history` | Seed + codegen    | No        | seed.manual.toml, generator.py             |
+| 3   | `stay()` / `no_peers()` helpers       | Seed + helpers    | No        | seed.manual.toml, \_helpers.py             |
+| 4   | Deprecate `static_instruct`           | Seed + codegen    | No        | seed.manual.toml                           |
+| 5   | `_if` docs                            | Docs only         | No        | cookbook, user guide                       |
+| 6   | Topology docs                         | Docs only         | No        | user guide                                 |
+| 7   | Readability guide                     | Docs only         | No        | user guide                                 |
+| 8   | Route stays standalone                | Docs + tier       | No        | prelude.py, user guide                     |
+| 9   | Namespace tiering                     | Init + new module | No        | __init__.py template, prelude.py           |
 
 **All 9 fixes are non-breaking.** Ship in v0.8.0.

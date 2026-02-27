@@ -13,6 +13,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
 
 ## Table of Contents
+
 - [Install](#install)
 - [Quick Start](#quick-start)
 - [Expression Language](#expression-language)
@@ -160,18 +161,18 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 
 Nine operators compose any agent topology:
 
-| Operator                       | Meaning            | ADK Type                 |
-| ------------------------------ | ------------------ | ------------------------ |
-| `a >> b`                       | Sequence           | `SequentialAgent`        |
-| `a >> fn`                      | Function step      | Zero-cost transform      |
-| `a \| b`                       | Parallel           | `ParallelAgent`          |
-| `a * 3`                        | Loop (fixed)       | `LoopAgent`              |
-| `a * until(pred)`              | Loop (conditional) | `LoopAgent` + checkpoint |
-| `a @ Schema`                   | Typed output       | `output_schema`          |
-| `a // b`                       | Fallback           | First-success chain      |
-| `Route("key").eq(...)`         | Branch             | Deterministic routing    |
-| `S.pick(...)`, `S.rename(...)` | State transforms   | Dict operations via `>>` |
-| `C.user_only()`, `C.none()`    | Context engineering| Selective Turn History   |
+| Operator                       | Meaning             | ADK Type                 |
+| ------------------------------ | ------------------- | ------------------------ |
+| `a >> b`                       | Sequence            | `SequentialAgent`        |
+| `a >> fn`                      | Function step       | Zero-cost transform      |
+| `a \| b`                       | Parallel            | `ParallelAgent`          |
+| `a * 3`                        | Loop (fixed)        | `LoopAgent`              |
+| `a * until(pred)`              | Loop (conditional)  | `LoopAgent` + checkpoint |
+| `a @ Schema`                   | Typed output        | `output_schema`          |
+| `a // b`                       | Fallback            | First-success chain      |
+| `Route("key").eq(...)`         | Branch              | Deterministic routing    |
+| `S.pick(...)`, `S.rename(...)` | State transforms    | Dict operations via `>>` |
+| `C.user_only()`, `C.none()`    | Context engineering | Selective Turn History   |
 
 Eight control loop primitives for agent orchestration:
 
@@ -286,13 +287,13 @@ pipeline = (
 )
 ```
 
-| Transform | Purpose |
-| --- | --- |
-| `C.user_only()` | Include only original user messages |
-| `C.none()` | No turn history (stateless prompt) |
-| `C.window(n=5)` | Sliding window of last N turns |
-| `C.from_agents("a", "b")` | Include user + named agent outputs |
-| `C.capture("key")` | Snapshot user message into state |
+| Transform                 | Purpose                             |
+| ------------------------- | ----------------------------------- |
+| `C.user_only()`           | Include only original user messages |
+| `C.none()`                | No turn history (stateless prompt)  |
+| `C.window(n=5)`           | Sliding window of last N turns      |
+| `C.from_agents("a", "b")` | Include user + named agent outputs  |
+| `C.capture("key")`        | Snapshot user message into state    |
 
 ### IR, Backends, and Middleware (v4)
 

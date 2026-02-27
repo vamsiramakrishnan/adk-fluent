@@ -154,6 +154,7 @@ class ModuleNode:
     doc: str = ""
     imports: list[str] = field(default_factory=list)
     classes: list[ClassNode] = field(default_factory=list)
+    type_checking_imports: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -363,6 +364,16 @@ def _emit_module_python(mod: ModuleNode) -> str:
     if mod.imports:
         grouped = _sort_and_group_imports(mod.imports)
         lines.extend(grouped)
+
+    # Emit TYPE_CHECKING-guarded imports (for type annotations only)
+    if mod.type_checking_imports:
+        lines.append("")
+        lines.append("if TYPE_CHECKING:")
+        for imp in _sort_and_group_imports(mod.type_checking_imports):
+            if imp:  # blank lines between groups
+                lines.append(f"    {imp}")
+            else:
+                lines.append("")
 
     for cls in mod.classes:
         # PEP 8: two blank lines before top-level class definitions

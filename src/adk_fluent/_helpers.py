@@ -91,6 +91,7 @@ def _agent_to_ir(builder):
 
     produces_schema = builder._config.get("_produces")
     consumes_schema = builder._config.get("_consumes")
+    context_spec = builder._config.get("_context_spec")
     writes_keys = frozenset(produces_schema.model_fields.keys()) if produces_schema else frozenset()
     reads_keys = frozenset(consumes_schema.model_fields.keys()) if consumes_schema else frozenset()
 
@@ -117,6 +118,7 @@ def _agent_to_ir(builder):
         reads_keys=reads_keys,
         produces_type=produces_schema,
         consumes_type=consumes_schema,
+        context_spec=context_spec,
     )
 
 
@@ -275,6 +277,7 @@ async def _run_single_attempt(builder, prompt: str, *, model_override: str | Non
     debug = builder._config.get("_debug", False)
     agent_name = builder._config.get("name", "?")
 
+    original_model: str | None = None
     if model_override:
         # Temporarily override model for fallback
         original_model = builder._config.get("model")
@@ -289,9 +292,9 @@ async def _run_single_attempt(builder, prompt: str, *, model_override: str | Non
         session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
         content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
+        t0 = time.monotonic()
         if debug:
             _debug_log(agent_name, f"Sending prompt ({len(prompt)} chars)")
-            t0 = time.monotonic()
 
         last_text = ""
         async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
@@ -328,6 +331,7 @@ async def run_one_shot_async(builder, prompt: str) -> str:
     backoff = retry_cfg["backoff"] if retry_cfg else 1.0
 
     last_exc = None
+    last_text = ""
     for attempt in range(1, max_attempts + 1):
         try:
             if debug and attempt > 1:
@@ -565,22 +569,22 @@ class StateKey:
         """The scope: 'temp', 'user', 'app', or 'session'."""
         return self._scope
 
-    def get(self, ctx) -> Any:
+    def get(self, ctx: Any) -> Any:
         """Get the value from context state. Returns default if not set.
 
         Works with CallbackContext, ToolContext, or any object with a .state dict-like attribute.
         """
-        state = ctx.state if hasattr(ctx, "state") else ctx
+        state: Any = ctx.state if hasattr(ctx, "state") else ctx
         if callable(state) and not isinstance(state, dict):
             state = state()  # ReadonlyContext.state() is a method
         return state.get(self._full_key, self._default)
 
-    def set(self, ctx, value: Any) -> None:
+    def set(self, ctx: Any, value: Any) -> None:
         """Set the value in context state.
 
         Works with CallbackContext, ToolContext, or any object with a .state dict-like attribute.
         """
-        state = ctx.state if hasattr(ctx, "state") else ctx
+        state: Any = ctx.state if hasattr(ctx, "state") else ctx
         if callable(state) and not isinstance(state, dict):
             state = state()
         state[self._full_key] = value
@@ -642,7 +646,7 @@ class Artifact:
         from google.genai import types
 
         if isinstance(content, bytes):
-            part = types.Part.from_data(data=content, mime_type="application/octet-stream")
+            part = types.Part.from_data(data=content, mime_type="application/octet-stream")  # type: ignore[reportAttributeAccessIssue]
         else:
             part = types.Part.from_text(text=str(content))
         version = await ctx.save_artifact(self._filename, part)

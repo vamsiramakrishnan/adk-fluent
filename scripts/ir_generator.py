@@ -14,7 +14,7 @@ Each generated node is a @dataclass(frozen=True) with:
     - name: str as the first required field
     - All ADK fields with defaults (mapped to frozen-friendly types)
     - callbacks merged into a single dict field
-    - Extension fields: writes_keys, reads_keys, produces_type, consumes_type
+    - Extension fields: writes_keys, reads_keys, produces_type, consumes_type, context_spec
 
 Usage:
     python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
@@ -207,6 +207,7 @@ def gen_node_class(adk_name: str, ir_name: str, cls_data: dict) -> str:
     lines.append("    reads_keys: frozenset[str] = frozenset()")
     lines.append("    produces_type: type | None = None")
     lines.append("    consumes_type: type | None = None")
+    lines.append("    context_spec: Any = None  # CTransform descriptor, preserved for diagnostics")
 
     lines.append("")
     return "\n".join(lines)
