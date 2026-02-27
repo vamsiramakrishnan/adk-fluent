@@ -1,3 +1,12 @@
+# Generated files are owned by `just generate` — not by pre-commit.
+# The exclude pattern below keeps formatters from touching generated output.
+exclude: |
+  (?x)^(
+    src/adk_fluent/(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|
+    src/adk_fluent/_ir_generated\.py$|
+    tests/generated/
+  )
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.6

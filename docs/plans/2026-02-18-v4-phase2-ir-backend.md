@@ -1,5 +1,7 @@
 # v4 Phase 2: Seed-Based IR + Backend Protocol Implementation Plan
 
+> **Status: COMPLETE** (2026-02-27 audit) — IR layer (`_ir.py`), Backend protocol, ADK backend (`backends/adk.py`), `to_ir()`, `to_app()`, `run()`, `stream()` all implemented.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Introduce an Intermediate Representation (IR) layer between fluent builders and ADK objects, enabling backend-agnostic compilation, testing, and visualization.

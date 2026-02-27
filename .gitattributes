@@ -1,0 +1,32 @@
+# =============================================================================
+# Generated files — produced by `just generate`, DO NOT edit manually.
+# The generator owns these files. Formatters and pre-commit skip them.
+# =============================================================================
+
+# Generated builders (from scripts/generator.py)
+src/adk_fluent/agent.py     linguist-generated=true
+src/adk_fluent/config.py    linguist-generated=true
+src/adk_fluent/executor.py  linguist-generated=true
+src/adk_fluent/planner.py   linguist-generated=true
+src/adk_fluent/plugin.py    linguist-generated=true
+src/adk_fluent/runtime.py   linguist-generated=true
+src/adk_fluent/service.py   linguist-generated=true
+src/adk_fluent/tool.py      linguist-generated=true
+src/adk_fluent/workflow.py  linguist-generated=true
+
+# Generated type stubs (from scripts/generator.py)
+src/adk_fluent/agent.pyi    linguist-generated=true
+src/adk_fluent/config.pyi   linguist-generated=true
+src/adk_fluent/executor.pyi linguist-generated=true
+src/adk_fluent/planner.pyi  linguist-generated=true
+src/adk_fluent/plugin.pyi   linguist-generated=true
+src/adk_fluent/runtime.pyi  linguist-generated=true
+src/adk_fluent/service.pyi  linguist-generated=true
+src/adk_fluent/tool.pyi     linguist-generated=true
+src/adk_fluent/workflow.pyi linguist-generated=true
+
+# Generated IR nodes (from scripts/ir_generator.py)
+src/adk_fluent/_ir_generated.py linguist-generated=true
+
+# Generated tests (from scripts/generator.py)
+tests/generated/**          linguist-generated=true

@@ -1,5 +1,7 @@
 # Design: API Surface v2 — Fluent DX Refinements
 
+> **Status: COMPLETE** (2026-02-27 audit) — All refinements shipped in v0.8.0.
+
 **Date:** 2026-02-25
 **Version:** 0.8.0 (all changes non-breaking)
 **Principle:** Name things for what they DO, one obvious way, progressive disclosure.

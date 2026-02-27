@@ -1,5 +1,7 @@
 # ADK Samples Port — Design Document
 
+> **Status: COMPLETE** (2026-02-27 audit) — All 6 samples ported and documented.
+
 **Date:** 2026-02-17
 **Goal:** Port 6 complex multi-agent ADK samples to the fluent API; create side-by-side comparison docs demonstrating advantages.
 
