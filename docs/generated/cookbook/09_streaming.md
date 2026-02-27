@@ -10,8 +10,9 @@ No LLM calls are made here -- we verify builder and pipeline mechanics.
 
 _Source: `09_streaming.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -47,8 +48,10 @@ pipeline_native = SequentialAgent(
     sub_agents=[transcriber_native, translator_native],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -81,6 +84,7 @@ pipeline_fluent = transcriber >> translator
 built_native = pipeline_native
 built_fluent = pipeline_fluent.build()
 ```
+
 :::
 ::::
 

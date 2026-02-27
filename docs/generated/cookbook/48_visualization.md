@@ -8,15 +8,18 @@ incident response platform's agent topology for runbooks and onboarding.
 
 _Source: `48_visualization.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in visualization. Complex agent graphs
 # must be manually diagrammed and maintained separately from code.
 # Diagrams go stale after the first refactor.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -63,6 +66,7 @@ explanation = incident_pipeline.explain()
 # Build for deployment
 built = incident_pipeline.build()
 ```
+
 :::
 ::::
 

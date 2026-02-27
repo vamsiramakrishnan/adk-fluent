@@ -18,12 +18,12 @@ BuilderError: Failed to build Agent('my_agent'):
 
 **Attributes:**
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `builder_name` | `str` | Name passed to the builder constructor |
-| `builder_type` | `str` | Builder class name (e.g. `"Agent"`, `"Pipeline"`) |
-| `field_errors` | `list[str]` | One message per invalid field |
-| `original` | `Exception` | The underlying pydantic `ValidationError` |
+| Attribute      | Type        | Description                                       |
+| -------------- | ----------- | ------------------------------------------------- |
+| `builder_name` | `str`       | Name passed to the builder constructor            |
+| `builder_type` | `str`       | Builder class name (e.g. `"Agent"`, `"Pipeline"`) |
+| `field_errors` | `list[str]` | One message per invalid field                     |
+| `original`     | `Exception` | The underlying pydantic `ValidationError`         |
 
 ### Common causes
 
@@ -62,7 +62,7 @@ class Result(BaseModel):
 agent = Agent("helper").model("gemini-2.5-flash").output_schema(Result).build()
 ```
 
----
+______________________________________________________________________
 
 ## AttributeError — Unknown field
 
@@ -111,7 +111,7 @@ agent = Agent("a").model("gemini-2.5-flash")
 pipeline = Pipeline("p").step(agent)
 ```
 
----
+______________________________________________________________________
 
 ## ValueError — Validation failed
 
@@ -138,7 +138,7 @@ agent = (
 )
 ```
 
----
+______________________________________________________________________
 
 ## TypeError — Invalid contract schema
 
@@ -162,7 +162,7 @@ class ClaimData(BaseModel):
 agent = Agent("intake").model("gemini-2.5-flash").produces(ClaimData)
 ```
 
----
+______________________________________________________________________
 
 ## ValueError — Missing output_key for dict routing
 
@@ -194,7 +194,7 @@ pipeline = classifier >> {
 }
 ```
 
----
+______________________________________________________________________
 
 ## ValueError — Contract errors in pipeline
 
@@ -221,7 +221,7 @@ pipeline = (
 )
 ```
 
----
+______________________________________________________________________
 
 ## NotImplementedError — Missing to_ir()
 
@@ -239,7 +239,7 @@ Use .build() for direct ADK object construction.
 Use `.build()` instead of `.to_ir()` or `.to_app()` for builders that
 don't support the IR pipeline.
 
----
+______________________________________________________________________
 
 ## Debugging tips
 

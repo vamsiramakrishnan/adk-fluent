@@ -11,8 +11,9 @@ Uses: >>, |, @, proceed_if, save_as, tap
 
 _Source: `57_code_review_agent.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # A native ADK code review agent requires:
 #   - 6 LlmAgent declarations
@@ -22,8 +23,10 @@ _Source: `57_code_review_agent.py`_
 #   - Custom BaseAgent for conditional gating
 # Total: ~80 lines of boilerplate
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from pydantic import BaseModel
 
@@ -135,6 +138,7 @@ code_review = (
     >> comment_writer
 )
 ```
+
 :::
 ::::
 
@@ -160,6 +164,6 @@ assert len(fanout.sub_agents) == 3
 assert built.sub_agents[3].output_schema is ReviewResult
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

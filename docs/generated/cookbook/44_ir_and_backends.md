@@ -9,8 +9,9 @@ inspects the agent graph for optimization before deployment.
 
 _Source: `44_ir_and_backends.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -30,8 +31,10 @@ underwriter = LlmAgent(name="underwriter", model="gemini-2.5-flash",
 pipeline_native = SequentialAgent(name="mortgage_pipeline",
     sub_agents=[doc_collector, parallel_checks, underwriter])
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -65,6 +68,7 @@ mermaid = mortgage_pipeline.to_mermaid()
 # 4. Build directly for comparison
 built_fluent = mortgage_pipeline.build()
 ```
+
 :::
 ::::
 

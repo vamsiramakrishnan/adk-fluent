@@ -4,16 +4,19 @@
 
 _Source: `17_route_branching.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in deterministic router. You'd need:
 #   1. An LlmAgent coordinator (wastes API calls for simple routing), OR
 #   2. A custom BaseAgent subclass with predicate logic (~30 lines)
 # Neither approach is ergonomic for common routing patterns.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 from adk_fluent._routing import Route
@@ -48,6 +51,7 @@ complex_route = (
     .otherwise(regular_handler)
 )
 ```
+
 :::
 ::::
 

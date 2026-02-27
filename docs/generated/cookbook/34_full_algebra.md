@@ -9,8 +9,9 @@ then findings are aggregated into a structured verdict.
 
 _Source: `34_full_algebra.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # A native ADK code review pipeline requires:
 #   - 5 LlmAgent declarations
@@ -20,8 +21,10 @@ _Source: `34_full_algebra.py`_
 # That's ~60 lines of boilerplate. The fluent algebra below
 # expresses the same architecture in a single readable expression.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from pydantic import BaseModel
 
@@ -73,6 +76,7 @@ review_pipeline = (
     )
 )
 ```
+
 :::
 ::::
 

@@ -1,7 +1,7 @@
 # Essay Refinement Loop -- Loop Agent
 
 Demonstrates a LoopAgent that iterates sub-agents until a maximum
-iteration count.  The scenario: an essay refinement workflow where
+iteration count. The scenario: an essay refinement workflow where
 a critic evaluates the draft and a reviser improves it, repeating
 up to 3 times until quality standards are met.
 
@@ -9,8 +9,9 @@ up to 3 times until quality standards are met.
 
 _Source: `06_loop_agent.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.loop_agent import LoopAgent
@@ -41,8 +42,10 @@ loop_native = LoopAgent(
     ],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Loop
 
@@ -71,6 +74,7 @@ loop_fluent = (
     .build()
 )
 ```
+
 :::
 ::::
 
@@ -84,6 +88,6 @@ assert loop_fluent.sub_agents[0].name == "critic"
 assert loop_fluent.sub_agents[1].name == "reviser"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

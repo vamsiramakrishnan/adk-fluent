@@ -1,11 +1,12 @@
-# News Analysis Pipeline with Operator Composition: >>, |, *
+# News Analysis Pipeline with Operator Composition: >>, |, \*
 
 *How to compose agents into a sequential pipeline.*
 
 _Source: `16_operator_composition.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -32,8 +33,10 @@ draft_writer = LlmAgent(name="draft_writer", model="gemini-2.5-flash", instructi
 fact_checker = LlmAgent(name="fact_checker", model="gemini-2.5-flash", instruction="Fact-check the draft.")
 loop_native = LoopAgent(name="editorial_loop", max_iterations=3, sub_agents=[draft_writer, fact_checker])
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -54,6 +57,7 @@ dw = Agent("draft_writer").model("gemini-2.5-flash").instruct("Write a news draf
 fc = Agent("fact_checker").model("gemini-2.5-flash").instruct("Fact-check the draft.")
 loop_fluent = (dw >> fc) * 3
 ```
+
 :::
 ::::
 

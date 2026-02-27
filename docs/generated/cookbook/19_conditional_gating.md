@@ -4,8 +4,9 @@
 
 _Source: `19_conditional_gating.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires manually implementing before_agent_callback
 # that returns Content to skip an agent:
@@ -23,8 +24,10 @@ _Source: `19_conditional_gating.py`_
 #       before_agent_callback=fraud_gate,
 #   )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -59,6 +62,7 @@ compliance_notifier = (
 
 pipeline = risk_scorer >> fraud_investigator >> compliance_notifier
 ```
+
 :::
 ::::
 

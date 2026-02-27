@@ -10,8 +10,9 @@ operational visibility.
 
 _Source: `15_production_runtime.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -37,8 +38,10 @@ pipeline_native = SequentialAgent(
     sub_agents=[order_validator, payment_processor, fulfillment],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
 
@@ -66,6 +69,7 @@ app = pipeline.to_app()
 # Also build the sequential agent directly for comparison
 built_fluent = pipeline.build()
 ```
+
 :::
 ::::
 
@@ -90,6 +94,6 @@ assert isinstance(pipeline._middlewares[0], RetryMiddleware)
 assert isinstance(pipeline._middlewares[1], StructuredLogMiddleware)
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Runner](../api/runtime.md#builder-Runner)
 :::

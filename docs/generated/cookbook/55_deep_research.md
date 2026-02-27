@@ -5,14 +5,15 @@ Gemini's Deep Research feature and Perplexity. A query is decomposed
 into sub-questions, searched in parallel across multiple sources,
 synthesized, quality-reviewed in a loop, and formatted as a report.
 
-Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
+Uses: >>, |, *, @, S.*, C.\*, save_as, loop_until
 
 *How to compose agents into a sequential pipeline.*
 
 _Source: `55_deep_research.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # A native ADK deep research pipeline requires:
 #   - 7+ LlmAgent declarations with manual output_key wiring
@@ -23,8 +24,10 @@ _Source: `55_deep_research.py`_
 #   - Pydantic schema wiring for the final report
 # Total: ~120 lines of boilerplate
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from pydantic import BaseModel
 
@@ -128,6 +131,7 @@ deep_research = (
     >> report_writer
 )
 ```
+
 :::
 ::::
 
