@@ -587,14 +587,100 @@ def manifest_to_dict(m: Manifest) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def diff_to_markdown(changes: dict) -> str:
+    """Render a diff dict as a publishable Markdown changelog page."""
+    old_v = changes["adk_version_old"]
+    new_v = changes["adk_version_new"]
+    breaking = changes.get("breaking", False)
+    added_classes = changes.get("added_classes", [])
+    removed_classes = changes.get("removed_classes", [])
+    field_changes = changes.get("field_changes", {})
+
+    lines: list[str] = []
+    lines.append("# API Diff")
+    lines.append("")
+    lines.append(f"Changes detected between ADK **{old_v}** and **{new_v}**.")
+    lines.append("")
+    if breaking:
+        lines.append("> **Breaking changes detected.** See removed classes/fields below.")
+        lines.append("")
+
+    # Summary
+    n_added = len(added_classes)
+    n_removed = len(removed_classes)
+    n_changed = len(field_changes)
+    total_added_fields = sum(len(v.get("added_fields", [])) for v in field_changes.values())
+    total_removed_fields = sum(len(v.get("removed_fields", [])) for v in field_changes.values())
+    lines.append("## Summary")
+    lines.append("")
+    lines.append(f"- **{n_added}** new classes added")
+    lines.append(f"- **{n_removed}** classes removed")
+    lines.append(f"- **{n_changed}** classes with field changes ({total_added_fields} fields added, {total_removed_fields} fields removed)")
+    lines.append("")
+
+    # New classes
+    if added_classes:
+        lines.append("## New Classes")
+        lines.append("")
+        for cls in added_classes:
+            lines.append(f"- `{cls}`")
+        lines.append("")
+
+    # Removed classes
+    if removed_classes:
+        lines.append("## Removed Classes")
+        lines.append("")
+        for cls in removed_classes:
+            lines.append(f"- ~~`{cls}`~~")
+        lines.append("")
+
+    # Field changes
+    if field_changes:
+        lines.append("## Field Changes")
+        lines.append("")
+        for cls_name in sorted(field_changes):
+            change = field_changes[cls_name]
+            added = change.get("added_fields", [])
+            removed = change.get("removed_fields", [])
+            lines.append(f"### `{cls_name}`")
+            lines.append("")
+            if added:
+                for f in added:
+                    lines.append(f"- Added: `{f}`")
+            if removed:
+                for f in removed:
+                    lines.append(f"- Removed: ~~`{f}`~~")
+            lines.append("")
+
+    # No changes
+    if not added_classes and not removed_classes and not field_changes:
+        lines.append("No changes detected between these ADK versions.")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Scan ADK and produce manifest.json")
     parser.add_argument("-o", "--output", help="Output file (default: stdout)")
     parser.add_argument("--diff", help="Compare against previous manifest.json")
+    parser.add_argument("--diff-markdown", help="Like --diff but output Markdown to given file (use - for stdout)")
     parser.add_argument("--summary", action="store_true", help="Print summary only")
     args = parser.parse_args()
 
     manifest = scan_all()
+
+    if args.diff_markdown:
+        if not args.diff:
+            parser.error("--diff-markdown requires --diff <previous_manifest>")
+        changes = diff_manifests(args.diff, manifest)
+        md = diff_to_markdown(changes)
+        if args.diff_markdown == "-":
+            print(md)
+        else:
+            Path(args.diff_markdown).write_text(md)
+            print(f"API diff written to {args.diff_markdown}", file=sys.stderr)
+        return
 
     if args.diff:
         changes = diff_manifests(args.diff, manifest)

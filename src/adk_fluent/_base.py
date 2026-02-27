@@ -859,21 +859,190 @@ class BuilderBase:
 
         return tree
 
-    def explain(self) -> str:
+    # Docs base URL — override with ADKFLUENT_DOCS_URL env var or docs_url= parameter
+    _DOCS_BASE_URL = "https://vamsiramakrishnan.github.io/adk-fluent"
+
+    # Map builder class names to their API reference doc page
+    _DOCS_PAGE_MAP: dict[str, str] = {
+        "Agent": "api/agent",
+        "BaseAgent": "api/agent",
+        "Pipeline": "api/workflow",
+        "Loop": "api/workflow",
+        "FanOut": "api/workflow",
+        "Runner": "api/runtime",
+        "InMemoryRunner": "api/runtime",
+        "App": "api/runtime",
+    }
+
+    def _docs_url_for(self, base_url: str | None = None) -> str:
+        """Return the docs URL for this builder's API reference page."""
+        import os
+
+        base = base_url or os.environ.get("ADKFLUENT_DOCS_URL", self._DOCS_BASE_URL)
+        base = base.rstrip("/")
+        cls_name = self.__class__.__name__
+        page = self._DOCS_PAGE_MAP.get(cls_name)
+        if page is None:
+            # Infer from class name suffix
+            if cls_name.endswith("Config"):
+                page = "api/config"
+            elif cls_name.endswith("Service"):
+                page = "api/service"
+            elif cls_name.endswith("Tool") or cls_name.endswith("Toolset"):
+                page = "api/tool"
+            elif cls_name.endswith("Plugin"):
+                page = "api/plugin"
+            elif cls_name.endswith("Planner"):
+                page = "api/planner"
+            elif cls_name.endswith("Executor"):
+                page = "api/executor"
+            else:
+                page = "api"
+        return f"{base}/{page}/"
+
+    def explain(
+        self,
+        *,
+        format: str = "text",
+        docs_url: str | None = None,
+        open_browser: bool = False,
+    ) -> str | dict:
         """Return a multi-line summary of this builder's state.
 
-        Uses rich box-drawing output if ``rich`` is installed, otherwise
-        falls back to plain text.
+        Parameters
+        ----------
+        format:
+            ``"text"`` (default) for human-readable output (rich if available,
+            plain otherwise).  ``"json"`` for a machine-readable dict.
+        docs_url:
+            Base URL for docs links appended to output.  Defaults to the
+            published GitHub Pages site.  Set ``ADKFLUENT_DOCS_URL`` env
+            var to override globally.
+        open_browser:
+            If ``True``, open the relevant API docs page in the default
+            browser after printing.
+
+        Returns
+        -------
+        str | dict
+            Formatted text when ``format="text"``, a dict when
+            ``format="json"``.
         """
+        if format == "json":
+            result = self._explain_json(docs_url=docs_url)
+            if open_browser:
+                self._open_docs(docs_url)
+            return result
+
+        # --- text mode ---
         try:
             from rich.console import Console  # type: ignore[reportMissingImports]
 
             tree = self._build_rich_tree()
             console = Console(record=True, width=120)
             console.print(tree)
-            return console.export_text()
+            text = console.export_text()
         except ImportError:
-            return self._explain_plain()
+            text = self._explain_plain()
+
+        # Append docs link
+        ref_url = self._docs_url_for(docs_url)
+        text += f"\n  Docs: {ref_url}"
+
+        if open_browser:
+            self._open_docs(docs_url)
+
+        return text
+
+    def _explain_json(self, *, docs_url: str | None = None) -> dict:
+        """Return a structured dict representation of this builder's state."""
+        cls_name = self.__class__.__name__
+        name = self._config.get("name", "?")
+        model = self._config.get("model")
+        instruction = self._config.get("instruction", "")
+
+        result: dict[str, Any] = {
+            "builder": cls_name,
+            "name": name,
+            "docs_url": self._docs_url_for(docs_url),
+        }
+
+        if model:
+            result["model"] = model
+        if instruction:
+            if callable(instruction):
+                result["instruction"] = "<dynamic provider>"
+            else:
+                result["instruction"] = instruction[:200] + ("..." if len(str(instruction)) > 200 else "")
+
+        # Data flow
+        produces = self._config.get("_produces")
+        consumes = self._config.get("_consumes")
+        output_key = self._config.get("output_key")
+        data_flow: dict[str, Any] = {}
+        if consumes:
+            data_flow["consumes"] = {"schema": consumes.__name__, "fields": list(consumes.model_fields.keys())}
+        if produces:
+            data_flow["produces"] = {"schema": produces.__name__, "fields": list(produces.model_fields.keys())}
+        if output_key:
+            data_flow["output_key"] = output_key
+        if data_flow:
+            result["data_flow"] = data_flow
+
+        # Tools
+        tools = list(self._config.get("tools", []))
+        tools.extend(self._lists.get("tools", []))
+        if tools:
+            result["tools"] = [
+                getattr(t, "name", None) or getattr(t, "__name__", None) or type(t).__name__ for t in tools
+            ]
+
+        # Callbacks
+        cbs = {}
+        for field, fns in self._callbacks.items():
+            if fns:
+                alias = self._reverse_callback_alias(field)
+                cbs[alias] = len(fns)
+        if cbs:
+            result["callbacks"] = cbs
+
+        # Children
+        children_raw = list(self._config.get("sub_agents", []))
+        children_raw.extend(self._lists.get("sub_agents", []))
+        if children_raw:
+            result["children"] = [
+                getattr(c, "_config", {}).get("name", "?") if hasattr(c, "_config") else str(c) for c in children_raw
+            ]
+
+        # Config (other fields)
+        _skip = {"name", "model", "instruction", "_produces", "_consumes", "output_key", "tools", "sub_agents"}
+        other = {k: repr(v) for k, v in self._config.items() if k not in _skip and not k.startswith("_")}
+        if other:
+            result["config"] = other
+
+        # Contract issues
+        try:
+            ir = self.to_ir()
+            from adk_fluent.testing.contracts import check_contracts
+
+            issues = check_contracts(ir)
+            if issues:
+                result["contract_issues"] = [
+                    {"level": i.get("level", "?"), "agent": i.get("agent", "?"), "message": i.get("message", "?")}
+                    if isinstance(i, dict)
+                    else {"message": str(i)}
+                    for i in issues
+                ]
+        except (NotImplementedError, Exception):
+            pass
+
+        return result
+
+    def _open_docs(self, docs_url: str | None = None) -> None:
+        """Open the API reference docs page in the default browser."""
+        import webbrowser
+
+        webbrowser.open(self._docs_url_for(docs_url))
 
     def inspect(self) -> str:
         """Return a detailed view of this builder's full config values."""

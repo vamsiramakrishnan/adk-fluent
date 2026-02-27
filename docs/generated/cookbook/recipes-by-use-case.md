@@ -3,6 +3,58 @@
 Can't find the right cookbook example? This page organizes all 58 recipes
 by real-world use case so you can jump straight to the pattern you need.
 
+## Quick find by primitive
+
+Jump to recipes that demonstrate a specific adk-fluent primitive.
+
+| Primitive          | What it does                 | Recipes                                                                                                                                                                                                                   |
+| ------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `>>` (chain)       | Sequential composition       | [#04](04_sequential_pipeline.md), [#16](16_operator_composition.md), [#28](28_real_world_pipeline.md), [#29](29_function_steps.md), [#34](34_full_algebra.md), [#55](55_deep_research.md), [#57](57_code_review_agent.md) |
+| `\|` (parallel)    | Concurrent branches          | [#05](05_parallel_fanout.md), [#16](16_operator_composition.md), [#28](28_real_world_pipeline.md), [#34](34_full_algebra.md), [#55](55_deep_research.md), [#57](57_code_review_agent.md)                                  |
+| `*` (repeat)       | Loop N times                 | [#06](06_loop_agent.md), [#16](16_operator_composition.md), [#30](30_until_operator.md)                                                                                                                                   |
+| `@` (typed output) | Structured output schema     | [#31](31_typed_output.md), [#53](53_structured_schemas.md), [#55](55_deep_research.md), [#57](57_code_review_agent.md)                                                                                                    |
+| `//` (fallback)    | Try A, fall back to B        | [#32](32_fallback_operator.md)                                                                                                                                                                                            |
+| `Route`            | Deterministic branching      | [#17](17_route_branching.md), [#18](18_dict_routing.md), [#50](50_capture_and_route.md), [#56](56_customer_support_triage.md)                                                                                             |
+| `S.*` transforms   | State manipulation           | [#33](33_state_transforms.md), [#50](50_capture_and_route.md), [#55](55_deep_research.md), [#56](56_customer_support_triage.md)                                                                                           |
+| `C.*` context      | Context engineering          | [#49](49_context_engineering.md), [#55](55_deep_research.md), [#56](56_customer_support_triage.md)                                                                                                                        |
+| `tap`              | Observe without side effects | [#35](35_tap_observation.md), [#57](57_code_review_agent.md)                                                                                                                                                              |
+| `expect`           | State assertions             | [#36](36_expect_assertions.md), [#43](43_primitives_showcase.md)                                                                                                                                                          |
+| `gate`             | Human-in-the-loop approval   | [#41](41_gate_approval.md), [#56](56_customer_support_triage.md)                                                                                                                                                          |
+| `proceed_if`       | Conditional gating           | [#19](19_conditional_gating.md), [#57](57_code_review_agent.md)                                                                                                                                                           |
+| `retry_if`         | Retry on transient failure   | [#38](38_retry_if.md)                                                                                                                                                                                                     |
+| `timeout`          | Execution deadline           | [#40](40_timeout.md)                                                                                                                                                                                                      |
+| `race`             | First response wins          | [#42](42_race.md)                                                                                                                                                                                                         |
+| `loop_until`       | Loop until predicate         | [#20](20_loop_until.md), [#28](28_real_world_pipeline.md)                                                                                                                                                                 |
+| `map_over`         | Iterate over items           | [#39](39_map_over.md)                                                                                                                                                                                                     |
+| `Preset`           | Reusable config bundle       | [#22](22_presets.md), [#28](28_real_world_pipeline.md)                                                                                                                                                                    |
+| `.guardrail()`     | Safety guardrails            | [#12](12_guardrails.md), [#58](58_multi_tool_agent.md)                                                                                                                                                                    |
+| `.delegate()`      | LLM-driven routing           | [#27](27_delegate_pattern.md)                                                                                                                                                                                             |
+| `.session()`       | Interactive sessions         | [#13](13_interactive_session.md)                                                                                                                                                                                          |
+| `.explain()`       | Builder introspection        | [#25](25_validate_explain.md)                                                                                                                                                                                             |
+| `.to_mermaid()`    | Architecture diagrams        | [#48](48_visualization.md)                                                                                                                                                                                                |
+| `mock_backend()`   | Deterministic testing        | [#37](37_mock_testing.md)                                                                                                                                                                                                 |
+| `@agent` decorator | Decorator syntax             | [#24](24_agent_decorator.md)                                                                                                                                                                                              |
+
+## Quick find by question
+
+| I need to...                        | Start here                                                                                         |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Build a simple agent                | [#01](01_simple_agent.md)                                                                          |
+| Add tools to an agent               | [#02](02_agent_with_tools.md), [#58](58_multi_tool_agent.md)                                       |
+| Build a chatbot with memory         | [#13](13_interactive_session.md), [#49](49_context_engineering.md)                                 |
+| Chain agents into a pipeline        | [#04](04_sequential_pipeline.md), [#29](29_function_steps.md)                                      |
+| Run agents in parallel              | [#05](05_parallel_fanout.md), [#42](42_race.md)                                                    |
+| Route to different agents           | [#17](17_route_branching.md), [#18](18_dict_routing.md), [#27](27_delegate_pattern.md)             |
+| Add guardrails and safety           | [#12](12_guardrails.md), [#19](19_conditional_gating.md), [#46](46_contracts_and_testing.md)       |
+| Test my agents                      | [#11](11_inline_testing.md), [#36](36_expect_assertions.md), [#37](37_mock_testing.md)             |
+| Retry / handle failures             | [#38](38_retry_if.md), [#32](32_fallback_operator.md), [#40](40_timeout.md)                        |
+| Deploy to production                | [#15](15_production_runtime.md), [#45](45_middleware.md), [#47](47_dependency_injection.md)        |
+| Serialize / save agents             | [#26](26_serialization.md)                                                                         |
+| Debug data flow issues              | [#25](25_validate_explain.md), [#52](52_contract_checking.md), [#48](48_visualization.md)          |
+| Build a complex real-world pipeline | [#28](28_real_world_pipeline.md), [#55](55_deep_research.md), [#56](56_customer_support_triage.md) |
+
+______________________________________________________________________
+
 ## Customer Support & Triage
 
 Build agents that classify tickets, route conversations, and escalate issues.

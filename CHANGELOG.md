@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.4] - 2026-02-27
+
+### Added
+
+- **Recipes quick-find tables**: "Quick find by primitive" (25 primitives with recipe links) and "Quick find by question" (13 common tasks) tables added to the recipes-by-use-case index page
+- **`.explain(format="json")`**: Returns a structured dict with builder name, config, data flow, tools, contract issues, and docs URL — suitable for tooling and programmatic consumption
+- **`.explain(docs_url=...)`**: Every `.explain()` call now appends a link to the relevant API reference docs page; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
+- **`.explain(open_browser=True)`**: Opens the API docs page for this builder in the default browser
+- **`--diff-markdown` flag on scanner**: `python scripts/scanner.py --diff old.json --diff-markdown docs/generated/api-diff.md` generates a publishable Markdown page showing new/removed classes, field changes, and breaking change warnings
+- **`just diff-md` command**: One-command API diff page generation for the docs site
+- **Copy-paste-run contract**: All examples now document a clear contract — interactive examples need only `.env` setup, cookbook examples need no API key at all. Prerequisites column added to all example tables
+
+### Changed
+
+- Recipes-by-use-case index reorganized with quick-find sections above the domain categories
+- Runnable examples page rewritten with full prerequisites section, `.env` setup guide, and per-example prerequisites column
+- Cookbook index now includes a "How to run these examples" section with copy-paste-ready commands
+
+## [0.9.3] - 2026-02-27
+
+### Added
+
+- **Error reference page**: New `docs/user-guide/error-reference.md` documents every error pattern (`BuilderError`, `AttributeError`, `ValueError`, `TypeError`, `NotImplementedError`) with causes, code examples, and fixes
+- **Recipes by Use Case index**: New `docs/generated/cookbook/recipes-by-use-case.md` organizes all 58 cookbook examples into 9 domain categories (customer support, e-commerce, research, production, etc.)
+- **Runnable Examples page**: New `docs/runnable-examples.md` indexes all 49 standalone `adk web`-compatible examples with setup instructions, descriptions, and run commands
+- **Cookbook examples 55-58**: Generated documentation for deep research, customer support triage, code review agent, and multi-tool agent capstone examples
+
+### Fixed
+
+- **Stale docs changelog**: `docs/changelog.md` was stuck at v0.3.1 — now synced with root `CHANGELOG.md` covering all releases through v0.9.2
+
 ## [0.9.2] - 2026-02-27
 
 ### Added
@@ -267,3 +298,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.8.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.7.0...v0.8.0
 [0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.8.0...v0.9.1
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2
+[0.9.3]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.2...v0.9.3
+[0.9.4]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.3...v0.9.4
