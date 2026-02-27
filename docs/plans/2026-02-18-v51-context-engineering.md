@@ -18,8 +18,6 @@ v5.1 is split into five phases. Each phase gets its own plan document when start
 | **D** | Scratchpads + Sugar   | TBD   | Phase B        | **NOT STARTED**         | `docs/plans/YYYY-MM-DD-v51-phase-d-scratchpads.md` (not yet created) |
 | **E** | Typed State           | TBD   | Phase A        | **PARTIAL**             | `docs/plans/YYYY-MM-DD-v51-phase-e-typed-state.md` (not yet created) |
 
-[^1]: Task 10 (OTel Enrichment) was not implemented. All other Phase A tasks are complete.
-
 ### Phase A — Foundation (this document) — COMPLETE
 
 S.capture, C module core (9 primitives: none, default, user_only, from_agents, exclude_agents, window, from_state, template, capture), Agent.context(), Event Visibility with pipeline policies, cross-channel contract checker, memory integration, IR-first build path. ~~OTel enrichment middleware~~ (deferred — not implemented).
@@ -2863,3 +2861,5 @@ ______________________________________________________________________
 - **Appendix_f Q9:** Better auto-generated Pipeline names — deferred to naming convention pass
 
 The codegen scanner does NOT need updating — all new code is hand-written adk-fluent invention
+
+[^1]: Task 10 (OTel Enrichment) was not implemented. All other Phase A tasks are complete.

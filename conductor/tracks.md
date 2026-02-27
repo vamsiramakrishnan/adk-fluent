@@ -30,7 +30,7 @@ ______________________________________________________________________
   *Plan: [docs/plans/2026-02-18-v51-context-engineering.md](../docs/plans/2026-02-18-v51-context-engineering.md)*
 - [ ] **v5.1 Phase D: Scratchpads + Sugar** — NOT STARTED
   *C.notes(), C.rolling(), C.from_agents_windowed(), C.user(), C.manus_cascade(), note lifecycle*
-- [~] **v5.1 Phase E: Typed State (StateSchema)** — PARTIAL
+- \[~\] **v5.1 Phase E: Typed State (StateSchema)** — PARTIAL
   *StateKey with scope prefixes implemented; StateSchema base class, CapturedBy annotation, typed contract checking, and IDE autocomplete still needed*
 
 ## Parallel Tracks
