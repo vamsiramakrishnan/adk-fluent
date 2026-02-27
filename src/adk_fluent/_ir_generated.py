@@ -66,6 +66,7 @@ class AgentNode:
     reads_keys: frozenset[str] = frozenset()
     produces_type: type | None = None
     consumes_type: type | None = None
+    context_spec: Any = None  # CTransform descriptor, preserved for diagnostics
 
 
 @dataclass(frozen=True)

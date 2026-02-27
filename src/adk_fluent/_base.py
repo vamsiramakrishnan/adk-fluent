@@ -457,15 +457,99 @@ class BuilderBase:
         return self
 
     def explain(self) -> str:
-        """Return a multi-line summary of this builder's state."""
+        """Return a rich, human-readable explanation of this builder's configuration.
+
+        Shows what the agent does, what data it reads/writes, how it sees
+        conversation history, what tools it has, and any contract issues.
+        Designed to be immediately useful for debugging data flow problems.
+        """
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
         lines = [f"{cls_name}: {name}"]
 
-        # Config fields
-        config_fields = [k for k in self._config if k != "name" and not k.startswith("_")]
-        if config_fields:
-            lines.append(f"  Config fields: {', '.join(config_fields)}")
+        # Model
+        model = self._config.get("model")
+        if model:
+            lines.append(f"  Model: {model}")
+
+        # Instruction summary
+        instruction = self._config.get("instruction", "")
+        if instruction:
+            if callable(instruction):
+                lines.append("  Instruction: <dynamic provider>")
+            elif isinstance(instruction, str):
+                import re
+
+                # Show first 80 chars + template variables
+                preview = instruction[:80].replace("\n", " ")
+                if len(instruction) > 80:
+                    preview += "..."
+                lines.append(f"  Instruction: {preview}")
+
+                # Extract template variables
+                template_vars = re.findall(r"\{(\w+)\??\}", instruction)
+                if template_vars:
+                    required = [v for v in template_vars if f"{{{v}?}}" not in instruction]
+                    optional = [v for v in template_vars if f"{{{v}?}}" in instruction]
+                    parts = []
+                    if required:
+                        parts.append(f"required: {', '.join(required)}")
+                    if optional:
+                        parts.append(f"optional: {', '.join(optional)}")
+                    lines.append(f"  Template vars: {'; '.join(parts)}")
+
+        # Data flow: reads and writes
+        produces_schema = self._config.get("_produces")
+        consumes_schema = self._config.get("_consumes")
+        output_key = self._config.get("output_key")
+
+        reads_parts = []
+        if consumes_schema:
+            fields = list(consumes_schema.model_fields.keys())
+            reads_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
+        if reads_parts:
+            lines.append(f"  Reads: {'; '.join(reads_parts)}")
+
+        writes_parts = []
+        if produces_schema:
+            fields = list(produces_schema.model_fields.keys())
+            writes_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
+        if output_key:
+            writes_parts.append(f"output_key='{output_key}'")
+        if writes_parts:
+            lines.append(f"  Writes: {'; '.join(writes_parts)}")
+
+        if not reads_parts and not writes_parts and not output_key:
+            lines.append("  Data flow: no explicit reads/writes declared")
+
+        # Context strategy
+        context_spec = self._config.get("_context_spec")
+        include_contents = self._config.get("include_contents", "default")
+        if context_spec is not None:
+            from adk_fluent.testing.contracts import _context_description
+
+            lines.append(f"  Context: {_context_description(context_spec)}")
+        elif include_contents != "default":
+            lines.append(f"  Context: include_contents='{include_contents}'")
+
+        # Output schema
+        output_schema = self._config.get("_output_schema")
+        if output_schema:
+            lines.append(f"  Structured output: {output_schema.__name__}")
+
+        # Tools
+        tools = list(self._config.get("tools", []))
+        tools.extend(self._lists.get("tools", []))
+        if tools:
+            tool_names = []
+            for t in tools:
+                if hasattr(t, "name"):
+                    tool_names.append(t.name)
+                elif hasattr(t, "__name__"):
+                    tool_names.append(t.__name__)
+                else:
+                    tool_names.append(type(t).__name__)
+            lines.append(f"  Tools ({len(tools)}): {', '.join(tool_names)}")
 
         # Callbacks
         for field, fns in self._callbacks.items():
@@ -473,10 +557,35 @@ class BuilderBase:
                 alias = self._reverse_callback_alias(field)
                 lines.append(f"  Callback '{alias}': {len(fns)} registered")
 
-        # Lists
-        for field, items in self._lists.items():
-            if items:
-                lines.append(f"  {field}: {len(items)} items")
+        # Sub-agents
+        children_raw = list(self._config.get("sub_agents", []))
+        children_raw.extend(self._lists.get("sub_agents", []))
+        if children_raw:
+            child_names = [getattr(c, "_config", {}).get("name", "?") if hasattr(c, "_config") else str(c) for c in children_raw]
+            lines.append(f"  Children ({len(children_raw)}): {', '.join(child_names)}")
+
+        # Contract issues (if IR is available)
+        try:
+            ir = self.to_ir()
+            from adk_fluent.testing.contracts import check_contracts
+
+            issues = check_contracts(ir)
+            if issues:
+                lines.append("  Contract issues:")
+                for issue in issues:
+                    if isinstance(issue, str):
+                        lines.append(f"    - {issue}")
+                    else:
+                        level = issue.get("level", "?")
+                        agent = issue.get("agent", "?")
+                        msg = issue.get("message", "?")
+                        hint = issue.get("hint", "")
+                        marker = "ERROR" if level == "error" else "INFO"
+                        lines.append(f"    [{marker}] {agent}: {msg}")
+                        if hint:
+                            lines.append(f"           Hint: {hint}")
+        except (NotImplementedError, Exception):
+            pass  # IR not available or conversion failed
 
         return "\n".join(lines)
 
@@ -913,11 +1022,28 @@ class BuilderBase:
         existing.update(resources)
         return self
 
-    def to_mermaid(self) -> str:
-        """Generate a Mermaid graph visualization of this builder's IR tree."""
+    def to_mermaid(
+        self,
+        *,
+        show_contracts: bool = True,
+        show_data_flow: bool = True,
+        show_context: bool = False,
+    ) -> str:
+        """Generate a Mermaid graph visualization of this builder's IR tree.
+
+        Args:
+            show_contracts: Include produces/consumes type annotations.
+            show_data_flow: Include dotted edges showing state key flow.
+            show_context: Include context strategy annotations per agent.
+        """
         from adk_fluent.viz import ir_to_mermaid
 
-        return ir_to_mermaid(self.to_ir())
+        return ir_to_mermaid(
+            self.to_ir(),
+            show_contracts=show_contracts,
+            show_data_flow=show_data_flow,
+            show_context=show_context,
+        )
 
     def strict(self) -> Self:
         """Enable strict contract checking — build() raises ValueError on contract errors."""

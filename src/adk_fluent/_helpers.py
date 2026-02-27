@@ -89,6 +89,7 @@ def _agent_to_ir(builder):
 
     produces_schema = builder._config.get("_produces")
     consumes_schema = builder._config.get("_consumes")
+    context_spec = builder._config.get("_context_spec")
     writes_keys = frozenset(produces_schema.model_fields.keys()) if produces_schema else frozenset()
     reads_keys = frozenset(consumes_schema.model_fields.keys()) if consumes_schema else frozenset()
 
@@ -115,6 +116,7 @@ def _agent_to_ir(builder):
         reads_keys=reads_keys,
         produces_type=produces_schema,
         consumes_type=consumes_schema,
+        context_spec=context_spec,
     )
 
 
