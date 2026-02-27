@@ -12,7 +12,210 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
 [![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
 
+## Why adk-fluent?
+
+Google's [Agent Development Kit](https://google.github.io/adk-docs/) is powerful, but building agents with it means writing a lot of repetitive constructor boilerplate. As agent systems grow from a single agent to multi-agent pipelines, the verbosity compounds: wiring sub-agents, managing state, controlling context, and configuring callbacks all require carefully nested constructors with long keyword-argument lists. **adk-fluent exists to eliminate that friction** while producing the exact same native ADK objects underneath.
+
+### The Problem: Vanilla ADK is Verbose
+
+A straightforward three-agent pipeline in vanilla ADK looks like this:
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.sequential_agent import SequentialAgent
+
+extractor = LlmAgent(
+    name="extractor",
+    model="gemini-2.5-flash",
+    instruction="Extract key entities from the document.",
+    description="Extracts entities",
+    output_key="entities",
+)
+
+analyst = LlmAgent(
+    name="analyst",
+    model="gemini-2.5-flash",
+    instruction="Analyze the extracted entities for risk factors.",
+    description="Analyzes risk",
+)
+
+summarizer = LlmAgent(
+    name="summarizer",
+    model="gemini-2.5-flash",
+    instruction="Produce a concise executive summary.",
+    description="Writes summary",
+)
+
+pipeline = SequentialAgent(
+    name="review_pipeline",
+    description="Extract, analyze, and summarize documents",
+    sub_agents=[extractor, analyst, summarizer],
+)
+```
+
+Every agent repeats the same `LlmAgent(name=..., model=..., instruction=..., description=...)` pattern. Composition requires manually constructing wrapper agents and passing `sub_agents` lists. As the system grows, this boilerplate obscures the actual logic.
+
+### The Solution: Fluent Builders + Expression Operators
+
+The same pipeline with adk-fluent:
+
+```python
+from adk_fluent import Agent
+
+pipeline = (
+    Agent("extractor", "gemini-2.5-flash").instruct("Extract key entities from the document.").outputs("entities")
+    >> Agent("analyst", "gemini-2.5-flash").instruct("Analyze the extracted entities for risk factors.")
+    >> Agent("summarizer", "gemini-2.5-flash").instruct("Produce a concise executive summary.")
+).build()
+```
+
+Three lines. The `>>` operator creates a `SequentialAgent` automatically. `.build()` returns a native ADK object -- fully compatible with `adk web`, `adk run`, and `adk deploy`.
+
+### Key Benefits
+
+**1. Dramatic Boilerplate Reduction**
+
+Agent creation drops from 22+ lines of constructor arguments to 1-3 lines of chained method calls. Pipelines, parallel fan-outs, and loops are expressed with operators (`>>`, `|`, `*`) instead of manually constructing wrapper agents.
+
+**2. Code That Reads Like Intent**
+
+Method chaining reads top-to-bottom like a specification, not an API call:
+
+```python
+agent = (
+    Agent("support")
+    .model("gemini-2.5-flash")
+    .instruct("Help the customer resolve their issue.")
+    .tool(lookup_customer)
+    .tool(create_ticket)
+    .before_model(log_request)
+    .outputs("resolution")
+    .build()
+)
+```
+
+Each line answers one question: *what model?*, *what instructions?*, *what tools?*, *what callbacks?*, *where does the output go?*
+
+**3. Full IDE Autocomplete and Typo Detection**
+
+The library ships `.pyi` type stubs for every builder. Type `Agent("x").` and your IDE shows all available methods with type hints. Misspelled field names raise `AttributeError` with the closest-match suggestion at definition time, not at runtime deep in a pipeline:
+
+```python
+agent.instuction("oops")
+# -> AttributeError: 'instuction' is not a recognized field.
+#    Did you mean: 'instruction'?
+```
+
+**4. Safe Composability Through Immutability**
+
+All operators are copy-on-write. Sub-expressions can be safely reused without unintended side effects:
+
+```python
+research = web_agent | scholar_agent        # Parallel fan-out
+pipeline_a = research >> writer_a           # Independent pipeline
+pipeline_b = research >> writer_b           # Reuses same research, no mutation
+```
+
+This enables building agent libraries as composable building blocks.
+
+**5. 100% Native ADK Compatibility**
+
+Every `.build()` call returns a real ADK object (`LlmAgent`, `SequentialAgent`, `ParallelAgent`, `LoopAgent`). There is no wrapper layer at runtime. Agents built with adk-fluent work identically with `adk web`, `adk run`, `adk deploy`, and any other ADK tooling.
+
+**6. Context Engineering Without Boilerplate**
+
+The `C` module controls exactly what conversation history each agent sees, preventing prompt pollution in complex multi-agent DAGs:
+
+```python
+from adk_fluent import C
+
+pipeline = (
+    Agent("classifier").outputs("intent")
+    >> Agent("resolver")
+        .instruct("Resolve the {intent} issue.")
+        .context(C.none())    # Stateless -- sees only its instruction, no prior turns
+)
+```
+
+Without this, every downstream agent inherits the full conversation history, wasting tokens and confusing the model with irrelevant context.
+
+**7. State Wiring Without Custom Callbacks**
+
+The `S` module provides declarative state transforms that compose with `>>`:
+
+```python
+from adk_fluent import S
+
+pipeline = (
+    (web_agent | scholar_agent)
+    >> S.merge("web", "scholar", into="research")
+    >> S.rename(research="input")
+    >> writer_agent
+)
+```
+
+No hand-written callback functions to rename keys, merge dictionaries, or set defaults. Each transform is a single, readable line.
+
+**8. Testing Built In**
+
+Deterministic testing without LLM calls, data contracts between pipeline stages, and a test harness are all first-class features:
+
+```python
+from adk_fluent.testing import mock_backend, AgentHarness, check_contracts
+
+# Mock LLM responses for deterministic tests
+harness = AgentHarness(pipeline, backend=mock_backend({
+    "classifier": {"category": "billing"},
+    "resolver": "Ticket created.",
+}))
+
+# Verify schema compatibility between pipeline stages at build time
+issues = check_contracts(pipeline.to_ir())
+```
+
+**9. Auto-Generated and Always in Sync**
+
+Builders are auto-generated by introspecting the installed ADK package. When Google updates ADK, regenerating takes one command (`just all`), not days of manual wrapping. Every ADK field is automatically available through dynamic forwarding.
+
+**10. Multiple Paradigms, One Result**
+
+Every workflow can be expressed two ways -- explicit builder methods or expression operators -- and both produce identical ADK objects:
+
+```python
+# Builder style: verbose but clear for complex per-step configuration
+pipeline = (
+    Pipeline("review")
+    .step(Agent("extract").model("gemini-2.5-flash").instruct("Extract.").tool(parser).before_model(log_fn))
+    .step(Agent("analyze").model("gemini-2.5-flash").instruct("Analyze."))
+    .build()
+)
+
+# Operator style: compact, great for composition
+pipeline = (
+    Agent("extract").model("gemini-2.5-flash").instruct("Extract.").tool(parser)
+    >> Agent("analyze").model("gemini-2.5-flash").instruct("Analyze.")
+).build()
+```
+
+Pick the style that fits the complexity of each part of your system. Mix them freely.
+
+### At a Glance
+
+| Pain Point | How adk-fluent Solves It |
+| --- | --- |
+| Repetitive constructor boilerplate | Method chaining: `.model().instruct().tool().build()` |
+| Manual sub-agent wiring | Operators: `>>` (sequence), `\|` (parallel), `*` (loop) |
+| No IDE help for ADK constructors | `.pyi` stubs with full autocomplete and type hints |
+| Typos caught at runtime | `AttributeError` with suggestions at definition time |
+| Unsafe reuse of agent builders | Copy-on-write immutability on all operators |
+| Prompt pollution in multi-agent DAGs | `C` module: `C.none()`, `C.user_only()`, `C.window(n)` |
+| Hand-written state callbacks | `S` module: `S.pick()`, `S.merge()`, `S.rename()` |
+| No testing without LLM calls | `mock_backend`, `AgentHarness`, `check_contracts` |
+| Falling behind ADK updates | Auto-generated from ADK's Pydantic models |
+| Lock-in to a wrapper library | `.build()` returns native ADK objects -- zero runtime overhead |
+
 ## Table of Contents
+- [Why adk-fluent?](#why-adk-fluent)
 - [Install](#install)
 - [Quick Start](#quick-start)
 - [Expression Language](#expression-language)
