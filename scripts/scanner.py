@@ -615,7 +615,9 @@ def diff_to_markdown(changes: dict) -> str:
     lines.append("")
     lines.append(f"- **{n_added}** new classes added")
     lines.append(f"- **{n_removed}** classes removed")
-    lines.append(f"- **{n_changed}** classes with field changes ({total_added_fields} fields added, {total_removed_fields} fields removed)")
+    lines.append(
+        f"- **{n_changed}** classes with field changes ({total_added_fields} fields added, {total_removed_fields} fields removed)"
+    )
     lines.append("")
 
     # New classes
