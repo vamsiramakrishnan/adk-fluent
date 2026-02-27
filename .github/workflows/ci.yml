@@ -34,7 +34,7 @@ jobs:
         run: uv run pre-commit run --all-files
 
   # ---------------------------------------------------------------------------
-  # TYPECHECK — validates generated stubs against source
+  # TYPECHECK — validates generated stubs and hand-written code
   # ---------------------------------------------------------------------------
   typecheck:
     runs-on: ubuntu-latest
@@ -53,8 +53,11 @@ jobs:
       - name: Generate Code and Stubs
         run: just scan seed generate
 
-      - name: Run pyright Typecheck
+      - name: Run pyright Typecheck (stubs)
         run: just typecheck
+
+      - name: Run pyright Typecheck (hand-written code)
+        run: just typecheck-core
 
   # ---------------------------------------------------------------------------
   # TEST — runs on every push and PR, across Python versions
@@ -82,6 +85,9 @@ jobs:
 
       - name: Run Tests with coverage
         run: uv run pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=xml --cov-report=term-missing
+
+      - name: Run Cookbook Tests
+        run: uv run pytest examples/cookbook/ -q --tb=short
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'

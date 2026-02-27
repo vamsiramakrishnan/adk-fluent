@@ -1451,9 +1451,9 @@ def _make_relevant_provider(query_key: str | None, query: str | None, top_k: int
             return ""
 
         score_prompt = (
-            f"Score each event below from 0 to 10 for relevance to this query: \"{resolved_query}\"\n\n"
+            f'Score each event below from 0 to 10 for relevance to this query: "{resolved_query}"\n\n'
             + "\n".join(numbered)
-            + "\n\nRespond with a JSON array of objects: [{\"index\": <int>, \"score\": <float>}, ...]"
+            + '\n\nRespond with a JSON array of objects: [{"index": <int>, "score": <float>}, ...]'
         )
 
         try:
@@ -1545,7 +1545,7 @@ def _make_distill_provider(key: str, model: str) -> Callable:
             f"Extract discrete atomic facts from this conversation. "
             f"Each fact should be a single, self-contained statement.\n\n"
             f"{formatted}\n\n"
-            f"Respond with a JSON array of strings: [\"fact1\", \"fact2\", ...]"
+            f'Respond with a JSON array of strings: ["fact1", "fact2", ...]'
         )
 
         try:

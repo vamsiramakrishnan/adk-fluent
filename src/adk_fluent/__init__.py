@@ -267,6 +267,7 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "BuilderError",
     "until",
     "tap",
     "expect",
@@ -285,6 +286,28 @@ __all__ = [
     "CTransform",
     "CComposite",
     "CPipe",
+    "CFromState",
+    "CWindow",
+    "CUserOnly",
+    "CFromAgents",
+    "CExcludeAgents",
+    "CTemplate",
+    "CSelect",
+    "CRecent",
+    "CCompact",
+    "CDedup",
+    "CTruncate",
+    "CProject",
+    "CBudget",
+    "CPriority",
+    "CFit",
+    "CFresh",
+    "CRedact",
+    "CSummarize",
+    "CRelevant",
+    "CExtract",
+    "CDistill",
+    "CValidate",
     "_compile_context_spec",
     "deep_clone_builder",
     "delegate_agent",
@@ -344,6 +367,14 @@ __all__ = [
     "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
+    "Agent",
+    "Pipeline",
+    "FanOut",
+    "Loop",
+    "C",
+    "S",
+    "Route",
+    "Prompt",
     "Preset",
     "Backend",
     "final_text",
@@ -356,6 +387,7 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._base import BuilderError
 from ._base import until
 from ._base import tap
 from ._base import expect
@@ -374,6 +406,28 @@ from ._context import C
 from ._context import CTransform
 from ._context import CComposite
 from ._context import CPipe
+from ._context import CFromState
+from ._context import CWindow
+from ._context import CUserOnly
+from ._context import CFromAgents
+from ._context import CExcludeAgents
+from ._context import CTemplate
+from ._context import CSelect
+from ._context import CRecent
+from ._context import CCompact
+from ._context import CDedup
+from ._context import CTruncate
+from ._context import CProject
+from ._context import CBudget
+from ._context import CPriority
+from ._context import CFit
+from ._context import CFresh
+from ._context import CRedact
+from ._context import CSummarize
+from ._context import CRelevant
+from ._context import CExtract
+from ._context import CDistill
+from ._context import CValidate
 from ._context import _compile_context_spec
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
@@ -433,6 +487,14 @@ from .middleware import Middleware
 from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
 from .middleware import StructuredLogMiddleware
+from .prelude import Agent
+from .prelude import Pipeline
+from .prelude import FanOut
+from .prelude import Loop
+from .prelude import C
+from .prelude import S
+from .prelude import Route
+from .prelude import Prompt
 from .presets import Preset
 from .backends import Backend
 from .backends import final_text

@@ -37,6 +37,7 @@ try:
         ClassAttr,
         ClassNode,
         ForAppendStmt,
+        ForkAndAssign,
         IfStmt,
         ImportStmt,
         MethodNode,
@@ -57,6 +58,7 @@ except ModuleNotFoundError:
         ClassAttr,
         ClassNode,
         ForAppendStmt,
+        ForkAndAssign,
         IfStmt,
         ImportStmt,
         MethodNode,
@@ -418,6 +420,7 @@ def _ir_init_method(spec: BuilderSpec) -> MethodNode:
 
     body.append(AssignStmt("self._callbacks: dict[str, list[Callable]]", "defaultdict(list)"))
     body.append(AssignStmt("self._lists: dict[str, list]", "defaultdict(list)"))
+    body.append(AssignStmt("self._frozen", "False"))
 
     for arg in spec.optional_constructor_args or []:
         body.append(
@@ -454,6 +457,7 @@ def _ir_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=doc or f"Set the `{field_name}` field.",
                 body=[
+                    ForkAndAssign(),
                     SubscriptAssign("self._config", field_name, "value"),
                     ReturnStmt("self"),
                 ],
@@ -486,6 +490,7 @@ def _ir_deprecated_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=doc,
                 body=[
+                    ForkAndAssign(),
                     RawStmt(
                         f'import warnings\nwarnings.warn(\n    "{msg}",\n    DeprecationWarning,\n    stacklevel=2,\n)'
                     ),
@@ -511,6 +516,7 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=f"Append callback(s) to `{full_name}`. Multiple calls accumulate.",
                 body=[
+                    ForkAndAssign(),
                     ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=full_name),
                     ReturnStmt("self"),
                 ],
@@ -524,6 +530,7 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=f"Append callback to `{full_name}` only if condition is True.",
                 body=[
+                    ForkAndAssign(),
                     IfStmt(
                         condition="condition",
                         body=(AppendStmt("self._callbacks", full_name, "fn"),),
@@ -583,6 +590,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                     returns="Self",
                     doc=f"Set the ``{pname}`` field.",
                     body=[
+                        ForkAndAssign(),
                         SubscriptAssign("self._config", pname, "value"),
                         ReturnStmt("self"),
                     ],
@@ -603,6 +611,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                         returns="Self",
                         doc=f"Append callback(s) to ``{fname}``. Multiple calls accumulate.",
                         body=[
+                            ForkAndAssign(),
                             ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=fname),
                             ReturnStmt("self"),
                         ],
@@ -618,6 +627,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                         returns="Self",
                         doc=doc or f"Set the ``{fname}`` field.",
                         body=[
+                            ForkAndAssign(),
                             SubscriptAssign("self._config", fname, "value"),
                             ReturnStmt("self"),
                         ],
@@ -652,11 +662,13 @@ def _ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
                 append_value = "agent"
             else:
                 append_value = "value"
+            body.append(ForkAndAssign())
             body.append(AppendStmt("self._lists", target, append_value))
             body.append(ReturnStmt("self"))
 
         elif behavior == "field_set":
             param_name = sig.split("self, ")[1].split(":")[0].strip() if "self, " in sig else "value"
+            body.append(ForkAndAssign())
             body.append(SubscriptAssign("self._config", target, param_name))
             body.append(ReturnStmt("self"))
 
@@ -666,6 +678,7 @@ def _ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
                 param_name = sig.split("self, ")[1].split(":")[0].strip()
             else:
                 param_name = "fn"
+            body.append(ForkAndAssign())
             for tf in target_fields:
                 body.append(AppendStmt("self._callbacks", tf, param_name))
             body.append(ReturnStmt("self"))
@@ -773,7 +786,8 @@ def _ir_build_method(spec: BuilderSpec) -> MethodNode | None:
         doc=f"{spec.doc} Resolve into a native ADK {class_short}.",
         body=[
             AssignStmt("config", "self._prepare_build_config()"),
-            ReturnStmt(f"{class_short}(**config)"),
+            AssignStmt("result", f"self._safe_build({class_short}, config)"),
+            ReturnStmt("self._apply_native_hooks(result)"),
         ],
     )
 

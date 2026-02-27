@@ -12,12 +12,9 @@ import pytest
 
 from adk_fluent._context import (
     C,
-    CBudget,
     CComposite,
-    CDedup,
     CDistill,
     CExtract,
-    CFit,
     CPipe,
     CRelevant,
     CSummarize,
@@ -26,7 +23,6 @@ from adk_fluent._context import (
     _compile_context_spec,
     _fingerprint_events,
 )
-
 
 # ======================================================================
 # Mock helpers (reused from Phase B pattern)
@@ -276,12 +272,14 @@ class TestRelevant:
         ctx = _MockCtx(events=events)
         t = C.relevant(query="artificial intelligence", top_k=2)
 
-        scores_json = json.dumps([
-            {"index": 0, "score": 9},
-            {"index": 1, "score": 8},
-            {"index": 2, "score": 1},
-            {"index": 3, "score": 0},
-        ])
+        scores_json = json.dumps(
+            [
+                {"index": 0, "score": 9},
+                {"index": 1, "score": 8},
+                {"index": 2, "score": 1},
+                {"index": 3, "score": 0},
+            ]
+        )
         with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm(scores_json)):
             result = _run(t.instruction_provider(ctx))
         assert "machine learning" in result

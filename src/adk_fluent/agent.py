@@ -24,50 +24,59 @@ class BaseAgent(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Set the `description` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def after_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def after_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def before_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def before_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def sub_agents(self, value: list[BaseAgent]) -> Self:
         """Set the ``sub_agents`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def build(self) -> _ADK_BaseAgent:
         """Base class for all agents in Agent Development Kit. Resolve into a native ADK _ADK_BaseAgent."""
         config = self._prepare_build_config()
-        return _ADK_BaseAgent(**config)
+        result = self._safe_build(_ADK_BaseAgent, config)
+        return self._apply_native_hooks(result)
 
 
 class Agent(BuilderBase):
@@ -91,14 +100,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_tool_callback",
         "before_agent_callback",
-        "on_model_error_callback",
-        "before_model_callback",
-        "before_tool_callback",
-        "after_model_callback",
-        "on_tool_error_callback",
         "after_agent_callback",
+        "before_model_callback",
+        "on_tool_error_callback",
+        "before_tool_callback",
+        "after_tool_callback",
+        "on_model_error_callback",
+        "after_model_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -106,36 +115,43 @@ class Agent(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
         if model is not None:
             self._config["model"] = model
 
     def describe(self, value: str) -> Self:
         """Set the `description` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def global_instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the `global_instruction` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["global_instruction"] = value
         return self
 
     def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the `instruction` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["instruction"] = value
         return self
 
     def save_as(self, value: str | None) -> Self:
         """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."""
+        self = self._maybe_fork_for_mutation()
         self._config["output_key"] = value
         return self
 
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Set the `static_instruction` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
 
     def history(self, value: Literal[default, none]) -> Self:
         """Deprecated: use ``.context()`` instead."""
+        self = self._maybe_fork_for_mutation()
         import warnings
 
         warnings.warn(
@@ -148,6 +164,7 @@ class Agent(BuilderBase):
 
     def include_history(self, value: Literal[default, none]) -> Self:
         """Deprecated: use ``.context()`` instead."""
+        self = self._maybe_fork_for_mutation()
         import warnings
 
         warnings.warn(
@@ -160,6 +177,7 @@ class Agent(BuilderBase):
 
     def outputs(self, value: str | None) -> Self:
         """Deprecated: use ``.save_as()`` instead."""
+        self = self._maybe_fork_for_mutation()
         import warnings
 
         warnings.warn(
@@ -172,6 +190,7 @@ class Agent(BuilderBase):
 
     def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Deprecated: use ``.static()`` instead."""
+        self = self._maybe_fork_for_mutation()
         import warnings
 
         warnings.warn(
@@ -184,152 +203,179 @@ class Agent(BuilderBase):
 
     def after_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def after_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def after_model(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_model_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_model_callback"].append(fn)
         return self
 
     def after_model_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_model_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_model_callback"].append(fn)
         return self
 
     def after_tool(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_tool_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_tool_callback"].append(fn)
         return self
 
     def after_tool_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_tool_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_tool_callback"].append(fn)
         return self
 
     def before_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def before_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def before_model(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_model_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_model_callback"].append(fn)
         return self
 
     def before_model_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_model_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_model_callback"].append(fn)
         return self
 
     def before_tool(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_tool_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_tool_callback"].append(fn)
         return self
 
     def before_tool_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_tool_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_tool_callback"].append(fn)
         return self
 
     def on_model_error(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `on_model_error_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["on_model_error_callback"].append(fn)
         return self
 
     def on_model_error_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `on_model_error_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["on_model_error_callback"].append(fn)
         return self
 
     def on_tool_error(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `on_tool_error_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["on_tool_error_callback"].append(fn)
         return self
 
     def on_tool_error_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `on_tool_error_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["on_tool_error_callback"].append(fn)
         return self
 
     def sub_agents(self, value: list[BaseAgent]) -> Self:
         """Set the ``sub_agents`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
     def model(self, value: str | BaseLlm) -> Self:
         """Set the ``model`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["model"] = value
         return self
 
     def tools(self, value: list[Callable[..., Any] | BaseTool | BaseToolset]) -> Self:
         """Set the ``tools`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tools"] = value
         return self
 
     def generate_content_config(self, value: GenerateContentConfig | None) -> Self:
         """Set the ``generate_content_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["generate_content_config"] = value
         return self
 
     def disallow_transfer_to_parent(self, value: bool) -> Self:
         """Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."""
+        self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_parent"] = value
         return self
 
     def disallow_transfer_to_peers(self, value: bool) -> Self:
         """Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."""
+        self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_peers"] = value
         return self
 
     def input_schema(self, value: type[BaseModel] | None) -> Self:
         """Schema defining the expected input structure when this agent is invoked as a tool by another agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
         return self
 
     def output_schema(self, value: type[BaseModel] | None) -> Self:
         """Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."""
+        self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
         return self
 
     def planner(self, value: BasePlanner | None) -> Self:
         """Set the ``planner`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["planner"] = value
         return self
 
     def code_executor(self, value: BaseCodeExecutor | None) -> Self:
         """Set the ``code_executor`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code_executor"] = value
         return self
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
@@ -341,6 +387,7 @@ class Agent(BuilderBase):
 
     def guardrail(self, fn: Callable[..., Any]) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""
+        self = self._maybe_fork_for_mutation()
         self._callbacks["before_model_callback"].append(fn)
         self._callbacks["after_model_callback"].append(fn)
         return self
@@ -399,6 +446,7 @@ class Agent(BuilderBase):
 
     def context(self, spec: Any) -> Self:
         """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
+        self = self._maybe_fork_for_mutation()
         self._config["_context_spec"] = spec
         return self
 
@@ -465,4 +513,5 @@ class Agent(BuilderBase):
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
         config = self._prepare_build_config()
-        return LlmAgent(**config)
+        result = self._safe_build(LlmAgent, config)
+        return self._apply_native_hooks(result)

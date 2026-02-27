@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "adk-fluent"
-version = "0.9.0"
+version = "0.9.1"
 description = "Fluent builder API for Google's Agent Development Kit (ADK)"
 readme = "README.md"
 license = "MIT"
@@ -34,6 +34,9 @@ dependencies = [
 [project.optional-dependencies]
 yaml = [
     "pyyaml>=6.0",
+]
+rich = [
+    "rich>=13.0",
 ]
 examples = [
     "python-dotenv>=1.0",
@@ -67,6 +70,9 @@ Issues = "https://github.com/vamsiramakrishnan/adk-fluent/issues"
 Documentation = "https://vamsiramakrishnan.github.io/adk-fluent/"
 Changelog = "https://github.com/vamsiramakrishnan/adk-fluent/blob/master/CHANGELOG.md"
 
+[project.scripts]
+adk-fluent = "adk_fluent.cli:main"
+
 [project.entry-points."adk_extensions"]
 fluent = "adk_fluent"
 
@@ -86,7 +92,38 @@ exclude = [
 ]
 
 [tool.pyright]
-include = ["src"]
+include = [
+    "src/adk_fluent/_base.py",
+    "src/adk_fluent/_context.py",
+    "src/adk_fluent/_helpers.py",
+    "src/adk_fluent/_ir.py",
+    "src/adk_fluent/_prompt.py",
+    "src/adk_fluent/_routing.py",
+    "src/adk_fluent/_transforms.py",
+    "src/adk_fluent/_visibility.py",
+    "src/adk_fluent/cli.py",
+    "src/adk_fluent/viz.py",
+    "src/adk_fluent/decorators.py",
+    "src/adk_fluent/di.py",
+    "src/adk_fluent/middleware.py",
+    "src/adk_fluent/prelude.py",
+    "src/adk_fluent/presets.py",
+    "src/adk_fluent/backends/",
+    "src/adk_fluent/testing/",
+]
+exclude = [
+    "src/adk_fluent/agent.py",
+    "src/adk_fluent/workflow.py",
+    "src/adk_fluent/tool.py",
+    "src/adk_fluent/config.py",
+    "src/adk_fluent/runtime.py",
+    "src/adk_fluent/service.py",
+    "src/adk_fluent/plugin.py",
+    "src/adk_fluent/executor.py",
+    "src/adk_fluent/planner.py",
+    "src/adk_fluent/_ir_generated.py",
+    "src/adk_fluent/__init__.py",
+]
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
 
@@ -120,7 +157,7 @@ ignore = [
 "src/adk_fluent/executor.py" = ["F821"]
 "src/adk_fluent/planner.py" = ["F821"]
 # __init__.py is a generated re-export hub
-"src/adk_fluent/__init__.py" = ["F401", "I001"]
+"src/adk_fluent/__init__.py" = ["F401", "F811", "I001"]
 # Generated test scaffolds use patterns ruff dislikes
 "tests/generated/*.py" = ["F811", "E711", "E712", "E731"]
 # Manual tests use lambdas for quick callback stubs

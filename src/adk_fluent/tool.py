@@ -77,21 +77,25 @@ class ActiveStreamingTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def task(self, value: Task | None) -> Self:
         """Set the ``task`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["task"] = value
         return self
 
     def stream(self, value: LiveRequestQueue | None) -> Self:
         """Set the ``stream`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stream"] = value
         return self
 
     def build(self) -> _ADK_ActiveStreamingTool:
         """Manages streaming tool related resources during invocation. Resolve into a native ADK _ADK_ActiveStreamingTool."""
         config = self._prepare_build_config()
-        return _ADK_ActiveStreamingTool(**config)
+        result = self._safe_build(_ADK_ActiveStreamingTool, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentTool(BuilderBase):
@@ -100,27 +104,31 @@ class AgentTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"include_plugins", "agent", "skip_summarization"}
+    _KNOWN_PARAMS: set[str] = {"agent", "include_plugins", "skip_summarization"}
 
     def __init__(self, agent: str) -> None:
         self._config: dict[str, Any] = {"agent": agent}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def skip_summarization(self, value: bool) -> Self:
         """Set the ``skip_summarization`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["skip_summarization"] = value
         return self
 
     def include_plugins(self, value: bool) -> Self:
         """Set the ``include_plugins`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["include_plugins"] = value
         return self
 
     def build(self) -> _ADK_AgentTool:
         """A tool that wraps an agent. Resolve into a native ADK _ADK_AgentTool."""
         config = self._prepare_build_config()
-        return _ADK_AgentTool(**config)
+        result = self._safe_build(_ADK_AgentTool, config)
+        return self._apply_native_hooks(result)
 
 
 class APIHubToolset(BuilderBase):
@@ -130,72 +138,83 @@ class APIHubToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "auth_credential",
-        "auth_scheme",
-        "service_account_json",
-        "tool_filter",
-        "description",
         "name",
-        "lazy_load_spec",
-        "access_token",
-        "apihub_resource_name",
         "apihub_client",
+        "apihub_resource_name",
+        "auth_scheme",
+        "description",
+        "service_account_json",
+        "lazy_load_spec",
+        "tool_filter",
+        "access_token",
+        "auth_credential",
     }
 
     def __init__(self, apihub_resource_name: str) -> None:
         self._config: dict[str, Any] = {"apihub_resource_name": apihub_resource_name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def access_token(self, value: str | None) -> Self:
         """Set the ``access_token`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["access_token"] = value
         return self
 
     def service_account_json(self, value: str | None) -> Self:
         """Set the ``service_account_json`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account_json"] = value
         return self
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def description(self, value: str) -> Self:
         """Set the ``description`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def lazy_load_spec(self, value: Any) -> Self:
         """Set the ``lazy_load_spec`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["lazy_load_spec"] = value
         return self
 
     def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def apihub_client(self, value: APIHubClient | None) -> Self:
         """Set the ``apihub_client`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["apihub_client"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def build(self) -> _ADK_APIHubToolset:
         """APIHubTool generates tools from a given API Hub resource. Resolve into a native ADK _ADK_APIHubToolset."""
         config = self._prepare_build_config()
-        return _ADK_APIHubToolset(**config)
+        result = self._safe_build(_ADK_APIHubToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class ApplicationIntegrationToolset(BuilderBase):
@@ -205,91 +224,105 @@ class ApplicationIntegrationToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "connection_template_override",
-        "integration",
-        "tool_name_prefix",
-        "connection",
-        "auth_scheme",
-        "service_account_json",
-        "tool_filter",
-        "project",
-        "actions",
-        "entity_operations",
         "triggers",
-        "auth_credential",
+        "auth_scheme",
+        "connection",
+        "integration",
+        "actions",
         "tool_instructions",
         "location",
+        "service_account_json",
+        "project",
+        "connection_template_override",
+        "entity_operations",
+        "tool_filter",
+        "tool_name_prefix",
+        "auth_credential",
     }
 
     def __init__(self, project: str, location: str) -> None:
         self._config: dict[str, Any] = {"project": project, "location": location}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def connection_template_override(self, value: str | None) -> Self:
         """Set the ``connection_template_override`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["connection_template_override"] = value
         return self
 
     def integration(self, value: str | None) -> Self:
         """Set the ``integration`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["integration"] = value
         return self
 
     def triggers(self, value: list[str] | None) -> Self:
         """Set the ``triggers`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["triggers"] = value
         return self
 
     def connection(self, value: str | None) -> Self:
         """Set the ``connection`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["connection"] = value
         return self
 
     def entity_operations(self, value: str | None) -> Self:
         """Set the ``entity_operations`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["entity_operations"] = value
         return self
 
     def actions(self, value: list[str] | None) -> Self:
         """Set the ``actions`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["actions"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def tool_instructions(self, value: str | None) -> Self:
         """Set the ``tool_instructions`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_instructions"] = value
         return self
 
     def service_account_json(self, value: str | None) -> Self:
         """Set the ``service_account_json`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account_json"] = value
         return self
 
     def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def build(self) -> _ADK_ApplicationIntegrationToolset:
         """ApplicationIntegrationToolset generates tools from a given Application. Resolve into a native ADK _ADK_ApplicationIntegrationToolset."""
         config = self._prepare_build_config()
-        return _ADK_ApplicationIntegrationToolset(**config)
+        result = self._safe_build(_ADK_ApplicationIntegrationToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class IntegrationConnectorTool(BuilderBase):
@@ -299,68 +332,78 @@ class IntegrationConnectorTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "operation",
-        "connection_service_name",
-        "auth_scheme",
-        "description",
         "name",
-        "connection_name",
+        "entity",
+        "connection_service_name",
         "rest_api_tool",
+        "auth_scheme",
         "connection_host",
+        "description",
         "auth_credential",
         "action",
-        "entity",
+        "operation",
+        "connection_name",
     }
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description, "connection_name": connection_name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def connection_host(self, value: str) -> Self:
         """Set the ``connection_host`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["connection_host"] = value
         return self
 
     def connection_service_name(self, value: str) -> Self:
         """Set the ``connection_service_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["connection_service_name"] = value
         return self
 
     def entity(self, value: str) -> Self:
         """Set the ``entity`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["entity"] = value
         return self
 
     def operation(self, value: str) -> Self:
         """Set the ``operation`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["operation"] = value
         return self
 
     def action(self, value: str) -> Self:
         """Set the ``action`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["action"] = value
         return self
 
     def rest_api_tool(self, value: RestApiTool) -> Self:
         """Set the ``rest_api_tool`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["rest_api_tool"] = value
         return self
 
     def auth_scheme(self, value: AuthScheme | str | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | str | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def build(self) -> _ADK_IntegrationConnectorTool:
         """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint. Resolve into a native ADK _ADK_IntegrationConnectorTool."""
         config = self._prepare_build_config()
-        return _ADK_IntegrationConnectorTool(**config)
+        result = self._safe_build(_ADK_IntegrationConnectorTool, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseAuthenticatedTool(BuilderBase):
@@ -369,27 +412,31 @@ class BaseAuthenticatedTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"description", "auth_config", "name", "response_for_auth_required"}
+    _KNOWN_PARAMS: set[str] = {"description", "name", "response_for_auth_required", "auth_config"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def auth_config(self, value: AuthConfig) -> Self:
         """Set the ``auth_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_config"] = value
         return self
 
     def response_for_auth_required(self, value: dict[str, Any] | str | None) -> Self:
         """Set the ``response_for_auth_required`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["response_for_auth_required"] = value
         return self
 
     def build(self) -> _ADK_BaseAuthenticatedTool:
         """A base tool class that handles authentication before the actual tool logic. Resolve into a native ADK _ADK_BaseAuthenticatedTool."""
         config = self._prepare_build_config()
-        return _ADK_BaseAuthenticatedTool(**config)
+        result = self._safe_build(_ADK_BaseAuthenticatedTool, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseTool(BuilderBase):
@@ -398,27 +445,31 @@ class BaseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"description", "is_long_running", "name", "custom_metadata"}
+    _KNOWN_PARAMS: set[str] = {"description", "is_long_running", "custom_metadata", "name"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def is_long_running(self, value: bool) -> Self:
         """Set the ``is_long_running`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["is_long_running"] = value
         return self
 
     def custom_metadata(self, value: dict[str, Any] | None) -> Self:
         """Set the ``custom_metadata`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["custom_metadata"] = value
         return self
 
     def build(self) -> _ADK_BaseTool:
         """The base class for all tools. Resolve into a native ADK _ADK_BaseTool."""
         config = self._prepare_build_config()
-        return _ADK_BaseTool(**config)
+        result = self._safe_build(_ADK_BaseTool, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseToolset(BuilderBase):
@@ -427,27 +478,31 @@ class BaseToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_filter", "tool_name_prefix"}
+    _KNOWN_PARAMS: set[str] = {"tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_BaseToolset:
         """Base class for toolset. Resolve into a native ADK _ADK_BaseToolset."""
         config = self._prepare_build_config()
-        return _ADK_BaseToolset(**config)
+        result = self._safe_build(_ADK_BaseToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class BigQueryToolset(BuilderBase):
@@ -456,32 +511,37 @@ class BigQueryToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_filter", "credentials_config", "bigquery_tool_config"}
+    _KNOWN_PARAMS: set[str] = {"bigquery_tool_config", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def credentials_config(self, value: BigQueryCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials_config"] = value
         return self
 
     def bigquery_tool_config(self, value: BigQueryToolConfig | None) -> Self:
         """Set the ``bigquery_tool_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["bigquery_tool_config"] = value
         return self
 
     def build(self) -> _ADK_BigQueryToolset:
         """BigQuery Toolset contains tools for interacting with BigQuery data and metadata. Resolve into a native ADK _ADK_BigQueryToolset."""
         config = self._prepare_build_config()
-        return _ADK_BigQueryToolset(**config)
+        result = self._safe_build(_ADK_BigQueryToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class BigtableToolset(BuilderBase):
@@ -490,32 +550,37 @@ class BigtableToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"tool_filter", "bigtable_tool_settings", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"bigtable_tool_settings", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def credentials_config(self, value: BigtableCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials_config"] = value
         return self
 
     def bigtable_tool_settings(self, value: BigtableToolSettings | None) -> Self:
         """Set the ``bigtable_tool_settings`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["bigtable_tool_settings"] = value
         return self
 
     def build(self) -> _ADK_BigtableToolset:
         """Bigtable Toolset contains tools for interacting with Bigtable data and metadata. Resolve into a native ADK _ADK_BigtableToolset."""
         config = self._prepare_build_config()
-        return _ADK_BigtableToolset(**config)
+        result = self._safe_build(_ADK_BigtableToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class ComputerUseTool(BuilderBase):
@@ -530,16 +595,19 @@ class ComputerUseTool(BuilderBase):
         self._config: dict[str, Any] = {"func": func, "screen_size": screen_size}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def virtual_screen_size(self, value: tuple[int, int]) -> Self:
         """Set the ``virtual_screen_size`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["virtual_screen_size"] = value
         return self
 
     def build(self) -> _ADK_ComputerUseTool:
         """A tool that wraps computer control functions for use with LLMs. Resolve into a native ADK _ADK_ComputerUseTool."""
         config = self._prepare_build_config()
-        return _ADK_ComputerUseTool(**config)
+        result = self._safe_build(_ADK_ComputerUseTool, config)
+        return self._apply_native_hooks(result)
 
 
 class ComputerUseToolset(BuilderBase):
@@ -554,11 +622,13 @@ class ComputerUseToolset(BuilderBase):
         self._config: dict[str, Any] = {"computer": computer}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_ComputerUseToolset:
         """Fluent builder for ComputerUseToolset. Resolve into a native ADK _ADK_ComputerUseToolset."""
         config = self._prepare_build_config()
-        return _ADK_ComputerUseToolset(**config)
+        result = self._safe_build(_ADK_ComputerUseToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class DataAgentToolset(BuilderBase):
@@ -567,32 +637,37 @@ class DataAgentToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"data_agent_tool_config", "tool_filter", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"data_agent_tool_config", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def credentials_config(self, value: DataAgentCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials_config"] = value
         return self
 
     def data_agent_tool_config(self, value: DataAgentToolConfig | None) -> Self:
         """Set the ``data_agent_tool_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["data_agent_tool_config"] = value
         return self
 
     def build(self) -> _ADK_DataAgentToolset:
         """Data Agent Toolset contains tools for interacting with data agents. Resolve into a native ADK _ADK_DataAgentToolset."""
         config = self._prepare_build_config()
-        return _ADK_DataAgentToolset(**config)
+        result = self._safe_build(_ADK_DataAgentToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class DiscoveryEngineSearchTool(BuilderBase):
@@ -601,42 +676,49 @@ class DiscoveryEngineSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"data_store_id", "data_store_specs", "max_results", "filter", "search_engine_id"}
+    _KNOWN_PARAMS: set[str] = {"data_store_id", "data_store_specs", "filter", "max_results", "search_engine_id"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def data_store_id(self, value: str | None) -> Self:
         """Set the ``data_store_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["data_store_id"] = value
         return self
 
     def data_store_specs(self, value: list[types.VertexAISearchDataStoreSpec] | None) -> Self:
         """Set the ``data_store_specs`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["data_store_specs"] = value
         return self
 
     def search_engine_id(self, value: str | None) -> Self:
         """Set the ``search_engine_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["search_engine_id"] = value
         return self
 
     def filter(self, value: str | None) -> Self:
         """Set the ``filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["filter"] = value
         return self
 
     def max_results(self, value: int | None) -> Self:
         """Set the ``max_results`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_results"] = value
         return self
 
     def build(self) -> _ADK_DiscoveryEngineSearchTool:
         """Tool for searching the discovery engine. Resolve into a native ADK _ADK_DiscoveryEngineSearchTool."""
         config = self._prepare_build_config()
-        return _ADK_DiscoveryEngineSearchTool(**config)
+        result = self._safe_build(_ADK_DiscoveryEngineSearchTool, config)
+        return self._apply_native_hooks(result)
 
 
 class EnterpriseWebSearchTool(BuilderBase):
@@ -651,11 +733,13 @@ class EnterpriseWebSearchTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_EnterpriseWebSearchTool:
         """A Gemini 2+ built-in tool using web grounding for Enterprise compliance. Resolve into a native ADK _ADK_EnterpriseWebSearchTool."""
         config = self._prepare_build_config()
-        return _ADK_EnterpriseWebSearchTool(**config)
+        result = self._safe_build(_ADK_EnterpriseWebSearchTool, config)
+        return self._apply_native_hooks(result)
 
 
 class ExampleTool(BuilderBase):
@@ -670,11 +754,13 @@ class ExampleTool(BuilderBase):
         self._config: dict[str, Any] = {"examples": examples}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_ExampleTool:
         """A tool that adds (few-shot) examples to the LLM request. Resolve into a native ADK _ADK_ExampleTool."""
         config = self._prepare_build_config()
-        return _ADK_ExampleTool(**config)
+        result = self._safe_build(_ADK_ExampleTool, config)
+        return self._apply_native_hooks(result)
 
 
 class FunctionTool(BuilderBase):
@@ -689,16 +775,19 @@ class FunctionTool(BuilderBase):
         self._config: dict[str, Any] = {"func": func}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["require_confirmation"] = value
         return self
 
     def build(self) -> _ADK_FunctionTool:
         """A tool that wraps a user-defined Python function. Resolve into a native ADK _ADK_FunctionTool."""
         config = self._prepare_build_config()
-        return _ADK_FunctionTool(**config)
+        result = self._safe_build(_ADK_FunctionTool, config)
+        return self._apply_native_hooks(result)
 
 
 class GoogleApiTool(BuilderBase):
@@ -707,37 +796,43 @@ class GoogleApiTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "additional_headers", "rest_api_tool", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "rest_api_tool", "client_id", "service_account", "additional_headers"}
 
     def __init__(self, rest_api_tool: str) -> None:
         self._config: dict[str, Any] = {"rest_api_tool": rest_api_tool}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def additional_headers(self, value: dict[str, str] | None) -> Self:
         """Set the ``additional_headers`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["additional_headers"] = value
         return self
 
     def build(self) -> _ADK_GoogleApiTool:
         """Fluent builder for GoogleApiTool. Resolve into a native ADK _ADK_GoogleApiTool."""
         config = self._prepare_build_config()
-        return _ADK_GoogleApiTool(**config)
+        result = self._safe_build(_ADK_GoogleApiTool, config)
+        return self._apply_native_hooks(result)
 
 
 class GoogleApiToolset(BuilderBase):
@@ -747,55 +842,63 @@ class GoogleApiToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "client_secret",
-        "tool_name_prefix",
-        "api_version",
-        "tool_filter",
-        "client_id",
-        "additional_headers",
         "api_name",
+        "api_version",
+        "client_secret",
+        "client_id",
         "service_account",
+        "tool_name_prefix",
+        "tool_filter",
+        "additional_headers",
     }
 
     def __init__(self, api_name: str, api_version: str) -> None:
         self._config: dict[str, Any] = {"api_name": api_name, "api_version": api_version}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def additional_headers(self, value: dict[str, str] | None) -> Self:
         """Set the ``additional_headers`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["additional_headers"] = value
         return self
 
     def build(self) -> _ADK_GoogleApiToolset:
         """Google API Toolset contains tools for interacting with Google APIs. Resolve into a native ADK _ADK_GoogleApiToolset."""
         config = self._prepare_build_config()
-        return _ADK_GoogleApiToolset(**config)
+        result = self._safe_build(_ADK_GoogleApiToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class CalendarToolset(BuilderBase):
@@ -804,42 +907,49 @@ class CalendarToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "tool_name_prefix", "tool_filter", "client_id", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "service_account", "tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_CalendarToolset:
         """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_CalendarToolset."""
         config = self._prepare_build_config()
-        return _ADK_CalendarToolset(**config)
+        result = self._safe_build(_ADK_CalendarToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class DocsToolset(BuilderBase):
@@ -848,42 +958,49 @@ class DocsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "tool_name_prefix", "tool_filter", "client_id", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "service_account", "tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_DocsToolset:
         """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_DocsToolset."""
         config = self._prepare_build_config()
-        return _ADK_DocsToolset(**config)
+        result = self._safe_build(_ADK_DocsToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class GmailToolset(BuilderBase):
@@ -892,42 +1009,49 @@ class GmailToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "tool_name_prefix", "tool_filter", "client_id", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "service_account", "tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_GmailToolset:
         """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_GmailToolset."""
         config = self._prepare_build_config()
-        return _ADK_GmailToolset(**config)
+        result = self._safe_build(_ADK_GmailToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class SheetsToolset(BuilderBase):
@@ -936,42 +1060,49 @@ class SheetsToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "tool_name_prefix", "tool_filter", "client_id", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "service_account", "tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_SheetsToolset:
         """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SheetsToolset."""
         config = self._prepare_build_config()
-        return _ADK_SheetsToolset(**config)
+        result = self._safe_build(_ADK_SheetsToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class SlidesToolset(BuilderBase):
@@ -980,42 +1111,49 @@ class SlidesToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "tool_name_prefix", "tool_filter", "client_id", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "service_account", "tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_SlidesToolset:
         """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SlidesToolset."""
         config = self._prepare_build_config()
-        return _ADK_SlidesToolset(**config)
+        result = self._safe_build(_ADK_SlidesToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class YoutubeToolset(BuilderBase):
@@ -1024,42 +1162,49 @@ class YoutubeToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"client_secret", "tool_name_prefix", "tool_filter", "client_id", "service_account"}
+    _KNOWN_PARAMS: set[str] = {"client_secret", "client_id", "service_account", "tool_name_prefix", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def service_account(self, value: ServiceAccount | None) -> Self:
         """Set the ``service_account`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["service_account"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def build(self) -> _ADK_YoutubeToolset:
         """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_YoutubeToolset."""
         config = self._prepare_build_config()
-        return _ADK_YoutubeToolset(**config)
+        result = self._safe_build(_ADK_YoutubeToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class GoogleMapsGroundingTool(BuilderBase):
@@ -1074,11 +1219,13 @@ class GoogleMapsGroundingTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_GoogleMapsGroundingTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. Resolve into a native ADK _ADK_GoogleMapsGroundingTool."""
         config = self._prepare_build_config()
-        return _ADK_GoogleMapsGroundingTool(**config)
+        result = self._safe_build(_ADK_GoogleMapsGroundingTool, config)
+        return self._apply_native_hooks(result)
 
 
 class GoogleSearchAgentTool(BuilderBase):
@@ -1093,11 +1240,13 @@ class GoogleSearchAgentTool(BuilderBase):
         self._config: dict[str, Any] = {"agent": agent}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_GoogleSearchAgentTool:
         """A tool that wraps a sub-agent that only uses google_search tool. Resolve into a native ADK _ADK_GoogleSearchAgentTool."""
         config = self._prepare_build_config()
-        return _ADK_GoogleSearchAgentTool(**config)
+        result = self._safe_build(_ADK_GoogleSearchAgentTool, config)
+        return self._apply_native_hooks(result)
 
 
 class GoogleSearchTool(BuilderBase):
@@ -1112,21 +1261,25 @@ class GoogleSearchTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def bypass_multi_tools_limit(self, value: bool) -> Self:
         """Set the ``bypass_multi_tools_limit`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["bypass_multi_tools_limit"] = value
         return self
 
     def model(self, value: str | None) -> Self:
         """Set the ``model`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["model"] = value
         return self
 
     def build(self) -> _ADK_GoogleSearchTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search. Resolve into a native ADK _ADK_GoogleSearchTool."""
         config = self._prepare_build_config()
-        return _ADK_GoogleSearchTool(**config)
+        result = self._safe_build(_ADK_GoogleSearchTool, config)
+        return self._apply_native_hooks(result)
 
 
 class GoogleTool(BuilderBase):
@@ -1135,27 +1288,31 @@ class GoogleTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"func", "tool_settings", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"tool_settings", "func", "credentials_config"}
 
     def __init__(self, func: str) -> None:
         self._config: dict[str, Any] = {"func": func}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials_config(self, value: BaseGoogleCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials_config"] = value
         return self
 
     def tool_settings(self, value: BaseModel | None) -> Self:
         """Set the ``tool_settings`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_settings"] = value
         return self
 
     def build(self) -> _ADK_GoogleTool:
         """GoogleTool class for tools that call Google APIs. Resolve into a native ADK _ADK_GoogleTool."""
         config = self._prepare_build_config()
-        return _ADK_GoogleTool(**config)
+        result = self._safe_build(_ADK_GoogleTool, config)
+        return self._apply_native_hooks(result)
 
 
 class LoadArtifactsTool(BuilderBase):
@@ -1170,11 +1327,13 @@ class LoadArtifactsTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_LoadArtifactsTool:
         """A tool that loads the artifacts and adds them to the session. Resolve into a native ADK _ADK_LoadArtifactsTool."""
         config = self._prepare_build_config()
-        return _ADK_LoadArtifactsTool(**config)
+        result = self._safe_build(_ADK_LoadArtifactsTool, config)
+        return self._apply_native_hooks(result)
 
 
 class LoadMcpResourceTool(BuilderBase):
@@ -1189,11 +1348,13 @@ class LoadMcpResourceTool(BuilderBase):
         self._config: dict[str, Any] = {"mcp_toolset": mcp_toolset}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_LoadMcpResourceTool:
         """A tool that loads the MCP resources and adds them to the session. Resolve into a native ADK _ADK_LoadMcpResourceTool."""
         config = self._prepare_build_config()
-        return _ADK_LoadMcpResourceTool(**config)
+        result = self._safe_build(_ADK_LoadMcpResourceTool, config)
+        return self._apply_native_hooks(result)
 
 
 class LoadMemoryTool(BuilderBase):
@@ -1208,11 +1369,13 @@ class LoadMemoryTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_LoadMemoryTool:
         """A tool that loads the memory for the current user. Resolve into a native ADK _ADK_LoadMemoryTool."""
         config = self._prepare_build_config()
-        return _ADK_LoadMemoryTool(**config)
+        result = self._safe_build(_ADK_LoadMemoryTool, config)
+        return self._apply_native_hooks(result)
 
 
 class LongRunningFunctionTool(BuilderBase):
@@ -1227,11 +1390,13 @@ class LongRunningFunctionTool(BuilderBase):
         self._config: dict[str, Any] = {"func": func}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_LongRunningFunctionTool:
         """A function tool that returns the result asynchronously. Resolve into a native ADK _ADK_LongRunningFunctionTool."""
         config = self._prepare_build_config()
-        return _ADK_LongRunningFunctionTool(**config)
+        result = self._safe_build(_ADK_LongRunningFunctionTool, config)
+        return self._apply_native_hooks(result)
 
 
 class MCPTool(BuilderBase):
@@ -1246,11 +1411,13 @@ class MCPTool(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_MCPTool:
         """Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool."""
         config = self._prepare_build_config()
-        return _ADK_MCPTool(**config)
+        result = self._safe_build(_ADK_MCPTool, config)
+        return self._apply_native_hooks(result)
 
 
 class McpTool(BuilderBase):
@@ -1260,49 +1427,56 @@ class McpTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "progress_callback",
         "auth_scheme",
         "mcp_tool",
+        "header_provider",
         "mcp_session_manager",
+        "progress_callback",
         "require_confirmation",
         "auth_credential",
-        "header_provider",
     }
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
         self._config: dict[str, Any] = {"mcp_tool": mcp_tool, "mcp_session_manager": mcp_session_manager}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["require_confirmation"] = value
         return self
 
     def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
         return self
 
     def progress_callback(self, value: ProgressFnT | ProgressCallbackFactory | None) -> Self:
         """Set the ``progress_callback`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["progress_callback"] = value
         return self
 
     def build(self) -> _ADK_McpTool:
         """Turns an MCP Tool into an ADK Tool. Resolve into a native ADK _ADK_McpTool."""
         config = self._prepare_build_config()
-        return _ADK_McpTool(**config)
+        result = self._safe_build(_ADK_McpTool, config)
+        return self._apply_native_hooks(result)
 
 
 class MCPToolset(BuilderBase):
@@ -1317,11 +1491,13 @@ class MCPToolset(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_MCPToolset:
         """Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset."""
         config = self._prepare_build_config()
-        return _ADK_MCPToolset(**config)
+        result = self._safe_build(_ADK_MCPToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class McpToolset(BuilderBase):
@@ -1331,72 +1507,83 @@ class McpToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "tool_name_prefix",
-        "progress_callback",
-        "auth_scheme",
-        "tool_filter",
         "connection_params",
-        "require_confirmation",
-        "auth_credential",
-        "use_mcp_resources",
-        "errlog",
+        "auth_scheme",
         "header_provider",
+        "errlog",
+        "progress_callback",
+        "tool_name_prefix",
+        "require_confirmation",
+        "tool_filter",
+        "use_mcp_resources",
+        "auth_credential",
     }
 
     def __init__(self, connection_params: str) -> None:
         self._config: dict[str, Any] = {"connection_params": connection_params}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def errlog(self, value: TextIO) -> Self:
         """Set the ``errlog`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["errlog"] = value
         return self
 
     def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["require_confirmation"] = value
         return self
 
     def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
         return self
 
     def progress_callback(self, value: ProgressFnT | ProgressCallbackFactory | None) -> Self:
         """Set the ``progress_callback`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["progress_callback"] = value
         return self
 
     def use_mcp_resources(self, value: bool | None) -> Self:
         """Set the ``use_mcp_resources`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["use_mcp_resources"] = value
         return self
 
     def build(self) -> _ADK_McpToolset:
         """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. Resolve into a native ADK _ADK_McpToolset."""
         config = self._prepare_build_config()
-        return _ADK_McpToolset(**config)
+        result = self._safe_build(_ADK_McpToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class OpenAPIToolset(BuilderBase):
@@ -1406,77 +1593,89 @@ class OpenAPIToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "tool_name_prefix",
-        "credential_key",
-        "spec_str",
-        "auth_scheme",
-        "tool_filter",
-        "spec_dict",
         "ssl_verify",
-        "spec_str_type",
-        "auth_credential",
+        "tool_filter",
+        "auth_scheme",
         "header_provider",
+        "tool_name_prefix",
+        "spec_str",
+        "credential_key",
+        "spec_str_type",
+        "spec_dict",
+        "auth_credential",
     }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def spec_dict(self, value: dict[str, Any] | None) -> Self:
         """Set the ``spec_dict`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["spec_dict"] = value
         return self
 
     def spec_str(self, value: str | None) -> Self:
         """Set the ``spec_str`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["spec_str"] = value
         return self
 
     def spec_str_type(self, value: Literal[json, yaml]) -> Self:
         """Set the ``spec_str_type`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["spec_str_type"] = value
         return self
 
     def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def credential_key(self, value: str | None) -> Self:
         """Set the ``credential_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credential_key"] = value
         return self
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
     def ssl_verify(self, value: bool | str | ssl.SSLContext | None) -> Self:
         """Set the ``ssl_verify`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["ssl_verify"] = value
         return self
 
     def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
         return self
 
     def build(self) -> _ADK_OpenAPIToolset:
         """Class for parsing OpenAPI spec into a list of RestApiTool. Resolve into a native ADK _ADK_OpenAPIToolset."""
         config = self._prepare_build_config()
-        return _ADK_OpenAPIToolset(**config)
+        result = self._safe_build(_ADK_OpenAPIToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class RestApiTool(BuilderBase):
@@ -1486,62 +1685,71 @@ class RestApiTool(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "operation",
-        "credential_key",
-        "endpoint",
-        "auth_scheme",
-        "description",
         "name",
         "ssl_verify",
+        "auth_scheme",
         "should_parse_operation",
-        "auth_credential",
         "header_provider",
+        "description",
+        "endpoint",
+        "operation",
+        "credential_key",
+        "auth_credential",
     }
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description, "endpoint": endpoint}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def operation(self, value: Operation | str) -> Self:
         """Set the ``operation`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["operation"] = value
         return self
 
     def auth_scheme(self, value: AuthScheme | str | None) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | str | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def should_parse_operation(self, value: Any) -> Self:
         """Set the ``should_parse_operation`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["should_parse_operation"] = value
         return self
 
     def ssl_verify(self, value: bool | str | ssl.SSLContext | None) -> Self:
         """Set the ``ssl_verify`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["ssl_verify"] = value
         return self
 
     def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
         return self
 
     def credential_key(self, value: str | None) -> Self:
         """Set the ``credential_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credential_key"] = value
         return self
 
     def build(self) -> _ADK_RestApiTool:
         """A generic tool that interacts with a REST API. Resolve into a native ADK _ADK_RestApiTool."""
         config = self._prepare_build_config()
-        return _ADK_RestApiTool(**config)
+        result = self._safe_build(_ADK_RestApiTool, config)
+        return self._apply_native_hooks(result)
 
 
 class PreloadMemoryTool(BuilderBase):
@@ -1556,11 +1764,13 @@ class PreloadMemoryTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_PreloadMemoryTool:
         """A tool that preloads the memory for the current user. Resolve into a native ADK _ADK_PreloadMemoryTool."""
         config = self._prepare_build_config()
-        return _ADK_PreloadMemoryTool(**config)
+        result = self._safe_build(_ADK_PreloadMemoryTool, config)
+        return self._apply_native_hooks(result)
 
 
 class PubSubToolset(BuilderBase):
@@ -1569,32 +1779,37 @@ class PubSubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"pubsub_tool_config", "tool_filter", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"pubsub_tool_config", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def credentials_config(self, value: PubSubCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials_config"] = value
         return self
 
     def pubsub_tool_config(self, value: PubSubToolConfig | None) -> Self:
         """Set the ``pubsub_tool_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["pubsub_tool_config"] = value
         return self
 
     def build(self) -> _ADK_PubSubToolset:
         """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions. Resolve into a native ADK _ADK_PubSubToolset."""
         config = self._prepare_build_config()
-        return _ADK_PubSubToolset(**config)
+        result = self._safe_build(_ADK_PubSubToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseRetrievalTool(BuilderBase):
@@ -1603,27 +1818,31 @@ class BaseRetrievalTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"description", "is_long_running", "name", "custom_metadata"}
+    _KNOWN_PARAMS: set[str] = {"description", "is_long_running", "custom_metadata", "name"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def is_long_running(self, value: bool) -> Self:
         """Set the ``is_long_running`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["is_long_running"] = value
         return self
 
     def custom_metadata(self, value: dict[str, Any] | None) -> Self:
         """Set the ``custom_metadata`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["custom_metadata"] = value
         return self
 
     def build(self) -> _ADK_BaseRetrievalTool:
         """Fluent builder for BaseRetrievalTool. Resolve into a native ADK _ADK_BaseRetrievalTool."""
         config = self._prepare_build_config()
-        return _ADK_BaseRetrievalTool(**config)
+        result = self._safe_build(_ADK_BaseRetrievalTool, config)
+        return self._apply_native_hooks(result)
 
 
 class SetModelResponseTool(BuilderBase):
@@ -1638,11 +1857,13 @@ class SetModelResponseTool(BuilderBase):
         self._config: dict[str, Any] = {"output_schema": output_schema}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_SetModelResponseTool:
         """Internal tool used for output schema workaround. Resolve into a native ADK _ADK_SetModelResponseTool."""
         config = self._prepare_build_config()
-        return _ADK_SetModelResponseTool(**config)
+        result = self._safe_build(_ADK_SetModelResponseTool, config)
+        return self._apply_native_hooks(result)
 
 
 class LoadSkillResourceTool(BuilderBase):
@@ -1657,11 +1878,13 @@ class LoadSkillResourceTool(BuilderBase):
         self._config: dict[str, Any] = {"toolset": toolset}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_LoadSkillResourceTool:
         """Tool to load resources (references or assets) from a skill. Resolve into a native ADK _ADK_LoadSkillResourceTool."""
         config = self._prepare_build_config()
-        return _ADK_LoadSkillResourceTool(**config)
+        result = self._safe_build(_ADK_LoadSkillResourceTool, config)
+        return self._apply_native_hooks(result)
 
 
 class LoadSkillTool(BuilderBase):
@@ -1676,11 +1899,13 @@ class LoadSkillTool(BuilderBase):
         self._config: dict[str, Any] = {"toolset": toolset}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_LoadSkillTool:
         """Tool to load a skill's instructions. Resolve into a native ADK _ADK_LoadSkillTool."""
         config = self._prepare_build_config()
-        return _ADK_LoadSkillTool(**config)
+        result = self._safe_build(_ADK_LoadSkillTool, config)
+        return self._apply_native_hooks(result)
 
 
 class SkillToolset(BuilderBase):
@@ -1695,11 +1920,13 @@ class SkillToolset(BuilderBase):
         self._config: dict[str, Any] = {"skills": skills}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_SkillToolset:
         """A toolset for managing and interacting with agent skills. Resolve into a native ADK _ADK_SkillToolset."""
         config = self._prepare_build_config()
-        return _ADK_SkillToolset(**config)
+        result = self._safe_build(_ADK_SkillToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class SpannerToolset(BuilderBase):
@@ -1708,32 +1935,37 @@ class SpannerToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"spanner_tool_settings", "tool_filter", "credentials_config"}
+    _KNOWN_PARAMS: set[str] = {"spanner_tool_settings", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def credentials_config(self, value: SpannerCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials_config"] = value
         return self
 
     def spanner_tool_settings(self, value: SpannerToolSettings | None) -> Self:
         """Set the ``spanner_tool_settings`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["spanner_tool_settings"] = value
         return self
 
     def build(self) -> _ADK_SpannerToolset:
         """Spanner Toolset contains tools for interacting with Spanner data, database and table information. Resolve into a native ADK _ADK_SpannerToolset."""
         config = self._prepare_build_config()
-        return _ADK_SpannerToolset(**config)
+        result = self._safe_build(_ADK_SpannerToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class ToolboxToolset(BuilderBase):
@@ -1743,54 +1975,62 @@ class ToolboxToolset(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "server_url",
-        "toolset_name",
-        "additional_headers",
         "auth_token_getters",
-        "bound_params",
+        "server_url",
         "credentials",
+        "toolset_name",
         "tool_names",
+        "additional_headers",
+        "bound_params",
     }
 
     def __init__(self, server_url: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"server_url": server_url, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def toolset_name(self, value: str | None) -> Self:
         """Set the ``toolset_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["toolset_name"] = value
         return self
 
     def tool_names(self, value: list[str] | None) -> Self:
         """Set the ``tool_names`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_names"] = value
         return self
 
     def auth_token_getters(self, value: Mapping[str, Callable[[], str]] | None) -> Self:
         """Set the ``auth_token_getters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_token_getters"] = value
         return self
 
     def bound_params(self, value: Mapping[str, Union[Callable[[], Any], Any]] | None) -> Self:
         """Set the ``bound_params`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["bound_params"] = value
         return self
 
     def credentials(self, value: CredentialConfig | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def additional_headers(self, value: Mapping[str, str] | None) -> Self:
         """Set the ``additional_headers`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["additional_headers"] = value
         return self
 
     def build(self) -> _ADK_ToolboxToolset:
         """A class that provides access to toolbox toolsets. Resolve into a native ADK _ADK_ToolboxToolset."""
         config = self._prepare_build_config()
-        return _ADK_ToolboxToolset(**config)
+        result = self._safe_build(_ADK_ToolboxToolset, config)
+        return self._apply_native_hooks(result)
 
 
 class TransferToAgentTool(BuilderBase):
@@ -1805,11 +2045,13 @@ class TransferToAgentTool(BuilderBase):
         self._config: dict[str, Any] = {"agent_names": agent_names}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_TransferToAgentTool:
         """A specialized FunctionTool for agent transfer with enum constraints. Resolve into a native ADK _ADK_TransferToAgentTool."""
         config = self._prepare_build_config()
-        return _ADK_TransferToAgentTool(**config)
+        result = self._safe_build(_ADK_TransferToAgentTool, config)
+        return self._apply_native_hooks(result)
 
 
 class UrlContextTool(BuilderBase):
@@ -1824,11 +2066,13 @@ class UrlContextTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_UrlContextTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. Resolve into a native ADK _ADK_UrlContextTool."""
         config = self._prepare_build_config()
-        return _ADK_UrlContextTool(**config)
+        result = self._safe_build(_ADK_UrlContextTool, config)
+        return self._apply_native_hooks(result)
 
 
 class VertexAiSearchTool(BuilderBase):
@@ -1840,9 +2084,9 @@ class VertexAiSearchTool(BuilderBase):
     _KNOWN_PARAMS: set[str] = {
         "data_store_id",
         "data_store_specs",
-        "max_results",
         "bypass_multi_tools_limit",
         "filter",
+        "max_results",
         "search_engine_id",
     }
 
@@ -1850,38 +2094,46 @@ class VertexAiSearchTool(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def data_store_id(self, value: str | None) -> Self:
         """Set the ``data_store_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["data_store_id"] = value
         return self
 
     def data_store_specs(self, value: list[types.VertexAISearchDataStoreSpec] | None) -> Self:
         """Set the ``data_store_specs`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["data_store_specs"] = value
         return self
 
     def search_engine_id(self, value: str | None) -> Self:
         """Set the ``search_engine_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["search_engine_id"] = value
         return self
 
     def filter(self, value: str | None) -> Self:
         """Set the ``filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["filter"] = value
         return self
 
     def max_results(self, value: int | None) -> Self:
         """Set the ``max_results`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_results"] = value
         return self
 
     def bypass_multi_tools_limit(self, value: bool) -> Self:
         """Set the ``bypass_multi_tools_limit`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["bypass_multi_tools_limit"] = value
         return self
 
     def build(self) -> _ADK_VertexAiSearchTool:
         """A built-in tool using Vertex AI Search. Resolve into a native ADK _ADK_VertexAiSearchTool."""
         config = self._prepare_build_config()
-        return _ADK_VertexAiSearchTool(**config)
+        result = self._safe_build(_ADK_VertexAiSearchTool, config)
+        return self._apply_native_hooks(result)

@@ -7,7 +7,6 @@ import pytest
 
 from adk_fluent._context import (
     C,
-    CBudget,
     CCompact,
     CComposite,
     CDedup,
@@ -23,7 +22,6 @@ from adk_fluent._context import (
     _compile_context_spec,
     _SyntheticEvent,
 )
-
 
 # ======================================================================
 # Mock helpers

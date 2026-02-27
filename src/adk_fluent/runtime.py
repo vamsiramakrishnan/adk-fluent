@@ -25,36 +25,43 @@ class App(BuilderBase):
         self._config: dict[str, Any] = {"name": name, "root_agent": root_agent}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def plugins(self, value: list[BasePlugin]) -> Self:
         """Set the ``plugins`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["plugins"] = value
         return self
 
     def events_compaction_config(self, value: EventsCompactionConfig | None) -> Self:
         """Set the ``events_compaction_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["events_compaction_config"] = value
         return self
 
     def context_cache_config(self, value: ContextCacheConfig | None) -> Self:
         """Set the ``context_cache_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["context_cache_config"] = value
         return self
 
     def resumability_config(self, value: ResumabilityConfig | None) -> Self:
         """Set the ``resumability_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["resumability_config"] = value
         return self
 
     def plugin(self, value: BasePlugin) -> Self:
         """Append to ``plugins`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["plugins"].append(value)
         return self
 
     def build(self) -> _ADK_App:
         """Represents an LLM-backed agentic application. Resolve into a native ADK _ADK_App."""
         config = self._prepare_build_config()
-        return _ADK_App(**config)
+        result = self._safe_build(_ADK_App, config)
+        return self._apply_native_hooks(result)
 
 
 class InMemoryRunner(BuilderBase):
@@ -63,42 +70,49 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"plugin_close_timeout", "plugins", "agent", "app", "app_name"}
+    _KNOWN_PARAMS: set[str] = {"app", "plugins", "agent", "app_name", "plugin_close_timeout"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def agent(self, value: BaseAgent | None) -> Self:
         """Set the ``agent`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent"] = value
         return self
 
     def app_name(self, value: str | None) -> Self:
         """Set the ``app_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["app_name"] = value
         return self
 
     def plugins(self, value: list[BasePlugin] | None) -> Self:
         """Set the ``plugins`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["plugins"] = value
         return self
 
     def app(self, value: App | None) -> Self:
         """Set the ``app`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["app"] = value
         return self
 
     def plugin_close_timeout(self, value: float) -> Self:
         """Set the ``plugin_close_timeout`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["plugin_close_timeout"] = value
         return self
 
     def build(self) -> _ADK_InMemoryRunner:
         """An in-memory Runner for testing and development. Resolve into a native ADK _ADK_InMemoryRunner."""
         config = self._prepare_build_config()
-        return _ADK_InMemoryRunner(**config)
+        result = self._safe_build(_ADK_InMemoryRunner, config)
+        return self._apply_native_hooks(result)
 
 
 class Runner(BuilderBase):
@@ -108,69 +122,80 @@ class Runner(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] = {
-        "plugin_close_timeout",
-        "plugins",
-        "agent",
-        "memory_service",
-        "app",
         "auto_create_session",
-        "artifact_service",
-        "app_name",
         "session_service",
+        "app",
+        "plugins",
+        "artifact_service",
+        "agent",
         "credential_service",
+        "memory_service",
+        "app_name",
+        "plugin_close_timeout",
     }
 
     def __init__(self, session_service: str) -> None:
         self._config: dict[str, Any] = {"session_service": session_service}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def app(self, value: App | None) -> Self:
         """Set the ``app`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["app"] = value
         return self
 
     def app_name(self, value: str | None) -> Self:
         """Set the ``app_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["app_name"] = value
         return self
 
     def agent(self, value: BaseAgent | None) -> Self:
         """Set the ``agent`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent"] = value
         return self
 
     def plugins(self, value: list[BasePlugin] | None) -> Self:
         """Set the ``plugins`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["plugins"] = value
         return self
 
     def artifact_service(self, value: BaseArtifactService | None) -> Self:
         """Set the ``artifact_service`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["artifact_service"] = value
         return self
 
     def memory_service(self, value: BaseMemoryService | None) -> Self:
         """Set the ``memory_service`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["memory_service"] = value
         return self
 
     def credential_service(self, value: BaseCredentialService | None) -> Self:
         """Set the ``credential_service`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credential_service"] = value
         return self
 
     def plugin_close_timeout(self, value: float) -> Self:
         """Set the ``plugin_close_timeout`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["plugin_close_timeout"] = value
         return self
 
     def auto_create_session(self, value: bool) -> Self:
         """Set the ``auto_create_session`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auto_create_session"] = value
         return self
 
     def build(self) -> _ADK_Runner:
         """The Runner class is used to run agents. Resolve into a native ADK _ADK_Runner."""
         config = self._prepare_build_config()
-        return _ADK_Runner(**config)
+        result = self._safe_build(_ADK_Runner, config)
+        return self._apply_native_hooks(result)

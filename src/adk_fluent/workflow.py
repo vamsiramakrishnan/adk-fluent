@@ -25,53 +25,63 @@ class Loop(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Set the `description` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def after_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def after_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def before_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def before_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def sub_agents(self, value: list[BaseAgent]) -> Self:
         """Set the ``sub_agents`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
     def max_iterations(self, value: int | None) -> Self:
         """Set the ``max_iterations`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_iterations"] = value
         return self
 
     def step(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
@@ -84,7 +94,8 @@ class Loop(BuilderBase):
     def build(self) -> LoopAgent:
         """A shell agent that run its sub-agents in a loop. Resolve into a native ADK LoopAgent."""
         config = self._prepare_build_config()
-        return LoopAgent(**config)
+        result = self._safe_build(LoopAgent, config)
+        return self._apply_native_hooks(result)
 
 
 class FanOut(BuilderBase):
@@ -99,48 +110,57 @@ class FanOut(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Set the `description` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def after_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def after_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def before_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def before_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def sub_agents(self, value: list[BaseAgent]) -> Self:
         """Set the ``sub_agents`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
     def branch(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
@@ -153,7 +173,8 @@ class FanOut(BuilderBase):
     def build(self) -> ParallelAgent:
         """A shell agent that runs its sub-agents in parallel in an isolated manner. Resolve into a native ADK ParallelAgent."""
         config = self._prepare_build_config()
-        return ParallelAgent(**config)
+        result = self._safe_build(ParallelAgent, config)
+        return self._apply_native_hooks(result)
 
 
 class Pipeline(BuilderBase):
@@ -168,48 +189,57 @@ class Pipeline(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Set the `description` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def after_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def after_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `after_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["after_agent_callback"].append(fn)
         return self
 
     def before_agent(self, *fns: Callable[..., Any]) -> Self:
         """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
         for fn in fns:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def before_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
         """Append callback to `before_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
         if condition:
             self._callbacks["before_agent_callback"].append(fn)
         return self
 
     def sub_agents(self, value: list[BaseAgent]) -> Self:
         """Set the ``sub_agents`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
     def step(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
@@ -222,4 +252,5 @@ class Pipeline(BuilderBase):
     def build(self) -> SequentialAgent:
         """A shell agent that runs its sub-agents in sequence. Resolve into a native ADK SequentialAgent."""
         config = self._prepare_build_config()
-        return SequentialAgent(**config)
+        result = self._safe_build(SequentialAgent, config)
+        return self._apply_native_hooks(result)

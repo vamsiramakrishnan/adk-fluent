@@ -25,11 +25,13 @@ class BasePlanner(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BasePlanner:
         """Abstract base class for all planners. Resolve into a native ADK _ADK_BasePlanner."""
         config = self._prepare_build_config()
-        return _ADK_BasePlanner(**config)
+        result = self._safe_build(_ADK_BasePlanner, config)
+        return self._apply_native_hooks(result)
 
 
 class BuiltInPlanner(BuilderBase):
@@ -44,11 +46,13 @@ class BuiltInPlanner(BuilderBase):
         self._config: dict[str, Any] = {"thinking_config": thinking_config}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BuiltInPlanner:
         """The built-in planner that uses model's built-in thinking features. Resolve into a native ADK _ADK_BuiltInPlanner."""
         config = self._prepare_build_config()
-        return _ADK_BuiltInPlanner(**config)
+        result = self._safe_build(_ADK_BuiltInPlanner, config)
+        return self._apply_native_hooks(result)
 
 
 class PlanReActPlanner(BuilderBase):
@@ -63,8 +67,10 @@ class PlanReActPlanner(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_PlanReActPlanner:
         """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. Resolve into a native ADK _ADK_PlanReActPlanner."""
         config = self._prepare_build_config()
-        return _ADK_PlanReActPlanner(**config)
+        result = self._safe_build(_ADK_PlanReActPlanner, config)
+        return self._apply_native_hooks(result)
