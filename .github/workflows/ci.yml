@@ -24,6 +24,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.8.17"
 
       - uses: taiki-e/install-action@just
 
@@ -44,6 +45,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.8.17"
 
       - uses: taiki-e/install-action@just
 
@@ -73,6 +75,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.8.17"
           python-version: ${{ matrix.python-version }}
 
       - uses: taiki-e/install-action@just
@@ -110,6 +113,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          version: "0.8.17"
 
       - uses: taiki-e/install-action@just
 
