@@ -1048,7 +1048,7 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"stage", "default_on"}
+    _KNOWN_PARAMS: set[str] | None = {"default_on", "stage"}
 
     def __init__(self, stage: str) -> None:
         self._config: dict[str, Any] = {"stage": stage}
@@ -1160,23 +1160,23 @@ class BigQueryLoggerConfig(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] | None = {
+        "retry_config",
+        "clustering_fields",
+        "content_formatter",
         "connection_id",
         "custom_tags",
-        "log_multi_modal_content",
-        "max_content_length",
-        "clustering_fields",
-        "batch_size",
-        "content_formatter",
-        "queue_max_size",
-        "log_session_metadata",
         "enabled",
-        "table_id",
-        "event_allowlist",
-        "gcs_bucket_name",
-        "event_denylist",
-        "shutdown_timeout",
-        "retry_config",
+        "log_session_metadata",
+        "queue_max_size",
         "batch_flush_interval",
+        "log_multi_modal_content",
+        "shutdown_timeout",
+        "event_denylist",
+        "max_content_length",
+        "gcs_bucket_name",
+        "event_allowlist",
+        "batch_size",
+        "table_id",
     }
 
     def __init__(self) -> None:
@@ -1300,7 +1300,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"max_retries", "max_delay", "initial_delay", "multiplier"}
+    _KNOWN_PARAMS: set[str] | None = {"max_delay", "multiplier", "max_retries", "initial_delay"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
