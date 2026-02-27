@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.3] - 2026-02-27
+
+### Added
+
+- **Error reference page**: New `docs/user-guide/error-reference.md` documents every error pattern (`BuilderError`, `AttributeError`, `ValueError`, `TypeError`, `NotImplementedError`) with causes, code examples, and fixes
+- **Recipes by Use Case index**: New `docs/generated/cookbook/recipes-by-use-case.md` organizes all 58 cookbook examples into 9 domain categories (customer support, e-commerce, research, production, etc.)
+- **Runnable Examples page**: New `docs/runnable-examples.md` indexes all 49 standalone `adk web`-compatible examples with setup instructions, descriptions, and run commands
+- **Cookbook examples 55-58**: Generated documentation for deep research, customer support triage, code review agent, and multi-tool agent capstone examples
+
+### Fixed
+
+- **Stale docs changelog**: `docs/changelog.md` was stuck at v0.3.1 — now synced with root `CHANGELOG.md` covering all releases through v0.9.2
+
 ## [0.9.2] - 2026-02-27
 
 ### Added
@@ -267,3 +280,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.8.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.7.0...v0.8.0
 [0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.8.0...v0.9.1
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2
+[0.9.3]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.2...v0.9.3
