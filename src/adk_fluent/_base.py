@@ -782,8 +782,18 @@ class BuilderBase:
             tree.add(f"[yellow]Tools ({len(tools)})[/yellow]: {', '.join(tool_names)}")
 
         # Other config fields (not already shown)
-        _shown = {"name", "model", "instruction", "_produces", "_consumes", "output_key",
-                   "_context_spec", "include_contents", "_output_schema", "tools"}
+        _shown = {
+            "name",
+            "model",
+            "instruction",
+            "_produces",
+            "_consumes",
+            "output_key",
+            "_context_spec",
+            "include_contents",
+            "_output_schema",
+            "tools",
+        }
         other_fields = {k: v for k, v in self._config.items() if k not in _shown and not k.startswith("_")}
         if other_fields:
             cfg_branch = tree.add("[cyan]Config[/cyan]")
