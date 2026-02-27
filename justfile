@@ -2,11 +2,14 @@
 # ADK-FLUENT DEVELOPMENT WORKFLOW
 # ============================================================================
 #
+#   just setup      → First-time setup: install deps + pre-commit hooks
 #   just all        → Full pipeline: scan → seed → generate → docs
 #   just scan       → Introspect installed ADK, produce manifest.json
 #   just seed       → Generate seed.toml from manifest.json
 #   just generate   → Combine seed.toml + manifest.json → code + stubs + tests + lint
 #   just lint       → Run ruff check + format check
+#   just fmt        → Auto-format all files (ruff + mdformat)
+#   just fmt-changed → Auto-format only changed files (fast)
 #   just docs       → Generate all documentation
 #   just test       → Run all tests
 #   just typecheck  → Run pyright on generated stubs
@@ -19,10 +22,18 @@
 #   just add-cookbook "Name" → Scaffold new example
 #
 # First-time setup:
-#   uv venv .venv && source .venv/bin/activate
-#   uv pip install google-adk pytest pyright
-#   just all
+#   just setup
 #
+
+# --- First-time setup ---
+setup:
+    @echo "Installing dependencies..."
+    @uv sync --all-extras
+    @echo "Installing pre-commit hooks..."
+    @uv run pre-commit install
+    @echo ""
+    @echo "Setup complete. Pre-commit hooks will auto-format on every commit."
+    @echo "Run 'just all' to generate code, or 'just fmt' to format existing files."
 
 SEED          := "seeds/seed.toml"
 MANIFEST      := "manifest.json"
@@ -90,6 +101,28 @@ format:
     @uv run ruff check --fix . || true
     @uv run ruff format .
     @uv run mdformat .
+
+# --- Format (alias) ---
+alias fmt := format
+
+# --- Format changed files only (fast) ---
+fmt-changed:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    py_files=$(git diff --name-only --diff-filter=d HEAD -- '*.py' || true)
+    md_files=$(git diff --name-only --diff-filter=d HEAD -- '*.md' || true)
+    if [ -n "$py_files" ]; then
+        echo "Formatting $(echo "$py_files" | wc -w) Python files..."
+        echo "$py_files" | xargs uv run ruff check --fix || true
+        echo "$py_files" | xargs uv run ruff format
+    fi
+    if [ -n "$md_files" ]; then
+        echo "Formatting $(echo "$md_files" | wc -w) Markdown files..."
+        echo "$md_files" | xargs uv run mdformat
+    fi
+    if [ -z "$py_files" ] && [ -z "$md_files" ]; then
+        echo "No changed .py or .md files to format."
+    fi
 
 # --- Tests ---
 test:
@@ -236,17 +269,20 @@ clean:
 help:
     @echo "ADK-FLUENT Development Commands:"
     @echo ""
+    @echo "  just setup          First-time setup: install deps + pre-commit hooks"
     @echo "  just all            Full pipeline: scan -> seed -> generate -> docs"
     @echo "  just scan           Introspect ADK -> manifest.json"
     @echo "  just seed           manifest.json -> seed.toml"
     @echo "  just generate       seed.toml + manifest.json -> code"
     @echo "  just stubs          Regenerate .pyi stubs only"
     @echo "  just lint           Run ruff check + format check"
+    @echo "  just fmt            Auto-format all files (ruff + mdformat)"
+    @echo "  just fmt-changed    Auto-format only changed files (fast)"
     @echo "  just test           Run pytest suite"
     @echo "  just typecheck      Run pyright type-check"
     @echo "  just watch          Auto-run generate+test on changes"
     @echo "  just repl           Pre-loaded IPython playground"
-    @echo "  just add-cookbook   Scaffold new example"
+    @echo "  just add-cookbook    Scaffold new example"
     @echo "  just docs           Generate all documentation"
     @echo "  just docs-api       Generate API reference only"
     @echo "  just docs-cookbook   Generate cookbook only"
@@ -262,7 +298,7 @@ help:
     @echo "  just publish        Publish to PyPI"
     @echo "  just clean          Remove generated files"
     @echo ""
-    @echo "Workflow: just all -> just test -> commit"
+    @echo "Workflow: just setup -> just all -> just test -> commit"
 
 # --- Internal: prerequisite checks ---
 [private]

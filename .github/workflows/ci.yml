@@ -32,7 +32,7 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run Pre-commit Hooks
-        run: uv run pre-commit run --all-files
+        run: uv run pre-commit run --all-files --show-diff-on-failure
 
   # ---------------------------------------------------------------------------
   # TYPECHECK — validates generated stubs and hand-written code

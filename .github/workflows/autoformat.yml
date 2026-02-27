@@ -1,0 +1,59 @@
+name: Auto-format
+
+# Self-healing formatter: if a push has formatting issues, fix and push
+# the correction automatically. Runs on feature branches only — never
+# touches master directly.
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+# Only one autoformat run per branch at a time
+concurrency:
+  group: autoformat-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  autoformat:
+    runs-on: ubuntu-latest
+    # Skip if the commit was already an autoformat commit (prevent loops)
+    if: "!contains(github.event.head_commit.message, '[autoformat]')"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full history + writable token to push back
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "0.8.17"
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run all pre-commit hooks (auto-fix mode)
+        run: uv run pre-commit run --all-files || true
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if [ -n "$(git diff)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push formatting fixes
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: auto-format [autoformat]"
+          git push
