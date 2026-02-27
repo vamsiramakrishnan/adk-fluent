@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
 from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
@@ -49,6 +49,36 @@ from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
 
 from adk_fluent._base import BuilderBase
 
+if TYPE_CHECKING:
+    from typing import Literal
+
+    from fastapi.openapi.models import APIKey, HTTPBase, HTTPBearer, OAuth2, OpenIdConnect
+    from google.adk.agents.run_config import StreamingMode
+    from google.adk.apps.base_events_summarizer import BaseEventsSummarizer
+    from google.adk.auth.auth_credential import AuthCredential
+    from google.adk.auth.auth_schemes import OpenIdConnectWithConfig
+    from google.adk.tools.agent_simulator.agent_simulator_config import InjectedError, MockStrategy
+    from google.adk.tools.bigquery.config import WriteMode
+    from google.adk.tools.mcp_tool.mcp_session_manager import (
+        SseConnectionParams,
+        StdioConnectionParams,
+        StreamableHTTPConnectionParams,
+    )
+    from google.auth.credentials import Credentials
+    from google.genai.types import (
+        AudioTranscriptionConfig,
+        Content,
+        ContextWindowCompressionConfig,
+        File,
+        GenerateContentConfig,
+        Part,
+        ProactivityConfig,
+        RealtimeInputConfig,
+        SessionResumptionConfig,
+        SpeechConfig,
+    )
+    from mcp.client.stdio import StdioServerParameters
+
 
 class AgentConfig(BuilderBase):
     """The config for the YAML schema to create an agent."""
@@ -87,7 +117,7 @@ class BaseAgentConfig(BuilderBase):
         self._config["description"] = value
         return self
 
-    def agent_class(self, value: Literal[BaseAgent] | str) -> Self:
+    def agent_class(self, value: Literal["BaseAgent"] | str) -> Self:
         """Required. The class of the agent. The value is used to differentiate among different agent classes."""
         self._config["agent_class"] = value
         return self
@@ -277,12 +307,12 @@ class LlmAgentConfig(BuilderBase):
         self._config["description"] = value
         return self
 
-    def history(self, value: Literal[default, none]) -> Self:
+    def history(self, value: Literal["default", "none"]) -> Self:
         """Optional. LlmAgent.include_contents."""
         self._config["include_contents"] = value
         return self
 
-    def include_history(self, value: Literal[default, none]) -> Self:
+    def include_history(self, value: Literal["default", "none"]) -> Self:
         """Optional. LlmAgent.include_contents."""
         self._config["include_contents"] = value
         return self
@@ -896,7 +926,7 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"default_on", "stage"}
+    _KNOWN_PARAMS: set[str] | None = {"default_on", "stage"}
 
     def __init__(self, stage: str) -> None:
         self._config: dict[str, Any] = {"stage": stage}
@@ -920,7 +950,7 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_cache_duration_seconds", "auto_flush_threshold", "max_cache_size_bytes"}
+    _KNOWN_PARAMS: set[str] | None = {"max_cache_duration_seconds", "auto_flush_threshold", "max_cache_size_bytes"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -993,24 +1023,24 @@ class BigQueryLoggerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {
-        "max_content_length",
-        "custom_tags",
-        "clustering_fields",
-        "content_formatter",
+    _KNOWN_PARAMS: set[str] | None = {
         "batch_flush_interval",
-        "gcs_bucket_name",
         "log_multi_modal_content",
+        "enabled",
         "shutdown_timeout",
-        "table_id",
-        "log_session_metadata",
-        "retry_config",
+        "custom_tags",
+        "content_formatter",
+        "batch_size",
         "queue_max_size",
+        "retry_config",
         "event_denylist",
         "connection_id",
+        "clustering_fields",
+        "table_id",
         "event_allowlist",
-        "enabled",
-        "batch_size",
+        "gcs_bucket_name",
+        "log_session_metadata",
+        "max_content_length",
     }
 
     def __init__(self) -> None:
@@ -1115,7 +1145,7 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] = {"max_delay", "initial_delay", "max_retries", "multiplier"}
+    _KNOWN_PARAMS: set[str] | None = {"max_delay", "max_retries", "initial_delay", "multiplier"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

@@ -128,6 +128,11 @@ class BuilderBase:
     _ADK_TARGET_CLASS: type | None = None
     _KNOWN_PARAMS: set[str] | None = None
 
+    # Instance attributes — declared here for pyright; initialized in subclass __init__
+    _config: dict[str, Any]
+    _callbacks: dict[str, list[Callable]]
+    _lists: dict[str, list]
+
     # ------------------------------------------------------------------
     # Shared __getattr__: dynamic field forwarding
     # ------------------------------------------------------------------

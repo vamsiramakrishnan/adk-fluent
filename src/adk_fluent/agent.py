@@ -4,12 +4,25 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
 
 from adk_fluent._base import BuilderBase
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator, Awaitable
+    from typing import Literal
+
+    from google.adk.agents.readonly_context import ReadonlyContext
+    from google.adk.code_executors.base_code_executor import BaseCodeExecutor
+    from google.adk.models.base_llm import BaseLlm
+    from google.adk.planners.base_planner import BasePlanner
+    from google.adk.tools.base_tool import BaseTool
+    from google.adk.tools.base_toolset import BaseToolset
+    from google.genai.types import Content, File, GenerateContentConfig, Part
+    from pydantic import BaseModel
 
 
 class BaseAgent(BuilderBase):
@@ -17,7 +30,7 @@ class BaseAgent(BuilderBase):
 
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
-    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_agent_callback", "after_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
     def __init__(self, name: str) -> None:
@@ -94,14 +107,14 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_agent_callback",
-        "on_model_error_callback",
-        "after_tool_callback",
-        "after_model_callback",
         "before_agent_callback",
+        "after_model_callback",
         "before_tool_callback",
         "on_tool_error_callback",
+        "after_tool_callback",
+        "on_model_error_callback",
         "before_model_callback",
+        "after_agent_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
 
@@ -122,12 +135,12 @@ class Agent(BuilderBase):
         self._config["global_instruction"] = value
         return self
 
-    def history(self, value: Literal[default, none]) -> Self:
+    def history(self, value: Literal["default", "none"]) -> Self:
         """Set the `include_contents` field."""
         self._config["include_contents"] = value
         return self
 
-    def include_history(self, value: Literal[default, none]) -> Self:
+    def include_history(self, value: Literal["default", "none"]) -> Self:
         """Set the `include_contents` field."""
         self._config["include_contents"] = value
         return self
