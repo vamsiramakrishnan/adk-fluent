@@ -4,8 +4,9 @@
 
 _Source: `41_gate_approval.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires a custom BaseAgent with EventActions(escalate=True)
 # to pause a pipeline for human approval:
@@ -30,8 +31,10 @@ _Source: `41_gate_approval.py`_
 #
 # This is ~25 lines of boilerplate per approval gate.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, gate
 
@@ -80,6 +83,7 @@ multi_stage_review = (
     )
 )
 ```
+
 :::
 ::::
 

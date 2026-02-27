@@ -10,8 +10,9 @@ Uses: .tool(), .guardrail(), .inject(), .sub_agent(), .context()
 
 _Source: `58_multi_tool_agent.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 import functools
 
@@ -48,8 +49,10 @@ agent_native = LlmAgent(
     ],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, C
 
@@ -111,6 +114,7 @@ verified_agent = (
     >> verifier
 )
 ```
+
 :::
 ::::
 
@@ -146,6 +150,6 @@ assert built.sub_agents[0].name == "task_agent"
 assert built.sub_agents[1].name == "verifier"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

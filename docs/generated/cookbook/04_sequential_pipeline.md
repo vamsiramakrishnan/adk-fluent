@@ -1,6 +1,6 @@
 # Document Processing Pipeline -- Sequential Pipeline
 
-Demonstrates a SequentialAgent that chains steps in order.  The
+Demonstrates a SequentialAgent that chains steps in order. The
 scenario: a document processing pipeline that extracts key data
 from a contract, analyzes legal risks, then produces an executive
 summary.
@@ -9,8 +9,9 @@ summary.
 
 _Source: `04_sequential_pipeline.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -45,8 +46,10 @@ pipeline_native = SequentialAgent(
     sub_agents=[extractor, analyst, summarizer],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -80,6 +83,7 @@ pipeline_fluent = (
     .build()
 )
 ```
+
 :::
 ::::
 
@@ -93,6 +97,6 @@ assert pipeline_fluent.sub_agents[1].name == "risk_analyst"
 assert pipeline_fluent.sub_agents[2].name == "summarizer"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::

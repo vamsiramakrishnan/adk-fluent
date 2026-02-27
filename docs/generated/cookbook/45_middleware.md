@@ -4,8 +4,9 @@
 
 _Source: `45_middleware.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -19,8 +20,10 @@ agent_native = LlmAgent(
     instruction="Look up patient records from the EHR system.",
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
 
@@ -37,6 +40,7 @@ agent_fluent = (
     .middleware(StructuredLogMiddleware())
 )
 ```
+
 :::
 ::::
 

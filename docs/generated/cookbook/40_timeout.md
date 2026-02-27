@@ -4,8 +4,9 @@
 
 _Source: `40_timeout.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in timeout mechanism. You'd need to:
 #   1. Subclass BaseAgent
@@ -15,8 +16,10 @@ _Source: `40_timeout.py`_
 # For trading systems, a missed deadline can mean significant losses.
 # This is ~40 lines of async boilerplate per timeout.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -52,6 +55,7 @@ bounded_execution = (
     >> Agent("trade_executor").model("gemini-2.5-flash").instruct("Execute the trade orders against the exchange.")
 ).timeout(60)
 ```
+
 :::
 ::::
 

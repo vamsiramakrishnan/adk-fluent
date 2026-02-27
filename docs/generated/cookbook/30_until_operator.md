@@ -4,8 +4,9 @@
 
 _Source: `30_until_operator.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no conditional loop exit built in. You'd need:
 #   1. A custom BaseAgent subclass evaluating the predicate
@@ -13,8 +14,10 @@ _Source: `30_until_operator.py`_
 #   3. Wire it into LoopAgent.sub_agents manually
 # This is ~25 lines of boilerplate per loop condition.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, until
 
@@ -59,6 +62,7 @@ full_onboarding = (
 # int * agent still works — fixed retry count for simple cases
 document_retry = Agent("doc_requester").model("gemini-2.5-flash").instruct("Request missing documents.") * 3
 ```
+
 :::
 ::::
 

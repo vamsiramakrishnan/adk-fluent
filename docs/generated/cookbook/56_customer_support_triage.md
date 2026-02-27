@@ -10,8 +10,9 @@ Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 
 _Source: `56_customer_support_triage.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK triage requires:
 #   - 5+ LlmAgent declarations
@@ -21,8 +22,10 @@ _Source: `56_customer_support_triage.py`_
 #   - Custom escalation gate via BaseAgent + EventActions(escalate=True)
 # Total: ~100 lines plus custom agent classes
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, S, C, gate
 from adk_fluent._routing import Route
@@ -122,6 +125,7 @@ support_system = (
     >> escalation_gate
 )
 ```
+
 :::
 ::::
 

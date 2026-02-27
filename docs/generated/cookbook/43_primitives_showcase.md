@@ -4,8 +4,9 @@
 
 _Source: `43_primitives_showcase.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline, S, C, tap, expect, gate
 from adk_fluent._routing import Route
@@ -164,5 +165,6 @@ stateless_processor = (
 )
 assert stateless_processor._config["_context_spec"] is not None
 ```
+
 :::
 ::::

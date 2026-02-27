@@ -4,16 +4,19 @@
 
 _Source: `46_contracts_and_testing.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK has no built-in contract verification or mock testing.
 # In a medical imaging pipeline, data flow errors between the DICOM
 # parser and the diagnosis agent would only surface at runtime --
 # potentially with patient data at stake.
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from pydantic import BaseModel
 
@@ -49,6 +52,7 @@ mb = mock_backend(
 # Build the pipeline for deployment
 agent_fluent = imaging_pipeline.build()
 ```
+
 :::
 ::::
 

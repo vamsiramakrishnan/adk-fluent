@@ -9,8 +9,9 @@ before going live.
 
 _Source: `25_validate_explain.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -47,6 +48,7 @@ base = Agent("agent").model("gemini-2.5-flash").instruct("Base instruction.")
 variant_a = base >> Agent("downstream_a")  # base is now frozen
 variant_b = base.instruct("Modified instruction.")  # forks a new clone
 ```
+
 :::
 ::::
 
