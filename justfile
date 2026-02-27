@@ -186,6 +186,18 @@ diff:
         echo "No previous manifest found. Run 'just scan' first."
     fi
 
+# --- Diff as publishable Markdown page ---
+diff-md:
+    #!/usr/bin/env bash
+    if [ -f {{PREV_MANIFEST}} ]; then
+        echo "Generating API diff Markdown..."
+        uv run python {{SCANNER}} --diff {{PREV_MANIFEST}} \
+            --diff-markdown {{DOC_DIR}}/api-diff.md
+        echo "Written to {{DOC_DIR}}/api-diff.md"
+    else
+        echo "No previous manifest found. Run 'just archive' before scanning, then 'just diff-md'."
+    fi
+
 # --- Summary ---
 summary:
     @uv run python {{SCANNER}} --summary
@@ -244,7 +256,8 @@ help:
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"
-    @echo "  just diff           Show changes since last scan"
+    @echo "  just diff           Show changes since last scan (JSON)"
+    @echo "  just diff-md        Generate API diff as docs/generated/api-diff.md"
     @echo "  just build          Build pip package"
     @echo "  just publish        Publish to PyPI"
     @echo "  just clean          Remove generated files"

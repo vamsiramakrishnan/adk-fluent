@@ -9,6 +9,31 @@ for all 58 examples organized by domain (customer support, e-commerce,
 research, production deployment, etc.).
 :::
 
+## How to run these examples
+
+Cookbook examples are **equivalence tests** — they verify that fluent
+builders produce identical ADK objects to native constructors. They
+do **not** call any LLM APIs.
+
+```bash
+# Install (no API key needed for cookbook tests)
+pip install adk-fluent
+
+# Run all 58 cookbook tests
+pytest examples/cookbook/ -v
+
+# Run a single example
+pytest examples/cookbook/01_simple_agent.py -v
+
+# Run and see output
+python examples/cookbook/01_simple_agent.py
+```
+
+Each file is self-contained: copy it, paste it into a file, and run
+`python file.py`. If it imports from `adk_fluent`, you need the package
+installed. If it imports from `google.adk`, you need `google-adk`
+installed (which `adk-fluent` pulls in automatically).
+
 ## Basics
 
 Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.
