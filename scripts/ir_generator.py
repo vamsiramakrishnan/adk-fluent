@@ -25,7 +25,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -217,7 +216,6 @@ def gen_full_module(manifest: dict) -> str:
     """Generate the complete _ir_generated.py module."""
     classes = {cls["name"]: cls for cls in manifest.get("classes", [])}
 
-    timestamp = datetime.now(UTC).isoformat()
     adk_version = manifest.get("adk_version", "unknown")
 
     header_lines = [
@@ -227,7 +225,6 @@ def gen_full_module(manifest: dict) -> str:
         "    python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py",
         "",
         f"Generated from google-adk {adk_version}",
-        f"Timestamp: {timestamp}",
         '"""',
         "from __future__ import annotations",
         "",
