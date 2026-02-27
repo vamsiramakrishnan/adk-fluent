@@ -1,59 +1,106 @@
-# Live Sports Commentary -- Streaming with .stream()
+# Live Translation Pipeline -- Streaming with .stream()
 
 Demonstrates the .stream() method for token-by-token output. The
-scenario: a live sports commentary agent that streams play-by-play
-narration as it generates, providing real-time updates to viewers.
-No LLM calls are made here -- we only verify builder mechanics.
+scenario: a real-time multilingual translation service that transcribes
+audio input and streams translated text as it generates -- critical
+for live conferences, court interpreting, and broadcast captioning.
+No LLM calls are made here -- we verify builder and pipeline mechanics.
 
-*How to use streaming execution for real-time output.*
+*How to compose agents into a sequential pipeline.*
 
 _Source: `09_streaming.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
-# Native ADK requires manual event iteration:
-#   async for event in runner.run_async(user_id="u", session_id=s.id, new_message=content):
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.sequential_agent import SequentialAgent
+
+# Native ADK: streaming requires manual event iteration
+#   async for event in runner.run_async(...):
 #       if event.content and event.content.parts:
 #           for part in event.content.parts:
 #               if part.text:
-#                   print(part.text, end="")
+#                   yield part.text
+
+transcriber_native = LlmAgent(
+    name="transcriber",
+    model="gemini-2.5-flash",
+    instruction=(
+        "Transcribe the incoming audio stream to text. "
+        "Preserve speaker labels and timestamps."
+    ),
+    output_key="transcript",
+)
+
+translator_native = LlmAgent(
+    name="translator",
+    model="gemini-2.5-flash",
+    instruction=(
+        "Translate the transcript to Spanish. "
+        "Preserve speaker labels and formatting."
+    ),
+)
+
+pipeline_native = SequentialAgent(
+    name="translation_pipeline",
+    sub_agents=[transcriber_native, translator_native],
+)
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
-# In production, streaming is a single async for loop:
-# async for chunk in (
-#     Agent("commentator")
-#     .model("gemini-2.5-flash")
-#     .instruct("Provide enthusiastic play-by-play sports commentary.")
-#     .stream("The striker receives the ball at midfield...")
-# ):
+# The fluent API makes streaming a single async for loop:
+# async for chunk in pipeline.stream("audio data here"):
 #     print(chunk, end="")
 
-builder = (
-    Agent("commentator")
+transcriber = (
+    Agent("transcriber")
     .model("gemini-2.5-flash")
     .instruct(
-        "You are a live sports commentator. Provide enthusiastic, "
-        "detailed play-by-play narration. Build excitement as the "
-        "action unfolds and explain tactical decisions."
+        "Transcribe the incoming audio stream to text. "
+        "Preserve speaker labels and timestamps."
+    )
+    .save_as("transcript")
+)
+
+translator = (
+    Agent("translator")
+    .model("gemini-2.5-flash")
+    .instruct(
+        "Translate the transcript to Spanish. "
+        "Preserve speaker labels and formatting."
     )
 )
-```
 
+pipeline_fluent = transcriber >> translator
+
+# Build both to compare
+built_native = pipeline_native
+built_fluent = pipeline_fluent.build()
+```
 :::
 ::::
 
 ## Equivalence
 
 ```python
-assert hasattr(builder, "stream")
-assert callable(builder.stream)
-assert builder._config["name"] == "commentator"
+# Both produce SequentialAgent with 2 sub-agents
+assert type(built_native) == type(built_fluent)
+assert len(built_native.sub_agents) == len(built_fluent.sub_agents)
+assert built_fluent.sub_agents[0].name == "transcriber"
+assert built_fluent.sub_agents[1].name == "translator"
+
+# Transcriber stores output in state for downstream consumption
+assert built_fluent.sub_agents[0].output_key == "transcript"
+
+# stream() is available on Agent builders
+assert hasattr(transcriber, "stream")
+assert callable(transcriber.stream)
+
+# stream() is also available on the translator Agent builder
+assert hasattr(translator, "stream")
+assert callable(translator.stream)
 ```

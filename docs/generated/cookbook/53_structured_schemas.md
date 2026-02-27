@@ -1,7 +1,7 @@
 # Insurance Claim Processing: Structured Data Pipelines
 
 Demonstrates structured output schemas and the @ operator for typed
-agent responses. The scenario: an insurance company processes claims
+agent responses.  The scenario: an insurance company processes claims
 through a pipeline -- first ingesting claim details into a structured
 form, then assessing risk, then summarizing the outcome.
 
@@ -9,21 +9,8 @@ form, then assessing risk, then summarizing the outcome.
 
 _Source: `53_structured_schemas.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
-    n2["intake_agent"]
-    n3["risk_agent"]
-    n4["summary_agent"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from pydantic import BaseModel
 from google.adk.agents.llm_agent import LlmAgent
@@ -66,14 +53,12 @@ risk_native = LlmAgent(
     output_key="risk_report",
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
-# Explicit builder chain: .output_schema() + .outputs()
+# Explicit builder chain: .output_schema() + .save_as()
 intake_fluent = (
     Agent("intake_agent")
     .model("gemini-2.5-flash")
@@ -83,7 +68,7 @@ intake_fluent = (
         "claim submission. Return structured JSON only."
     )
     .output_schema(ClaimIntake)
-    .outputs("intake_data")
+    .save_as("intake_data")
 )
 
 risk_fluent = (
@@ -95,7 +80,7 @@ risk_fluent = (
         "and a recommended action (approve/investigate/deny)."
     )
     .output_schema(RiskAssessment)
-    .outputs("risk_report")
+    .save_as("risk_report")
 )
 
 # The @ operator -- shorthand for .output_schema() in expressions
@@ -112,7 +97,6 @@ summary_agent = (
 )
 pipeline = intake_fluent >> risk_fluent >> summary_agent
 ```
-
 :::
 ::::
 

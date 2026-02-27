@@ -4,21 +4,8 @@
 
 _Source: `31_typed_output.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["ocr_agent_then_invoice_parser_then_bookkeeper (sequence)"]]
-    n2["ocr_agent"]
-    n3["invoice_parser"]
-    n4["bookkeeper"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from pydantic import BaseModel
@@ -38,10 +25,8 @@ parser_native = LlmAgent(
     output_schema=Invoice,
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -79,11 +64,10 @@ detailed_parser = (
     Agent("detailed_parser")
     .model("gemini-2.5-flash")
     .instruct("Extract every line item from the purchase order with amounts.")
-    .outputs("parsed_po")
+    .save_as("parsed_po")
     @ PurchaseOrder
 )
 ```
-
 :::
 ::::
 

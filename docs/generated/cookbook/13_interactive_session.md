@@ -4,9 +4,8 @@
 
 _Source: `13_interactive_session.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires manual session lifecycle management:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -24,10 +23,8 @@ _Source: `13_interactive_session.py`_
 #   # Then manually call runner.run_async() for each message
 #   # No context manager -- you must track session/runner yourself
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -53,7 +50,6 @@ builder = (
     )
 )
 ```
-
 :::
 ::::
 
@@ -67,6 +63,6 @@ assert builder._config["model"] == "gemini-2.5-flash"
 assert "customer support" in builder._config["instruction"]
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [InMemorySessionService](../api/service.md#builder-InMemorySessionService)
 :::

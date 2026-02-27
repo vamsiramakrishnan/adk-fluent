@@ -4,25 +4,8 @@
 
 _Source: `30_until_operator.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["intake_agent_then_document_validator_then_identity_verifier_x3_then_welcome_agent (sequence)"]]
-    n2["intake_agent"]
-    n3(("document_validator_then_identity_verifier_x3 (loop x3)"))
-    n4["document_validator"]
-    n5["identity_verifier"]
-    n6["welcome_agent"]
-    n3 --> n4
-    n3 --> n5
-    n2 --> n3
-    n3 --> n6
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no conditional loop exit built in. You'd need:
 #   1. A custom BaseAgent subclass evaluating the predicate
@@ -30,10 +13,8 @@ graph TD
 #   3. Wire it into LoopAgent.sub_agents manually
 # This is ~25 lines of boilerplate per loop condition.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, until
 
@@ -46,7 +27,7 @@ onboarding_loop = (
     Agent("document_checker")
     .model("gemini-2.5-flash")
     .instruct("Review the uploaded identity documents for completeness and clarity.")
-    .outputs("identity_status")
+    .save_as("identity_status")
     >> Agent("verification_agent")
     .model("gemini-2.5-flash")
     .instruct("Cross-reference document data against external databases. Report verification status.")
@@ -78,7 +59,6 @@ full_onboarding = (
 # int * agent still works — fixed retry count for simple cases
 document_retry = Agent("doc_requester").model("gemini-2.5-flash").instruct("Request missing documents.") * 3
 ```
-
 :::
 ::::
 

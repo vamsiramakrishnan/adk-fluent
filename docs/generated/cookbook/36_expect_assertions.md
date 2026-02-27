@@ -4,25 +4,8 @@
 
 _Source: `36_expect_assertions.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["data_ingester_then_expect_2_then_aggregator_then_expect_3_then_report_builder (sequence)"]]
-    n2["data_ingester"]
-    n3>"expect_2 transform"]
-    n4["aggregator"]
-    n5>"expect_3 transform"]
-    n6["report_builder"]
-    n2 --> n3
-    n3 --> n4
-    n4 --> n5
-    n5 --> n6
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires a custom BaseAgent to assert state contracts.
 # In a data analytics pipeline, every quality gate is a full class:
@@ -46,10 +29,8 @@ dashboard = LlmAgent(name="dashboard", model="gemini-2.5-flash", instruction="Ge
 
 pipeline_native = SequentialAgent(name="pipeline", sub_agents=[collector, checker, dashboard])
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, expect
 
@@ -59,7 +40,7 @@ analytics_pipeline = (
     Agent("metric_calculator")
     .model("gemini-2.5-flash")
     .instruct("Compute key business metrics: revenue, churn rate, and LTV from raw data.")
-    .outputs("metrics")
+    .save_as("metrics")
     >> expect(lambda s: "metrics" in s, "Metrics must be computed before dashboard generation")
     >> Agent("dashboard_generator")
     .model("gemini-2.5-flash")
@@ -81,7 +62,6 @@ validated_pipeline = (
     .instruct("Build the final analytics report with trend analysis and recommendations.")
 )
 ```
-
 :::
 ::::
 

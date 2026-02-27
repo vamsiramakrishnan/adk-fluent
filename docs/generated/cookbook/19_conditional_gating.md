@@ -4,21 +4,8 @@
 
 _Source: `19_conditional_gating.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["risk_scorer_then_fraud_investigator_then_compliance_notifier (sequence)"]]
-    n2["risk_scorer"]
-    n3["fraud_investigator"]
-    n4["compliance_notifier"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires manually implementing before_agent_callback
 # that returns Content to skip an agent:
@@ -36,10 +23,8 @@ graph TD
 #       before_agent_callback=fraud_gate,
 #   )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -62,7 +47,7 @@ risk_scorer = (
     Agent("risk_scorer")
     .model("gemini-2.5-flash")
     .instruct("Analyze the transaction and assign a risk level: 'low', 'medium', or 'high'.")
-    .outputs("risk_level")
+    .save_as("risk_level")
 )
 
 compliance_notifier = (
@@ -74,7 +59,6 @@ compliance_notifier = (
 
 pipeline = risk_scorer >> fraud_investigator >> compliance_notifier
 ```
-
 :::
 ::::
 

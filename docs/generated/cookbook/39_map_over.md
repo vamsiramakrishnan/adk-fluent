@@ -4,23 +4,8 @@
 
 _Source: `39_map_over.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1[["feedback_collector_then_map_over_feedback_entries_3_then_summary_writer (sequence)"]]
-    n2["feedback_collector"]
-    n3["map_over_feedback_entries_3"]
-    n4["sentiment_analyzer"]
-    n5["summary_writer"]
-    n3 --> n4
-    n2 --> n3
-    n3 --> n5
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires a custom BaseAgent to iterate over list items:
 from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
@@ -48,10 +33,8 @@ sentiment_analyzer = LlmAgent(
 )
 native_mapper = MapOverAgent(name="feedback_mapper", sub_agents=[sentiment_analyzer])
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, map_over
 
@@ -86,7 +69,7 @@ feedback_pipeline = (
     Agent("feedback_collector")
     .model("gemini-2.5-flash")
     .instruct("Collect customer feedback from all channels.")
-    .outputs("feedback_entries")
+    .save_as("feedback_entries")
     >> map_over(
         "feedback_entries",
         Agent("sentiment_analyzer").model("gemini-2.5-flash").instruct("Analyze sentiment of this feedback entry."),
@@ -96,7 +79,6 @@ feedback_pipeline = (
     .instruct("Write an executive summary of the sentiment analysis results.")
 )
 ```
-
 :::
 ::::
 

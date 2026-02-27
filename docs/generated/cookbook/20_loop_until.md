@@ -4,20 +4,8 @@
 
 _Source: `20_loop_until.py`_
 
-### Architecture
-
-```mermaid
-graph TD
-    n1(("resume_writer_then_resume_reviewer_x5 (loop x5)"))
-    n2["resume_writer"]
-    n3["resume_reviewer"]
-    n1 --> n2
-    n1 --> n3
-```
-
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in conditional loop exit. You'd need to:
 #   1. Create a custom BaseAgent that evaluates a predicate
@@ -25,10 +13,8 @@ graph TD
 #   3. Manually wire it into the LoopAgent's sub_agents
 # This is ~30 lines of boilerplate per loop condition.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -40,7 +26,7 @@ resume_writer = (
         "Write or improve a professional resume based on the candidate's "
         "experience. Incorporate feedback from previous reviews."
     )
-    .outputs("quality_score")
+    .save_as("quality_score")
 )
 resume_reviewer = (
     Agent("resume_reviewer")
@@ -66,13 +52,12 @@ cover_letter_loop = (
         Agent("tone_checker")
         .model("gemini-2.5-flash")
         .instruct("Check the cover letter tone. Set 'tone_approved' to 'yes' when professional.")
-        .outputs("tone_approved")
+        .save_as("tone_approved")
     )
     .until(lambda s: s.get("tone_approved") == "yes")
     .max_iterations(10)
 )
 ```
-
 :::
 ::::
 
@@ -99,6 +84,6 @@ checkpoint = built.sub_agents[-1]
 assert checkpoint.name == "_until_check"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Loop](../api/workflow.md#builder-Loop)
 :::
