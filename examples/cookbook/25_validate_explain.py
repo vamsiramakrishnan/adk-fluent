@@ -1,49 +1,68 @@
-"""Medical Diagnosis Agent: Validate Config and Explain Builder State"""
+"""Introspection & Debugging -- validate(), explain(), inspect()
 
-# --- NATIVE ---
-# Native ADK has no built-in validation or explanation mechanism.
-# A misconfigured medical AI agent would only surface errors at runtime,
-# deep in the call stack — unacceptable for healthcare applications.
+Demonstrates the introspection methods that help debug and understand
+agent configurations before deployment. The scenario: a compliance
+team reviewing an insurance claims pipeline to verify correct wiring
+before going live.
+"""
 
 # --- FLUENT ---
-from adk_fluent import Agent
+from adk_fluent import Agent, Pipeline
 
-# In a hospital system, we build a diagnosis assistant that must be
-# validated before deployment. .validate() catches config errors at
-# definition time, not when a patient is waiting for results.
-diagnosis_agent = (
-    Agent("diagnosis_assistant")
+# Build a multi-stage insurance claims pipeline
+claims_pipeline = (
+    Agent("intake_agent")
     .model("gemini-2.5-flash")
-    .instruct(
-        "You are a medical diagnosis assistant. Given patient symptoms, "
-        "lab results, and medical history, provide a differential diagnosis "
-        "ranked by likelihood. Always include severity assessment."
-    )
-    .save_as("diagnosis")
-    .validate()  # Tries .build(), raises ValueError on failure
+    .instruct("Receive and log the incoming insurance claim with policy number and incident details.")
+    .describe("Front-desk claim intake")
+    .save_as("claim_data")
+    >> Agent("adjuster")
+    .model("gemini-2.5-flash")
+    .instruct("Assess the claim: verify coverage, estimate damages, and recommend payout.")
+    .describe("Claims adjuster")
+    .save_as("assessment")
+    >> Agent("reviewer")
+    .model("gemini-2.5-flash")
+    .instruct("Review the adjuster's assessment for accuracy and compliance with policy terms.")
+    .describe("Senior reviewer")
 )
 
-# .explain() — before deploying to production, the DevOps team inspects
-# the builder state to verify the agent is configured correctly.
-explanation = diagnosis_agent.explain()
+# 1. validate() -- check configuration before building
+intake = Agent("intake_agent").model("gemini-2.5-flash").instruct("Receive claims.")
+validation = intake.validate()
+
+# 2. explain() -- human-readable summary for team review
+explanation = claims_pipeline.explain()
+
+# 3. inspect() -- full config values for debugging
+inspection = claims_pipeline.inspect()
+
+# 4. Copy-on-write -- frozen builders fork safely
+base = Agent("agent").model("gemini-2.5-flash").instruct("Base instruction.")
+variant_a = base >> Agent("downstream_a")  # base is now frozen
+variant_b = base.instruct("Modified instruction.")  # forks a new clone
 
 # --- ASSERT ---
-# validate() returns self for chaining
-assert diagnosis_agent._config["name"] == "diagnosis_assistant"
+# validate() returns self for chaining (not a dict)
+assert isinstance(validation, Agent)
+assert validation._config["name"] == "intake_agent"
 
-# explain() returns a multi-line string with builder internals
-assert "Agent: diagnosis_assistant" in explanation
-assert "Config fields:" in explanation
+# explain() returns a non-empty string
+assert isinstance(explanation, str)
+assert len(explanation) > 0
+assert "intake_agent" in explanation or "pipeline" in explanation.lower()
 
-# validate() catches errors: missing required fields
-import pytest
+# inspect() returns a non-empty string with config details
+assert isinstance(inspection, str)
+assert len(inspection) > 0
 
-broken = Agent("broken_triage")  # No model set
+# Pipeline builds correctly
+assert isinstance(claims_pipeline, Pipeline)
+built = claims_pipeline.build()
+assert len(built.sub_agents) == 3
 
-# Some builders may pass validation even without model (depends on ADK version)
-# The point is validate() calls build() and surfaces any error clearly
-try:
-    broken.validate()
-except ValueError as e:
-    assert "Validation failed" in str(e)
-    assert "broken_triage" in str(e)
+# Copy-on-write: variant_b is independent from base
+assert isinstance(variant_a, Pipeline)
+assert id(variant_b) != id(base)  # forked clone
+assert variant_b._config["instruction"] == "Modified instruction."
+assert base._config["instruction"] == "Base instruction."  # original unchanged

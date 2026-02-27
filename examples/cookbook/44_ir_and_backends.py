@@ -1,56 +1,87 @@
-"""IR and Backends: Analyzing Pipeline Structure for Optimization"""
+"""Pipeline Optimization with IR -- Inspecting and Compiling Agent Graphs
+
+Demonstrates to_ir() for pipeline analysis, to_app() for production
+compilation, and to_mermaid() for architecture documentation. The
+scenario: a mortgage approval pipeline where the platform team
+inspects the agent graph for optimization before deployment.
+"""
 
 # --- NATIVE ---
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
+from google.adk.agents.parallel_agent import ParallelAgent
 
-# A native two-step loan application pipeline
-credit_check = LlmAgent(
-    name="credit_check",
-    model="gemini-2.5-flash",
-    instruction="Run credit check on the applicant.",
-)
-underwriter = LlmAgent(
-    name="underwriter",
-    model="gemini-2.5-flash",
-    instruction="Evaluate loan eligibility based on credit report.",
-)
-seq = SequentialAgent(name="pipeline", sub_agents=[credit_check, underwriter])
+# Native mortgage pipeline: 5 agents across sequential + parallel stages
+doc_collector = LlmAgent(name="doc_collector", model="gemini-2.5-flash",
+    instruction="Collect and validate required mortgage documents.")
+credit_check = LlmAgent(name="credit_check", model="gemini-2.5-flash",
+    instruction="Run credit check on the applicant.")
+income_verifier = LlmAgent(name="income_verifier", model="gemini-2.5-flash",
+    instruction="Verify employment and income from pay stubs and tax returns.")
+parallel_checks = ParallelAgent(name="parallel_checks",
+    sub_agents=[credit_check, income_verifier])
+underwriter = LlmAgent(name="underwriter", model="gemini-2.5-flash",
+    instruction="Make final loan approval decision based on all gathered data.")
+pipeline_native = SequentialAgent(name="mortgage_pipeline",
+    sub_agents=[doc_collector, parallel_checks, underwriter])
 
 # --- FLUENT ---
 from adk_fluent import Agent
 
-# Scenario: A loan application pipeline where we want to inspect and
-# optimize the pipeline structure before deployment.
-
-pipeline = Agent("credit_check").instruct("Run credit check on the applicant.") >> Agent("underwriter").instruct(
-    "Evaluate loan eligibility based on credit report."
+# Same pipeline expressed fluently
+mortgage_pipeline = (
+    Agent("doc_collector")
+    .model("gemini-2.5-flash")
+    .instruct("Collect and validate required mortgage documents.")
+    >> (
+        Agent("credit_check")
+        .model("gemini-2.5-flash")
+        .instruct("Run credit check on the applicant.")
+        | Agent("income_verifier")
+        .model("gemini-2.5-flash")
+        .instruct("Verify employment and income from pay stubs and tax returns.")
+    )
+    >> Agent("underwriter")
+    .model("gemini-2.5-flash")
+    .instruct("Make final loan approval decision based on all gathered data.")
 )
 
-# Inspect the IR tree (frozen dataclasses) -- useful for:
-#   - Automated pipeline validation before deployment
-#   - Generating architecture diagrams
-#   - Computing cost estimates based on model usage
-ir = pipeline.to_ir()
+# 1. Inspect the IR tree -- frozen dataclass graph for analysis
+ir = mortgage_pipeline.to_ir()
 
-# Compile to native ADK App via IR -- the production deployment path
-app = pipeline.to_app()
+# 2. Compile to native ADK App -- production deployment
+app = mortgage_pipeline.to_app()
 
-# .build() still works for direct agent construction
-agent_fluent = pipeline.build()
+# 3. Generate architecture diagram -- auto-sync documentation
+mermaid = mortgage_pipeline.to_mermaid()
+
+# 4. Build directly for comparison
+built_fluent = mortgage_pipeline.build()
 
 # --- ASSERT ---
-from adk_fluent._ir_generated import AgentNode, SequenceNode
+from adk_fluent._ir_generated import SequenceNode, ParallelNode, AgentNode
 
-# IR is a SequenceNode containing two AgentNodes
+# IR is a SequenceNode with 3 children: doc_collector, parallel, underwriter
 assert isinstance(ir, SequenceNode)
-assert len(ir.children) == 2
+assert len(ir.children) == 3
 assert isinstance(ir.children[0], AgentNode)
-assert ir.children[0].name == "credit_check"
-assert ir.children[1].name == "underwriter"
+assert ir.children[0].name == "doc_collector"
+assert isinstance(ir.children[1], ParallelNode)
+assert len(ir.children[1].children) == 2
+assert isinstance(ir.children[2], AgentNode)
+assert ir.children[2].name == "underwriter"
 
 # to_app() produces a native ADK App
 from google.adk.apps.app import App
-
 assert isinstance(app, App)
-assert type(seq) == type(agent_fluent)
+
+# to_mermaid() generates valid diagram text
+assert "graph TD" in mermaid
+assert "doc_collector" in mermaid
+assert "credit_check" in mermaid
+assert "underwriter" in mermaid
+assert "-->" in mermaid
+
+# build() matches native structure
+assert type(pipeline_native) == type(built_fluent)
+assert len(built_fluent.sub_agents) == 3

@@ -1,39 +1,78 @@
-"""Deploying a Chatbot to Production"""
+"""Production Deployment -- to_app() with Middleware Stack
+
+Demonstrates deploying a fluent builder to production using to_app(),
+which compiles through the IR to a native ADK App with middleware.
+The scenario: an e-commerce order processing agent deployed with
+retry logic for transient failures and structured logging for
+operational visibility.
+"""
 
 # --- NATIVE ---
-# Native ADK production setup requires assembling multiple objects:
-#   from google.adk.agents.llm_agent import LlmAgent
-#   from google.adk.runners import Runner
-#   from google.adk.sessions.in_memory_session_service import InMemorySessionService
-#
-#   agent = LlmAgent(
-#       name="store_assistant",
-#       model="gemini-2.5-flash",
-#       instruction="You are a helpful e-commerce assistant. Help customers "
-#                   "find products, check order status, and answer FAQs.",
-#       description="Production e-commerce chatbot with order tracking and FAQ support.",
-#   )
-#   session_service = InMemorySessionService()
-#   runner = Runner(
-#       agent=agent, app_name="ecommerce_app", session_service=session_service
-#   )
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.sequential_agent import SequentialAgent
 
-# --- FLUENT ---
-from adk_fluent import Agent
-
-# The fluent API collapses runtime setup into a single chain.
-# .describe() adds metadata visible to monitoring and admin dashboards.
-agent = (
-    Agent("store_assistant")
-    .model("gemini-2.5-flash")
-    .instruct(
-        "You are a helpful e-commerce assistant. Help customers find products, check order status, and answer FAQs."
-    )
-    .describe("Production e-commerce chatbot with order tracking and FAQ support.")
+# Native ADK production setup: manually assemble agent, runner, session
+order_validator = LlmAgent(
+    name="order_validator",
+    model="gemini-2.5-flash",
+    instruction="Validate the incoming order: check required fields, verify pricing, confirm inventory.",
+)
+payment_processor = LlmAgent(
+    name="payment_processor",
+    model="gemini-2.5-flash",
+    instruction="Process payment for the validated order. Apply discounts and calculate tax.",
+)
+fulfillment = LlmAgent(
+    name="fulfillment",
+    model="gemini-2.5-flash",
+    instruction="Create shipping label and dispatch order to the nearest warehouse.",
+)
+pipeline_native = SequentialAgent(
+    name="order_pipeline",
+    sub_agents=[order_validator, payment_processor, fulfillment],
 )
 
+# --- FLUENT ---
+from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
+
+# to_app() compiles through IR to a production-ready ADK App.
+# Middleware wraps every agent invocation with cross-cutting concerns.
+pipeline = (
+    Agent("order_validator")
+    .model("gemini-2.5-flash")
+    .instruct("Validate the incoming order: check required fields, verify pricing, confirm inventory.")
+    >> Agent("payment_processor")
+    .model("gemini-2.5-flash")
+    .instruct("Process payment for the validated order. Apply discounts and calculate tax.")
+    >> Agent("fulfillment")
+    .model("gemini-2.5-flash")
+    .instruct("Create shipping label and dispatch order to the nearest warehouse.")
+)
+
+# Add production middleware
+pipeline.middleware(RetryMiddleware(max_attempts=3))
+pipeline.middleware(StructuredLogMiddleware())
+
+# Compile to native App -- ready for Runner
+app = pipeline.to_app()
+
+# Also build the sequential agent directly for comparison
+built_fluent = pipeline.build()
+
 # --- ASSERT ---
-assert agent._config["name"] == "store_assistant"
-assert agent._config["model"] == "gemini-2.5-flash"
-assert "e-commerce assistant" in agent._config["instruction"]
-assert "Production e-commerce chatbot" in agent._config["description"]
+from google.adk.apps.app import App
+
+# to_app() produces a native ADK App
+assert isinstance(app, App)
+
+# build() produces the same type as native
+assert type(pipeline_native) == type(built_fluent)
+assert len(built_fluent.sub_agents) == 3
+assert built_fluent.sub_agents[0].name == "order_validator"
+assert built_fluent.sub_agents[1].name == "payment_processor"
+assert built_fluent.sub_agents[2].name == "fulfillment"
+
+# Middleware is attached
+assert len(pipeline._middlewares) == 2
+assert isinstance(pipeline._middlewares[0], RetryMiddleware)
+assert isinstance(pipeline._middlewares[1], StructuredLogMiddleware)
