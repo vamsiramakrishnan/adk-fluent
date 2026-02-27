@@ -1,5 +1,7 @@
 # Documentation Publishing Implementation Plan
 
+> **Status: COMPLETE** (2026-02-27 audit) — Sphinx + MyST-Parser + Furo theme + sphinx-design + sphinx-copybutton all configured. Auto-generated docs via `scripts/doc_generator.py`.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add Sphinx + MyST-Parser documentation site hosted on Read the Docs, with a major overhaul of `doc_generator.py` to produce rich, cross-linked documentation.

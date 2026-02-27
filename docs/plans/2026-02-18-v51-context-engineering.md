@@ -2,25 +2,29 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
+> **Status audit (2026-02-27):** Phases A, B, C are COMPLETE. Phase D is NOT STARTED. Phase E is PARTIAL (StateKey exists, StateSchema not yet built). Task 10 (OTel Enrichment) in Phase A was deferred and never implemented.
+
 ______________________________________________________________________
 
 ## Phase Roadmap
 
 v5.1 is split into five phases. Each phase gets its own plan document when started. Phases B+E can run in parallel.
 
-| Phase | Name                  | Tasks | Depends On     | Plan Document                                      |
-| ----- | --------------------- | ----- | -------------- | -------------------------------------------------- |
-| **A** | Foundation            | 10    | Phase 4 (done) | This document                                      |
-| **B** | C Atoms (No LLM)      | TBD   | Phase A        | `docs/plans/YYYY-MM-DD-v51-phase-b-c-atoms.md`     |
-| **C** | C Atoms (LLM-Powered) | TBD   | Phase B        | `docs/plans/YYYY-MM-DD-v51-phase-c-llm-atoms.md`   |
-| **D** | Scratchpads + Sugar   | TBD   | Phase B        | `docs/plans/YYYY-MM-DD-v51-phase-d-scratchpads.md` |
-| **E** | Typed State           | TBD   | Phase A        | `docs/plans/YYYY-MM-DD-v51-phase-e-typed-state.md` |
+| Phase | Name                  | Tasks | Depends On     | Status                  | Plan Document                                                        |
+| ----- | --------------------- | ----- | -------------- | ----------------------- | -------------------------------------------------------------------- |
+| **A** | Foundation            | 10    | Phase 4 (done) | **COMPLETE** (9/10)[^1] | This document                                                        |
+| **B** | C Atoms (No LLM)      | done  | Phase A        | **COMPLETE**            | `conductor/tracks/c_atoms_phase_b_20260220/plan.md`                  |
+| **C** | C Atoms (LLM-Powered) | done  | Phase B        | **COMPLETE**            | Implemented in `src/adk_fluent/_context.py` (lines 440-527)          |
+| **D** | Scratchpads + Sugar   | TBD   | Phase B        | **NOT STARTED**         | `docs/plans/YYYY-MM-DD-v51-phase-d-scratchpads.md` (not yet created) |
+| **E** | Typed State           | TBD   | Phase A        | **PARTIAL**             | `docs/plans/YYYY-MM-DD-v51-phase-e-typed-state.md` (not yet created) |
 
-### Phase A — Foundation (this document)
+[^1]: Task 10 (OTel Enrichment) was not implemented. All other Phase A tasks are complete.
 
-S.capture, C module core (9 primitives: none, default, user_only, from_agents, exclude_agents, window, from_state, template, capture), Agent.context(), Event Visibility with pipeline policies, cross-channel contract checker, memory integration, IR-first build path, OTel enrichment middleware.
+### Phase A — Foundation (this document) — COMPLETE
 
-### Phase B — C Atoms (No LLM)
+S.capture, C module core (9 primitives: none, default, user_only, from_agents, exclude_agents, window, from_state, template, capture), Agent.context(), Event Visibility with pipeline policies, cross-channel contract checker, memory integration, IR-first build path. ~~OTel enrichment middleware~~ (deferred — not implemented).
+
+### Phase B — C Atoms (No LLM) — COMPLETE
 
 The five-verb atomic primitives that don't require LLM calls (from v51_context.md §2, §3, §5, §6):
 
@@ -30,7 +34,9 @@ The five-verb atomic primitives that don't require LLM calls (from v51_context.m
 - **PROTECT:** C.fresh(max_age=, stale_action=), C.redact(patterns=)
 - **Composition:** `+`/`|` operator type rules (§9.2), CComposite/CPipe rendering
 
-### Phase C — C Atoms (LLM-Powered)
+*Implemented in `src/adk_fluent/_context.py` (lines 240-433). Tests: `tests/manual/test_c_phase_b.py`*
+
+### Phase C — C Atoms (LLM-Powered) — COMPLETE
 
 Primitives that require LLM calls with caching via companion FnAgents (from v51_context.md §3, §4, §6):
 
@@ -40,7 +46,9 @@ Primitives that require LLM calls with caching via companion FnAgents (from v51_
 - **PROTECT:** C.validate(checks=\["contradictions"\])
 - **BUDGET:** C.fit(strategy="cascade"|"compact_then_summarize")
 
-### Phase D — Scratchpads + Molecule Sugar
+*Implemented in `src/adk_fluent/_context.py` (lines 440-527) with LLM caching via `_fingerprint_events()`. Tests: `tests/manual/test_c_phase_c.py`*
+
+### Phase D — Scratchpads + Molecule Sugar — NOT STARTED
 
 Structured note-taking and higher-level convenience methods (from v51_context.md §4, §7.4):
 
@@ -48,15 +56,15 @@ Structured note-taking and higher-level convenience methods (from v51_context.md
 - **Sugar:** C.rolling(n, summarize=), C.from_agents_windowed(...), C.user(strategy=), C.manus_cascade(budget=)
 - Note lifecycle management (merge, consolidate, decay)
 
-### Phase E — Typed State (StateSchema)
+### Phase E — Typed State (StateSchema) — PARTIAL
 
 Typed state declarations with scope annotations (from v5 §1.2–1.7, gap_analysis §1, v51_spec §3.3):
 
-- StateSchema base class with Annotated type hints
-- Scope prefixes (session, app:, user:, temp:) as type annotations
-- CapturedBy annotation for C.capture provenance
-- Typed contract checking (key type mismatches, scope confusion)
-- IDE autocomplete for state keys
+- ~~Scope prefixes (session, app:, user:, temp:) as type annotations~~ **Done** — `StateKey` class in `_helpers.py` supports scope param
+- StateSchema base class with Annotated type hints — **not started**
+- CapturedBy annotation for C.capture provenance — **not started**
+- Typed contract checking (key type mismatches, scope confusion) — **not started**
+- IDE autocomplete for state keys — **not started**
 
 ______________________________________________________________________
 

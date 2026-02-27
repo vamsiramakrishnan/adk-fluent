@@ -1,5 +1,7 @@
 # Full Auto-Pipeline Seed Generator — Implementation Plan
 
+> **Status: COMPLETE** (2026-02-27 audit) — Enhanced scanner, type-driven seed generation, two-seed system (`seeds/seed.toml` + `seeds/seed.manual.toml`), merge support via `--merge` flag. Key files: `scripts/scanner.py`, `scripts/seed_generator.py`.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build a mechanism that systematically parses ALL google-adk modules and generates a complete seed.toml automatically — no human review step.

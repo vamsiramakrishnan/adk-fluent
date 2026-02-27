@@ -1,5 +1,7 @@
 # Intelligent Codegen Pipeline — Implementation Plan
 
+> **Status: COMPLETE — Phase A+B+C** (2026-02-27 audit) — Type-driven inference engine (`scripts/seed_generator.py`), structured Code IR (`scripts/code_ir.py`), content-addressed caching and dependency tracking (`scripts/ir_generator.py`).
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Transform the codegen pipeline from hard-coded lookup tables + string concatenation into an inference engine + structured IR + reactive pipeline — so upstream ADK changes are handled automatically and the manual override surface shrinks to genuine exceptions only.

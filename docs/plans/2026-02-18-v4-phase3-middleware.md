@@ -1,5 +1,7 @@
 # v4 Phase 3: Middleware Protocol Implementation Plan
 
+> **Status: COMPLETE** (2026-02-27 audit) — Middleware Protocol, `_MiddlewarePlugin` adapter, `.middleware()` builder method, retry + structured_log built-ins all implemented. Key file: `middleware.py`.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a composable middleware system that compiles a stack of cross-cutting behaviors (retry, logging, cost tracking, etc.) into a single ADK `BasePlugin`, giving adk-fluent users plugin-level control with a simpler, unified API.

@@ -1,5 +1,7 @@
 # Implementation Plan: API Surface v2 — Fluent DX Refinements
 
+> **Status: COMPLETE** (2026-02-27 audit) — `save_as`, `stay`, `no_peers`, `prelude` module, deprecated aliases with warnings all shipped. Tests: `tests/manual/test_api_surface_v2.py`.
+
 **Design doc:** `docs/plans/2026-02-25-api-surface-v2-design.md`
 **Target version:** 0.8.0
 
