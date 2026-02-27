@@ -385,7 +385,8 @@ def _ir_class_attrs(spec: BuilderSpec) -> list[ClassAttr]:
     )
 
     additive = spec.additive_fields & {f["name"] for f in spec.fields}
-    attrs.append(ClassAttr("_ADDITIVE_FIELDS", "set[str]", repr(additive) if additive else "set()"))
+    additive_repr = "{" + ", ".join(repr(s) for s in sorted(additive)) + "}" if additive else "set()"
+    attrs.append(ClassAttr("_ADDITIVE_FIELDS", "set[str]", additive_repr))
 
     if not spec.is_composite and not spec.is_standalone and spec.inspection_mode != "init_signature":
         import_name = _adk_import_name(spec)
@@ -395,7 +396,8 @@ def _ir_class_attrs(spec: BuilderSpec) -> list[ClassAttr]:
         param_names = sorted(
             {p["name"] for p in spec.init_params if p["name"] not in ("self", "args", "kwargs", "kwds")}
         )
-        attrs.append(ClassAttr("_KNOWN_PARAMS", "set[str] | None", repr(set(param_names)) if param_names else "set()"))
+        known_repr = "{" + ", ".join(repr(s) for s in param_names) + "}" if param_names else "set()"
+        attrs.append(ClassAttr("_KNOWN_PARAMS", "set[str] | None", known_repr))
     elif spec.inspection_mode == "init_signature":
         attrs.append(ClassAttr("_KNOWN_PARAMS", "set[str] | None", "set()"))
 
@@ -941,6 +943,8 @@ def _build_type_import_map(manifest: dict) -> dict[str, str]:
                     unresolved.add(name)
 
     # Phase 3: runtime discovery for unresolved types
+    # Walk in sorted module order and prefer the defining module (__module__)
+    # for deterministic output across environments.
     if unresolved:
         import importlib
         import pkgutil
@@ -948,19 +952,36 @@ def _build_type_import_map(manifest: dict) -> dict[str, str]:
         try:
             import google.adk
 
-            for _imp, modname, _ispkg in pkgutil.walk_packages(google.adk.__path__, "google.adk."):
+            # Collect all (modname, name) candidates first, then pick best
+            candidates: dict[str, list[str]] = defaultdict(list)
+            all_modules = sorted(
+                modname for _imp, modname, _ispkg in pkgutil.walk_packages(google.adk.__path__, "google.adk.")
+            )
+            for modname in all_modules:
                 if not unresolved:
                     break
                 try:
                     mod = importlib.import_module(modname)
                 except Exception:
                     continue
-                found = []
-                for name in unresolved:
-                    if hasattr(mod, name):
-                        type_map[name] = f"from {modname} import {name}"
-                        found.append(name)
-                for name in found:
+                for name in list(unresolved):
+                    obj = getattr(mod, name, None)
+                    if obj is not None:
+                        # Prefer the module where the type is defined
+                        defining_mod = getattr(obj, "__module__", None)
+                        if defining_mod == modname:
+                            # Exact match — use it immediately
+                            type_map[name] = f"from {modname} import {name}"
+                            unresolved.discard(name)
+                            candidates.pop(name, None)
+                        elif name not in type_map:
+                            candidates[name].append(modname)
+
+            # For remaining unresolved, use first sorted candidate
+            for name in sorted(candidates):
+                if name in unresolved and candidates[name]:
+                    best = candidates[name][0]  # already sorted
+                    type_map[name] = f"from {best} import {name}"
                     unresolved.discard(name)
         except ImportError:
             pass
@@ -994,8 +1015,15 @@ _IMPORT_OVERRIDES: dict[str, str] = {
     "ToolPredicate": "from google.adk.tools.base_toolset import ToolPredicate",
     "APIHubClient": "from google.adk.tools.apihub_tool.clients.apihub_client import APIHubClient",
     "BigQueryToolConfig": "from google.adk.tools.bigquery.config import BigQueryToolConfig",
+    "BigQueryCredentialsConfig": "from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig",
     "BigtableToolSettings": "from google.adk.tools.bigtable.settings import BigtableToolSettings",
+    "BigtableCredentialsConfig": "from google.adk.tools.bigtable.bigtable_credentials import BigtableCredentialsConfig",
     "SpannerToolSettings": "from google.adk.tools.spanner.settings import SpannerToolSettings",
+    "SpannerCredentialsConfig": "from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig",
+    "DataAgentCredentialsConfig": "from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig",
+    "DataAgentToolConfig": "from google.adk.tools.data_agent.config import DataAgentToolConfig",
+    "PubSubCredentialsConfig": "from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig",
+    "PubSubToolConfig": "from google.adk.tools.pubsub.config import PubSubToolConfig",
     # AuthScheme is a Union alias defined at module level in auth_schemes
     "AuthScheme": "from google.adk.auth.auth_schemes import AuthScheme",
     # google.genai.types that appear without module prefix after normalization

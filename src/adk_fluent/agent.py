@@ -113,13 +113,13 @@ class Agent(BuilderBase):
         "on_tool_error": "on_tool_error_callback",
     }
     _ADDITIVE_FIELDS: set[str] = {
-        "after_tool_callback",
-        "before_tool_callback",
-        "before_model_callback",
-        "on_model_error_callback",
-        "before_agent_callback",
-        "after_model_callback",
         "after_agent_callback",
+        "after_model_callback",
+        "after_tool_callback",
+        "before_agent_callback",
+        "before_model_callback",
+        "before_tool_callback",
+        "on_model_error_callback",
         "on_tool_error_callback",
     }
     _ADK_TARGET_CLASS = LlmAgent
