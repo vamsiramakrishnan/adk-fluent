@@ -36,7 +36,9 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # CHECK-GEN — verify generated files match generator output (idempotency)
-  # Catches: hand-edited generated files, stale codegen, generator drift
+  # Uses the COMMITTED manifest.json + seed.toml as inputs — does NOT re-scan ADK.
+  # Catches: hand-edited generated files, stale codegen, generator drift.
+  # To check for upstream ADK changes, run `just scan` locally and diff.
   # ---------------------------------------------------------------------------
   check-gen:
     runs-on: ubuntu-latest
@@ -53,11 +55,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: Regenerate and verify no diff
+      - name: Regenerate from committed manifest+seed and verify no diff
         run: |
-          just scan seed generate
+          just generate
           if ! git diff --quiet; then
-            echo "::error::Generated files are stale. Run 'just generate' and commit the result."
+            echo "::error::Generated files don't match generator output. Run 'just generate' and commit."
             git diff --stat
             git diff
             exit 1
