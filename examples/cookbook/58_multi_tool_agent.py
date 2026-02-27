@@ -99,10 +99,7 @@ verifier = (
 )
 
 # Compose: task agent -> verifier pipeline
-verified_agent = (
-    task_agent.save_as("task_result")
-    >> verifier
-)
+verified_agent = task_agent.save_as("task_result") >> verifier
 
 # --- ASSERT ---
 # Task agent has 3 tools (stored in _lists, not _config)

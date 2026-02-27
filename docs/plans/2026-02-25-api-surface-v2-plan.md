@@ -12,9 +12,11 @@
 **File:** `scripts/generator.py`
 
 1. Add `deprecated_aliases: dict[str, dict[str, str]]` field to `BuilderSpec` dataclass (~line 96)
+
    - Format: `{ "fluent_name": { "field": "pydantic_field", "use": "replacement" } }`
 
-2. In `_load_specs()` (~line 177), parse `deprecated_aliases` from builder config:
+1. In `_load_specs()` (~line 177), parse `deprecated_aliases` from builder config:
+
    ```python
    deprecated_aliases = {}
    for name, val in builder_config.get("deprecated_aliases", {}).items():
@@ -30,6 +32,7 @@
 **File:** `scripts/generator.py`
 
 1. Add `_ir_deprecated_alias_methods(spec)` function after `_ir_alias_methods()`:
+
    ```python
    def _ir_deprecated_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
        methods = []
@@ -63,14 +66,15 @@
        return methods
    ```
 
-2. Call it from `_ir_class_node()` alongside `_ir_alias_methods()`:
+1. Call it from `_ir_class_node()` alongside `_ir_alias_methods()`:
+
    ```python
    methods.extend(_ir_deprecated_alias_methods(spec))
    ```
 
-3. Update `_ir_alias_methods()` to skip names that are in `deprecated_aliases` (they're handled separately)
+1. Update `_ir_alias_methods()` to skip names that are in `deprecated_aliases` (they're handled separately)
 
-4. Update `_ir_field_methods()` covered-set to include deprecated alias names
+1. Update `_ir_field_methods()` covered-set to include deprecated alias names
 
 ### Task 1.3: Update `.pyi` stub generation
 
@@ -83,6 +87,7 @@ Ensure deprecated aliases appear in stubs with deprecation note in docstring.
 **File:** `scripts/seed_generator.py`
 
 In `merge_manual_seed()`, add handling for `deprecated_aliases`:
+
 ```python
 # Merge deprecated_aliases (manual overrides)
 for builder_name in manual.get("builders", {}):
@@ -101,7 +106,7 @@ python -m pytest tests/ -q --tb=short
 ruff check src/
 ```
 
----
+______________________________________________________________________
 
 ## Phase 2: Seed changes — Aliases + Deprecations
 
@@ -127,10 +132,12 @@ static_instruct = { field = "static_instruction", use = "static" }
 Actually, aliases are in seed.toml (auto-generated), not seed.manual.toml. The manual file overrides/extends via merge. So:
 
 1. The merge process needs to:
+
    - Remove deprecated aliases from `[builders.Agent.aliases]` in the merged seed
    - Add `save_as = "output_key"` to `[builders.Agent.aliases]`
 
-2. Add to `seeds/seed.manual.toml`:
+1. Add to `seeds/seed.manual.toml`:
+
    ```toml
    # New aliases (added during merge)
    [builders.Agent.manual_aliases]
@@ -144,7 +151,8 @@ Actually, aliases are in seed.toml (auto-generated), not seed.manual.toml. The m
    static_instruct = { field = "static_instruction", use = "static" }
    ```
 
-3. Update `merge_manual_seed()` in seed_generator.py to:
+1. Update `merge_manual_seed()` in seed_generator.py to:
+
    - Merge `manual_aliases` into `aliases`
    - Remove deprecated alias names from `aliases` (they get their own methods)
 
@@ -166,7 +174,7 @@ python -m pytest tests/ -q --tb=short
 grep -n "save_as\|DeprecationWarning" src/adk_fluent/agent.py
 ```
 
----
+______________________________________________________________________
 
 ## Phase 3: Helper methods — `stay()` + `no_peers()`
 
@@ -236,7 +244,7 @@ python -c "from adk_fluent import Agent; a = Agent('t').stay(); print(a._config)
 python -c "from adk_fluent import Agent; a = Agent('t').no_peers(); print(a._config)"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 4: Namespace tiering
 
@@ -266,9 +274,10 @@ __all__ = ["Agent", "Pipeline", "FanOut", "Loop", "C", "S", "Route", "Prompt"]
 Add tier comments to the generated `__all__`. The generator's `gen_init_py()` function needs to:
 
 1. Split generated builder exports into tiers based on a tier mapping
-2. Emit `__all__` with tier section comments
+1. Emit `__all__` with tier section comments
 
 Tier mapping (in generator or seed):
+
 ```python
 TIER_1 = {"Agent", "Pipeline", "FanOut", "Loop"}
 TIER_2 = {"C", "S", "Route", "Prompt", "Preset", "StateKey",
@@ -289,7 +298,7 @@ python -c "from adk_fluent.prelude import *; print(Agent, Pipeline, C, S)"
 python -m pytest tests/ -q --tb=short
 ```
 
----
+______________________________________________________________________
 
 ## Phase 5: Documentation updates
 
@@ -318,6 +327,7 @@ python -m pytest tests/ -q --tb=short
 ### Task 5.4: Update cookbook examples
 
 Update existing cookbooks that use deprecated methods:
+
 - `outputs()` → `save_as()`
 - `include_history()` → `context()`
 - `static_instruct()` → `static()`
@@ -330,7 +340,7 @@ Only update the FLUENT sections, leave NATIVE sections as-is.
 python -m pytest examples/cookbook/ -q --tb=short
 ```
 
----
+______________________________________________________________________
 
 ## Phase 6: Tests
 
@@ -417,7 +427,7 @@ python -m pytest tests/ -q --tb=short
 python -m pytest examples/cookbook/ -q --tb=short
 ```
 
----
+______________________________________________________________________
 
 ## Phase 7: Version bump + CHANGELOG
 
@@ -448,7 +458,7 @@ python -m pytest examples/cookbook/ -q --tb=short
 - **`.static_instruct()`** — use `.static()` instead
 ```
 
----
+______________________________________________________________________
 
 ## Dependency Graph
 
@@ -465,16 +475,17 @@ Phase 3 (helpers: stay/no_peers) ────────┤
 
 Phase 1 must come first (codegen support). Phases 2-4 depend on Phase 1. Phase 3 is independent of Phase 2. Phase 5 and 6 can run after 2-4. Phase 7 is last.
 
----
+______________________________________________________________________
 
 ## Verification Checklist
 
 After all phases:
+
 1. `just seed` — seeds merge correctly, deprecated_aliases present
-2. `just generate` — .py and .pyi files regenerated with new + deprecated methods
-3. `python -m pytest tests/ -q --tb=short` — all tests pass
-4. `python -m pytest examples/cookbook/ -q --tb=short` — all cookbooks pass
-5. `ruff check src/` — no lint errors
-6. `python -c "from adk_fluent import Agent; Agent('t').save_as('k')"` — works without warning
-7. `python -c "import warnings; warnings.simplefilter('always'); from adk_fluent import Agent; Agent('t').outputs('k')"` — warns
-8. `python -c "from adk_fluent.prelude import *; print(Agent)"` — works
+1. `just generate` — .py and .pyi files regenerated with new + deprecated methods
+1. `python -m pytest tests/ -q --tb=short` — all tests pass
+1. `python -m pytest examples/cookbook/ -q --tb=short` — all cookbooks pass
+1. `ruff check src/` — no lint errors
+1. `python -c "from adk_fluent import Agent; Agent('t').save_as('k')"` — works without warning
+1. `python -c "import warnings; warnings.simplefilter('always'); from adk_fluent import Agent; Agent('t').outputs('k')"` — warns
+1. `python -c "from adk_fluent.prelude import *; print(Agent)"` — works

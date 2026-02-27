@@ -89,10 +89,7 @@ general_handler = (
 satisfaction_check = (
     Agent("satisfaction_monitor")
     .model(MODEL)
-    .instruct(
-        "Evaluate if the customer's issue was resolved satisfactorily. "
-        "Set resolved to 'yes' or 'no'."
-    )
+    .instruct("Evaluate if the customer's issue was resolved satisfactorily. Set resolved to 'yes' or 'no'.")
     .save_as("resolved")
 )
 

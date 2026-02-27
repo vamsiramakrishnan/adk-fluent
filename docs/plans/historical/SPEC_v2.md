@@ -313,22 +313,22 @@ _ADDITIVE_FIELDS = {"before_model_callback", "after_model_callback", ...}
 
 class Agent:
     """Fluent builder for LlmAgent."""
-    
+
     def __init__(self, name: str, model: str) -> None:
         self._config: dict[str, Any] = {"name": name, "model": model}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
-    
+
     # --- Ergonomic aliases (generated from seed.toml) ---
     def instruct(self, value: str | Callable) -> Self:
         self._config["instruction"] = value
         return self
-    
+
     # --- Callback methods (generated from seed.toml) ---
     def before_model(self, fn: Callable) -> Self:
         self._callbacks["before_model_callback"].append(fn)
         return self
-    
+
     # --- Dynamic forwarding (generated, reads schema at runtime) ---
     def __getattr__(self, name: str):
         if name.startswith("_"):
@@ -341,7 +341,7 @@ class Agent:
             self._config[field_name] = value
             return self
         return _setter
-    
+
     # --- Terminal (generated from seed.toml) ---
     def build(self) -> LlmAgent:
         config = {**self._config}

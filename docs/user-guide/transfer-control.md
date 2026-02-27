@@ -114,24 +114,24 @@ Use `.isolate()` for any agent that should complete its task and return to the c
 
 All four combinations of the two flags, the fluent shorthand that sets them, and their resulting behavior:
 
-| `disallow_transfer_to_parent` | `disallow_transfer_to_peers` | Fluent shorthand | Behavior                                                                                                                      |
-| :---------------------------: | :--------------------------: | :--------------: | ----------------------------------------------------------------------------------------------------------------------------- |
-|            `False`            |           `False`            |    _(default)_   | **Full transfer.** Agent can transfer to parent, siblings, and its own children. Default behavior.                            |
-|            `True`             |           `False`            |    `.stay()`     | **Peers only.** Agent can transfer to siblings but not back to parent. Useful for peer-to-peer handoff chains.                |
-|            `False`            |            `True`            |   `.no_peers()`  | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing.           |
-|            `True`             |            `True`            |   `.isolate()`   | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically.                    |
+| `disallow_transfer_to_parent` | `disallow_transfer_to_peers` | Fluent shorthand | Behavior                                                                                                             |
+| :---------------------------: | :--------------------------: | :--------------: | -------------------------------------------------------------------------------------------------------------------- |
+|            `False`            |           `False`            |   _(default)_    | **Full transfer.** Agent can transfer to parent, siblings, and its own children. Default behavior.                   |
+|            `True`             |           `False`            |    `.stay()`     | **Peers only.** Agent can transfer to siblings but not back to parent. Useful for peer-to-peer handoff chains.       |
+|            `False`            |            `True`            |  `.no_peers()`   | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing. |
+|            `True`             |            `True`            |   `.isolate()`   | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically.           |
 
 ## Choosing the Right Method
 
 Agents can be connected in several ways depending on the execution pattern you need. This table summarizes the builder methods for adding agents to different topologies:
 
-| Builder    | Method             | What it does                                     |
-| ---------- | ------------------ | ------------------------------------------------ |
-| `Pipeline` | `.step(agent)`     | Add a sequential step                            |
-| `FanOut`   | `.branch(agent)`   | Add a parallel branch                            |
-| `Loop`     | `.step(agent)`     | Add a repeating step                             |
-| `Agent`    | `.sub_agent(agent)`| Add a child agent (transfer-based, LLM decides)  |
-| `Agent`    | `.delegate(agent)` | Add as a tool (wrapped in `AgentTool`, LLM-routed)|
+| Builder    | Method              | What it does                                       |
+| ---------- | ------------------- | -------------------------------------------------- |
+| `Pipeline` | `.step(agent)`      | Add a sequential step                              |
+| `FanOut`   | `.branch(agent)`    | Add a parallel branch                              |
+| `Loop`     | `.step(agent)`      | Add a repeating step                               |
+| `Agent`    | `.sub_agent(agent)` | Add a child agent (transfer-based, LLM decides)    |
+| `Agent`    | `.delegate(agent)`  | Add as a tool (wrapped in `AgentTool`, LLM-routed) |
 
 `.sub_agent()` and `.delegate()` both let a parent agent invoke a child, but they differ in mechanism:
 

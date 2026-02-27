@@ -328,4 +328,3 @@ signature = "(self) -> Any"
 doc = "Convert this Loop builder to a LoopNode IR node."
 behavior = "runtime_helper_ctx"
 helper_func = "_loop_to_ir"
-

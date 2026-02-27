@@ -28,16 +28,16 @@ The Runner's `_exec_with_plugin` method processes events in this order:
 # From Runner._exec_with_plugin (actual source)
 async for event in agen:
     _apply_run_config_custom_metadata(event, invocation_context.run_config)
-    
+
     # STEP 1: Event is persisted to session history
     if self._should_append_event(event, is_live_call):
         await self.session_service.append_event(session=session, event=event)
-    
+
     # STEP 2: Plugin gets to modify the event
     modified_event = await plugin_manager.run_on_event_callback(
         invocation_context=invocation_context, event=event
     )
-    
+
     # STEP 3: Modified or original event is yielded to client
     if modified_event:
         yield modified_event
@@ -79,10 +79,10 @@ class BasePlugin(ABC):
         self, *, invocation_context: InvocationContext, event: Event
     ) -> Optional[Event]:
         """Callback executed after an event is yielded from runner.
-        
+
         Returns:
-            A non-None return may be used by the framework to modify or 
-            replace the response. Returning None allows the original 
+            A non-None return may be used by the framework to modify or
+            replace the response. Returning None allows the original
             response to be used.
         """
         pass
@@ -209,15 +209,15 @@ classifies each node:
 ```python
 def infer_visibility(ir_root) -> dict[str, Literal["user", "internal", "zero_cost"]]:
     """Walk the IR and infer which nodes are user-facing vs internal.
-    
+
     Rules:
     1. Terminal nodes in any branch are "user" (they're the last to speak)
-    2. Non-terminal nodes with successors are "internal" 
+    2. Non-terminal nodes with successors are "internal"
     3. Zero-cost nodes (Transform, Tap, Route, Checkpoint) are always "zero_cost"
     4. Explicit developer annotations override inference
     """
     visibility = {}
-    
+
     def _walk(node, has_successor: bool):
         # Zero-cost nodes are never user-facing
         if isinstance(node, (TransformNode, TapNode, RouteNode, CheckpointNode)):
@@ -229,48 +229,48 @@ def infer_visibility(ir_root) -> dict[str, Literal["user", "internal", "zero_cos
                 if node.default:
                     _walk(node.default, has_successor=False)
             return
-        
+
         # Check for explicit developer override
         if hasattr(node, 'visibility') and node.visibility is not None:
             visibility[node.name] = node.visibility
             return
-        
+
         # Sequence: only last child is terminal
         if isinstance(node, SequenceNode):
             for i, child in enumerate(node.children):
                 is_last = (i == len(node.children) - 1)
                 _walk(child, has_successor=not is_last or has_successor)
             return
-        
+
         # Parallel: all children are terminal (all speak to user)
         if isinstance(node, ParallelNode):
             for child in node.children:
                 _walk(child, has_successor=has_successor)
             return
-        
+
         # Loop body: internal (user sees the loop result, not each iteration)
         if isinstance(node, LoopNode):
             _walk(node.body, has_successor=True)  # Body is always intermediate
             return
-        
+
         # MapOver body: internal (user sees the aggregated result)
         if isinstance(node, MapOverNode):
             _walk(node.body, has_successor=True)
             return
-        
+
         # Fallback children: only the successful one is visible
         # But we can't know which at build time — mark all as user-facing
         if isinstance(node, FallbackNode):
             for child in node.children:
                 _walk(child, has_successor=has_successor)
             return
-        
+
         # Leaf agent node
         if has_successor:
             visibility[node.name] = "internal"
         else:
             visibility[node.name] = "user"
-    
+
     _walk(ir_root, has_successor=False)
     return visibility
 ```
@@ -293,15 +293,15 @@ A plugin that uses the visibility map to annotate events as they flow through:
 ```python
 class VisibilityPlugin(BasePlugin):
     """Annotates events with topology-inferred visibility.
-    
-    Events are ALWAYS recorded in session history (that happens before this 
-    plugin runs). This plugin annotates events with visibility metadata so 
+
+    Events are ALWAYS recorded in session history (that happens before this
+    plugin runs). This plugin annotates events with visibility metadata so
     clients can filter appropriately.
-    
+
     In 'annotate' mode: adds metadata, yields all events (client filters)
     In 'filter' mode: suppresses content of internal events (only state flows)
     """
-    
+
     def __init__(
         self,
         visibility_map: dict[str, str],
@@ -310,29 +310,29 @@ class VisibilityPlugin(BasePlugin):
         super().__init__(name="adk_fluent_visibility")
         self._visibility = visibility_map
         self._mode = mode
-    
+
     async def on_event_callback(
         self, *, invocation_context: InvocationContext, event: Event
     ) -> Optional[Event]:
         # Determine this event's visibility
         author = event.author
         vis = self._visibility.get(author, "user")  # Default: user-facing
-        
+
         # Always annotate
         event.custom_metadata = event.custom_metadata or {}
         event.custom_metadata["adk_fluent.visibility"] = vis
         event.custom_metadata["adk_fluent.is_user_facing"] = (vis == "user")
-        
+
         if self._mode == "annotate":
             # Client decides what to show
             return event
-        
+
         elif self._mode == "filter":
             # Suppress content of internal/zero_cost events
             if vis != "user" and self._is_user_facing_content(event):
                 return self._strip_content(event)
             return event
-    
+
     def _is_user_facing_content(self, event: Event) -> bool:
         """Is this the kind of event that would show as a chat message?"""
         if not event.content or not event.content.parts:
@@ -344,12 +344,12 @@ class VisibilityPlugin(BasePlugin):
         if event.actions and (event.actions.transfer_to_agent or event.actions.escalate):
             return False  # Control flow
         return True  # Text content — this would show in chat
-    
+
     def _strip_content(self, event: Event) -> Event:
         """Remove content but preserve state_delta and control signals."""
         from google.adk.events.event import Event as ADKEvent
         from google.adk.events.event_actions import EventActions
-        
+
         # If there's state_delta to preserve, emit a content-less event
         if event.actions and (event.actions.state_delta or event.actions.artifact_delta):
             return ADKEvent(
@@ -360,7 +360,7 @@ class VisibilityPlugin(BasePlugin):
                 custom_metadata=event.custom_metadata,
                 timestamp=event.timestamp,
             )
-        
+
         # No state to preserve — return None to use original? No.
         # Return a minimal event so session history isn't disrupted
         return ADKEvent(
@@ -428,11 +428,11 @@ These set the mode on the pipeline, controlling whether the plugin annotates or 
 # The "annotate" mode puts metadata on every event. Client filters:
 async for event in runner.run_async(...):
     meta = event.custom_metadata or {}
-    
+
     # Option A: Only show user-facing events
     if meta.get("adk_fluent.is_user_facing", True) and event.is_final_response():
         show_to_user(event)
-    
+
     # Option B: Show everything but style internal events differently
     if event.is_final_response():
         if meta.get("adk_fluent.visibility") == "internal":
@@ -569,7 +569,7 @@ pipeline = drafter >> loop_until(..., reviewer >> refiner).show()
 
 ```python
 analyzer = Agent("analyzer").instruct("Analyze the query").show()     # Override
-researcher = Agent("researcher").instruct("Research findings").show()  # Override  
+researcher = Agent("researcher").instruct("Research findings").show()  # Override
 synthesizer = Agent("synthesizer").instruct("Synthesize final answer")
 
 pipeline = analyzer >> researcher >> synthesizer
@@ -620,7 +620,7 @@ ______________________________________________________________________
 VISIBILITY(node, has_successor) =
   | node.visibility != None  → node.visibility        // Developer override
   | node ∈ {Transform, Tap, Route, Checkpoint}  → "zero_cost"
-  | node is Sequence([c₁...cₙ])  → 
+  | node is Sequence([c₁...cₙ])  →
       VISIBILITY(cᵢ, True) for i < n
       VISIBILITY(cₙ, has_successor)
   | node is Parallel([c₁...cₙ])  →

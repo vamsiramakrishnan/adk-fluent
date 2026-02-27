@@ -37,7 +37,7 @@ Primitives that require LLM calls with caching via companion FnAgents (from v51_
 - **COMPRESS:** C.summarize(scope=, model=, schema=), C.dedup(strategy="semantic")
 - **SELECT:** C.relevant(query_key=, top_k=, model=)
 - **WRITE:** C.extract(schema=, key=), C.distill(key=, model=)
-- **PROTECT:** C.validate(checks=["contradictions"])
+- **PROTECT:** C.validate(checks=\["contradictions"\])
 - **BUDGET:** C.fit(strategy="cascade"|"compact_then_summarize")
 
 ### Phase D — Scratchpads + Molecule Sugar
@@ -1739,7 +1739,7 @@ class TestBackwardCompatibility:
 **Step 2: Run tests to verify they fail**
 
 Run: `pytest tests/manual/test_cross_channel_contracts.py -v`
-Expected: FAIL — `check_contracts` returns list[str] not list[dict]
+Expected: FAIL — `check_contracts` returns list\[str\] not list\[dict\]
 
 **Step 3: Implement expanded contract checker**
 

@@ -201,20 +201,21 @@ Pick the style that fits the complexity of each part of your system. Mix them fr
 
 ### At a Glance
 
-| Pain Point | How adk-fluent Solves It |
-| --- | --- |
-| Repetitive constructor boilerplate | Method chaining: `.model().instruct().tool().build()` |
-| Manual sub-agent wiring | Operators: `>>` (sequence), `\|` (parallel), `*` (loop) |
-| No IDE help for ADK constructors | `.pyi` stubs with full autocomplete and type hints |
-| Typos caught at runtime | `AttributeError` with suggestions at definition time |
-| Unsafe reuse of agent builders | Copy-on-write immutability on all operators |
-| Prompt pollution in multi-agent DAGs | `C` module: `C.none()`, `C.user_only()`, `C.window(n)` |
-| Hand-written state callbacks | `S` module: `S.pick()`, `S.merge()`, `S.rename()` |
-| No testing without LLM calls | `mock_backend`, `AgentHarness`, `check_contracts` |
-| Falling behind ADK updates | Auto-generated from ADK's Pydantic models |
-| Lock-in to a wrapper library | `.build()` returns native ADK objects -- zero runtime overhead |
+| Pain Point                           | How adk-fluent Solves It                                       |
+| ------------------------------------ | -------------------------------------------------------------- |
+| Repetitive constructor boilerplate   | Method chaining: `.model().instruct().tool().build()`          |
+| Manual sub-agent wiring              | Operators: `>>` (sequence), `\|` (parallel), `*` (loop)        |
+| No IDE help for ADK constructors     | `.pyi` stubs with full autocomplete and type hints             |
+| Typos caught at runtime              | `AttributeError` with suggestions at definition time           |
+| Unsafe reuse of agent builders       | Copy-on-write immutability on all operators                    |
+| Prompt pollution in multi-agent DAGs | `C` module: `C.none()`, `C.user_only()`, `C.window(n)`         |
+| Hand-written state callbacks         | `S` module: `S.pick()`, `S.merge()`, `S.rename()`              |
+| No testing without LLM calls         | `mock_backend`, `AgentHarness`, `check_contracts`              |
+| Falling behind ADK updates           | Auto-generated from ADK's Pydantic models                      |
+| Lock-in to a wrapper library         | `.build()` returns native ADK objects -- zero runtime overhead |
 
 ## Table of Contents
+
 - [Why adk-fluent?](#why-adk-fluent)
 - [Install](#install)
 - [Quick Start](#quick-start)
@@ -369,23 +370,22 @@ graph TD
     n3 --> n4
 ```
 
-
 ## Expression Language
 
 Nine operators compose any agent topology:
 
-| Operator                       | Meaning            | ADK Type                 |
-| ------------------------------ | ------------------ | ------------------------ |
-| `a >> b`                       | Sequence           | `SequentialAgent`        |
-| `a >> fn`                      | Function step      | Zero-cost transform      |
-| `a \| b`                       | Parallel           | `ParallelAgent`          |
-| `a * 3`                        | Loop (fixed)       | `LoopAgent`              |
-| `a * until(pred)`              | Loop (conditional) | `LoopAgent` + checkpoint |
-| `a @ Schema`                   | Typed output       | `output_schema`          |
-| `a // b`                       | Fallback           | First-success chain      |
-| `Route("key").eq(...)`         | Branch             | Deterministic routing    |
-| `S.pick(...)`, `S.rename(...)` | State transforms   | Dict operations via `>>` |
-| `C.user_only()`, `C.none()`    | Context engineering| Selective Turn History   |
+| Operator                       | Meaning             | ADK Type                 |
+| ------------------------------ | ------------------- | ------------------------ |
+| `a >> b`                       | Sequence            | `SequentialAgent`        |
+| `a >> fn`                      | Function step       | Zero-cost transform      |
+| `a \| b`                       | Parallel            | `ParallelAgent`          |
+| `a * 3`                        | Loop (fixed)        | `LoopAgent`              |
+| `a * until(pred)`              | Loop (conditional)  | `LoopAgent` + checkpoint |
+| `a @ Schema`                   | Typed output        | `output_schema`          |
+| `a // b`                       | Fallback            | First-success chain      |
+| `Route("key").eq(...)`         | Branch              | Deterministic routing    |
+| `S.pick(...)`, `S.rename(...)` | State transforms    | Dict operations via `>>` |
+| `C.user_only()`, `C.none()`    | Context engineering | Selective Turn History   |
 
 Eight control loop primitives for agent orchestration:
 
@@ -500,13 +500,13 @@ pipeline = (
 )
 ```
 
-| Transform | Purpose |
-| --- | --- |
-| `C.user_only()` | Include only original user messages |
-| `C.none()` | No turn history (stateless prompt) |
-| `C.window(n=5)` | Sliding window of last N turns |
-| `C.from_agents("a", "b")` | Include user + named agent outputs |
-| `C.capture("key")` | Snapshot user message into state |
+| Transform                 | Purpose                             |
+| ------------------------- | ----------------------------------- |
+| `C.user_only()`           | Include only original user messages |
+| `C.none()`                | No turn history (stateless prompt)  |
+| `C.window(n=5)`           | Sliding window of last N turns      |
+| `C.from_agents("a", "b")` | Include user + named agent outputs  |
+| `C.capture("key")`        | Snapshot user message into state    |
 
 ### IR, Backends, and Middleware (v4)
 

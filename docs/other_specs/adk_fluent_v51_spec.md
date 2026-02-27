@@ -224,20 +224,20 @@ Each agent in the loop gets clean context from state. No accumulation of prior i
 ```python
 def _compile_context_filter(developer_instruction: str, filter_spec: CFilter) -> InstructionProvider:
     """Compile a C filter into an ADK InstructionProvider."""
-    
+
     async def _instruction_provider(ctx: ReadonlyContext) -> str:
         # 1. Assemble filtered conversation from session events
         filtered_events = filter_spec.apply(ctx.session.events, ctx.agent_name)
         conversation_text = _format_events_as_context(filtered_events)
-        
+
         # 2. Template the developer's instruction with state values
         instruction = _template_with_state(developer_instruction, ctx.state)
-        
+
         # 3. Combine
         if conversation_text:
             return f"{instruction}\n\n<conversation_context>\n{conversation_text}\n</conversation_context>"
         return instruction
-    
+
     return _instruction_provider
 ```
 
@@ -442,30 +442,30 @@ Route(branches):      each branch target=inherits parent's has_successor
 ```python
 class VisibilityPlugin(BasePlugin):
     """Annotates events with topology-inferred visibility.
-    
+
     Runs in on_event_callback — after session history is recorded, before client sees event.
     Two modes:
       'annotate': adds metadata, yields all events (client filters)
       'filter':   suppresses content of internal events
     """
-    
+
     def __init__(self, visibility_map: dict[str, str], mode: str = "annotate"):
         self._visibility = visibility_map  # agent_name → "user"|"internal"|"zero_cost"
         self._mode = mode
-    
+
     async def on_event_callback(self, *, invocation_context, event):
         vis = self._visibility.get(event.author, "user")
-        
+
         # Always annotate
         event.custom_metadata = event.custom_metadata or {}
         event.custom_metadata["adk_fluent.visibility"] = vis
         event.custom_metadata["adk_fluent.is_user_facing"] = (vis == "user")
-        
+
         if self._mode == "filter" and vis != "user":
             if event.content and event.content.parts:
                 # Strip text content, preserve state_delta and actions
                 event.content = None
-        
+
         return event
 ```
 
@@ -1382,13 +1382,13 @@ _CHECKERS = [
     # State contracts (Channel 2)
     check_dataflow_contracts,      # reads-after-writes for state keys
     check_type_contracts,          # typed state matching via StateSchema
-    
+
     # Context contracts (Channel 1 ↔ Channel 2 ↔ Channel 3)
     check_context_contracts,       # C transform validity
     check_template_contracts,      # instruction {variables} resolvable
     check_output_key_contracts,    # .outputs() reaches downstream readers
     check_channel_coherence,       # detect duplication, data loss across channels
-    
+
     # Structural contracts
     check_streaming_contracts,     # streaming edge validation
     check_modality_contracts,      # content type matching
@@ -1416,7 +1416,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
                          f'Did you mean to add .outputs("{var}") to an upstream agent, '
                          f'or S.capture("{var}") / S.set({var}=...)?'
                 ))
-        
+
         # 2. Duplication: output_key + include_contents='default'
         for pred in predecessors(root, node):
             if pred.output_key and node.context_spec.includes_agent(pred.name):
@@ -1427,7 +1427,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
                          f'Consider .context(C.exclude_agents("{pred.name}")) '
                          f'or .context(C.from_state("{pred.output_key}")).'
                 ))
-        
+
         # 3. Data loss: no output_key + include_contents='none'
         for pred in predecessors(root, node):
             if not pred.output_key and node.context_spec == C.none():
@@ -1438,7 +1438,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
                              f'C.none(). "{pred.name}"\'s output reaches "{node.name}" '
                              f'through neither state nor conversation. Data is lost.'
                     ))
-        
+
         # 4. Route reads key not in state
         if isinstance(node, RouteNode):
             if not any_upstream_produces(root, node, node.state_key):
@@ -1447,7 +1447,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
                     hint=f'Route reads "{node.state_key}" from state, but no upstream '
                          f'agent produces it via .outputs("{node.state_key}").'
                 ))
-    
+
     return issues
 ```
 
@@ -1620,13 +1620,13 @@ ______________________________________________________________________
 
 Retained from v5, with additions:
 
-| Operation                      | Budget              | Mechanism                                        |
-| ------------------------------ | ------------------- | ------------------------------------------------ |
-| C.capture() execution          | < 1ms               | Single reverse scan of session.events            |
-| InstructionProvider (C filter) | < 5ms               | Event filtering + string formatting              |
-| Visibility inference           | < 1ms at build time | Single DAG traversal                             |
-| VisibilityPlugin per event     | < 0.1ms             | Dictionary lookup + metadata write               |
-| Cross-channel contract check   | < 50ms              | Single DAG traversal with multi-channel analysis |
+| Operation                      | Budget               | Mechanism                                        |
+| ------------------------------ | -------------------- | ------------------------------------------------ |
+| C.capture() execution          | \< 1ms               | Single reverse scan of session.events            |
+| InstructionProvider (C filter) | \< 5ms               | Event filtering + string formatting              |
+| Visibility inference           | \< 1ms at build time | Single DAG traversal                             |
+| VisibilityPlugin per event     | \< 0.1ms             | Dictionary lookup + metadata write               |
+| Cross-channel contract check   | \< 50ms              | Single DAG traversal with multi-channel analysis |
 
 ______________________________________________________________________
 
