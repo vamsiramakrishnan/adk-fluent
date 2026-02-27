@@ -64,6 +64,26 @@ def _context_description(context_spec: Any) -> str:
         return f"C.exclude_agents({', '.join(repr(a) for a in agents)})"
     if kind == "template":
         return "C.template(...) — rendered state template"
+    if kind == "notes":
+        key = getattr(context_spec, "key", "?")
+        return f"C.notes({key!r}) — scratchpad read"
+    if kind == "write_notes":
+        key = getattr(context_spec, "key", "?")
+        return f"C.write_notes({key!r}) — scratchpad write"
+    if kind == "rolling":
+        n = getattr(context_spec, "n", "?")
+        s = getattr(context_spec, "summarize", False)
+        return f"C.rolling(n={n}, summarize={s}) — rolling window"
+    if kind == "from_agents_windowed":
+        aw = getattr(context_spec, "agent_windows", ())
+        parts = [f"{a}={n}" for a, n in aw]
+        return f"C.from_agents_windowed({', '.join(parts)})"
+    if kind == "user_strategy":
+        strategy = getattr(context_spec, "strategy", "all")
+        return f"C.user(strategy={strategy!r})"
+    if kind == "manus_cascade":
+        budget = getattr(context_spec, "budget", "?")
+        return f"C.manus_cascade(budget={budget})"
 
     # Composite or pipe
     cls_name = type(context_spec).__name__

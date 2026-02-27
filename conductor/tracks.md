@@ -2,7 +2,7 @@
 
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
-> **Last updated:** 2026-02-27 — status audit against codebase
+> **Last updated:** 2026-02-27 — Phase D + Phase E implemented
 
 ______________________________________________________________________
 
@@ -28,10 +28,12 @@ ______________________________________________________________________
 - [x] **v5.1 Phase C: C Atoms (LLM-Powered)** — COMPLETE
   *summarize, relevant, extract, distill, validate, fit (with LLM caching)*
   *Plan: [docs/plans/2026-02-18-v51-context-engineering.md](../docs/plans/2026-02-18-v51-context-engineering.md)*
-- [ ] **v5.1 Phase D: Scratchpads + Sugar** — NOT STARTED
-  *C.notes(), C.rolling(), C.from_agents_windowed(), C.user(), C.manus_cascade(), note lifecycle*
-- \[~\] **v5.1 Phase E: Typed State (StateSchema)** — PARTIAL
-  *StateKey with scope prefixes implemented; StateSchema base class, CapturedBy annotation, typed contract checking, and IDE autocomplete still needed*
+- [x] **v5.1 Phase D: Scratchpads + Sugar** — COMPLETE
+  *C.notes(), C.write_notes(), C.rolling(), C.from_agents_windowed(), C.user(), C.manus_cascade(), note lifecycle (consolidate_notes, clear_notes)*
+  *Tests: tests/manual/test_c_phase_d.py (44 tests)*
+- [x] **v5.1 Phase E: Typed State (StateSchema)** — COMPLETE
+  *StateSchema base class, CapturedBy annotation, Scoped annotation, typed contract checking (check_state_schema_contracts), IDE autocomplete (state_keys, template_vars, __dir__)*
+  *Tests: tests/manual/test_state_schema.py (37 tests)*
 
 ## Parallel Tracks
 

@@ -308,7 +308,17 @@ __all__ = [
     "CExtract",
     "CDistill",
     "CValidate",
+    "CNotes",
+    "CWriteNotes",
+    "CRolling",
+    "CFromAgentsWindowed",
+    "CUser",
+    "CManusCascade",
     "_compile_context_spec",
+    "StateSchema",
+    "CapturedBy",
+    "Scoped",
+    "check_state_schema_contracts",
     "deep_clone_builder",
     "delegate_agent",
     "run_one_shot",
@@ -434,7 +444,17 @@ from ._context import CRelevant
 from ._context import CExtract
 from ._context import CDistill
 from ._context import CValidate
+from ._context import CNotes
+from ._context import CWriteNotes
+from ._context import CRolling
+from ._context import CFromAgentsWindowed
+from ._context import CUser
+from ._context import CManusCascade
 from ._context import _compile_context_spec
+from ._state_schema import StateSchema
+from ._state_schema import CapturedBy
+from ._state_schema import Scoped
+from ._state_schema import check_state_schema_contracts
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot

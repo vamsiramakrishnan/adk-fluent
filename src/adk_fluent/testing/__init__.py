@@ -1,6 +1,7 @@
 """Testing utilities for adk-fluent."""
 
 from adk_fluent.testing.contracts import check_contracts
+from adk_fluent._state_schema import check_state_schema_contracts
 from adk_fluent.testing.diagnosis import (
     AgentSummary,
     ContractIssue,
@@ -24,4 +25,5 @@ __all__ = [
     "AgentSummary",
     "KeyFlow",
     "ContractIssue",
+    "check_state_schema_contracts",
 ]
