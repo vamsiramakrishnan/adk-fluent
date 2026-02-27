@@ -693,19 +693,105 @@ class BuilderBase:
 
     def _build_rich_tree(self):
         """Build a rich.tree.Tree representing this builder's state."""
+        import re
+
         from rich.tree import Tree
 
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
         tree = Tree(f"[bold]{cls_name}[/bold]: {name}")
 
-        config_fields = {k: v for k, v in self._config.items() if k != "name" and not k.startswith("_")}
-        if config_fields:
+        # Model
+        model = self._config.get("model")
+        if model:
+            tree.add(f"[cyan]Model[/cyan]: {model}")
+
+        # Instruction summary
+        instruction = self._config.get("instruction", "")
+        if instruction:
+            if callable(instruction):
+                tree.add("[cyan]Instruction[/cyan]: <dynamic provider>")
+            elif isinstance(instruction, str):
+                preview = instruction[:80].replace("\n", " ")
+                if len(instruction) > 80:
+                    preview += "..."
+                tree.add(f"[cyan]Instruction[/cyan]: {preview}")
+
+                template_vars = re.findall(r"\{(\w+)\??\}", instruction)
+                if template_vars:
+                    required = [v for v in template_vars if f"{{{v}?}}" not in instruction]
+                    optional = [v for v in template_vars if f"{{{v}?}}" in instruction]
+                    parts = []
+                    if required:
+                        parts.append(f"required: {', '.join(required)}")
+                    if optional:
+                        parts.append(f"optional: {', '.join(optional)}")
+                    tree.add(f"[cyan]Template vars[/cyan]: {'; '.join(parts)}")
+
+        # Data flow
+        produces_schema = self._config.get("_produces")
+        consumes_schema = self._config.get("_consumes")
+        output_key = self._config.get("output_key")
+
+        reads_parts = []
+        if consumes_schema:
+            fields = list(consumes_schema.model_fields.keys())
+            reads_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
+        if reads_parts:
+            tree.add(f"[blue]Reads[/blue]: {'; '.join(reads_parts)}")
+
+        writes_parts = []
+        if produces_schema:
+            fields = list(produces_schema.model_fields.keys())
+            writes_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
+        if output_key:
+            writes_parts.append(f"output_key='{output_key}'")
+        if writes_parts:
+            tree.add(f"[blue]Writes[/blue]: {'; '.join(writes_parts)}")
+
+        if not reads_parts and not writes_parts and not output_key:
+            tree.add("[dim]Data flow: no explicit reads/writes declared[/dim]")
+
+        # Context strategy
+        context_spec = self._config.get("_context_spec")
+        include_contents = self._config.get("include_contents", "default")
+        if context_spec is not None:
+            from adk_fluent.testing.contracts import _context_description
+
+            tree.add(f"[magenta]Context[/magenta]: {_context_description(context_spec)}")
+        elif include_contents != "default":
+            tree.add(f"[magenta]Context[/magenta]: include_contents='{include_contents}'")
+
+        # Structured output
+        output_schema = self._config.get("_output_schema")
+        if output_schema:
+            tree.add(f"[cyan]Structured output[/cyan]: {output_schema.__name__}")
+
+        # Tools
+        tools = list(self._config.get("tools", []))
+        tools.extend(self._lists.get("tools", []))
+        if tools:
+            tool_names = []
+            for t in tools:
+                if hasattr(t, "name"):
+                    tool_names.append(t.name)
+                elif hasattr(t, "__name__"):
+                    tool_names.append(t.__name__)
+                else:
+                    tool_names.append(type(t).__name__)
+            tree.add(f"[yellow]Tools ({len(tools)})[/yellow]: {', '.join(tool_names)}")
+
+        # Other config fields (not already shown)
+        _shown = {"name", "model", "instruction", "_produces", "_consumes", "output_key",
+                   "_context_spec", "include_contents", "_output_schema", "tools"}
+        other_fields = {k: v for k, v in self._config.items() if k not in _shown and not k.startswith("_")}
+        if other_fields:
             cfg_branch = tree.add("[cyan]Config[/cyan]")
-            for k, v in config_fields.items():
+            for k, v in other_fields.items():
                 display_name = self._reverse_alias(k)
                 cfg_branch.add(f"{display_name}: {self._format_value(v)}")
 
+        # Callbacks
         for field, fns in self._callbacks.items():
             if fns:
                 alias = self._reverse_callback_alias(field)
@@ -713,14 +799,48 @@ class BuilderBase:
                 for fn in fns:
                     cb_branch.add(self._format_value(fn))
 
+        # Sub-agents and other list fields
+        children_raw = list(self._config.get("sub_agents", []))
+        children_raw.extend(self._lists.get("sub_agents", []))
+        if children_raw:
+            children_branch = tree.add(f"[yellow]Children ({len(children_raw)})[/yellow]")
+            for child in children_raw:
+                if isinstance(child, BuilderBase):
+                    children_branch.add(child._build_rich_tree())
+                else:
+                    children_branch.add(self._format_value(child))
+
         for field, items in self._lists.items():
-            if items:
+            if items and field != "sub_agents":
                 list_branch = tree.add(f"[yellow]{field}[/yellow]: {len(items)} items")
                 for item in items:
                     if isinstance(item, BuilderBase):
                         list_branch.add(item._build_rich_tree())
                     else:
                         list_branch.add(self._format_value(item))
+
+        # Contract issues
+        try:
+            ir = self.to_ir()
+            from adk_fluent.testing.contracts import check_contracts
+
+            issues = check_contracts(ir)
+            if issues:
+                issues_branch = tree.add("[red]Contract issues[/red]")
+                for issue in issues:
+                    if isinstance(issue, str):
+                        issues_branch.add(issue)
+                    else:
+                        level = issue.get("level", "?")
+                        agent = issue.get("agent", "?")
+                        msg = issue.get("message", "?")
+                        hint = issue.get("hint", "")
+                        marker = "[red]ERROR[/red]" if level == "error" else "[yellow]INFO[/yellow]"
+                        node = issues_branch.add(f"{marker} {agent}: {msg}")
+                        if hint:
+                            node.add(f"[dim]Hint: {hint}[/dim]")
+        except (NotImplementedError, Exception):
+            pass  # IR not available or conversion failed
 
         return tree
 
