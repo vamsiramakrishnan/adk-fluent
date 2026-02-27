@@ -198,17 +198,17 @@ archive:
 # --- Package build ---
 build: all
     @echo "Building package..."
-    @uv run hatch build
+    @uv build
 
 # --- Publish to TestPyPI ---
 publish-test: build
     @echo "Publishing to TestPyPI..."
-    @uv run hatch publish -r test
+    @uv publish --index testpypi
 
 # --- Publish to PyPI ---
 publish: build
     @echo "Publishing to PyPI..."
-    @uv run hatch publish
+    @uv publish
 
 # --- Clean ---
 clean:

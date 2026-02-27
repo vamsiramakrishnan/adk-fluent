@@ -120,7 +120,7 @@ jobs:
         run: just scan seed generate
 
       - name: Build package
-        run: uv run hatch build
+        run: uv build
 
       - uses: actions/upload-artifact@v4
         with:
