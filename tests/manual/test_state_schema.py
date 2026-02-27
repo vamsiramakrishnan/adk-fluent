@@ -17,7 +17,6 @@ from adk_fluent._state_schema import (
     check_state_schema_contracts,
 )
 
-
 # ======================================================================
 # Test schemas
 # ======================================================================
@@ -265,18 +264,23 @@ class TestTypedContractChecking:
 
     def _make_agent_node(self, name, produces=None, consumes=None, output_key=None):
         """Helper: create a minimal AgentNode-like object."""
-        return type("FakeAgent", (), {
-            "name": name,
-            "produces_type": produces,
-            "consumes_type": consumes,
-            "output_key": output_key,
-            "instruction": "",
-            "include_contents": "default",
-        })()
+        return type(
+            "FakeAgent",
+            (),
+            {
+                "name": name,
+                "produces_type": produces,
+                "consumes_type": consumes,
+                "output_key": output_key,
+                "instruction": "",
+                "include_contents": "default",
+            },
+        )()
 
     def _make_sequence(self, children):
         """Helper: create a minimal SequenceNode-like object."""
         from adk_fluent._ir_generated import SequenceNode
+
         return SequenceNode(name="test_seq", children=tuple(children))
 
     def test_no_issues_when_produces_covers_consumes(self):
@@ -287,10 +291,12 @@ class TestTypedContractChecking:
         class ConsumerState(StateSchema):
             intent: str
 
-        seq = self._make_sequence([
-            self._make_agent_node("producer", produces=ProducerState, output_key="intent"),
-            self._make_agent_node("consumer", consumes=ConsumerState),
-        ])
+        seq = self._make_sequence(
+            [
+                self._make_agent_node("producer", produces=ProducerState, output_key="intent"),
+                self._make_agent_node("consumer", consumes=ConsumerState),
+            ]
+        )
         issues = check_state_schema_contracts(seq)
         errors = [i for i in issues if i["level"] == "error"]
         assert len(errors) == 0
@@ -300,10 +306,12 @@ class TestTypedContractChecking:
             intent: str
             missing_field: str
 
-        seq = self._make_sequence([
-            self._make_agent_node("producer"),
-            self._make_agent_node("consumer", consumes=ConsumerState),
-        ])
+        seq = self._make_sequence(
+            [
+                self._make_agent_node("producer"),
+                self._make_agent_node("consumer", consumes=ConsumerState),
+            ]
+        )
         issues = check_state_schema_contracts(seq)
         errors = [i for i in issues if i["level"] == "error"]
         assert len(errors) >= 1
@@ -313,9 +321,11 @@ class TestTypedContractChecking:
         class WithCapture(StateSchema):
             user_msg: Annotated[str, CapturedBy("C.capture")]
 
-        seq = self._make_sequence([
-            self._make_agent_node("agent", produces=WithCapture),
-        ])
+        seq = self._make_sequence(
+            [
+                self._make_agent_node("agent", produces=WithCapture),
+            ]
+        )
         issues = check_state_schema_contracts(seq)
         # Should warn about missing S.capture()
         info = [i for i in issues if i["level"] == "info"]
@@ -325,21 +335,25 @@ class TestTypedContractChecking:
         class ScopedState(StateSchema):
             user_pref: Annotated[str, Scoped("user")]
 
-        seq = self._make_sequence([
-            self._make_agent_node("agent", produces=ScopedState, output_key="user_pref"),
-        ])
+        seq = self._make_sequence(
+            [
+                self._make_agent_node("agent", produces=ScopedState, output_key="user_pref"),
+            ]
+        )
         issues = check_state_schema_contracts(seq)
         info = [i for i in issues if i["level"] == "info"]
         assert any("scope" in i["message"].lower() for i in info)
 
     def test_empty_sequence(self):
         from adk_fluent._ir_generated import SequenceNode
+
         seq = SequenceNode(name="empty", children=())
         issues = check_state_schema_contracts(seq)
         assert issues == []
 
     def test_non_sequence_returns_empty(self):
         from adk_fluent._ir_generated import ParallelNode
+
         par = ParallelNode(name="par", children=())
         issues = check_state_schema_contracts(par)
         assert issues == []

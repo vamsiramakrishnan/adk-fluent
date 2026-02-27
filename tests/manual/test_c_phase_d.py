@@ -8,24 +8,19 @@ and the make_write_notes_callback factory.
 import asyncio
 import json
 
-import pytest
-
 from adk_fluent._context import (
     C,
+    CFromAgentsWindowed,
     CManusCascade,
     CNotes,
     CRolling,
-    CFromAgentsWindowed,
-    CTransform,
     CUser,
     CWriteNotes,
-    _SyntheticEvent,
     _compile_context_spec,
     clear_notes,
     consolidate_notes,
     make_write_notes_callback,
 )
-
 
 # ======================================================================
 # Mock helpers (same pattern as test_c_phase_b.py)

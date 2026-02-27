@@ -22,7 +22,6 @@ Usage::
 
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass
 from typing import Annotated, Any, ClassVar, get_args, get_origin, get_type_hints
 
@@ -79,10 +78,7 @@ class Scoped:
 
     def __post_init__(self) -> None:
         if self.scope not in _VALID_SCOPES:
-            raise ValueError(
-                f"Invalid scope '{self.scope}'. "
-                f"Must be one of: {', '.join(sorted(_VALID_SCOPES))}"
-            )
+            raise ValueError(f"Invalid scope '{self.scope}'. Must be one of: {', '.join(sorted(_VALID_SCOPES))}")
 
     def __repr__(self) -> str:
         return f"Scoped({self.scope!r})"
@@ -240,9 +236,7 @@ class StateSchema(metaclass=StateSchemaMetaclass):
     @classmethod
     def required_keys(cls) -> frozenset[str]:
         """Return the set of required state keys (no default)."""
-        return frozenset(
-            f.full_key for f in cls._field_list if f.required
-        )
+        return frozenset(f.full_key for f in cls._field_list if f.required)
 
     @classmethod
     def scoped_keys(cls) -> dict[str, list[str]]:
@@ -260,11 +254,7 @@ class StateSchema(metaclass=StateSchemaMetaclass):
     @classmethod
     def captured_by_map(cls) -> dict[str, str]:
         """Return mapping of full_key → capture source, for annotated fields."""
-        return {
-            f.full_key: f.captured_by
-            for f in cls._field_list
-            if f.captured_by is not None
-        }
+        return {f.full_key: f.captured_by for f in cls._field_list if f.captured_by is not None}
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         """Allow extending schemas via inheritance."""
@@ -313,10 +303,7 @@ class StateSchema(metaclass=StateSchemaMetaclass):
         return base
 
     def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}"
-            f"({', '.join(f.name for f in self._field_list)})"
-        )
+        return f"{type(self).__name__}({', '.join(f.name for f in self._field_list)})"
 
 
 # ======================================================================
@@ -354,45 +341,36 @@ def check_state_schema_contracts(
         child_name = getattr(child, "name", "?")
 
         # Check scope consistency on produces_type
-        if (
-            produces_type is not None
-            and hasattr(produces_type, "_field_list")
-        ):
+        if produces_type is not None and hasattr(produces_type, "_field_list"):
             output_key = getattr(child, "output_key", None)
             for field in produces_type._field_list:
                 if field.scope != "session" and output_key:
                     # output_key writes to session scope, but field
                     # declares a different scope
-                    issues.append({
-                        "level": "info",
-                        "agent": child_name,
-                        "message": (
-                            f"Field '{field.name}' in "
-                            f"{produces_type.__name__} declares "
-                            f"scope='{field.scope}' but is produced via "
-                            f"output_key (session-scoped)"
-                        ),
-                        "hint": (
-                            f"Use S.set() or a callback to write "
-                            f"'{field.full_key}' with the correct scope "
-                            f"prefix."
-                        ),
-                    })
+                    issues.append(
+                        {
+                            "level": "info",
+                            "agent": child_name,
+                            "message": (
+                                f"Field '{field.name}' in "
+                                f"{produces_type.__name__} declares "
+                                f"scope='{field.scope}' but is produced via "
+                                f"output_key (session-scoped)"
+                            ),
+                            "hint": (
+                                f"Use S.set() or a callback to write '{field.full_key}' with the correct scope prefix."
+                            ),
+                        }
+                    )
 
         # Check consumes_type coverage from upstream
-        if (
-            consumes_type is not None
-            and hasattr(consumes_type, "_field_list")
-        ):
+        if consumes_type is not None and hasattr(consumes_type, "_field_list"):
             # Collect all upstream produced keys
             upstream_keys: set[str] = set()
             for prev_idx in range(idx):
                 prev = children[prev_idx]
                 prev_produces = getattr(prev, "produces_type", None)
-                if (
-                    prev_produces is not None
-                    and hasattr(prev_produces, "_field_list")
-                ):
+                if prev_produces is not None and hasattr(prev_produces, "_field_list"):
                     for f in prev_produces._field_list:
                         upstream_keys.add(f.full_key)
                         upstream_keys.add(f.name)  # also bare name
@@ -402,30 +380,26 @@ def check_state_schema_contracts(
 
             for field in consumes_type._field_list:
                 if field.required:
-                    if (
-                        field.full_key not in upstream_keys
-                        and field.name not in upstream_keys
-                    ):
-                        issues.append({
-                            "level": "error",
-                            "agent": child_name,
-                            "message": (
-                                f"Required field '{field.name}' in "
-                                f"{consumes_type.__name__} is not "
-                                f"produced by any upstream agent"
-                            ),
-                            "hint": (
-                                f"Add .outputs('{field.name}') to an "
-                                f"upstream agent or use S.capture() / "
-                                f"S.set() to provide this key."
-                            ),
-                        })
+                    if field.full_key not in upstream_keys and field.name not in upstream_keys:
+                        issues.append(
+                            {
+                                "level": "error",
+                                "agent": child_name,
+                                "message": (
+                                    f"Required field '{field.name}' in "
+                                    f"{consumes_type.__name__} is not "
+                                    f"produced by any upstream agent"
+                                ),
+                                "hint": (
+                                    f"Add .outputs('{field.name}') to an "
+                                    f"upstream agent or use S.capture() / "
+                                    f"S.set() to provide this key."
+                                ),
+                            }
+                        )
 
         # Check CapturedBy provenance
-        if (
-            produces_type is not None
-            and hasattr(produces_type, "captured_by_map")
-        ):
+        if produces_type is not None and hasattr(produces_type, "captured_by_map"):
             captured_map = produces_type.captured_by_map()
             for full_key, source in captured_map.items():
                 # Look for matching CaptureNode upstream
@@ -433,31 +407,23 @@ def check_state_schema_contracts(
                     has_capture = False
                     for prev_idx in range(idx):
                         prev = children[prev_idx]
-                        if (
-                            type(prev).__name__ == "CaptureNode"
-                            and hasattr(prev, "key")
-                        ):
+                        if type(prev).__name__ == "CaptureNode" and hasattr(prev, "key"):
                             # CaptureNode produces the captured key
                             has_capture = True
                             break
                     if not has_capture:
-                        bare_name = (
-                            full_key.split(":", 1)[1]
-                            if ":" in full_key
-                            else full_key
+                        bare_name = full_key.split(":", 1)[1] if ":" in full_key else full_key
+                        issues.append(
+                            {
+                                "level": "info",
+                                "agent": child_name,
+                                "message": (
+                                    f"Field '{bare_name}' is annotated "
+                                    f"CapturedBy('{source}') but no "
+                                    f"S.capture() found upstream"
+                                ),
+                                "hint": (f"Add S.capture('{bare_name}') before this agent to capture user input."),
+                            }
                         )
-                        issues.append({
-                            "level": "info",
-                            "agent": child_name,
-                            "message": (
-                                f"Field '{bare_name}' is annotated "
-                                f"CapturedBy('{source}') but no "
-                                f"S.capture() found upstream"
-                            ),
-                            "hint": (
-                                f"Add S.capture('{bare_name}') before "
-                                f"this agent to capture user input."
-                            ),
-                        })
 
     return issues

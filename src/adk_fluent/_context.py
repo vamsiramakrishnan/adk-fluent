@@ -1852,17 +1852,10 @@ def _make_rolling_provider(n: int, summarize: bool, model: str) -> Callable:
             return ""
 
         # Find user turn boundaries
-        user_indices = [
-            i for i, e in enumerate(events)
-            if getattr(e, "author", None) == "user"
-        ]
+        user_indices = [i for i, e in enumerate(events) if getattr(e, "author", None) == "user"]
 
         # Window: last N turn-pairs
-        start_indices = (
-            user_indices[-n:]
-            if len(user_indices) >= n
-            else user_indices
-        )
+        start_indices = user_indices[-n:] if len(user_indices) >= n else user_indices
         window_start = start_indices[0] if start_indices else 0
         window_events = events[window_start:]
         window_text = _format_events_as_context(window_events)
@@ -1886,18 +1879,14 @@ def _make_rolling_provider(n: int, summarize: bool, model: str) -> Callable:
                 summary = await _call_llm(
                     model,
                     "Summarize this earlier conversation concisely, "
-                    "preserving key facts and decisions:\n\n"
-                    + older_text,
+                    "preserving key facts and decisions:\n\n" + older_text,
                 )
             except Exception as e:
                 _log.warning("C.rolling() summarize failed: %s", e)
                 summary = older_text
             ctx.state[cache_key] = summary
 
-        return (
-            f"<earlier_context_summary>\n{summary}"
-            f"\n</earlier_context_summary>\n\n{window_text}"
-        )
+        return f"<earlier_context_summary>\n{summary}\n</earlier_context_summary>\n\n{window_text}"
 
     _provider.__name__ = f"rolling_{n}"
     return _provider
@@ -1916,10 +1905,7 @@ def _make_from_agents_windowed_provider(
         parts: list[str] = []
         for agent_name, window_size in agent_windows:
             # Filter events by this agent
-            agent_events = [
-                e for e in events
-                if getattr(e, "author", None) == agent_name
-            ]
+            agent_events = [e for e in events if getattr(e, "author", None) == agent_name]
             # Take the last window_size events
             if window_size > 0:
                 agent_events = agent_events[-window_size:]
@@ -1928,10 +1914,7 @@ def _make_from_agents_windowed_provider(
                 parts.append(text)
 
         # Also include user messages
-        user_events = [
-            e for e in events
-            if getattr(e, "author", None) == "user"
-        ]
+        user_events = [e for e in events if getattr(e, "author", None) == "user"]
         if user_events:
             parts.insert(0, _format_events_as_context(user_events))
 
@@ -1946,10 +1929,7 @@ def _make_user_strategy_provider(strategy: str) -> Callable:
 
     async def _provider(ctx: Any) -> str:
         events = list(ctx.session.events)
-        user_events = [
-            e for e in events
-            if getattr(e, "author", None) == "user"
-        ]
+        user_events = [e for e in events if getattr(e, "author", None) == "user"]
         if not user_events:
             return ""
 
@@ -2266,7 +2246,9 @@ class C:
         Strategies: 'append', 'replace', 'merge', 'prepend'.
         """
         return CWriteNotes(
-            key=key, strategy=strategy, source_key=source_key,
+            key=key,
+            strategy=strategy,
+            source_key=source_key,
         )
 
     @staticmethod

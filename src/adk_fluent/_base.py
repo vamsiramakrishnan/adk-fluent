@@ -1202,6 +1202,7 @@ class BuilderBase:
                         non_write.append(block)
                 if non_write:
                     from adk_fluent._context import CComposite
+
                     remaining_spec = CComposite(blocks=tuple(non_write)) if len(non_write) > 1 else non_write[0]
                 else:
                     remaining_spec = None
@@ -1209,14 +1210,19 @@ class BuilderBase:
             # Compile CWriteNotes to after_agent callbacks
             if write_notes_specs:
                 from adk_fluent._context import make_write_notes_callback
+
                 cbs = config.setdefault("after_agent_callback", [])
                 if not isinstance(cbs, list):
                     cbs = [cbs]
                     config["after_agent_callback"] = cbs
                 for wn in write_notes_specs:
-                    cbs.append(make_write_notes_callback(
-                        wn.key, wn.strategy, wn.source_key,
-                    ))
+                    cbs.append(
+                        make_write_notes_callback(
+                            wn.key,
+                            wn.strategy,
+                            wn.source_key,
+                        )
+                    )
 
             # Compile remaining context spec normally
             if remaining_spec is not None and isinstance(remaining_spec, CTransform):
