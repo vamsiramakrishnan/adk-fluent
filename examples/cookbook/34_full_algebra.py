@@ -1,101 +1,90 @@
-"""News Processing Pipeline: Full Expression Algebra with All Operators"""
+"""Code Review Pipeline -- Expression Algebra in Practice
+
+Demonstrates how composition operators (>>, |, @, //) combine naturally
+in a real-world code review system. A diff parser extracts changes,
+parallel reviewers check style, security, and logic independently,
+then findings are aggregated into a structured verdict.
+"""
 
 # --- NATIVE ---
-# The equivalent native ADK code would be 100+ lines of explicit agent
-# construction, custom BaseAgent subclasses for transforms and fallbacks,
-# manual checkpoint agents for conditional loops, and Pydantic schema wiring.
-# The fluent algebra expresses this entire news processing system as
-# a single readable expression.
+# A native ADK code review pipeline requires:
+#   - 5 LlmAgent declarations
+#   - 1 ParallelAgent for fan-out
+#   - 1 SequentialAgent for the overall pipeline
+#   - Manual output_schema wiring on the aggregator
+# That's ~60 lines of boilerplate. The fluent algebra below
+# expresses the same architecture in a single readable expression.
 
 # --- FLUENT ---
 from pydantic import BaseModel
-from adk_fluent import Agent, S, Pipeline, until
-from adk_fluent._base import _FallbackBuilder
+
+from adk_fluent import Agent
 
 
-class Article(BaseModel):
-    headline: str
-    body: str
-    credibility_score: float
+class ReviewVerdict(BaseModel):
+    """Structured output from the code review pipeline."""
+
+    has_issues: bool
+    critical_count: int
+    summary: str
 
 
-# The complete proof: all operators compose into one expression.
-# A news processing pipeline that ingests from multiple sources,
-# verifies facts, writes an article, and iterates until quality is met.
-#
-#   |   parallel source collection
-#   >>  sequential processing
-#   fn  state transform
-#   @   typed output schema
-#   //  fallback between models
-#   *   conditional quality loop
-#   S   state transforms
-pipeline = (
-    # Step 1: Parallel news collection from multiple sources (|)
-    (
-        Agent("wire_service")
-        .model("gemini-2.5-flash")
-        .instruct("Collect breaking news from AP, Reuters, and AFP wire services.")
-        | Agent("social_monitor")
-        .model("gemini-2.5-flash")
-        .instruct("Monitor social media for trending news topics and eyewitness reports.")
-    )
-    # Step 2: Merge all source data into unified research (S transform via >>)
-    >> S.merge("wire_service", "social_monitor", into="raw_sources")
-    # Step 3: Write article with typed output (@) and model fallback (//)
-    >> Agent("senior_writer")
+# The code review pipeline uses 4 operators:
+#   >>  sequential flow (parse -> review -> aggregate)
+#   |   parallel fan-out (style + security + logic run concurrently)
+#   @   typed output (aggregator returns ReviewVerdict)
+#   //  fallback (primary model -> backup model)
+
+review_pipeline = (
+    # Step 1: Parse the diff into reviewable chunks
+    Agent("diff_parser")
     .model("gemini-2.5-flash")
-    .instruct("Write a balanced, fact-checked news article from the source material.")
-    @ Article
-    // Agent("backup_writer")
-    .model("gemini-2.5-pro")
-    .instruct("Write a balanced, fact-checked news article from the source material.")
-    @ Article
-    # Step 4: Editorial quality loop (* until) — editor reviews until credible
+    .instruct("Parse the git diff into individual file changes with context.")
+    .save_as("parsed_diff")
+    # Step 2: Three reviewers run in parallel
     >> (
-        Agent("fact_checker")
+        Agent("style_checker")
         .model("gemini-2.5-flash")
-        .instruct("Verify all claims in the article against primary sources. Score credibility.")
-        .outputs("credibility_score")
-        >> Agent("copy_editor")
+        .instruct("Check code style: naming conventions, formatting, docstrings.")
+        | Agent("security_scanner")
         .model("gemini-2.5-flash")
-        .instruct("Improve clarity, fix errors, and ensure AP style compliance.")
+        .instruct("Scan for security issues: injection, auth bypass, secrets in code.")
+        | Agent("logic_reviewer")
+        .model("gemini-2.5-flash")
+        .instruct("Review business logic: edge cases, error handling, race conditions.")
     )
-    * until(lambda s: float(s.get("credibility_score", 0)) >= 0.90, max=4)
-)
-
-# Sub-expression reuse — immutable operators make this safe.
-# An editorial review loop can be reused across different content pipelines.
-editorial_review = Agent("editor").model("gemini-2.5-flash").instruct(
-    "Review article quality: accuracy, clarity, and engagement."
-) >> Agent("scorer").model("gemini-2.5-flash").instruct("Score the article on a 0-1 scale.").outputs("edit_score")
-quality_gate = until(lambda s: float(s.get("edit_score", 0)) > 0.8, max=3)
-
-# Same editorial review in two independent content pipelines
-breaking_news = (
-    Agent("breaking_writer").model("gemini-2.5-flash").instruct("Write a concise breaking news alert.")
-    >> editorial_review * quality_gate
-    >> S.rename(edit_score="breaking_score")
-)
-
-feature_story = (
-    Agent("feature_writer")
-    .model("gemini-2.5-flash")
-    .instruct("Write an in-depth feature story with narrative structure.")
-    >> editorial_review * quality_gate
-    >> S.rename(edit_score="feature_score")
+    # Step 3: Aggregate findings with typed output and model fallback
+    >> (
+        Agent("finding_aggregator")
+        .model("gemini-2.5-flash")
+        .instruct("Aggregate all review findings into a final verdict.")
+        @ ReviewVerdict
+        // Agent("backup_aggregator")
+        .model("gemini-2.5-pro")
+        .instruct("Aggregate all review findings into a final verdict.")
+        @ ReviewVerdict
+    )
 )
 
 # --- ASSERT ---
-# Main pipeline builds correctly
-assert isinstance(pipeline, Pipeline)
-built = pipeline.build()
-assert len(built.sub_agents) == 4  # fanout, merge, fallback, loop
+from adk_fluent import Pipeline
+from adk_fluent._base import _FallbackBuilder
 
-# Sub-expression reuse: both build independently
-built_a = breaking_news.build()
-built_b = feature_story.build()
-assert len(built_a.sub_agents) == 3
-assert len(built_b.sub_agents) == 3
-# Different agents — not shared
-assert built_a.sub_agents[0].name != built_b.sub_agents[0].name
+# Pipeline builds correctly
+assert isinstance(review_pipeline, Pipeline)
+built = review_pipeline.build()
+
+# Has 3 top-level steps: diff_parser, fanout, fallback_aggregator
+assert len(built.sub_agents) == 3
+
+# First step is the diff parser
+assert built.sub_agents[0].name == "diff_parser"
+assert built.sub_agents[0].output_key == "parsed_diff"
+
+# Second step is a parallel fan-out with 3 reviewers
+fanout = built.sub_agents[1]
+assert len(fanout.sub_agents) == 3
+
+# Third step is the fallback aggregator
+fallback = built.sub_agents[2]
+assert len(fallback.sub_agents) == 2  # primary + backup

@@ -1,6 +1,5 @@
 """Tests for structured diagnostics (v0.9.2 — Tier 2)."""
 
-import pytest
 from pydantic import BaseModel
 
 
@@ -183,7 +182,7 @@ def test_diagnosis_with_produces_consumes():
 
 def test_diagnosis_exports():
     """Tier 2 exports available from top-level."""
-    from adk_fluent import Diagnosis, AgentSummary, KeyFlow, ContractIssue, diagnose, format_diagnosis
+    from adk_fluent import AgentSummary, ContractIssue, Diagnosis, KeyFlow, diagnose, format_diagnosis
 
     assert Diagnosis is not None
     assert AgentSummary is not None

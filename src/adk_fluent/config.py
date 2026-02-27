@@ -92,11 +92,13 @@ class AgentConfig(BuilderBase):
         self._config: dict[str, Any] = {"root": root}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_AgentConfig:
         """The config for the YAML schema to create an agent. Resolve into a native ADK _ADK_AgentConfig."""
         config = self._prepare_build_config()
-        return _ADK_AgentConfig(**config)
+        result = self._safe_build(_ADK_AgentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseAgentConfig(BuilderBase):
@@ -111,19 +113,23 @@ class BaseAgentConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Optional. The description of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def agent_class(self, value: Literal["BaseAgent"] | str) -> Self:
         """Required. The class of the agent. The value is used to differentiate among different agent classes."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_class"] = value
         return self
 
     def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
@@ -136,33 +142,39 @@ class BaseAgentConfig(BuilderBase):
           before_agent_callbacks:
             - name: my_library.security_callbacks.before_agent_callback
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["before_agent_callbacks"] = value
         return self
 
     def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_agent_callbacks"] = value
         return self
 
     def sub_agent(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def before_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_agent_callbacks"].append(value)
         return self
 
     def after_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_agent_callbacks"].append(value)
         return self
 
     def build(self) -> _ADK_BaseAgentConfig:
         """The config for the YAML schema of a BaseAgent. Resolve into a native ADK _ADK_BaseAgentConfig."""
         config = self._prepare_build_config()
-        return _ADK_BaseAgentConfig(**config)
+        result = self._safe_build(_ADK_BaseAgentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentRefConfig(BuilderBase):
@@ -177,21 +189,25 @@ class AgentRefConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def config_path(self, value: str | None) -> Self:
         """Set the ``config_path`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["config_path"] = value
         return self
 
     def code(self, value: str | None) -> Self:
         """Set the ``code`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code"] = value
         return self
 
     def build(self) -> _ADK_AgentRefConfig:
         """The config for the reference to another agent. Resolve into a native ADK _ADK_AgentRefConfig."""
         config = self._prepare_build_config()
-        return _ADK_AgentRefConfig(**config)
+        result = self._safe_build(_ADK_AgentRefConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ArgumentConfig(BuilderBase):
@@ -206,16 +222,19 @@ class ArgumentConfig(BuilderBase):
         self._config: dict[str, Any] = {"value": value}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str | None) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_ArgumentConfig:
         """An argument passed to a function or a class's constructor. Resolve into a native ADK _ADK_ArgumentConfig."""
         config = self._prepare_build_config()
-        return _ADK_ArgumentConfig(**config)
+        result = self._safe_build(_ADK_ArgumentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class CodeConfig(BuilderBase):
@@ -230,21 +249,25 @@ class CodeConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def args(self, value: list[ArgumentConfig] | None) -> Self:
         """Set the ``args`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["args"] = value
         return self
 
     def arg(self, value: ArgumentConfig) -> Self:
         """Append to ``args`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["args"].append(value)
         return self
 
     def build(self) -> _ADK_CodeConfig:
         """Code reference config for a variable, a function, or a class. Resolve into a native ADK _ADK_CodeConfig."""
         config = self._prepare_build_config()
-        return _ADK_CodeConfig(**config)
+        result = self._safe_build(_ADK_CodeConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ContextCacheConfig(BuilderBase):
@@ -259,26 +282,31 @@ class ContextCacheConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def cache_intervals(self, value: int) -> Self:
         """Maximum number of invocations to reuse the same cache before refreshing it"""
+        self = self._maybe_fork_for_mutation()
         self._config["cache_intervals"] = value
         return self
 
     def ttl_seconds(self, value: int) -> Self:
         """Time-to-live for cache in seconds"""
+        self = self._maybe_fork_for_mutation()
         self._config["ttl_seconds"] = value
         return self
 
     def min_tokens(self, value: int) -> Self:
         """Minimum estimated request tokens required to enable caching. This compares against the estimated total tokens of the request (system instruction + tools + contents). Context cache storage may have cost. Set higher to avoid caching small requests where overhead may exceed benefits."""
+        self = self._maybe_fork_for_mutation()
         self._config["min_tokens"] = value
         return self
 
     def build(self) -> _ADK_ContextCacheConfig:
         """Configuration for context caching across all agents in an app. Resolve into a native ADK _ADK_ContextCacheConfig."""
         config = self._prepare_build_config()
-        return _ADK_ContextCacheConfig(**config)
+        result = self._safe_build(_ADK_ContextCacheConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class LlmAgentConfig(BuilderBase):
@@ -301,49 +329,59 @@ class LlmAgentConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name, "instruction": instruction}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Optional. The description of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def history(self, value: Literal["default", "none"]) -> Self:
         """Optional. LlmAgent.include_contents."""
+        self = self._maybe_fork_for_mutation()
         self._config["include_contents"] = value
         return self
 
     def include_history(self, value: Literal["default", "none"]) -> Self:
         """Optional. LlmAgent.include_contents."""
+        self = self._maybe_fork_for_mutation()
         self._config["include_contents"] = value
         return self
 
     def instruct(self, value: str) -> Self:
         """Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content."""
+        self = self._maybe_fork_for_mutation()
         self._config["instruction"] = value
         return self
 
     def outputs(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."""
+        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)``."""
+        self = self._maybe_fork_for_mutation()
         self._config["output_key"] = value
         return self
 
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
+        self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
 
     def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
+        self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
 
     def agent_class(self, value: str) -> Self:
         """The value is used to uniquely identify the LlmAgent class. If it is empty, it is by default an LlmAgent."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_class"] = value
         return self
 
     def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
@@ -356,41 +394,49 @@ class LlmAgentConfig(BuilderBase):
           before_agent_callbacks:
             - name: my_library.security_callbacks.before_agent_callback
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["before_agent_callbacks"] = value
         return self
 
     def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_agent_callbacks"] = value
         return self
 
     def model(self, value: str | None) -> Self:
         """Optional. LlmAgent.model. Provide a model name string (e.g. "gemini-2.0-flash"). If not set, the model will be inherited from the ancestor or fall back to the system default (gemini-2.5-flash unless overridden via LlmAgent.set_default_model). To construct a model instance from code, use model_code."""
+        self = self._maybe_fork_for_mutation()
         self._config["model"] = value
         return self
 
     def model_code(self, value: CodeConfig | None) -> Self:
         """Optional. A CodeConfig that instantiates a BaseLlm implementation such as LiteLlm with custom arguments (API base, fallbacks, etc.). Cannot be set together with `model`."""
+        self = self._maybe_fork_for_mutation()
         self._config["model_code"] = value
         return self
 
     def disallow_transfer_to_parent(self, value: bool | None) -> Self:
         """Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."""
+        self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_parent"] = value
         return self
 
     def disallow_transfer_to_peers(self, value: bool | None) -> Self:
         """Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."""
+        self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_peers"] = value
         return self
 
     def input_schema(self, value: CodeConfig | None) -> Self:
         """Schema defining the expected input structure when this agent is invoked as a tool by another agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
         return self
 
     def output_schema(self, value: CodeConfig | None) -> Self:
         """Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."""
+        self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
         return self
 
@@ -447,6 +493,7 @@ class LlmAgentConfig(BuilderBase):
           tools:
             - name: tools.my_mcp_toolset
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["tools"] = value
         return self
 
@@ -459,73 +506,87 @@ class LlmAgentConfig(BuilderBase):
           before_model_callbacks:
             - name: my_library.callbacks.before_model_callback
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["before_model_callbacks"] = value
         return self
 
     def after_model_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.after_model_callbacks."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_model_callbacks"] = value
         return self
 
     def before_tool_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.before_tool_callbacks."""
+        self = self._maybe_fork_for_mutation()
         self._config["before_tool_callbacks"] = value
         return self
 
     def after_tool_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. LlmAgent.after_tool_callbacks."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_tool_callbacks"] = value
         return self
 
     def generate_content_config(self, value: GenerateContentConfig | None) -> Self:
         """Optional. LlmAgent.generate_content_config."""
+        self = self._maybe_fork_for_mutation()
         self._config["generate_content_config"] = value
         return self
 
     def sub_agent(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def before_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_agent_callbacks"].append(value)
         return self
 
     def after_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_agent_callbacks"].append(value)
         return self
 
     def tool(self, value: ToolConfig) -> Self:
         """Append to ``tools`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["tools"].append(value)
         return self
 
     def before_model_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_model_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_model_callbacks"].append(value)
         return self
 
     def after_model_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_model_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_model_callbacks"].append(value)
         return self
 
     def before_tool_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_tool_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_tool_callbacks"].append(value)
         return self
 
     def after_tool_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_tool_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_tool_callbacks"].append(value)
         return self
 
     def build(self) -> _ADK_LlmAgentConfig:
         """The config for the YAML schema of a LlmAgent. Resolve into a native ADK _ADK_LlmAgentConfig."""
         config = self._prepare_build_config()
-        return _ADK_LlmAgentConfig(**config)
+        result = self._safe_build(_ADK_LlmAgentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class LoopAgentConfig(BuilderBase):
@@ -540,19 +601,23 @@ class LoopAgentConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Optional. The description of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def agent_class(self, value: str) -> Self:
         """The value is used to uniquely identify the LoopAgent class."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_class"] = value
         return self
 
     def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
@@ -565,38 +630,45 @@ class LoopAgentConfig(BuilderBase):
           before_agent_callbacks:
             - name: my_library.security_callbacks.before_agent_callback
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["before_agent_callbacks"] = value
         return self
 
     def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_agent_callbacks"] = value
         return self
 
     def max_iterations(self, value: int | None) -> Self:
         """Optional. LoopAgent.max_iterations."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_iterations"] = value
         return self
 
     def sub_agent(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def before_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_agent_callbacks"].append(value)
         return self
 
     def after_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_agent_callbacks"].append(value)
         return self
 
     def build(self) -> _ADK_LoopAgentConfig:
         """The config for the YAML schema of a LoopAgent. Resolve into a native ADK _ADK_LoopAgentConfig."""
         config = self._prepare_build_config()
-        return _ADK_LoopAgentConfig(**config)
+        result = self._safe_build(_ADK_LoopAgentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ParallelAgentConfig(BuilderBase):
@@ -611,19 +683,23 @@ class ParallelAgentConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Optional. The description of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def agent_class(self, value: str) -> Self:
         """The value is used to uniquely identify the ParallelAgent class."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_class"] = value
         return self
 
     def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
@@ -636,33 +712,39 @@ class ParallelAgentConfig(BuilderBase):
           before_agent_callbacks:
             - name: my_library.security_callbacks.before_agent_callback
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["before_agent_callbacks"] = value
         return self
 
     def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_agent_callbacks"] = value
         return self
 
     def sub_agent(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def before_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_agent_callbacks"].append(value)
         return self
 
     def after_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_agent_callbacks"].append(value)
         return self
 
     def build(self) -> _ADK_ParallelAgentConfig:
         """The config for the YAML schema of a ParallelAgent. Resolve into a native ADK _ADK_ParallelAgentConfig."""
         config = self._prepare_build_config()
-        return _ADK_ParallelAgentConfig(**config)
+        result = self._safe_build(_ADK_ParallelAgentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class RunConfig(BuilderBase):
@@ -680,96 +762,115 @@ class RunConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def input_audio_transcribe(self, value: AudioTranscriptionConfig | None) -> Self:
         """Set the `input_audio_transcription` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["input_audio_transcription"] = value
         return self
 
     def output_audio_transcribe(self, value: AudioTranscriptionConfig | None) -> Self:
         """Set the `output_audio_transcription` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["output_audio_transcription"] = value
         return self
 
     def speech_config(self, value: SpeechConfig | None) -> Self:
         """Set the ``speech_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["speech_config"] = value
         return self
 
     def response_modalities(self, value: list[str] | None) -> Self:
         """Set the ``response_modalities`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["response_modalities"] = value
         return self
 
     def save_input_blobs_as_artifacts(self, value: bool) -> Self:
         """Whether or not to save the input blobs as artifacts. DEPRECATED: Use SaveFilesAsArtifactsPlugin instead for better control and flexibility. See google.adk.plugins.SaveFilesAsArtifactsPlugin."""
+        self = self._maybe_fork_for_mutation()
         self._config["save_input_blobs_as_artifacts"] = value
         return self
 
     def support_cfc(self, value: bool) -> Self:
         """Set the ``support_cfc`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["support_cfc"] = value
         return self
 
     def streaming_mode(self, value: StreamingMode) -> Self:
         """Set the ``streaming_mode`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["streaming_mode"] = value
         return self
 
     def realtime_input_config(self, value: RealtimeInputConfig | None) -> Self:
         """Set the ``realtime_input_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["realtime_input_config"] = value
         return self
 
     def enable_affective_dialog(self, value: bool | None) -> Self:
         """Set the ``enable_affective_dialog`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["enable_affective_dialog"] = value
         return self
 
     def proactivity(self, value: ProactivityConfig | None) -> Self:
         """Set the ``proactivity`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["proactivity"] = value
         return self
 
     def session_resumption(self, value: SessionResumptionConfig | None) -> Self:
         """Set the ``session_resumption`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["session_resumption"] = value
         return self
 
     def context_window_compression(self, value: ContextWindowCompressionConfig | None) -> Self:
         """Set the ``context_window_compression`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["context_window_compression"] = value
         return self
 
     def save_live_blob(self, value: bool) -> Self:
         """Set the ``save_live_blob`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["save_live_blob"] = value
         return self
 
     def tool_thread_pool_config(self, value: ToolThreadPoolConfig | None) -> Self:
         """Set the ``tool_thread_pool_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_thread_pool_config"] = value
         return self
 
     def save_live_audio(self, value: bool) -> Self:
         """DEPRECATED: Use save_live_blob instead. If set to True, it saves live video and audio data to session and artifact service."""
+        self = self._maybe_fork_for_mutation()
         self._config["save_live_audio"] = value
         return self
 
     def max_llm_calls(self, value: int) -> Self:
         """Set the ``max_llm_calls`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_llm_calls"] = value
         return self
 
     def custom_metadata(self, value: dict[str, Any] | None) -> Self:
         """Set the ``custom_metadata`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["custom_metadata"] = value
         return self
 
     def build(self) -> _ADK_RunConfig:
         """Configs for runtime behavior of agents. Resolve into a native ADK _ADK_RunConfig."""
         config = self._prepare_build_config()
-        return _ADK_RunConfig(**config)
+        result = self._safe_build(_ADK_RunConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ToolThreadPoolConfig(BuilderBase):
@@ -784,16 +885,19 @@ class ToolThreadPoolConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def max_workers(self, value: int) -> Self:
         """Maximum number of worker threads in the pool."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_workers"] = value
         return self
 
     def build(self) -> _ADK_ToolThreadPoolConfig:
         """Configuration for the tool thread pool executor. Resolve into a native ADK _ADK_ToolThreadPoolConfig."""
         config = self._prepare_build_config()
-        return _ADK_ToolThreadPoolConfig(**config)
+        result = self._safe_build(_ADK_ToolThreadPoolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class SequentialAgentConfig(BuilderBase):
@@ -808,19 +912,23 @@ class SequentialAgentConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def describe(self, value: str) -> Self:
         """Optional. The description of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def agent_class(self, value: str) -> Self:
         """The value is used to uniquely identify the SequentialAgent class."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_class"] = value
         return self
 
     def sub_agents(self, value: list[AgentRefConfig] | None) -> Self:
         """Optional. The sub-agents of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["sub_agents"] = value
         return self
 
@@ -833,33 +941,39 @@ class SequentialAgentConfig(BuilderBase):
           before_agent_callbacks:
             - name: my_library.security_callbacks.before_agent_callback
           ```"""
+        self = self._maybe_fork_for_mutation()
         self._config["before_agent_callbacks"] = value
         return self
 
     def after_agent_callbacks(self, value: list[CodeConfig] | None) -> Self:
         """Optional. The after_agent_callbacks of the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_agent_callbacks"] = value
         return self
 
     def sub_agent(self, value: AgentRefConfig) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["sub_agents"].append(value)
         return self
 
     def before_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``before_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["before_agent_callbacks"].append(value)
         return self
 
     def after_agent_callback(self, value: CodeConfig) -> Self:
         """Append to ``after_agent_callbacks`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["after_agent_callbacks"].append(value)
         return self
 
     def build(self) -> _ADK_SequentialAgentConfig:
         """The config for the YAML schema of a SequentialAgent. Resolve into a native ADK _ADK_SequentialAgentConfig."""
         config = self._prepare_build_config()
-        return _ADK_SequentialAgentConfig(**config)
+        result = self._safe_build(_ADK_SequentialAgentConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class EventsCompactionConfig(BuilderBase):
@@ -874,26 +988,31 @@ class EventsCompactionConfig(BuilderBase):
         self._config: dict[str, Any] = {"compaction_interval": compaction_interval, "overlap_size": overlap_size}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def summarizer(self, value: BaseEventsSummarizer | None) -> Self:
         """Set the ``summarizer`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["summarizer"] = value
         return self
 
     def token_threshold(self, value: int | None) -> Self:
         """Set the ``token_threshold`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["token_threshold"] = value
         return self
 
     def event_retention_size(self, value: int | None) -> Self:
         """Set the ``event_retention_size`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["event_retention_size"] = value
         return self
 
     def build(self) -> _ADK_EventsCompactionConfig:
         """The config of event compaction for an application. Resolve into a native ADK _ADK_EventsCompactionConfig."""
         config = self._prepare_build_config()
-        return _ADK_EventsCompactionConfig(**config)
+        result = self._safe_build(_ADK_EventsCompactionConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ResumabilityConfig(BuilderBase):
@@ -908,16 +1027,19 @@ class ResumabilityConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def is_resumable(self, value: bool) -> Self:
         """Set the ``is_resumable`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["is_resumable"] = value
         return self
 
     def build(self) -> _ADK_ResumabilityConfig:
         """The config of the resumability for an application. Resolve into a native ADK _ADK_ResumabilityConfig."""
         config = self._prepare_build_config()
-        return _ADK_ResumabilityConfig(**config)
+        result = self._safe_build(_ADK_ResumabilityConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class FeatureConfig(BuilderBase):
@@ -926,22 +1048,25 @@ class FeatureConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"default_on", "stage"}
+    _KNOWN_PARAMS: set[str] | None = {"stage", "default_on"}
 
     def __init__(self, stage: str) -> None:
         self._config: dict[str, Any] = {"stage": stage}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def default_on(self, value: bool) -> Self:
         """Set the ``default_on`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["default_on"] = value
         return self
 
     def build(self) -> _ADK_FeatureConfig:
         """Feature configuration. Resolve into a native ADK _ADK_FeatureConfig."""
         config = self._prepare_build_config()
-        return _ADK_FeatureConfig(**config)
+        result = self._safe_build(_ADK_FeatureConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class AudioCacheConfig(BuilderBase):
@@ -956,26 +1081,31 @@ class AudioCacheConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def max_cache_size_bytes(self, value: int) -> Self:
         """Set the ``max_cache_size_bytes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_cache_size_bytes"] = value
         return self
 
     def max_cache_duration_seconds(self, value: float) -> Self:
         """Set the ``max_cache_duration_seconds`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_cache_duration_seconds"] = value
         return self
 
     def auto_flush_threshold(self, value: int) -> Self:
         """Set the ``auto_flush_threshold`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auto_flush_threshold"] = value
         return self
 
     def build(self) -> _ADK_AudioCacheConfig:
         """Configuration for audio caching behavior. Resolve into a native ADK _ADK_AudioCacheConfig."""
         config = self._prepare_build_config()
-        return _ADK_AudioCacheConfig(**config)
+        result = self._safe_build(_ADK_AudioCacheConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class SimplePromptOptimizerConfig(BuilderBase):
@@ -990,31 +1120,37 @@ class SimplePromptOptimizerConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def model_configure(self, value: GenerateContentConfig) -> Self:
         """The configuration for the optimizer model."""
+        self = self._maybe_fork_for_mutation()
         self._config["model_configuration"] = value
         return self
 
     def optimizer_model(self, value: str) -> Self:
         """The model used to analyze the eval results and optimize the agent."""
+        self = self._maybe_fork_for_mutation()
         self._config["optimizer_model"] = value
         return self
 
     def num_iterations(self, value: int) -> Self:
         """The number of optimization rounds to run."""
+        self = self._maybe_fork_for_mutation()
         self._config["num_iterations"] = value
         return self
 
     def batch_size(self, value: int) -> Self:
         """The number of training examples to use for scoring each candidate."""
+        self = self._maybe_fork_for_mutation()
         self._config["batch_size"] = value
         return self
 
     def build(self) -> _ADK_SimplePromptOptimizerConfig:
         """Configuration for the IterativePromptOptimizer. Resolve into a native ADK _ADK_SimplePromptOptimizerConfig."""
         config = self._prepare_build_config()
-        return _ADK_SimplePromptOptimizerConfig(**config)
+        result = self._safe_build(_ADK_SimplePromptOptimizerConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BigQueryLoggerConfig(BuilderBase):
@@ -1024,119 +1160,138 @@ class BigQueryLoggerConfig(BuilderBase):
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _KNOWN_PARAMS: set[str] | None = {
-        "batch_flush_interval",
-        "log_multi_modal_content",
-        "enabled",
-        "shutdown_timeout",
-        "custom_tags",
-        "content_formatter",
-        "batch_size",
-        "queue_max_size",
-        "retry_config",
-        "event_denylist",
         "connection_id",
+        "custom_tags",
+        "log_multi_modal_content",
+        "max_content_length",
         "clustering_fields",
+        "batch_size",
+        "content_formatter",
+        "queue_max_size",
+        "log_session_metadata",
+        "enabled",
         "table_id",
         "event_allowlist",
         "gcs_bucket_name",
-        "log_session_metadata",
-        "max_content_length",
+        "event_denylist",
+        "shutdown_timeout",
+        "retry_config",
+        "batch_flush_interval",
     }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def enabled(self, value: bool) -> Self:
         """Set the ``enabled`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["enabled"] = value
         return self
 
     def event_allowlist(self, value: list[str] | None) -> Self:
         """Set the ``event_allowlist`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["event_allowlist"] = value
         return self
 
     def event_denylist(self, value: list[str] | None) -> Self:
         """Set the ``event_denylist`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["event_denylist"] = value
         return self
 
     def max_content_length(self, value: int) -> Self:
         """Set the ``max_content_length`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_content_length"] = value
         return self
 
     def table_id(self, value: str) -> Self:
         """Set the ``table_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["table_id"] = value
         return self
 
     def clustering_fields(self, value: list[str]) -> Self:
         """Set the ``clustering_fields`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["clustering_fields"] = value
         return self
 
     def log_multi_modal_content(self, value: bool) -> Self:
         """Set the ``log_multi_modal_content`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["log_multi_modal_content"] = value
         return self
 
     def retry_config(self, value: RetryConfig) -> Self:
         """Set the ``retry_config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["retry_config"] = value
         return self
 
     def batch_size(self, value: int) -> Self:
         """Set the ``batch_size`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["batch_size"] = value
         return self
 
     def batch_flush_interval(self, value: float) -> Self:
         """Set the ``batch_flush_interval`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["batch_flush_interval"] = value
         return self
 
     def shutdown_timeout(self, value: float) -> Self:
         """Set the ``shutdown_timeout`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["shutdown_timeout"] = value
         return self
 
     def queue_max_size(self, value: int) -> Self:
         """Set the ``queue_max_size`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["queue_max_size"] = value
         return self
 
     def content_formatter(self, value: Callable[[Any, str], Any] | None) -> Self:
         """Set the ``content_formatter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["content_formatter"] = value
         return self
 
     def gcs_bucket_name(self, value: str | None) -> Self:
         """Set the ``gcs_bucket_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["gcs_bucket_name"] = value
         return self
 
     def connection_id(self, value: str | None) -> Self:
         """Set the ``connection_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["connection_id"] = value
         return self
 
     def log_session_metadata(self, value: bool) -> Self:
         """Set the ``log_session_metadata`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["log_session_metadata"] = value
         return self
 
     def custom_tags(self, value: dict[str, Any]) -> Self:
         """Set the ``custom_tags`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["custom_tags"] = value
         return self
 
     def build(self) -> _ADK_BigQueryLoggerConfig:
         """Configuration for the BigQueryAgentAnalyticsPlugin. Resolve into a native ADK _ADK_BigQueryLoggerConfig."""
         config = self._prepare_build_config()
-        return _ADK_BigQueryLoggerConfig(**config)
+        result = self._safe_build(_ADK_BigQueryLoggerConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class RetryConfig(BuilderBase):
@@ -1145,37 +1300,43 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"max_delay", "max_retries", "initial_delay", "multiplier"}
+    _KNOWN_PARAMS: set[str] | None = {"max_retries", "max_delay", "initial_delay", "multiplier"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def max_retries(self, value: int) -> Self:
         """Set the ``max_retries`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_retries"] = value
         return self
 
     def initial_delay(self, value: float) -> Self:
         """Set the ``initial_delay`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["initial_delay"] = value
         return self
 
     def multiplier(self, value: float) -> Self:
         """Set the ``multiplier`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["multiplier"] = value
         return self
 
     def max_delay(self, value: float) -> Self:
         """Set the ``max_delay`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_delay"] = value
         return self
 
     def build(self) -> _ADK_RetryConfig:
         """Configuration for retrying failed BigQuery write operations. Resolve into a native ADK _ADK_RetryConfig."""
         config = self._prepare_build_config()
-        return _ADK_RetryConfig(**config)
+        result = self._safe_build(_ADK_RetryConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class GetSessionConfig(BuilderBase):
@@ -1190,21 +1351,25 @@ class GetSessionConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def num_recent_events(self, value: int | None) -> Self:
         """Set the ``num_recent_events`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["num_recent_events"] = value
         return self
 
     def after_timestamp(self, value: float | None) -> Self:
         """Set the ``after_timestamp`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["after_timestamp"] = value
         return self
 
     def build(self) -> _ADK_GetSessionConfig:
         """The configuration of getting a session. Resolve into a native ADK _ADK_GetSessionConfig."""
         config = self._prepare_build_config()
-        return _ADK_GetSessionConfig(**config)
+        result = self._safe_build(_ADK_GetSessionConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseGoogleCredentialsConfig(BuilderBase):
@@ -1219,36 +1384,43 @@ class BaseGoogleCredentialsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["external_access_token_key"] = value
         return self
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["scopes"] = value
         return self
 
     def build(self) -> _ADK_BaseGoogleCredentialsConfig:
         """Base Google Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BaseGoogleCredentialsConfig."""
         config = self._prepare_build_config()
-        return _ADK_BaseGoogleCredentialsConfig(**config)
+        result = self._safe_build(_ADK_BaseGoogleCredentialsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentSimulatorConfig(BuilderBase):
@@ -1263,41 +1435,49 @@ class AgentSimulatorConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def simulation_model_configure(self, value: GenerateContentConfig) -> Self:
         """Set the `simulation_model_configuration` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["simulation_model_configuration"] = value
         return self
 
     def tool_simulation_configs(self, value: list[ToolSimulationConfig]) -> Self:
         """Set the ``tool_simulation_configs`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_simulation_configs"] = value
         return self
 
     def simulation_model(self, value: str) -> Self:
         """Set the ``simulation_model`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["simulation_model"] = value
         return self
 
     def tracing_path(self, value: str | None) -> Self:
         """Set the ``tracing_path`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tracing_path"] = value
         return self
 
     def environment_data(self, value: str | None) -> Self:
         """Set the ``environment_data`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["environment_data"] = value
         return self
 
     def tool_simulation_config(self, value: ToolSimulationConfig) -> Self:
         """Append to ``tool_simulation_configs`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["tool_simulation_configs"].append(value)
         return self
 
     def build(self) -> _ADK_AgentSimulatorConfig:
         """Configuration for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorConfig."""
         config = self._prepare_build_config()
-        return _ADK_AgentSimulatorConfig(**config)
+        result = self._safe_build(_ADK_AgentSimulatorConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class InjectionConfig(BuilderBase):
@@ -1312,41 +1492,49 @@ class InjectionConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def injection_probability(self, value: float) -> Self:
         """Set the ``injection_probability`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["injection_probability"] = value
         return self
 
     def match_args(self, value: dict[str, Any] | None) -> Self:
         """Set the ``match_args`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["match_args"] = value
         return self
 
     def injected_latency_seconds(self, value: float) -> Self:
         """Set the ``injected_latency_seconds`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["injected_latency_seconds"] = value
         return self
 
     def random_seed(self, value: int | None) -> Self:
         """Set the ``random_seed`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["random_seed"] = value
         return self
 
     def injected_error(self, value: InjectedError | None) -> Self:
         """Set the ``injected_error`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["injected_error"] = value
         return self
 
     def injected_response(self, value: dict[str, Any] | None) -> Self:
         """Set the ``injected_response`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["injected_response"] = value
         return self
 
     def build(self) -> _ADK_InjectionConfig:
         """Injection configuration for a tool. Resolve into a native ADK _ADK_InjectionConfig."""
         config = self._prepare_build_config()
-        return _ADK_InjectionConfig(**config)
+        result = self._safe_build(_ADK_InjectionConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ToolSimulationConfig(BuilderBase):
@@ -1361,26 +1549,31 @@ class ToolSimulationConfig(BuilderBase):
         self._config: dict[str, Any] = {"tool_name": tool_name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def injection_configs(self, value: list[InjectionConfig]) -> Self:
         """Set the ``injection_configs`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["injection_configs"] = value
         return self
 
     def mock_strategy_type(self, value: MockStrategy) -> Self:
         """Set the ``mock_strategy_type`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["mock_strategy_type"] = value
         return self
 
     def injection_config(self, value: InjectionConfig) -> Self:
         """Append to ``injection_configs`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["injection_configs"].append(value)
         return self
 
     def build(self) -> _ADK_ToolSimulationConfig:
         """Simulation configuration for a single tool. Resolve into a native ADK _ADK_ToolSimulationConfig."""
         config = self._prepare_build_config()
-        return _ADK_ToolSimulationConfig(**config)
+        result = self._safe_build(_ADK_ToolSimulationConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentToolConfig(BuilderBase):
@@ -1395,21 +1588,25 @@ class AgentToolConfig(BuilderBase):
         self._config: dict[str, Any] = {"agent": agent}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def skip_summarizate(self, value: bool) -> Self:
         """Set the `skip_summarization` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["skip_summarization"] = value
         return self
 
     def include_plugins(self, value: bool) -> Self:
         """Set the ``include_plugins`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["include_plugins"] = value
         return self
 
     def build(self) -> _ADK_AgentToolConfig:
         """The config for the AgentTool. Resolve into a native ADK _ADK_AgentToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_AgentToolConfig(**config)
+        result = self._safe_build(_ADK_AgentToolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BigQueryCredentialsConfig(BuilderBase):
@@ -1424,36 +1621,43 @@ class BigQueryCredentialsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["external_access_token_key"] = value
         return self
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["scopes"] = value
         return self
 
     def build(self) -> _ADK_BigQueryCredentialsConfig:
         """BigQuery Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigQueryCredentialsConfig."""
         config = self._prepare_build_config()
-        return _ADK_BigQueryCredentialsConfig(**config)
+        result = self._safe_build(_ADK_BigQueryCredentialsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BigQueryToolConfig(BuilderBase):
@@ -1468,46 +1672,55 @@ class BigQueryToolConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def locate(self, value: str | None) -> Self:
         """Set the `location` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["location"] = value
         return self
 
     def write_mode(self, value: WriteMode) -> Self:
         """Set the ``write_mode`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["write_mode"] = value
         return self
 
     def maximum_bytes_billed(self, value: int | None) -> Self:
         """Set the ``maximum_bytes_billed`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["maximum_bytes_billed"] = value
         return self
 
     def max_query_result_rows(self, value: int) -> Self:
         """Set the ``max_query_result_rows`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_query_result_rows"] = value
         return self
 
     def application_name(self, value: str | None) -> Self:
         """Set the ``application_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["application_name"] = value
         return self
 
     def compute_project_id(self, value: str | None) -> Self:
         """Set the ``compute_project_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["compute_project_id"] = value
         return self
 
     def job_labels(self, value: dict[str, str] | None) -> Self:
         """Set the ``job_labels`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["job_labels"] = value
         return self
 
     def build(self) -> _ADK_BigQueryToolConfig:
         """Configuration for BigQuery tools. Resolve into a native ADK _ADK_BigQueryToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_BigQueryToolConfig(**config)
+        result = self._safe_build(_ADK_BigQueryToolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BigtableCredentialsConfig(BuilderBase):
@@ -1522,36 +1735,43 @@ class BigtableCredentialsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["external_access_token_key"] = value
         return self
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["scopes"] = value
         return self
 
     def build(self) -> _ADK_BigtableCredentialsConfig:
         """Bigtable Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigtableCredentialsConfig."""
         config = self._prepare_build_config()
-        return _ADK_BigtableCredentialsConfig(**config)
+        result = self._safe_build(_ADK_BigtableCredentialsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class DataAgentToolConfig(BuilderBase):
@@ -1566,16 +1786,19 @@ class DataAgentToolConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def max_query_result_rows(self, value: int) -> Self:
         """Set the ``max_query_result_rows`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_query_result_rows"] = value
         return self
 
     def build(self) -> _ADK_DataAgentToolConfig:
         """Configuration for Data Agent tools. Resolve into a native ADK _ADK_DataAgentToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_DataAgentToolConfig(**config)
+        result = self._safe_build(_ADK_DataAgentToolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class DataAgentCredentialsConfig(BuilderBase):
@@ -1590,36 +1813,43 @@ class DataAgentCredentialsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["external_access_token_key"] = value
         return self
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["scopes"] = value
         return self
 
     def build(self) -> _ADK_DataAgentCredentialsConfig:
         """Data Agent Credentials Configuration for Google API tools. Resolve into a native ADK _ADK_DataAgentCredentialsConfig."""
         config = self._prepare_build_config()
-        return _ADK_DataAgentCredentialsConfig(**config)
+        result = self._safe_build(_ADK_DataAgentCredentialsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ExampleToolConfig(BuilderBase):
@@ -1634,11 +1864,13 @@ class ExampleToolConfig(BuilderBase):
         self._config: dict[str, Any] = {"examples": examples}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_ExampleToolConfig:
         """Fluent builder for ExampleToolConfig. Resolve into a native ADK _ADK_ExampleToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_ExampleToolConfig(**config)
+        result = self._safe_build(_ADK_ExampleToolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class McpToolsetConfig(BuilderBase):
@@ -1653,34 +1885,41 @@ class McpToolsetConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def stdio_server_params(self, value: StdioServerParameters | None) -> Self:
         """Set the ``stdio_server_params`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stdio_server_params"] = value
         return self
 
     def stdio_connection_params(self, value: StdioConnectionParams | None) -> Self:
         """Set the ``stdio_connection_params`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stdio_connection_params"] = value
         return self
 
     def sse_connection_params(self, value: SseConnectionParams | None) -> Self:
         """Set the ``sse_connection_params`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sse_connection_params"] = value
         return self
 
     def streamable_http_connection_params(self, value: StreamableHTTPConnectionParams | None) -> Self:
         """Set the ``streamable_http_connection_params`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["streamable_http_connection_params"] = value
         return self
 
     def tool_filter(self, value: list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_filter"] = value
         return self
 
     def tool_name_prefix(self, value: str | None) -> Self:
         """Set the ``tool_name_prefix`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tool_name_prefix"] = value
         return self
 
@@ -1688,23 +1927,27 @@ class McpToolsetConfig(BuilderBase):
         self, value: APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig | None
     ) -> Self:
         """Set the ``auth_scheme`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_scheme"] = value
         return self
 
     def auth_credential(self, value: AuthCredential | None) -> Self:
         """Set the ``auth_credential`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["auth_credential"] = value
         return self
 
     def use_mcp_resources(self, value: bool) -> Self:
         """Set the ``use_mcp_resources`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["use_mcp_resources"] = value
         return self
 
     def build(self) -> _ADK_McpToolsetConfig:
         """The config for McpToolset. Resolve into a native ADK _ADK_McpToolsetConfig."""
         config = self._prepare_build_config()
-        return _ADK_McpToolsetConfig(**config)
+        result = self._safe_build(_ADK_McpToolsetConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class PubSubToolConfig(BuilderBase):
@@ -1719,16 +1962,19 @@ class PubSubToolConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def project_id(self, value: str | None) -> Self:
         """Set the ``project_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["project_id"] = value
         return self
 
     def build(self) -> _ADK_PubSubToolConfig:
         """Configuration for Pub/Sub tools. Resolve into a native ADK _ADK_PubSubToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_PubSubToolConfig(**config)
+        result = self._safe_build(_ADK_PubSubToolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class PubSubCredentialsConfig(BuilderBase):
@@ -1743,36 +1989,43 @@ class PubSubCredentialsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["external_access_token_key"] = value
         return self
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["scopes"] = value
         return self
 
     def build(self) -> _ADK_PubSubCredentialsConfig:
         """Pub/Sub Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_PubSubCredentialsConfig."""
         config = self._prepare_build_config()
-        return _ADK_PubSubCredentialsConfig(**config)
+        result = self._safe_build(_ADK_PubSubCredentialsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class SpannerCredentialsConfig(BuilderBase):
@@ -1787,36 +2040,43 @@ class SpannerCredentialsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["credentials"] = value
         return self
 
     def external_access_token_key(self, value: str | None) -> Self:
         """Set the ``external_access_token_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["external_access_token_key"] = value
         return self
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_id"] = value
         return self
 
     def client_secret(self, value: str | None) -> Self:
         """Set the ``client_secret`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["client_secret"] = value
         return self
 
     def scopes(self, value: list[str] | None) -> Self:
         """Set the ``scopes`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["scopes"] = value
         return self
 
     def build(self) -> _ADK_SpannerCredentialsConfig:
         """Spanner Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_SpannerCredentialsConfig."""
         config = self._prepare_build_config()
-        return _ADK_SpannerCredentialsConfig(**config)
+        result = self._safe_build(_ADK_SpannerCredentialsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseToolConfig(BuilderBase):
@@ -1831,11 +2091,13 @@ class BaseToolConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BaseToolConfig:
         """The base class for all tool configs. Resolve into a native ADK _ADK_BaseToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_BaseToolConfig(**config)
+        result = self._safe_build(_ADK_BaseToolConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ToolArgsConfig(BuilderBase):
@@ -1850,11 +2112,13 @@ class ToolArgsConfig(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_ToolArgsConfig:
         """Config to host free key-value pairs for the args in ToolConfig. Resolve into a native ADK _ADK_ToolArgsConfig."""
         config = self._prepare_build_config()
-        return _ADK_ToolArgsConfig(**config)
+        result = self._safe_build(_ADK_ToolArgsConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class ToolConfig(BuilderBase):
@@ -1869,13 +2133,16 @@ class ToolConfig(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def args(self, value: ToolArgsConfig | None) -> Self:
         """The args for the tool."""
+        self = self._maybe_fork_for_mutation()
         self._config["args"] = value
         return self
 
     def build(self) -> _ADK_ToolConfig:
         """The configuration for a tool. Resolve into a native ADK _ADK_ToolConfig."""
         config = self._prepare_build_config()
-        return _ADK_ToolConfig(**config)
+        result = self._safe_build(_ADK_ToolConfig, config)
+        return self._apply_native_hooks(result)

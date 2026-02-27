@@ -20,8 +20,8 @@
 [field_docs]
 output_schema = "Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."
 input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent."
-output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.outputs(key)``."
-outputs = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key."
+output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)``."
+save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
 disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
 
@@ -43,6 +43,17 @@ LoopAgent = "Loop"
 
 [builders.Agent]
 optional_constructor_args = ["model"]
+
+# New aliases added via merge into auto-generated aliases
+[builders.Agent.manual_aliases]
+save_as = "output_key"
+
+# Deprecated aliases — still work but emit DeprecationWarning
+[builders.Agent.deprecated_aliases]
+outputs = { field = "output_key", use = "save_as" }
+history = { field = "include_contents", use = "context" }
+include_history = { field = "include_contents", use = "context" }
+static_instruct = { field = "static_instruction", use = "static" }
 
 # ---------------------------------------------------------------------------
 # AGENT EXTRAS (Phase 1)
@@ -252,6 +263,38 @@ specialist = (
 )
 '''
 see_also = ["Agent.disallow_transfer_to_parent", "Agent.disallow_transfer_to_peers"]
+
+[[builders.Agent.extras]]
+name = "stay"
+signature = "(self) -> Self"
+doc = "Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning."
+behavior = "runtime_helper"
+helper_func = "_stay_agent"
+example = '''
+specialist = (
+    Agent("invoice_parser", "gemini-2.5-flash")
+    .instruct("Parse the invoice.")
+    .stay()  # Must finish before returning to coordinator
+    .build()
+)
+'''
+see_also = ["Agent.isolate", "Agent.no_peers"]
+
+[[builders.Agent.extras]]
+name = "no_peers"
+signature = "(self) -> Self"
+doc = "Prevent this agent from transferring to sibling agents. The agent can still return to its parent."
+behavior = "runtime_helper"
+helper_func = "_no_peers_agent"
+example = '''
+focused = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic thoroughly.")
+    .no_peers()  # Don't hand off to sibling agents
+    .build()
+)
+'''
+see_also = ["Agent.isolate", "Agent.stay"]
 
 # ---------------------------------------------------------------------------
 # IR CONVERSION EXTRAS

@@ -53,7 +53,6 @@ def ir_to_mermaid(
         from adk_fluent._ir import (
             CaptureNode,
             GateNode,
-            MapOverNode,
             RouteNode,
             TapNode,
             TransferNode,

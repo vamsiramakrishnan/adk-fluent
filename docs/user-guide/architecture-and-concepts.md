@@ -69,7 +69,7 @@ The S module provides pure state transforms that compile to `FnAgent` — a zero
 
 ```python
 pipeline = (
-    Agent("researcher").instruct("Find data.").outputs("findings")
+    Agent("researcher").instruct("Find data.").save_as("findings")
     >> S.pick("findings", "sources")
     >> S.rename(findings="input")
     >> Agent("writer").instruct("Write report using {input}.")

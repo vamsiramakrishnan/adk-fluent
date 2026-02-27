@@ -11,6 +11,7 @@ from typing import Any, Self
 from google.adk.agents.base_agent import BaseAgent
 
 __all__ = [
+    "BuilderError",
     "until",
     "tap",
     "expect",
@@ -116,6 +117,23 @@ def until(predicate: Callable, *, max: int = 10) -> _UntilSpec:
     return _UntilSpec(predicate, max=max)
 
 
+class BuilderError(Exception):
+    """Raised when a builder fails to construct a valid ADK object.
+
+    Provides a clear, concise error message instead of raw pydantic tracebacks.
+    """
+
+    def __init__(self, builder_name: str, builder_type: str, field_errors: list[str], original: Exception):
+        self.builder_name = builder_name
+        self.builder_type = builder_type
+        self.field_errors = field_errors
+        self.original = original
+        lines = [f"Failed to build {builder_type}('{builder_name}'):"]
+        for err in field_errors:
+            lines.append(f"  - {err}")
+        super().__init__("\n".join(lines))
+
+
 class BuilderBase:
     """Mixin base class providing shared builder capabilities.
 
@@ -132,6 +150,24 @@ class BuilderBase:
     _config: dict[str, Any]
     _callbacks: dict[str, list[Callable]]
     _lists: dict[str, list]
+
+    # ------------------------------------------------------------------
+    # Copy-on-Write: frozen builders
+    # ------------------------------------------------------------------
+
+    def _freeze(self) -> None:
+        """Mark this builder as frozen. Next mutation will fork."""
+        self._frozen = True
+
+    def _maybe_fork_for_mutation(self) -> Self:
+        """If frozen, deep-clone and return unfrozen copy. Otherwise return self."""
+        if getattr(self, "_frozen", False):
+            from adk_fluent._helpers import deep_clone_builder
+
+            clone = deep_clone_builder(self, self._config.get("name", ""))
+            clone._frozen = False
+            return clone
+        return self
 
     # ------------------------------------------------------------------
     # Shared __getattr__: dynamic field forwarding
@@ -159,8 +195,9 @@ class BuilderBase:
             cb_field = _CALLBACK_ALIASES[name]
 
             def _cb_setter(fn: Callable) -> Self:
-                self._callbacks[cb_field].append(fn)
-                return self
+                target = self._maybe_fork_for_mutation()
+                target._callbacks[cb_field].append(fn)
+                return target
 
             return _cb_setter
 
@@ -189,16 +226,33 @@ class BuilderBase:
 
         # Return a setter that stores value and returns self for chaining
         def _setter(value: Any) -> Self:
+            target = self._maybe_fork_for_mutation()
             if field_name in _ADDITIVE_FIELDS:
-                self._callbacks[field_name].append(value)
+                target._callbacks[field_name].append(value)
             else:
-                self._config[field_name] = value
-            return self
+                target._config[field_name] = value
+            return target
 
         return _setter
 
     # ------------------------------------------------------------------
-    # Task 2: __repr__
+    # __dir__: REPL autocomplete support
+    # ------------------------------------------------------------------
+
+    def __dir__(self):
+        base = set(super().__dir__())
+        adk_cls = getattr(self.__class__, "_ADK_TARGET_CLASS", None)
+        if adk_cls is not None and hasattr(adk_cls, "model_fields"):
+            base.update(adk_cls.model_fields.keys())
+        known = getattr(self.__class__, "_KNOWN_PARAMS", None)
+        if known is not None:
+            base.update(known)
+        base.update(getattr(self.__class__, "_ALIASES", {}).keys())
+        base.update(getattr(self.__class__, "_CALLBACK_ALIASES", {}).keys())
+        return sorted(base)
+
+    # ------------------------------------------------------------------
+    # __repr__
     # ------------------------------------------------------------------
 
     @staticmethod
@@ -285,6 +339,7 @@ class BuilderBase:
         - dict (shorthand for deterministic Route)
         - Route (deterministic branching)
         """
+        self._freeze()
         from adk_fluent._routing import Route
         from adk_fluent.workflow import Pipeline
 
@@ -359,6 +414,7 @@ class BuilderBase:
 
     def __or__(self, other: BuilderBase) -> BuilderBase:
         """Create or extend a FanOut: a | b | c."""
+        self._freeze()
         from adk_fluent.workflow import FanOut
 
         my_name = self._config.get("name", "")
@@ -388,6 +444,7 @@ class BuilderBase:
 
     def __mul__(self, other) -> BuilderBase:
         """Create a Loop: agent * 3 or agent * until(pred)."""
+        self._freeze()
         from adk_fluent.workflow import Loop, Pipeline
 
         # Handle until() spec: agent * until(pred)
@@ -420,6 +477,7 @@ class BuilderBase:
         Prefer .output_schema() in explicit builder chains; use @ in
         operator expressions where brevity matters.
         """
+        self._freeze()
         clone = self._fork_for_operator()
         clone._config["_output_schema"] = schema
         return clone
@@ -429,6 +487,7 @@ class BuilderBase:
 
         Tries each agent in order. First success wins.
         """
+        self._freeze()
         from adk_fluent._routing import _make_fallback_builder
 
         # Callable on right side: wrap it
@@ -452,6 +511,38 @@ class BuilderBase:
     # Task 4: validate() and explain()
     # ------------------------------------------------------------------
 
+    def _safe_build(self, target_class: type, config: dict) -> Any:
+        """Wrap target_class(**config) with clear error reporting."""
+        try:
+            return target_class(**config)
+        except Exception as exc:
+            import pydantic
+
+            name = self._config.get("name", "?")
+            builder_type = self.__class__.__name__
+            if isinstance(exc, pydantic.ValidationError):
+                field_errors = []
+                for err in exc.errors():
+                    loc = ".".join(str(x) for x in err.get("loc", []))
+                    msg = err.get("msg", str(err))
+                    field_errors.append(f"{loc}: {msg}" if loc else msg)
+                raise BuilderError(name, builder_type, field_errors, exc) from exc
+            raise BuilderError(name, builder_type, [str(exc)], exc) from exc
+
+    def native(self, fn: Callable) -> Self:
+        """Register a post-build hook to access raw ADK objects."""
+        target = self._maybe_fork_for_mutation()
+        hooks = target._config.setdefault("_native_hooks", [])
+        hooks.append(fn)
+        return target
+
+    def _apply_native_hooks(self, obj):
+        """Run all registered native hooks on the built ADK object."""
+        hooks = self._config.get("_native_hooks", [])
+        for hook in hooks:
+            hook(obj)
+        return obj
+
     def validate(self) -> Self:
         """Try to build; raise ValueError with clear message on failure. Returns self."""
         try:
@@ -461,8 +552,8 @@ class BuilderBase:
             raise ValueError(f"Validation failed for {self.__class__.__name__}('{name}'): {exc}") from exc
         return self
 
-    def explain(self) -> str:
-        """Return a rich, human-readable explanation of this builder's configuration.
+    def _explain_plain(self) -> str:
+        """Plain-text explain fallback (no rich dependency).
 
         Shows what the agent does, what data it reads/writes, how it sees
         conversation history, what tools it has, and any contract issues.
@@ -556,7 +647,6 @@ class BuilderBase:
                     tool_names.append(type(t).__name__)
             lines.append(f"  Tools ({len(tools)}): {', '.join(tool_names)}")
 
-        # Callbacks
         for field, fns in self._callbacks.items():
             if fns:
                 alias = self._reverse_callback_alias(field)
@@ -566,8 +656,15 @@ class BuilderBase:
         children_raw = list(self._config.get("sub_agents", []))
         children_raw.extend(self._lists.get("sub_agents", []))
         if children_raw:
-            child_names = [getattr(c, "_config", {}).get("name", "?") if hasattr(c, "_config") else str(c) for c in children_raw]
+            child_names = [
+                getattr(c, "_config", {}).get("name", "?") if hasattr(c, "_config") else str(c) for c in children_raw
+            ]
             lines.append(f"  Children ({len(children_raw)}): {', '.join(child_names)}")
+
+        # Other list fields
+        for field, items in self._lists.items():
+            if items and field != "sub_agents":
+                lines.append(f"  {field}: {len(items)} items")
 
         # Contract issues (if IR is available)
         try:
@@ -591,6 +688,78 @@ class BuilderBase:
                             lines.append(f"           Hint: {hint}")
         except (NotImplementedError, Exception):
             pass  # IR not available or conversion failed
+
+        return "\n".join(lines)
+
+    def _build_rich_tree(self):
+        """Build a rich.tree.Tree representing this builder's state."""
+        from rich.tree import Tree
+
+        cls_name = self.__class__.__name__
+        name = self._config.get("name", "?")
+        tree = Tree(f"[bold]{cls_name}[/bold]: {name}")
+
+        config_fields = {k: v for k, v in self._config.items() if k != "name" and not k.startswith("_")}
+        if config_fields:
+            cfg_branch = tree.add("[cyan]Config[/cyan]")
+            for k, v in config_fields.items():
+                display_name = self._reverse_alias(k)
+                cfg_branch.add(f"{display_name}: {self._format_value(v)}")
+
+        for field, fns in self._callbacks.items():
+            if fns:
+                alias = self._reverse_callback_alias(field)
+                cb_branch = tree.add(f"[green]Callback '{alias}'[/green]: {len(fns)} registered")
+                for fn in fns:
+                    cb_branch.add(self._format_value(fn))
+
+        for field, items in self._lists.items():
+            if items:
+                list_branch = tree.add(f"[yellow]{field}[/yellow]: {len(items)} items")
+                for item in items:
+                    if isinstance(item, BuilderBase):
+                        list_branch.add(item._build_rich_tree())
+                    else:
+                        list_branch.add(self._format_value(item))
+
+        return tree
+
+    def explain(self) -> str:
+        """Return a multi-line summary of this builder's state.
+
+        Uses rich box-drawing output if ``rich`` is installed, otherwise
+        falls back to plain text.
+        """
+        try:
+            from rich.console import Console
+
+            tree = self._build_rich_tree()
+            console = Console(record=True, width=120)
+            console.print(tree)
+            return console.export_text()
+        except ImportError:
+            return self._explain_plain()
+
+    def inspect(self) -> str:
+        """Return a detailed view of this builder's full config values."""
+        cls_name = self.__class__.__name__
+        name = self._config.get("name", "?")
+        lines = [f"{cls_name}: {name}"]
+
+        for k, v in self._config.items():
+            if k == "name":
+                continue
+            display_name = self._reverse_alias(k)
+            lines.append(f"  {display_name} = {v!r}")
+
+        for field, fns in self._callbacks.items():
+            if fns:
+                alias = self._reverse_callback_alias(field)
+                lines.append(f"  {alias} = {fns!r}")
+
+        for field, items in self._lists.items():
+            if items:
+                lines.append(f"  {field} = {items!r}")
 
         return "\n".join(lines)
 
@@ -963,6 +1132,7 @@ class BuilderBase:
         Returns:
             A native google.adk App object.
         """
+        self._freeze()
         from adk_fluent._ir import ExecutionConfig
         from adk_fluent.backends.adk import ADKBackend
 
@@ -983,9 +1153,15 @@ class BuilderBase:
                 middlewares=all_mw,
             )
 
-        backend = ADKBackend()
-        ir = self.to_ir()
-        return backend.compile(ir, config=cfg)
+        try:
+            backend = ADKBackend()
+            ir = self.to_ir()
+            return backend.compile(ir, config=cfg)
+        except BuilderError:
+            raise
+        except Exception as exc:
+            name = self._config.get("name", "?")
+            raise BuilderError(name, self.__class__.__name__, [str(exc)], exc) from exc
 
     def middleware(self, mw) -> Self:
         """Attach a middleware to this builder.

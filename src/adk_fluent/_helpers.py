@@ -34,6 +34,8 @@ __all__ = [
     "_add_memory",
     "_add_memory_auto_save",
     "_isolate_agent",
+    "_stay_agent",
+    "_no_peers_agent",
 ]
 
 
@@ -205,6 +207,25 @@ def _isolate_agent(builder):
     Use for specialist agents that should complete their task and return.
     """
     builder._config["disallow_transfer_to_parent"] = True
+    builder._config["disallow_transfer_to_peers"] = True
+    return builder
+
+
+def _stay_agent(builder):
+    """Prevent this agent from transferring back to its parent.
+
+    The agent can still transfer to sibling agents.
+    Use for agents that should complete their work before returning.
+    """
+    builder._config["disallow_transfer_to_parent"] = True
+    return builder
+
+
+def _no_peers_agent(builder):
+    """Prevent this agent from transferring to sibling agents.
+
+    The agent can still return to its parent.
+    """
     builder._config["disallow_transfer_to_peers"] = True
     return builder
 

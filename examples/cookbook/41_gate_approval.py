@@ -35,7 +35,7 @@ contract_pipeline = (
     Agent("clause_analyzer")
     .model("gemini-2.5-flash")
     .instruct("Analyze the contract clauses and assess liability risk level.")
-    .outputs("liability_risk")
+    .save_as("liability_risk")
     >> gate(
         lambda s: s.get("liability_risk") == "high",
         message="High liability risk detected. Senior counsel approval required before proceeding.",

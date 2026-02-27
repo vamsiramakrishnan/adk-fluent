@@ -81,7 +81,22 @@ class RawStmt:
     code: str
 
 
-Stmt = ReturnStmt | AssignStmt | SubscriptAssign | AppendStmt | ForAppendStmt | IfStmt | ImportStmt | RawStmt
+@dataclass(frozen=True)
+class ForkAndAssign:
+    """self = self._maybe_fork_for_mutation() — copy-on-write guard."""
+
+
+Stmt = (
+    ReturnStmt
+    | AssignStmt
+    | SubscriptAssign
+    | AppendStmt
+    | ForAppendStmt
+    | IfStmt
+    | ImportStmt
+    | RawStmt
+    | ForkAndAssign
+)
 
 
 # ---------------------------------------------------------------------------
@@ -271,6 +286,8 @@ def _emit_stmt(stmt: Stmt, indent: str = "        ") -> str:
     elif isinstance(stmt, RawStmt):
         raw_lines = stmt.code.split("\n")
         return "\n".join(f"{indent}{line}" for line in raw_lines)
+    elif isinstance(stmt, ForkAndAssign):
+        return f"{indent}self = self._maybe_fork_for_mutation()"
     else:
         raise TypeError(f"Unknown statement type: {type(stmt)}")
 

@@ -380,11 +380,11 @@ def format_diagnosis(diag: Diagnosis) -> str:
         orphan_produced = [f for f in diag.data_flow if f.producer and not f.consumers]
         orphan_consumed = [f for f in diag.data_flow if not f.producer and f.consumers]
         if orphan_produced:
-            lines.append(f"  Orphan keys (produced, never consumed):")
+            lines.append("  Orphan keys (produced, never consumed):")
             for flow in orphan_produced:
                 lines.append(f"    {flow.producer} --[{flow.key}]--> (unused)")
         if orphan_consumed:
-            lines.append(f"  Missing keys (consumed, never produced):")
+            lines.append("  Missing keys (consumed, never produced):")
             for flow in orphan_consumed:
                 cons_str = ", ".join(flow.consumers)
                 lines.append(f"    (missing) --[{flow.key}]--> {cons_str}")

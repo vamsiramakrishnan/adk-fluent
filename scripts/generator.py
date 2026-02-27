@@ -37,6 +37,7 @@ try:
         ClassAttr,
         ClassNode,
         ForAppendStmt,
+        ForkAndAssign,
         IfStmt,
         ImportStmt,
         MethodNode,
@@ -57,6 +58,7 @@ except ModuleNotFoundError:
         ClassAttr,
         ClassNode,
         ForAppendStmt,
+        ForkAndAssign,
         IfStmt,
         ImportStmt,
         MethodNode,
@@ -105,6 +107,7 @@ class BuilderSpec:
     inspection_mode: str = "pydantic"  # "pydantic" or "init_signature"
     init_params: list[dict] | None = None  # __init__ params for init_signature mode
     optional_constructor_args: list[str] | None = None  # Optional positional args (e.g. model)
+    deprecated_aliases: dict[str, dict[str, str]] | None = None  # fluent_name → {field, use}
 
 
 # ---------------------------------------------------------------------------
@@ -178,6 +181,14 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
         reverse_aliases = {v: k for k, v in aliases.items()}
         callback_aliases = dict(builder_config.get("callback_aliases", {}))
 
+        # Parse deprecated aliases
+        deprecated_aliases: dict[str, dict[str, str]] = {}
+        for dep_name, dep_val in builder_config.get("deprecated_aliases", {}).items():
+            if isinstance(dep_val, dict):
+                deprecated_aliases[dep_name] = dep_val
+            else:
+                deprecated_aliases[dep_name] = {"use": str(dep_val)}
+
         spec = BuilderSpec(
             name=builder_name,
             source_class=source_class,
@@ -197,6 +208,7 @@ def resolve_builder_specs(seed: dict, manifest: dict) -> list[BuilderSpec]:
             is_composite=is_composite,
             is_standalone=is_standalone,
             field_docs=field_docs,
+            deprecated_aliases=deprecated_aliases,
             inspection_mode=inspection_mode,
             init_params=init_params,
             optional_constructor_args=builder_config.get("optional_constructor_args"),
@@ -408,6 +420,7 @@ def _ir_init_method(spec: BuilderSpec) -> MethodNode:
 
     body.append(AssignStmt("self._callbacks: dict[str, list[Callable]]", "defaultdict(list)"))
     body.append(AssignStmt("self._lists: dict[str, list]", "defaultdict(list)"))
+    body.append(AssignStmt("self._frozen", "False"))
 
     for arg in spec.optional_constructor_args or []:
         body.append(
@@ -425,6 +438,9 @@ def _ir_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
     methods: list[MethodNode] = []
 
     for fluent_name, field_name in spec.aliases.items():
+        # Skip aliases that are now deprecated (handled by _ir_deprecated_alias_methods)
+        if spec.deprecated_aliases and fluent_name in spec.deprecated_aliases:
+            continue
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
         type_hint = field_info["type_str"] if field_info else "Any"
 
@@ -441,6 +457,43 @@ def _ir_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=doc or f"Set the `{field_name}` field.",
                 body=[
+                    ForkAndAssign(),
+                    SubscriptAssign("self._config", field_name, "value"),
+                    ReturnStmt("self"),
+                ],
+            )
+        )
+
+    return methods
+
+
+def _ir_deprecated_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
+    """Build MethodNodes for deprecated aliases that emit DeprecationWarning."""
+    methods: list[MethodNode] = []
+    if not spec.deprecated_aliases:
+        return methods
+
+    for fluent_name, config in spec.deprecated_aliases.items():
+        field_name = config.get("field", spec.aliases.get(fluent_name, fluent_name))
+        use_instead = config.get("use", "")
+
+        field_info = next((f for f in spec.fields if f["name"] == field_name), None)
+        type_hint = field_info["type_str"] if field_info else "Any"
+
+        msg = f".{fluent_name}() is deprecated, use .{use_instead}() instead"
+        doc = f"Deprecated: use ``.{use_instead}()`` instead."
+
+        methods.append(
+            MethodNode(
+                name=fluent_name,
+                params=[Param("self"), Param("value", type=type_hint)],
+                returns="Self",
+                doc=doc,
+                body=[
+                    ForkAndAssign(),
+                    RawStmt(
+                        f'import warnings\nwarnings.warn(\n    "{msg}",\n    DeprecationWarning,\n    stacklevel=2,\n)'
+                    ),
                     SubscriptAssign("self._config", field_name, "value"),
                     ReturnStmt("self"),
                 ],
@@ -463,6 +516,7 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=f"Append callback(s) to `{full_name}`. Multiple calls accumulate.",
                 body=[
+                    ForkAndAssign(),
                     ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=full_name),
                     ReturnStmt("self"),
                 ],
@@ -476,6 +530,7 @@ def _ir_callback_methods(spec: BuilderSpec) -> list[MethodNode]:
                 returns="Self",
                 doc=f"Append callback to `{full_name}` only if condition is True.",
                 body=[
+                    ForkAndAssign(),
                     IfStmt(
                         condition="condition",
                         body=(AppendStmt("self._callbacks", full_name, "fn"),),
@@ -499,6 +554,10 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
     alias_method_names = set(spec.aliases.keys())
     callback_method_names = set(spec.callback_aliases.keys())
     callback_if_names = {f"{n}_if" for n in spec.callback_aliases}
+    deprecated_names = set(spec.deprecated_aliases.keys()) if spec.deprecated_aliases else set()
+    deprecated_fields = (
+        {v.get("field", "") for v in spec.deprecated_aliases.values()} if spec.deprecated_aliases else set()
+    )
 
     covered = (
         spec.skip_fields
@@ -508,6 +567,8 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
         | alias_method_names
         | callback_method_names
         | callback_if_names
+        | deprecated_names
+        | deprecated_fields
     )
 
     methods: list[MethodNode] = []
@@ -529,6 +590,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                     returns="Self",
                     doc=f"Set the ``{pname}`` field.",
                     body=[
+                        ForkAndAssign(),
                         SubscriptAssign("self._config", pname, "value"),
                         ReturnStmt("self"),
                     ],
@@ -549,6 +611,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                         returns="Self",
                         doc=f"Append callback(s) to ``{fname}``. Multiple calls accumulate.",
                         body=[
+                            ForkAndAssign(),
                             ForAppendStmt(var="fn", iterable="fns", target="self._callbacks", key=fname),
                             ReturnStmt("self"),
                         ],
@@ -564,6 +627,7 @@ def _ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
                         returns="Self",
                         doc=doc or f"Set the ``{fname}`` field.",
                         body=[
+                            ForkAndAssign(),
                             SubscriptAssign("self._config", fname, "value"),
                             ReturnStmt("self"),
                         ],
@@ -598,11 +662,13 @@ def _ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
                 append_value = "agent"
             else:
                 append_value = "value"
+            body.append(ForkAndAssign())
             body.append(AppendStmt("self._lists", target, append_value))
             body.append(ReturnStmt("self"))
 
         elif behavior == "field_set":
             param_name = sig.split("self, ")[1].split(":")[0].strip() if "self, " in sig else "value"
+            body.append(ForkAndAssign())
             body.append(SubscriptAssign("self._config", target, param_name))
             body.append(ReturnStmt("self"))
 
@@ -612,6 +678,7 @@ def _ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
                 param_name = sig.split("self, ")[1].split(":")[0].strip()
             else:
                 param_name = "fn"
+            body.append(ForkAndAssign())
             for tf in target_fields:
                 body.append(AppendStmt("self._callbacks", tf, param_name))
             body.append(ReturnStmt("self"))
@@ -719,7 +786,8 @@ def _ir_build_method(spec: BuilderSpec) -> MethodNode | None:
         doc=f"{spec.doc} Resolve into a native ADK {class_short}.",
         body=[
             AssignStmt("config", "self._prepare_build_config()"),
-            ReturnStmt(f"{class_short}(**config)"),
+            AssignStmt("result", f"self._safe_build({class_short}, config)"),
+            ReturnStmt("self._apply_native_hooks(result)"),
         ],
     )
 
@@ -734,6 +802,7 @@ def spec_to_ir(spec: BuilderSpec) -> ClassNode:
     methods: list[MethodNode] = []
     methods.append(_ir_init_method(spec))
     methods.extend(_ir_alias_methods(spec))
+    methods.extend(_ir_deprecated_alias_methods(spec))
     methods.extend(_ir_callback_methods(spec))
     methods.extend(_ir_field_methods(spec))
     methods.extend(_ir_extra_methods(spec))
@@ -1574,7 +1643,7 @@ def generate_all(
         return len([f for f in s.fields if f["name"] not in s.skip_fields])
 
     total_methods = sum(
-        len(s.aliases) + len(s.callback_aliases) + len(s.extras) + _count_forwarded(s)
+        len(s.aliases) + len(s.deprecated_aliases or {}) + len(s.callback_aliases) + len(s.extras) + _count_forwarded(s)
         for s in specs
         if not s.is_composite and not s.is_standalone
     )

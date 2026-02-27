@@ -31,13 +31,13 @@ MODEL = "gemini-2.5-flash"
 
 # --- Sub-agents ---
 
-story = Agent("story_agent", MODEL).describe(STORY_DESC).instruct(STORY_PROMPT).outputs("story")
+story = Agent("story_agent", MODEL).describe(STORY_DESC).instruct(STORY_PROMPT).save_as("story")
 
 screenplay = (
     Agent("screenplay_agent", MODEL)
     .describe("Agent responsible for writing a screenplay based on a story.")
     .instruct(SCREENPLAY_PROMPT)
-    .outputs("screenplay")
+    .save_as("screenplay")
 )
 
 storyboard = (
@@ -46,7 +46,7 @@ storyboard = (
         "Agent responsible for creating storyboard images for each scene in the screenplay using Vertex AI Imagen."
     )
     .instruct(STORYBOARD_PROMPT)
-    .outputs("storyboard")
+    .save_as("storyboard")
     .tool(storyboard_generate)
 )
 
@@ -56,7 +56,7 @@ video = (
         "Agent responsible for creating video clips for each scene using Veo 3.0 with storyboard images as reference."
     )
     .instruct(VIDEO_PROMPT)
-    .outputs("video")
+    .save_as("video")
     .tool(video_generate)
 )
 

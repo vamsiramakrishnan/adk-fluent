@@ -39,7 +39,7 @@ risk_scorer = (
     Agent("risk_scorer")
     .model("gemini-2.5-flash")
     .instruct("Analyze the transaction and assign a risk level: 'low', 'medium', or 'high'.")
-    .outputs("risk_level")
+    .save_as("risk_level")
 )
 
 compliance_notifier = (

@@ -40,11 +40,13 @@ class BaseArtifactService(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BaseArtifactService:
         """Abstract base class for artifact services. Resolve into a native ADK _ADK_BaseArtifactService."""
         config = self._prepare_build_config()
-        return _ADK_BaseArtifactService(**config)
+        result = self._safe_build(_ADK_BaseArtifactService, config)
+        return self._apply_native_hooks(result)
 
 
 class FileArtifactService(BuilderBase):
@@ -59,11 +61,13 @@ class FileArtifactService(BuilderBase):
         self._config: dict[str, Any] = {"root_dir": root_dir}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_FileArtifactService:
         """Stores filesystem-backed artifacts beneath a configurable root directory. Resolve into a native ADK _ADK_FileArtifactService."""
         config = self._prepare_build_config()
-        return _ADK_FileArtifactService(**config)
+        result = self._safe_build(_ADK_FileArtifactService, config)
+        return self._apply_native_hooks(result)
 
 
 class GcsArtifactService(BuilderBase):
@@ -78,11 +82,13 @@ class GcsArtifactService(BuilderBase):
         self._config: dict[str, Any] = {"bucket_name": bucket_name, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_GcsArtifactService:
         """An artifact service implementation using Google Cloud Storage (GCS). Resolve into a native ADK _ADK_GcsArtifactService."""
         config = self._prepare_build_config()
-        return _ADK_GcsArtifactService(**config)
+        result = self._safe_build(_ADK_GcsArtifactService, config)
+        return self._apply_native_hooks(result)
 
 
 class InMemoryArtifactService(BuilderBase):
@@ -97,16 +103,19 @@ class InMemoryArtifactService(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def artifacts(self, value: dict[str, list[Any]]) -> Self:
         """Set the ``artifacts`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["artifacts"] = value
         return self
 
     def build(self) -> _ADK_InMemoryArtifactService:
         """An in-memory implementation of the artifact service. Resolve into a native ADK _ADK_InMemoryArtifactService."""
         config = self._prepare_build_config()
-        return _ADK_InMemoryArtifactService(**config)
+        result = self._safe_build(_ADK_InMemoryArtifactService, config)
+        return self._apply_native_hooks(result)
 
 
 class PerAgentDatabaseSessionService(BuilderBase):
@@ -115,22 +124,25 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"app_name_to_dir", "agents_root"}
+    _KNOWN_PARAMS: set[str] | None = {"agents_root", "app_name_to_dir"}
 
     def __init__(self, agents_root: str) -> None:
         self._config: dict[str, Any] = {"agents_root": agents_root}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def app_name_to_dir(self, value: Mapping[str, str] | None) -> Self:
         """Set the ``app_name_to_dir`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["app_name_to_dir"] = value
         return self
 
     def build(self) -> _ADK_PerAgentDatabaseSessionService:
         """Routes session storage to per-agent `.adk/session.db` files. Resolve into a native ADK _ADK_PerAgentDatabaseSessionService."""
         config = self._prepare_build_config()
-        return _ADK_PerAgentDatabaseSessionService(**config)
+        result = self._safe_build(_ADK_PerAgentDatabaseSessionService, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseMemoryService(BuilderBase):
@@ -145,11 +157,13 @@ class BaseMemoryService(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BaseMemoryService:
         """Base class for memory services. Resolve into a native ADK _ADK_BaseMemoryService."""
         config = self._prepare_build_config()
-        return _ADK_BaseMemoryService(**config)
+        result = self._safe_build(_ADK_BaseMemoryService, config)
+        return self._apply_native_hooks(result)
 
 
 class InMemoryMemoryService(BuilderBase):
@@ -164,11 +178,13 @@ class InMemoryMemoryService(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_InMemoryMemoryService:
         """An in-memory memory service for prototyping purpose only. Resolve into a native ADK _ADK_InMemoryMemoryService."""
         config = self._prepare_build_config()
-        return _ADK_InMemoryMemoryService(**config)
+        result = self._safe_build(_ADK_InMemoryMemoryService, config)
+        return self._apply_native_hooks(result)
 
 
 class VertexAiMemoryBankService(BuilderBase):
@@ -177,37 +193,43 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"express_mode_api_key", "location", "project", "agent_engine_id"}
+    _KNOWN_PARAMS: set[str] | None = {"express_mode_api_key", "location", "agent_engine_id", "project"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def project(self, value: str | None) -> Self:
         """Set the ``project`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["project"] = value
         return self
 
     def location(self, value: str | None) -> Self:
         """Set the ``location`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["location"] = value
         return self
 
     def agent_engine_id(self, value: str | None) -> Self:
         """Set the ``agent_engine_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_engine_id"] = value
         return self
 
     def express_mode_api_key(self, value: str | None) -> Self:
         """Set the ``express_mode_api_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["express_mode_api_key"] = value
         return self
 
     def build(self) -> _ADK_VertexAiMemoryBankService:
         """Implementation of the BaseMemoryService using Vertex AI Memory Bank. Resolve into a native ADK _ADK_VertexAiMemoryBankService."""
         config = self._prepare_build_config()
-        return _ADK_VertexAiMemoryBankService(**config)
+        result = self._safe_build(_ADK_VertexAiMemoryBankService, config)
+        return self._apply_native_hooks(result)
 
 
 class VertexAiRagMemoryService(BuilderBase):
@@ -216,32 +238,37 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"rag_corpus", "similarity_top_k", "vector_distance_threshold"}
+    _KNOWN_PARAMS: set[str] | None = {"vector_distance_threshold", "rag_corpus", "similarity_top_k"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def rag_corpus(self, value: str | None) -> Self:
         """Set the ``rag_corpus`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["rag_corpus"] = value
         return self
 
     def similarity_top_k(self, value: int | None) -> Self:
         """Set the ``similarity_top_k`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["similarity_top_k"] = value
         return self
 
     def vector_distance_threshold(self, value: float) -> Self:
         """Set the ``vector_distance_threshold`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["vector_distance_threshold"] = value
         return self
 
     def build(self) -> _ADK_VertexAiRagMemoryService:
         """A memory service that uses Vertex AI RAG for storage and retrieval. Resolve into a native ADK _ADK_VertexAiRagMemoryService."""
         config = self._prepare_build_config()
-        return _ADK_VertexAiRagMemoryService(**config)
+        result = self._safe_build(_ADK_VertexAiRagMemoryService, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseSessionService(BuilderBase):
@@ -256,11 +283,13 @@ class BaseSessionService(BuilderBase):
         self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BaseSessionService:
         """Base class for session services. Resolve into a native ADK _ADK_BaseSessionService."""
         config = self._prepare_build_config()
-        return _ADK_BaseSessionService(**config)
+        result = self._safe_build(_ADK_BaseSessionService, config)
+        return self._apply_native_hooks(result)
 
 
 class DatabaseSessionService(BuilderBase):
@@ -275,11 +304,13 @@ class DatabaseSessionService(BuilderBase):
         self._config: dict[str, Any] = {"db_url": db_url, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_DatabaseSessionService:
         """A session service that uses a database for storage. Resolve into a native ADK _ADK_DatabaseSessionService."""
         config = self._prepare_build_config()
-        return _ADK_DatabaseSessionService(**config)
+        result = self._safe_build(_ADK_DatabaseSessionService, config)
+        return self._apply_native_hooks(result)
 
 
 class InMemorySessionService(BuilderBase):
@@ -294,11 +325,13 @@ class InMemorySessionService(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_InMemorySessionService:
         """An in-memory implementation of the session service. Resolve into a native ADK _ADK_InMemorySessionService."""
         config = self._prepare_build_config()
-        return _ADK_InMemorySessionService(**config)
+        result = self._safe_build(_ADK_InMemorySessionService, config)
+        return self._apply_native_hooks(result)
 
 
 class SqliteSessionService(BuilderBase):
@@ -313,11 +346,13 @@ class SqliteSessionService(BuilderBase):
         self._config: dict[str, Any] = {"db_path": db_path}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_SqliteSessionService:
         """A session service that uses an SQLite database for storage via aiosqlite. Resolve into a native ADK _ADK_SqliteSessionService."""
         config = self._prepare_build_config()
-        return _ADK_SqliteSessionService(**config)
+        result = self._safe_build(_ADK_SqliteSessionService, config)
+        return self._apply_native_hooks(result)
 
 
 class VertexAiSessionService(BuilderBase):
@@ -326,37 +361,43 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"express_mode_api_key", "location", "project", "agent_engine_id"}
+    _KNOWN_PARAMS: set[str] | None = {"express_mode_api_key", "location", "agent_engine_id", "project"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def project(self, value: str | None) -> Self:
         """Set the ``project`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["project"] = value
         return self
 
     def location(self, value: str | None) -> Self:
         """Set the ``location`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["location"] = value
         return self
 
     def agent_engine_id(self, value: str | None) -> Self:
         """Set the ``agent_engine_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["agent_engine_id"] = value
         return self
 
     def express_mode_api_key(self, value: str | None) -> Self:
         """Set the ``express_mode_api_key`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["express_mode_api_key"] = value
         return self
 
     def build(self) -> _ADK_VertexAiSessionService:
         """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. Resolve into a native ADK _ADK_VertexAiSessionService."""
         config = self._prepare_build_config()
-        return _ADK_VertexAiSessionService(**config)
+        result = self._safe_build(_ADK_VertexAiSessionService, config)
+        return self._apply_native_hooks(result)
 
 
 class ForwardingArtifactService(BuilderBase):
@@ -371,8 +412,10 @@ class ForwardingArtifactService(BuilderBase):
         self._config: dict[str, Any] = {"tool_context": tool_context}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_ForwardingArtifactService:
         """Artifact service that forwards to the parent tool context. Resolve into a native ADK _ADK_ForwardingArtifactService."""
         config = self._prepare_build_config()
-        return _ADK_ForwardingArtifactService(**config)
+        result = self._safe_build(_ADK_ForwardingArtifactService, config)
+        return self._apply_native_hooks(result)

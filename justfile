@@ -68,7 +68,7 @@ generate: _require-manifest _require-seed
     @uv run ruff check .
     @# Re-apply read-only trap
     @chmod -R -w {{OUTPUT_DIR}} {{TEST_DIR}} || true
-    @chmod +w {{OUTPUT_DIR}}/__init__.py {{OUTPUT_DIR}}/_base.py {{OUTPUT_DIR}}/_routing.py {{OUTPUT_DIR}}/_transforms.py {{OUTPUT_DIR}}/_prompt.py {{OUTPUT_DIR}}/_helpers.py {{OUTPUT_DIR}}/_context.py {{OUTPUT_DIR}}/_visibility.py || true
+    @chmod +w {{OUTPUT_DIR}}/__init__.py {{OUTPUT_DIR}}/_base.py {{OUTPUT_DIR}}/_routing.py {{OUTPUT_DIR}}/_transforms.py {{OUTPUT_DIR}}/_prompt.py {{OUTPUT_DIR}}/_helpers.py {{OUTPUT_DIR}}/_context.py {{OUTPUT_DIR}}/_visibility.py {{OUTPUT_DIR}}/cli.py || true
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed
@@ -100,6 +100,11 @@ test:
 typecheck:
     @echo "Type-checking generated stubs..."
     @uv run pyright {{OUTPUT_DIR}}/*.pyi --pythonversion 3.12
+
+# --- Type checking hand-written code ---
+typecheck-core:
+    @echo "Type-checking hand-written code..."
+    @uv run pyright
 
 # --- Watch mode ---
 watch:

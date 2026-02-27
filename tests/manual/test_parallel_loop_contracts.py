@@ -1,6 +1,5 @@
 """Tests for ParallelNode and LoopNode contract checking (v0.9.2 — Tier 1)."""
 
-import pytest
 from pydantic import BaseModel
 
 
@@ -13,7 +12,8 @@ def test_parallel_output_key_collision():
     ir = fanout.to_ir()
     issues = check_contracts(ir)
     collision_errors = [
-        i for i in issues
+        i
+        for i in issues
         if isinstance(i, dict) and i.get("level") == "error" and "race condition" in i.get("message", "")
     ]
     assert len(collision_errors) >= 1
@@ -29,7 +29,8 @@ def test_parallel_no_collision_different_keys():
     ir = fanout.to_ir()
     issues = check_contracts(ir)
     collision_errors = [
-        i for i in issues
+        i
+        for i in issues
         if isinstance(i, dict) and i.get("level") == "error" and "race condition" in i.get("message", "")
     ]
     assert len(collision_errors) == 0
@@ -47,10 +48,7 @@ def test_parallel_writes_keys_collision():
     fanout = Agent("a").produces(Score) | Agent("b").produces(Score)
     ir = fanout.to_ir()
     issues = check_contracts(ir)
-    collision_info = [
-        i for i in issues
-        if isinstance(i, dict) and "race condition" in i.get("message", "")
-    ]
+    collision_info = [i for i in issues if isinstance(i, dict) and "race condition" in i.get("message", "")]
     assert len(collision_info) >= 1
 
 
@@ -73,8 +71,7 @@ def test_loop_body_sequence_checked():
     issues = check_contracts(ir)
     # {draft} is unresolved in the loop body
     template_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "draft" in i.get("message", "")
+        i for i in issues if isinstance(i, dict) and i.get("level") == "error" and "draft" in i.get("message", "")
     ]
     assert len(template_errors) >= 1
 
@@ -88,7 +85,8 @@ def test_loop_body_valid_no_errors():
     ir = loop.to_ir()
     issues = check_contracts(ir)
     template_errors = [
-        i for i in issues
+        i
+        for i in issues
         if isinstance(i, dict) and i.get("level") == "error" and "Template variable" in i.get("message", "")
     ]
     assert len(template_errors) == 0

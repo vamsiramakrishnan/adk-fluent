@@ -18,7 +18,7 @@ quality_ok = until(lambda s: s.get("quality") == "good", max=5)
 
 # agent * until(pred) — loop until predicate is satisfied
 loop = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").outputs("quality")
+    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").save_as("quality")
     >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review and rate quality.")
 ) * quality_ok
 

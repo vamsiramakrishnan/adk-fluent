@@ -22,7 +22,7 @@ payment_processor = (
     .instruct(
         "Process the payment through the gateway. Report status as 'success', 'transient_error', or 'permanent_error'."
     )
-    .outputs("payment_status")
+    .save_as("payment_status")
     .retry_if(lambda s: s.get("payment_status") == "transient_error", max_retries=3)
 )
 
@@ -31,11 +31,11 @@ charge_and_verify = (
     Agent("charge_agent")
     .model("gemini-2.5-flash")
     .instruct("Submit charge to payment gateway.")
-    .outputs("charge_result")
+    .save_as("charge_result")
     >> Agent("verification_agent")
     .model("gemini-2.5-flash")
     .instruct("Verify the charge was recorded by the bank.")
-    .outputs("verified")
+    .save_as("verified")
 ).retry_if(lambda s: s.get("verified") != "confirmed", max_retries=5)
 
 # Equivalence: retry_if(p) == loop_until(not p)

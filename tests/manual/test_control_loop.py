@@ -6,22 +6,22 @@ from adk_fluent import Agent, Pipeline
 
 
 class TestOutputsAlias:
-    """Tests for .outputs() alias for output_key."""
+    """Tests for .save_as() alias for output_key."""
 
     def test_outputs_sets_output_key(self):
         """outputs() is an alias for output_key."""
-        agent = Agent("step1").model("gemini-2.5-flash").outputs("result")
+        agent = Agent("step1").model("gemini-2.5-flash").save_as("result")
         assert agent._config["output_key"] == "result"
 
     def test_outputs_returns_self(self):
         """outputs() returns self for chaining."""
         agent = Agent("step1")
-        result = agent.outputs("x")
+        result = agent.save_as("x")
         assert result is agent
 
     def test_outputs_in_chain(self):
         """outputs() works in a fluent chain."""
-        agent = Agent("step1").model("gemini-2.5-flash").instruct("Classify the input.").outputs("classification")
+        agent = Agent("step1").model("gemini-2.5-flash").instruct("Classify the input.").save_as("classification")
         assert agent._config["output_key"] == "classification"
         assert agent._config["instruction"] == "Classify the input."
 
@@ -71,7 +71,7 @@ class TestDictRouting:
 
     def test_dict_creates_pipeline(self):
         """agent >> dict creates a Pipeline."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         booker = Agent("booker").model("gemini-2.5-flash")
         info = Agent("info").model("gemini-2.5-flash")
 
@@ -80,13 +80,13 @@ class TestDictRouting:
 
     def test_dict_requires_outputs(self):
         """dict >> raises ValueError if left side has no output_key."""
-        classifier = Agent("classify").model("gemini-2.5-flash")  # No .outputs()
+        classifier = Agent("classify").model("gemini-2.5-flash")  # No .save_as()
         with pytest.raises(ValueError, match="must have .outputs"):
             classifier >> {"a": Agent("x")}
 
     def test_dict_pipeline_has_two_steps(self):
         """The resulting Pipeline has classifier + route_agent as sub_agents."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         result = classifier >> {
             "a": Agent("x").model("gemini-2.5-flash").instruct("X"),
             "b": Agent("y").model("gemini-2.5-flash").instruct("Y"),
@@ -100,7 +100,7 @@ class TestDictRouting:
 
         from adk_fluent._routing import Route
 
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         a = Agent("handler_a").model("gemini-2.5-flash").instruct("A")
         b = Agent("handler_b").model("gemini-2.5-flash").instruct("B")
 
@@ -118,7 +118,7 @@ class TestDictRouting:
         """The route agent is a deterministic BaseAgent, NOT an LLM-based coordinator."""
         from google.adk.agents.llm_agent import LlmAgent
 
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         pipeline = classifier >> {
             "booking": Agent("booker").model("gemini-2.5-flash").instruct("B"),
             "info": Agent("info_agent").model("gemini-2.5-flash").instruct("I"),
@@ -129,7 +129,7 @@ class TestDictRouting:
 
     def test_dict_followed_by_more_steps(self):
         """dict routing can be followed by more >> steps."""
-        classifier = Agent("classify").model("gemini-2.5-flash").outputs("intent")
+        classifier = Agent("classify").model("gemini-2.5-flash").save_as("intent")
         formatter = Agent("formatter").model("gemini-2.5-flash")
 
         result = (

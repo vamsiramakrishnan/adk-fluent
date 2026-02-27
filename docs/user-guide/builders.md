@@ -23,7 +23,7 @@ agent = (
     Agent("helper", "gemini-2.5-flash")
     .instruct("You are a helpful assistant.")
     .describe("A general-purpose helper agent")
-    .outputs("response")
+    .save_as("response")
     .tool(search_fn)
     .build()
 )
@@ -249,7 +249,7 @@ from adk_fluent import Pipeline, Agent
 
 pipeline = (
     Pipeline("data_processing")
-    .step(Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").outputs("entities"))
+    .step(Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").save_as("entities"))
     .step(Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}.").tool(lookup_db))
     .step(Agent("formatter", "gemini-2.5-flash").instruct("Format output.").history("none"))
     .build()
@@ -268,8 +268,8 @@ from adk_fluent import FanOut, Agent
 
 fanout = (
     FanOut("research")
-    .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web.").outputs("web_results"))
-    .branch(Agent("papers", "gemini-2.5-pro").instruct("Search academic papers.").outputs("paper_results"))
+    .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web.").save_as("web_results"))
+    .branch(Agent("papers", "gemini-2.5-pro").instruct("Search academic papers.").save_as("paper_results"))
     .build()
 )
 ```
@@ -286,7 +286,7 @@ from adk_fluent import Loop, Agent
 
 loop = (
     Loop("quality_loop")
-    .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft.").outputs("quality"))
+    .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft.").save_as("quality"))
     .step(Agent("reviewer", "gemini-2.5-flash").instruct("Review and score."))
     .max_iterations(5)
     .until(lambda s: s.get("quality") == "good")
@@ -314,20 +314,20 @@ researcher = (
     .instruct(Prompt().role("You are a research analyst.").task("Find relevant information."))
     .tool(search_tool)
     .before_model(log_fn)
-    .outputs("findings")
+    .save_as("findings")
 )
 
 writer = (
     Agent("writer", "gemini-2.5-pro")
     .instruct("Write a report about {findings}.")
     .static("Company style guide: use formal tone, cite sources...")
-    .outputs("draft")
+    .save_as("draft")
 )
 
 reviewer = (
     Agent("reviewer", "gemini-2.5-flash")
     .instruct("Score the draft 1-10 for quality.")
-    .outputs("quality_score")
+    .save_as("quality_score")
 )
 
 # Compose with operators — each sub-expression is reusable

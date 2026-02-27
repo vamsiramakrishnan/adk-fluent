@@ -35,6 +35,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Rich `.explain()` output**: Rewritten to show model, instruction preview, template variables (required vs optional), data flow (reads/writes), context strategy, structured output, tools, callbacks, children, and inline contract issues with hints
 - **Data flow edges in Mermaid**: `to_mermaid(show_data_flow=True)` renders dotted arrows showing key flow between producers and consumers
 - **Context annotations in Mermaid**: `to_mermaid(show_context=True)` annotates nodes with their context strategy
+- **Copy-on-Write frozen builders** (#7): Composition operators (`>>`, `|`, `*`, `@`, `//`) and `to_app()` now freeze the builder; subsequent mutations automatically fork a new clone. Backwards compatible — unfrozen chains still mutate in place.
+- **`__dir__` override** (#8): `dir(Agent("x"))` now includes all fluent method names (aliases, callbacks, ADK model fields) for REPL/IDE autocomplete.
+- **`BuilderError` exception** (#9): `.build()` failures now raise a structured `BuilderError` with per-field error messages instead of raw 30-line pydantic tracebacks. Exported from `adk_fluent`.
+- **`.native(fn)` escape hatch** (#10): Register post-build hooks that receive the raw ADK object, allowing direct mutation without abstraction lock-in. Multiple hooks chain in order.
+- **`adk-fluent visualize` CLI** (#12): New CLI tool renders any builder as a Mermaid diagram. Supports `--format html|mermaid`, `--var`, `--output`, and auto-detection of BuilderBase instances in a module.
+- **Autocomplete stress tests** (#13): Pyright subprocess tests verify type resolution for chained methods, `.build()` return type, unknown method errors, and operator result types.
+- **`typecheck-core` target** (#18): New justfile target runs pyright on hand-written code only. CI now runs both stub and core type checking.
 - 40 new tests: context_spec IR (8), enhanced contracts (12), rich explain (13), enhanced viz (7)
 
 ### Changed
@@ -42,6 +49,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.explain()` output format now uses structured sections with capitalized labels (e.g., "Model:", "Instruction:", "Template vars:")
 - `to_mermaid()` accepts new parameters: `show_contracts`, `show_data_flow`, `show_context`
 - `CaptureNode` gets distinctive `([capture])` shape in Mermaid diagrams
+- **Pyright config** (#18): `[tool.pyright]` now includes only hand-written modules and excludes generated files to eliminate false positives.
+- **Code IR**: New `ForkAndAssign` statement node emits copy-on-write guards in all generated setter methods.
+- **CI pipeline**: Added `typecheck-core` step and cookbook test run to `.github/workflows/ci.yml`.
+
+### Fixed
+
+- **Mutation corruption** (#7): `base = Agent("x").model("m"); a = base >> Agent("y"); b = base.instruct("z")` no longer corrupts `a` — `b` is an independent clone.
+
+## [0.8.0] - 2026-02-25
+
+### Added
+
+- **`.save_as(key)` method**: Clearer name for storing agent response text in session state (replaces `.outputs()`)
+- **`.stay()` method**: Prevent agent from transferring back to parent (positive alternative to `.disallow_transfer_to_parent(True)`)
+- **`.no_peers()` method**: Prevent agent from transferring to sibling agents (positive alternative to `.disallow_transfer_to_peers(True)`)
+- **`adk_fluent.prelude` module**: Minimal imports for most projects — `Agent, Pipeline, FanOut, Loop, C, S, Route, Prompt`
+- **`deprecated_aliases` codegen support**: Generator emits `DeprecationWarning` for deprecated method names pointing to their replacements
+- **Choosing the Right Method table**: Transfer control user guide now documents Pipeline.step, FanOut.branch, Loop.step, Agent.sub_agent, Agent.delegate
+
+### Changed
+
+- All cookbook examples and user guides updated to use `.save_as()` instead of `.outputs()`
+- Deep search example updated to use `.context(C.none())` instead of `.history("none")`
+
+### Deprecated
+
+- **`.outputs(key)`** — use `.save_as(key)` instead
+- **`.history()`** — use `.context()` with C module instead
+- **`.include_history()`** — use `.context()` with C module instead
+- **`.static_instruct()`** — use `.static()` instead
 
 ## [0.7.0] - 2026-02-25
 
@@ -227,5 +264,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.1...v0.5.2
 [0.6.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.5.2...v0.6.0
 [0.7.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.6.0...v0.7.0
-[0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.7.0...v0.9.1
+[0.8.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.7.0...v0.8.0
+[0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.8.0...v0.9.1
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2

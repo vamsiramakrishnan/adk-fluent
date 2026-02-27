@@ -512,10 +512,7 @@ def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str
                     {
                         "level": "error",
                         "agent": _scoped(child_name),
-                        "message": (
-                            f"Transform '{child_name}' reads key '{key}' "
-                            f"but no upstream agent produces it"
-                        ),
+                        "message": (f"Transform '{child_name}' reads key '{key}' but no upstream agent produces it"),
                         "hint": (
                             f"Add .outputs('{key}') to an upstream agent, or "
                             f"ensure the key is in state before this transform runs."
@@ -584,8 +581,7 @@ def _check_parallel_contracts(children: tuple, parent_name: str = "") -> list[di
                         f"both write to output_key='{key}' — last-write-wins race condition"
                     ),
                     "hint": (
-                        f"Give each branch a unique output_key, or merge results "
-                        f"with a downstream S.merge() transform."
+                        "Give each branch a unique output_key, or merge results with a downstream S.merge() transform."
                     ),
                 }
             )

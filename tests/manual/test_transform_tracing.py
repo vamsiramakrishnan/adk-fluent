@@ -1,8 +1,5 @@
 """Tests for transform read/write tracing (v0.9.2 — Tier 1)."""
 
-import pytest
-from pydantic import BaseModel
-
 
 def test_s_rename_produces_new_key():
     """S.rename(draft='input') should make {input} resolvable downstream."""
@@ -18,8 +15,11 @@ def test_s_rename_produces_new_key():
     issues = check_contracts(ir)
     # 'input' should be produced by S.rename, so no error about it
     template_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "input" in i.get("message", "")
+        i
+        for i in issues
+        if isinstance(i, dict)
+        and i.get("level") == "error"
+        and "input" in i.get("message", "")
         and "Template variable" in i.get("message", "")
     ]
     assert len(template_errors) == 0
@@ -39,8 +39,11 @@ def test_s_merge_produces_merged_key():
     ir = pipeline.to_ir()
     issues = check_contracts(ir)
     template_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "combined" in i.get("message", "")
+        i
+        for i in issues
+        if isinstance(i, dict)
+        and i.get("level") == "error"
+        and "combined" in i.get("message", "")
         and "Template variable" in i.get("message", "")
     ]
     assert len(template_errors) == 0
@@ -51,15 +54,15 @@ def test_s_set_produces_key():
     from adk_fluent import Agent, S
     from adk_fluent.testing.contracts import check_contracts
 
-    pipeline = (
-        S.set(stage="review")
-        >> Agent("a").instruct("Current stage: {stage}")
-    )
+    pipeline = S.set(stage="review") >> Agent("a").instruct("Current stage: {stage}")
     ir = pipeline.to_ir()
     issues = check_contracts(ir)
     template_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "stage" in i.get("message", "")
+        i
+        for i in issues
+        if isinstance(i, dict)
+        and i.get("level") == "error"
+        and "stage" in i.get("message", "")
         and "Template variable" in i.get("message", "")
     ]
     assert len(template_errors) == 0
@@ -78,8 +81,11 @@ def test_s_compute_produces_keys():
     ir = pipeline.to_ir()
     issues = check_contracts(ir)
     template_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "summary" in i.get("message", "")
+        i
+        for i in issues
+        if isinstance(i, dict)
+        and i.get("level") == "error"
+        and "summary" in i.get("message", "")
         and "Template variable" in i.get("message", "")
     ]
     assert len(template_errors) == 0
@@ -98,8 +104,11 @@ def test_s_transform_preserves_key():
     ir = pipeline.to_ir()
     issues = check_contracts(ir)
     template_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "text" in i.get("message", "")
+        i
+        for i in issues
+        if isinstance(i, dict)
+        and i.get("level") == "error"
+        and "text" in i.get("message", "")
         and "Template variable" in i.get("message", "")
     ]
     assert len(template_errors) == 0
@@ -118,8 +127,11 @@ def test_transform_reads_validation():
     ir = pipeline.to_ir()
     issues = check_contracts(ir)
     transform_errors = [
-        i for i in issues
-        if isinstance(i, dict) and i.get("level") == "error" and "draft" in i.get("message", "")
+        i
+        for i in issues
+        if isinstance(i, dict)
+        and i.get("level") == "error"
+        and "draft" in i.get("message", "")
         and "Transform" in i.get("message", "")
     ]
     assert len(transform_errors) >= 1

@@ -29,46 +29,55 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["optimize_data_file"] = value
         return self
 
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stateful"] = value
         return self
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["error_retry_attempts"] = value
         return self
 
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code_block_delimiters"] = value
         return self
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["execution_result_delimiters"] = value
         return self
 
     def sandbox_resource_name(self, value: str) -> Self:
         """Set the ``sandbox_resource_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["sandbox_resource_name"] = value
         return self
 
     def code_block_delimiter(self, value: tuple[str, str]) -> Self:
         """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["code_block_delimiters"].append(value)
         return self
 
     def build(self) -> _ADK_AgentEngineSandboxCodeExecutor:
         """A code executor that uses Agent Engine Code Execution Sandbox to execute code. Resolve into a native ADK _ADK_AgentEngineSandboxCodeExecutor."""
         config = self._prepare_build_config()
-        return _ADK_AgentEngineSandboxCodeExecutor(**config)
+        result = self._safe_build(_ADK_AgentEngineSandboxCodeExecutor, config)
+        return self._apply_native_hooks(result)
 
 
 class BaseCodeExecutor(BuilderBase):
@@ -83,41 +92,49 @@ class BaseCodeExecutor(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["optimize_data_file"] = value
         return self
 
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stateful"] = value
         return self
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["error_retry_attempts"] = value
         return self
 
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code_block_delimiters"] = value
         return self
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["execution_result_delimiters"] = value
         return self
 
     def code_block_delimiter(self, value: tuple[str, str]) -> Self:
         """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["code_block_delimiters"].append(value)
         return self
 
     def build(self) -> _ADK_BaseCodeExecutor:
         """Abstract base class for all code executors. Resolve into a native ADK _ADK_BaseCodeExecutor."""
         config = self._prepare_build_config()
-        return _ADK_BaseCodeExecutor(**config)
+        result = self._safe_build(_ADK_BaseCodeExecutor, config)
+        return self._apply_native_hooks(result)
 
 
 class BuiltInCodeExecutor(BuilderBase):
@@ -132,41 +149,49 @@ class BuiltInCodeExecutor(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["optimize_data_file"] = value
         return self
 
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stateful"] = value
         return self
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["error_retry_attempts"] = value
         return self
 
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code_block_delimiters"] = value
         return self
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["execution_result_delimiters"] = value
         return self
 
     def code_block_delimiter(self, value: tuple[str, str]) -> Self:
         """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["code_block_delimiters"].append(value)
         return self
 
     def build(self) -> _ADK_BuiltInCodeExecutor:
         """A code executor that uses the Model's built-in code executor. Resolve into a native ADK _ADK_BuiltInCodeExecutor."""
         config = self._prepare_build_config()
-        return _ADK_BuiltInCodeExecutor(**config)
+        result = self._safe_build(_ADK_BuiltInCodeExecutor, config)
+        return self._apply_native_hooks(result)
 
 
 class UnsafeLocalCodeExecutor(BuilderBase):
@@ -181,41 +206,49 @@ class UnsafeLocalCodeExecutor(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["optimize_data_file"] = value
         return self
 
     def stateful(self, value: bool) -> Self:
         """Set the ``stateful`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stateful"] = value
         return self
 
     def error_retry_attempts(self, value: int) -> Self:
         """Set the ``error_retry_attempts`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["error_retry_attempts"] = value
         return self
 
     def code_block_delimiters(self, value: list[tuple[str, str]]) -> Self:
         """Set the ``code_block_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code_block_delimiters"] = value
         return self
 
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self:
         """Set the ``execution_result_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["execution_result_delimiters"] = value
         return self
 
     def code_block_delimiter(self, value: tuple[str, str]) -> Self:
         """Append to ``code_block_delimiters`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
         self._lists["code_block_delimiters"].append(value)
         return self
 
     def build(self) -> _ADK_UnsafeLocalCodeExecutor:
         """A code executor that unsafely execute code in the current local context. Resolve into a native ADK _ADK_UnsafeLocalCodeExecutor."""
         config = self._prepare_build_config()
-        return _ADK_UnsafeLocalCodeExecutor(**config)
+        result = self._safe_build(_ADK_UnsafeLocalCodeExecutor, config)
+        return self._apply_native_hooks(result)
 
 
 class VertexAiCodeExecutor(BuilderBase):
@@ -230,38 +263,46 @@ class VertexAiCodeExecutor(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def optimize_data_file(self, value: Any) -> Self:
         """Set the ``optimize_data_file`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["optimize_data_file"] = value
         return self
 
     def stateful(self, value: Any) -> Self:
         """Set the ``stateful`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["stateful"] = value
         return self
 
     def error_retry_attempts(self, value: Any) -> Self:
         """Set the ``error_retry_attempts`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["error_retry_attempts"] = value
         return self
 
     def code_block_delimiters(self, value: Any) -> Self:
         """Set the ``code_block_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["code_block_delimiters"] = value
         return self
 
     def execution_result_delimiters(self, value: Any) -> Self:
         """Set the ``execution_result_delimiters`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["execution_result_delimiters"] = value
         return self
 
     def resource_name(self, value: Any) -> Self:
         """Set the ``resource_name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["resource_name"] = value
         return self
 
     def build(self) -> _ADK_VertexAiCodeExecutor:
         """A code executor that uses Vertex Code Interpreter Extension to execute code. Resolve into a native ADK _ADK_VertexAiCodeExecutor."""
         config = self._prepare_build_config()
-        return _ADK_VertexAiCodeExecutor(**config)
+        result = self._safe_build(_ADK_VertexAiCodeExecutor, config)
+        return self._apply_native_hooks(result)

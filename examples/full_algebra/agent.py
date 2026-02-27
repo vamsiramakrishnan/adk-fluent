@@ -46,7 +46,7 @@ pipeline = (
     @ Report
     # Step 4: Quality loop (* until)
     >> (
-        Agent("critic").model("gemini-2.5-flash").instruct("Score the report.").outputs("confidence")
+        Agent("critic").model("gemini-2.5-flash").instruct("Score the report.").save_as("confidence")
         >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve the report.")
     )
     * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
@@ -55,7 +55,7 @@ pipeline = (
 # Sub-expression reuse — immutable operators make this safe
 review = Agent("reviewer").model("gemini-2.5-flash").instruct("Review quality.") >> Agent("scorer").model(
     "gemini-2.5-flash"
-).instruct("Score.").outputs("score")
+).instruct("Score.").save_as("score")
 quality_gate = until(lambda s: float(s.get("score", 0)) > 0.8, max=3)
 
 # Same sub-expression in two independent pipelines

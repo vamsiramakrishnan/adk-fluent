@@ -1,32 +1,83 @@
-"""Visualization: Pipeline Architecture Diagrams for Documentation"""
+"""Architecture Documentation -- Mermaid Diagrams from Live Code
+
+Demonstrates to_mermaid() for generating architecture diagrams that
+stay in sync with code. The scenario: a DevOps team documenting their
+incident response platform's agent topology for runbooks and onboarding.
+"""
 
 # --- NATIVE ---
-# Native ADK has no built-in visualization.
-# Complex agent trees must be manually diagrammed in Mermaid, PlantUML,
-# or draw.io -- diagrams that immediately go stale as the code evolves.
+# Native ADK has no built-in visualization. Complex agent graphs
+# must be manually diagrammed and maintained separately from code.
+# Diagrams go stale after the first refactor.
 
 # --- FLUENT ---
 from adk_fluent import Agent
 
-# Scenario: An incident response platform with a multi-stage pipeline.
-# The team needs architecture diagrams for runbooks and design reviews.
-# With .to_mermaid(), diagrams are always in sync with the code.
+# Incident response platform with multiple topology types:
+# sequential stages, parallel fan-out, and conditional routing
 
-incident_pipeline = Agent("alert_triage") >> Agent("severity_classifier") >> Agent("responder_dispatch")
-mermaid = incident_pipeline.to_mermaid()
+# Stage 1: Alert triage
+triage = (
+    Agent("alert_ingestor")
+    .model("gemini-2.5-flash")
+    .instruct("Ingest alert from PagerDuty/OpsGenie and extract severity, service, and description.")
+    .save_as("alert_data")
+)
 
-# Build the pipeline for deployment
-agent_fluent = incident_pipeline.build()
+# Stage 2: Parallel diagnosis from multiple sources
+diagnosis = (
+    Agent("log_analyzer")
+    .model("gemini-2.5-flash")
+    .instruct("Search application logs for errors correlated with the alert timeframe.")
+    | Agent("metrics_checker")
+    .model("gemini-2.5-flash")
+    .instruct("Check Prometheus/Grafana metrics for anomalies in the affected service.")
+    | Agent("trace_analyzer")
+    .model("gemini-2.5-flash")
+    .instruct("Analyze distributed traces to identify the failing component.")
+)
+
+# Stage 3: Resolution
+resolution = (
+    Agent("incident_responder")
+    .model("gemini-2.5-flash")
+    .instruct("Synthesize findings and recommend remediation steps. Draft incident report.")
+)
+
+# Full pipeline: sequential with parallel fan-out in the middle
+incident_pipeline = triage >> diagnosis >> resolution
+
+# Generate architecture diagram
+mermaid_diagram = incident_pipeline.to_mermaid()
+
+# Generate human-readable explanation
+explanation = incident_pipeline.explain()
+
+# Build for deployment
+built = incident_pipeline.build()
 
 # --- ASSERT ---
-assert "graph TD" in mermaid
-assert "alert_triage" in mermaid
-assert "severity_classifier" in mermaid
-assert "responder_dispatch" in mermaid
-assert "-->" in mermaid
+# Mermaid diagram contains all agent names
+assert "graph TD" in mermaid_diagram
+for agent_name in ["alert_ingestor", "log_analyzer", "metrics_checker", "trace_analyzer", "incident_responder"]:
+    assert agent_name in mermaid_diagram, f"Missing {agent_name} in diagram"
 
-# Parallel branches also produce valid Mermaid diagrams
-# Useful for documenting fan-out patterns like multi-region health checks
-health_check = Agent("us_east") | Agent("eu_west") | Agent("ap_south")
-health_mermaid = health_check.to_mermaid()
-assert "graph TD" in health_mermaid
+# Diagram has arrows showing flow
+assert "-->" in mermaid_diagram
+
+# explain() returns a non-empty description
+assert isinstance(explanation, str)
+assert len(explanation) > 0
+
+# Pipeline builds with correct structure
+assert len(built.sub_agents) == 3  # triage, fanout, resolution
+
+# Parallel stage has 3 diagnostic agents
+fanout = built.sub_agents[1]
+assert len(fanout.sub_agents) == 3
+
+# Simple pipeline also generates valid diagrams
+simple = Agent("a") >> Agent("b")
+simple_mermaid = simple.to_mermaid()
+assert "graph TD" in simple_mermaid
+assert "a" in simple_mermaid and "b" in simple_mermaid

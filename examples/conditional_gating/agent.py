@@ -22,7 +22,7 @@ enricher = (
 )
 
 # Chain proceed_if in a pipeline: skip steps based on state
-validator = Agent("validator").model("gemini-2.5-flash").instruct("Validate input.").outputs("valid")
+validator = Agent("validator").model("gemini-2.5-flash").instruct("Validate input.").save_as("valid")
 formatter = (
     Agent("formatter")
     .model("gemini-2.5-flash")

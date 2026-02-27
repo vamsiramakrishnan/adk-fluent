@@ -12,7 +12,7 @@ Usage:
 
 import datetime
 
-from adk_fluent import Agent, until
+from adk_fluent import Agent, C, until
 from dotenv import load_dotenv
 from google.adk.planners import BuiltInPlanner
 from google.adk.tools import google_search
@@ -52,7 +52,7 @@ section_planner = (
     Agent("section_planner", MODEL)
     .describe("Breaks down the research plan into report sections.")
     .instruct(SECTION_PLANNER_PROMPT)
-    .outputs("report_sections")
+    .save_as("report_sections")
 )
 
 section_researcher = (
@@ -61,7 +61,7 @@ section_researcher = (
     .planner(thinking)
     .instruct(SECTION_RESEARCHER_PROMPT)
     .tool(google_search)
-    .outputs("section_research_findings")
+    .save_as("section_research_findings")
     .after_agent(collect_research_sources_callback)
 )
 
@@ -71,7 +71,7 @@ research_evaluator = (
     .instruct(RESEARCH_EVALUATOR_PROMPT.format(today=TODAY))
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .outputs("research_evaluation")
+    .save_as("research_evaluation")
 ) @ Feedback
 
 enhanced_search = (
@@ -80,16 +80,16 @@ enhanced_search = (
     .planner(thinking)
     .instruct(ENHANCED_SEARCH_PROMPT)
     .tool(google_search)
-    .outputs("section_research_findings")
+    .save_as("section_research_findings")
     .after_agent(collect_research_sources_callback)
 )
 
 report_composer = (
     Agent("report_composer_with_citations", MODEL)
-    .history("none")
+    .context(C.none())
     .describe("Composes the final cited report.")
     .instruct(REPORT_COMPOSER_PROMPT)
-    .outputs("final_cited_report")
+    .save_as("final_cited_report")
     .after_agent(citation_replacement_callback)
 )
 
@@ -116,6 +116,6 @@ root_agent = (
     .instruct(INTERACTIVE_PLANNER_PROMPT.format(today=TODAY))
     .sub_agents([research_pipeline.build()])
     .delegate(plan_generator)
-    .outputs("research_plan")
+    .save_as("research_plan")
     .build()
 )

@@ -43,7 +43,7 @@ class TestExplain:
         agent = Agent("math").model("gemini-2.5-flash").instruct("Do math.")
         result = agent.explain()
         assert "model" in result.lower()
-        assert "instruction" in result.lower()
+        assert "instruct" in result.lower()
 
     def test_explain_shows_callback_count(self):
         agent = Agent("math").model("gemini-2.5-flash").before_model(_dummy_cb)

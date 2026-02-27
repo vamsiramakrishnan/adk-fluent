@@ -83,7 +83,7 @@ Every workflow can be expressed two ways -- the explicit builder API or the expr
 ```python
 pipeline = (
     Pipeline("research")
-    .step(Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_data"))
+    .step(Agent("web", "gemini-2.5-flash").instruct("Search web.").save_as("web_data"))
     .step(Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}."))
     .build()
 )
@@ -95,7 +95,7 @@ pipeline = (
 
 ```python
 pipeline = (
-    Agent("web", "gemini-2.5-flash").instruct("Search web.").outputs("web_data")
+    Agent("web", "gemini-2.5-flash").instruct("Search web.").save_as("web_data")
     >> Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}.")
 ).build()
 ```
@@ -112,7 +112,7 @@ pipeline = (
     .step(
         Agent("classifier", "gemini-2.5-flash")
         .instruct("Classify the customer's intent.")
-        .outputs("intent")
+        .save_as("intent")
         .before_model(log_fn)
     )
     .step(
@@ -131,7 +131,7 @@ pipeline = (
 )
 
 # Same complexity, composed from reusable parts with operators
-classify = Agent("classifier", "gemini-2.5-flash").instruct("Classify intent.").outputs("intent")
+classify = Agent("classifier", "gemini-2.5-flash").instruct("Classify intent.").save_as("intent")
 resolve = Agent("resolver", "gemini-2.5-flash").instruct("Resolve {intent}.").tool(lookup_customer)
 respond = Agent("responder", "gemini-2.5-flash").instruct("Draft response.")
 

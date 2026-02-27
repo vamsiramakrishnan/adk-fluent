@@ -1,8 +1,5 @@
 """Tests for context_spec preservation in IR (v0.9.1)."""
 
-import pytest
-from pydantic import BaseModel
-
 
 def test_context_spec_preserved_in_agent_node():
     """context_spec survives builder -> IR conversion."""

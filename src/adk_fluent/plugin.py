@@ -46,16 +46,19 @@ class RecordingsPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_RecordingsPlugin:
         """Plugin for recording ADK agent interactions. Resolve into a native ADK _ADK_RecordingsPlugin."""
         config = self._prepare_build_config()
-        return _ADK_RecordingsPlugin(**config)
+        result = self._safe_build(_ADK_RecordingsPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class ReplayPlugin(BuilderBase):
@@ -70,16 +73,19 @@ class ReplayPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_ReplayPlugin:
         """Plugin for replaying ADK agent interactions from recordings. Resolve into a native ADK _ADK_ReplayPlugin."""
         config = self._prepare_build_config()
-        return _ADK_ReplayPlugin(**config)
+        result = self._safe_build(_ADK_ReplayPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class BasePlugin(BuilderBase):
@@ -94,11 +100,13 @@ class BasePlugin(BuilderBase):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_BasePlugin:
         """Base class for creating plugins. Resolve into a native ADK _ADK_BasePlugin."""
         config = self._prepare_build_config()
-        return _ADK_BasePlugin(**config)
+        result = self._safe_build(_ADK_BasePlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class BigQueryAgentAnalyticsPlugin(BuilderBase):
@@ -107,32 +115,37 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"project_id", "table_id", "config", "location", "dataset_id"}
+    _KNOWN_PARAMS: set[str] | None = {"dataset_id", "project_id", "location", "table_id", "config"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def table_id(self, value: str | None) -> Self:
         """Set the ``table_id`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["table_id"] = value
         return self
 
     def config(self, value: BigQueryLoggerConfig | None) -> Self:
         """Set the ``config`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["config"] = value
         return self
 
     def location(self, value: str) -> Self:
         """Set the ``location`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["location"] = value
         return self
 
     def build(self) -> _ADK_BigQueryAgentAnalyticsPlugin:
         """BigQuery Agent Analytics Plugin (v2.0 using Write API). Resolve into a native ADK _ADK_BigQueryAgentAnalyticsPlugin."""
         config = self._prepare_build_config()
-        return _ADK_BigQueryAgentAnalyticsPlugin(**config)
+        result = self._safe_build(_ADK_BigQueryAgentAnalyticsPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class ContextFilterPlugin(BuilderBase):
@@ -147,26 +160,31 @@ class ContextFilterPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def num_invocations_to_keep(self, value: int | None) -> Self:
         """Set the ``num_invocations_to_keep`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["num_invocations_to_keep"] = value
         return self
 
     def custom_filter(self, value: Callable[[list[Content]], list[Content]] | None) -> Self:
         """Set the ``custom_filter`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["custom_filter"] = value
         return self
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_ContextFilterPlugin:
         """A plugin that filters the LLM context to reduce its size. Resolve into a native ADK _ADK_ContextFilterPlugin."""
         config = self._prepare_build_config()
-        return _ADK_ContextFilterPlugin(**config)
+        result = self._safe_build(_ADK_ContextFilterPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class DebugLoggingPlugin(BuilderBase):
@@ -175,37 +193,43 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"output_path", "name", "include_session_state", "include_system_instruction"}
+    _KNOWN_PARAMS: set[str] | None = {"include_system_instruction", "include_session_state", "name", "output_path"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def output_path(self, value: str) -> Self:
         """Set the ``output_path`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["output_path"] = value
         return self
 
     def include_session_state(self, value: bool) -> Self:
         """Set the ``include_session_state`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["include_session_state"] = value
         return self
 
     def include_system_instruction(self, value: bool) -> Self:
         """Set the ``include_system_instruction`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["include_system_instruction"] = value
         return self
 
     def build(self) -> _ADK_DebugLoggingPlugin:
         """A plugin that captures complete debug information to a file. Resolve into a native ADK _ADK_DebugLoggingPlugin."""
         config = self._prepare_build_config()
-        return _ADK_DebugLoggingPlugin(**config)
+        result = self._safe_build(_ADK_DebugLoggingPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class GlobalInstructionPlugin(BuilderBase):
@@ -220,21 +244,25 @@ class GlobalInstructionPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def global_instruction(self, value: str | InstructionProvider) -> Self:
         """Set the ``global_instruction`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["global_instruction"] = value
         return self
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_GlobalInstructionPlugin:
         """Plugin that provides global instructions functionality at the App level. Resolve into a native ADK _ADK_GlobalInstructionPlugin."""
         config = self._prepare_build_config()
-        return _ADK_GlobalInstructionPlugin(**config)
+        result = self._safe_build(_ADK_GlobalInstructionPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class LoggingPlugin(BuilderBase):
@@ -249,16 +277,19 @@ class LoggingPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_LoggingPlugin:
         """A plugin that logs important information at each callback point. Resolve into a native ADK _ADK_LoggingPlugin."""
         config = self._prepare_build_config()
-        return _ADK_LoggingPlugin(**config)
+        result = self._safe_build(_ADK_LoggingPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class MultimodalToolResultsPlugin(BuilderBase):
@@ -273,16 +304,19 @@ class MultimodalToolResultsPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_MultimodalToolResultsPlugin:
         """A plugin that modifies function tool responses to support returning list of parts directly. Resolve into a native ADK _ADK_MultimodalToolResultsPlugin."""
         config = self._prepare_build_config()
-        return _ADK_MultimodalToolResultsPlugin(**config)
+        result = self._safe_build(_ADK_MultimodalToolResultsPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class ReflectAndRetryToolPlugin(BuilderBase):
@@ -291,37 +325,43 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"throw_exception_if_retry_exceeded", "tracking_scope", "max_retries", "name"}
+    _KNOWN_PARAMS: set[str] | None = {"max_retries", "name", "tracking_scope", "throw_exception_if_retry_exceeded"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def max_retries(self, value: int) -> Self:
         """Set the ``max_retries`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["max_retries"] = value
         return self
 
     def throw_exception_if_retry_exceeded(self, value: bool) -> Self:
         """Set the ``throw_exception_if_retry_exceeded`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["throw_exception_if_retry_exceeded"] = value
         return self
 
     def tracking_scope(self, value: TrackingScope) -> Self:
         """Set the ``tracking_scope`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["tracking_scope"] = value
         return self
 
     def build(self) -> _ADK_ReflectAndRetryToolPlugin:
         """Provides self-healing, concurrent-safe error recovery for tool failures. Resolve into a native ADK _ADK_ReflectAndRetryToolPlugin."""
         config = self._prepare_build_config()
-        return _ADK_ReflectAndRetryToolPlugin(**config)
+        result = self._safe_build(_ADK_ReflectAndRetryToolPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class SaveFilesAsArtifactsPlugin(BuilderBase):
@@ -336,16 +376,19 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
         self._config: dict[str, Any] = {}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
+        self = self._maybe_fork_for_mutation()
         self._config["name"] = value
         return self
 
     def build(self) -> _ADK_SaveFilesAsArtifactsPlugin:
         """A plugin that saves files embedded in user messages as artifacts. Resolve into a native ADK _ADK_SaveFilesAsArtifactsPlugin."""
         config = self._prepare_build_config()
-        return _ADK_SaveFilesAsArtifactsPlugin(**config)
+        result = self._safe_build(_ADK_SaveFilesAsArtifactsPlugin, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentSimulatorPlugin(BuilderBase):
@@ -360,8 +403,10 @@ class AgentSimulatorPlugin(BuilderBase):
         self._config: dict[str, Any] = {"simulator_engine": simulator_engine}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> _ADK_AgentSimulatorPlugin:
         """ADK Plugin for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorPlugin."""
         config = self._prepare_build_config()
-        return _ADK_AgentSimulatorPlugin(**config)
+        result = self._safe_build(_ADK_AgentSimulatorPlugin, config)
+        return self._apply_native_hooks(result)

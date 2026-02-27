@@ -127,7 +127,7 @@ This composes naturally with the expression algebra:
 
 ```python
 pipeline = (
-    Agent("classifier").instruct("Classify.").outputs("topic")
+    Agent("classifier").instruct("Classify.").save_as("topic")
     >> S.default(style="professional")
     >> Agent("writer").instruct("Write about {topic} in a {style} tone.")
 )
