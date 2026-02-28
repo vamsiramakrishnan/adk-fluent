@@ -136,3 +136,74 @@ class TestConditionalMiddlewareDeferred:
         cond = _ConditionalMiddleware(lambda: True, Inner())
         with pytest.raises(AttributeError):
             _ = cond.nonexistent_hook
+
+
+class TestScopedMiddlewareSchema:
+    """_ScopedMiddleware forwards schema from inner middleware."""
+
+    def test_schema_accessible_via_getattr(self):
+        from adk_fluent._middleware_schema import MiddlewareSchema
+        from adk_fluent.middleware import _ScopedMiddleware
+
+        class MySchema(MiddlewareSchema):
+            pass
+
+        class Inner:
+            schema = MySchema
+
+            async def before_agent(self, ctx, name):
+                pass
+
+        scoped = _ScopedMiddleware("writer", Inner())
+        assert scoped.schema is MySchema
+
+    def test_agents_overrides_inner(self):
+        from adk_fluent.middleware import _ScopedMiddleware
+
+        class Inner:
+            agents = "original"
+
+        scoped = _ScopedMiddleware("overridden", Inner())
+        assert scoped.agents == "overridden"
+
+
+class TestMWhenPredicateSchema:
+    """M.when() accepts PredicateSchema subclasses."""
+
+    def test_m_when_predicate_creates_conditional(self):
+        from adk_fluent._middleware import M
+        from adk_fluent._predicate_schema import PredicateSchema
+
+        class IsPremium(PredicateSchema):
+            @staticmethod
+            def evaluate():
+                return True
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                pass
+
+        result = M.when(IsPremium, Inner())
+        assert len(result) == 1
+        wrapped = result.to_stack()[0]
+        assert callable(getattr(wrapped, "before_agent", None))
+
+    def test_m_when_string_still_works(self):
+        from adk_fluent._middleware import M
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                pass
+
+        result = M.when("stream", Inner())
+        assert len(result) == 1
+
+    def test_m_when_callable_still_works(self):
+        from adk_fluent._middleware import M
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                pass
+
+        result = M.when(lambda: True, Inner())
+        assert len(result) == 1
