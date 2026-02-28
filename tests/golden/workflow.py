@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
+from typing import TYPE_CHECKING
 
 from google.adk.agents import SequentialAgent
 
@@ -16,7 +17,6 @@ if TYPE_CHECKING:
 
 class Pipeline(BuilderBase):
     """Run sub-agents sequentially."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
