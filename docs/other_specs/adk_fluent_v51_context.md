@@ -10,7 +10,7 @@ ______________________________________________________________________
 
 The first C module extensions (rolling windows, per-agent windowing, user strategies, summarization) solved *one class* of problem: what to do when context grows too large. Every primitive was reactive — triggered by overflow or nearness to it.
 
-But the research consensus from Anthropic, Manus, LangChain, and production agent builders converges on a broader taxonomy. Context engineering has **five orthogonal operations**, and overflow handling is only one:
+But the research consensus from Manus, LangChain, and production agent builders converges on a broader taxonomy. Context engineering has **five orthogonal operations**, and overflow handling is only one:
 
 | Operation    | What it does                                     | v1 Coverage                   | Gap                                                           |
 | ------------ | ------------------------------------------------ | ----------------------------- | ------------------------------------------------------------- |
@@ -355,7 +355,7 @@ Read from an agent's structured notepad. Notes are written by the `C.write_notes
 .context(C.notes(key="task_checklist", format="checklist"))
 ```
 
-**Semantics**: Reads from `state:_notes_{key}`. Notes are persistent across turns within a session (unlike `temp:` which clears per-invocation). The notes primitive is inspired by the Anthropic/Manus patterns where agents maintain structured notes (todo.md, progress trackers, observation logs) as external memory.
+**Semantics**: Reads from `state:_notes_{key}`. Notes are persistent across turns within a session (unlike `temp:` which clears per-invocation). The notes primitive is inspired by the Manus patterns where agents maintain structured notes (todo.md, progress trackers, observation logs) as external memory.
 
 **Format options**:
 
@@ -937,7 +937,7 @@ ______________________________________________________________________
 
 ## 13. ADR-016: Why Notes (Scratchpads) Are a Primitive, Not a Pattern
 
-**Context**: Structured note-taking is a well-known pattern (Claude Code's CLAUDE.md, Manus's todo.md). Should it be part of the C module or left to developers?
+**Context**: Structured note-taking is a well-known pattern (Manus's todo.md). Should it be part of the C module or left to developers?
 
 **Decision**: First-class primitive via `C.notes()` / `C.write_notes()`.
 
@@ -1067,24 +1067,24 @@ ______________________________________________________________________
 
 ## 16. Cross-Framework Comparison (Updated)
 
-| Capability                  | LangGraph                        | CrewAI                    | Manus                               | Claude Code                          | ADK-Fluent C Module              |
-| --------------------------- | -------------------------------- | ------------------------- | ----------------------------------- | ------------------------------------ | -------------------------------- |
-| **Temporal window**         | `trim_messages(strategy="last")` | N/A                       | Implicit in compaction              | Last 5 files after compact           | `C.window(n)`                    |
-| **Relevance selection**     | `pre_model_hook` + custom        | ChromaDB RAG              | N/A                                 | `grep` + `glob`                      | `C.relevant(query_key=, top_k=)` |
-| **Recency decay**           | Custom                           | N/A                       | N/A                                 | N/A                                  | `C.recent(decay=, half_life=)`   |
-| **Reversible compaction**   | `RemoveMessage` (manual)         | N/A                       | Full/compact representations        | Context editing (stale tool results) | `C.compact(strategy=)`           |
-| **LLM summarization**       | `SummarizationNode`              | Short-term memory RAG     | Schema-based summarization          | Auto-compact at 95%                  | `C.summarize(schema=)`           |
-| **Deduplication**           | Manual                           | N/A                       | N/A                                 | N/A                                  | `C.dedup(strategy=)`             |
-| **Field projection**        | Manual in `pre_model_hook`       | N/A                       | N/A                                 | N/A                                  | `C.project(fields=)`             |
-| **Token budget**            | Implicit (window limit)          | Implicit                  | Pre-rot threshold monitoring        | 95% trigger                          | `C.budget(max_tokens=)`          |
-| **Priority tiers**          | N/A                              | N/A                       | Implicit (recent raw > old compact) | N/A                                  | `C.priority(tier=)`              |
-| **Scratchpad/notes**        | State field in graph             | Long-term memory (SQLite) | `todo.md` file                      | `CLAUDE.md` + memory tool            | `C.notes()` / `C.write_notes()`  |
-| **Structured extraction**   | Custom node                      | N/A                       | N/A                                 | N/A                                  | `C.extract(schema=)`             |
-| **Freshness filter**        | Manual                           | N/A                       | Stale = compact trigger             | N/A                                  | `C.fresh(max_age=)`              |
-| **PII redaction**           | Manual                           | N/A                       | N/A                                 | N/A                                  | `C.redact(patterns=)`            |
-| **Composable**              | No (imperative hooks)            | No (opaque RAG)           | No (hardcoded logic)                | No (built-in heuristics)             | Yes (`+` and `\|` operators)     |
-| **Declarative**             | No                               | Partially (memory=True)   | No                                  | No                                   | Yes                              |
-| **Inspectable/validatable** | Via LangSmith traces             | No                        | No                                  | No                                   | Contract checker + type rules    |
+| Capability                  | LangGraph                        | CrewAI                    | Manus                               | ADK-Fluent C Module              |
+| --------------------------- | -------------------------------- | ------------------------- | ----------------------------------- | -------------------------------- |
+| **Temporal window**         | `trim_messages(strategy="last")` | N/A                       | Implicit in compaction              | `C.window(n)`                    |
+| **Relevance selection**     | `pre_model_hook` + custom        | ChromaDB RAG              | N/A                                 | `C.relevant(query_key=, top_k=)` |
+| **Recency decay**           | Custom                           | N/A                       | N/A                                 | `C.recent(decay=, half_life=)`   |
+| **Reversible compaction**   | `RemoveMessage` (manual)         | N/A                       | Full/compact representations        | `C.compact(strategy=)`           |
+| **LLM summarization**       | `SummarizationNode`              | Short-term memory RAG     | Schema-based summarization          | `C.summarize(schema=)`           |
+| **Deduplication**           | Manual                           | N/A                       | N/A                                 | `C.dedup(strategy=)`             |
+| **Field projection**        | Manual in `pre_model_hook`       | N/A                       | N/A                                 | `C.project(fields=)`             |
+| **Token budget**            | Implicit (window limit)          | Implicit                  | Pre-rot threshold monitoring        | `C.budget(max_tokens=)`          |
+| **Priority tiers**          | N/A                              | N/A                       | Implicit (recent raw > old compact) | `C.priority(tier=)`              |
+| **Scratchpad/notes**        | State field in graph             | Long-term memory (SQLite) | `todo.md` file                      | `C.notes()` / `C.write_notes()`  |
+| **Structured extraction**   | Custom node                      | N/A                       | N/A                                 | `C.extract(schema=)`             |
+| **Freshness filter**        | Manual                           | N/A                       | Stale = compact trigger             | `C.fresh(max_age=)`              |
+| **PII redaction**           | Manual                           | N/A                       | N/A                                 | `C.redact(patterns=)`            |
+| **Composable**              | No (imperative hooks)            | No (opaque RAG)           | No (hardcoded logic)                | Yes (`+` and `\|` operators)     |
+| **Declarative**             | No                               | Partially (memory=True)   | No                                  | Yes                              |
+| **Inspectable/validatable** | Via LangSmith traces             | No                        | No                                  | Contract checker + type rules    |
 
 **Key differentiator**: Every other framework implements context engineering as *imperative code* — custom hooks, manual state management, hardcoded heuristics. ADK-Fluent's C module is the only *declarative, composable, type-checked* context engineering system. The developer declares what each agent should see using orthogonal atomic primitives; the library compiles it to ADK's InstructionProvider mechanism; the contract checker validates it before execution.
 

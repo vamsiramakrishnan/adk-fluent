@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE — Phase 1** (2026-02-27 audit) — All Phase 1 features shipped: .ask(), .stream(), .clone(), .test(), .guardrail(), .session(), variadic callbacks, auto-generated docs. Phase 2 (Pattern Library) and Phase 3 (Declarative Definitions) remain future work.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Add runtime shortcut features (`.ask()`, `.stream()`, `.clone()`, `.test()`, `.guardrail()`, `.session()`, variadic/conditional callbacks) to adk-fluent builders, plus an auto-generated documentation system (API reference, cookbook, migration guide) integrated into the justfile pipeline.
 
 **Architecture:** Hand-written `_helpers.py` module provides runtime implementations. The generator is extended with new `behavior` types that import and delegate to helpers. A new `scripts/doc_generator.py` reads manifest + seed + annotated cookbook examples to emit Markdown docs. Everything is wired into `just docs`.

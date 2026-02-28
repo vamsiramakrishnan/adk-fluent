@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE** (2026-02-27 audit) — All 8 disfluencies fixed. Foundation for IR introduction established.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Fix 8 structural issues in adk-fluent's codebase (identified in v3 spec §1) without breaking the public API, preparing the foundation for Phase 2's IR introduction.
 
 **Architecture:** Each task is independent and non-breaking. The generated code pipeline (`scanner.py` → `seed_generator.py` → `generator.py`) must be updated in tandem with hand-written code so that regeneration never overwrites fixes. All 831+ existing tests must remain green throughout.

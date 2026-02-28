@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE** (2026-02-27 audit) — Sphinx + MyST-Parser + Furo theme + sphinx-design + sphinx-copybutton all configured. Auto-generated docs via `scripts/doc_generator.py`.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Add Sphinx + MyST-Parser documentation site hosted on Read the Docs, with a major overhaul of `doc_generator.py` to produce rich, cross-linked documentation.
 
 **Architecture:** Sphinx builds a static HTML site from hand-written guide pages (MyST Markdown) + auto-generated API/cookbook/migration pages (produced by `doc_generator.py`). Read the Docs auto-builds on push via `.readthedocs.yaml`. GitLab CI validates the docs build in a `docs` stage.

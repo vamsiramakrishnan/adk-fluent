@@ -36,8 +36,8 @@ class TestFallback:
         assert result is a
 
     def test_multiple_fallbacks_accumulate(self):
-        a = Agent("test").fallback("gpt-4o").fallback("claude-3-opus")
-        assert a._config["_fallbacks"] == ["gpt-4o", "claude-3-opus"]
+        a = Agent("test").fallback("gpt-4o").fallback("gemini-2.0-flash")
+        assert a._config["_fallbacks"] == ["gpt-4o", "gemini-2.0-flash"]
 
 
 class TestRetryFallbackCombined:

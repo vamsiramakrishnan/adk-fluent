@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE** (2026-02-27 audit) — IR layer (`_ir.py`), Backend protocol, ADK backend (`backends/adk.py`), `to_ir()`, `to_app()`, `run()`, `stream()` all implemented.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Introduce an Intermediate Representation (IR) layer between fluent builders and ADK objects, enabling backend-agnostic compilation, testing, and visualization.
 
 **Architecture:** Builders gain a `to_ir()` method that produces a frozen dataclass tree. A `Backend` protocol defines `compile(ir) → runnable` and `run(compiled, prompt) → events`. The ADK backend compiles IR → native ADK objects (App/Runner). The existing `.build()` method is unchanged for backward compatibility — new entry points (`to_app()`, `run()`, `stream()`) use the IR path.
