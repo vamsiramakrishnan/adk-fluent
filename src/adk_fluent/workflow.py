@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.loop_agent import LoopAgent
 from google.adk.agents.parallel_agent import ParallelAgent
@@ -19,9 +18,10 @@ if TYPE_CHECKING:
 
 class Loop(BuilderBase):
     """A shell agent that run its sub-agents in a loop."""
-    _ALIASES: dict[str, str] = {'describe': 'description'}
-    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+
+    _ALIASES: dict[str, str] = {"describe": "description"}
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = LoopAgent
 
     def __init__(self, name: str) -> None:
@@ -91,6 +91,7 @@ class Loop(BuilderBase):
     def to_ir(self) -> Any:
         """Convert this Loop builder to a LoopNode IR node."""
         from adk_fluent._helpers import _loop_to_ir
+
         return _loop_to_ir(self)
 
     def build(self) -> LoopAgent:
@@ -102,9 +103,10 @@ class Loop(BuilderBase):
 
 class FanOut(BuilderBase):
     """A shell agent that runs its sub-agents in parallel in an isolated manner."""
-    _ALIASES: dict[str, str] = {'describe': 'description'}
-    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+
+    _ALIASES: dict[str, str] = {"describe": "description"}
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = ParallelAgent
 
     def __init__(self, name: str) -> None:
@@ -168,6 +170,7 @@ class FanOut(BuilderBase):
     def to_ir(self) -> Any:
         """Convert this FanOut builder to a ParallelNode IR node."""
         from adk_fluent._helpers import _fanout_to_ir
+
         return _fanout_to_ir(self)
 
     def build(self) -> ParallelAgent:
@@ -179,9 +182,10 @@ class FanOut(BuilderBase):
 
 class Pipeline(BuilderBase):
     """A shell agent that runs its sub-agents in sequence."""
-    _ALIASES: dict[str, str] = {'describe': 'description'}
-    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+
+    _ALIASES: dict[str, str] = {"describe": "description"}
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = SequentialAgent
 
     def __init__(self, name: str) -> None:
@@ -245,6 +249,7 @@ class Pipeline(BuilderBase):
     def to_ir(self) -> Any:
         """Convert this Pipeline builder to a SequenceNode IR node."""
         from adk_fluent._helpers import _pipeline_to_ir
+
         return _pipeline_to_ir(self)
 
     def build(self) -> SequentialAgent:

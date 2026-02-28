@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
@@ -22,18 +21,16 @@ if TYPE_CHECKING:
     from google.adk.planners.base_planner import BasePlanner
     from google.adk.tools.base_tool import BaseTool
     from google.adk.tools.base_toolset import BaseToolset
-    from google.genai.types import Content
-    from google.genai.types import File
-    from google.genai.types import GenerateContentConfig
-    from google.genai.types import Part
+    from google.genai.types import Content, File, GenerateContentConfig, Part
     from pydantic import BaseModel
 
 
 class BaseAgent(BuilderBase):
     """Base class for all agents in Agent Development Kit."""
-    _ALIASES: dict[str, str] = {'describe': 'description'}
-    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'before_agent': 'before_agent_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'before_agent_callback'}
+
+    _ALIASES: dict[str, str] = {"describe": "description"}
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
     def __init__(self, name: str) -> None:
@@ -97,9 +94,34 @@ class BaseAgent(BuilderBase):
 
 class Agent(BuilderBase):
     """LLM-based Agent."""
-    _ALIASES: dict[str, str] = {'describe': 'description', 'global_instruct': 'global_instruction', 'instruct': 'instruction', 'save_as': 'output_key', 'static': 'static_instruction'}
-    _CALLBACK_ALIASES: dict[str, str] = {'after_agent': 'after_agent_callback', 'after_model': 'after_model_callback', 'after_tool': 'after_tool_callback', 'before_agent': 'before_agent_callback', 'before_model': 'before_model_callback', 'before_tool': 'before_tool_callback', 'on_model_error': 'on_model_error_callback', 'on_tool_error': 'on_tool_error_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'after_agent_callback', 'after_model_callback', 'after_tool_callback', 'before_agent_callback', 'before_model_callback', 'before_tool_callback', 'on_model_error_callback', 'on_tool_error_callback'}
+
+    _ALIASES: dict[str, str] = {
+        "describe": "description",
+        "global_instruct": "global_instruction",
+        "instruct": "instruction",
+        "save_as": "output_key",
+        "static": "static_instruction",
+    }
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "after_model": "after_model_callback",
+        "after_tool": "after_tool_callback",
+        "before_agent": "before_agent_callback",
+        "before_model": "before_model_callback",
+        "before_tool": "before_tool_callback",
+        "on_model_error": "on_model_error_callback",
+        "on_tool_error": "on_tool_error_callback",
+    }
+    _ADDITIVE_FIELDS: set[str] = {
+        "after_agent_callback",
+        "after_model_callback",
+        "after_tool_callback",
+        "before_agent_callback",
+        "before_model_callback",
+        "before_tool_callback",
+        "on_model_error_callback",
+        "on_tool_error_callback",
+    }
     _ADK_TARGET_CLASS = LlmAgent
 
     def __init__(self, name: str, model: str | None = None) -> None:
@@ -140,10 +162,11 @@ class Agent(BuilderBase):
         self._config["static_instruction"] = value
         return self
 
-    def history(self, value: Literal['default', 'none']) -> Self:
+    def history(self, value: Literal["default", "none"]) -> Self:
         """Deprecated: use ``.context()`` instead."""
         self = self._maybe_fork_for_mutation()
         import warnings
+
         warnings.warn(
             ".history() is deprecated, use .context() instead",
             DeprecationWarning,
@@ -152,10 +175,11 @@ class Agent(BuilderBase):
         self._config["include_contents"] = value
         return self
 
-    def include_history(self, value: Literal['default', 'none']) -> Self:
+    def include_history(self, value: Literal["default", "none"]) -> Self:
         """Deprecated: use ``.context()`` instead."""
         self = self._maybe_fork_for_mutation()
         import warnings
+
         warnings.warn(
             ".include_history() is deprecated, use .context() instead",
             DeprecationWarning,
@@ -168,6 +192,7 @@ class Agent(BuilderBase):
         """Deprecated: use ``.save_as()`` instead."""
         self = self._maybe_fork_for_mutation()
         import warnings
+
         warnings.warn(
             ".outputs() is deprecated, use .save_as() instead",
             DeprecationWarning,
@@ -180,6 +205,7 @@ class Agent(BuilderBase):
         """Deprecated: use ``.static()`` instead."""
         self = self._maybe_fork_for_mutation()
         import warnings
+
         warnings.warn(
             ".static_instruct() is deprecated, use .static() instead",
             DeprecationWarning,
@@ -369,6 +395,7 @@ class Agent(BuilderBase):
     def tool(self, fn_or_tool: Any, *, require_confirmation: bool = False) -> Self:
         """Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True."""
         from adk_fluent._helpers import _add_tool
+
         return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
 
     def guardrail(self, fn: Callable[..., Any]) -> Self:
@@ -381,42 +408,52 @@ class Agent(BuilderBase):
     def ask(self, prompt: str) -> str:
         """One-shot execution. Build agent, send prompt, return response text."""
         from adk_fluent._helpers import run_one_shot
+
         return run_one_shot(self, prompt)
 
     async def ask_async(self, prompt: str) -> str:
         """Async one-shot execution."""
         from adk_fluent._helpers import run_one_shot_async
+
         return await run_one_shot_async(self, prompt)
 
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         """Streaming execution. Yields response text chunks."""
         from adk_fluent._helpers import run_stream
+
         async for chunk in run_stream(self, prompt):
             yield chunk
 
-    def test(self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self:
+    def test(
+        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+    ) -> Self:
         """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
         from adk_fluent._helpers import run_inline_test
+
         return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
 
     def session(self) -> Any:
         """Create an interactive session context manager. Use with 'async with'."""
         from adk_fluent._helpers import create_session
+
         return create_session(self)
 
     def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
         """Run agent against multiple prompts with bounded concurrency."""
         from adk_fluent._helpers import run_map
+
         return run_map(self, prompts, concurrency=concurrency)
 
     async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
         """Async batch execution against multiple prompts."""
         from adk_fluent._helpers import run_map_async
+
         return await run_map_async(self, prompts, concurrency=concurrency)
 
     async def events(self, prompt: str) -> AsyncIterator[Any]:
         """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
         from adk_fluent._helpers import run_events
+
         async for chunk in run_events(self, prompt):
             yield chunk
 
@@ -429,46 +466,61 @@ class Agent(BuilderBase):
     def show(self) -> Self:
         """Force this agent's events to be user-facing (override topology inference)."""
         from adk_fluent._helpers import _show_agent
+
         return _show_agent(self)
 
     def hide(self) -> Self:
         """Force this agent's events to be internal (override topology inference)."""
         from adk_fluent._helpers import _hide_agent
+
         return _hide_agent(self)
 
-    def memory(self, mode: str = 'preload') -> Self:
+    def memory(self, mode: str = "preload") -> Self:
         """Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'."""
         from adk_fluent._helpers import _add_memory
+
         return _add_memory(self, mode)
 
     def memory_auto_save(self) -> Self:
         """Auto-save session to memory after each agent run."""
         from adk_fluent._helpers import _add_memory_auto_save
+
         return _add_memory_auto_save(self)
 
     def delegate(self, agent: Any) -> Self:
         """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
         from adk_fluent._helpers import delegate_agent
+
         return delegate_agent(self, agent)
 
     def isolate(self) -> Self:
         """Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."""
         from adk_fluent._helpers import _isolate_agent
-        return _isolate_agent(self, )
+
+        return _isolate_agent(
+            self,
+        )
 
     def stay(self) -> Self:
         """Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning."""
         from adk_fluent._helpers import _stay_agent
-        return _stay_agent(self, )
+
+        return _stay_agent(
+            self,
+        )
 
     def no_peers(self) -> Self:
         """Prevent this agent from transferring to sibling agents. The agent can still return to its parent."""
         from adk_fluent._helpers import _no_peers_agent
-        return _no_peers_agent(self, )
+
+        return _no_peers_agent(
+            self,
+        )
 
     def to_ir(self) -> Any:
         """Convert this Agent builder to an AgentNode IR node."""
         from adk_fluent._helpers import _agent_to_ir
+
         return _agent_to_ir(self)
 
     def build(self) -> LlmAgent:

@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.apps.app import App as _ADK_App
 from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
@@ -16,8 +15,7 @@ from adk_fluent._base import BuilderBase
 if TYPE_CHECKING:
     from google.adk.agents.base_agent import BaseAgent
     from google.adk.agents.context_cache_config import ContextCacheConfig
-    from google.adk.apps.app import EventsCompactionConfig
-    from google.adk.apps.app import ResumabilityConfig
+    from google.adk.apps.app import EventsCompactionConfig, ResumabilityConfig
     from google.adk.artifacts.base_artifact_service import BaseArtifactService
     from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
     from google.adk.memory.base_memory_service import BaseMemoryService
@@ -26,6 +24,7 @@ if TYPE_CHECKING:
 
 class App(BuilderBase):
     """Represents an LLM-backed agentic application."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -76,10 +75,11 @@ class App(BuilderBase):
 
 class InMemoryRunner(BuilderBase):
     """An in-memory Runner for testing and development."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {'agent', 'app', 'app_name', 'plugin_close_timeout', 'plugins'}
+    _KNOWN_PARAMS: set[str] | None = {"agent", "app", "app_name", "plugin_close_timeout", "plugins"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -126,10 +126,22 @@ class InMemoryRunner(BuilderBase):
 
 class Runner(BuilderBase):
     """The Runner class is used to run agents."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {'agent', 'app', 'app_name', 'artifact_service', 'auto_create_session', 'credential_service', 'memory_service', 'plugin_close_timeout', 'plugins', 'session_service'}
+    _KNOWN_PARAMS: set[str] | None = {
+        "agent",
+        "app",
+        "app_name",
+        "artifact_service",
+        "auto_create_session",
+        "credential_service",
+        "memory_service",
+        "plugin_close_timeout",
+        "plugins",
+        "session_service",
+    }
 
     def __init__(self, session_service: str) -> None:
         self._config: dict[str, Any] = {"session_service": session_service}

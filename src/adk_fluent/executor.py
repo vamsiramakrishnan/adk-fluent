@@ -6,7 +6,9 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import Any, Self
 
-from google.adk.code_executors.agent_engine_sandbox_code_executor import AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor
+from google.adk.code_executors.agent_engine_sandbox_code_executor import (
+    AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
+)
 from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
 from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
 from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor
@@ -17,6 +19,7 @@ from adk_fluent._base import BuilderBase
 
 class AgentEngineSandboxCodeExecutor(BuilderBase):
     """A code executor that uses Agent Engine Code Execution Sandbox to execute code."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -79,6 +82,7 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
 
 class BaseCodeExecutor(BuilderBase):
     """Abstract base class for all code executors."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -135,6 +139,7 @@ class BaseCodeExecutor(BuilderBase):
 
 class BuiltInCodeExecutor(BuilderBase):
     """A code executor that uses the Model's built-in code executor."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -191,6 +196,7 @@ class BuiltInCodeExecutor(BuilderBase):
 
 class UnsafeLocalCodeExecutor(BuilderBase):
     """A code executor that unsafely execute code in the current local context."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -247,6 +253,7 @@ class UnsafeLocalCodeExecutor(BuilderBase):
 
 class VertexAiCodeExecutor(BuilderBase):
     """A code executor that uses Vertex Code Interpreter Extension to execute code."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
