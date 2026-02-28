@@ -37,6 +37,7 @@ def _check_middleware_contracts(sequence, middlewares):
 ```
 
 **Rules:**
+
 - Only validates middleware with BOTH `agents` AND `schema` attributes
 - Unscoped middleware (no `agents`): skip validation — schema is introspection-only
 - Scoped middleware: validate reads/writes at the target agent's position in the pipeline
@@ -92,28 +93,28 @@ pipeline.middleware(
 
 ### 5. Backward Compatibility
 
-| Concern | Resolution |
-|---|---|
-| Middleware without `schema` | Unchanged, no validation |
-| Middleware without `agents` | Unchanged, no position-based validation |
-| `M.when(str_shortcut)` | Works as before |
-| `M.when(callable)` | Works as before |
+| Concern                              | Resolution                                           |
+| ------------------------------------ | ---------------------------------------------------- |
+| Middleware without `schema`          | Unchanged, no validation                             |
+| Middleware without `agents`          | Unchanged, no position-based validation              |
+| `M.when(str_shortcut)`               | Works as before                                      |
+| `M.when(callable)`                   | Works as before                                      |
 | `_ConditionalMiddleware.__getattr__` | Returns guarded wrappers (improvement, not breaking) |
 
 ### 6. Files Modified
 
-| File | Changes |
-|---|---|
+| File                                   | Changes                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------- |
 | `src/adk_fluent/_middleware_schema.py` | **NEW** — `MiddlewareSchema` class, `middleware_schema_fields()` helper |
-| `src/adk_fluent/middleware.py` | `_ConditionalMiddleware` rewrite, `_evaluate_predicate` helper |
-| `src/adk_fluent/_middleware.py` | `M.when()` extended for `PredicateSchema` |
-| `src/adk_fluent/_contract_checking.py` | Pass 15: `_check_middleware_contracts()` |
+| `src/adk_fluent/middleware.py`         | `_ConditionalMiddleware` rewrite, `_evaluate_predicate` helper          |
+| `src/adk_fluent/_middleware.py`        | `M.when()` extended for `PredicateSchema`                               |
+| `src/adk_fluent/_contract_checking.py` | Pass 15: `_check_middleware_contracts()`                                |
 
 ### 7. Testing Strategy
 
 1. Unit: `MiddlewareSchema` metaclass introspection
-2. Unit: `_ConditionalMiddleware` with `PredicateSchema` (deferred evaluation)
-3. Unit: `_evaluate_predicate` with mock invocation context
-4. Contract checker: scoped middleware with reads satisfied / unsatisfied
-5. Contract checker: unscoped middleware skipped
-6. Integration: `M.when(PredicateSchema, M.scope("agent", mw))` end-to-end
+1. Unit: `_ConditionalMiddleware` with `PredicateSchema` (deferred evaluation)
+1. Unit: `_evaluate_predicate` with mock invocation context
+1. Contract checker: scoped middleware with reads satisfied / unsatisfied
+1. Contract checker: unscoped middleware skipped
+1. Integration: `M.when(PredicateSchema, M.scope("agent", mw))` end-to-end

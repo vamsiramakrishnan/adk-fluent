@@ -133,6 +133,8 @@ class DeclarativeMetaclass(type):
     """
 
     _schema_base_name: str = "DeclarativeSchema"
+    _fields: Any  # dict[str, DeclarativeField] — set dynamically in __new__
+    _field_list: Any  # tuple[DeclarativeField, ...] — set dynamically in __new__
 
     def __dir__(cls) -> list[str]:
         """Include field names in dir() for IDE/REPL autocomplete."""

@@ -7,7 +7,6 @@ import pytest
 
 from adk_fluent._context import C, CComposite, CTransform, CWhen
 
-
 # ======================================================================
 # Mock helpers (same pattern as test_c_phase_b.py)
 # ======================================================================

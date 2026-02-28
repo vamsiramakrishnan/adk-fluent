@@ -8,11 +8,12 @@
 
 **Tech Stack:** Python, `DeclarativeMetaclass` from `_schema_base.py`, `testing/contracts.py` contract checker, `middleware.py` wrappers, `_middleware.py` M module.
 
----
+______________________________________________________________________
 
 ### Task 1: Create `MiddlewareSchema` class
 
 **Files:**
+
 - Create: `src/adk_fluent/_middleware_schema.py`
 - Test: `tests/manual/test_middleware_schema.py`
 
@@ -171,11 +172,12 @@ git add src/adk_fluent/_middleware_schema.py tests/manual/test_middleware_schema
 git commit -m "feat: add MiddlewareSchema declarative type"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Rewrite `_ConditionalMiddleware` for deferred evaluation
 
 **Files:**
+
 - Modify: `src/adk_fluent/middleware.py` (lines 420–453, `_ConditionalMiddleware`)
 - Test: `tests/manual/test_middleware_schema.py` (append)
 
@@ -373,11 +375,12 @@ git add src/adk_fluent/middleware.py tests/manual/test_middleware_schema.py
 git commit -m "refactor: rewrite _ConditionalMiddleware for deferred evaluation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Extend `M.when()` for PredicateSchema
 
 **Files:**
+
 - Modify: `src/adk_fluent/_middleware.py` (line 141, `M.when()`)
 - Test: `tests/manual/test_middleware_schema.py` (append)
 
@@ -475,11 +478,12 @@ git add src/adk_fluent/_middleware.py tests/manual/test_middleware_schema.py
 git commit -m "feat: extend M.when() to accept PredicateSchema conditions"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Forward `schema` in `_ScopedMiddleware`
 
 **Files:**
+
 - Modify: `src/adk_fluent/middleware.py` (lines 406–417, `_ScopedMiddleware`)
 - Test: `tests/manual/test_middleware_schema.py` (append)
 
@@ -543,11 +547,12 @@ git add src/adk_fluent/middleware.py tests/manual/test_middleware_schema.py
 git commit -m "test: verify _ScopedMiddleware forwards schema attribute"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Add Pass 14 to contract checker
 
 **Files:**
+
 - Modify: `src/adk_fluent/testing/contracts.py` (after Pass 13, ~line 661)
 - Test: `tests/manual/test_middleware_schema.py` (append)
 
@@ -812,11 +817,12 @@ git add src/adk_fluent/testing/contracts.py tests/manual/test_middleware_schema.
 git commit -m "feat: add Pass 14 — MiddlewareSchema contract validation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Exports and integration
 
 **Files:**
+
 - Modify: `src/adk_fluent/__init__.py` (regenerate via `just generate`)
 - Modify: `src/adk_fluent/prelude.py` (add `MiddlewareSchema`)
 - Test: `tests/manual/test_api_surface_v2.py` (update prelude assertions)
@@ -864,7 +870,7 @@ git add src/adk_fluent/prelude.py src/adk_fluent/__init__.py tests/manual/test_a
 git commit -m "feat: export MiddlewareSchema from prelude and __init__"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Final verification
 
