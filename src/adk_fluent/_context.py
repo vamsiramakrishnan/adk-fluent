@@ -64,6 +64,13 @@ __all__ = [
     "CExtract",
     "CDistill",
     "CValidate",
+    # Phase D: Scratchpads + Sugar
+    "CNotes",
+    "CWriteNotes",
+    "CRolling",
+    "CFromAgentsWindowed",
+    "CUser",
+    "CManusCascade",
     "_compile_context_spec",
 ]
 
@@ -524,6 +531,158 @@ class CValidate(CTransform):
             self,
             "instruction_provider",
             _make_validate_provider(self.checks, self.model),
+        )
+
+
+# ======================================================================
+# Phase D: WRITE primitives (Scratchpads)
+# ======================================================================
+
+
+@dataclass(frozen=True)
+class CNotes(CTransform):
+    """Read from an agent's structured scratchpad stored in session state.
+
+    Notes are stored at ``state["_notes_{key}"]``. They are persistent
+    across turns within a session. The ``format`` parameter controls
+    rendering: ``"plain"`` (default), ``"checklist"``, ``"numbered"``.
+    """
+
+    key: str = "default"
+    format: str = "plain"
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "notes"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "instruction_provider",
+            _make_notes_provider(self.key, self.format),
+        )
+
+
+@dataclass(frozen=True)
+class CWriteNotes(CTransform):
+    """Write to an agent's structured scratchpad after agent execution.
+
+    Compiles to a post-agent state write into ``state["_notes_{key}"]``.
+    Strategies:
+
+    - ``"append"`` — append new content to existing notes
+    - ``"replace"`` — overwrite notes entirely
+    - ``"merge"`` — merge new content, deduplicating entries
+    - ``"prepend"`` — prepend new content before existing notes
+    """
+
+    key: str = "default"
+    strategy: str = "append"
+    source_key: str | None = None
+    _kind: str = "write_notes"
+    include_contents: Literal["default", "none"] = "default"
+
+    def __post_init__(self) -> None:
+        # CWriteNotes doesn't have an instruction_provider — it compiles
+        # to a companion FnAgent that mutates state after the target agent.
+        pass
+
+
+# ======================================================================
+# Phase D: Molecule sugar (convenience compositions)
+# ======================================================================
+
+
+@dataclass(frozen=True)
+class CRolling(CTransform):
+    """Rolling window with optional summarization of older turns.
+
+    Equivalent to: ``C.window(n=n) + C.summarize(scope="before_window")``
+    when ``summarize=True``, or just ``C.window(n=n)`` otherwise.
+    """
+
+    n: int = 5
+    summarize: bool = False
+    model: str = _DEFAULT_MODEL
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "rolling"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "instruction_provider",
+            _make_rolling_provider(self.n, self.summarize, self.model),
+        )
+
+
+@dataclass(frozen=True)
+class CFromAgentsWindowed(CTransform):
+    """Per-agent selective windowing.
+
+    Takes a mapping of ``agent_name -> window_size``. Each agent's
+    events are windowed independently, then combined.
+
+    Example::
+
+        C.from_agents_windowed(researcher=1, critic=3)
+        # ≡ (C.select(author="researcher") | C.truncate(max_turns=1))
+        #   + (C.select(author="critic") | C.truncate(max_turns=3))
+    """
+
+    agent_windows: tuple[tuple[str, int], ...] = ()
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "from_agents_windowed"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "instruction_provider",
+            _make_from_agents_windowed_provider(self.agent_windows),
+        )
+
+
+@dataclass(frozen=True)
+class CUser(CTransform):
+    """User message strategies.
+
+    Strategies:
+
+    - ``"all"`` — all user messages (same as ``C.user_only()``)
+    - ``"first"`` — only the first user message
+    - ``"last"`` — only the most recent user message
+    - ``"bookend"`` — first and last user messages
+    """
+
+    strategy: str = "all"
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "user_strategy"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "instruction_provider",
+            _make_user_strategy_provider(self.strategy),
+        )
+
+
+@dataclass(frozen=True)
+class CManusCascade(CTransform):
+    """Manus-inspired progressive compression cascade.
+
+    Applies: compact → dedup → summarize → truncate, stopping
+    as soon as the context fits within the token budget.
+
+    Equivalent to: ``C.fit(max_tokens=budget, strategy="cascade")``
+    """
+
+    budget: int = 8000
+    model: str = _DEFAULT_MODEL
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "manus_cascade"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "instruction_provider",
+            _make_fit_provider(self.budget, "cascade", self.model),
         )
 
 
@@ -1638,6 +1797,276 @@ def _make_validate_provider(checks: tuple[str, ...], model: str) -> Callable:
 
 
 # ======================================================================
+# Phase D provider factories (Scratchpads + Sugar)
+# ======================================================================
+
+
+def _make_notes_provider(key: str, fmt: str) -> Callable:
+    """Create a provider that reads structured notes from session state."""
+    state_key = f"_notes_{key}"
+
+    async def _provider(ctx: Any) -> str:
+        raw = ctx.state.get(state_key)
+        if raw is None:
+            return ""
+
+        # Parse stored notes (JSON list of strings or plain string)
+        entries: list[str] = []
+        if isinstance(raw, list):
+            entries = [str(e) for e in raw]
+        elif isinstance(raw, str):
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    entries = [str(e) for e in parsed]
+                else:
+                    entries = [raw]
+            except (json.JSONDecodeError, ValueError):
+                entries = [raw]
+        else:
+            entries = [str(raw)]
+
+        if not entries:
+            return ""
+
+        # Format based on requested style
+        if fmt == "checklist":
+            lines = [f"- [ ] {e}" for e in entries]
+        elif fmt == "numbered":
+            lines = [f"{i + 1}. {e}" for i, e in enumerate(entries)]
+        else:  # "plain"
+            lines = entries
+
+        return f"[Notes: {key}]\n" + "\n".join(lines)
+
+    _provider.__name__ = f"notes_{key}"
+    return _provider
+
+
+def _make_rolling_provider(n: int, summarize: bool, model: str) -> Callable:
+    """Create a provider for rolling window with optional summarization."""
+
+    async def _provider(ctx: Any) -> str:
+        events = list(ctx.session.events)
+        if not events:
+            return ""
+
+        # Find user turn boundaries
+        user_indices = [i for i, e in enumerate(events) if getattr(e, "author", None) == "user"]
+
+        # Window: last N turn-pairs
+        start_indices = user_indices[-n:] if len(user_indices) >= n else user_indices
+        window_start = start_indices[0] if start_indices else 0
+        window_events = events[window_start:]
+        window_text = _format_events_as_context(window_events)
+
+        if not summarize or window_start == 0:
+            return window_text
+
+        # Summarize events before the window
+        older_events = events[:window_start]
+        if not older_events:
+            return window_text
+
+        fp = _fingerprint_events(older_events)
+        cache_key = f"temp:_rolling_summary_{n}_{fp}"
+        cached = ctx.state.get(cache_key)
+        if cached is not None:
+            summary = str(cached)
+        else:
+            older_text = _format_events_as_context(older_events)
+            try:
+                summary = await _call_llm(
+                    model,
+                    "Summarize this earlier conversation concisely, "
+                    "preserving key facts and decisions:\n\n" + older_text,
+                )
+            except Exception as e:
+                _log.warning("C.rolling() summarize failed: %s", e)
+                summary = older_text
+            ctx.state[cache_key] = summary
+
+        return f"<earlier_context_summary>\n{summary}\n</earlier_context_summary>\n\n{window_text}"
+
+    _provider.__name__ = f"rolling_{n}"
+    return _provider
+
+
+def _make_from_agents_windowed_provider(
+    agent_windows: tuple[tuple[str, int], ...],
+) -> Callable:
+    """Create a provider that windows each agent's events independently."""
+
+    async def _provider(ctx: Any) -> str:
+        events = list(ctx.session.events)
+        if not events:
+            return ""
+
+        parts: list[str] = []
+        for agent_name, window_size in agent_windows:
+            # Filter events by this agent
+            agent_events = [e for e in events if getattr(e, "author", None) == agent_name]
+            # Take the last window_size events
+            if window_size > 0:
+                agent_events = agent_events[-window_size:]
+            if agent_events:
+                text = _format_events_as_context(agent_events)
+                parts.append(text)
+
+        # Also include user messages
+        user_events = [e for e in events if getattr(e, "author", None) == "user"]
+        if user_events:
+            parts.insert(0, _format_events_as_context(user_events))
+
+        return "\n".join(parts)
+
+    _provider.__name__ = "from_agents_windowed"
+    return _provider
+
+
+def _make_user_strategy_provider(strategy: str) -> Callable:
+    """Create a provider that selects user messages with a strategy."""
+
+    async def _provider(ctx: Any) -> str:
+        events = list(ctx.session.events)
+        user_events = [e for e in events if getattr(e, "author", None) == "user"]
+        if not user_events:
+            return ""
+
+        if strategy == "first":
+            selected = user_events[:1]
+        elif strategy == "last":
+            selected = user_events[-1:]
+        elif strategy == "bookend":
+            if len(user_events) <= 2:
+                selected = user_events
+            else:
+                selected = [user_events[0], user_events[-1]]
+        else:  # "all"
+            selected = user_events
+
+        return _format_events_as_context(selected)
+
+    _provider.__name__ = f"user_{strategy}"
+    return _provider
+
+
+def make_write_notes_callback(
+    key: str,
+    strategy: str,
+    source_key: str | None,
+) -> Callable:
+    """Create a post-agent callback that writes notes to session state.
+
+    This is the runtime implementation for ``CWriteNotes``. It is called
+    as an ``after_agent_callback`` on the target agent.
+    """
+    state_key = f"_notes_{key}"
+
+    async def _after_agent(callback_context: Any) -> None:
+        state = callback_context.state
+        if hasattr(state, "__getitem__"):
+            pass  # dict-like
+        else:
+            return
+
+        # Get new content: from source_key or from the agent's last output
+        new_content: str | None = None
+        if source_key is not None:
+            new_content = state.get(source_key)
+        else:
+            # Try to read from the agent's output_key or last event text
+            for s_key in list(state.keys()):
+                if s_key.startswith("temp:"):
+                    continue
+                # Convention: agent output is often in output_key
+            # Fall back to reading the most recent agent event
+            session = getattr(callback_context, "session", None)
+            if session is not None:
+                events = getattr(session, "events", [])
+                for e in reversed(list(events)):
+                    author = getattr(e, "author", None)
+                    if author and author != "user":
+                        text = _extract_event_text(e)
+                        if text:
+                            new_content = text
+                            break
+
+        if not new_content:
+            return
+
+        existing = state.get(state_key)
+
+        if strategy == "replace":
+            state[state_key] = json.dumps([new_content])
+        elif strategy == "prepend":
+            entries = _parse_notes_entries(existing)
+            entries.insert(0, new_content)
+            state[state_key] = json.dumps(entries)
+        elif strategy == "merge":
+            entries = _parse_notes_entries(existing)
+            if new_content not in entries:
+                entries.append(new_content)
+            state[state_key] = json.dumps(entries)
+        else:  # "append" (default)
+            entries = _parse_notes_entries(existing)
+            entries.append(new_content)
+            state[state_key] = json.dumps(entries)
+
+    _after_agent.__name__ = f"write_notes_{key}"
+    return _after_agent
+
+
+def _parse_notes_entries(raw: Any) -> list[str]:
+    """Parse existing notes from state into a list of strings."""
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return [str(e) for e in raw]
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                return [str(e) for e in parsed]
+            return [raw]
+        except (json.JSONDecodeError, ValueError):
+            return [raw]
+    return [str(raw)]
+
+
+def consolidate_notes(
+    ctx: Any,
+    key: str,
+    max_entries: int | None = None,
+) -> None:
+    """Consolidate notes by deduplicating and optionally capping entries.
+
+    Call this in a callback or tool to manage note lifecycle.
+    """
+    state = ctx.state if hasattr(ctx, "state") else ctx
+    state_key = f"_notes_{key}"
+    entries = _parse_notes_entries(state.get(state_key))
+    # Deduplicate preserving order
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for entry in entries:
+        if entry not in seen:
+            seen.add(entry)
+            deduped.append(entry)
+    # Cap if requested
+    if max_entries is not None and len(deduped) > max_entries:
+        deduped = deduped[-max_entries:]
+    state[state_key] = json.dumps(deduped)
+
+
+def clear_notes(ctx: Any, key: str) -> None:
+    """Clear all notes for a given key."""
+    state = ctx.state if hasattr(ctx, "state") else ctx
+    state_key = f"_notes_{key}"
+    state[state_key] = json.dumps([])
+
+
+# ======================================================================
 # C — public API namespace
 # ======================================================================
 
@@ -1797,6 +2226,76 @@ class C:
     def validate(*checks: str, model: str = _DEFAULT_MODEL) -> CValidate:
         """Validate context quality. Checks: 'contradictions', 'completeness', 'freshness', 'token_efficiency'."""
         return CValidate(checks=checks if checks else ("completeness",), model=model)
+
+    # --- Phase D: Scratchpads + Sugar ---
+
+    @staticmethod
+    def notes(key: str = "default", *, format: str = "plain") -> CNotes:
+        """Read structured notes from scratchpad at ``state["_notes_{key}"]``."""
+        return CNotes(key=key, format=format)
+
+    @staticmethod
+    def write_notes(
+        key: str = "default",
+        *,
+        strategy: str = "append",
+        source_key: str | None = None,
+    ) -> CWriteNotes:
+        """Write to scratchpad after agent execution.
+
+        Strategies: 'append', 'replace', 'merge', 'prepend'.
+        """
+        return CWriteNotes(
+            key=key,
+            strategy=strategy,
+            source_key=source_key,
+        )
+
+    @staticmethod
+    def rolling(
+        n: int = 5,
+        *,
+        summarize: bool = False,
+        model: str = _DEFAULT_MODEL,
+    ) -> CRolling:
+        """Rolling window with optional summarization of older turns.
+
+        When ``summarize=True``, events before the window are
+        summarized via LLM.
+        """
+        return CRolling(n=n, summarize=summarize, model=model)
+
+    @staticmethod
+    def from_agents_windowed(**agent_windows: int) -> CFromAgentsWindowed:
+        """Per-agent selective windowing.
+
+        Example::
+
+            C.from_agents_windowed(researcher=1, critic=3)
+        """
+        return CFromAgentsWindowed(
+            agent_windows=tuple(agent_windows.items()),
+        )
+
+    @staticmethod
+    def user(*, strategy: str = "all") -> CUser:
+        """Select user messages with a strategy.
+
+        Strategies: 'all', 'first', 'last', 'bookend'.
+        """
+        return CUser(strategy=strategy)
+
+    @staticmethod
+    def manus_cascade(
+        *,
+        budget: int = 8000,
+        model: str = _DEFAULT_MODEL,
+    ) -> CManusCascade:
+        """Manus-inspired progressive compression cascade.
+
+        Applies: compact → dedup → summarize → truncate.
+        """
+        return CManusCascade(budget=budget, model=model)
 
 
 # ======================================================================

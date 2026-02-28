@@ -1184,12 +1184,51 @@ class BuilderBase:
 
         # Context spec: compile C transforms into include_contents + InstructionProvider
         if context_spec is not None:
-            from adk_fluent._context import CTransform, _compile_context_spec
+            from adk_fluent._context import CTransform, CWriteNotes, _compile_context_spec
 
-            if isinstance(context_spec, CTransform):
+            # Handle CWriteNotes: register after_agent_callback
+            write_notes_specs: list[CWriteNotes] = []
+            remaining_spec = context_spec
+            if isinstance(context_spec, CWriteNotes):
+                write_notes_specs.append(context_spec)
+                remaining_spec = None
+            elif hasattr(context_spec, "blocks"):
+                # CComposite — separate CWriteNotes from other blocks
+                non_write = []
+                for block in context_spec.blocks:
+                    if isinstance(block, CWriteNotes):
+                        write_notes_specs.append(block)
+                    else:
+                        non_write.append(block)
+                if non_write:
+                    from adk_fluent._context import CComposite
+
+                    remaining_spec = CComposite(blocks=tuple(non_write)) if len(non_write) > 1 else non_write[0]
+                else:
+                    remaining_spec = None
+
+            # Compile CWriteNotes to after_agent callbacks
+            if write_notes_specs:
+                from adk_fluent._context import make_write_notes_callback
+
+                cbs = config.setdefault("after_agent_callback", [])
+                if not isinstance(cbs, list):
+                    cbs = [cbs]
+                    config["after_agent_callback"] = cbs
+                for wn in write_notes_specs:
+                    cbs.append(
+                        make_write_notes_callback(
+                            wn.key,
+                            wn.strategy,
+                            wn.source_key,
+                        )
+                    )
+
+            # Compile remaining context spec normally
+            if remaining_spec is not None and isinstance(remaining_spec, CTransform):
                 compiled = _compile_context_spec(
                     developer_instruction=config.get("instruction", ""),
-                    context_spec=context_spec,
+                    context_spec=remaining_spec,
                 )
                 config["include_contents"] = compiled["include_contents"]
                 if compiled.get("instruction") is not None:
