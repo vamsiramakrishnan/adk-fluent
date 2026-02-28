@@ -141,8 +141,8 @@ class StateSchemaMetaclass(type):
     def __dir__(cls) -> list[str]:
         """Include field names in dir() for IDE/REPL autocomplete."""
         base = list(super().__dir__())
-        if hasattr(cls, "_field_list"):
-            base.extend(f.name for f in cls._field_list)
+        field_list = getattr(cls, "_field_list", ())
+        base.extend(f.name for f in field_list)
         return base
 
     def __new__(mcs, name: str, bases: tuple, namespace: dict) -> type:
@@ -150,8 +150,8 @@ class StateSchemaMetaclass(type):
 
         if name == "StateSchema":
             # Base class — skip introspection
-            cls._fields = {}
-            cls._field_list = ()
+            cls._fields = {}  # type: ignore[attr-defined]
+            cls._field_list = ()  # type: ignore[attr-defined]
             return cls
 
         # Collect fields from type hints
@@ -191,8 +191,8 @@ class StateSchemaMetaclass(type):
                 default=default,
             )
 
-        cls._fields = fields
-        cls._field_list = tuple(fields.values())
+        cls._fields = fields  # type: ignore[attr-defined]
+        cls._field_list = tuple(fields.values())  # type: ignore[attr-defined]
         return cls
 
 
@@ -294,13 +294,6 @@ class StateSchema(metaclass=StateSchemaMetaclass):
             # → "Handle intent: {intent} {confidence} {ticket_id} ..."
         """
         return " ".join(f"{{{f.name}}}" for f in cls._field_list)
-
-    @classmethod
-    def __dir__(cls) -> list[str]:
-        """Include field names in dir() for REPL/IDE autocomplete."""
-        base = list(super().__dir__())
-        base.extend(f.name for f in cls._field_list)
-        return base
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({', '.join(f.name for f in self._field_list)})"
