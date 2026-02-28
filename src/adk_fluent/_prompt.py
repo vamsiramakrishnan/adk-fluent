@@ -633,7 +633,7 @@ def _fingerprint(spec: PTransform | None) -> str:
     elif isinstance(spec, PVersioned):
         h.update(spec.tag.encode())
         h.update(_fingerprint(spec.block).encode())
-    elif isinstance(spec, (PReorder, POnly, PWithout)):
+    elif isinstance(spec, PReorder | POnly | PWithout):
         names = getattr(spec, "order", None) or getattr(spec, "names", ())
         for n in names:
             h.update(n.encode())
@@ -762,7 +762,7 @@ def _compile_prompt_spec_static(spec: PTransform, state: dict[str, Any]) -> str:
     content_blocks: list[PTransform] = []
 
     for block in blocks:
-        if isinstance(block, (PReorder, POnly, PWithout)):
+        if isinstance(block, PReorder | POnly | PWithout):
             structural.append(block)
         elif isinstance(block, PPipe):
             # Compile pipe inline
@@ -824,7 +824,7 @@ def _compile_pipe_static(pipe: PPipe, state: dict[str, Any]) -> str:
         return source_text
 
     # LLM-powered transforms need async execution — in static mode, return source
-    if isinstance(pipe.transform, (PCompress, PAdapt)):
+    if isinstance(pipe.transform, PCompress | PAdapt):
         _log.warning(
             "LLM-powered transform %s requires async execution; "
             "returning unprocessed text in static build(). "
@@ -834,7 +834,7 @@ def _compile_pipe_static(pipe: PPipe, state: dict[str, Any]) -> str:
         return source_text
 
     # Structural transforms applied to compiled text
-    if isinstance(pipe.transform, (PReorder, POnly, PWithout)):
+    if isinstance(pipe.transform, PReorder | POnly | PWithout):
         # Re-parse? No — structural transforms work on section groups, not compiled text.
         # In pipe mode, we just return the source text since it's already compiled.
         return source_text
@@ -923,7 +923,7 @@ def _render_sections(groups: dict[str, list[str]], reorder: PReorder | None = No
 
 def _has_dynamic_blocks(spec: PTransform) -> bool:
     """Check if a PTransform tree contains dynamic (state-dependent) blocks."""
-    if isinstance(spec, (PWhen, PFromState, PTemplate)):
+    if isinstance(spec, PWhen | PFromState | PTemplate):
         return True
     if isinstance(spec, PComposite):
         return any(_has_dynamic_blocks(b) for b in spec.blocks)
@@ -931,7 +931,7 @@ def _has_dynamic_blocks(spec: PTransform) -> bool:
         has_source = _has_dynamic_blocks(spec.source) if spec.source else False
         has_transform = _has_dynamic_blocks(spec.transform) if spec.transform else False
         # LLM transforms are also dynamic
-        if isinstance(spec.transform, (PCompress, PAdapt)):
+        if isinstance(spec.transform, PCompress | PAdapt):
             return True
         return has_source or has_transform
     if isinstance(spec, PScaffolded) and spec.block:
@@ -943,7 +943,7 @@ def _has_dynamic_blocks(spec: PTransform) -> bool:
 
 def _has_llm_transforms(spec: PTransform) -> bool:
     """Check if a PTransform tree contains LLM-powered transforms."""
-    if isinstance(spec, (PCompress, PAdapt)):
+    if isinstance(spec, PCompress | PAdapt):
         return True
     if isinstance(spec, PComposite):
         return any(_has_llm_transforms(b) for b in spec.blocks)
@@ -999,7 +999,7 @@ def _compile_prompt_spec(
 
         # Process any nested pipes with LLM transforms
         for block in blocks:
-            if isinstance(block, PPipe) and isinstance(block.transform, (PCompress, PAdapt)):
+            if isinstance(block, PPipe) and isinstance(block.transform, PCompress | PAdapt):
                 result = await _compile_pipe_async(
                     PPipe(source=PSection(name="_compiled", content=result), transform=block.transform),
                     state,

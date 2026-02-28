@@ -39,7 +39,7 @@ class TestProtocol:
         t = PTransform()
         try:
             t._kind = "changed"
-            assert False, "Should have raised FrozenInstanceError"
+            raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass
 
@@ -47,7 +47,7 @@ class TestProtocol:
         r = PRole(content="test")
         try:
             r.content = "changed"
-            assert False, "Should have raised FrozenInstanceError"
+            raise AssertionError("Should have raised FrozenInstanceError")
         except AttributeError:
             pass
 
