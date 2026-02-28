@@ -115,11 +115,11 @@ adk-fluent provides three orthogonal composition namespaces for declarative agen
 
 All three modules support composition, but with different operators:
 
-| Operator | P (Prompt)        | C (Context)       | S (State)              |
-| -------- | ----------------- | ----------------- | ---------------------- |
-| `+`      | Union (merge)     | Union (merge)     | Combine (run both)     |
-| `\|`     | Pipe (transform)  | Pipe (transform)  | —                      |
-| `>>`     | —                 | —                 | Chain (sequential)     |
+| Operator | P (Prompt)       | C (Context)      | S (State)          |
+| -------- | ---------------- | ---------------- | ------------------ |
+| `+`      | Union (merge)    | Union (merge)    | Combine (run both) |
+| `\|`     | Pipe (transform) | Pipe (transform) | —                  |
+| `>>`     | —                | —                | Chain (sequential) |
 
 ```python
 # P: compose prompt sections
@@ -222,12 +222,14 @@ Template variables like `{query}` are replaced with `state["query"]` at runtime 
 Controlled by `include_contents`:
 
 - **`"default"`** (the default) — full conversation history is included, filtered to:
+
   - Remove empty events (no text, no function calls)
   - Remove framework-internal events (auth, confirmations)
   - Rearrange function call/response pairs for proper pairing
   - Multi-agent: other agents' messages reformatted as `[agent_name] said: ...`
 
 - **`"none"`** — conversation history is suppressed, but the **current turn is still included**:
+
   - Latest user input (or the invoking agent's message)
   - Current turn's tool calls and responses
 
@@ -264,6 +266,7 @@ When `output_schema` is set (via `.returns(Model)` or `@ Model`):
 ```
 
 **Note:** Tools are NOT unconditionally disabled when `output_schema` is set. ADK checks model capabilities:
+
 - If the model supports both tools and structured output natively → both work
 - If not → ADK injects a `set_model_response` workaround tool, allowing the agent to use other tools during reasoning but requiring the final answer as structured JSON via that tool
 
@@ -323,13 +326,13 @@ This is delivered by compiling the context spec into an async callable that repl
 
 ### What Does NOT Get Sent
 
-| Not sent                               | Why                                                     |
-| -------------------------------------- | ------------------------------------------------------- |
-| State keys not in `.reads()`           | Only explicitly declared keys are injected              |
-| State keys not in `{template}`         | Only template variables in the instruction are resolved |
-| `.produces()` / `.consumes()`          | Contract annotations — never sent to the LLM            |
-| `.writes()` target key                 | Only used AFTER the LLM responds                        |
-| `.accepts()` schema                    | Only validated at tool-call time, not sent to LLM       |
+| Not sent                               | Why                                                       |
+| -------------------------------------- | --------------------------------------------------------- |
+| State keys not in `.reads()`           | Only explicitly declared keys are injected                |
+| State keys not in `{template}`         | Only template variables in the instruction are resolved   |
+| `.produces()` / `.consumes()`          | Contract annotations — never sent to the LLM              |
+| `.writes()` target key                 | Only used AFTER the LLM responds                          |
+| `.accepts()` schema                    | Only validated at tool-call time, not sent to LLM         |
 | History when `include_contents="none"` | Conversation history is suppressed (current turn remains) |
 
 ### After the LLM Responds
@@ -368,13 +371,13 @@ Multiple sections of the same kind are concatenated. Custom sections appear afte
 
 ### All P factories
 
-| Phase               | Methods                                                    | Purpose                        |
-| ------------------- | ---------------------------------------------------------- | ------------------------------ |
-| **Core Sections**   | `role()`, `context()`, `task()`, `constraint()`, `format()`, `example()`, `section()` | Define prompt structure        |
-| **Dynamic**         | `when()`, `from_state()`, `template()`                     | Conditional + state-dependent  |
-| **Structural**      | `reorder()`, `only()`, `without()`                         | Post-process section ordering  |
-| **LLM-Powered**     | `compress()`, `adapt()`                                    | Smart prompt optimization      |
-| **Sugar**           | `scaffolded()`, `versioned()`                              | Defensive wrapping + tagging   |
+| Phase             | Methods                                                                               | Purpose                       |
+| ----------------- | ------------------------------------------------------------------------------------- | ----------------------------- |
+| **Core Sections** | `role()`, `context()`, `task()`, `constraint()`, `format()`, `example()`, `section()` | Define prompt structure       |
+| **Dynamic**       | `when()`, `from_state()`, `template()`                                                | Conditional + state-dependent |
+| **Structural**    | `reorder()`, `only()`, `without()`                                                    | Post-process section ordering |
+| **LLM-Powered**   | `compress()`, `adapt()`                                                               | Smart prompt optimization     |
+| **Sugar**         | `scaffolded()`, `versioned()`                                                         | Defensive wrapping + tagging  |
 
 ### Compilation paths
 
@@ -477,14 +480,14 @@ Every C transform compiles to two ADK knobs:
 
 ### All C factories
 
-| Category         | Methods                                          | Purpose                        |
-| ---------------- | ------------------------------------------------ | ------------------------------ |
-| **Primitives**   | `none()`, `default()`, `user_only()`             | Suppress / keep all / users    |
-| **Selection**    | `from_state()`, `from_agents()`, `exclude_agents()`, `window()`, `last_n_turns()`, `template()` | Select what to include |
-| **Filtering**    | `select()`, `recent()`, `compact()`, `dedup()`, `truncate()`, `project()` | Smart filtering          |
-| **Constraints**  | `budget()`, `priority()`, `fit()`, `fresh()`, `redact()` | Token budgets + freshness      |
-| **LLM-Powered**  | `summarize()`, `relevant()`, `extract()`, `distill()` | Intelligent context selection  |
-| **Sugar**        | `rolling()`, `from_agents_windowed()`, `user()`, `manus_cascade()`, `notes()`, `write_notes()`, `validate()`, `capture()` | Convenience patterns |
+| Category        | Methods                                                                                                                   | Purpose                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **Primitives**  | `none()`, `default()`, `user_only()`                                                                                      | Suppress / keep all / users   |
+| **Selection**   | `from_state()`, `from_agents()`, `exclude_agents()`, `window()`, `last_n_turns()`, `template()`                           | Select what to include        |
+| **Filtering**   | `select()`, `recent()`, `compact()`, `dedup()`, `truncate()`, `project()`                                                 | Smart filtering               |
+| **Constraints** | `budget()`, `priority()`, `fit()`, `fresh()`, `redact()`                                                                  | Token budgets + freshness     |
+| **LLM-Powered** | `summarize()`, `relevant()`, `extract()`, `distill()`                                                                     | Intelligent context selection |
+| **Sugar**       | `rolling()`, `from_agents_windowed()`, `user()`, `manus_cascade()`, `notes()`, `write_notes()`, `validate()`, `capture()` | Convenience patterns          |
 
 ### Default: Full history
 
@@ -715,11 +718,11 @@ flowchart LR
 Within `_prepare_build_config()`, the compilation happens in this order:
 
 1. Run IR contract checks
-2. Extract internal directives (`_context_spec`, `_prompt_spec`, `_output_schema`)
-3. Strip internal fields
-4. **Context spec compiles first** → sets `include_contents` + creates instruction provider
-5. **Prompt spec compiles second** → can override the instruction from step 4
-6. Assemble final config dict for ADK `LlmAgent` instantiation
+1. Extract internal directives (`_context_spec`, `_prompt_spec`, `_output_schema`)
+1. Strip internal fields
+1. **Context spec compiles first** → sets `include_contents` + creates instruction provider
+1. **Prompt spec compiles second** → can override the instruction from step 4
+1. Assemble final config dict for ADK `LlmAgent` instantiation
 
 ______________________________________________________________________
 
