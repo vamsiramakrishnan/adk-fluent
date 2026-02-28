@@ -23,7 +23,10 @@ Usage::
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Annotated, Any, ClassVar, get_args, get_origin, get_type_hints
+from typing import Any, ClassVar
+
+from adk_fluent._schema_base import _MISSING as _MISSING  # shared sentinel
+from adk_fluent._schema_base import DeclarativeMetaclass
 
 __all__ = [
     "StateSchema",
@@ -89,9 +92,6 @@ class Scoped:
 # ======================================================================
 
 
-_MISSING = object()
-
-
 class _StateSchemaField:
     """Metadata about a single field in a StateSchema."""
 
@@ -132,11 +132,10 @@ class _StateSchemaField:
         return f"Field({', '.join(parts)})"
 
 
-# _MISSING already defined at module level above
-
-
-class StateSchemaMetaclass(type):
+class StateSchemaMetaclass(DeclarativeMetaclass):
     """Metaclass that introspects Annotated type hints to build field metadata."""
+
+    _schema_base_name = "StateSchema"
 
     def __dir__(cls) -> list[str]:
         """Include field names in dir() for IDE/REPL autocomplete."""
@@ -149,50 +148,29 @@ class StateSchemaMetaclass(type):
         cls = super().__new__(mcs, name, bases, namespace)
 
         if name == "StateSchema":
-            # Base class — skip introspection
-            cls._fields = {}  # type: ignore[attr-defined]
-            cls._field_list = ()  # type: ignore[attr-defined]
+            # Base class — skip state-specific introspection
+            cls._fields = {}
+            cls._field_list = ()
             return cls
 
-        # Collect fields from type hints
-        fields: dict[str, _StateSchemaField] = {}
-        try:
-            hints = get_type_hints(cls, include_extras=True)
-        except Exception:
-            hints = getattr(cls, "__annotations__", {})
+        # Convert DeclarativeFields to _StateSchemaFields
+        state_fields: dict[str, _StateSchemaField] = {}
+        for f in cls._field_list:
+            scoped = f.get_annotation(Scoped)
+            captured = f.get_annotation(CapturedBy)
+            scope = scoped.scope if scoped else "session"
+            captured_by = captured.source if captured else None
 
-        for field_name, hint in hints.items():
-            if field_name.startswith("_"):
-                continue
-
-            scope = "session"
-            captured_by = None
-            field_type = hint
-
-            # Extract metadata from Annotated
-            if get_origin(hint) is Annotated:
-                args = get_args(hint)
-                if args:
-                    field_type = args[0]
-                    for meta in args[1:]:
-                        if isinstance(meta, Scoped):
-                            scope = meta.scope
-                        elif isinstance(meta, CapturedBy):
-                            captured_by = meta.source
-
-            # Check for default value
-            default = namespace.get(field_name, _MISSING)
-
-            fields[field_name] = _StateSchemaField(
-                name=field_name,
-                type_=field_type,
+            state_fields[f.name] = _StateSchemaField(
+                name=f.name,
+                type_=f.type,
                 scope=scope,
                 captured_by=captured_by,
-                default=default,
+                default=f.default,
             )
 
-        cls._fields = fields  # type: ignore[attr-defined]
-        cls._field_list = tuple(fields.values())  # type: ignore[attr-defined]
+        cls._fields = state_fields
+        cls._field_list = tuple(state_fields.values())
         return cls
 
 
