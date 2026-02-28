@@ -494,7 +494,10 @@ class _ConditionalMiddleware:
         async def _guarded(*args: Any, **kwargs: Any) -> Any:
             if not self._check():
                 return None
-            return await val(*args, **kwargs)
+            result = val(*args, **kwargs)
+            if hasattr(result, "__await__"):
+                result = await result  # type: ignore[reportGeneralTypeIssues]
+            return result
 
         return _guarded
 
