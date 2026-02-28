@@ -2,7 +2,7 @@
 
 Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 
-**Sequence passes (12 total):**
+**Sequence passes (13 total):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
@@ -29,6 +29,10 @@ Checks SequenceNode, ParallelNode, and LoopNode IR trees:
     warns if they consume keys not available upstream.
 12. **Dispatch/Join coherence** -- checks that DispatchNode task names are unique
     and that JoinNode target_names reference dispatched tasks upstream.
+13. **ToolSchema / CallbackSchema / Predicate dependency validation** -- checks
+    that ``reads_keys()`` from ToolSchema, CallbackSchema, and PredicateSchema
+    are produced by upstream agents.  Also promotes schema ``writes_keys()``
+    so downstream consumers can depend on them.
 
 **Parallel checks:**
 - Write isolation: two branches should not write to the same output_key
@@ -576,6 +580,81 @@ def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str
                             }
                         )
 
+    # =================================================================
+    # Pass 13: ToolSchema / CallbackSchema dependency validation
+    # =================================================================
+    schema_available: set[str] = set()
+    # Rebuild available keys incrementally for schema checking
+    for child in children:
+        child_name = getattr(child, "name", "?")
+
+        # Check tool_schema and callback_schema reads
+        for schema_attr, label in [("tool_schema", "ToolSchema"), ("callback_schema", "CallbackSchema")]:
+            schema = getattr(child, schema_attr, None)
+            if schema is None or not hasattr(schema, "reads_keys"):
+                continue
+
+            schema_reads = schema.reads_keys()
+            if schema_reads:
+                missing = schema_reads - schema_available
+                for key in sorted(missing):
+                    issues.append(
+                        {
+                            "level": "warning",
+                            "agent": _scoped(child_name),
+                            "message": (f"{label} reads key '{key}' but it is not produced by any upstream agent"),
+                            "hint": (
+                                f"Add .outputs('{key}') to an upstream agent "
+                                f"or use S.set() / S.capture() to provide this key."
+                            ),
+                        }
+                    )
+
+        # Check RouteNode predicate reads
+        rules = getattr(child, "rules", ())
+        for pred, _agent in rules:
+            if hasattr(pred, "reads_keys"):
+                pred_reads = pred.reads_keys()
+                missing = pred_reads - schema_available
+                for key in sorted(missing):
+                    issues.append(
+                        {
+                            "level": "warning",
+                            "agent": _scoped(child_name),
+                            "message": (f"Predicate reads key '{key}' but it is not produced by any upstream agent"),
+                            "hint": (f"Add .outputs('{key}') to an upstream agent or use S.set() to provide this key."),
+                        }
+                    )
+
+        # Check GateNode predicate reads
+        gate_pred = getattr(child, "predicate", None)
+        if gate_pred is not None and hasattr(gate_pred, "reads_keys"):
+            pred_reads = gate_pred.reads_keys()
+            missing = pred_reads - schema_available
+            for key in sorted(missing):
+                issues.append(
+                    {
+                        "level": "warning",
+                        "agent": _scoped(child_name),
+                        "message": (f"Gate predicate reads key '{key}' but it is not produced by any upstream agent"),
+                        "hint": (f"Add .outputs('{key}') to an upstream agent or use S.set() to provide this key."),
+                    }
+                )
+
+        # Update available keys with this child's contributions
+        # Mirror the logic from Pass 1-2
+        writes = getattr(child, "writes_keys", frozenset())
+        if writes:
+            schema_available |= writes
+        ok = getattr(child, "output_key", None)
+        if ok:
+            schema_available.add(ok)
+        # ToolSchema/CallbackSchema writes also become available
+        for schema_attr in ("tool_schema", "callback_schema"):
+            schema = getattr(child, schema_attr, None)
+            if schema is not None and hasattr(schema, "writes_keys"):
+                schema_available |= schema.writes_keys()
+
     return issues
 
 
@@ -694,7 +773,7 @@ def _check_loop_contracts(children: tuple, parent_name: str = "") -> list[dict[s
 def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     """Verify contracts on an IR tree. Dispatches by node type.
 
-    Checks SequenceNode (full 12-pass analysis), ParallelNode (isolation),
+    Checks SequenceNode (full 13-pass analysis), ParallelNode (isolation),
     LoopNode (body sequence validation), and DispatchNode (independent agents).
 
     Returns a list where each item is either:
