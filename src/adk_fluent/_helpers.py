@@ -96,6 +96,7 @@ def _agent_to_ir(builder):
     # Also capture PTransform stored directly in instruction
     if prompt_spec is None:
         from adk_fluent._prompt import PTransform as _PT
+
         instr = builder._config.get("instruction")
         if isinstance(instr, _PT):
             prompt_spec = instr

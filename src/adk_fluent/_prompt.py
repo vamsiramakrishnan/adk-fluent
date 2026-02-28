@@ -30,12 +30,11 @@ Usage:
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import Any, Literal
+from dataclasses import dataclass
+from typing import Any
 
 _DEFAULT_MODEL = "gemini-2.5-flash"
 _log = logging.getLogger(__name__)
@@ -868,9 +867,7 @@ def _resolve_from_state(keys: tuple[str, ...], state: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _apply_structural_transform(
-    transform: PTransform, groups: dict[str, list[str]]
-) -> dict[str, list[str]]:
+def _apply_structural_transform(transform: PTransform, groups: dict[str, list[str]]) -> dict[str, list[str]]:
     """Apply a structural transform to section groups."""
     if isinstance(transform, POnly):
         return {k: v for k, v in groups.items() if k in transform.names}
