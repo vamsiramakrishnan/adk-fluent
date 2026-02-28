@@ -77,7 +77,7 @@ The simplest selector. Include the last N turn-pairs (user + agent response).
 
 **Compilation**: Scans `ctx.session.events` backward, extracts last N turn boundaries, formats as conversation text. `include_contents='none'`.
 
-**Performance**: < 2ms (event scan + partition).
+**Performance**: \< 2ms (event scan + partition).
 
 **Distinction from v1's `C.last_n_turns(n)`**: Identical behavior, renamed for consistency with the verb taxonomy. `C.last_n_turns` becomes an alias.
 
@@ -103,7 +103,7 @@ General-purpose event filter by metadata attributes.
 
 **Compilation**: InstructionProvider iterates events, applies predicate, formats matches.
 
-**Performance**: < 2ms (linear scan with predicate).
+**Performance**: \< 2ms (linear scan with predicate).
 
 **Tags**: Events can be tagged via `S.tag("approved")` state transform on preceding agents. Tags stored in `temp:_event_tags_{event_id}`. This is a new S module primitive.
 
@@ -134,9 +134,9 @@ Select events by semantic relevance to a query, not just recency or authorship.
 
 **Performance**:
 
-- LLM scorer, cache hit: < 3ms
+- LLM scorer, cache hit: \< 3ms
 - LLM scorer, cache miss: 100-300ms (batch scoring call)
-- Embedding scorer: < 10ms (vector similarity)
+- Embedding scorer: \< 10ms (vector similarity)
 
 **Why this matters beyond overflow**: Relevance selection is not about fitting within limits. It's about *attention efficiency*. Even with abundant context budget, an agent performs better when irrelevant events are excluded. The NOLIMA benchmark shows performance dropping below 50% of baseline at 32K tokens — not because of overflow, but because of diluted attention.
 
@@ -162,7 +162,7 @@ Select events weighted by temporal recency, with configurable decay.
 
 **Compilation**: InstructionProvider scores events by turn distance, filters by threshold, formats. No LLM call.
 
-**Performance**: < 2ms.
+**Performance**: \< 2ms.
 
 ### 2.5 `C.from_state(*keys, format=)` — State-Based Context
 
@@ -216,7 +216,7 @@ Lossy compression via LLM. The fundamental summarization atom.
 
 **Compaction awareness**: Checks for existing ADK `EventCompaction` events covering the target range. Reuses if found.
 
-**Performance**: Cache hit < 3ms, cache miss 200-500ms.
+**Performance**: Cache hit \< 3ms, cache miss 200-500ms.
 
 ### 3.2 `C.compact(strategy=)` — Reversible Compaction
 
@@ -249,7 +249,7 @@ The Manus insight: most context can be *compacted* (reversibly reduced) before i
 
 **Compilation**: InstructionProvider scans events, applies compaction rules, formats compact versions. For the "stale" strategy, events within the recent window remain full; older events are compacted.
 
-**Performance**: < 3ms (string truncation + reference generation, no LLM call).
+**Performance**: \< 3ms (string truncation + reference generation, no LLM call).
 
 **Key insight**: Compaction is not overflow handling. It's *proactive hygiene*. A 500-line code file in context wastes attention budget even if you're nowhere near the token limit. Replacing it with a path costs nothing in terms of information (the agent can read the file again) but recovers hundreds of tokens of attention.
 
@@ -266,7 +266,7 @@ The inverse of compaction. Restores full content from a recovery reference.
 
 **Compilation**: FnAgent reads the reference, retrieves full content, writes to temp state. InstructionProvider reads and formats.
 
-**Performance**: Depends on source (state lookup < 1ms, file read < 5ms).
+**Performance**: Depends on source (state lookup \< 1ms, file read \< 5ms).
 
 ### 3.4 `C.dedup(strategy=)` — Deduplication
 
@@ -282,8 +282,8 @@ Remove redundant information across events.
 
 **Strategies**:
 
-- `"exact"`: Remove events with identical text content. Cost: < 2ms (hash comparison).
-- `"structural"`: Remove events where a later event from the same author supersedes an earlier one (e.g., updated search results replace stale ones). Cost: < 3ms (author+type matching).
+- `"exact"`: Remove events with identical text content. Cost: \< 2ms (hash comparison).
+- `"structural"`: Remove events where a later event from the same author supersedes an earlier one (e.g., updated search results replace stale ones). Cost: \< 3ms (author+type matching).
 - `"semantic"`: LLM judges whether two events carry the same information. Cost: 100-300ms (batch LLM call, cached).
 
 **Why this matters beyond overflow**: In iterative agent loops (retry, refine, search-again), events accumulate that carry increasingly refined versions of the same information. Without dedup, the agent sees multiple versions and must waste reasoning capacity determining which is current. Dedup ensures the agent always reasons over the *latest* version.
@@ -302,7 +302,7 @@ For agents that produce structured outputs (JSON, schemas), include only specifi
 
 **Semantics**: Parses event content as structured data (JSON), selects/excludes specified fields, re-serializes. Falls back gracefully to full content if parsing fails.
 
-**Performance**: < 2ms (JSON parse + field selection).
+**Performance**: \< 2ms (JSON parse + field selection).
 
 **Why this matters**: Agent outputs often contain both the "answer" and the "work" (chain of thought, intermediate calculations, raw data). Downstream agents usually only need the answer. Projection prevents reasoning artifacts from polluting downstream context.
 
@@ -324,7 +324,7 @@ The simplest compression: cut content to fit a token limit.
 - `"head"`: Keep first N tokens (introductory content).
 - `"bookend"`: Keep first N/2 and last N/2 tokens with `[... truncated ...]` marker.
 
-**Performance**: < 1ms (token counting + string slicing).
+**Performance**: \< 1ms (token counting + string slicing).
 
 ______________________________________________________________________
 
@@ -364,7 +364,7 @@ Read from an agent's structured notepad. Notes are written by the `C.write_notes
 - `"structured"`: JSON object with labeled sections.
 - `"log"`: Append-only log with timestamps.
 
-**Performance**: < 1ms (state read + formatting).
+**Performance**: \< 1ms (state read + formatting).
 
 ### 4.3 `C.write_notes(key=, strategy=)` — Write to Scratchpad
 
@@ -461,7 +461,7 @@ Set a maximum token budget for this agent's assembled context.
 
 **Compilation**: InstructionProvider assembles all content, counts tokens, applies overflow strategy.
 
-**Performance**: < 3ms for truncation strategies, 200-500ms if summarization triggered.
+**Performance**: \< 3ms for truncation strategies, 200-500ms if summarization triggered.
 
 **Why this is different from overflow handling**: `C.budget(max_tokens=4000)` is a *design constraint*, like `max-width` in CSS. It tells the system: "This agent performs best with ≤ 4000 tokens of context." It applies on turn 1 when there's only 200 tokens of context, because it shapes *how* context is assembled, not just *when* to panic.
 
@@ -491,7 +491,7 @@ Assign priority tiers to content blocks for budget-aware assembly.
 
 **Compilation**: Content blocks carry priority metadata through the composition chain. Budget InstructionProvider sorts by priority before applying truncation.
 
-**Performance**: < 1ms (metadata tagging, no computation).
+**Performance**: \< 1ms (metadata tagging, no computation).
 
 ### 5.3 `C.fit(target_tokens=, strategy=)` — Adaptive Fit-to-Budget
 
@@ -518,7 +518,7 @@ A higher-level budget primitive that adaptively fits context to a target token c
 - `"summarize_only"`: Skip compaction, go straight to summarization.
 - `"strict"`: Hard truncation only, no LLM calls.
 
-**Performance**: Depends on which cascade steps trigger. Compaction + dedup: < 5ms. Summarization: 200-500ms.
+**Performance**: Depends on which cascade steps trigger. Compaction + dedup: \< 5ms. Summarization: 200-500ms.
 
 ______________________________________________________________________
 
@@ -550,7 +550,7 @@ Filter out stale information based on temporal age.
 
 **Why this isn't just `C.window(n)`**: Window is a hard cutoff — it sees exactly N turns. Freshness is a quality annotation — it can be combined with other selectors. `C.select(author="researcher") | C.fresh(max_age=5)` means "researcher's outputs, but only if they're less than 5 turns old." Window can't express this.
 
-**Performance**: < 1ms (turn-distance calculation + filter/annotate).
+**Performance**: \< 1ms (turn-distance calculation + filter/annotate).
 
 ### 6.2 `C.redact(patterns=, fields=)` — Sensitive Data Redaction
 
@@ -571,7 +571,7 @@ Remove sensitive information before it enters an agent's context.
 
 **Why this matters for multi-agent systems**: In pipelines where different agents have different trust levels (e.g., an external API-calling agent vs. an internal summarization agent), redaction ensures sensitive data doesn't leak to agents that shouldn't see it.
 
-**Performance**: < 3ms (regex scanning).
+**Performance**: \< 3ms (regex scanning).
 
 ### 6.3 `C.validate(checks=)` — Context Quality Validation
 
@@ -593,7 +593,7 @@ Run quality checks on assembled context and annotate or raise warnings.
 
 **Compilation**: Validation checks run as a post-assembly step. Failures are either annotated in the context (`<warning>Contradiction detected: ...</warning>`) or raised as pipeline diagnostics during development.
 
-**Performance**: Completeness/freshness < 1ms, contradiction detection 100-300ms (LLM call, cached).
+**Performance**: Completeness/freshness \< 1ms, contradiction detection 100-300ms (LLM call, cached).
 
 ______________________________________________________________________
 
@@ -861,35 +861,35 @@ ______________________________________________________________________
 
 | Primitive                        | Latency      | Mechanism                  | LLM Call? |
 | -------------------------------- | ------------ | -------------------------- | --------- |
-| `C.window(n)`                    | < 2ms        | Event scan + partition     | No        |
-| `C.select(...)`                  | < 2ms        | Linear scan with predicate | No        |
-| `C.relevant(...)` cache hit      | < 3ms        | State lookup               | No        |
+| `C.window(n)`                    | \< 2ms       | Event scan + partition     | No        |
+| `C.select(...)`                  | \< 2ms       | Linear scan with predicate | No        |
+| `C.relevant(...)` cache hit      | \< 3ms       | State lookup               | No        |
 | `C.relevant(...)` cache miss     | 100-300ms    | Batch scoring call         | Yes       |
-| `C.recent(...)`                  | < 2ms        | Turn distance scoring      | No        |
-| `C.from_state(...)`              | < 1ms        | State read                 | No        |
-| `C.notes(...)`                   | < 1ms        | State read + format        | No        |
-| `C.summarize(...)` cache hit     | < 3ms        | State lookup               | No        |
+| `C.recent(...)`                  | \< 2ms       | Turn distance scoring      | No        |
+| `C.from_state(...)`              | \< 1ms       | State read                 | No        |
+| `C.notes(...)`                   | \< 1ms       | State read + format        | No        |
+| `C.summarize(...)` cache hit     | \< 3ms       | State lookup               | No        |
 | `C.summarize(...)` cache miss    | 200-500ms    | LLM summarization          | Yes       |
-| `C.compact(...)`                 | < 3ms        | String truncation + refs   | No        |
-| `C.expand(...)`                  | < 5ms        | State/file read            | No        |
-| `C.dedup("exact")`               | < 2ms        | Hash comparison            | No        |
+| `C.compact(...)`                 | \< 3ms       | String truncation + refs   | No        |
+| `C.expand(...)`                  | \< 5ms       | State/file read            | No        |
+| `C.dedup("exact")`               | \< 2ms       | Hash comparison            | No        |
 | `C.dedup("semantic")` cache miss | 100-300ms    | LLM judgment               | Yes       |
-| `C.project(...)`                 | < 2ms        | JSON parse + field select  | No        |
-| `C.truncate(...)`                | < 1ms        | Token count + slice        | No        |
+| `C.project(...)`                 | \< 2ms       | JSON parse + field select  | No        |
+| `C.truncate(...)`                | \< 1ms       | Token count + slice        | No        |
 | `C.extract(...)`                 | 200-400ms    | LLM extraction             | Yes       |
 | `C.distill(...)`                 | 200-400ms    | LLM fact extraction        | Yes       |
-| `C.budget(...)` no overflow      | < 1ms        | Token counting             | No        |
+| `C.budget(...)` no overflow      | \< 1ms       | Token counting             | No        |
 | `C.budget(...)` with summarize   | 200-500ms    | LLM summarization          | Yes       |
-| `C.priority(...)`                | < 1ms        | Metadata tagging           | No        |
+| `C.priority(...)`                | \< 1ms       | Metadata tagging           | No        |
 | `C.fit(...)` cascade             | 3ms-500ms    | Depends on cascade depth   | Maybe     |
-| `C.fresh(...)`                   | < 1ms        | Turn distance filter       | No        |
-| `C.redact(...)`                  | < 3ms        | Regex scanning             | No        |
-| `C.validate(...)` simple         | < 1ms        | Presence checks            | No        |
+| `C.fresh(...)`                   | \< 1ms       | Turn distance filter       | No        |
+| `C.redact(...)`                  | \< 3ms       | Regex scanning             | No        |
+| `C.validate(...)` simple         | \< 1ms       | Presence checks            | No        |
 | `C.validate(...)` contradictions | 100-300ms    | LLM judgment               | Yes       |
 | `+` composition                  | Sum of parts | Sequential render          | No        |
 | `\|` pipe                        | Sum of parts | Chained transform          | No        |
 
-**Budget rule of thumb**: A pipeline with no LLM-based atoms (window + select + compact + budget) adds < 10ms to each agent invocation. A pipeline with one LLM-based atom (summarize or relevant) adds 200-500ms on cache miss, < 5ms on cache hit. Cache hit rates in practice are 80-95% (events don't change between turns for a given summary scope).
+**Budget rule of thumb**: A pipeline with no LLM-based atoms (window + select + compact + budget) adds \< 10ms to each agent invocation. A pipeline with one LLM-based atom (summarize or relevant) adds 200-500ms on cache miss, \< 5ms on cache hit. Cache hit rates in practice are 80-95% (events don't change between turns for a given summary scope).
 
 ______________________________________________________________________
 
@@ -921,7 +921,7 @@ ______________________________________________________________________
 
 - **Compaction is reversible**. If you replace a 500-line file with its path, the agent can read the file again. Information is preserved in the environment.
 - **Summarization is irreversible**. Once you summarize 20 turns into 3 sentences, the original detail is gone. You can't predict which detail a future agent step might need.
-- **Compaction is free**. No LLM call, < 3ms. Summarization costs 200-500ms and money.
+- **Compaction is free**. No LLM call, \< 3ms. Summarization costs 200-500ms and money.
 - **Compaction gets you surprisingly far**. Manus found that tool results (search outputs, web fetches, file contents) often constitute 60-80% of context. Compacting these to references recovers most of the token budget without any information loss.
 
 The cascade is:

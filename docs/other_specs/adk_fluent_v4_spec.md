@@ -315,7 +315,7 @@ ______________________________________________________________________
 
 ## 2. Updated Disfluencies (v3 + New Findings from v1.25.0)
 
-### 2.1–2.11 [Retained from v3]
+### 2.1–2.11 \[Retained from v3\]
 
 All eleven disfluencies from v3 §1 remain valid and are incorporated by reference. The proposed fixes are unchanged. Summary:
 
