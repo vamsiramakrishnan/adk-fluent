@@ -457,6 +457,48 @@ class Agent(BuilderBase):
         async for chunk in run_events(self, prompt):
             yield chunk
 
+    async def run_on(
+        self,
+        source: Any,
+        *,
+        concurrency: int = 1,
+        session_strategy: str = "per_item",
+        session_key: Any = None,
+        on_result: Any = None,
+        on_error: Any = None,
+        graceful_shutdown: float = 30,
+    ) -> None:
+        """Continuously process items from a stream source.
+
+        Shortcut for building a :class:`~adk_fluent.stream.StreamRunner`
+        and calling ``.start()``.
+
+        Args:
+            source: An ``AsyncIterator[str]`` or :class:`~adk_fluent.source.Inbox`.
+            concurrency: Max concurrent agent executions.
+            session_strategy: ``"per_item"``, ``"shared"``, or ``"keyed"``.
+            session_key: Key extraction function (implies ``session_strategy="keyed"``).
+            on_result: Callback ``fn(input_item, result_text)`` for successes.
+            on_error: Callback ``fn(input_item, exception)`` for failures (DLQ).
+            graceful_shutdown: Max seconds to drain in-flight items on stop.
+        """
+        from adk_fluent.stream import StreamRunner
+
+        runner = (
+            StreamRunner(self)
+            .source(source)
+            .concurrency(concurrency)
+            .session_strategy(session_strategy)
+            .graceful_shutdown(graceful_shutdown)
+        )
+        if session_key:
+            runner.session_key(session_key)
+        if on_result:
+            runner.on_result(on_result)
+        if on_error:
+            runner.on_error(on_error)
+        await runner.start()
+
     def context(self, spec: Any) -> Self:
         """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
         self = self._maybe_fork_for_mutation()

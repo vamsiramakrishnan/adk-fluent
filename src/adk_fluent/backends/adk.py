@@ -10,9 +10,11 @@ from typing import Any
 from adk_fluent._ir import (
     AgentEvent,
     CaptureNode,
+    DispatchNode,
     ExecutionConfig,
     FallbackNode,
     GateNode,
+    JoinNode,
     MapOverNode,
     RaceNode,
     RouteNode,
@@ -132,6 +134,8 @@ class ADKBackend:
             RouteNode: self._compile_route,
             TransferNode: self._compile_transfer,
             CaptureNode: self._compile_capture,
+            DispatchNode: self._compile_dispatch,
+            JoinNode: self._compile_join,
         }
         compiler = dispatch.get(type(node))
         if compiler is None:
@@ -382,3 +386,24 @@ class ADKBackend:
         from adk_fluent._base import CaptureAgent
 
         return CaptureAgent(name=node.name, key=node.key)
+
+    def _compile_dispatch(self, node: DispatchNode) -> Any:
+        """DispatchNode -> DispatchAgent."""
+        from adk_fluent._base import DispatchAgent
+
+        return DispatchAgent(
+            name=node.name,
+            sub_agents=self._compile_children(node.children),
+            task_names=node.task_names,
+            progress_key=node.progress_key,
+        )
+
+    def _compile_join(self, node: JoinNode) -> Any:
+        """JoinNode -> JoinAgent."""
+        from adk_fluent._base import JoinAgent
+
+        return JoinAgent(
+            name=node.name,
+            target_names=node.target_names,
+            timeout=node.timeout,
+        )

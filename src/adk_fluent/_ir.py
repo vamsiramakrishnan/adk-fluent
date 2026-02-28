@@ -26,6 +26,8 @@ __all__ = [
     "RouteNode",
     "TransferNode",
     "CaptureNode",
+    "DispatchNode",
+    "JoinNode",
     # Config
     "ExecutionConfig",
     "CompactionConfig",
@@ -136,6 +138,34 @@ class CaptureNode:
     key: str
 
 
+@dataclass(frozen=True)
+class DispatchNode:
+    """Fire-and-continue background execution.
+
+    Launches children as concurrent tasks and returns immediately.
+    The main pipeline flow continues without waiting. Results are
+    collected later by a JoinNode.
+    """
+
+    name: str
+    children: tuple = ()
+    task_names: tuple[str, ...] = ()
+    progress_key: str | None = None
+
+
+@dataclass(frozen=True)
+class JoinNode:
+    """Synchronization barrier for dispatched tasks.
+
+    Blocks until dispatched tasks complete (or timeout), then
+    yields their events back into the main pipeline stream.
+    """
+
+    name: str
+    target_names: tuple[str, ...] | None = None
+    timeout: float | None = None
+
+
 # ======================================================================
 # Execution configuration
 # ======================================================================
@@ -225,4 +255,6 @@ Node = (
     | RouteNode
     | TransferNode
     | CaptureNode
+    | DispatchNode
+    | JoinNode
 )

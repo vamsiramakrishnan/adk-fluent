@@ -282,6 +282,16 @@ __all__ = [
     "TimeoutAgent",
     "GateAgent",
     "RaceAgent",
+    "DispatchAgent",
+    "JoinAgent",
+    "dispatch",
+    "join",
+    "DispatchNode",
+    "JoinNode",
+    "Source",
+    "Inbox",
+    "StreamRunner",
+    "StreamStats",
     "C",
     "CTransform",
     "CComposite",
@@ -461,6 +471,16 @@ from ._base import MapOverAgent
 from ._base import TimeoutAgent
 from ._base import GateAgent
 from ._base import RaceAgent
+from ._base import DispatchAgent
+from ._base import JoinAgent
+from ._base import dispatch
+from ._base import join
+from ._ir import DispatchNode
+from ._ir import JoinNode
+from .source import Source
+from .source import Inbox
+from .stream import StreamRunner
+from .stream import StreamStats
 from ._context import C
 from ._context import CTransform
 from ._context import CComposite
