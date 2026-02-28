@@ -186,8 +186,8 @@ class TestStateSchemaClassMethods:
 
     def test_field_types(self):
         types = BillingState.field_types()
-        assert types["intent"] == str
-        assert types["confidence"] == float
+        assert types["intent"] is str
+        assert types["confidence"] is float
 
     def test_captured_by_map(self):
         cmap = BillingState.captured_by_map()

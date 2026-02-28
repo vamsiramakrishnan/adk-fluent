@@ -379,24 +379,27 @@ def check_state_schema_contracts(
                     upstream_keys.add(ok)
 
             for field in consumes_type._field_list:
-                if field.required:
-                    if field.full_key not in upstream_keys and field.name not in upstream_keys:
-                        issues.append(
-                            {
-                                "level": "error",
-                                "agent": child_name,
-                                "message": (
-                                    f"Required field '{field.name}' in "
-                                    f"{consumes_type.__name__} is not "
-                                    f"produced by any upstream agent"
-                                ),
-                                "hint": (
-                                    f"Add .outputs('{field.name}') to an "
-                                    f"upstream agent or use S.capture() / "
-                                    f"S.set() to provide this key."
-                                ),
-                            }
-                        )
+                if (
+                    field.required
+                    and field.full_key not in upstream_keys
+                    and field.name not in upstream_keys
+                ):
+                    issues.append(
+                        {
+                            "level": "error",
+                            "agent": child_name,
+                            "message": (
+                                f"Required field '{field.name}' in "
+                                f"{consumes_type.__name__} is not "
+                                f"produced by any upstream agent"
+                            ),
+                            "hint": (
+                                f"Add .outputs('{field.name}') to an "
+                                f"upstream agent or use S.capture() / "
+                                f"S.set() to provide this key."
+                            ),
+                        }
+                    )
 
         # Check CapturedBy provenance
         if produces_type is not None and hasattr(produces_type, "captured_by_map"):

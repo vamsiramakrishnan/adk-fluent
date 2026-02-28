@@ -315,10 +315,6 @@ __all__ = [
     "CUser",
     "CManusCascade",
     "_compile_context_spec",
-    "StateSchema",
-    "CapturedBy",
-    "Scoped",
-    "check_state_schema_contracts",
     "deep_clone_builder",
     "delegate_agent",
     "run_one_shot",
@@ -367,6 +363,10 @@ __all__ = [
     "FullNode",
     "Prompt",
     "Route",
+    "StateSchema",
+    "CapturedBy",
+    "Scoped",
+    "check_state_schema_contracts",
     "S",
     "StateDelta",
     "StateReplacement",
@@ -451,10 +451,6 @@ from ._context import CFromAgentsWindowed
 from ._context import CUser
 from ._context import CManusCascade
 from ._context import _compile_context_spec
-from ._state_schema import StateSchema
-from ._state_schema import CapturedBy
-from ._state_schema import Scoped
-from ._state_schema import check_state_schema_contracts
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot
@@ -503,6 +499,10 @@ from ._ir_generated import LoopNode
 from ._ir_generated import FullNode
 from ._prompt import Prompt
 from ._routing import Route
+from ._state_schema import StateSchema
+from ._state_schema import CapturedBy
+from ._state_schema import Scoped
+from ._state_schema import check_state_schema_contracts
 from ._transforms import S
 from ._transforms import StateDelta
 from ._transforms import StateReplacement
