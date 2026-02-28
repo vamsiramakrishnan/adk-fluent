@@ -23,7 +23,6 @@ from .spec import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
 from .stubs import specs_to_ir_stub_module
 from .tests import specs_to_ir_test_module
 
-
 # ---------------------------------------------------------------------------
 # FILE HELPERS
 # ---------------------------------------------------------------------------

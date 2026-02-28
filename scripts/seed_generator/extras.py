@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from .field_policy import _is_list_of_complex_type, _unwrap_optional
 
-
 # ---------------------------------------------------------------------------
 # EXPLICIT EXTRAS (class-name switch)
 # ---------------------------------------------------------------------------

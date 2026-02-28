@@ -15,8 +15,8 @@ Steps:
 from __future__ import annotations
 
 from .aliases import (
-    SEMANTIC_OVERRIDES,
     _EXTRA_ALIASES,
+    SEMANTIC_OVERRIDES,
     derive_aliases,
     generate_callback_aliases,
 )

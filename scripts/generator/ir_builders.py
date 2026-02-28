@@ -34,7 +34,6 @@ from .imports import adk_import_name
 from .sig_parser import parse_signature
 from .spec import BuilderSpec
 
-
 # ---------------------------------------------------------------------------
 # CLASS ATTRIBUTES
 # ---------------------------------------------------------------------------
