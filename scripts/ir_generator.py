@@ -328,6 +328,32 @@ def main():
     # Generate
     code = gen_full_module(manifest)
 
+    # Format with ruff (same as code_ir emitter — output is its own final form)
+    import shutil
+    import subprocess
+
+    ruff = shutil.which("ruff")
+    if ruff:
+        try:
+            r = subprocess.run(
+                [ruff, "check", "--fix", "--stdin-filename", args.output, "-"],
+                input=code,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            code = r.stdout or code
+            r = subprocess.run(
+                [ruff, "format", "--stdin-filename", args.output, "-"],
+                input=code,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            code = r.stdout or code
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
     # Write output
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)

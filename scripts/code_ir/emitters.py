@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
+
 from .nodes import (
     AppendStmt,
     AssignStmt,
@@ -128,6 +131,55 @@ def _sort_and_group_imports(raw_lines: list[str]) -> list[str]:
             result.extend(groups[key])
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Ruff formatting — makes generator output its own final form
+# ---------------------------------------------------------------------------
+
+_RUFF_BIN: str | None = None
+
+
+def _find_ruff() -> str | None:
+    """Locate the ruff binary (cached after first call)."""
+    global _RUFF_BIN  # noqa: PLW0603
+    if _RUFF_BIN is None:
+        _RUFF_BIN = shutil.which("ruff") or ""
+    return _RUFF_BIN or None
+
+
+def _ruff_format(source: str, *, filename: str = "<generated>.py") -> str:
+    """Run ruff check --fix + ruff format on source via stdin.
+
+    Returns the formatted source.  Falls back to the original source
+    if ruff is unavailable or fails (CI will catch any issues).
+    """
+    ruff = _find_ruff()
+    if not ruff:
+        return source
+
+    try:
+        # Step 1: ruff check --fix (isort, etc.)
+        result = subprocess.run(
+            [ruff, "check", "--fix", "--stdin-filename", filename, "-"],
+            input=source,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        source = result.stdout or source
+
+        # Step 2: ruff format (quote style, blank lines, etc.)
+        result = subprocess.run(
+            [ruff, "format", "--stdin-filename", filename, "-"],
+            input=source,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return result.stdout or source
+    except (subprocess.TimeoutExpired, OSError):
+        return source
 
 
 # ---------------------------------------------------------------------------
@@ -349,24 +401,31 @@ def _emit_module_stub(mod: ModuleNode) -> str:
 
 
 def emit_python(node: MethodNode | ClassNode | ModuleNode) -> str:
-    """Emit Python source code from an IR node."""
+    """Emit Python source code from an IR node.
+
+    Module-level output is automatically formatted with ruff so the
+    generator's output is its own final form — no post-processing needed.
+    """
     if isinstance(node, MethodNode):
         return _emit_method_python(node)
     elif isinstance(node, ClassNode):
         return _emit_class_python(node)
     elif isinstance(node, ModuleNode):
-        return _emit_module_python(node)
+        return _ruff_format(_emit_module_python(node))
     else:
         raise TypeError(f"Cannot emit Python for {type(node)}")
 
 
 def emit_stub(node: MethodNode | ClassNode | ModuleNode) -> str:
-    """Emit .pyi type stub from an IR node."""
+    """Emit .pyi type stub from an IR node.
+
+    Module-level output is automatically formatted with ruff.
+    """
     if isinstance(node, MethodNode):
         return _emit_method_stub(node)
     elif isinstance(node, ClassNode):
         return _emit_class_stub(node)
     elif isinstance(node, ModuleNode):
-        return _emit_module_stub(node)
+        return _ruff_format(_emit_module_stub(node), filename="<generated>.pyi")
     else:
         raise TypeError(f"Cannot emit stub for {type(node)}")

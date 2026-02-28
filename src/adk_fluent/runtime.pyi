@@ -6,8 +6,7 @@ from typing import Self
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.context_cache_config import ContextCacheConfig
 from google.adk.apps.app import App as _ADK_App
-from google.adk.apps.app import EventsCompactionConfig
-from google.adk.apps.app import ResumabilityConfig
+from google.adk.apps.app import EventsCompactionConfig, ResumabilityConfig
 from google.adk.artifacts.base_artifact_service import BaseArtifactService
 from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
 from google.adk.memory.base_memory_service import BaseMemoryService
@@ -27,7 +26,6 @@ class App(BuilderBase):
     def plugin(self, value: BasePlugin) -> Self: ...
     def build(self) -> _ADK_App: ...
 
-
 class InMemoryRunner(BuilderBase):
     """An in-memory Runner for testing and development."""
     def __init__(self) -> None: ...
@@ -37,7 +35,6 @@ class InMemoryRunner(BuilderBase):
     def app(self, value: _ADK_App | None) -> Self: ...
     def plugin_close_timeout(self, value: float) -> Self: ...
     def build(self) -> _ADK_InMemoryRunner: ...
-
 
 class Runner(BuilderBase):
     """The Runner class is used to run agents."""

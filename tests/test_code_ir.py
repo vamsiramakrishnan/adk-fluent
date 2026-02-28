@@ -161,14 +161,26 @@ def test_emit_python_module():
         doc="Auto-generated.",
         imports=["from typing import Self", "from typing import Any", "from typing import Self"],
         classes=[
-            ClassNode(name="Agent", bases=["BuilderBase"], methods=[]),
+            ClassNode(
+                name="Agent",
+                bases=["BuilderBase"],
+                methods=[
+                    MethodNode(
+                        name="model",
+                        params=[Param("self"), Param("value", type="Any")],
+                        returns="Self",
+                        body=[],
+                    ),
+                ],
+            ),
         ],
     )
     source = emit_python(mod)
-    # Should deduplicate and merge imports from the same module
-    assert source.count("from typing import") == 1
-    assert "from typing import Any, Self" in source
+    # Should deduplicate, merge, and survive ruff formatting
     assert "class Agent(BuilderBase):" in source
+    assert source.count("from typing import") == 1
+    assert "Any" in source
+    assert "Self" in source
 
 
 def test_emit_stub_method():

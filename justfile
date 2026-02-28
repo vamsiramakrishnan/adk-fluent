@@ -81,8 +81,10 @@ seed: _require-manifest
     @uv run python {{SEED_GEN}} {{MANIFEST}} -o {{SEED}} --merge seeds/seed.manual.toml
 
 # --- Generate code ---
-# The generator owns its output files end-to-end: emit → format → read-only.
-# Formatting is scoped to generated files only — never touches hand-written code.
+# The generator owns its output files end-to-end: emit → ruff-format → write.
+# ruff is integrated into the emitter (code_ir), so output is already canonical.
+# The safety-net ruff check below should be a no-op — if it changes anything,
+# the emitter's _ruff_format() is out of sync and should be investigated.
 generate: _require-manifest _require-seed
     @echo "Generating code from seed + manifest..."
     @# Make files writable for generation
@@ -91,7 +93,7 @@ generate: _require-manifest _require-seed
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
     @uv run python {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
-    @# Format ONLY generated files — the generator owns formatting for its output
+    @# Safety net: verify generated output is already ruff-clean
     @uv run ruff check --fix {{GENERATED_PY}} {{TEST_DIR}} || true
     @uv run ruff format {{GENERATED_PY}} {{TEST_DIR}}
     @uv run ruff check {{GENERATED_PY}} {{TEST_DIR}}
