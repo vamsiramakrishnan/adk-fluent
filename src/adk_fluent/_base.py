@@ -476,11 +476,13 @@ class BuilderBase:
         return self.__mul__(iterations)
 
     def __matmul__(self, schema: type) -> BuilderBase:
-        """Bind a Pydantic model as the typed output contract: agent @ Schema.
+        """Bind structured output schema: ``agent @ Schema``.
 
-        Expression-language shorthand for .output_schema(Schema).
-        Prefer .output_schema() in explicit builder chains; use @ in
-        operator expressions where brevity matters.
+        Shorthand for ``.returns(Schema)``. Forces the LLM to respond
+        with JSON matching this Pydantic model. The agent **cannot use
+        tools** when this is set.
+
+        Equivalent to ``.returns(Schema)`` or ``.output(Schema)``.
         """
         self._freeze()
         clone = self._fork_for_operator()
@@ -599,44 +601,56 @@ class BuilderBase:
                         parts.append(f"optional: {', '.join(optional)}")
                     lines.append(f"  Template vars: {'; '.join(parts)}")
 
-        # Data flow: reads and writes
+        # Data flow: unified five-concern view
+        context_spec = self._config.get("_context_spec")
+        input_schema = self._config.get("input_schema")
+        output_schema = self._config.get("_output_schema") or self._config.get("output_schema")
+        output_key = self._config.get("output_key")
         produces_schema = self._config.get("_produces")
         consumes_schema = self._config.get("_consumes")
-        output_key = self._config.get("output_key")
 
-        reads_parts = []
-        if consumes_schema:
-            fields = list(consumes_schema.model_fields.keys())
-            reads_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
-        if reads_parts:
-            lines.append(f"  Reads: {'; '.join(reads_parts)}")
+        lines.append("  Data flow:")
 
-        writes_parts = []
-        if produces_schema:
-            fields = list(produces_schema.model_fields.keys())
-            writes_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
-        if output_key:
-            writes_parts.append(f"output_key='{output_key}'")
-        if writes_parts:
-            lines.append(f"  Writes: {'; '.join(writes_parts)}")
-
-        if not reads_parts and not writes_parts and not output_key:
-            lines.append("  Data flow: no explicit reads/writes declared")
-
-        # Context strategy
-        context_spec = self._config.get("_context_spec")
-        include_contents = self._config.get("include_contents", "default")
+        # reads (context)
         if context_spec is not None:
             from adk_fluent.testing.contracts import _context_description
 
-            lines.append(f"  Context: {_context_description(context_spec)}")
-        elif include_contents != "default":
-            lines.append(f"  Context: include_contents='{include_contents}'")
+            lines.append(f"    reads:    {_context_description(context_spec)}")
+        else:
+            lines.append("    reads:    full conversation history (default)")
 
-        # Output schema
-        output_schema = self._config.get("_output_schema")
-        if output_schema:
-            lines.append(f"  Structured output: {output_schema.__name__}")
+        # accepts (input)
+        if input_schema is not None:
+            schema_name = getattr(input_schema, "__name__", str(input_schema))
+            lines.append(f"    accepts:  {schema_name} (tool-mode input validation)")
+        else:
+            lines.append("    accepts:  (not set — accepts any input as tool)")
+
+        # returns (output)
+        if output_schema is not None:
+            schema_name = getattr(output_schema, "__name__", str(output_schema))
+            lines.append(f"    returns:  {schema_name} (structured JSON — tools disabled)")
+        else:
+            lines.append("    returns:  plain text (default — can use tools)")
+
+        # writes (storage)
+        if output_key:
+            lines.append(f"    writes:   state[\"{output_key}\"]")
+        else:
+            lines.append("    writes:   (not set — response only in conversation)")
+
+        # contract
+        contract_parts = []
+        if produces_schema:
+            fields = list(produces_schema.model_fields.keys())
+            contract_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
+        if consumes_schema:
+            fields = list(consumes_schema.model_fields.keys())
+            contract_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
+        if contract_parts:
+            lines.append(f"    contract: {', '.join(contract_parts)}")
+        else:
+            lines.append("    contract: (not set)")
 
         # Tools
         tools = list(self._config.get("tools", []))
@@ -733,44 +747,56 @@ class BuilderBase:
                         parts.append(f"optional: {', '.join(optional)}")
                     tree.add(f"[cyan]Template vars[/cyan]: {'; '.join(parts)}")
 
-        # Data flow
+        # Data flow: unified five-concern view
+        context_spec = self._config.get("_context_spec")
+        input_schema = self._config.get("input_schema")
+        output_schema = self._config.get("_output_schema") or self._config.get("output_schema")
+        output_key = self._config.get("output_key")
         produces_schema = self._config.get("_produces")
         consumes_schema = self._config.get("_consumes")
-        output_key = self._config.get("output_key")
 
-        reads_parts = []
-        if consumes_schema:
-            fields = list(consumes_schema.model_fields.keys())
-            reads_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
-        if reads_parts:
-            tree.add(f"[blue]Reads[/blue]: {'; '.join(reads_parts)}")
+        df_branch = tree.add("[blue]Data flow[/blue]")
 
-        writes_parts = []
-        if produces_schema:
-            fields = list(produces_schema.model_fields.keys())
-            writes_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
-        if output_key:
-            writes_parts.append(f"output_key='{output_key}'")
-        if writes_parts:
-            tree.add(f"[blue]Writes[/blue]: {'; '.join(writes_parts)}")
-
-        if not reads_parts and not writes_parts and not output_key:
-            tree.add("[dim]Data flow: no explicit reads/writes declared[/dim]")
-
-        # Context strategy
-        context_spec = self._config.get("_context_spec")
-        include_contents = self._config.get("include_contents", "default")
+        # reads (context)
         if context_spec is not None:
             from adk_fluent.testing.contracts import _context_description
 
-            tree.add(f"[magenta]Context[/magenta]: {_context_description(context_spec)}")
-        elif include_contents != "default":
-            tree.add(f"[magenta]Context[/magenta]: include_contents='{include_contents}'")
+            df_branch.add(f"[magenta]reads[/magenta]:    {_context_description(context_spec)}")
+        else:
+            df_branch.add("[dim]reads:    full conversation history (default)[/dim]")
 
-        # Structured output
-        output_schema = self._config.get("_output_schema")
-        if output_schema:
-            tree.add(f"[cyan]Structured output[/cyan]: {output_schema.__name__}")
+        # accepts (input)
+        if input_schema is not None:
+            schema_name = getattr(input_schema, "__name__", str(input_schema))
+            df_branch.add(f"[cyan]accepts[/cyan]:  {schema_name} (tool-mode input validation)")
+        else:
+            df_branch.add("[dim]accepts:  (not set)[/dim]")
+
+        # returns (output)
+        if output_schema is not None:
+            schema_name = getattr(output_schema, "__name__", str(output_schema))
+            df_branch.add(f"[cyan]returns[/cyan]:  {schema_name} (structured JSON — tools disabled)")
+        else:
+            df_branch.add("[dim]returns:  plain text (default — can use tools)[/dim]")
+
+        # writes (storage)
+        if output_key:
+            df_branch.add(f"[green]writes[/green]:   state[\"{output_key}\"]")
+        else:
+            df_branch.add("[dim]writes:   (not set — response only in conversation)[/dim]")
+
+        # contract
+        contract_parts = []
+        if produces_schema:
+            fields = list(produces_schema.model_fields.keys())
+            contract_parts.append(f"produces {produces_schema.__name__}({', '.join(fields)})")
+        if consumes_schema:
+            fields = list(consumes_schema.model_fields.keys())
+            contract_parts.append(f"consumes {consumes_schema.__name__}({', '.join(fields)})")
+        if contract_parts:
+            df_branch.add(f"[yellow]contract[/yellow]: {', '.join(contract_parts)}")
+        else:
+            df_branch.add("[dim]contract: (not set)[/dim]")
 
         # Tools
         tools = list(self._config.get("tools", []))
@@ -797,6 +823,8 @@ class BuilderBase:
             "_context_spec",
             "include_contents",
             "_output_schema",
+            "output_schema",
+            "input_schema",
             "tools",
         }
         other_fields = {k: v for k, v in self._config.items() if k not in _shown and not k.startswith("_")}
@@ -975,17 +1003,28 @@ class BuilderBase:
             else:
                 result["instruction"] = instruction[:200] + ("..." if len(str(instruction)) > 200 else "")
 
-        # Data flow
+        # Data flow (five concerns)
+        context_spec = self._config.get("_context_spec")
+        input_schema = self._config.get("input_schema")
+        output_schema = self._config.get("_output_schema") or self._config.get("output_schema")
+        output_key = self._config.get("output_key")
         produces = self._config.get("_produces")
         consumes = self._config.get("_consumes")
-        output_key = self._config.get("output_key")
         data_flow: dict[str, Any] = {}
+        if context_spec is not None:
+            from adk_fluent.testing.contracts import _context_description
+
+            data_flow["reads"] = _context_description(context_spec)
+        if input_schema is not None:
+            data_flow["accepts"] = {"schema": input_schema.__name__, "fields": list(input_schema.model_fields.keys()) if hasattr(input_schema, "model_fields") else []}
+        if output_schema is not None:
+            data_flow["returns"] = {"schema": output_schema.__name__, "fields": list(output_schema.model_fields.keys()) if hasattr(output_schema, "model_fields") else []}
+        if output_key:
+            data_flow["writes"] = output_key
         if consumes:
             data_flow["consumes"] = {"schema": consumes.__name__, "fields": list(consumes.model_fields.keys())}
         if produces:
             data_flow["produces"] = {"schema": produces.__name__, "fields": list(produces.model_fields.keys())}
-        if output_key:
-            data_flow["output_key"] = output_key
         if data_flow:
             result["data_flow"] = data_flow
 
@@ -1015,7 +1054,7 @@ class BuilderBase:
             ]
 
         # Config (other fields)
-        _skip = {"name", "model", "instruction", "_produces", "_consumes", "output_key", "tools", "sub_agents"}
+        _skip = {"name", "model", "instruction", "_produces", "_consumes", "output_key", "input_schema", "output_schema", "tools", "sub_agents"}
         other = {k: repr(v) for k, v in self._config.items() if k not in _skip and not k.startswith("_")}
         if other:
             result["config"] = other
@@ -1712,6 +1751,74 @@ class BuilderBase:
         self._config["output_key"] = key
         return self
 
+    def accepts(self, schema: type) -> Self:
+        """Define expected input structure when this agent is used as a tool.
+
+        When another agent invokes this agent via ``AgentTool``, the
+        calling agent's arguments are validated against this Pydantic
+        model. This is irrelevant for top-level agents — only for
+        agents that serve as tools for other agents.
+
+        **When NOT set (default):** No input validation. The agent
+        accepts any input when used as a tool.
+
+        Maps to ADK's native ``input_schema`` field.
+
+        Args:
+            schema: A Pydantic ``BaseModel`` subclass defining the
+                expected input fields.
+
+        Usage::
+
+            class SearchQuery(BaseModel):
+                query: str
+                max_results: int = 10
+
+            # This agent validates its input when called as a tool
+            searcher = Agent("searcher").accepts(SearchQuery).instruct("Search for {query}")
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["input_schema"] = schema
+        return self
+
+    def returns(self, schema: type) -> Self:
+        """Constrain the LLM to respond with structured JSON matching a Pydantic model.
+
+        The agent's response MUST conform to this schema. The agent
+        **cannot use tools** when this is set (ADK constraint).
+
+        The ``@`` operator is shorthand: ``agent @ MyModel``.
+
+        For ``.ask()`` calls, the response is automatically parsed into
+        a ``schema`` instance.
+
+        **Distinction from similar methods:**
+
+        - ``.returns(Model)`` — LLM response SHAPE (this method)
+        - ``.writes(key)``    — WHERE response is STORED in state
+        - ``.produces(Model)``— ANNOTATION for contract checker (no runtime effect)
+        - ``.accepts(Model)`` — INPUT validation for tool-mode agents
+
+        **When NOT set (default):** Agent responds in plain text and
+        CAN use tools.
+
+        Args:
+            schema: A Pydantic ``BaseModel`` subclass that the LLM
+                must conform to.
+
+        Usage::
+
+            class Intent(BaseModel):
+                category: str
+                confidence: float
+
+            # LLM must respond with Intent JSON
+            classifier = Agent("classifier").returns(Intent).writes("intent")
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["_output_schema"] = schema
+        return self
+
     def inject(self, **resources: Any) -> Self:
         """Register resources for dependency injection into tool functions.
 
@@ -1773,33 +1880,67 @@ class BuilderBase:
         return report
 
     def data_flow(self):
-        """Show all four output concerns at once for this builder.
+        """Show all five data-flow concerns at once for this builder.
 
         Returns a ``DataFlow`` snapshot showing exactly what this agent
-        is configured for across all four orthogonal concerns:
+        is configured for across all five orthogonal concerns:
 
-        - **Context** (sees): what state/history the agent sees
-        - **Storage** (stores): where the response is saved in state
-        - **Format** (format): plain text or structured JSON
-        - **Contract** (contract): annotations for the data-flow checker
+        - **Context** (reads): what state/history the agent sees
+        - **Input** (accepts): what input schema is validated in tool mode
+        - **Output** (returns): plain text or structured JSON
+        - **Storage** (writes): where the response is saved in state
+        - **Contract** (produces/consumes): annotations for the checker
 
         This is the definitive way to understand what an agent does with
-        data — it surfaces all four concerns in one view, eliminating
-        confusion between ``.output()``, ``.writes()``, ``.produces()``, etc.
+        data — it surfaces all five concerns in one view, eliminating
+        confusion between ``.returns()``, ``.writes()``, ``.produces()``, etc.
 
         Usage::
 
-            agent = Agent("researcher").reads("topic").writes("findings").output(Model)
+            agent = Agent("classifier").reads("query").returns(Intent).writes("intent")
             print(agent.data_flow())
             # Data Flow:
-            #   Sees (context):  C.from_state('topic') — state keys only
-            #   Stores (state):  state['findings']
-            #   Format (output): structured JSON → Model
-            #   Contract:        none declared (checker cannot verify data flow)
+            #   reads:    C.from_state('query') — state keys only
+            #   accepts:  (not set — accepts any input as tool)
+            #   returns:  structured JSON → Intent (tools disabled)
+            #   writes:   state['intent']
+            #   contract: (not set)
         """
         from adk_fluent._interop import _extract_data_flow
 
         return _extract_data_flow(self)
+
+    def llm_anatomy(self) -> str:
+        """Show exactly what will be sent to the LLM for this agent.
+
+        Returns a formatted string showing each component in the order
+        it is assembled for the LLM call:
+
+        1. **System** — instruction text (with {template} variables)
+        2. **History** — whether conversation history is included
+        3. **Context** — injected state values from ``.reads()``
+        4. **Tools** — registered tools (disabled if output_schema set)
+        5. **Constraint** — output schema (forces JSON response)
+        6. **After** — what happens after the LLM responds
+
+        This is the definitive reference for "what does the LLM see?"
+
+        Usage::
+
+            agent = Agent("classifier").instruct("Classify: {query}").reads("query").returns(Intent)
+            print(agent.llm_anatomy())
+            # LLM Call Anatomy: classifier
+            #   1. System:     "Classify: {query}"
+            #                  → {query} templated from state at runtime
+            #   2. History:    SUPPRESSED (set by .reads())
+            #   3. Context:    state["query"] injected as <conversation_context>
+            #   4. Tools:      DISABLED (output_schema is set)
+            #   5. Constraint: must return Intent {category: ..., confidence: ...}
+            #   6. After:      response in conversation history only
+        """
+        from adk_fluent._interop import _build_llm_anatomy
+
+        return _build_llm_anatomy(self)
 
     def strict(self) -> Self:
         """Enable strict contract checking — build() raises ValueError on contract errors."""

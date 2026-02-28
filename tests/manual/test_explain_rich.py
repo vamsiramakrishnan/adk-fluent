@@ -137,7 +137,8 @@ def test_explain_pipeline_clean():
 
 def test_explain_no_data_flow():
     result = Agent("a").instruct("Hello").explain()
-    assert "no explicit reads/writes declared" in result
+    # Five-concern view shows defaults when nothing is set
+    assert "full conversation history" in result or "not set" in result
 
 
 def test_explain_structured_output():

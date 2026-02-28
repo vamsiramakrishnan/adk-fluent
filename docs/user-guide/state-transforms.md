@@ -123,6 +123,47 @@ pipeline = (
 )
 ```
 
+## STransform Composition
+
+All `S.xxx()` methods return `STransform` objects that support two composition operators:
+
+### `>>` — Chain (sequential)
+
+```python
+# Clean state then merge — runs in order
+cleanup = S.drop("_internal") >> S.merge("web", "scholar", into="research")
+pipeline = agent >> cleanup >> writer
+```
+
+### `+` — Combine (parallel)
+
+```python
+# Apply multiple transforms to the same state at once
+setup = S.default(confidence=0.0) + S.rename(research="input")
+pipeline = agent >> setup >> writer
+```
+
+### Composing with agents
+
+STransform objects work seamlessly in pipelines:
+
+```python
+# STransform >> Agent works directly
+pipeline = S.capture("user_message") >> classifier >> handler
+```
+
+### Key tracking
+
+STransforms track which state keys they read and write:
+
+```python
+t = S.rename(old="new")
+print(t._reads_keys)   # frozenset({'old'})
+print(t._writes_keys)  # frozenset({'new'})
+```
+
+This metadata powers the contract checker's data-flow analysis.
+
 ## Complete Example
 
 ```python

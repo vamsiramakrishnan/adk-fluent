@@ -363,7 +363,12 @@ class Agent(BuilderBase):
         return self
 
     def input_schema(self, value: type[BaseModel] | None) -> Self:
-        """Schema defining the expected input structure when this agent is invoked as a tool by another agent."""
+        """Schema defining the expected input structure when this agent is invoked as a tool by another agent.
+
+        When another agent invokes this agent via ``AgentTool``, the calling
+        agent's arguments are validated against this Pydantic model. Irrelevant
+        for top-level agents. Prefer ``.accepts(Model)`` for clarity.
+        """
         self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
         return self
@@ -377,12 +382,12 @@ class Agent(BuilderBase):
 
         .. note::
 
-           Prefer ``.output(Model)`` or ``@ Model`` over this method.
-           ``.output()`` sets the same ADK constraint AND automatically
+           Prefer ``.returns(Model)`` or ``@ Model`` over this method.
+           ``.returns()`` sets the same ADK constraint AND automatically
            parses the response in ``.ask()`` calls. This method sets the
            raw ADK field without automatic parsing.
 
-           - ``.output(Model)`` / ``@ Model`` → LLM constraint + parsing
+           - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
            - ``.output_schema(Model)`` → LLM constraint only (raw field)
            - ``.writes(key)`` → stores text in state (no format constraint)
            - ``.produces(Model)`` → contract annotation (no runtime effect)
