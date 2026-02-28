@@ -375,6 +375,7 @@ __all__ = [
     "FullNode",
     "M",
     "MComposite",
+    "MiddlewareSchema",
     "PredicateSchema",
     "_FnStepBuilder",
     "_CaptureBuilder",
@@ -593,6 +594,7 @@ from ._ir_generated import LoopNode
 from ._ir_generated import FullNode
 from ._middleware import M
 from ._middleware import MComposite
+from ._middleware_schema import MiddlewareSchema
 from ._predicate_schema import PredicateSchema
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
@@ -733,6 +735,7 @@ from .prelude import DispatchLogMiddleware
 from .prelude import get_execution_mode
 from .prelude import SessionStrategy
 from .prelude import ExecutionMode
+from .prelude import MiddlewareSchema
 from .presets import Preset
 from .source import Source
 from .source import Inbox

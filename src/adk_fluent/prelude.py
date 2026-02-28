@@ -7,7 +7,7 @@ Usage::
 Exports:
 
 - **Tier 1 (core builders):** Agent, Pipeline, FanOut, Loop
-- **Tier 2 (composition namespaces):** C, P, S, Route
+- **Tier 2 (composition namespaces):** C, P, S, M, Route
 - **Tier 3 (expression primitives):** until, tap, map_over, gate, race, expect
 - **Tier 4 (patterns):** review_loop, cascade, chain, fan_out_merge,
   map_reduce, conditional, supervised
@@ -18,6 +18,8 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
 from adk_fluent._base import until
 from adk_fluent._enums import ExecutionMode, SessionStrategy
+from adk_fluent._middleware import M
+from adk_fluent._middleware_schema import MiddlewareSchema
 from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
 from adk_fluent._primitives import get_execution_mode
 from adk_fluent._transforms import STransform
@@ -44,6 +46,7 @@ __all__ = [
     "C",
     "P",
     "S",
+    "M",
     "Route",
     # Tier 3: Expression primitives
     "until",
@@ -73,4 +76,6 @@ __all__ = [
     # Tier 7: Enums
     "SessionStrategy",
     "ExecutionMode",
+    # Tier 8: Schemas
+    "MiddlewareSchema",
 ]
