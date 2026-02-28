@@ -113,6 +113,11 @@ def _agent_to_ir(builder):
     if callback_schema is not None and hasattr(callback_schema, "writes_keys"):
         writes_keys = writes_keys | callback_schema.writes_keys()
 
+    prompt_schema_cls = builder._config.get("_prompt_schema")
+    if prompt_schema_cls is not None and hasattr(prompt_schema_cls, "reads_keys"):
+        reads_keys = reads_keys | prompt_schema_cls.reads_keys()
+    # Note: NO writes_keys merging — prompts only read state
+
     return AgentNode(
         name=builder._config.get("name", ""),
         description=builder._config.get("description", ""),
@@ -140,6 +145,7 @@ def _agent_to_ir(builder):
         prompt_spec=prompt_spec,
         tool_schema=tool_schema,
         callback_schema=callback_schema,
+        prompt_schema=prompt_schema_cls,
     )
 
 

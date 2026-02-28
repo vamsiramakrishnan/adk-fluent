@@ -290,7 +290,6 @@ __all__ = [
     "DispatchAgent",
     "JoinAgent",
     "CallbackSchema",
-    "PredicateSchema",
     "C",
     "CTransform",
     "CComposite",
@@ -376,6 +375,8 @@ __all__ = [
     "FullNode",
     "M",
     "MComposite",
+    "PredicateSchema",
+    "PromptSchema",
     "_FnStepBuilder",
     "_CaptureBuilder",
     "_FallbackBuilder",
@@ -507,7 +508,6 @@ from ._base import RaceAgent
 from ._base import DispatchAgent
 from ._base import JoinAgent
 from ._callback_schema import CallbackSchema
-from ._predicate_schema import PredicateSchema
 from ._context import C
 from ._context import CTransform
 from ._context import CComposite
@@ -593,6 +593,8 @@ from ._ir_generated import LoopNode
 from ._ir_generated import FullNode
 from ._middleware import M
 from ._middleware import MComposite
+from ._predicate_schema import PredicateSchema
+from ._prompt_schema import PromptSchema
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
 from ._primitive_builders import _CaptureBuilder

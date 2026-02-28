@@ -589,7 +589,11 @@ def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str
         child_name = getattr(child, "name", "?")
 
         # Check tool_schema and callback_schema reads
-        for schema_attr, label in [("tool_schema", "ToolSchema"), ("callback_schema", "CallbackSchema")]:
+        for schema_attr, label in [
+            ("tool_schema", "ToolSchema"),
+            ("callback_schema", "CallbackSchema"),
+            ("prompt_schema", "PromptSchema"),
+        ]:
             schema = getattr(child, schema_attr, None)
             if schema is None or not hasattr(schema, "reads_keys"):
                 continue
