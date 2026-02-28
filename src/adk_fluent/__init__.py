@@ -415,6 +415,7 @@ __all__ = [
     "CapturedBy",
     "Scoped",
     "ToolSchema",
+    "CallbackSchema",
     "Reads",
     "Writes",
     "Param",
@@ -428,11 +429,26 @@ __all__ = [
     "infer_visibility",
     "VisibilityPlugin",
     "agent",
+    "M",
+    "MComposite",
     "Middleware",
+    "TraceContext",
+    "DispatchDirective",
+    "LoopDirective",
+    "TopologyHooks",
     "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
     "DispatchLogMiddleware",
+    "TopologyLogMiddleware",
+    "LatencyMiddleware",
+    "CostTracker",
+    "_agent_matches",
+    "_ScopedMiddleware",
+    "_ConditionalMiddleware",
+    "_SingleHookMiddleware",
+    "_trace_context",
+    "_topology_hooks",
     "review_loop",
     "map_reduce",
     "cascade",
@@ -630,6 +646,7 @@ from ._state_schema import CapturedBy
 from ._state_schema import Scoped
 from ._state_schema import check_state_schema_contracts
 from ._tool_schema import ToolSchema
+from ._callback_schema import CallbackSchema
 from ._schema_base import Reads
 from ._schema_base import Writes
 from ._schema_base import Param
@@ -642,11 +659,26 @@ from ._transforms import StateReplacement
 from ._visibility import infer_visibility
 from ._visibility import VisibilityPlugin
 from .decorators import agent
+from ._middleware import M
+from ._middleware import MComposite
 from .middleware import Middleware
+from .middleware import TraceContext
+from .middleware import DispatchDirective
+from .middleware import LoopDirective
+from .middleware import TopologyHooks
 from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
 from .middleware import StructuredLogMiddleware
 from .middleware import DispatchLogMiddleware
+from .middleware import TopologyLogMiddleware
+from .middleware import LatencyMiddleware
+from .middleware import CostTracker
+from .middleware import _agent_matches
+from .middleware import _ScopedMiddleware
+from .middleware import _ConditionalMiddleware
+from .middleware import _SingleHookMiddleware
+from .middleware import _trace_context
+from .middleware import _topology_hooks
 from .patterns import review_loop
 from .patterns import map_reduce
 from .patterns import cascade

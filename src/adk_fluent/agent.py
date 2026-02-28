@@ -404,6 +404,12 @@ class Agent(BuilderBase):
         self._config["_tool_schema"] = schema
         return self
 
+    def callback_schema(self, schema: type) -> Self:
+        """Attach a CallbackSchema declaring callback state dependencies."""
+        self = self._maybe_fork_for_mutation()
+        self._config["_callback_schema"] = schema
+        return self
+
     def guardrail(self, fn: Callable[..., Any]) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""
         self = self._maybe_fork_for_mutation()
