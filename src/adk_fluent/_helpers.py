@@ -93,6 +93,7 @@ def _agent_to_ir(builder):
     consumes_schema = builder._config.get("_consumes")
     context_spec = builder._config.get("_context_spec")
     prompt_spec = builder._config.get("_prompt_spec")
+    tool_schema = builder._config.get("_tool_schema")
     # Also capture PTransform stored directly in instruction
     if prompt_spec is None:
         from adk_fluent._prompt import PTransform as _PT
@@ -102,6 +103,10 @@ def _agent_to_ir(builder):
             prompt_spec = instr
     writes_keys = frozenset(produces_schema.model_fields.keys()) if produces_schema else frozenset()
     reads_keys = frozenset(consumes_schema.model_fields.keys()) if consumes_schema else frozenset()
+    if tool_schema is not None and hasattr(tool_schema, "reads_keys"):
+        reads_keys = reads_keys | tool_schema.reads_keys()
+    if tool_schema is not None and hasattr(tool_schema, "writes_keys"):
+        writes_keys = writes_keys | tool_schema.writes_keys()
 
     return AgentNode(
         name=builder._config.get("name", ""),
@@ -128,6 +133,7 @@ def _agent_to_ir(builder):
         consumes_type=consumes_schema,
         context_spec=context_spec,
         prompt_spec=prompt_spec,
+        tool_schema=tool_schema,
     )
 
 

@@ -398,6 +398,12 @@ class Agent(BuilderBase):
 
         return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
 
+    def tool_schema(self, schema: type) -> Self:
+        """Attach a ToolSchema declaring tool state dependencies."""
+        self = self._maybe_fork_for_mutation()
+        self._config["_tool_schema"] = schema
+        return self
+
     def guardrail(self, fn: Callable[..., Any]) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""
         self = self._maybe_fork_for_mutation()
