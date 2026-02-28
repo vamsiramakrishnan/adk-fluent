@@ -192,8 +192,8 @@ def check_output_interop(config: dict[str, Any]) -> list[dict[str, str]]:
                     f"{', '.join(fields)} but nothing is stored in state"
                 ),
                 "hint": (
-                    f"Add .writes('<key>') to store the response in state, "
-                    f"or remove .produces() if the contract is not needed."
+                    "Add .writes('<key>') to store the response in state, "
+                    "or remove .produces() if the contract is not needed."
                 ),
             }
         )
@@ -229,9 +229,9 @@ def check_output_interop(config: dict[str, Any]) -> list[dict[str, str]]:
                     f"needs specific state keys but agent sees full history"
                 ),
                 "hint": (
-                    f"Add .reads(<keys>) to explicitly inject state values, "
-                    f"or this agent relies on template variables "
-                    f"({{key}}) in its instruction string."
+                    "Add .reads(<keys>) to explicitly inject state values, "
+                    "or this agent relies on template variables "
+                    "({key}) in its instruction string."
                 ),
             }
         )
@@ -249,9 +249,9 @@ def check_output_interop(config: dict[str, Any]) -> list[dict[str, str]]:
                     f"response is not stored in state for downstream agents"
                 ),
                 "hint": (
-                    f"This is fine for terminal agents or .ask() usage. "
-                    f"For pipelines, add .writes('<key>') to store "
-                    f"the structured response in state."
+                    "This is fine for terminal agents or .ask() usage. "
+                    "For pipelines, add .writes('<key>') to store "
+                    "the structured response in state."
                 ),
             }
         )

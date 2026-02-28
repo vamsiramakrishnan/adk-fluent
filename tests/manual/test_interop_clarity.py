@@ -9,9 +9,9 @@ Verifies:
 
 from pydantic import BaseModel
 
-from adk_fluent.agent import Agent
 from adk_fluent._context import C
-from adk_fluent._interop import DataFlow, _extract_data_flow, check_output_interop, INTERPLAY_GUIDE
+from adk_fluent._interop import INTERPLAY_GUIDE, DataFlow, _extract_data_flow, check_output_interop
+from adk_fluent.agent import Agent
 
 
 class FindingsModel(BaseModel):
