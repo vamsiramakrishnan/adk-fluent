@@ -65,22 +65,22 @@ emailer = Agent("emailer").model("gemini-2.5-flash").instruct("Email.")
 # Via factory parameter
 d = dispatch(emailer, task_budget=25)
 assert isinstance(d, _DispatchBuilder)
-assert d._task_budget == 25
+assert d._max_tasks == 25
 built = d.build()
-assert built._task_budget == 25
+assert built._max_tasks == 25
 
 # Via fluent method
 d2 = dispatch(emailer).task_budget(10)
-assert d2._task_budget == 10
+assert d2._max_tasks == 10
 built2 = d2.build()
-assert built2._task_budget == 10
+assert built2._max_tasks == 10
 
 # --- 6. StreamRunner has .middleware() and .task_budget() ---
 sr = StreamRunner(writer)
 assert hasattr(sr, "middleware")
 assert hasattr(sr, "task_budget")
 sr.task_budget(100).middleware(mw)
-assert sr._task_budget == 100
+assert sr._max_tasks == 100
 assert len(sr._middlewares) == 1
 
 # --- 7. Custom middleware with dispatch hooks ---

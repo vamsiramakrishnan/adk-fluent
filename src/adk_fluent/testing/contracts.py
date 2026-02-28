@@ -2,7 +2,7 @@
 
 Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 
-**Sequence passes (11 total):**
+**Sequence passes (12 total):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
@@ -27,6 +27,8 @@ Checks SequenceNode, ParallelNode, and LoopNode IR trees:
     available upstream.
 11. **Rename/pick passthrough** -- for replacement transforms (S.rename, S.pick),
     warns if they consume keys not available upstream.
+12. **Dispatch/Join coherence** -- checks that DispatchNode task names are unique
+    and that JoinNode target_names reference dispatched tasks upstream.
 
 **Parallel checks:**
 - Write isolation: two branches should not write to the same output_key
@@ -541,6 +543,39 @@ def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str
                 )
         consumed_keys_by_idx[idx] |= transform_reads
 
+    # =================================================================
+    # Pass 12: Dispatch/Join coherence
+    # =================================================================
+    from adk_fluent._ir import DispatchNode, JoinNode
+
+    dispatched_names: set[str] = set()
+    for child in children:
+        if isinstance(child, DispatchNode):
+            for tn in getattr(child, "task_names", ()):
+                if tn in dispatched_names:
+                    issues.append(
+                        {
+                            "level": "warning",
+                            "agent": _scoped(getattr(child, "name", "?")),
+                            "message": f"Duplicate dispatch task name '{tn}'",
+                            "hint": "Use unique names for selective join().",
+                        }
+                    )
+                dispatched_names.add(tn)
+        elif isinstance(child, JoinNode):
+            targets = getattr(child, "target_names", None)
+            if targets:
+                for tn in targets:
+                    if tn not in dispatched_names:
+                        issues.append(
+                            {
+                                "level": "warning",
+                                "agent": _scoped(getattr(child, "name", "?")),
+                                "message": f"join() references '{tn}' but no dispatch with that name found upstream",
+                                "hint": "Ensure dispatch task names match join target names.",
+                            }
+                        )
+
     return issues
 
 
@@ -659,13 +694,14 @@ def _check_loop_contracts(children: tuple, parent_name: str = "") -> list[dict[s
 def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     """Verify contracts on an IR tree. Dispatches by node type.
 
-    Checks SequenceNode (full 11-pass analysis), ParallelNode (isolation),
-    and LoopNode (body sequence validation).
+    Checks SequenceNode (full 12-pass analysis), ParallelNode (isolation),
+    LoopNode (body sequence validation), and DispatchNode (independent agents).
 
     Returns a list where each item is either:
     - a ``str``  (backward compat, from Pass 1)
     - a ``dict`` with keys ``level``, ``agent``, ``message``, ``hint``
     """
+    from adk_fluent._ir import DispatchNode
     from adk_fluent._ir_generated import LoopNode, ParallelNode, SequenceNode
 
     if isinstance(ir_node, SequenceNode):
@@ -682,5 +718,9 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         if not ir_node.children:
             return []
         return _check_loop_contracts(ir_node.children, parent_name=ir_node.name)
+
+    if isinstance(ir_node, DispatchNode):
+        # Dispatch children are independent agents — no sequence contract needed
+        return []
 
     return []

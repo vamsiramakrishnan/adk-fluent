@@ -89,7 +89,7 @@ class StreamRunner:
         # Session caches for "shared" and "keyed" strategies
         self._shared_session: Any = None
         self._keyed_sessions: dict[str, Any] = {}
-        self._task_budget: int = 50
+        self._max_tasks: int = 50
         self._middlewares: list[Any] = []
 
     # ------------------------------------------------------------------
@@ -144,7 +144,7 @@ class StreamRunner:
 
     def max_tasks(self, n: int) -> StreamRunner:
         """Max concurrent dispatch tasks across all stream items (default 50)."""
-        self._task_budget = n
+        self._max_tasks = n
         return self
 
     def task_budget(self, n: int) -> StreamRunner:
@@ -191,7 +191,7 @@ class StreamRunner:
         runner = InMemoryRunner(agent=agent, app_name=app_name)
 
         # Set global task budget for all dispatch agents within this stream
-        _global_task_budget.set(asyncio.Semaphore(self._task_budget))
+        _global_task_budget.set(asyncio.Semaphore(self._max_tasks))
 
         # stdlib: Semaphore for concurrency, Event for shutdown
         sem = asyncio.Semaphore(self._concurrency)

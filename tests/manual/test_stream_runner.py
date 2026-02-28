@@ -76,7 +76,7 @@ class TestStreamRunnerFluent:
         runner = StreamRunner(builder)
         result = runner.max_tasks(100)
         assert result is runner
-        assert runner._task_budget == 100
+        assert runner._max_tasks == 100
 
     def test_stream_runner_task_budget_deprecated(self):
         """task_budget() is a deprecated alias for max_tasks()."""
@@ -84,7 +84,7 @@ class TestStreamRunnerFluent:
         runner = StreamRunner(builder)
         result = runner.task_budget(42)
         assert result is runner
-        assert runner._task_budget == 42
+        assert runner._max_tasks == 42
 
     def test_stream_runner_middleware(self):
         builder = Agent("test").model("gemini-2.5-flash")

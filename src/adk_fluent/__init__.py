@@ -267,7 +267,9 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "BuilderBase",
     "BuilderError",
+    "PrimitiveBuilderBase",
     "until",
     "tap",
     "expect",
@@ -320,6 +322,8 @@ __all__ = [
     "CUser",
     "CManusCascade",
     "_compile_context_spec",
+    "SessionStrategy",
+    "ExecutionMode",
     "deep_clone_builder",
     "delegate_agent",
     "run_one_shot",
@@ -368,6 +372,22 @@ __all__ = [
     "ParallelNode",
     "LoopNode",
     "FullNode",
+    "_FnStepBuilder",
+    "_CaptureBuilder",
+    "_FallbackBuilder",
+    "_TapBuilder",
+    "_MapOverBuilder",
+    "_TimeoutBuilder",
+    "_GateBuilder",
+    "_RaceBuilder",
+    "_DispatchBuilder",
+    "_JoinBuilder",
+    "_fn_step",
+    "_dispatch_tasks",
+    "_global_task_budget",
+    "_middleware_dispatch_hooks",
+    "_execution_mode",
+    "_DEFAULT_MAX_TASKS",
     "P",
     "PTransform",
     "PComposite",
@@ -414,43 +434,11 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
-    "Agent",
-    "Pipeline",
-    "FanOut",
-    "Loop",
-    "C",
-    "P",
-    "S",
-    "Route",
-    "until",
-    "tap",
-    "map_over",
-    "gate",
-    "race",
-    "expect",
-    "dispatch",
-    "join",
-    "STransform",
-    "review_loop",
-    "cascade",
-    "chain",
-    "fan_out_merge",
-    "map_reduce",
-    "conditional",
-    "supervised",
     "Source",
     "Inbox",
     "StreamRunner",
-    "DispatchLogMiddleware",
-    "get_execution_mode",
     "Preset",
-    "Source",
-    "Inbox",
-    "StreamRunner",
     "StreamStats",
-    "SessionStrategy",
-    "ExecutionMode",
-    "PrimitiveBuilderBase",
     "Backend",
     "final_text",
     "ADKBackend",
@@ -468,7 +456,9 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._base import BuilderBase
 from ._base import BuilderError
+from ._base import PrimitiveBuilderBase
 from ._base import until
 from ._base import tap
 from ._base import expect
@@ -521,6 +511,8 @@ from ._context import CFromAgentsWindowed
 from ._context import CUser
 from ._context import CManusCascade
 from ._context import _compile_context_spec
+from ._enums import SessionStrategy
+from ._enums import ExecutionMode
 from ._helpers import deep_clone_builder
 from ._helpers import delegate_agent
 from ._helpers import run_one_shot
@@ -569,6 +561,41 @@ from ._ir_generated import SequenceNode
 from ._ir_generated import ParallelNode
 from ._ir_generated import LoopNode
 from ._ir_generated import FullNode
+from ._primitive_builders import PrimitiveBuilderBase
+from ._primitive_builders import _FnStepBuilder
+from ._primitive_builders import _CaptureBuilder
+from ._primitive_builders import _FallbackBuilder
+from ._primitive_builders import _TapBuilder
+from ._primitive_builders import _MapOverBuilder
+from ._primitive_builders import _TimeoutBuilder
+from ._primitive_builders import _GateBuilder
+from ._primitive_builders import _RaceBuilder
+from ._primitive_builders import _DispatchBuilder
+from ._primitive_builders import _JoinBuilder
+from ._primitive_builders import tap
+from ._primitive_builders import expect
+from ._primitive_builders import map_over
+from ._primitive_builders import gate
+from ._primitive_builders import race
+from ._primitive_builders import dispatch
+from ._primitive_builders import join
+from ._primitive_builders import _fn_step
+from ._primitives import FnAgent
+from ._primitives import TapAgent
+from ._primitives import CaptureAgent
+from ._primitives import FallbackAgent
+from ._primitives import MapOverAgent
+from ._primitives import TimeoutAgent
+from ._primitives import GateAgent
+from ._primitives import RaceAgent
+from ._primitives import DispatchAgent
+from ._primitives import JoinAgent
+from ._primitives import get_execution_mode
+from ._primitives import _dispatch_tasks
+from ._primitives import _global_task_budget
+from ._primitives import _middleware_dispatch_hooks
+from ._primitives import _execution_mode
+from ._primitives import _DEFAULT_MAX_TASKS
 from ._prompt import P
 from ._prompt import PTransform
 from ._prompt import PComposite
@@ -644,14 +671,13 @@ from .prelude import Inbox
 from .prelude import StreamRunner
 from .prelude import DispatchLogMiddleware
 from .prelude import get_execution_mode
+from .prelude import SessionStrategy
+from .prelude import ExecutionMode
 from .presets import Preset
 from .source import Source
 from .source import Inbox
 from .stream import StreamRunner
 from .stream import StreamStats
-from ._enums import SessionStrategy
-from ._enums import ExecutionMode
-from ._primitive_builders import PrimitiveBuilderBase
 from .backends import Backend
 from .backends import final_text
 from .backends.adk import ADKBackend

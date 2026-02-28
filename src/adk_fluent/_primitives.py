@@ -346,10 +346,10 @@ class DispatchAgent(BaseAgent):
         self,
         *,
         task_names: tuple[str, ...] = (),
-        on_complete: Callable | None = None,
-        on_error: Callable | None = None,
         stream_to: str | None = None,
         max_tasks: int | None = None,
+        on_complete: Callable | None = None,
+        on_error: Callable | None = None,
         # Deprecated aliases — accept but forward
         progress_key: str | None = None,
         task_budget: int | None = None,

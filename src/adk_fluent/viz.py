@@ -52,9 +52,15 @@ def ir_to_mermaid(
     def _walk(n: Any) -> str:
         from adk_fluent._ir import (
             CaptureNode,
+            DispatchNode,
+            FallbackNode,
             GateNode,
+            JoinNode,
+            MapOverNode,
+            RaceNode,
             RouteNode,
             TapNode,
+            TimeoutNode,
             TransferNode,
             TransformNode,
         )
@@ -88,6 +94,23 @@ def ir_to_mermaid(
             lines.append(f'    {nid}{{{{"{_sanitize(name)} (gate)"}}}}')
         elif isinstance(n, TransferNode):
             lines.append(f'    {nid}[/"{_sanitize(name)} transfer"\\]')
+        elif isinstance(n, FallbackNode):
+            lines.append(f'    {nid}[/"{_sanitize(name)} (fallback)"\\]')
+        elif isinstance(n, RaceNode):
+            lines.append(f'    {nid}{{{{"{_sanitize(name)} (race)"}}}}')
+        elif isinstance(n, MapOverNode):
+            list_key = getattr(n, "list_key", "?")
+            lines.append(f'    {nid}(("{_sanitize(name)} (map {list_key})"))')
+        elif isinstance(n, TimeoutNode):
+            seconds = getattr(n, "seconds", "?")
+            lines.append(f'    {nid}["{_sanitize(name)} (timeout {seconds}s)"]')
+        elif isinstance(n, DispatchNode):
+            task_count = len(getattr(n, "children", ()))
+            lines.append(f'    {nid}>"{_sanitize(name)} dispatch({task_count})"]')
+        elif isinstance(n, JoinNode):
+            targets = getattr(n, "target_names", None)
+            label = f"{name} join({', '.join(targets)})" if targets else f"{name} join(all)"
+            lines.append(f'    {nid}(("{_sanitize(label)}"))')
         else:
             lines.append(f'    {nid}["{_sanitize(name)}"]')
 

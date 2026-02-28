@@ -261,10 +261,14 @@ def generate_all(
 
         init_lines.append("")
         init_lines.append("__all__ = [")
+        seen_names: set[str] = set()
         for spec in specs:
             init_lines.append(f'    "{spec.name}",')
+            seen_names.add(spec.name)
         for name in manual_names:
-            init_lines.append(f'    "{name}",')
+            if name not in seen_names:
+                init_lines.append(f'    "{name}",')
+                seen_names.add(name)
         init_lines.append("]")
 
         if manual_import_lines:
