@@ -116,7 +116,7 @@ class Middleware(Protocol):
         """Called when a dispatched task fails."""
         return None
 
-    async def on_join(self, ctx: Any, joined_names: list[str], timed_out_names: list[str]) -> None:
+    async def on_join(self, ctx: Any, joined: list[str], timed_out: list[str]) -> None:
         """Called after a join completes."""
         return None
 
@@ -262,8 +262,8 @@ class _MiddlewarePlugin(BasePlugin):
     async def on_task_error(self, ctx, task_name, error):
         await self._run_stack_void("on_task_error", ctx, task_name, error)
 
-    async def on_join(self, ctx, joined_names, timed_out_names):
-        await self._run_stack_void("on_join", ctx, joined_names, timed_out_names)
+    async def on_join(self, ctx, joined, timed_out):
+        await self._run_stack_void("on_join", ctx, joined, timed_out)
 
     # --- Stream lifecycle ---
 

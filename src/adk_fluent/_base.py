@@ -527,13 +527,13 @@ class BuilderBase:
             other = _fn_step(other)
 
         # Collect children from existing fallback chains
-        children = []
+        children: list[Any] = []
         if isinstance(self, _FallbackBuilder):
-            children.extend(self._children)
+            children.extend(getattr(self, "_children", []))
         else:
             children.append(self)
         if isinstance(other, _FallbackBuilder):
-            children.extend(other._children)
+            children.extend(getattr(other, "_children", []))
         else:
             children.append(other)
 

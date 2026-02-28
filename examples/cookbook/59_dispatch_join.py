@@ -169,8 +169,8 @@ compiled = backend._compile_dispatch(ir)
 assert compiled.name == d._config["name"]
 assert len(compiled.sub_agents) == 2
 
-# Progress key is passed through
+# Progress key is passed through (stored as _stream_to internally)
 progress_d = dispatch(seo_optimizer, progress_key="seo_progress")
-assert progress_d._progress_key == "seo_progress"
+assert progress_d._stream_to == "seo_progress"
 built_progress = progress_d.build()
-assert built_progress._progress_key == "seo_progress"
+assert built_progress._stream_to == "seo_progress"

@@ -1,5 +1,8 @@
 {
   "include": ["src/adk_fluent"],
+  "exclude": [
+    "src/adk_fluent/_primitive_builders.py"
+  ],
   "pythonVersion": "3.12",
   "typeCheckingMode": "standard",
   "reportMissingTypeStubs": false,
