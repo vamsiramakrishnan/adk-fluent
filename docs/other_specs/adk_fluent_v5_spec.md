@@ -1214,24 +1214,24 @@ v4 criteria retained. v5 adds:
 | 12  | No duplicate telemetry                          | Span count with middleware ≤ span count without |
 | 13  | `adk_fluent.*` attributes visible in ADK web UI | Appear in `/debug/trace/:event_id`              |
 | 14  | Replay deterministic                            | Empty diff on unmodified pipeline replay        |
-| 15  | `check_all()` \< 100ms                          | 100-node graphs                                 |
+| 15  | `check_all()` < 100ms                           | 100-node graphs                                 |
 
 ______________________________________________________________________
 
 ## 16. Performance Budgets
 
-| Operation                              | Budget               |
-| -------------------------------------- | -------------------- |
-| IR compilation (100 nodes)             | \< 50ms              |
-| Contract checking (100 nodes, full v5) | \< 100ms             |
-| Cost estimation (100 nodes)            | \< 10ms              |
-| Backend compile (100 nodes → ADK App)  | \< 200ms             |
-| Runtime dispatch overhead per event    | \< 1% of LLM latency |
-| OTel enrichment per span               | \< 0.5ms             |
-| State schema bind() per access         | \< 0.1ms             |
-| FluentCase → EvalCase compilation      | \< 1ms per case      |
-| Test suite (1000 tests, mock)          | \< 10s               |
-| Eval suite (100 cases, mock)           | \< 60s               |
+| Operation                              | Budget              |
+| -------------------------------------- | ------------------- |
+| IR compilation (100 nodes)             | < 50ms              |
+| Contract checking (100 nodes, full v5) | < 100ms             |
+| Cost estimation (100 nodes)            | < 10ms              |
+| Backend compile (100 nodes → ADK App)  | < 200ms             |
+| Runtime dispatch overhead per event    | < 1% of LLM latency |
+| OTel enrichment per span               | < 0.5ms             |
+| State schema bind() per access         | < 0.1ms             |
+| FluentCase → EvalCase compilation      | < 1ms per case      |
+| Test suite (1000 tests, mock)          | < 10s               |
+| Eval suite (100 cases, mock)           | < 60s               |
 
 ______________________________________________________________________
 
@@ -1243,7 +1243,7 @@ ______________________________________________________________________
 | v1.24.x     | Core, no error callbacks | `on_model_error_callback` unavailable                  |
 | v1.23.x     | Core, limited eval       | `MetricEvaluatorRegistry` available                    |
 | v1.22.x     | Core, basic eval         | `AgentEvaluator.evaluate()` only                       |
-| \< v1.22.0  | Not supported            | Missing eval module and OTel Semantic Conventions 1.37 |
+| < v1.22.0   | Not supported            | Missing eval module and OTel Semantic Conventions 1.37 |
 
 **Behavioral changes requiring manual review:**
 

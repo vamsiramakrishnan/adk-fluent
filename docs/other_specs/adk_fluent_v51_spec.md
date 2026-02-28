@@ -1620,13 +1620,13 @@ ______________________________________________________________________
 
 Retained from v5, with additions:
 
-| Operation                      | Budget               | Mechanism                                        |
-| ------------------------------ | -------------------- | ------------------------------------------------ |
-| C.capture() execution          | \< 1ms               | Single reverse scan of session.events            |
-| InstructionProvider (C filter) | \< 5ms               | Event filtering + string formatting              |
-| Visibility inference           | \< 1ms at build time | Single DAG traversal                             |
-| VisibilityPlugin per event     | \< 0.1ms             | Dictionary lookup + metadata write               |
-| Cross-channel contract check   | \< 50ms              | Single DAG traversal with multi-channel analysis |
+| Operation                      | Budget              | Mechanism                                        |
+| ------------------------------ | ------------------- | ------------------------------------------------ |
+| C.capture() execution          | < 1ms               | Single reverse scan of session.events            |
+| InstructionProvider (C filter) | < 5ms               | Event filtering + string formatting              |
+| Visibility inference           | < 1ms at build time | Single DAG traversal                             |
+| VisibilityPlugin per event     | < 0.1ms             | Dictionary lookup + metadata write               |
+| Cross-channel contract check   | < 50ms              | Single DAG traversal with multi-channel analysis |
 
 ______________________________________________________________________
 

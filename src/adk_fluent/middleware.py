@@ -378,42 +378,52 @@ class DispatchLogMiddleware:
         self.log: list[dict] = []
 
     async def on_dispatch(self, ctx, task_name, agent_name):
-        self.log.append({
-            "event": "dispatch",
-            "task": task_name,
-            "agent": agent_name,
-            "time": _time.time(),
-        })
+        self.log.append(
+            {
+                "event": "dispatch",
+                "task": task_name,
+                "agent": agent_name,
+                "time": _time.time(),
+            }
+        )
 
     async def on_task_complete(self, ctx, task_name, result):
-        self.log.append({
-            "event": "task_complete",
-            "task": task_name,
-            "result_len": len(result) if result else 0,
-            "time": _time.time(),
-        })
+        self.log.append(
+            {
+                "event": "task_complete",
+                "task": task_name,
+                "result_len": len(result) if result else 0,
+                "time": _time.time(),
+            }
+        )
 
     async def on_task_error(self, ctx, task_name, error):
-        self.log.append({
-            "event": "task_error",
-            "task": task_name,
-            "error": str(error),
-            "time": _time.time(),
-        })
+        self.log.append(
+            {
+                "event": "task_error",
+                "task": task_name,
+                "error": str(error),
+                "time": _time.time(),
+            }
+        )
 
     async def on_join(self, ctx, joined, timed_out):
-        self.log.append({
-            "event": "join",
-            "joined": joined,
-            "timed_out": timed_out,
-            "time": _time.time(),
-        })
+        self.log.append(
+            {
+                "event": "join",
+                "joined": joined,
+                "timed_out": timed_out,
+                "time": _time.time(),
+            }
+        )
 
     async def on_stream_item(self, ctx, item, result, error):
-        self.log.append({
-            "event": "stream_item",
-            "item": item[:200] if item else "",
-            "result_len": len(result) if result else 0,
-            "error": str(error) if error else None,
-            "time": _time.time(),
-        })
+        self.log.append(
+            {
+                "event": "stream_item",
+                "item": item[:200] if item else "",
+                "result_len": len(result) if result else 0,
+                "error": str(error) if error else None,
+                "time": _time.time(),
+            }
+        )

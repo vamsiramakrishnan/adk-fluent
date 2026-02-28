@@ -85,6 +85,7 @@ assert len(sr._middlewares) == 1
 
 # --- 7. Custom middleware with dispatch hooks ---
 
+
 class TrackingMiddleware:
     """Custom middleware that tracks dispatch lifecycle."""
 

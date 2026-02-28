@@ -4,7 +4,7 @@ A multi-agent system that helps e-commerce teams optimize product titles for sea
 
 ## Architecture
 
-root_agent (router) → keyword_finding_agent, search_results_agent, comparison_root_agent → \[comparison_generator_agent, comparison_critic_agent\]
+root_agent (router) → keyword_finding_agent, search_results_agent, comparison_root_agent → [comparison_generator_agent, comparison_critic_agent]
 
 ## Native ADK
 

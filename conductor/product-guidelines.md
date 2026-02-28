@@ -16,7 +16,7 @@
 
 ## Visual Branding
 
-- **Mermaid Aesthetics:** Use standard, clean Mermaid graph styles for execution DAGs. Ensure nodes are clearly labeled with their roles (e.g., \`\[Agent\]\`, \`\[Route\]\`).
+- **Mermaid Aesthetics:** Use standard, clean Mermaid graph styles for execution DAGs. Ensure nodes are clearly labeled with their roles (e.g., \`[Agent]\`, \`[Route]\`).
 - **Terminal UI:** Use the \`rich\` library for terminal output to provide color-coded, structured information that is easy to scan.
 
 ## Quality Standards
