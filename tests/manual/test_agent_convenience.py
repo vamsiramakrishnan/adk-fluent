@@ -99,7 +99,7 @@ def test_reads_preserves_cow():
     """Agent.reads() respects copy-on-write when frozen."""
     base = Agent("writer", "gemini-2.0-flash").instruct("Write")
     # Freeze via operator
-    pipeline = base >> Agent("other", "gemini-2.0-flash")
+    _pipeline = base >> Agent("other", "gemini-2.0-flash")  # noqa: F841 — triggers freeze
     # Mutation on frozen builder should fork
     variant = base.reads("topic")
     assert variant is not base
@@ -111,7 +111,7 @@ def test_reads_preserves_cow():
 def test_writes_preserves_cow():
     """Agent.writes() respects copy-on-write when frozen."""
     base = Agent("writer", "gemini-2.0-flash")
-    pipeline = base >> Agent("other", "gemini-2.0-flash")
+    _pipeline = base >> Agent("other", "gemini-2.0-flash")  # noqa: F841 — triggers freeze
     variant = base.writes("draft")
     assert variant is not base
     assert variant._config.get("output_key") == "draft"

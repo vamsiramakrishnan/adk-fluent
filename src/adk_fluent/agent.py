@@ -151,7 +151,7 @@ class Agent(BuilderBase):
         return self
 
     def save_as(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."""
+        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."""
         self = self._maybe_fork_for_mutation()
         self._config["output_key"] = value
         return self
@@ -363,35 +363,13 @@ class Agent(BuilderBase):
         return self
 
     def input_schema(self, value: type[BaseModel] | None) -> Self:
-        """Schema defining the expected input structure when this agent is invoked as a tool by another agent.
-
-        When another agent invokes this agent via ``AgentTool``, the calling
-        agent's arguments are validated against this Pydantic model. Irrelevant
-        for top-level agents. Prefer ``.accepts(Model)`` for clarity.
-        """
+        """Schema defining the expected input structure when this agent is invoked as a tool by another agent. When another agent invokes this agent via ``AgentTool``, the calling agent's arguments are validated against this Pydantic model. Irrelevant for top-level agents. Prefer ``.accepts(Model)`` for clarity."""
         self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
         return self
 
     def output_schema(self, value: type[BaseModel] | None) -> Self:
-        """Force the LLM to respond with structured JSON matching a Pydantic model.
-
-        When set, the agent replies **only** with JSON data conforming to
-        this schema. The agent **cannot use tools** while ``output_schema``
-        is active.
-
-        .. note::
-
-           Prefer ``.returns(Model)`` or ``@ Model`` over this method.
-           ``.returns()`` sets the same ADK constraint AND automatically
-           parses the response in ``.ask()`` calls. This method sets the
-           raw ADK field without automatic parsing.
-
-           - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
-           - ``.output_schema(Model)`` → LLM constraint only (raw field)
-           - ``.writes(key)`` → stores text in state (no format constraint)
-           - ``.produces(Model)`` → contract annotation (no runtime effect)
-        """
+        """Force the LLM to respond with structured JSON matching a Pydantic model. When set, the agent replies only with data matching this schema and cannot use tools. Prefer ``.returns(Model)`` or ``@ Model`` — they set the same constraint AND enable automatic parsing in ``.ask()``."""
         self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
         return self
@@ -480,28 +458,7 @@ class Agent(BuilderBase):
             yield chunk
 
     def context(self, spec: Any) -> Self:
-        """Declare what conversation context this agent should see.
-
-        Controls what the LLM sees in its prompt: conversation history,
-        state values, or a custom projection. Accepts any ``C`` module
-        transform.
-
-        **When NOT set (default):** The agent sees the full conversation
-        history from all agents (``include_contents="default"``). This is
-        usually correct for single-agent setups but can cause noise in
-        multi-agent pipelines where each agent should only see relevant
-        context.
-
-        For the common case of reading state keys, use ``.reads()``::
-
-            agent.reads("topic", "tone")  # shorthand for:
-            agent.context(C.from_state("topic", "tone"))
-
-        Args:
-            spec: A C module transform (``C.none()``, ``C.user_only()``,
-                ``C.window(n=3)``, ``C.from_state("key")``, etc.) or a
-                composition using ``+`` (union) or ``|`` (pipe).
-        """
+        """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
         self = self._maybe_fork_for_mutation()
         self._config["_context_spec"] = spec
         return self

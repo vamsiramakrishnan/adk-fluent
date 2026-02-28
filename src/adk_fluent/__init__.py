@@ -389,6 +389,7 @@ __all__ = [
     "Scoped",
     "check_state_schema_contracts",
     "S",
+    "STransform",
     "StateDelta",
     "StateReplacement",
     "infer_visibility",
@@ -398,14 +399,35 @@ __all__ = [
     "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
+    "review_loop",
+    "map_reduce",
+    "cascade",
+    "fan_out_merge",
+    "chain",
+    "conditional",
+    "supervised",
     "Agent",
     "Pipeline",
     "FanOut",
     "Loop",
     "C",
+    "P",
     "S",
     "Route",
-    "P",
+    "until",
+    "tap",
+    "map_over",
+    "gate",
+    "race",
+    "expect",
+    "STransform",
+    "review_loop",
+    "cascade",
+    "chain",
+    "fan_out_merge",
+    "map_reduce",
+    "conditional",
+    "supervised",
     "Preset",
     "Backend",
     "final_text",
@@ -546,6 +568,7 @@ from ._state_schema import CapturedBy
 from ._state_schema import Scoped
 from ._state_schema import check_state_schema_contracts
 from ._transforms import S
+from ._transforms import STransform
 from ._transforms import StateDelta
 from ._transforms import StateReplacement
 from ._visibility import infer_visibility
@@ -555,14 +578,35 @@ from .middleware import Middleware
 from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
 from .middleware import StructuredLogMiddleware
+from .patterns import review_loop
+from .patterns import map_reduce
+from .patterns import cascade
+from .patterns import fan_out_merge
+from .patterns import chain
+from .patterns import conditional
+from .patterns import supervised
 from .prelude import Agent
 from .prelude import Pipeline
 from .prelude import FanOut
 from .prelude import Loop
 from .prelude import C
+from .prelude import P
 from .prelude import S
 from .prelude import Route
-from .prelude import P
+from .prelude import until
+from .prelude import tap
+from .prelude import map_over
+from .prelude import gate
+from .prelude import race
+from .prelude import expect
+from .prelude import STransform
+from .prelude import review_loop
+from .prelude import cascade
+from .prelude import chain
+from .prelude import fan_out_merge
+from .prelude import map_reduce
+from .prelude import conditional
+from .prelude import supervised
 from .presets import Preset
 from .backends import Backend
 from .backends import final_text

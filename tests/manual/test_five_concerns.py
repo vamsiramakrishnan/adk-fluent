@@ -202,7 +202,7 @@ def test_pipeline_data_flow():
     """Pipeline agents preserve data flow when composed with >>."""
     classifier = Agent("classifier", "gemini-2.0-flash").reads("query").returns(Intent).writes("intent")
     handler = Agent("handler", "gemini-2.0-flash").reads("intent").writes("response")
-    pipeline = classifier >> handler
+    _pipeline = classifier >> handler  # noqa: F841 — verifies composition works
 
     # Each agent in the pipeline retains its own data flow
     df1 = classifier.data_flow()
