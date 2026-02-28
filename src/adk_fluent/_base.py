@@ -1275,7 +1275,32 @@ class BuilderBase:
     # ------------------------------------------------------------------
 
     def output(self, schema: type) -> Self:
-        """Set a Pydantic model as the output schema."""
+        """Constrain LLM responses to a Pydantic model and parse them automatically.
+
+        This does two things:
+
+        1. **At build time**: sets ADK's ``output_schema``, which forces the
+           LLM to respond *only* with JSON matching this schema. The agent
+           **cannot use tools** when ``output_schema`` is set.
+        2. **At .ask() time**: parses the raw JSON response into an instance
+           of ``schema``, so ``.ask()`` returns a Pydantic model instead of
+           a string.
+
+        The ``@`` operator is shorthand for this method::
+
+            agent @ MyModel   # same as agent.output(MyModel)
+
+        .. note:: **Distinction from similar methods:**
+
+           - ``.output(Model)`` / ``@ Model``: Constrains LLM output format
+             AND parses response. Use when you need typed data back.
+           - ``.output_schema(Model)``: ADK's raw field. Same LLM constraint
+             but no automatic parsing in ``.ask()``.
+           - ``.writes(key)`` / ``.save_as(key)``: Stores the agent's *text*
+             response in a state key. Does NOT affect output format.
+           - ``.produces(Model)``: **Contract-only** annotation for the
+             data-flow checker. No runtime effect whatsoever.
+        """
         self._config["_output_schema"] = schema
         return self
 
@@ -1532,7 +1557,33 @@ class BuilderBase:
         return self
 
     def produces(self, schema: type) -> Self:
-        """Declare the Pydantic schema this agent writes to state."""
+        """Annotate what state keys this agent writes. Contract-only, no runtime effect.
+
+        Used exclusively by the data-flow contract checker (``.diagnose()``,
+        ``.doctor()``, ``check_contracts()``) to verify that downstream
+        agents can read what upstream agents produce.
+
+        **This does NOT affect what the LLM outputs.** To constrain the
+        LLM's response format, use ``.output(Model)`` or ``@ Model``.
+
+        **When absent:** The contract checker treats this agent's state
+        writes as opaque — it cannot verify data-flow correctness for
+        downstream consumers. You may see "info" level diagnostics
+        suggesting you add type annotations.
+
+        Args:
+            schema: A Pydantic BaseModel subclass whose field names correspond
+                to the state keys this agent writes via callbacks, tools,
+                or output_key.
+
+        Usage::
+
+            class ResearchOutput(BaseModel):
+                findings: str
+                sources: list[str]
+
+            Agent("researcher").produces(ResearchOutput).writes("findings")
+        """
         from pydantic import BaseModel
 
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
@@ -1541,12 +1592,124 @@ class BuilderBase:
         return self
 
     def consumes(self, schema: type) -> Self:
-        """Declare the Pydantic schema this agent reads from state."""
+        """Annotate what state keys this agent reads. Contract-only, no runtime effect.
+
+        Used exclusively by the data-flow contract checker to verify that
+        required state keys are produced by upstream agents before this
+        agent runs.
+
+        **This does NOT affect what context the agent sees.** To control
+        what conversation history or state keys are included in the agent's
+        prompt, use ``.reads()`` or ``.context()``.
+
+        **When absent:** The contract checker treats this agent's state
+        reads as opaque — it cannot verify that required inputs are
+        available. Template variables ``{like_this}`` in instructions
+        are still checked independently.
+
+        Args:
+            schema: A Pydantic BaseModel subclass whose field names correspond
+                to the state keys this agent expects to find populated.
+
+        Usage::
+
+            class WriterInput(BaseModel):
+                findings: str
+                tone: str = "neutral"
+
+            Agent("writer").consumes(WriterInput).reads("findings", "tone")
+        """
         from pydantic import BaseModel
 
         if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
             raise TypeError(f"consumes() requires a Pydantic BaseModel subclass, got {schema!r}")
         self._config["_consumes"] = schema
+        return self
+
+    # ------------------------------------------------------------------
+    # Interop convenience: .reads(), .writes()
+    # ------------------------------------------------------------------
+
+    def reads(self, *keys: str) -> Self:
+        """Inject named state keys into this agent's context window.
+
+        At runtime, the values of the specified state keys are prepended to
+        the agent's instruction as interpolated text, making them visible
+        to the LLM. This is the primary mechanism for data flow in pipelines:
+        an upstream agent ``.writes("findings")``, a downstream agent
+        ``.reads("findings")``.
+
+        Composes additively: calling ``.reads()`` after ``.context()`` unions
+        the specs. Shorthand for ``.context(C.from_state(*keys))``.
+
+        **When NOT set (default):** The agent sees the full conversation
+        history (``include_contents="default"``). It does NOT automatically
+        see state keys — state values are only visible when explicitly
+        requested via ``.reads()``, ``.context(C.from_state(...))``, or
+        template variables ``{key}`` in the instruction string.
+
+        Args:
+            *keys: State key names to make visible to this agent.
+
+        Usage::
+
+            # These are equivalent:
+            Agent("writer").context(C.from_state("topic", "tone"))
+            Agent("writer").reads("topic", "tone")
+
+            # Composes with existing context spec:
+            Agent("writer").context(C.window(3)).reads("topic")
+            # equivalent to: .context(C.window(3) + C.from_state("topic"))
+
+            # Natural pipeline data flow:
+            researcher = Agent("researcher").writes("findings")
+            writer = Agent("writer").reads("findings").writes("draft")
+            pipeline = researcher >> writer
+        """
+        self = self._maybe_fork_for_mutation()
+        from adk_fluent._context import C
+
+        new_spec = C.from_state(*keys)
+        existing = self._config.get("_context_spec")
+        if existing is not None:
+            self._config["_context_spec"] = existing + new_spec
+        else:
+            self._config["_context_spec"] = new_spec
+        return self
+
+    def writes(self, key: str) -> Self:
+        """Store this agent's text response in a named state key.
+
+        After the agent runs, its final text response is saved to
+        ``session.state[key]``. Downstream agents can then access this
+        value via ``.reads(key)`` or template variables ``{key}`` in
+        their instructions.
+
+        This is the **primary mechanism for passing data between agents**
+        in a pipeline. Without ``.writes()``, the agent's response exists
+        only in the conversation history.
+
+        **When NOT set (default):** The agent's response is NOT stored in
+        session state. Downstream agents can only see it through
+        conversation history (``include_contents="default"``). The
+        contract checker will flag this as a potential data-loss issue
+        if a downstream agent reads state that no upstream agent writes.
+
+        Equivalent to ``.save_as(key)``.
+
+        Args:
+            key: The state key name to store the response text in.
+
+        Usage::
+
+            # Store response in state["findings"]
+            Agent("researcher").writes("findings")
+
+            # Downstream agent reads it
+            Agent("writer").reads("findings").writes("draft")
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["output_key"] = key
         return self
 
     def inject(self, **resources: Any) -> Self:
