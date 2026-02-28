@@ -1,4 +1,11 @@
-"""Race: Fastest-Response Search Across Multiple Providers"""
+"""Race: Fastest-Response Search Across Multiple Providers
+
+Pipeline topology:
+    race( westlaw_search, lexis_search )    -- first to finish wins
+
+    Research pipeline:
+        query_classifier >> race( federal_search, state_search ) >> citation_formatter
+"""
 
 # --- NATIVE ---
 # Native ADK's ParallelAgent runs all branches and merges results.

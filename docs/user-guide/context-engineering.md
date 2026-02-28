@@ -2,6 +2,27 @@
 
 `C` factories return frozen descriptors that control what conversation history and state each agent sees. They compose with `+` (union) and `|` (pipe) and are passed to `Agent.context()`.
 
+```
+Context Visibility Matrix:
+
+                  ┌──────────────┬────────────────────────────────┐
+                  │  What the    │         C primitive             │
+                  │  LLM sees    │                                 │
+  ┌───────────────┼──────────────┼────────────────────────────────┤
+  │ C.default()   │ everything   │ all history + all state        │
+  │ C.none()      │ instruction  │ no history, no state injection │
+  │ C.user_only() │ user msgs    │ user turns only, no agents     │
+  │ C.window(n)   │ last N turns │ recent history slice           │
+  │ C.from_state()│ state keys   │ named keys injected            │
+  │ C.from_agents │ user + named │ selective agent outputs        │
+  │ C.template()  │ rendered str │ template from state values     │
+  └───────────────┴──────────────┴────────────────────────────────┘
+
+  Composition:
+    C.window(3) + C.from_state("topic")    union: both applied
+    C.window(5) | C.template("{history}")   pipe: output → input
+```
+
 ## Quick Start
 
 ```python
@@ -217,7 +238,22 @@ When `.context()` sets `include_contents="none"`, the agent's conversation histo
 
 ## Complete Example
 
-A realistic multi-agent pipeline where context engineering keeps each agent focused:
+A realistic multi-agent pipeline where context engineering keeps each agent focused. Each agent sees only what it needs:
+
+```
+Context flow through a pipeline:
+
+  user msg ──► S.capture("user_message") ──► state["user_message"]
+                                                     │
+                ┌────────────────────────────────────┘
+                ▼
+  classifier ─── C.none() ───────────────── sees: instruction only
+       │                                    writes: state["intent"]
+       ▼
+  handler ────── C.from_state("user_message", "intent")
+              + C.user_only() ───────────── sees: user msg + intent
+                                                 + user history
+```
 
 ```python
 from adk_fluent import Agent, C, S

@@ -1,4 +1,12 @@
-"""E-Commerce Order Routing with Deterministic Branching"""
+"""E-Commerce Order Routing with Deterministic Branching
+
+Pipeline topology:
+    Route("category")
+        ├─ "electronics" -> electronics
+        ├─ "clothing"    -> clothing
+        ├─ "grocery"     -> grocery
+        └─ otherwise     -> general
+"""
 
 # --- NATIVE ---
 # Native ADK has no built-in deterministic router. You'd need:

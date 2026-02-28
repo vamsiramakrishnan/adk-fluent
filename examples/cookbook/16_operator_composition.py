@@ -1,4 +1,10 @@
-"""News Analysis Pipeline with Operator Composition: >>, |, *"""
+"""News Analysis Pipeline with Operator Composition: >>, |, *
+
+Pipeline topologies:
+    >>  scraper >> analyzer >> reporter
+    |   ( politics | markets )
+    *   ( draft_writer >> fact_checker ) * 3
+"""
 
 # --- NATIVE ---
 from google.adk.agents.llm_agent import LlmAgent

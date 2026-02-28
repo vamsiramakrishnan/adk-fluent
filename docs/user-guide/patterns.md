@@ -6,6 +6,21 @@ Higher-order constructors from `adk_fluent.patterns` that compose agents into co
 from adk_fluent.patterns import review_loop, cascade, fan_out_merge, chain, conditional, supervised, map_reduce
 ```
 
+```
+Pattern Quick Reference:
+
+  review_loop    ( worker >> reviewer ) * until(score >= target)
+  cascade        agent_a // agent_b // agent_c
+  fan_out_merge  ( a | b | c ) >> S.merge(into="combined")
+  chain          a >> b >> c  (with .writes()/.reads() wiring)
+  conditional    pred? ─┬─ true_branch
+                        └─ false_branch
+  supervised     ( worker >> supervisor ) * until(approved)
+  map_reduce     items ──┬─ mapper(item_0)
+                         ├─ mapper(item_1) ──>> reducer
+                         └─ mapper(item_n)
+```
+
 ______________________________________________________________________
 
 ## `review_loop` — Refinement Loop
@@ -20,6 +35,18 @@ pipeline = review_loop(
     target=0.8,
     max_rounds=3,
 )
+```
+
+```
+    ┌──────────────────────────────────────────────┐
+    │             ┌──────────┐    ┌──────────┐     │
+    │  ──────────►│  worker  │───►│ reviewer │──┐  │
+    │  │          └──────────┘    └──────────┘  │  │
+    │  │                          score >= 0.8? │  │
+    │  └── no ──────────────────────────────────┘  │
+    │                               │ yes          │
+    └───────────────────────────────┼──────────────┘
+                                    ▼ done
 ```
 
 **Data flow:**
@@ -43,6 +70,14 @@ pipeline = cascade(
 )
 ```
 
+```
+    fast ──► success? ─── yes ──► done
+              │ no
+    smart ──► success? ─── yes ──► done
+              │ no
+    fallback ──────────────────── done
+```
+
 **Data flow:** Each agent receives the same input. The first agent that succeeds provides the response.
 
 ______________________________________________________________________
@@ -59,6 +94,12 @@ pipeline = fan_out_merge(
     merge_key="combined",
     merge_fn=lambda results: "\n\n".join(results.values()),
 )
+```
+
+```
+    ┌─ web_search ──► state["web"]  ─┐
+    ├─ doc_search ──► state["docs"] ─┼──► merge_fn ──► state["combined"]
+    └─ expert ──────► state["expert"]─┘
 ```
 
 **Data flow:**
@@ -97,6 +138,12 @@ pipeline = conditional(
 )
 ```
 
+```
+                    ┌─ yes ──► tech_support
+    state ──► pred? ─┤
+                    └─ no  ──► general_support
+```
+
 **Data flow:** The predicate reads from state. Only one branch executes.
 
 ______________________________________________________________________
@@ -128,6 +175,12 @@ pipeline = map_reduce(
     reducer=Agent("synthesizer").instruct("Synthesize all analyses."),
     items_key="items",
 )
+```
+
+```
+    state["items"] ──┬─ mapper("item_0") ─┐
+                     ├─ mapper("item_1") ─┼──► reducer ──► output
+                     └─ mapper("item_n") ─┘
 ```
 
 **Data flow:**

@@ -1,4 +1,13 @@
-"""Capture and Route: IT Helpdesk Triage"""
+"""Capture and Route: IT Helpdesk Triage
+
+Pipeline topology:
+    S.capture("ticket")
+        >> triage [save_as: priority]
+        >> Route("priority")
+            ├─ "p1" -> incident_commander
+            ├─ "p2" -> senior_support
+            └─ else -> support_bot
+"""
 
 # --- NATIVE ---
 # In native ADK, capturing the user's message into state for downstream

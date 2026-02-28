@@ -1,4 +1,12 @@
-"""Knowledge Retrieval: Primary API + Fallback Search with // Operator"""
+"""Knowledge Retrieval: Primary API + Fallback Search with // Operator
+
+Pipeline topologies:
+    //  vector_db // fulltext_search          (two-way fallback)
+    //  internal_kb // web_search // expert   (three-way cascade)
+
+    RAG pipeline:
+        query_rewriter >> ( vector_db // fulltext ) >> answer_generator
+"""
 
 # --- NATIVE ---
 # Native ADK has no built-in fallback mechanism. You'd need:

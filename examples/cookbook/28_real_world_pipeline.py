@@ -1,4 +1,14 @@
-"""Investment Analysis Pipeline: Full Expression Language in Production"""
+"""Investment Analysis Pipeline: Full Expression Language in Production
+
+Pipeline topology:
+    asset_classifier
+        >> Route("asset_class")
+            ├─ "equity"       -> equity_screener
+            ├─ "fixed_income" -> credit_analyst >> rate_modeler
+            └─ "alternative"  -> ( quant_modeler | market_sentiment ) >> risk_aggregator
+        >> ( portfolio_reviewer >> analysis_refiner ) * until(approved)
+        >> report_generator  [gated: only if approved]
+"""
 
 # --- NATIVE ---
 # A real-world investment analysis pipeline in native ADK would be 100+ lines

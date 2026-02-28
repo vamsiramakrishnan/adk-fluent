@@ -4,6 +4,11 @@ Demonstrates how composition operators (>>, |, @, //) combine naturally
 in a real-world code review system. A diff parser extracts changes,
 parallel reviewers check style, security, and logic independently,
 then findings are aggregated into a structured verdict.
+
+Pipeline topology:
+    diff_parser
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
 """
 
 # --- NATIVE ---

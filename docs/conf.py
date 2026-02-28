@@ -51,6 +51,12 @@ exclude_patterns = [
     "generated/cookbook/conftest.md",
 ]
 
+# Copy standalone HTML references into the build output as-is
+html_extra_path = [
+    "user-guide/pcs-visual-reference.html",
+    "user-guide/operator-algebra-reference.html",
+]
+
 # Suppress warnings for auto-generated cross-references and duplicate targets
 # - myst.header: heading level warnings in generated docs
 # - myst.xref_missing: cross-references to builder anchors not in seed (optional ADK extensions)

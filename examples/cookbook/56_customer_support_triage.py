@@ -4,6 +4,17 @@ Demonstrates building a customer support triage system inspired by
 real call center architectures and Google's ADK agent samples. Uses
 state capture, context engineering, routing, and escalation gates.
 
+Pipeline topology:
+    S.capture("customer_message")
+        >> intent_classifier [C.none, save_as: intent]
+        >> Route("intent")
+            ├─ "billing"   -> billing_specialist
+            ├─ "technical" -> tech_support
+            ├─ "account"   -> account_manager
+            └─ otherwise   -> general_support
+        >> satisfaction_monitor
+        >> gate(resolved == "no") -> escalate
+
 Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 """
 
