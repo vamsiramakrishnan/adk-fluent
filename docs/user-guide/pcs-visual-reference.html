@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adk-fluent · P · C · S Visual Reference</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a28;
+    --border: #2a2a3a;
+    --border-accent: #3a3a5a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --p-color: #e94560;
+    --p-bg: #e9456015;
+    --p-border: #e9456040;
+    --c-color: #0ea5e9;
+    --c-bg: #0ea5e915;
+    --c-border: #0ea5e940;
+    --s-color: #10b981;
+    --s-bg: #10b98115;
+    --s-border: #10b98140;
+    --accent: #a78bfa;
+    --accent-bg: #a78bfa15;
+    --warning: #f59e0b;
+    --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+  }
+
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 span.p { color: var(--p-color); font-weight: 600; }
+  .header h1 span.c { color: var(--c-color); font-weight: 600; }
+  .header h1 span.s { color: var(--s-color); font-weight: 600; }
+  .header h1 span.dot { color: var(--text-dim); font-weight: 200; padding: 0 0.15em; }
+
+  .header .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  /* Module trio */
+  .module-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .module-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .module-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .module-card.p-card::before { background: var(--p-color); }
+  .module-card.c-card::before { background: var(--c-color); }
+  .module-card.s-card::before { background: var(--s-color); }
+
+  .module-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .module-card .letter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    margin-bottom: 0.25rem;
+  }
+
+  .module-card.p-card .letter { color: var(--p-color); }
+  .module-card.c-card .letter { color: var(--c-color); }
+  .module-card.s-card .letter { color: var(--s-color); }
+
+  .module-card .name {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+
+  .module-card .purpose {
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .module-card .kind {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+
+  .p-card .kind { background: var(--p-bg); color: var(--p-color); border: 1px solid var(--p-border); }
+  .c-card .kind { background: var(--c-bg); color: var(--c-color); border: 1px solid var(--c-border); }
+  .s-card .kind { background: var(--s-bg); color: var(--s-color); border: 1px solid var(--s-border); }
+
+  .module-card .compiles-to {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .module-card .compiles-to strong {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+  }
+
+  /* Section headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 3rem 0 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header h2 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--text-bright);
+  }
+
+  .section-header .badge {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-p { background: var(--p-bg); color: var(--p-color); border: 1px solid var(--p-border); }
+  .badge-c { background: var(--c-bg); color: var(--c-color); border: 1px solid var(--c-border); }
+  .badge-s { background: var(--s-bg); color: var(--s-color); border: 1px solid var(--s-border); }
+
+  /* The Pipeline Diagram */
+  .pipeline-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .pipeline-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: fit-content;
+    justify-content: center;
+  }
+
+  .pipeline-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 160px;
+    padding: 1rem 0.75rem;
+    position: relative;
+  }
+
+  .pipeline-stage .stage-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .pipeline-stage .stage-box {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .stage-box.p-stage { background: var(--p-bg); border: 1px solid var(--p-border); color: var(--p-color); }
+  .stage-box.c-stage { background: var(--c-bg); border: 1px solid var(--c-border); color: var(--c-color); }
+  .stage-box.s-stage { background: var(--s-bg); border: 1px solid var(--s-border); color: var(--s-color); }
+  .stage-box.adk-stage { background: var(--accent-bg); border: 1px solid rgba(167,139,250,0.3); color: var(--accent); }
+
+  .pipeline-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 0.25rem;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    align-self: center;
+    margin-top: 1rem;
+  }
+
+  /* Operator table */
+  .operator-grid {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr 1fr;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .operator-grid .cell {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+
+  .operator-grid .cell:not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
+
+  .operator-grid .cell.header {
+    background: var(--surface-2);
+    font-weight: 600;
+    color: var(--text-bright);
+    font-size: 0.8rem;
+  }
+
+  .operator-grid .cell.op {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  .operator-grid .cell code {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+  }
+
+  /* LLM Assembly Visualization */
+  .llm-assembly {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .assembly-step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0;
+    position: relative;
+  }
+
+  .assembly-step + .assembly-step {
+    margin-top: 0;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-number::after {
+    content: '';
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: calc(100% + 12px);
+    background: var(--border);
+  }
+
+  .assembly-step:last-child .step-number::after {
+    display: none;
+  }
+
+  .step-number.system { background: var(--p-bg); color: var(--p-color); border: 1px solid var(--p-border); }
+  .step-number.system::after { background: var(--p-border); }
+  .step-number.history { background: var(--c-bg); color: var(--c-color); border: 1px solid var(--c-border); }
+  .step-number.history::after { background: var(--c-border); }
+  .step-number.context { background: var(--c-bg); color: var(--c-color); border: 1px solid var(--c-border); }
+  .step-number.context::after { background: var(--c-border); }
+  .step-number.user-msg { background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(167,139,250,0.3); }
+  .step-number.user-msg::after { background: rgba(167,139,250,0.3); }
+  .step-number.tools { background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(167,139,250,0.3); }
+  .step-number.tools::after { background: rgba(167,139,250,0.3); }
+  .step-number.output { background: var(--s-bg); color: var(--s-color); border: 1px solid var(--s-border); }
+
+  .step-content {
+    padding-bottom: 1.25rem;
+  }
+
+  .step-content h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 0.25rem;
+  }
+
+  .step-content p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .step-content .detail {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.5rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .step-content .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    padding: 0.15em 0.5em;
+    border-radius: 3px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .tag-p { background: var(--p-bg); color: var(--p-color); }
+  .tag-c { background: var(--c-bg); color: var(--c-color); }
+  .tag-s { background: var(--s-bg); color: var(--s-color); }
+  .tag-adk { background: var(--accent-bg); color: var(--accent); }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  .code-block .lang {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .code-block .kw { color: var(--p-color); }
+  .code-block .fn { color: var(--c-color); }
+  .code-block .str { color: var(--s-color); }
+  .code-block .cm { color: var(--text-dim); font-style: italic; }
+  .code-block .op { color: var(--accent); }
+  .code-block .cls { color: var(--warning); }
+
+  /* Factory catalog */
+  .factory-catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  .factory-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .factory-group h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .factory-group.p-group h4 { color: var(--p-color); }
+  .factory-group.c-group h4 { color: var(--c-color); }
+  .factory-group.s-group h4 { color: var(--s-color); }
+
+  .factory-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.25rem 0;
+    font-size: 0.8rem;
+  }
+
+  .factory-item .name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+  }
+
+  .p-group .factory-item .name { color: var(--p-color); }
+  .c-group .factory-item .name { color: var(--c-color); }
+  .s-group .factory-item .name { color: var(--s-color); }
+
+  .factory-item .desc {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    text-align: right;
+    margin-left: 0.5rem;
+  }
+
+  /* After-response flow */
+  .after-flow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+
+  .after-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: var(--mono);
+  }
+
+  .after-step.capture { background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(167,139,250,0.3); }
+  .after-step.store { background: var(--s-bg); color: var(--s-color); border: 1px solid var(--s-border); }
+  .after-step.parse { background: var(--p-bg); color: var(--p-color); border: 1px solid var(--p-border); }
+  .after-step.hooks { background: var(--c-bg); color: var(--c-color); border: 1px solid var(--c-border); }
+
+  .after-arrow {
+    color: var(--text-dim);
+    font-size: 1rem;
+  }
+
+  /* Five concerns visual */
+  .five-concerns-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    text-align: center;
+  }
+
+  .concern-timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 1.5rem 0;
+    position: relative;
+  }
+
+  .concern-timeline::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+
+  .concern-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .concern-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+
+  .concern-dot.ctx { background: var(--c-bg); border: 2px solid var(--c-color); color: var(--c-color); }
+  .concern-dot.inp { background: var(--accent-bg); border: 2px solid var(--accent); color: var(--accent); }
+  .concern-dot.out { background: var(--p-bg); border: 2px solid var(--p-color); color: var(--p-color); }
+  .concern-dot.sto { background: var(--s-bg); border: 2px solid var(--s-color); color: var(--s-color); }
+  .concern-dot.con { background: var(--surface-2); border: 2px solid var(--text-dim); color: var(--text-dim); }
+
+  .concern-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .concern-label.ctx { color: var(--c-color); }
+  .concern-label.inp { color: var(--accent); }
+  .concern-label.out { color: var(--p-color); }
+  .concern-label.sto { color: var(--s-color); }
+  .concern-label.con { color: var(--text-dim); }
+
+  .concern-method {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+
+  .divider-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .divider-label::before,
+  .divider-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Note callout */
+  .note {
+    background: var(--surface);
+    border-left: 3px solid var(--warning);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+  }
+
+  .note strong {
+    color: var(--warning);
+  }
+
+  /* Example composition */
+  .composition-example {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .composition-example .example-header {
+    background: var(--surface-2);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .composition-example .example-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .composition-example .example-side {
+    padding: 1.25rem;
+  }
+
+  .composition-example .example-side:first-child {
+    border-right: 1px solid var(--border);
+  }
+
+  .composition-example .example-side h4 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .composition-example .example-side pre {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .module-trio { grid-template-columns: 1fr; }
+    .operator-grid { grid-template-columns: auto 1fr; }
+    .composition-example .example-body { grid-template-columns: 1fr; }
+    .composition-example .example-side:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    .concern-timeline { flex-wrap: wrap; gap: 1rem; }
+    .concern-timeline::before { display: none; }
+    .header h1 { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>
+      <span class="p">P</span><span class="dot">·</span><span class="c">C</span><span class="dot">·</span><span class="s">S</span>
+      Visual Reference
+    </h1>
+    <div class="subtitle">Three composition modules for declarative agent construction in adk-fluent</div>
+  </div>
+
+  <!-- Module Trio -->
+  <div class="module-trio">
+
+    <div class="module-card p-card">
+      <div class="letter">P</div>
+      <div class="name">Prompt</div>
+      <div class="kind">Frozen Descriptor</div>
+      <div class="purpose">
+        Declaratively compose <strong>what the LLM is told to do</strong>.
+        Structure instructions into ordered sections with canonical placement.
+      </div>
+      <div class="compiles-to">
+        Compiles to &rarr; <strong>instruction</strong> (str or async callable)
+      </div>
+    </div>
+
+    <div class="module-card c-card">
+      <div class="letter">C</div>
+      <div class="name">Context</div>
+      <div class="kind">Frozen Descriptor</div>
+      <div class="purpose">
+        Declaratively control <strong>what the agent can see</strong>.
+        Filter history, inject state, summarize, budget tokens.
+      </div>
+      <div class="compiles-to">
+        Compiles to &rarr; <strong>include_contents</strong> + <strong>instruction</strong> (async callable)
+      </div>
+    </div>
+
+    <div class="module-card s-card">
+      <div class="letter">S</div>
+      <div class="name">State</div>
+      <div class="kind">Callable Transform</div>
+      <div class="purpose">
+        Transform <strong>how state flows between agents</strong>.
+        Pick, rename, merge, guard, branch on state keys.
+      </div>
+      <div class="compiles-to">
+        Compiles to &rarr; <strong>FnAgent</strong> step in pipeline
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Five Concerns Timeline -->
+  <div class="five-concerns-visual">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.5rem;">Five Orthogonal Concerns</div>
+
+    <div class="concern-timeline">
+      <div class="concern-node">
+        <div class="concern-dot ctx">C</div>
+        <div class="concern-label ctx">Context</div>
+        <div class="concern-method">.reads() .context()</div>
+      </div>
+      <div class="concern-node">
+        <div class="concern-dot inp">I</div>
+        <div class="concern-label inp">Input</div>
+        <div class="concern-method">.accepts()</div>
+      </div>
+      <div class="concern-node">
+        <div class="concern-dot out">O</div>
+        <div class="concern-label out">Output</div>
+        <div class="concern-method">.returns() @</div>
+      </div>
+      <div class="concern-node">
+        <div class="concern-dot sto">S</div>
+        <div class="concern-label sto">Storage</div>
+        <div class="concern-method">.writes()</div>
+      </div>
+      <div class="concern-node">
+        <div class="concern-dot con">K</div>
+        <div class="concern-label con">Contract</div>
+        <div class="concern-method">.produces() .consumes()</div>
+      </div>
+    </div>
+
+    <div class="divider-label">
+      <span>before LLM &larr;&nbsp;&nbsp; &bull; &nbsp;&nbsp;&rarr; after LLM</span>
+    </div>
+  </div>
+
+
+  <!-- LLM Assembly -->
+  <div class="section-header">
+    <h2>What the LLM Receives</h2>
+    <span class="badge badge-p">order matters</span>
+  </div>
+
+  <div class="llm-assembly">
+    <div class="assembly-step">
+      <div class="step-number system">1</div>
+      <div class="step-content">
+        <h4>System Instruction <span class="tag tag-p">P</span></h4>
+        <p>Assembled from global_instruction (root only, deprecated) &rarr; static_instruction (cached) &rarr; instruction (main). Template variables {key} resolved from state.</p>
+        <div class="detail">global_instruction  &rarr;  system_instruction  (if root agent)
+static_instruction  &rarr;  system_instruction  (cached, no substitution)
+instruction         &rarr;  system_instruction  (if no static)
+                    &rarr;  user content        (if static IS set)</div>
+      </div>
+    </div>
+
+    <div class="assembly-step">
+      <div class="step-number history">2</div>
+      <div class="step-content">
+        <h4>Conversation History <span class="tag tag-c">C</span></h4>
+        <p>Controlled by <code>include_contents</code>. "default" = full history (filtered, rearranged). "none" = current turn only (latest user input + active tool calls).</p>
+        <div class="detail">"default"  &rarr;  all turns, branch-filtered, reordered
+"none"     &rarr;  current turn only (NOT empty &mdash; user input remains)</div>
+      </div>
+    </div>
+
+    <div class="assembly-step">
+      <div class="step-number context">3</div>
+      <div class="step-content">
+        <h4>Context Injection <span class="tag tag-c">C</span></h4>
+        <p>When .reads() or .context(C.from_state()) is set, state values are injected as a &lt;conversation_context&gt; block appended to the instruction.</p>
+        <div class="detail">[Your instruction text]
+
+&lt;conversation_context&gt;
+[topic]: value from state
+[tone]: value from state
+&lt;/conversation_context&gt;</div>
+      </div>
+    </div>
+
+    <div class="assembly-step">
+      <div class="step-number user-msg">4</div>
+      <div class="step-content">
+        <h4>User Message <span class="tag tag-adk">ADK</span></h4>
+        <p>For .ask("prompt"): the prompt string. For pipelines: ADK manages turn flow. Multi-agent: other agents' messages reformatted as "[agent_name] said: ..."</p>
+      </div>
+    </div>
+
+    <div class="assembly-step">
+      <div class="step-number tools">5</div>
+      <div class="step-content">
+        <h4>Tools <span class="tag tag-adk">ADK</span></h4>
+        <p>Function declarations for all registered tools. If output_schema is set on a model that doesn't natively support both, a <code>set_model_response</code> workaround tool is added.</p>
+      </div>
+    </div>
+
+    <div class="assembly-step">
+      <div class="step-number output">6</div>
+      <div class="step-content">
+        <h4>Output Constraint <span class="tag tag-s">schema</span></h4>
+        <p>If output_schema is set: response_schema + response_mime_type="application/json". LLM must respond with JSON matching the schema.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- After Response -->
+  <div class="section-header">
+    <h2>After the LLM Responds</h2>
+  </div>
+
+  <div class="after-flow">
+    <div class="after-step capture">response captured</div>
+    <div class="after-arrow">&rarr;</div>
+    <div class="after-step store">state[key] = text</div>
+    <div class="after-arrow">&rarr;</div>
+    <div class="after-step parse">parse to Model</div>
+    <div class="after-arrow">&rarr;</div>
+    <div class="after-step hooks">callbacks run</div>
+  </div>
+
+  <div class="note">
+    <strong>Note:</strong> .writes() stores <strong>raw text</strong> in state, not a parsed Pydantic model.
+    If output_schema is set and you use .ask(), the response is parsed to a model instance on return.
+  </div>
+
+
+  <!-- Operators -->
+  <div class="section-header">
+    <h2>Composition Operators</h2>
+  </div>
+
+  <div class="operator-grid">
+    <div class="cell header">Operator</div>
+    <div class="cell header"><span style="color: var(--p-color)">P</span> Prompt</div>
+    <div class="cell header"><span style="color: var(--c-color)">C</span> Context</div>
+    <div class="cell header"><span style="color: var(--s-color)">S</span> State</div>
+
+    <div class="cell op">+</div>
+    <div class="cell">Union &mdash; merge sections</div>
+    <div class="cell">Union &mdash; merge context specs</div>
+    <div class="cell">Combine &mdash; run both on original state</div>
+
+    <div class="cell op">|</div>
+    <div class="cell">Pipe &mdash; post-process output</div>
+    <div class="cell">Pipe &mdash; chain filter</div>
+    <div class="cell" style="color: var(--text-dim)">&mdash;</div>
+
+    <div class="cell op">&gt;&gt;</div>
+    <div class="cell" style="color: var(--text-dim)">&mdash;</div>
+    <div class="cell" style="color: var(--text-dim)">&mdash;</div>
+    <div class="cell">Chain &mdash; sequential through state</div>
+  </div>
+
+
+  <!-- Factory Catalogs -->
+  <div class="section-header">
+    <h2>Factory Catalog</h2>
+    <span class="badge badge-p">P &middot; 17</span>
+    <span class="badge badge-c">C &middot; 29</span>
+    <span class="badge badge-s">S &middot; 14</span>
+  </div>
+
+  <!-- P factories -->
+  <div class="factory-catalog">
+    <div class="factory-group p-group">
+      <h4>P &middot; Core Sections</h4>
+      <div class="factory-item"><span class="name">role(text)</span><span class="desc">agent persona</span></div>
+      <div class="factory-item"><span class="name">context(text)</span><span class="desc">background info</span></div>
+      <div class="factory-item"><span class="name">task(text)</span><span class="desc">what to do</span></div>
+      <div class="factory-item"><span class="name">constraint(*rules)</span><span class="desc">boundaries</span></div>
+      <div class="factory-item"><span class="name">format(text)</span><span class="desc">output shape</span></div>
+      <div class="factory-item"><span class="name">example(in, out)</span><span class="desc">few-shot</span></div>
+      <div class="factory-item"><span class="name">section(name, text)</span><span class="desc">custom block</span></div>
+    </div>
+    <div class="factory-group p-group">
+      <h4>P &middot; Dynamic</h4>
+      <div class="factory-item"><span class="name">when(pred, block)</span><span class="desc">conditional</span></div>
+      <div class="factory-item"><span class="name">from_state(*keys)</span><span class="desc">inject state</span></div>
+      <div class="factory-item"><span class="name">template(text)</span><span class="desc">string template</span></div>
+    </div>
+    <div class="factory-group p-group">
+      <h4>P &middot; Structural & LLM</h4>
+      <div class="factory-item"><span class="name">reorder(*names)</span><span class="desc">reorder sections</span></div>
+      <div class="factory-item"><span class="name">only(*names)</span><span class="desc">keep only</span></div>
+      <div class="factory-item"><span class="name">without(*names)</span><span class="desc">remove sections</span></div>
+      <div class="factory-item"><span class="name">compress(max, model)</span><span class="desc">LLM shrink</span></div>
+      <div class="factory-item"><span class="name">adapt(audience)</span><span class="desc">LLM rephrase</span></div>
+      <div class="factory-item"><span class="name">scaffolded(block)</span><span class="desc">wrap content</span></div>
+      <div class="factory-item"><span class="name">versioned(block, tag)</span><span class="desc">version tag</span></div>
+    </div>
+  </div>
+
+  <div class="factory-catalog">
+    <div class="factory-group c-group">
+      <h4>C &middot; Primitives</h4>
+      <div class="factory-item"><span class="name">none()</span><span class="desc">no context</span></div>
+      <div class="factory-item"><span class="name">default()</span><span class="desc">full history</span></div>
+      <div class="factory-item"><span class="name">user_only()</span><span class="desc">user messages</span></div>
+    </div>
+    <div class="factory-group c-group">
+      <h4>C &middot; Selection</h4>
+      <div class="factory-item"><span class="name">from_state(*keys)</span><span class="desc">inject state</span></div>
+      <div class="factory-item"><span class="name">from_agents(*names)</span><span class="desc">named agents</span></div>
+      <div class="factory-item"><span class="name">exclude_agents(*)</span><span class="desc">skip agents</span></div>
+      <div class="factory-item"><span class="name">window(n)</span><span class="desc">last N turns</span></div>
+      <div class="factory-item"><span class="name">last_n_turns(n)</span><span class="desc">alias window</span></div>
+      <div class="factory-item"><span class="name">template(str)</span><span class="desc">template text</span></div>
+    </div>
+    <div class="factory-group c-group">
+      <h4>C &middot; Filtering</h4>
+      <div class="factory-item"><span class="name">select(author,type)</span><span class="desc">metadata filter</span></div>
+      <div class="factory-item"><span class="name">recent(decay)</span><span class="desc">decay weighting</span></div>
+      <div class="factory-item"><span class="name">compact(strategy)</span><span class="desc">merge msgs</span></div>
+      <div class="factory-item"><span class="name">dedup(strategy)</span><span class="desc">remove dups</span></div>
+      <div class="factory-item"><span class="name">truncate(max)</span><span class="desc">hard limit</span></div>
+      <div class="factory-item"><span class="name">project(*fields)</span><span class="desc">pick fields</span></div>
+    </div>
+  </div>
+
+  <div class="factory-catalog">
+    <div class="factory-group c-group">
+      <h4>C &middot; Constraints</h4>
+      <div class="factory-item"><span class="name">budget(max_tokens)</span><span class="desc">token limit</span></div>
+      <div class="factory-item"><span class="name">priority(tier)</span><span class="desc">tier ranking</span></div>
+      <div class="factory-item"><span class="name">fit(max, strategy)</span><span class="desc">auto-fit</span></div>
+      <div class="factory-item"><span class="name">fresh(max_age)</span><span class="desc">freshness</span></div>
+      <div class="factory-item"><span class="name">redact(*patterns)</span><span class="desc">remove PII</span></div>
+    </div>
+    <div class="factory-group c-group">
+      <h4>C &middot; LLM-Powered</h4>
+      <div class="factory-item"><span class="name">summarize(scope)</span><span class="desc">LLM summary</span></div>
+      <div class="factory-item"><span class="name">relevant(query_key)</span><span class="desc">semantic pick</span></div>
+      <div class="factory-item"><span class="name">extract(schema)</span><span class="desc">structured</span></div>
+      <div class="factory-item"><span class="name">distill(key)</span><span class="desc">key points</span></div>
+    </div>
+    <div class="factory-group c-group">
+      <h4>C &middot; Sugar</h4>
+      <div class="factory-item"><span class="name">rolling(n, summarize)</span><span class="desc">window + sum</span></div>
+      <div class="factory-item"><span class="name">from_agents_windowed()</span><span class="desc">per-agent</span></div>
+      <div class="factory-item"><span class="name">user(strategy)</span><span class="desc">user msgs</span></div>
+      <div class="factory-item"><span class="name">manus_cascade(budget)</span><span class="desc">cascade</span></div>
+      <div class="factory-item"><span class="name">notes(key)</span><span class="desc">read notes</span></div>
+      <div class="factory-item"><span class="name">write_notes(key)</span><span class="desc">persist notes</span></div>
+      <div class="factory-item"><span class="name">validate(*checks)</span><span class="desc">assertions</span></div>
+      <div class="factory-item"><span class="name">capture(key)</span><span class="desc">snapshot</span></div>
+    </div>
+  </div>
+
+  <div class="factory-catalog">
+    <div class="factory-group s-group">
+      <h4>S &middot; Replacement</h4>
+      <div class="factory-item"><span class="name">pick(*keys)</span><span class="desc">keep only these</span></div>
+      <div class="factory-item"><span class="name">drop(*keys)</span><span class="desc">remove these</span></div>
+      <div class="factory-item"><span class="name">rename(**mapping)</span><span class="desc">rename keys</span></div>
+    </div>
+    <div class="factory-group s-group">
+      <h4>S &middot; Delta (Additive)</h4>
+      <div class="factory-item"><span class="name">default(**kv)</span><span class="desc">set if missing</span></div>
+      <div class="factory-item"><span class="name">merge(*keys, into=)</span><span class="desc">combine keys</span></div>
+      <div class="factory-item"><span class="name">transform(key, fn)</span><span class="desc">map function</span></div>
+      <div class="factory-item"><span class="name">compute(**factories)</span><span class="desc">derive values</span></div>
+      <div class="factory-item"><span class="name">set(**values)</span><span class="desc">force values</span></div>
+    </div>
+    <div class="factory-group s-group">
+      <h4>S &middot; Control & Inspect</h4>
+      <div class="factory-item"><span class="name">when(pred, transform)</span><span class="desc">conditional</span></div>
+      <div class="factory-item"><span class="name">branch(key, **tfms)</span><span class="desc">switch/case</span></div>
+      <div class="factory-item"><span class="name">guard(pred, msg)</span><span class="desc">assertion</span></div>
+      <div class="factory-item"><span class="name">log(*keys, label=)</span><span class="desc">debug print</span></div>
+      <div class="factory-item"><span class="name">identity()</span><span class="desc">no-op</span></div>
+      <div class="factory-item"><span class="name">capture(key)</span><span class="desc">snapshot state</span></div>
+    </div>
+  </div>
+
+
+  <!-- Full Composition Example -->
+  <div class="section-header">
+    <h2>Complete Example</h2>
+  </div>
+
+  <div class="composition-example">
+    <div class="example-header">All three modules in a single pipeline</div>
+    <div class="example-body">
+      <div class="example-side">
+        <h4>Fluent Builder Code</h4>
+        <pre><span style="color:var(--text-dim)">from</span> adk_fluent <span style="color:var(--text-dim)">import</span> Agent, P, C, S
+
+reviewer = (
+    Agent(<span style="color:var(--s-color)">"reviewer"</span>)
+    .instruct(
+        <span style="color:var(--p-color)">P.role</span>(<span style="color:var(--s-color)">"Senior code reviewer."</span>)
+        + <span style="color:var(--p-color)">P.task</span>(<span style="color:var(--s-color)">"Review for bugs."</span>)
+        + <span style="color:var(--p-color)">P.constraint</span>(<span style="color:var(--s-color)">"Be concise."</span>)
+    )
+    .context(
+        <span style="color:var(--c-color)">C.window</span>(n=5)
+        + <span style="color:var(--c-color)">C.from_state</span>(<span style="color:var(--s-color)">"code"</span>)
+    )
+    .writes(<span style="color:var(--s-color)">"review"</span>)
+)
+
+pipeline = (
+    Agent(<span style="color:var(--s-color)">"parser"</span>).writes(<span style="color:var(--s-color)">"parsed"</span>)
+    >> <span style="color:var(--s-color)">S.pick</span>(<span style="color:var(--s-color)">"parsed"</span>)
+    >> <span style="color:var(--s-color)">S.rename</span>(parsed=<span style="color:var(--s-color)">"code"</span>)
+    >> reviewer
+    >> <span style="color:var(--s-color)">S.pick</span>(<span style="color:var(--s-color)">"review"</span>)
+    >> Agent(<span style="color:var(--s-color)">"summarizer"</span>)
+       .reads(<span style="color:var(--s-color)">"review"</span>)
+)</pre>
+      </div>
+      <div class="example-side">
+        <h4>What the Reviewer LLM Sees</h4>
+        <pre><span style="color:var(--text-dim)">── system_instruction ──</span>
+Senior code reviewer.
+
+Task:
+Review for bugs.
+
+Constraints:
+Be concise.
+
+<span style="color:var(--c-color)">&lt;conversation_context&gt;</span>
+<span style="color:var(--c-color)">code:</span> <span style="color:var(--text-dim)">[contents of state["code"]]</span>
+
+<span style="color:var(--c-color)">[last 5 turn-pairs from history]</span>
+<span style="color:var(--c-color)">&lt;/conversation_context&gt;</span>
+
+<span style="color:var(--text-dim)">── contents ──</span>
+<span style="color:var(--text-dim)">[current turn only — no full history]</span>
+
+<span style="color:var(--text-dim)">── after response ──</span>
+<span style="color:var(--s-color)">state["review"] = response_text</span></pre>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Pipeline Composition Visual -->
+  <div class="section-header">
+    <h2>Pipeline Composition</h2>
+  </div>
+
+  <div class="pipeline-diagram">
+    <div class="pipeline-flow">
+      <div class="pipeline-stage">
+        <div class="stage-label">Agent</div>
+        <div class="stage-box adk-stage">
+          parser
+          <span style="font-size:0.65rem;opacity:0.7">.writes("parsed")</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">&raquo;</div>
+      <div class="pipeline-stage">
+        <div class="stage-label">State Transform</div>
+        <div class="stage-box s-stage">
+          S.pick("parsed")
+        </div>
+      </div>
+      <div class="pipeline-arrow">&raquo;</div>
+      <div class="pipeline-stage">
+        <div class="stage-label">State Transform</div>
+        <div class="stage-box s-stage">
+          S.rename(parsed="code")
+        </div>
+      </div>
+      <div class="pipeline-arrow">&raquo;</div>
+      <div class="pipeline-stage">
+        <div class="stage-label">Agent</div>
+        <div class="stage-box adk-stage">
+          reviewer
+          <span style="font-size:0.65rem;opacity:0.7">P + C + .writes</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">&raquo;</div>
+      <div class="pipeline-stage">
+        <div class="stage-label">State Transform</div>
+        <div class="stage-box s-stage">
+          S.pick("review")
+        </div>
+      </div>
+      <div class="pipeline-arrow">&raquo;</div>
+      <div class="pipeline-stage">
+        <div class="stage-label">Agent</div>
+        <div class="stage-box adk-stage">
+          summarizer
+          <span style="font-size:0.65rem;opacity:0.7">.reads("review")</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Build-time compilation order -->
+  <div class="section-header">
+    <h2>Build-Time Compilation Order</h2>
+  </div>
+
+  <div class="llm-assembly">
+    <div class="assembly-step">
+      <div class="step-number" style="background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border)">1</div>
+      <div class="step-content">
+        <h4>Contract Checks</h4>
+        <p>Run IR contract validation. Verify .produces()/.consumes() annotations match.</p>
+      </div>
+    </div>
+    <div class="assembly-step">
+      <div class="step-number" style="background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border)">2</div>
+      <div class="step-content">
+        <h4>Extract Internal Directives</h4>
+        <p>Pull out _context_spec, _prompt_spec, _output_schema from builder config. Strip internal _ fields.</p>
+      </div>
+    </div>
+    <div class="assembly-step">
+      <div class="step-number context">3</div>
+      <div class="step-content">
+        <h4>Compile Context Spec <span class="tag tag-c">C first</span></h4>
+        <p>C transforms compile first. Sets include_contents and creates the instruction provider (async callable). CWriteNotes extracted to after_agent_callback.</p>
+      </div>
+    </div>
+    <div class="assembly-step">
+      <div class="step-number system">4</div>
+      <div class="step-content">
+        <h4>Compile Prompt Spec <span class="tag tag-p">P second</span></h4>
+        <p>P transforms compile second. Can override the instruction from step 3. Static prompts become strings; dynamic prompts become async providers.</p>
+      </div>
+    </div>
+    <div class="assembly-step">
+      <div class="step-number" style="background:var(--accent-bg);color:var(--accent);border:1px solid rgba(167,139,250,0.3)">5</div>
+      <div class="step-content">
+        <h4>Assemble ADK Config</h4>
+        <p>Final config dict passed to LlmAgent constructor. S transforms are wrapped as FnAgent pipeline steps separately.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center; padding: 3rem 0 1rem; color: var(--text-dim); font-size: 0.75rem;">
+    adk-fluent &middot; P &middot; C &middot; S &mdash; Three modules, five concerns, one fluent API
+  </div>
+
+</div>
+
+</body>
+</html>
