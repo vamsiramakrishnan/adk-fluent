@@ -15,6 +15,37 @@ Flat dictionary at `session.state`. Written via `output_key` (LlmAgent writes it
 **Channel 3: Instruction Templating**
 `inject_session_state()` replaces `{key}` placeholders in instruction strings with `session.state[key]` values. Runs every invocation, just before the LLM call. This is the bridge: state values appear inside the system prompt.
 
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    THE THREE CHANNELS                           │
+│                                                                 │
+│  ① CONVERSATION HISTORY          ② SESSION STATE               │
+│  ┌─────────────────────┐         ┌──────────────────┐          │
+│  │ session.events       │         │ session.state     │          │
+│  │                     │         │                  │          │
+│  │ user: "fly to LDN"  │         │ intent: "booking"│          │
+│  │ classifier:"booking"│         │ dest:   "London" │          │
+│  │ booker: "..."       │         │                  │          │
+│  └────────┬────────────┘         └────────┬─────────┘          │
+│           │                               │                    │
+│           │    ③ INSTRUCTION TEMPLATING    │                    │
+│           │    ┌──────────────────────┐    │                    │
+│           │    │ "Help book. Intent:  │    │                    │
+│           │    │  {intent}" → "Help   │◄───┘                    │
+│           │    │  book. Intent:       │                         │
+│           │    │  booking"            │                         │
+│           │    └──────────┬───────────┘                         │
+│           │               │                                    │
+│           ▼               ▼                                    │
+│        ┌─────────────────────────────┐                         │
+│        │        LLM PROMPT           │                         │
+│        │  sees "booking" from ① AND  │                         │
+│        │  sees "booking" from ③      │                         │
+│        │  (duplication by design)    │                         │
+│        └─────────────────────────────┘                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 These three channels are configured independently but deeply entangled at runtime. In `classifier >> booker`:
 
 ```

@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adk-fluent · Operator Algebra Reference</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a28;
+    --border: #2a2a3a;
+    --border-accent: #3a3a5a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --seq-color: #e94560;
+    --seq-bg: #e9456015;
+    --seq-border: #e9456040;
+    --par-color: #0ea5e9;
+    --par-bg: #0ea5e915;
+    --par-border: #0ea5e940;
+    --loop-color: #10b981;
+    --loop-bg: #10b98115;
+    --loop-border: #10b98140;
+    --schema-color: #f59e0b;
+    --schema-bg: #f59e0b15;
+    --schema-border: #f59e0b40;
+    --fb-color: #a78bfa;
+    --fb-bg: #a78bfa15;
+    --fb-border: #a78bfa40;
+    --route-color: #f472b6;
+    --route-bg: #f472b615;
+    --route-border: #f472b640;
+    --state-color: #34d399;
+    --state-bg: #34d39915;
+    --state-border: #34d39940;
+    --accent: #a78bfa;
+    --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 2rem 0;
+  }
+
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 300;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 .op { color: var(--seq-color); font-weight: 600; font-family: var(--mono); }
+
+  .header .subtitle {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  /* Quick reference grid */
+  .quick-ref {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 3rem;
+  }
+
+  .quick-ref-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quick-ref-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .quick-ref-item:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .quick-ref-item .symbol {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .quick-ref-item .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+
+  .qr-seq::before { background: var(--seq-color); }
+  .qr-seq .symbol { color: var(--seq-color); }
+  .qr-par::before { background: var(--par-color); }
+  .qr-par .symbol { color: var(--par-color); }
+  .qr-loop::before { background: var(--loop-color); }
+  .qr-loop .symbol { color: var(--loop-color); }
+  .qr-schema::before { background: var(--schema-color); }
+  .qr-schema .symbol { color: var(--schema-color); }
+  .qr-fb::before { background: var(--fb-color); }
+  .qr-fb .symbol { color: var(--fb-color); }
+  .qr-route::before { background: var(--route-color); }
+  .qr-route .symbol { color: var(--route-color); }
+  .qr-state::before { background: var(--state-color); }
+  .qr-state .symbol { color: var(--state-color); }
+
+  /* Operator cards */
+  .op-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .op-card:hover {
+    border-color: var(--border-accent);
+  }
+
+  .op-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .op-card-header .op-symbol {
+    font-family: var(--mono);
+    font-size: 1.8rem;
+    font-weight: 700;
+    width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .op-card-header .op-info h3 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-bright);
+  }
+
+  .op-card-header .op-info .compiles {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  .op-card-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  @media (max-width: 700px) {
+    .op-card-body { grid-template-columns: 1fr; }
+  }
+
+  .op-visual {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+    min-height: 140px;
+  }
+
+  @media (max-width: 700px) {
+    .op-visual { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  .op-code {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .op-code pre {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .op-code .comment { color: var(--text-dim); }
+  .op-code .keyword { color: var(--par-color); }
+  .op-code .string { color: var(--loop-color); }
+  .op-code .op-highlight { color: var(--seq-color); font-weight: 700; }
+
+  /* SVG diagrams */
+  .diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .diagram svg text {
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .diagram svg .node {
+    fill: var(--surface-2);
+    stroke-width: 1.5;
+    rx: 6;
+    ry: 6;
+  }
+
+  .diagram svg .arrow {
+    stroke-width: 2;
+    fill: none;
+    marker-end: url(#arrowhead);
+  }
+
+  .diagram svg .arrow-fail {
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 5,4;
+  }
+
+  .diagram svg .loop-back {
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 4,3;
+  }
+
+  /* Section dividers */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2.5rem 0 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-divider h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-bright);
+  }
+
+  .section-divider .badge {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Composition section */
+  .composition-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 700px) {
+    .composition-grid { grid-template-columns: 1fr; }
+  }
+
+  .composition-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+
+  .composition-card h4 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-bright);
+    margin-bottom: 0.75rem;
+  }
+
+  .composition-card pre {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .composition-card .topology {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    white-space: pre;
+  }
+
+  /* Rules table */
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .rules-table th {
+    text-align: left;
+    padding: 0.6rem 1rem;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .rules-table td {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .rules-table tr:last-child td { border-bottom: none; }
+  .rules-table .result { color: var(--text-dim); font-family: var(--sans); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>adk-fluent <span class="op">Operator Algebra</span></h1>
+    <div class="subtitle">Nine operators. Any topology. All immutable.</div>
+  </div>
+
+  <!-- Quick reference -->
+  <div class="quick-ref">
+    <a href="#op-seq" class="quick-ref-item qr-seq">
+      <span class="symbol">&gt;&gt;</span>
+      <span class="label">Sequence</span>
+    </a>
+    <a href="#op-fn" class="quick-ref-item qr-seq">
+      <span class="symbol">&gt;&gt; fn</span>
+      <span class="label">Function</span>
+    </a>
+    <a href="#op-par" class="quick-ref-item qr-par">
+      <span class="symbol">|</span>
+      <span class="label">Parallel</span>
+    </a>
+    <a href="#op-loop" class="quick-ref-item qr-loop">
+      <span class="symbol">* n</span>
+      <span class="label">Loop</span>
+    </a>
+    <a href="#op-until" class="quick-ref-item qr-loop">
+      <span class="symbol">* until</span>
+      <span class="label">Cond Loop</span>
+    </a>
+    <a href="#op-schema" class="quick-ref-item qr-schema">
+      <span class="symbol">@</span>
+      <span class="label">Schema</span>
+    </a>
+    <a href="#op-fallback" class="quick-ref-item qr-fb">
+      <span class="symbol">//</span>
+      <span class="label">Fallback</span>
+    </a>
+    <a href="#op-route" class="quick-ref-item qr-route">
+      <span class="symbol">Route</span>
+      <span class="label">Branch</span>
+    </a>
+    <a href="#op-state" class="quick-ref-item qr-state">
+      <span class="symbol">S.*</span>
+      <span class="label">State</span>
+    </a>
+  </div>
+
+  <!-- SVG defs -->
+  <svg style="position:absolute;width:0;height:0">
+    <defs>
+      <marker id="ah-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#e94560" stroke-width="1.5"/>
+      </marker>
+      <marker id="ah-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#0ea5e9" stroke-width="1.5"/>
+      </marker>
+      <marker id="ah-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#10b981" stroke-width="1.5"/>
+      </marker>
+      <marker id="ah-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+      </marker>
+      <marker id="ah-pink" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#f472b6" stroke-width="1.5"/>
+      </marker>
+      <marker id="ah-yellow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+      </marker>
+      <marker id="ah-dim" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="none" stroke="#8888a0" stroke-width="1.5"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <!-- ── >> Sequence ────────────────────────── -->
+  <div class="section-divider">
+    <h2>Topology Operators</h2>
+    <span class="badge" style="background:var(--seq-bg);color:var(--seq-color);border:1px solid var(--seq-border)">core</span>
+  </div>
+
+  <div class="op-card" id="op-seq">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--seq-color)">&gt;&gt;</div>
+      <div class="op-info">
+        <h3>Pipeline (Sequential)</h3>
+        <div class="compiles">SequentialAgent</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="340" height="60" viewBox="0 0 340 60">
+            <rect x="10" y="16" width="80" height="28" class="node" stroke="#e94560"/>
+            <text x="50" y="35" fill="#e0e0e8" text-anchor="middle">a</text>
+            <line x1="90" y1="30" x2="128" y2="30" class="arrow" stroke="#e94560" marker-end="url(#ah-red)"/>
+            <rect x="130" y="16" width="80" height="28" class="node" stroke="#e94560"/>
+            <text x="170" y="35" fill="#e0e0e8" text-anchor="middle">b</text>
+            <line x1="210" y1="30" x2="248" y2="30" class="arrow" stroke="#e94560" marker-end="url(#ah-red)"/>
+            <rect x="250" y="16" width="80" height="28" class="node" stroke="#e94560"/>
+            <text x="290" y="35" fill="#e0e0e8" text-anchor="middle">c</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>pipeline = a <span class="op-highlight">&gt;&gt;</span> b <span class="op-highlight">&gt;&gt;</span> c
+
+<span class="comment"># Equivalent builder style:</span>
+Pipeline(<span class="string">"name"</span>)
+  .step(a).step(b).step(c)
+  .build()</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── >> fn ────────────────────────── -->
+  <div class="op-card" id="op-fn">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--seq-color)">&gt;&gt; fn</div>
+      <div class="op-info">
+        <h3>Function Step</h3>
+        <div class="compiles">Zero-cost transform (no LLM call)</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="340" height="60" viewBox="0 0 340 60">
+            <rect x="10" y="16" width="80" height="28" class="node" stroke="#e94560"/>
+            <text x="50" y="35" fill="#e0e0e8" text-anchor="middle">agent</text>
+            <line x1="90" y1="30" x2="128" y2="30" class="arrow" stroke="#e94560" marker-end="url(#ah-red)"/>
+            <rect x="130" y="16" width="80" height="28" class="node" stroke="#8888a0" stroke-dasharray="4,3"/>
+            <text x="170" y="35" fill="#8888a0" text-anchor="middle">fn()</text>
+            <line x1="210" y1="30" x2="248" y2="30" class="arrow" stroke="#e94560" marker-end="url(#ah-red)"/>
+            <rect x="250" y="16" width="80" height="28" class="node" stroke="#e94560"/>
+            <text x="290" y="35" fill="#e0e0e8" text-anchor="middle">agent</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre><span class="keyword">def</span> merge(state):
+    <span class="keyword">return</span> {<span class="string">"combined"</span>: ...}
+
+pipeline = agent <span class="op-highlight">&gt;&gt;</span> merge <span class="op-highlight">&gt;&gt;</span> next</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── | Parallel ────────────────────────── -->
+  <div class="op-card" id="op-par">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--par-color)">|</div>
+      <div class="op-info">
+        <h3>Parallel (Fan-Out)</h3>
+        <div class="compiles">ParallelAgent</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="280" height="110" viewBox="0 0 280 110">
+            <!-- fan out lines -->
+            <line x1="20" y1="55" x2="78" y2="20" class="arrow" stroke="#0ea5e9" marker-end="url(#ah-blue)"/>
+            <line x1="20" y1="55" x2="78" y2="55" class="arrow" stroke="#0ea5e9" marker-end="url(#ah-blue)"/>
+            <line x1="20" y1="55" x2="78" y2="90" class="arrow" stroke="#0ea5e9" marker-end="url(#ah-blue)"/>
+            <!-- nodes -->
+            <rect x="80" y="6" width="70" height="28" class="node" stroke="#0ea5e9"/>
+            <text x="115" y="24" fill="#e0e0e8" text-anchor="middle">a</text>
+            <rect x="80" y="41" width="70" height="28" class="node" stroke="#0ea5e9"/>
+            <text x="115" y="59" fill="#e0e0e8" text-anchor="middle">b</text>
+            <rect x="80" y="76" width="70" height="28" class="node" stroke="#0ea5e9"/>
+            <text x="115" y="94" fill="#e0e0e8" text-anchor="middle">c</text>
+            <!-- fan in -->
+            <line x1="150" y1="20" x2="200" y2="55" class="arrow" stroke="#0ea5e9" marker-end="url(#ah-blue)"/>
+            <line x1="150" y1="55" x2="200" y2="55" class="arrow" stroke="#0ea5e9" marker-end="url(#ah-blue)"/>
+            <line x1="150" y1="90" x2="200" y2="55" class="arrow" stroke="#0ea5e9" marker-end="url(#ah-blue)"/>
+            <!-- dot -->
+            <circle cx="20" cy="55" r="4" fill="#0ea5e9"/>
+            <circle cx="210" cy="55" r="4" fill="#0ea5e9"/>
+            <text x="230" y="59" fill="#8888a0" font-size="11">all</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>fanout = a <span class="op-highlight">|</span> b <span class="op-highlight">|</span> c
+
+<span class="comment"># All run concurrently</span>
+<span class="comment"># Each writes to its own</span>
+<span class="comment"># state key via .save_as()</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── * Loop ────────────────────────── -->
+  <div class="op-card" id="op-loop">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--loop-color)">* n</div>
+      <div class="op-info">
+        <h3>Loop (Fixed Count)</h3>
+        <div class="compiles">LoopAgent</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="260" height="90" viewBox="0 0 260 90">
+            <rect x="50" y="25" width="160" height="40" rx="20" ry="20" fill="none" stroke="#2a2a3a" stroke-width="1"/>
+            <rect x="70" y="31" width="55" height="28" class="node" stroke="#10b981"/>
+            <text x="97" y="49" fill="#e0e0e8" text-anchor="middle">a</text>
+            <line x1="125" y1="45" x2="133" y2="45" class="arrow" stroke="#10b981" marker-end="url(#ah-green)"/>
+            <rect x="135" y="31" width="55" height="28" class="node" stroke="#10b981"/>
+            <text x="162" y="49" fill="#e0e0e8" text-anchor="middle">b</text>
+            <!-- loop arrow -->
+            <path d="M190,45 Q220,45 220,70 Q220,85 130,85 Q40,85 40,45 Q40,30 50,30" class="loop-back" stroke="#10b981" marker-end="url(#ah-green)"/>
+            <text x="130" y="15" fill="#10b981" text-anchor="middle" font-size="11">n times</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>loop = (a <span class="op-highlight">&gt;&gt;</span> b) <span class="op-highlight">*</span> 3
+
+<span class="comment"># Body runs exactly 3 times</span>
+<span class="comment"># (a >> b) is the loop body</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── * until ────────────────────────── -->
+  <div class="op-card" id="op-until">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--loop-color)">* until</div>
+      <div class="op-info">
+        <h3>Loop (Conditional)</h3>
+        <div class="compiles">LoopAgent + checkpoint</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="300" height="100" viewBox="0 0 300 100">
+            <rect x="30" y="28" width="70" height="28" class="node" stroke="#10b981"/>
+            <text x="65" y="46" fill="#e0e0e8" text-anchor="middle">body</text>
+            <line x1="100" y1="42" x2="128" y2="42" class="arrow" stroke="#10b981" marker-end="url(#ah-green)"/>
+            <!-- diamond -->
+            <polygon points="155,22 185,42 155,62 125,42" fill="none" stroke="#10b981" stroke-width="1.5"/>
+            <text x="155" y="46" fill="#10b981" text-anchor="middle" font-size="10">pred?</text>
+            <!-- yes -->
+            <line x1="185" y1="42" x2="228" y2="42" class="arrow" stroke="#10b981" marker-end="url(#ah-green)"/>
+            <text x="205" y="37" fill="#10b981" font-size="10">yes</text>
+            <text x="245" y="46" fill="#8888a0" font-size="12">done</text>
+            <!-- no loop back -->
+            <path d="M155,62 Q155,85 90,85 Q20,85 20,42 Q20,28 30,28" class="loop-back" stroke="#10b981" marker-end="url(#ah-green)"/>
+            <text x="90" y="80" fill="#8888a0" font-size="10">no</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>loop = body <span class="op-highlight">*</span> until(
+    <span class="keyword">lambda</span> s: s[<span class="string">"score"</span>] &gt;= 0.8,
+    max=5
+)
+
+<span class="comment"># Loop until predicate or max</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── @ Schema ────────────────────────── -->
+  <div class="section-divider">
+    <h2>Modifier Operators</h2>
+    <span class="badge" style="background:var(--schema-bg);color:var(--schema-color);border:1px solid var(--schema-border)">shape</span>
+  </div>
+
+  <div class="op-card" id="op-schema">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--schema-color)">@</div>
+      <div class="op-info">
+        <h3>Typed Output (Schema)</h3>
+        <div class="compiles">output_schema on LlmAgent</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="300" height="70" viewBox="0 0 300 70">
+            <rect x="20" y="18" width="80" height="28" class="node" stroke="#f59e0b"/>
+            <text x="60" y="36" fill="#e0e0e8" text-anchor="middle">agent</text>
+            <line x1="100" y1="32" x2="128" y2="32" class="arrow" stroke="#f59e0b" marker-end="url(#ah-yellow)"/>
+            <rect x="130" y="12" width="110" height="40" rx="6" ry="6" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+            <text x="185" y="28" fill="#f59e0b" text-anchor="middle" font-size="11">Schema{</text>
+            <text x="185" y="43" fill="#8888a0" text-anchor="middle" font-size="10">title, body, ...</text>
+            <text x="242" y="28" fill="#f59e0b" font-size="11">}</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre><span class="keyword">class</span> Report(BaseModel):
+    title: str
+    body: str
+
+agent <span class="op-highlight">@</span> Report
+<span class="comment"># Output validated against schema</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── // Fallback ────────────────────────── -->
+  <div class="op-card" id="op-fallback">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--fb-color)">//</div>
+      <div class="op-info">
+        <h3>Fallback Chain</h3>
+        <div class="compiles">First-success chain</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="340" height="80" viewBox="0 0 340 80">
+            <rect x="10" y="22" width="70" height="28" class="node" stroke="#a78bfa"/>
+            <text x="45" y="40" fill="#e0e0e8" text-anchor="middle">fast</text>
+            <!-- fail -->
+            <line x1="80" y1="36" x2="108" y2="36" class="arrow-fail" stroke="#a78bfa"/>
+            <text x="94" y="55" fill="#8888a0" font-size="9">fail</text>
+            <rect x="120" y="22" width="70" height="28" class="node" stroke="#a78bfa"/>
+            <text x="155" y="40" fill="#e0e0e8" text-anchor="middle">smart</text>
+            <!-- fail -->
+            <line x1="190" y1="36" x2="218" y2="36" class="arrow-fail" stroke="#a78bfa"/>
+            <text x="204" y="55" fill="#8888a0" font-size="9">fail</text>
+            <rect x="230" y="22" width="80" height="28" class="node" stroke="#a78bfa"/>
+            <text x="270" y="40" fill="#e0e0e8" text-anchor="middle">fallback</text>
+            <!-- success indicators -->
+            <text x="45" y="16" fill="#10b981" text-anchor="middle" font-size="9">success?</text>
+            <text x="155" y="16" fill="#10b981" text-anchor="middle" font-size="9">success?</text>
+            <text x="270" y="16" fill="#10b981" text-anchor="middle" font-size="9">always</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>answer = fast <span class="op-highlight">//</span> smart <span class="op-highlight">//</span> fallback
+
+<span class="comment"># First success wins</span>
+<span class="comment"># Cost optimization: cheap → expensive</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Route ────────────────────────── -->
+  <div class="section-divider">
+    <h2>Routing Operators</h2>
+    <span class="badge" style="background:var(--route-bg);color:var(--route-color);border:1px solid var(--route-border)">branch</span>
+  </div>
+
+  <div class="op-card" id="op-route">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--route-color)">Route</div>
+      <div class="op-info">
+        <h3>Deterministic Routing</h3>
+        <div class="compiles">Zero LLM calls for routing</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="320" height="100" viewBox="0 0 320 100">
+            <!-- state key -->
+            <rect x="10" y="35" width="90" height="28" class="node" stroke="#f472b6"/>
+            <text x="55" y="53" fill="#f472b6" text-anchor="middle" font-size="11">state[key]</text>
+            <!-- branch lines -->
+            <line x1="100" y1="42" x2="158" y2="20" class="arrow" stroke="#f472b6" marker-end="url(#ah-pink)"/>
+            <line x1="100" y1="52" x2="158" y2="52" class="arrow" stroke="#f472b6" marker-end="url(#ah-pink)"/>
+            <line x1="100" y1="58" x2="158" y2="82" class="arrow" stroke="#f472b6" marker-end="url(#ah-pink)"/>
+            <!-- labels -->
+            <text x="135" y="23" fill="#8888a0" font-size="9">"booking"</text>
+            <text x="135" y="46" fill="#8888a0" font-size="9">"info"</text>
+            <text x="135" y="77" fill="#8888a0" font-size="9">"other"</text>
+            <!-- handlers -->
+            <rect x="160" y="6" width="80" height="28" class="node" stroke="#f472b6"/>
+            <text x="200" y="24" fill="#e0e0e8" text-anchor="middle">booker</text>
+            <rect x="160" y="38" width="80" height="28" class="node" stroke="#f472b6"/>
+            <text x="200" y="56" fill="#e0e0e8" text-anchor="middle">info</text>
+            <rect x="160" y="68" width="80" height="28" class="node" stroke="#f472b6"/>
+            <text x="200" y="86" fill="#e0e0e8" text-anchor="middle">default</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>Route(<span class="string">"intent"</span>)
+  .eq(<span class="string">"booking"</span>, booker)
+  .eq(<span class="string">"info"</span>, info)
+
+<span class="comment"># Dict shorthand:</span>
+classifier <span class="op-highlight">&gt;&gt;</span> {
+    <span class="string">"booking"</span>: booker,
+    <span class="string">"info"</span>: info,
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── S.* State Transforms ────────────────────────── -->
+  <div class="section-divider">
+    <h2>State Operators</h2>
+    <span class="badge" style="background:var(--state-bg);color:var(--state-color);border:1px solid var(--state-border)">state</span>
+  </div>
+
+  <div class="op-card" id="op-state">
+    <div class="op-card-header">
+      <div class="op-symbol" style="color:var(--state-color)">S.*</div>
+      <div class="op-info">
+        <h3>State Transforms</h3>
+        <div class="compiles">FnAgent (zero-cost, no LLM)</div>
+      </div>
+    </div>
+    <div class="op-card-body">
+      <div class="op-visual">
+        <div class="diagram">
+          <svg width="340" height="120" viewBox="0 0 340 120">
+            <!-- state in -->
+            <rect x="10" y="35" width="60" height="50" rx="4" ry="4" fill="none" stroke="#34d399" stroke-dasharray="4,3"/>
+            <text x="40" y="53" fill="#34d399" text-anchor="middle" font-size="10">state</text>
+            <text x="40" y="66" fill="#8888a0" text-anchor="middle" font-size="9">{a,b,c}</text>
+            <!-- transforms -->
+            <line x1="70" y1="60" x2="88" y2="60" class="arrow" stroke="#34d399" marker-end="url(#ah-green)"/>
+            <rect x="90" y="42" width="60" height="22" class="node" stroke="#34d399"/>
+            <text x="120" y="57" fill="#34d399" text-anchor="middle" font-size="10">.pick()</text>
+            <line x1="150" y1="53" x2="168" y2="53" class="arrow" stroke="#34d399" marker-end="url(#ah-green)"/>
+            <rect x="170" y="42" width="70" height="22" class="node" stroke="#34d399"/>
+            <text x="205" y="57" fill="#34d399" text-anchor="middle" font-size="10">.rename()</text>
+            <line x1="240" y1="53" x2="258" y2="53" class="arrow" stroke="#34d399" marker-end="url(#ah-green)"/>
+            <!-- state out -->
+            <rect x="260" y="35" width="65" height="50" rx="4" ry="4" fill="none" stroke="#34d399" stroke-dasharray="4,3"/>
+            <text x="292" y="53" fill="#34d399" text-anchor="middle" font-size="10">state'</text>
+            <text x="292" y="66" fill="#8888a0" text-anchor="middle" font-size="9">{x,y}</text>
+            <!-- label -->
+            <text x="170" y="95" fill="#8888a0" text-anchor="middle" font-size="10">zero-cost: no LLM call, no events</text>
+            <!-- list -->
+            <text x="10" y="115" fill="#34d399" font-size="9">pick · drop · rename · default · merge · transform · compute · guard · log</text>
+          </svg>
+        </div>
+      </div>
+      <div class="op-code">
+<pre>pipeline = (
+    agent
+    <span class="op-highlight">&gt;&gt;</span> S.pick(<span class="string">"a"</span>, <span class="string">"b"</span>)
+    <span class="op-highlight">&gt;&gt;</span> S.rename(a=<span class="string">"input"</span>)
+    <span class="op-highlight">&gt;&gt;</span> S.default(score=0.0)
+    <span class="op-highlight">&gt;&gt;</span> next_agent
+)
+
+<span class="comment"># Compose: S.pick() >> S.rename()</span>
+<span class="comment"># Combine: S.default() + S.rename()</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Composition Rules ────────────────────────── -->
+  <div class="section-divider">
+    <h2>Composition Rules</h2>
+    <span class="badge" style="background:var(--seq-bg);color:var(--seq-color);border:1px solid var(--seq-border)">algebra</span>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+    <table class="rules-table">
+      <thead>
+        <tr>
+          <th>Expression</th>
+          <th>Produces</th>
+          <th>Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Agent >> Agent</td>
+          <td class="result">Pipeline</td>
+          <td>SequentialAgent</td>
+        </tr>
+        <tr>
+          <td>Agent >> fn</td>
+          <td class="result">Pipeline with FnAgent</td>
+          <td>SequentialAgent</td>
+        </tr>
+        <tr>
+          <td>Agent | Agent</td>
+          <td class="result">FanOut</td>
+          <td>ParallelAgent</td>
+        </tr>
+        <tr>
+          <td>expr * int</td>
+          <td class="result">Loop (fixed)</td>
+          <td>LoopAgent</td>
+        </tr>
+        <tr>
+          <td>expr * until(fn)</td>
+          <td class="result">Loop (conditional)</td>
+          <td>LoopAgent</td>
+        </tr>
+        <tr>
+          <td>Agent @ Schema</td>
+          <td class="result">Typed agent</td>
+          <td>LlmAgent</td>
+        </tr>
+        <tr>
+          <td>Agent // Agent</td>
+          <td class="result">Fallback chain</td>
+          <td>FallbackAgent</td>
+        </tr>
+        <tr>
+          <td>Agent >> {k: Agent}</td>
+          <td class="result">Route</td>
+          <td>SequentialAgent + Router</td>
+        </tr>
+        <tr>
+          <td>Agent >> S.pick()</td>
+          <td class="result">Pipeline with transform</td>
+          <td>SequentialAgent + FnAgent</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Composition examples -->
+  <div class="composition-grid">
+    <div class="composition-card">
+      <h4>Parallel Research + Merge</h4>
+<pre><span style="color:var(--par-color)">(</span>web <span style="color:var(--par-color)">|</span> scholar<span style="color:var(--par-color)">)</span>
+  <span style="color:var(--seq-color)">>></span> S.merge(<span style="color:var(--loop-color)">"web"</span>, <span style="color:var(--loop-color)">"scholar"</span>,
+           into=<span style="color:var(--loop-color)">"research"</span>)
+  <span style="color:var(--seq-color)">>></span> writer</pre>
+      <div class="topology">  ┬─ web ────┐
+  └─ scholar ┘
+       │
+  S.merge ──► writer</div>
+    </div>
+
+    <div class="composition-card">
+      <h4>Classify + Route + Fallback</h4>
+<pre>classifier
+  <span style="color:var(--seq-color)">>></span> Route(<span style="color:var(--loop-color)">"intent"</span>)
+     .eq(<span style="color:var(--loop-color)">"book"</span>, fast <span style="color:var(--fb-color)">//</span> smart)
+     .eq(<span style="color:var(--loop-color)">"info"</span>, helper)</pre>
+      <div class="topology">  classifier
+       │
+  Route ┬─ "book" ──► fast // smart
+        └─ "info" ──► helper</div>
+    </div>
+
+    <div class="composition-card">
+      <h4>Review Loop with Schema</h4>
+<pre>(writer <span style="color:var(--schema-color)">@</span> Report
+  <span style="color:var(--seq-color)">>></span> critic.save_as(<span style="color:var(--loop-color)">"score"</span>)
+) <span style="color:var(--loop-color)">*</span> until(<span style="color:var(--par-color)">lambda</span> s: s[<span style="color:var(--loop-color)">"score"</span>] >= 0.8)</pre>
+      <div class="topology">  ┌──► writer @ Report ──► critic ──┐
+  └──────── until(score >= 0.8) ────┘</div>
+    </div>
+
+    <div class="composition-card">
+      <h4>Full Pipeline</h4>
+<pre><span style="color:var(--par-color)">(</span>web <span style="color:var(--par-color)">|</span> scholar<span style="color:var(--par-color)">)</span>
+  <span style="color:var(--seq-color)">>></span> S.merge(into=<span style="color:var(--loop-color)">"research"</span>)
+  <span style="color:var(--seq-color)">>></span> writer <span style="color:var(--schema-color)">@</span> Report <span style="color:var(--fb-color)">//</span> writer_b
+  <span style="color:var(--seq-color)">>></span> (critic <span style="color:var(--seq-color)">>></span> reviser)
+     <span style="color:var(--loop-color)">*</span> until(confidence >= 0.85)</pre>
+      <div class="topology">  ┬─ web ────┐
+  └─ scholar ┘ ──► S.merge
+       │
+  writer @ Report // writer_b
+       │
+  ┌──► critic ──► reviser ──┐
+  └── until(conf >= 0.85) ──┘</div>
+    </div>
+  </div>
+
+  <!-- Immutability note -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-top:2rem;">
+    <div style="display:flex;gap:1rem;align-items:flex-start;">
+      <div style="font-size:1.5rem;color:var(--schema-color);flex-shrink:0;">*</div>
+      <div>
+        <div style="font-weight:500;color:var(--text-bright);margin-bottom:0.5rem;">Immutability Guarantee</div>
+        <div style="font-size:0.9rem;color:var(--text-dim);">
+          All operators return new expression objects. Sub-expressions can be safely reused across different pipelines.
+          <code style="font-family:var(--mono);color:var(--text);font-size:0.82rem;display:block;margin-top:0.5rem;">
+review = a >> b<br>
+pipeline_1 = review >> c &nbsp;&nbsp;<span style="color:var(--text-dim)"># Independent</span><br>
+pipeline_2 = review >> d &nbsp;&nbsp;<span style="color:var(--text-dim)"># Independent</span>
+          </code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    adk-fluent operator algebra &mdash; open in browser for interactive reference
+  </div>
+
+</div>
+
+</body>
+</html>

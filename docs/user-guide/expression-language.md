@@ -2,6 +2,23 @@
 
 Nine operators compose any agent topology. All operators are **immutable** -- sub-expressions can be safely reused across different pipelines.
 
+```
+Operator Visual Reference:
+
+  >>  Sequence         a ──► b ──► c           (SequentialAgent)
+  |   Parallel         ┬─ a ─┐
+                       ├─ b ─┤ all run         (ParallelAgent)
+                       └─ c ─┘
+  *   Loop             ┌──► body ──┐
+                       └── n times ┘            (LoopAgent)
+  @   Typed output     agent ──► Schema{ }      (output_schema)
+  //  Fallback         a ──✗──► b ──✗──► c      (first success)
+  Route                      ┌─ "a" ──► handler_a
+                  state[key] ┤
+                             └─ "b" ──► handler_b
+  S.* State transform  { state } ──► S.fn() ──► { state' }  (zero-cost)
+```
+
 ## Operator Summary
 
 | Operator                       | Meaning            | ADK Type                 |
@@ -166,7 +183,21 @@ The agent only runs if the predicate returns a truthy value.
 
 ## Full Composition
 
-All operators compose into a single expression:
+All operators compose into a single expression. The following example combines every operator:
+
+```
+Full composition topology:
+
+  ┬─ web ────┐
+  └─ scholar ┘  (|)
+       │
+  S.merge(into="research")
+       │
+  writer @ Report // writer_b @ Report  (//)
+       │
+  ┌──► critic ──► reviser ──┐
+  └── until(confidence≥0.85) ┘  (*)
+```
 
 ```python
 from pydantic import BaseModel

@@ -4,6 +4,9 @@ Demonstrates a SequentialAgent that chains steps in order.  The
 scenario: a document processing pipeline that extracts key data
 from a contract, analyzes legal risks, then produces an executive
 summary.
+
+Pipeline topology:
+    extractor >> risk_analyst >> summarizer
 """
 
 # --- NATIVE ---

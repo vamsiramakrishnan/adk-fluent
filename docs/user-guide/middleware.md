@@ -109,3 +109,25 @@ When `.to_app()` is called:
 1. The plugin is attached to the `App` via `plugins=[plugin]`
 
 The stack executes in order. For non-void hooks (before_model, before_tool), the first middleware to return a non-None value short-circuits the rest.
+
+```
+Middleware Lifecycle (execution order):
+
+  before_run ──────────────────────────────────── after_run
+      │                                               │
+      ▼                                               │
+  before_agent ─────────────────────── after_agent    │
+      │                                    │          │
+      ▼                                    │          │
+  before_model ─► LLM call ─► after_model  │          │
+      │               │            │       │          │
+      │          on_model_error     │       │          │
+      │                            │       │          │
+  before_tool ──► tool() ──► after_tool    │          │
+                     │                     │          │
+                on_tool_error              │          │
+                                           │          │
+  Stack order: mw[0] → mw[1] → mw[2]     │          │
+  Short-circuit: first non-None return wins│          │
+  Void hooks: ALL middleware always called ─┘──────────┘
+```

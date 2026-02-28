@@ -3,6 +3,12 @@
 Demonstrates an LLM agent that delegates to specialized sub-agents.
 The scenario: a product launch coordinator that routes tasks to
 marketing, engineering, and legal teams based on the request.
+
+Pipeline topology:
+    launch_coordinator
+        |-- marketing
+        |-- engineering
+        '-- legal
 """
 
 # --- NATIVE ---

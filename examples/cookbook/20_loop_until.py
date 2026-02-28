@@ -1,4 +1,8 @@
-"""Resume Refinement Loop with Conditional Exit"""
+"""Resume Refinement Loop with Conditional Exit
+
+Pipeline topology:
+    ( resume_writer >> resume_reviewer ) * until(quality_score == "excellent")
+"""
 
 # --- NATIVE ---
 # Native ADK has no built-in conditional loop exit. You'd need to:

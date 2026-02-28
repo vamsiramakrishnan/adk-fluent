@@ -4,6 +4,9 @@ Demonstrates a ParallelAgent that runs branches concurrently.  The
 scenario: a market research system that simultaneously gathers
 intelligence from web sources, academic papers, and social media
 to produce a comprehensive competitive analysis.
+
+Pipeline topology:
+    ( web_analyst | academic_analyst | social_analyst )
 """
 
 # --- NATIVE ---

@@ -5,6 +5,13 @@ Gemini's Deep Research feature and Perplexity. A query is decomposed
 into sub-questions, searched in parallel across multiple sources,
 synthesized, quality-reviewed in a loop, and formatted as a report.
 
+Pipeline topology:
+    query_analyzer
+        >> ( web_searcher | academic_searcher | news_searcher )
+        >> synthesizer
+        >> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
+        >> report_writer @ ResearchReport
+
 Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
 """
 

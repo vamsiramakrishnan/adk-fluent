@@ -5,6 +5,13 @@ Gemini CLI's code review and GitHub Copilot's review features.
 Uses parallel fan-out for concurrent analysis, typed output for
 structured findings, and conditional gating.
 
+Pipeline topology:
+    diff_parser [save_as: parsed_changes]
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> tap(log)
+        >> finding_aggregator @ ReviewResult
+        >> comment_writer [gated: findings_count > 0]
+
 Uses: >>, |, @, proceed_if, save_as, tap
 """
 

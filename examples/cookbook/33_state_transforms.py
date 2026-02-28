@@ -1,4 +1,19 @@
-"""Research Data Pipeline: State Transforms with S Factories"""
+"""Research Data Pipeline: State Transforms with S Factories
+
+Pipeline topology:
+    data_extractor
+        >> S.pick("clinical_findings", "lab_results")
+        >> S.rename(clinical_findings="analysis_input")
+        >> S.default(confidence_interval=0.95)
+        >> statistical_analyzer
+
+    Research pipeline:
+        ( literature_agent | trial_agent )
+            >> S.merge(into="combined_evidence")
+            >> S.default(...)
+            >> report_writer
+            >> S.compute(word_count=...)
+"""
 
 # --- NATIVE ---
 # Native ADK requires custom BaseAgent subclasses for any state transform.

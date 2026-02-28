@@ -4,6 +4,9 @@ Demonstrates a LoopAgent that iterates sub-agents until a maximum
 iteration count.  The scenario: an essay refinement workflow where
 a critic evaluates the draft and a reviser improves it, repeating
 up to 3 times until quality standards are met.
+
+Pipeline topology:
+    ( critic >> reviser ) * 3
 """
 
 # --- NATIVE ---

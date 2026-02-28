@@ -2,6 +2,28 @@
 
 `S` factories return dict transforms that compose with `>>` as zero-cost workflow nodes. They manipulate session state between agent steps without making LLM calls.
 
+```
+State Transform Pipeline:
+
+  { web: "...", scholar: "...", _debug: true }    ← input state
+       │
+  S.drop("_debug")           { web, scholar }
+       │
+  S.merge("web","scholar",   { web, scholar, research }
+         into="research")
+       │
+  S.default(confidence=0.0)  { web, scholar, research, confidence }
+       │
+  S.rename(research="input") { web, scholar, input, confidence }
+       │
+  S.pick("input",            { input, confidence }                ← output state
+         "confidence")
+
+  Composition:
+    S.drop() >> S.merge()         chain: run in sequence
+    S.default() + S.rename()      combine: apply to same state
+```
+
 ## Basic Usage
 
 ```python
@@ -165,6 +187,22 @@ print(t._writes_keys)  # frozenset({'new'})
 This metadata powers the contract checker's data-flow analysis.
 
 ## Complete Example
+
+The following pipeline demonstrates multiple transforms woven between agents:
+
+```
+Complete transform flow:
+
+  ┬─ web ────┐
+  └─ scholar ┘  (parallel)
+       │
+  S.log ──► S.merge ──► S.default ──► S.rename
+   debug      combine     fill gaps     rewire
+       │
+  writer @ Report
+       │
+  S.guard(confidence > 0)  ── fail? ──► raise
+```
 
 ```python
 from pydantic import BaseModel
