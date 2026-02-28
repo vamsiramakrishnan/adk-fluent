@@ -8,11 +8,12 @@
 
 **Tech Stack:** Python 3.12+, `typing.Annotated`, metaclasses, frozen dataclasses, pytest.
 
----
+______________________________________________________________________
 
 ### Task 1: Shared Base — `_schema_base.py`
 
 **Files:**
+
 - Create: `src/adk_fluent/_schema_base.py`
 - Test: `tests/manual/test_schema_base.py`
 
@@ -386,11 +387,12 @@ git add src/adk_fluent/_schema_base.py tests/manual/test_schema_base.py
 git commit -m "feat: add DeclarativeMetaclass and shared annotation types"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Refactor StateSchema to use DeclarativeMetaclass
 
 **Files:**
+
 - Modify: `src/adk_fluent/_state_schema.py` (lines 92-196)
 - Modify: `tests/manual/test_state_schema.py` (existing tests — must all still pass)
 
@@ -404,10 +406,10 @@ Expected: All PASS (baseline)
 In `src/adk_fluent/_state_schema.py`:
 
 1. Import `DeclarativeMetaclass`, `DeclarativeField` from `_schema_base`
-2. Make `StateSchemaMetaclass` extend `DeclarativeMetaclass`
-3. Override `__new__` to call `super().__new__()` first (gets `_fields`, `_field_list` with `DeclarativeField` objects), then build the state-specific `_StateSchemaField` objects from them
-4. Keep `_StateSchemaField` and all `StateSchema` class methods unchanged — they still use `_StateSchemaField` internally
-5. Set `_schema_base_name = "StateSchema"` on the metaclass
+1. Make `StateSchemaMetaclass` extend `DeclarativeMetaclass`
+1. Override `__new__` to call `super().__new__()` first (gets `_fields`, `_field_list` with `DeclarativeField` objects), then build the state-specific `_StateSchemaField` objects from them
+1. Keep `_StateSchemaField` and all `StateSchema` class methods unchanged — they still use `_StateSchemaField` internally
+1. Set `_schema_base_name = "StateSchema"` on the metaclass
 
 The key constraint: `StateSchema._fields` must remain `dict[str, _StateSchemaField]` (not `DeclarativeField`) because existing code (contract checker, `.model_fields()`) depends on `.scope`, `.captured_by`, `.full_key` attributes.
 
@@ -462,11 +464,12 @@ git add src/adk_fluent/_state_schema.py
 git commit -m "refactor: StateSchemaMetaclass extends DeclarativeMetaclass"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: ToolSchema
 
 **Files:**
+
 - Create: `src/adk_fluent/_tool_schema.py`
 - Modify: `src/adk_fluent/_helpers.py` (lines 80-131, `_agent_to_ir`)
 - Modify: `src/adk_fluent/_ir_generated.py` (line 63-69, add `tool_schema` field to `AgentNode`)
@@ -710,11 +713,13 @@ And pass `tool_schema=tool_schema` in the `AgentNode(...)` constructor (after li
 Add exports to `src/adk_fluent/__init__.py`:
 
 In `__all__` list (after `"Scoped",` line 416):
+
 ```python
     "ToolSchema",
 ```
 
 In imports (after line 625):
+
 ```python
 from ._tool_schema import ToolSchema
 ```
@@ -732,11 +737,12 @@ git add src/adk_fluent/_tool_schema.py src/adk_fluent/_helpers.py src/adk_fluent
 git commit -m "feat: add ToolSchema with reads/writes/param introspection"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: CallbackSchema
 
 **Files:**
+
 - Create: `src/adk_fluent/_callback_schema.py`
 - Modify: `src/adk_fluent/_helpers.py` (`_agent_to_ir`)
 - Modify: `src/adk_fluent/_ir_generated.py` (add `callback_schema` field)
@@ -892,11 +898,13 @@ class CallbackSchema(metaclass=CallbackSchemaMetaclass):
 Same pattern as Task 3:
 
 Add to `AgentNode` in `_ir_generated.py` (after `tool_schema`):
+
 ```python
     callback_schema: type | None = None
 ```
 
 Add `.callback_schema()` to `agent.py` (after `.tool_schema()`):
+
 ```python
     def callback_schema(self, schema: type) -> Self:
         """Attach a CallbackSchema declaring callback state dependencies."""
@@ -906,6 +914,7 @@ Add `.callback_schema()` to `agent.py` (after `.tool_schema()`):
 ```
 
 Update `_agent_to_ir` in `_helpers.py`:
+
 ```python
     callback_schema = builder._config.get("_callback_schema")
     if callback_schema is not None and hasattr(callback_schema, "reads_keys"):
@@ -931,11 +940,12 @@ git add src/adk_fluent/_callback_schema.py src/adk_fluent/_helpers.py src/adk_fl
 git commit -m "feat: add CallbackSchema with reads/writes introspection"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: PredicateSchema
 
 **Files:**
+
 - Create: `src/adk_fluent/_predicate_schema.py`
 - Modify: `src/adk_fluent/_routing.py` (lines 73-76, `.when()` method)
 - Modify: `src/adk_fluent/_ir.py` (lines 85-91, `GateNode`; lines 114-121, `RouteNode`)
@@ -1154,11 +1164,12 @@ git add src/adk_fluent/_predicate_schema.py src/adk_fluent/_routing.py src/adk_f
 git commit -m "feat: add PredicateSchema with callable evaluate() and Route integration"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Contract Checker Extensions
 
 **Files:**
+
 - Modify: `src/adk_fluent/testing/contracts.py` (add 3 new passes after Pass 12, ~line 578)
 - Test: `tests/manual/test_contracts_schemas.py`
 
@@ -1360,11 +1371,12 @@ git add src/adk_fluent/testing/contracts.py tests/manual/test_contracts_schemas.
 git commit -m "feat: contract checker passes for ToolSchema, CallbackSchema, PredicateSchema"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Cookbook Example
 
 **Files:**
+
 - Create: `examples/structured_schemas/structured_schemas.py`
 
 **Step 1: Write the example**
@@ -1491,11 +1503,12 @@ git add examples/structured_schemas/
 git commit -m "docs: add uniform schemas cookbook example"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Final Integration — Full Test Suite + Cleanup
 
 **Files:**
+
 - All files from previous tasks
 - Verify: `src/adk_fluent/__init__.py` has all exports
 

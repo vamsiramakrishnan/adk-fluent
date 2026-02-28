@@ -26,15 +26,15 @@ Each `P.xxx()` call returns an immutable `PTransform` dataclass. Transforms comp
 
 Sections are emitted in a fixed order regardless of composition order: role, context, task, constraints, format, examples.
 
-| Factory                                      | Description                                      |
-| -------------------------------------------- | ------------------------------------------------ |
-| `P.role(text)`                               | Agent persona (emitted without header)           |
-| `P.context(text)`                            | Background information                           |
-| `P.task(text)`                               | Primary objective                                |
-| `P.constraint(*rules)`                       | Rules to follow (multiple args accumulate)       |
-| `P.format(text)`                             | Desired output format                            |
-| `P.example(text)` / `P.example(input, output)` | Few-shot examples (multiple compose via `+`)  |
-| `P.section(name, text)`                      | Custom named section                             |
+| Factory                                        | Description                                  |
+| ---------------------------------------------- | -------------------------------------------- |
+| `P.role(text)`                                 | Agent persona (emitted without header)       |
+| `P.context(text)`                              | Background information                       |
+| `P.task(text)`                                 | Primary objective                            |
+| `P.constraint(*rules)`                         | Rules to follow (multiple args accumulate)   |
+| `P.format(text)`                               | Desired output format                        |
+| `P.example(text)` / `P.example(input, output)` | Few-shot examples (multiple compose via `+`) |
+| `P.section(name, text)`                        | Custom named section                         |
 
 ### `P.role(text)`
 

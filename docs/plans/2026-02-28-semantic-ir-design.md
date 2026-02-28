@@ -9,8 +9,8 @@
 adk-fluent is tightly coupled to Google ADK at three levels:
 
 1. **Import-time**: ~180 direct ADK class imports across generated builders
-2. **Build-time**: `.build()` instantiates ADK classes directly; `__getattr__` validates against ADK Pydantic fields
-3. **IR-time**: IR nodes (`AgentNode`, `SequenceNode`) mirror ADK's class hierarchy field-for-field
+1. **Build-time**: `.build()` instantiates ADK classes directly; `__getattr__` validates against ADK Pydantic fields
+1. **IR-time**: IR nodes (`AgentNode`, `SequenceNode`) mirror ADK's class hierarchy field-for-field
 
 Any non-trivial ADK change (field rename, class restructure, new agent type) requires manifest rebuild + code regeneration. There's no portability path to other frameworks. The IR is a frozen mirror of ADK, not an abstraction.
 
@@ -228,19 +228,19 @@ class Backend(Protocol):
 
 The ADK backend is the sole owner of all ADK imports. It maps semantic IR to ADK objects:
 
-| Semantic IR | ADK Target | Mapping |
-|---|---|---|
-| `SAgentNode` | `LlmAgent` | prompt→instruction, context→include_contents, tools→compiled tools |
-| `SSequenceNode` | `SequentialAgent` | children→sub_agents |
-| `SParallelNode` | `ParallelAgent` | children→sub_agents (+ observability hooks) |
-| `SLoopNode` | `LoopAgent` | children→sub_agents, max_iterations |
-| `ToolDesc(kind=FUNCTION)` | `FunctionTool(impl)` | Direct wrap |
-| `ToolDesc(kind=TOOLSET)` | Registry lookup → `BigQueryToolset(...)` etc. | Provider→class mapping |
-| `ToolDesc(kind=AGENT_TOOL)` | `AgentTool(agent=compiled_child)` | Recursive compile |
-| `GenerationDesc` | `GenerateContentConfig(...)` | Field mapping + extras merge |
-| `CallbackDesc` | Composed async callbacks | Same composition as today |
-| `NativeExtension("adk")` | Merged into constructor kwargs | Direct pass-through |
-| `NativeExtension("other")` | Ignored | Safe no-op |
+| Semantic IR                 | ADK Target                                    | Mapping                                                            |
+| --------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
+| `SAgentNode`                | `LlmAgent`                                    | prompt→instruction, context→include_contents, tools→compiled tools |
+| `SSequenceNode`             | `SequentialAgent`                             | children→sub_agents                                                |
+| `SParallelNode`             | `ParallelAgent`                               | children→sub_agents (+ observability hooks)                        |
+| `SLoopNode`                 | `LoopAgent`                                   | children→sub_agents, max_iterations                                |
+| `ToolDesc(kind=FUNCTION)`   | `FunctionTool(impl)`                          | Direct wrap                                                        |
+| `ToolDesc(kind=TOOLSET)`    | Registry lookup → `BigQueryToolset(...)` etc. | Provider→class mapping                                             |
+| `ToolDesc(kind=AGENT_TOOL)` | `AgentTool(agent=compiled_child)`             | Recursive compile                                                  |
+| `GenerationDesc`            | `GenerateContentConfig(...)`                  | Field mapping + extras merge                                       |
+| `CallbackDesc`              | Composed async callbacks                      | Same composition as today                                          |
+| `NativeExtension("adk")`    | Merged into constructor kwargs                | Direct pass-through                                                |
+| `NativeExtension("other")`  | Ignored                                       | Safe no-op                                                         |
 
 Tool registry auto-generated from capability map:
 
@@ -298,15 +298,15 @@ _TOOLSET_REGISTRY = {
 
 ## What This Unlocks
 
-| Capability | Before | After |
-|---|---|---|
-| ADK field added | Manual: scan → regenerate → test | Automatic: scan validates, builder exposes via `__getattr__`, backend passes through |
-| ADK field removed | Silent runtime error | Explicit: validator flags incompatibility before deployment |
-| ADK class renamed | All imports break | Backend updates one mapping entry |
-| New ADK toolset | Manual: add to seed.toml, regenerate | Automatic: scan adds to capability map, registry entry auto-generated |
-| Non-ADK backend | Impossible | Implement `Backend` protocol, map IR nodes to framework |
-| IR testing | Requires ADK installed | `DryRunBackend` validates without any framework |
-| Type stubs | Reference ~180 ADK types | Reference semantic IR types (framework-agnostic) |
+| Capability        | Before                               | After                                                                                |
+| ----------------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
+| ADK field added   | Manual: scan → regenerate → test     | Automatic: scan validates, builder exposes via `__getattr__`, backend passes through |
+| ADK field removed | Silent runtime error                 | Explicit: validator flags incompatibility before deployment                          |
+| ADK class renamed | All imports break                    | Backend updates one mapping entry                                                    |
+| New ADK toolset   | Manual: add to seed.toml, regenerate | Automatic: scan adds to capability map, registry entry auto-generated                |
+| Non-ADK backend   | Impossible                           | Implement `Backend` protocol, map IR nodes to framework                              |
+| IR testing        | Requires ADK installed               | `DryRunBackend` validates without any framework                                      |
+| Type stubs        | Reference ~180 ADK types             | Reference semantic IR types (framework-agnostic)                                     |
 
 ## Non-Goals
 

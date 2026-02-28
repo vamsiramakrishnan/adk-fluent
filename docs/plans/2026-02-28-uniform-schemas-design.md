@@ -17,9 +17,9 @@ declarations.
 
 1. **Contract checking** — checker validates tool/callback/predicate state
    dependencies (missing keys, type mismatches) at build time
-2. **Developer ergonomics** — IDE autocomplete, typed declarations, Pydantic-
+1. **Developer ergonomics** — IDE autocomplete, typed declarations, Pydantic-
    style field introspection
-3. **Explainability** — `.explain()` shows read/write dependencies for every
+1. **Explainability** — `.explain()` shows read/write dependencies for every
    component in the pipeline
 
 ## Design
@@ -121,11 +121,11 @@ existing behavior preserved — `_fields`, `_field_list`, `model_fields()`,
 
 Three new passes in `testing/contracts.py`:
 
-| Pass | Validates |
-|------|-----------|
-| Tool dependencies | `ToolSchema.reads_keys()` produced upstream; registers `writes_keys()` downstream |
-| Callback dependencies | `CallbackSchema.reads_keys()` produced upstream; registers `writes_keys()` downstream |
-| Predicate dependencies | `PredicateSchema.reads_keys()` produced upstream |
+| Pass                   | Validates                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| Tool dependencies      | `ToolSchema.reads_keys()` produced upstream; registers `writes_keys()` downstream     |
+| Callback dependencies  | `CallbackSchema.reads_keys()` produced upstream; registers `writes_keys()` downstream |
+| Predicate dependencies | `PredicateSchema.reads_keys()` produced upstream                                      |
 
 ### IR Node Extensions
 

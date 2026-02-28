@@ -10,13 +10,14 @@
 
 **Design Doc:** `docs/plans/2026-02-28-semantic-ir-design.md`
 
----
+______________________________________________________________________
 
 ## Phase 0: Semantic IR Types
 
 ### Task 1: Define ToolKind enum and descriptor types
 
 **Files:**
+
 - Create: `src/adk_fluent/_semantic_ir.py`
 - Test: `tests/manual/test_semantic_ir.py`
 
@@ -300,11 +301,12 @@ git add src/adk_fluent/_semantic_ir.py tests/manual/test_semantic_ir.py
 git commit -m "feat(ir): add semantic IR descriptor types — ToolDesc, GenerationDesc, CallbackDesc, NativeExtension, AuthDesc"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Define SAgentNode, SSequenceNode, SParallelNode, SLoopNode
 
 **Files:**
+
 - Modify: `src/adk_fluent/_semantic_ir.py`
 - Modify: `tests/manual/test_semantic_ir.py`
 
@@ -568,11 +570,12 @@ git add src/adk_fluent/_semantic_ir.py tests/manual/test_semantic_ir.py
 git commit -m "feat(ir): add SAgentNode, SSequenceNode, SParallelNode, SLoopNode and SNode union"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Add fingerprinting and equality for semantic IR nodes
 
 **Files:**
+
 - Modify: `src/adk_fluent/_semantic_ir.py`
 - Modify: `tests/manual/test_semantic_ir.py`
 
@@ -711,11 +714,12 @@ git add src/adk_fluent/_semantic_ir.py tests/manual/test_semantic_ir.py
 git commit -m "feat(ir): add fingerprint_snode for semantic IR change detection"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Export semantic IR types from package
 
 **Files:**
+
 - Modify: `src/adk_fluent/__init__.py`
 
 **Step 1: Write the failing test**
@@ -781,13 +785,14 @@ git add src/adk_fluent/__init__.py tests/manual/test_semantic_ir.py
 git commit -m "feat(ir): export semantic IR types from adk_fluent package"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 1: Dual-Path `.to_semantic_ir()`
 
 ### Task 5: Add `_agent_to_semantic_ir` helper
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py`
 - Test: `tests/manual/test_semantic_ir.py`
 
@@ -1058,11 +1063,12 @@ git add src/adk_fluent/_helpers.py src/adk_fluent/agent.py tests/manual/test_sem
 git commit -m "feat(ir): add _agent_to_semantic_ir and Agent.to_semantic_ir()"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Add `to_semantic_ir()` to Pipeline, FanOut, Loop builders
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py`
 - Modify: `src/adk_fluent/workflow.py`
 - Modify: `tests/manual/test_semantic_ir.py`
@@ -1175,11 +1181,12 @@ git add src/adk_fluent/_helpers.py src/adk_fluent/workflow.py tests/manual/test_
 git commit -m "feat(ir): add to_semantic_ir() for Pipeline, FanOut, Loop builders"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Add `to_semantic_ir()` to primitive builders
 
 **Files:**
+
 - Modify: `src/adk_fluent/_primitive_builders.py`
 - Modify: `tests/manual/test_semantic_ir.py`
 
@@ -1251,11 +1258,12 @@ git add src/adk_fluent/_primitive_builders.py tests/manual/test_semantic_ir.py
 git commit -m "feat(ir): add to_semantic_ir() to all primitive builders"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Add `to_semantic_ir()` to base class and Route builder
 
 **Files:**
+
 - Modify: `src/adk_fluent/_base.py`
 - Modify: `src/adk_fluent/_routing.py`
 - Modify: `tests/manual/test_semantic_ir.py`
@@ -1342,11 +1350,12 @@ git add src/adk_fluent/_base.py src/adk_fluent/_routing.py tests/manual/test_sem
 git commit -m "feat(ir): add to_semantic_ir() base method and Route support"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Equivalence validation — both IR paths produce same topology
 
 **Files:**
+
 - Create: `tests/manual/test_ir_equivalence.py`
 
 **Step 1: Write the equivalence test**
@@ -1451,7 +1460,7 @@ git add tests/manual/test_ir_equivalence.py
 git commit -m "test: add IR equivalence validation — old and semantic IR produce matching topologies"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: Run full test suite and lint
 
@@ -1482,7 +1491,7 @@ git add -u
 git commit -m "chore: lint and verify full test suite with semantic IR additions"
 ```
 
----
+______________________________________________________________________
 
 ## What's Next (Future Plans)
 
