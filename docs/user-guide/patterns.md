@@ -6,7 +6,7 @@ Higher-order constructors from `adk_fluent.patterns` that compose agents into co
 from adk_fluent.patterns import review_loop, cascade, fan_out_merge, chain, conditional, supervised, map_reduce
 ```
 
----
+______________________________________________________________________
 
 ## `review_loop` — Refinement Loop
 
@@ -23,12 +23,13 @@ pipeline = review_loop(
 ```
 
 **Data flow:**
-1. Worker runs, stores output in `{quality_key}_draft`
-2. Reviewer reads the draft, stores score in `{quality_key}`
-3. Loop checks if score >= target
-4. If not, worker runs again with reviewer feedback
 
----
+1. Worker runs, stores output in `{quality_key}_draft`
+1. Reviewer reads the draft, stores score in `{quality_key}`
+1. Loop checks if score >= target
+1. If not, worker runs again with reviewer feedback
+
+______________________________________________________________________
 
 ## `cascade` — Fallback Chain
 
@@ -44,7 +45,7 @@ pipeline = cascade(
 
 **Data flow:** Each agent receives the same input. The first agent that succeeds provides the response.
 
----
+______________________________________________________________________
 
 ## `fan_out_merge` — Parallel Research + Merge
 
@@ -61,11 +62,12 @@ pipeline = fan_out_merge(
 ```
 
 **Data flow:**
-1. All agents run in parallel (FanOut)
-2. Each writes to its own state key
-3. Merge function combines results into `state[merge_key]`
 
----
+1. All agents run in parallel (FanOut)
+1. Each writes to its own state key
+1. Merge function combines results into `state[merge_key]`
+
+______________________________________________________________________
 
 ## `chain` — Sequential Composition
 
@@ -81,7 +83,7 @@ pipeline = chain(
 
 **Data flow:** Each agent runs in sequence. State propagates between steps via `.writes()` and `.reads()`.
 
----
+______________________________________________________________________
 
 ## `conditional` — If/Else Branching
 
@@ -97,7 +99,7 @@ pipeline = conditional(
 
 **Data flow:** The predicate reads from state. Only one branch executes.
 
----
+______________________________________________________________________
 
 ## `supervised` — Approval Workflow
 
@@ -114,7 +116,7 @@ pipeline = supervised(
 
 **Data flow:** Similar to `review_loop` but with approval semantics. The supervisor marks `state[approval_key]` as approved or requests changes.
 
----
+______________________________________________________________________
 
 ## `map_reduce` — Fan-Out Over Items
 
@@ -129,6 +131,7 @@ pipeline = map_reduce(
 ```
 
 **Data flow:**
+
 1. Reads `state[items_key]` (a list)
-2. Runs mapper on each item in parallel
-3. Reducer combines all mapper outputs
+1. Runs mapper on each item in parallel
+1. Reducer combines all mapper outputs

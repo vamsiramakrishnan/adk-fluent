@@ -247,7 +247,7 @@ Understanding exactly what the LLM receives helps debug unexpected behavior.
 When you use `.reads("topic")`, the agent's `include_contents` is set to `"none"`. This means **no conversation history is sent**. The agent sees only:
 
 1. Its instruction text (with `{template}` variables resolved)
-2. The injected state values as a `<conversation_context>` block
+1. The injected state values as a `<conversation_context>` block
 
 ```python
 # This agent sees NO conversation history — only state["topic"]
@@ -258,13 +258,13 @@ Agent("writer").reads("topic").instruct("Write about {topic}.")
 
 Different `C` primitives set different `include_contents` values:
 
-| Primitive | `include_contents` | What the LLM sees |
-|-----------|-------------------|-------------------|
-| _(default)_ | `"default"` | All conversation history |
-| `C.none()` | `"none"` | Nothing — just the instruction |
-| `C.user_only()` | `"none"` | User messages only (injected via provider) |
-| `C.window(n=3)` | `"none"` | Last 3 turns (injected via provider) |
-| `C.from_state("key")` | `"none"` | State values (injected via provider) |
+| Primitive             | `include_contents` | What the LLM sees                          |
+| --------------------- | ------------------ | ------------------------------------------ |
+| _(default)_           | `"default"`        | All conversation history                   |
+| `C.none()`            | `"none"`           | Nothing — just the instruction             |
+| `C.user_only()`       | `"none"`           | User messages only (injected via provider) |
+| `C.window(n=3)`       | `"none"`           | Last 3 turns (injected via provider)       |
+| `C.from_state("key")` | `"none"`           | State values (injected via provider)       |
 
 ### Composing preserves the most restrictive setting
 

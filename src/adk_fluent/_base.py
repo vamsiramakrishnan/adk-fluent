@@ -635,7 +635,7 @@ class BuilderBase:
 
         # writes (storage)
         if output_key:
-            lines.append(f"    writes:   state[\"{output_key}\"]")
+            lines.append(f'    writes:   state["{output_key}"]')
         else:
             lines.append("    writes:   (not set — response only in conversation)")
 
@@ -781,7 +781,7 @@ class BuilderBase:
 
         # writes (storage)
         if output_key:
-            df_branch.add(f"[green]writes[/green]:   state[\"{output_key}\"]")
+            df_branch.add(f'[green]writes[/green]:   state["{output_key}"]')
         else:
             df_branch.add("[dim]writes:   (not set — response only in conversation)[/dim]")
 
@@ -1016,9 +1016,15 @@ class BuilderBase:
 
             data_flow["reads"] = _context_description(context_spec)
         if input_schema is not None:
-            data_flow["accepts"] = {"schema": input_schema.__name__, "fields": list(input_schema.model_fields.keys()) if hasattr(input_schema, "model_fields") else []}
+            data_flow["accepts"] = {
+                "schema": input_schema.__name__,
+                "fields": list(input_schema.model_fields.keys()) if hasattr(input_schema, "model_fields") else [],
+            }
         if output_schema is not None:
-            data_flow["returns"] = {"schema": output_schema.__name__, "fields": list(output_schema.model_fields.keys()) if hasattr(output_schema, "model_fields") else []}
+            data_flow["returns"] = {
+                "schema": output_schema.__name__,
+                "fields": list(output_schema.model_fields.keys()) if hasattr(output_schema, "model_fields") else [],
+            }
         if output_key:
             data_flow["writes"] = output_key
         if consumes:
@@ -1054,7 +1060,18 @@ class BuilderBase:
             ]
 
         # Config (other fields)
-        _skip = {"name", "model", "instruction", "_produces", "_consumes", "output_key", "input_schema", "output_schema", "tools", "sub_agents"}
+        _skip = {
+            "name",
+            "model",
+            "instruction",
+            "_produces",
+            "_consumes",
+            "output_key",
+            "input_schema",
+            "output_schema",
+            "tools",
+            "sub_agents",
+        }
         other = {k: repr(v) for k, v in self._config.items() if k not in _skip and not k.startswith("_")}
         if other:
             result["config"] = other

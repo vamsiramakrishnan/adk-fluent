@@ -4,13 +4,13 @@ Every data-flow method in adk-fluent maps to exactly one of **five orthogonal co
 
 ## The Five Concerns
 
-| Concern | Method | What it controls | ADK field |
-|---------|--------|------------------|-----------|
-| **Context** | `.reads()` / `.context()` | What the agent SEES | `include_contents` + `instruction_provider` |
-| **Input** | `.accepts()` / `.input_schema()` | What input the agent ACCEPTS as a tool | `input_schema` |
-| **Output** | `.returns()` / `@ Model` | What SHAPE the response takes | `output_schema` |
-| **Storage** | `.writes()` / `.save_as()` | Where the response is STORED | `output_key` |
-| **Contract** | `.produces()` / `.consumes()` | Checker ANNOTATIONS (no runtime effect) | _(extension fields)_ |
+| Concern      | Method                           | What it controls                        | ADK field                                   |
+| ------------ | -------------------------------- | --------------------------------------- | ------------------------------------------- |
+| **Context**  | `.reads()` / `.context()`        | What the agent SEES                     | `include_contents` + `instruction_provider` |
+| **Input**    | `.accepts()` / `.input_schema()` | What input the agent ACCEPTS as a tool  | `input_schema`                              |
+| **Output**   | `.returns()` / `@ Model`         | What SHAPE the response takes           | `output_schema`                             |
+| **Storage**  | `.writes()` / `.save_as()`       | Where the response is STORED            | `output_key`                                |
+| **Contract** | `.produces()` / `.consumes()`    | Checker ANNOTATIONS (no runtime effect) | _(extension fields)_                        |
 
 ### Recommended builder chain
 
@@ -38,7 +38,7 @@ classifier = (
 
 Each line maps to exactly one ADK field. Each verb is unambiguous.
 
----
+______________________________________________________________________
 
 ## What Gets Sent to the LLM
 
@@ -47,6 +47,7 @@ When an agent runs, data is assembled and sent to the LLM in this order:
 ### 1. System Message
 
 The instruction text, assembled from:
+
 - `static_instruction` (if set — cached, always at position 0)
 - `global_instruction` (if set — shared across all agents)
 - `instruction` (the main instruction, templated with state variables)
@@ -56,6 +57,7 @@ Template variables like `{query}` are replaced with `state["query"]` at runtime.
 ### 2. Conversation History
 
 Controlled by `include_contents`:
+
 - **`"default"`** (the default) — ALL prior conversation turns are included
 - **`"none"`** — NO history is sent to the LLM
 
@@ -92,23 +94,23 @@ Tool descriptions are sent as function declarations to the LLM. **Tools are NOT 
 
 ### What Does NOT Get Sent
 
-| Not sent | Why |
-|----------|-----|
-| State keys not in `.reads()` | Only explicitly declared keys are injected |
-| State keys not in `{template}` | Only template variables in the instruction are resolved |
-| `.produces()` / `.consumes()` | Contract annotations — never sent to the LLM |
-| `.writes()` target key | Only used AFTER the LLM responds |
-| `.accepts()` schema | Only validated at tool-call time, not sent to LLM |
-| History when `include_contents="none"` | Conversation history is suppressed |
+| Not sent                               | Why                                                     |
+| -------------------------------------- | ------------------------------------------------------- |
+| State keys not in `.reads()`           | Only explicitly declared keys are injected              |
+| State keys not in `{template}`         | Only template variables in the instruction are resolved |
+| `.produces()` / `.consumes()`          | Contract annotations — never sent to the LLM            |
+| `.writes()` target key                 | Only used AFTER the LLM responds                        |
+| `.accepts()` schema                    | Only validated at tool-call time, not sent to LLM       |
+| History when `include_contents="none"` | Conversation history is suppressed                      |
 
 ### After the LLM Responds
 
 1. Response text is captured
-2. If `output_key` is set (`.writes()`), `state[key] = response_text`
-3. If `output_schema` is set and using `.ask()`, response is parsed to a Pydantic model
-4. `after_model_callback` / `after_agent_callback` hooks run
+1. If `output_key` is set (`.writes()`), `state[key] = response_text`
+1. If `output_schema` is set and using `.ask()`, response is parsed to a Pydantic model
+1. `after_model_callback` / `after_agent_callback` hooks run
 
----
+______________________________________________________________________
 
 ## Context: What the Agent Sees
 
@@ -123,8 +125,9 @@ Agent("writer").reads("topic", "tone")
 ```
 
 This does two things:
+
 1. Sets `include_contents="none"` — conversation history is **suppressed**
-2. Injects `state["topic"]` and `state["tone"]` as a `<conversation_context>` block
+1. Injects `state["topic"]` and `state["tone"]` as a `<conversation_context>` block
 
 ### `.context()`: Advanced context control
 
@@ -146,7 +149,7 @@ Agent("writer")
     .reads("topic")           # AND inject state["topic"]
 ```
 
----
+______________________________________________________________________
 
 ## Input: What the Agent Accepts (Tool Mode)
 
@@ -161,7 +164,7 @@ Agent("searcher").accepts(SearchQuery)
 
 When another agent invokes this agent via `AgentTool`, the input is validated against this schema. **This has no effect for top-level agents** — only for agents used as tools.
 
----
+______________________________________________________________________
 
 ## Output: What Shape the Response Takes
 
@@ -190,7 +193,7 @@ result = await Agent("classifier").returns(Intent).ask_async("Classify this quer
 # result is an Intent instance (automatically parsed)
 ```
 
----
+______________________________________________________________________
 
 ## Storage: Where the Response Goes
 
@@ -213,7 +216,7 @@ pipeline = (
 )
 ```
 
----
+______________________________________________________________________
 
 ## Contracts: Static Annotations
 
@@ -227,7 +230,7 @@ Agent("classifier").produces(Intent).consumes(SearchQuery)
 
 The contract checker uses these to verify data flow between agents at build time.
 
----
+______________________________________________________________________
 
 ## Inspecting Data Flow
 
@@ -265,7 +268,7 @@ print(agent.explain())
 
 Shows model, instruction, data flow (five concerns), tools, callbacks, children, and contract issues.
 
----
+______________________________________________________________________
 
 ## Common Patterns
 
@@ -312,7 +315,7 @@ pipeline = review_loop(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Future Modules
 

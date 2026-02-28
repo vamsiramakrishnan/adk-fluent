@@ -16,7 +16,6 @@ from adk_fluent._interop import (
     INTERPLAY_GUIDE,
     LLM_CALL_ANATOMY,
     DataFlow,
-    _build_llm_anatomy,
     _extract_data_flow,
     check_output_interop,
 )

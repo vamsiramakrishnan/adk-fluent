@@ -10,9 +10,9 @@ Verifies:
 
 from pydantic import BaseModel
 
-from adk_fluent.agent import Agent
 from adk_fluent._context import C
-from adk_fluent._interop import DataFlow, _extract_data_flow, _build_llm_anatomy
+from adk_fluent._interop import DataFlow, _build_llm_anatomy, _extract_data_flow
+from adk_fluent.agent import Agent
 
 
 class Intent(BaseModel):
@@ -60,13 +60,7 @@ def test_five_concern_agent():
 
 def test_five_concern_str_readable():
     """Five-concern DataFlow __str__ is human-readable."""
-    agent = (
-        Agent("classifier", "gemini-2.0-flash")
-        .reads("query")
-        .accepts(SearchQuery)
-        .returns(Intent)
-        .writes("intent")
-    )
+    agent = Agent("classifier", "gemini-2.0-flash").reads("query").accepts(SearchQuery).returns(Intent).writes("intent")
     text = str(agent.data_flow())
 
     # Each line should be clear
@@ -206,17 +200,8 @@ def test_explain_json_data_flow_schemas():
 
 def test_pipeline_data_flow():
     """Pipeline agents preserve data flow when composed with >>."""
-    classifier = (
-        Agent("classifier", "gemini-2.0-flash")
-        .reads("query")
-        .returns(Intent)
-        .writes("intent")
-    )
-    handler = (
-        Agent("handler", "gemini-2.0-flash")
-        .reads("intent")
-        .writes("response")
-    )
+    classifier = Agent("classifier", "gemini-2.0-flash").reads("query").returns(Intent).writes("intent")
+    handler = Agent("handler", "gemini-2.0-flash").reads("intent").writes("response")
     pipeline = classifier >> handler
 
     # Each agent in the pipeline retains its own data flow
@@ -253,11 +238,7 @@ def test_pipeline_llm_anatomy_per_agent():
 
 def test_reads_plus_context_composition():
     """.context() + .reads() compose additively."""
-    agent = (
-        Agent("test", "gemini-2.0-flash")
-        .context(C.window(n=3))
-        .reads("topic")
-    )
+    agent = Agent("test", "gemini-2.0-flash").context(C.window(n=3)).reads("topic")
     df = agent.data_flow()
     # Should show both window and state keys
     assert "topic" in df.sees
