@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE** (2026-02-27 audit) — All 6 samples ported: llm_auditor, financial_advisor, short_movie, deep_search, brand_search, travel_concierge. Examples in `examples/`, docs in `docs/user-guide/adk-samples/`.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Port 6 complex ADK samples to fluent API with side-by-side comparison docs.
 
 **Architecture:** Each sample gets an `examples/<name>/` directory with `agent.py` + `prompt.py`, and a `docs/user-guide/adk-samples/<name>.md` comparison page. An index page ties them together.

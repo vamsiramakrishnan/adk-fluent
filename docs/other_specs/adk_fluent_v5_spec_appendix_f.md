@@ -380,7 +380,7 @@ This is as important as what it is.
 
 **adk-fluent is NOT a framework.** It doesn't own the runtime. It doesn't own the event loop. It doesn't own the session. It doesn't own the model layer. It produces ADK objects that ADK runs. If adk-fluent disappeared, your agents would still work — you'd just have more boilerplate.
 
-**adk-fluent is NOT an abstraction over multiple LLM providers.** `Agent("x").model("gemini-2.5-flash")` passes through to ADK's model resolution. ADK itself supports multiple models (Gemini, Claude, Ollama, vLLM, LiteLLM). adk-fluent doesn't add or restrict model choice.
+**adk-fluent is NOT an abstraction over multiple LLM providers.** `Agent("x").model("gemini-2.5-flash")` passes through to ADK's model resolution. ADK itself supports multiple models (Gemini, Ollama, vLLM, LiteLLM). adk-fluent doesn't add or restrict model choice.
 
 **adk-fluent is NOT an alternative to ADK.** It sits on top. Every feature compiles to ADK constructs. The relationship is deliberate: ADK handles the hard runtime problems (sessions, memory, event loops, deployment, streaming, A2A protocol), and adk-fluent handles the composition problem (topology, contracts, cost, evaluation authoring).
 

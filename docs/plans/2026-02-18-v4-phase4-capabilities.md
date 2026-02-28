@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE** (2026-02-27 audit) — produces/consumes contracts, contract checking, mock backend (`MockBackend`), graph visualization all implemented. Key files: `testing/contracts.py`, `testing/__init__.py`.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Add produces/consumes contracts, ToolConfirmation, Resource DI, mock testing, and graph visualization to adk-fluent.
 
 **Architecture:** Phase 4 builds on the IR + Backend foundation from Phase 2-3. Each feature is independent: contract checking reads IR nodes, DI wraps tool callables, mock backend replaces ADKBackend, visualization walks the IR tree. All features are additive — no existing behavior changes.

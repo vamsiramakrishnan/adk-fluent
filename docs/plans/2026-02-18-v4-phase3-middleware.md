@@ -2,8 +2,6 @@
 
 > **Status: COMPLETE** (2026-02-27 audit) — Middleware Protocol, `_MiddlewarePlugin` adapter, `.middleware()` builder method, retry + structured_log built-ins all implemented. Key file: `middleware.py`.
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Add a composable middleware system that compiles a stack of cross-cutting behaviors (retry, logging, cost tracking, etc.) into a single ADK `BasePlugin`, giving adk-fluent users plugin-level control with a simpler, unified API.
 
 **Architecture:** A `Middleware` Protocol defines ~12 optional async lifecycle hooks (runner, agent, model, tool). A `_MiddlewarePlugin(BasePlugin)` adapter compiles a list of middleware into one ADK plugin. Middleware is attached via `ExecutionConfig.middlewares` and wired into `App.plugins` by `ADKBackend.compile()`. Builder gains a `.middleware()` method for ergonomic attachment.

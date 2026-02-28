@@ -1,7 +1,5 @@
 # v5.1 Context Engineering Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 > **Status audit (2026-02-27):** Phases A, B, C are COMPLETE. Phase D is NOT STARTED. Phase E is PARTIAL (StateKey exists, StateSchema not yet built). Task 10 (OTel Enrichment) in Phase A was deferred and never implemented.
 
 ______________________________________________________________________
