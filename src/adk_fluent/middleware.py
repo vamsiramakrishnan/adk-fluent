@@ -470,6 +470,10 @@ class _ConditionalMiddleware:
         state = getattr(session, "state", {})
         evaluate = getattr(schema_cls, "evaluate", None)
         if evaluate is None:
+            _log.warning(
+                "M.when() received type %s with no evaluate() method; treating as always-true",
+                schema_cls.__name__,
+            )
             return True
         # Extract field values from state using schema introspection
         from adk_fluent._schema_base import Reads

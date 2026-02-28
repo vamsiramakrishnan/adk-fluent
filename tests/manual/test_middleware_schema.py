@@ -234,14 +234,14 @@ class TestContractCheckerPass14:
         )
 
     def _make_sequence(self, children, middlewares=()):
-        """Create a SequenceNode with optional middlewares attached."""
+        """Create a SequenceNode with optional middlewares."""
         from adk_fluent._ir_generated import SequenceNode
 
-        node = SequenceNode(name="test_seq", children=tuple(children))
-        # SequenceNode is frozen and has no middlewares field;
-        # attach it via object.__setattr__ so getattr() finds it.
-        object.__setattr__(node, "middlewares", tuple(middlewares))
-        return node
+        return SequenceNode(
+            name="test_seq",
+            children=tuple(children),
+            middlewares=tuple(middlewares),
+        )
 
     def test_scoped_middleware_reads_satisfied(self):
         """Scoped middleware whose reads are produced upstream: no warnings."""

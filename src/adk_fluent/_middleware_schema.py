@@ -7,11 +7,16 @@ Usage::
 
     from adk_fluent import MiddlewareSchema, Reads, Writes
 
-    class LoggingMiddleware(MiddlewareSchema):
+    class TrackingState(MiddlewareSchema):
         request_id: Annotated[str, Reads(scope="app")]
         log_entry: Annotated[str, Writes(scope="temp")]
 
-    Agent("proc").middleware_schema(LoggingMiddleware).instruct("Process")
+    class TrackingMiddleware:
+        agents = "proc"
+        schema = TrackingState
+
+        async def before_agent(self, ctx, agent_name):
+            ...
 """
 
 from __future__ import annotations

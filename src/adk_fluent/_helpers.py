@@ -153,9 +153,11 @@ def _pipeline_to_ir(builder):
     """Convert a Pipeline builder to a SequenceNode IR node."""
     from adk_fluent._ir_generated import SequenceNode
 
+    middlewares = tuple(getattr(builder, "_middlewares", []))
     return SequenceNode(
         name=builder._config.get("name", "pipeline"),
         children=_collect_children(builder),
+        middlewares=middlewares,
     )
 
 

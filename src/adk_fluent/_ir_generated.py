@@ -91,6 +91,7 @@ class SequenceNode:
     produces_type: type | None = None
     consumes_type: type | None = None
     context_spec: Any = None  # CTransform descriptor, preserved for diagnostics
+    middlewares: tuple = ()  # Middleware instances for contract checking (Pass 14)
 
 
 @dataclass(frozen=True)

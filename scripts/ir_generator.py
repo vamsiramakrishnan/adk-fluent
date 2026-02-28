@@ -208,6 +208,8 @@ def gen_node_class(adk_name: str, ir_name: str, cls_data: dict) -> str:
     lines.append("    produces_type: type | None = None")
     lines.append("    consumes_type: type | None = None")
     lines.append("    context_spec: Any = None  # CTransform descriptor, preserved for diagnostics")
+    if ir_name == "SequenceNode":
+        lines.append("    middlewares: tuple = ()  # Middleware instances for contract checking (Pass 14)")
     if ir_name == "AgentNode":
         lines.append("    prompt_spec: Any = None  # PTransform descriptor, preserved for diagnostics")
         lines.append("    tool_schema: type | None = None  # ToolSchema class, preserved for diagnostics")
