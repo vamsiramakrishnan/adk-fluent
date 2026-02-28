@@ -1151,11 +1151,11 @@ class BuilderBase:
         if output_schema is not None:
             config["output_schema"] = output_schema
 
-        # Auto-convert Prompt objects to strings
-        from adk_fluent._prompt import Prompt
+        # Auto-convert PTransform objects to strings
+        from adk_fluent._prompt import PTransform
 
         for key, value in list(config.items()):
-            if isinstance(value, Prompt):
+            if isinstance(value, PTransform):
                 config[key] = str(value)
 
         # Auto-build any BuilderBase values in config
@@ -1233,6 +1233,19 @@ class BuilderBase:
                 config["include_contents"] = compiled["include_contents"]
                 if compiled.get("instruction") is not None:
                     config["instruction"] = compiled["instruction"]
+
+        # Prompt spec: compile P transforms into instruction string or InstructionProvider
+        prompt_spec = self._config.get("_prompt_spec")
+        if prompt_spec is not None:
+            from adk_fluent._prompt import PTransform as _PTransform
+            from adk_fluent._prompt import _compile_prompt_spec
+
+            if isinstance(prompt_spec, _PTransform):
+                compiled = _compile_prompt_spec(
+                    prompt_spec=prompt_spec,
+                    existing_instruction=config.get("instruction"),
+                )
+                config["instruction"] = compiled
 
         # Inject checkpoint agent for loop_until predicate
         if until_pred:

@@ -66,6 +66,7 @@ class AgentNode:
     produces_type: type | None = None
     consumes_type: type | None = None
     context_spec: Any = None  # CTransform descriptor, preserved for diagnostics
+    prompt_spec: Any = None  # PTransform descriptor, preserved for diagnostics
 
 
 @dataclass(frozen=True)

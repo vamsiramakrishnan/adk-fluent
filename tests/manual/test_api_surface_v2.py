@@ -137,7 +137,7 @@ class TestPrelude:
     def test_prelude_all_contents(self):
         import adk_fluent.prelude as prelude
 
-        expected = {"Agent", "Pipeline", "FanOut", "Loop", "C", "S", "Route", "Prompt"}
+        expected = {"Agent", "Pipeline", "FanOut", "Loop", "C", "S", "Route", "P"}
         assert set(prelude.__all__) == expected
 
     def test_prelude_all_count(self):

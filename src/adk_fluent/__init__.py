@@ -361,7 +361,28 @@ __all__ = [
     "ParallelNode",
     "LoopNode",
     "FullNode",
-    "Prompt",
+    "P",
+    "PTransform",
+    "PComposite",
+    "PPipe",
+    "PRole",
+    "PContext",
+    "PTask",
+    "PConstraint",
+    "PFormat",
+    "PExample",
+    "PSection",
+    "PWhen",
+    "PFromState",
+    "PTemplate",
+    "PReorder",
+    "POnly",
+    "PWithout",
+    "PCompress",
+    "PAdapt",
+    "PScaffolded",
+    "PVersioned",
+    "_compile_prompt_spec",
     "Route",
     "StateSchema",
     "CapturedBy",
@@ -384,7 +405,7 @@ __all__ = [
     "C",
     "S",
     "Route",
-    "Prompt",
+    "P",
     "Preset",
     "Backend",
     "final_text",
@@ -497,7 +518,28 @@ from ._ir_generated import SequenceNode
 from ._ir_generated import ParallelNode
 from ._ir_generated import LoopNode
 from ._ir_generated import FullNode
-from ._prompt import Prompt
+from ._prompt import P
+from ._prompt import PTransform
+from ._prompt import PComposite
+from ._prompt import PPipe
+from ._prompt import PRole
+from ._prompt import PContext
+from ._prompt import PTask
+from ._prompt import PConstraint
+from ._prompt import PFormat
+from ._prompt import PExample
+from ._prompt import PSection
+from ._prompt import PWhen
+from ._prompt import PFromState
+from ._prompt import PTemplate
+from ._prompt import PReorder
+from ._prompt import POnly
+from ._prompt import PWithout
+from ._prompt import PCompress
+from ._prompt import PAdapt
+from ._prompt import PScaffolded
+from ._prompt import PVersioned
+from ._prompt import _compile_prompt_spec
 from ._routing import Route
 from ._state_schema import StateSchema
 from ._state_schema import CapturedBy
@@ -520,7 +562,7 @@ from .prelude import Loop
 from .prelude import C
 from .prelude import S
 from .prelude import Route
-from .prelude import Prompt
+from .prelude import P
 from .presets import Preset
 from .backends import Backend
 from .backends import final_text
