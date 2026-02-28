@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 class Pipeline(BuilderBase):
     """Run sub-agents sequentially."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()

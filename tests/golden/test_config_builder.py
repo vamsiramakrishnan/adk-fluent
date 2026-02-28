@@ -7,6 +7,7 @@ from adk_fluent.config import RunConfig
 
 class TestRunConfigBuilder:
     """Tests for RunConfig builder mechanics (no .build() calls)."""
+
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = RunConfig()
