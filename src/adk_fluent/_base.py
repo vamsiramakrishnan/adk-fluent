@@ -1772,6 +1772,35 @@ class BuilderBase:
         print(report)
         return report
 
+    def data_flow(self):
+        """Show all four output concerns at once for this builder.
+
+        Returns a ``DataFlow`` snapshot showing exactly what this agent
+        is configured for across all four orthogonal concerns:
+
+        - **Context** (sees): what state/history the agent sees
+        - **Storage** (stores): where the response is saved in state
+        - **Format** (format): plain text or structured JSON
+        - **Contract** (contract): annotations for the data-flow checker
+
+        This is the definitive way to understand what an agent does with
+        data — it surfaces all four concerns in one view, eliminating
+        confusion between ``.output()``, ``.writes()``, ``.produces()``, etc.
+
+        Usage::
+
+            agent = Agent("researcher").reads("topic").writes("findings").output(Model)
+            print(agent.data_flow())
+            # Data Flow:
+            #   Sees (context):  C.from_state('topic') — state keys only
+            #   Stores (state):  state['findings']
+            #   Format (output): structured JSON → Model
+            #   Contract:        none declared (checker cannot verify data flow)
+        """
+        from adk_fluent._interop import _extract_data_flow
+
+        return _extract_data_flow(self)
+
     def strict(self) -> Self:
         """Enable strict contract checking — build() raises ValueError on contract errors."""
         self._config["_check_mode"] = "strict"
@@ -1788,6 +1817,9 @@ class BuilderBase:
         Per appendix_f Q1: .build() internally uses IR.
         Per appendix_f Q3: Contract checking is default, not opt-in.
 
+        Also runs output method interop checks to catch common confusion
+        patterns (e.g., .produces() without .writes(), conflicting schemas).
+
         Modes (controlled by _check_mode config):
           True (default) — run contracts, log advisory diagnostics
           "strict"       — raise ValueError on any contract error
@@ -1797,22 +1829,27 @@ class BuilderBase:
         if check_mode is False:
             return
 
-        # Only run contracts on compound builders that have to_ir
-        if not hasattr(self, "to_ir"):
+        # ── Output interop checks (runs on all builders) ──
+        from adk_fluent._interop import check_output_interop
+
+        interop_issues = check_output_interop(self._config)
+
+        # ── IR contract checks (runs on compound builders only) ──
+        ir_issues: list = []
+        if hasattr(self, "to_ir"):
+            try:
+                ir = self.to_ir()
+                from adk_fluent.testing.contracts import check_contracts
+
+                ir_issues = check_contracts(ir)
+            except Exception:
+                pass  # IR conversion failed — skip contracts silently
+
+        all_issues = interop_issues + ir_issues
+        if not all_issues:
             return
 
-        try:
-            ir = self.to_ir()
-        except Exception:
-            return  # IR conversion failed — skip contracts silently
-
-        from adk_fluent.testing.contracts import check_contracts
-
-        issues = check_contracts(ir)
-        if not issues:
-            return
-
-        errors = [i for i in issues if isinstance(i, dict) and i.get("level") == "error"]
+        errors = [i for i in all_issues if isinstance(i, dict) and i.get("level") in ("error", "warning")]
 
         if check_mode == "strict" and errors:
             msg = "\n".join(f"  {i['agent']}: {i['message']}" for i in errors)
