@@ -17,9 +17,14 @@
 #   just diff       → Show what changed since last scan
 #   just clean      → Remove generated files
 #
+#   --- CI PARITY ---
+#   just preflight  → Run pre-commit hooks (mirrors CI lint exactly)
+#   just ci         → Full local CI: preflight + check-gen + test
+#
 #   --- 100x DX COMMANDS ---
 #   just watch      → Auto-run generate+test on changes
 #   just repl       → Pre-loaded IPython playground
+#   just worktree N → Create isolated worktree + install deps
 #   just add-cookbook "Name" → Scaffold new example
 #
 # First-time setup:
@@ -62,9 +67,6 @@ COOKBOOK_DIR   := "examples/cookbook"
 # This is the single source of truth; .pre-commit-config.yaml and .gitattributes mirror it.
 GENERATED_PY  := "src/adk_fluent/agent.py src/adk_fluent/config.py src/adk_fluent/executor.py src/adk_fluent/planner.py src/adk_fluent/plugin.py src/adk_fluent/runtime.py src/adk_fluent/service.py src/adk_fluent/tool.py src/adk_fluent/workflow.py src/adk_fluent/_ir_generated.py"
 
-# Hand-written files that live inside OUTPUT_DIR but must stay writable.
-HANDWRITTEN   := "src/adk_fluent/__init__.py src/adk_fluent/_base.py src/adk_fluent/_routing.py src/adk_fluent/_transforms.py src/adk_fluent/_prompt.py src/adk_fluent/_helpers.py src/adk_fluent/_context.py src/adk_fluent/_visibility.py src/adk_fluent/cli.py"
-
 # --- Full pipeline ---
 all: scan seed generate docs docs-build
     @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/ and docs in {{DOC_DIR}}/"
@@ -87,8 +89,6 @@ seed: _require-manifest
 # the emitter's _ruff_format() is out of sync and should be investigated.
 generate: _require-manifest _require-seed
     @echo "Generating code from seed + manifest..."
-    @# Make files writable for generation
-    @chmod -R +w {{OUTPUT_DIR}} {{TEST_DIR}} || true
     @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
@@ -97,10 +97,6 @@ generate: _require-manifest _require-seed
     @uv run ruff check --fix {{GENERATED_PY}} {{TEST_DIR}} || true
     @uv run ruff format {{GENERATED_PY}} {{TEST_DIR}}
     @uv run ruff check {{GENERATED_PY}} {{TEST_DIR}}
-    @# Re-apply read-only trap on generated files
-    @chmod -R -w {{OUTPUT_DIR}} {{TEST_DIR}} || true
-    @# Restore write permission on hand-written files
-    @chmod +w {{HANDWRITTEN}} || true
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed
@@ -177,6 +173,15 @@ update-golden:
     @echo "Updating golden files..."
     @uv run pytest tests/test_generator_golden.py --update-golden -v
 
+# --- Preflight: run pre-commit hooks (mirrors CI lint exactly) ---
+preflight:
+    @echo "Running pre-commit hooks (same as CI lint)..."
+    @uv run pre-commit run --all-files --show-diff-on-failure
+
+# --- Local CI: full pipeline matching GitHub Actions ---
+ci: preflight check-gen test
+    @echo "\nLocal CI passed. Safe to push."
+
 # --- Type checking ---
 typecheck:
     @echo "Type-checking generated stubs..."
@@ -236,6 +241,25 @@ docs-serve: docs
 repl:
     @echo "Starting ADK-Fluent playground..."
     @uv run ipython -i -c "from adk_fluent import *; print('\nADK-Fluent playground loaded! (Agent, Pipeline, S, C available)')"
+
+# --- Worktree: isolated workspace for feature work ---
+worktree name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir=".worktrees/{{name}}"
+    branch="feature/{{name}}"
+    if [ -d "$dir" ]; then
+        echo "Worktree already exists at $dir"
+        echo "cd $dir"
+        exit 0
+    fi
+    echo "Creating worktree at $dir (branch: $branch)..."
+    git worktree add "$dir" -b "$branch"
+    echo "Installing dependencies..."
+    cd "$dir" && uv sync --all-extras
+    echo ""
+    echo "Worktree ready: cd $dir"
+    echo "When done: git worktree remove $dir"
 
 # --- Add Cookbook ---
 add-cookbook name:
@@ -327,12 +351,15 @@ help:
     @echo "  just fmt            Auto-format hand-written files (ruff + mdformat)"
     @echo "  just fmt-changed    Auto-format only changed hand-written files (fast)"
     @echo "  just check-gen      Verify generated files are up-to-date"
+    @echo "  just preflight      Run pre-commit hooks (mirrors CI lint)"
+    @echo "  just ci             Full local CI: preflight + check-gen + test"
     @echo "  just test           Run pytest suite"
     @echo "  just test-pipeline  Run pipeline tests only (fast <5s)"
     @echo "  just update-golden  Regenerate golden files"
     @echo "  just typecheck      Run pyright type-check"
     @echo "  just watch          Auto-run generate+test on changes"
     @echo "  just repl           Pre-loaded IPython playground"
+    @echo "  just worktree NAME  Create isolated worktree + install deps"
     @echo "  just add-cookbook    Scaffold new example"
     @echo "  just docs           Generate all documentation"
     @echo "  just docs-api       Generate API reference only"
@@ -349,7 +376,7 @@ help:
     @echo "  just publish        Publish to PyPI"
     @echo "  just clean          Remove generated files"
     @echo ""
-    @echo "Workflow: just setup -> just all -> just test -> commit"
+    @echo "Workflow: just setup -> just all -> just ci -> commit"
     @echo ""
     @echo "Architecture: Generated files are owned by 'just generate'."
     @echo "              Formatters and pre-commit only touch hand-written files."
