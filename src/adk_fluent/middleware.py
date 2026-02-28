@@ -5,23 +5,186 @@ cost tracking, etc.) that compiles to ADK BasePlugin instances.
 
 Middleware is app-global (attached via ExecutionConfig). This is separate
 from agent-level callbacks (stored per-agent in IR nodes).
+
+Architecture layers::
+
+    M.retry(3) | M.scope("writer", M.cost())   <-- DX surface
+             |  compiles to
+    [RetryMiddleware(3), _ScopedMiddleware(...)] <-- protocol instances
+             |  compiled by
+    _MiddlewarePlugin(BasePlugin)               <-- ADK plugin adapter
+             |  registered as
+    App(plugins=[plugin])                       <-- ADK runtime
 """
 
 from __future__ import annotations
 
 import asyncio as _asyncio
+import contextlib as _contextlib
+import logging as _logging
+import re as _re
 import time as _time
+from collections.abc import Callable
+from contextvars import ContextVar
+from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
+from uuid import uuid4 as _uuid4
 
 from google.adk.plugins.base_plugin import BasePlugin
 
 __all__ = [
+    # Core types
+    "TraceContext",
+    "DispatchDirective",
+    "LoopDirective",
+    # Protocols
     "Middleware",
+    "TopologyHooks",
+    # Adapter
     "_MiddlewarePlugin",
+    # Built-in middleware
     "RetryMiddleware",
     "StructuredLogMiddleware",
     "DispatchLogMiddleware",
+    "TopologyLogMiddleware",
+    "LatencyMiddleware",
+    "CostTracker",
+    # Helpers
+    "_agent_matches",
+    "_ScopedMiddleware",
+    "_ConditionalMiddleware",
+    "_SingleHookMiddleware",
+    # ContextVars
+    "_trace_context",
+    "_topology_hooks",
 ]
+
+_log = _logging.getLogger(__name__)
+
+# ======================================================================
+# Mechanism 1: TraceContext (inter-hook state)
+# ======================================================================
+
+
+class TraceContext:
+    """Per-invocation state bag flowing through all middleware hooks.
+
+    Created once per ``before_run_callback``, stored in a ContextVar,
+    and passed as the first arg to every middleware hook.  Propagates
+    to dispatch children via asyncio ContextVar copy-on-write.
+
+    Backward compat: v1 middleware typed ``ctx: Any`` -- ``TraceContext``
+    works in that position.  Access the raw ADK invocation context via
+    ``ctx.invocation_context``.
+    """
+
+    __slots__ = ("_data", "request_id", "start_time", "invocation_context")
+
+    def __init__(self, invocation_context: Any = None) -> None:
+        self.request_id: str = _uuid4().hex[:12]
+        self.start_time: float = _time.monotonic()
+        self.invocation_context = invocation_context
+        self._data: dict[str, Any] = {}
+
+    @property
+    def elapsed(self) -> float:
+        """Seconds since this invocation started."""
+        return _time.monotonic() - self.start_time
+
+    def __getitem__(self, key: str) -> Any:
+        return self._data[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self._data[key] = value
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self._data.get(key, default)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._data
+
+    def __repr__(self) -> str:
+        return f"TraceContext(request_id={self.request_id!r}, elapsed={self.elapsed:.3f}s)"
+
+
+_trace_context: ContextVar[TraceContext | None] = ContextVar("_trace_context", default=None)
+
+
+# ======================================================================
+# Mechanism 4: Directive dataclasses (controllable dispatch/loop)
+# ======================================================================
+
+
+@dataclass(frozen=True)
+class DispatchDirective:
+    """Returned by ``on_dispatch`` to control dispatch behavior.
+
+    - ``cancel=True``: skip this dispatch entirely.
+    - ``inject_state``: merge keys into session state before dispatch.
+
+    Returning ``None`` from ``on_dispatch`` proceeds normally (v1 compat).
+    """
+
+    cancel: bool = False
+    inject_state: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class LoopDirective:
+    """Returned by ``on_loop_iteration`` to control loop behavior.
+
+    - ``break_loop=True``: exit the loop via ADK's escalate mechanism.
+    """
+
+    break_loop: bool = False
+
+
+# ======================================================================
+# Mechanism 3: TopologyHooks protocol
+# ======================================================================
+
+
+@runtime_checkable
+class TopologyHooks(Protocol):
+    """Protocol for middleware topology lifecycle hooks.
+
+    Generalizes the former ``DispatchHooks`` to cover all workflow
+    structure: loops, fanout, routes, fallbacks, timeouts, and
+    dispatch/join.
+    """
+
+    # --- Dispatch/Join (migrated from DispatchHooks) ---
+
+    async def on_dispatch(self, ctx: Any, task_name: str, agent_name: str) -> DispatchDirective | None: ...
+    async def on_task_complete(self, ctx: Any, task_name: str, result: str) -> None: ...
+    async def on_task_error(self, ctx: Any, task_name: str, error: Exception) -> None: ...
+    async def on_join(self, ctx: Any, joined: list[str], timed_out: list[str]) -> None: ...
+
+    # --- Topology (NEW) ---
+
+    async def on_loop_iteration(self, ctx: Any, loop_name: str, iteration: int) -> LoopDirective | None: ...
+    async def on_fanout_start(self, ctx: Any, fanout_name: str, branch_names: list[str]) -> None: ...
+    async def on_fanout_complete(self, ctx: Any, fanout_name: str, branch_names: list[str]) -> None: ...
+    async def on_route_selected(self, ctx: Any, route_name: str, selected_agent: str) -> None: ...
+    async def on_fallback_attempt(
+        self, ctx: Any, fallback_name: str, agent_name: str, attempt: int, error: Exception | None
+    ) -> None: ...
+    async def on_timeout(self, ctx: Any, timeout_name: str, seconds: float, timed_out: bool) -> None: ...
+
+    # --- Stream lifecycle ---
+
+    async def on_stream_item(self, ctx: Any, item: str, result: str | None, error: Exception | None) -> None: ...
+    async def on_stream_start(self, ctx: Any, source_info: dict) -> None: ...
+    async def on_stream_end(self, ctx: Any, stats: Any) -> None: ...
+    async def on_backpressure(self, ctx: Any, in_flight: int, max_concurrency: int) -> None: ...
+
+
+_topology_hooks: ContextVar[TopologyHooks | None] = ContextVar("_topology_hooks", default=None)
+
+
+# ======================================================================
+# Middleware protocol (extended from v1)
+# ======================================================================
 
 
 @runtime_checkable
@@ -37,7 +200,10 @@ class Middleware(Protocol):
         Model:    before_model, after_model, on_model_error
         Tool:     before_tool, after_tool, on_tool_error
         Dispatch: on_dispatch, on_task_complete, on_task_error, on_join
-        Stream:   on_stream_item
+        Topology: on_loop_iteration, on_fanout_start, on_fanout_complete,
+                  on_route_selected, on_fallback_attempt, on_timeout
+        Stream:   on_stream_item, on_stream_start, on_stream_end, on_backpressure
+        Error:    on_middleware_error
         Cleanup:  close
     """
 
@@ -104,8 +270,12 @@ class Middleware(Protocol):
 
     # --- Dispatch lifecycle ---
 
-    async def on_dispatch(self, ctx: Any, task_name: str, agent_name: str) -> None:
-        """Called when a task is dispatched as background."""
+    async def on_dispatch(self, ctx: Any, task_name: str, agent_name: str) -> DispatchDirective | None:
+        """Called when a task is dispatched as background.
+
+        Return ``DispatchDirective(cancel=True)`` to skip this dispatch.
+        Return ``None`` to proceed normally (v1 compat).
+        """
         return None
 
     async def on_task_complete(self, ctx: Any, task_name: str, result: str) -> None:
@@ -120,10 +290,62 @@ class Middleware(Protocol):
         """Called after a join completes."""
         return None
 
-    # --- Stream lifecycle ---
+    # --- Topology lifecycle (NEW) ---
+
+    async def on_loop_iteration(self, ctx: Any, loop_name: str, iteration: int) -> LoopDirective | None:
+        """Called at the start of each loop iteration.
+
+        Return ``LoopDirective(break_loop=True)`` to exit the loop.
+        """
+        return None
+
+    async def on_fanout_start(self, ctx: Any, fanout_name: str, branch_names: list[str]) -> None:
+        """Called before parallel branches start executing."""
+        return None
+
+    async def on_fanout_complete(self, ctx: Any, fanout_name: str, branch_names: list[str]) -> None:
+        """Called after all parallel branches complete."""
+        return None
+
+    async def on_route_selected(self, ctx: Any, route_name: str, selected_agent: str) -> None:
+        """Called when a route selects a target agent."""
+        return None
+
+    async def on_fallback_attempt(
+        self, ctx: Any, fallback_name: str, agent_name: str, attempt: int, error: Exception | None
+    ) -> None:
+        """Called at the start of each fallback attempt."""
+        return None
+
+    async def on_timeout(self, ctx: Any, timeout_name: str, seconds: float, timed_out: bool) -> None:
+        """Called when a timeout-wrapped agent completes or times out."""
+        return None
+
+    # --- Stream lifecycle (extended) ---
 
     async def on_stream_item(self, ctx: Any, item: str, result: str | None, error: Exception | None) -> None:
         """Called after each stream item is processed."""
+        return None
+
+    async def on_stream_start(self, ctx: Any, source_info: dict) -> None:
+        """Called before the first stream item is processed."""
+        return None
+
+    async def on_stream_end(self, ctx: Any, stats: Any) -> None:
+        """Called after all stream items are processed."""
+        return None
+
+    async def on_backpressure(self, ctx: Any, in_flight: int, max_concurrency: int) -> None:
+        """Called when in-flight items reach the concurrency limit."""
+        return None
+
+    # --- Error boundary ---
+
+    async def on_middleware_error(self, ctx: Any, hook_name: str, error: Exception, middleware: Any) -> None:
+        """Called when another middleware hook raises an exception.
+
+        Observe-only. Errors in this handler are swallowed.
+        """
         return None
 
     # --- Cleanup ---
@@ -133,9 +355,167 @@ class Middleware(Protocol):
         pass
 
 
-# ---------------------------------------------------------------------------
+# ======================================================================
+# Mechanism 2: Per-agent scoping
+# ======================================================================
+
+# Agent-scoped hooks -- these check _agent_matches before firing.
+_SCOPED_HOOKS = frozenset(
+    {
+        "before_agent",
+        "after_agent",
+        "before_model",
+        "after_model",
+        "on_model_error",
+        "before_tool",
+        "after_tool",
+        "on_tool_error",
+    }
+)
+
+
+def _agent_matches(mw: Any, agent_name: str) -> bool:
+    """Check whether a middleware should fire for the given agent.
+
+    Supports:
+        - ``None`` (absent): global, fires for all agents.
+        - ``str``: exact match.
+        - ``tuple[str, ...]``: membership test.
+        - ``re.Pattern``: regex search.
+        - ``Callable[[str], bool]``: predicate.
+    """
+    scope = getattr(mw, "agents", None)
+    if scope is None:
+        return True
+    if isinstance(scope, str):
+        return agent_name == scope
+    if isinstance(scope, tuple):
+        return agent_name in scope
+    if isinstance(scope, _re.Pattern):
+        return scope.search(agent_name) is not None
+    if callable(scope):
+        return bool(scope(agent_name))
+    return True
+
+
+# ======================================================================
+# Mechanism 6: Conditional + Scoped wrappers
+# ======================================================================
+
+
+class _ScopedMiddleware:
+    """Wraps a middleware instance with an ``agents`` scope."""
+
+    def __init__(self, agents: str | tuple[str, ...], inner: Any) -> None:
+        self.agents = agents
+        self._inner = inner
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._inner, name)
+
+    def __repr__(self) -> str:
+        return f"_ScopedMiddleware(agents={self.agents!r}, inner={self._inner!r})"
+
+
+class _ConditionalMiddleware:
+    """Wraps a middleware to only fire when a condition is met.
+
+    ``condition`` can be:
+        - A callable returning bool.
+        - A string shortcut: ``"stream"``, ``"dispatched"``, ``"pipeline"``
+          matching ``ExecutionMode``.
+        - A ``PredicateSchema`` subclass — evaluated against session state
+          from ``TraceContext.invocation_context`` at invocation time.
+    """
+
+    def __init__(self, condition: str | Callable[[], bool] | type, inner: Any) -> None:
+        self._condition = condition
+        self._inner = inner
+        # Forward agents and schema from inner for static introspection
+        agents = getattr(inner, "agents", None)
+        if agents is not None:
+            self.agents = agents
+        schema = getattr(inner, "schema", None)
+        if schema is not None:
+            self.schema = schema
+
+    def _check(self) -> bool:
+        cond = self._condition
+        if isinstance(cond, str):
+            return self._check_mode(cond)
+        if isinstance(cond, type):
+            return self._check_predicate(cond)
+        if callable(cond):
+            return bool(cond())
+        return True
+
+    @staticmethod
+    def _check_mode(mode_str: str) -> bool:
+        from adk_fluent._primitives import get_execution_mode
+
+        return bool(get_execution_mode().value == mode_str)
+
+    @staticmethod
+    def _check_predicate(schema_cls: type) -> bool:
+        """Evaluate a PredicateSchema against current session state."""
+        trace = _trace_context.get()
+        if trace is None:
+            return True  # no trace context = can't evaluate, allow
+        inv_ctx = trace.invocation_context
+        if inv_ctx is None:
+            return True
+        session = getattr(inv_ctx, "session", None)
+        if session is None:
+            return True
+        state = getattr(session, "state", {})
+        evaluate = getattr(schema_cls, "evaluate", None)
+        if evaluate is None:
+            return True
+        # Extract field values from state using schema introspection
+        from adk_fluent._schema_base import Reads
+
+        field_list = getattr(schema_cls, "_field_list", ())
+        kwargs: dict[str, Any] = {}
+        for f in field_list:
+            r = f.get_annotation(Reads)
+            if r is not None:
+                full_key = f.name if r.scope == "session" else f"{r.scope}:{f.name}"
+                kwargs[f.name] = state.get(full_key)
+        return bool(evaluate(**kwargs))
+
+    def __getattr__(self, name: str) -> Any:
+        val = getattr(self._inner, name, None)
+        if val is None or not callable(val):
+            if val is None:
+                raise AttributeError(name)
+            return val  # non-callable attributes forwarded directly
+
+        # Return a guarded wrapper that defers condition check to invocation time
+        async def _guarded(*args: Any, **kwargs: Any) -> Any:
+            if not self._check():
+                return None
+            return await val(*args, **kwargs)
+
+        return _guarded
+
+    def __repr__(self) -> str:
+        return f"_ConditionalMiddleware(inner={self._inner!r})"
+
+
+class _SingleHookMiddleware:
+    """Wraps a single function as a middleware with one hook."""
+
+    def __init__(self, hook_name: str, fn: Callable) -> None:
+        self._hook_name = hook_name
+        setattr(self, hook_name, fn)
+
+    def __repr__(self) -> str:
+        return f"_SingleHookMiddleware({self._hook_name!r})"
+
+
+# ======================================================================
 # Adapter: compile a middleware stack into a single ADK BasePlugin
-# ---------------------------------------------------------------------------
+# ======================================================================
 
 
 class _MiddlewarePlugin(BasePlugin):
@@ -144,9 +524,11 @@ class _MiddlewarePlugin(BasePlugin):
     ADK execution order: plugins first -> agent callbacks second.
     This ensures middleware has priority over user-defined callbacks.
 
-    Each callback iterates the stack in order. First non-None return
-    short-circuits the remaining middleware (matching ADK semantics).
-    Void hooks (after_run, close) always call all middleware.
+    Mechanisms:
+        1. TraceContext: created in before_run, passed as first arg.
+        2. Agent scoping: _agent_matches filters per-agent hooks.
+        3. Error boundary: try/except around each hook call.
+        4. Topology hooks: set self as _topology_hooks ContextVar.
     """
 
     def __init__(self, name: str, stack: list) -> None:
@@ -155,120 +537,236 @@ class _MiddlewarePlugin(BasePlugin):
 
     # --- Helpers: iterate stack ---
 
-    async def _run_stack(self, method_name: str, *args, **kwargs) -> Any:
+    def _get_trace(self) -> TraceContext:
+        """Get or create a TraceContext for the current invocation."""
+        trace = _trace_context.get()
+        if trace is None:
+            trace = TraceContext()
+            _trace_context.set(trace)
+        return trace
+
+    async def _run_stack(self, method_name: str, *args, agent_name: str | None = None) -> Any:
         """Call *method_name* on each middleware in order.
 
         Short-circuits on the first non-None return.
+        Wraps each call in an error boundary.
+        Filters scoped hooks by agent_name.
         """
+        is_scoped = method_name in _SCOPED_HOOKS
         for mw in self._stack:
+            if is_scoped and agent_name is not None and not _agent_matches(mw, agent_name):
+                continue
             fn = getattr(mw, method_name, None)
-            if fn is not None:
-                result = await fn(*args, **kwargs)
+            if fn is None:
+                continue
+            try:
+                result = await fn(*args)
                 if result is not None:
                     return result
+            except Exception as exc:
+                _log.warning("Middleware %s.%s raised: %s", type(mw).__name__, method_name, exc)
+                await self._fire_middleware_error(mw, method_name, exc)
         return None
 
-    async def _run_stack_void(self, method_name: str, *args, **kwargs) -> None:
+    async def _run_stack_void(self, method_name: str, *args, agent_name: str | None = None) -> None:
         """Call *method_name* on ALL middleware (no short-circuit).
 
-        Used for void hooks like ``after_run`` and ``close``.
+        Wraps each call in an error boundary.
         """
+        is_scoped = method_name in _SCOPED_HOOKS
         for mw in self._stack:
+            if is_scoped and agent_name is not None and not _agent_matches(mw, agent_name):
+                continue
             fn = getattr(mw, method_name, None)
-            if fn is not None:
-                await fn(*args, **kwargs)
+            if fn is None:
+                continue
+            try:
+                await fn(*args)
+            except Exception as exc:
+                _log.warning("Middleware %s.%s raised: %s", type(mw).__name__, method_name, exc)
+                await self._fire_middleware_error(mw, method_name, exc)
+
+    async def _fire_middleware_error(self, failed_mw: Any, hook_name: str, error: Exception) -> None:
+        """Fire on_middleware_error on all *other* middleware.
+
+        Errors in error handlers are swallowed.
+        """
+        trace = self._get_trace()
+        for mw in self._stack:
+            if mw is failed_mw:
+                continue
+            fn = getattr(mw, "on_middleware_error", None)
+            if fn is None:
+                continue
+            with _contextlib.suppress(Exception):
+                await fn(trace, hook_name, error, failed_mw)
 
     # --- Runner lifecycle ---
 
     async def on_user_message_callback(self, *, invocation_context, user_message):
-        return await self._run_stack("on_user_message", invocation_context, user_message)
+        trace = self._get_trace()
+        trace.invocation_context = invocation_context
+        return await self._run_stack("on_user_message", trace, user_message)
 
     async def before_run_callback(self, *, invocation_context):
-        # Make middleware hooks accessible to DispatchAgent/JoinAgent via ContextVar
+        # Create TraceContext for this invocation
+        trace = TraceContext(invocation_context=invocation_context)
+        _trace_context.set(trace)
+
+        # Set self as topology hooks (replaces old _middleware_dispatch_hooks)
+        _topology_hooks.set(self)
+
+        # Backward compat: also set _middleware_dispatch_hooks
         from adk_fluent._primitives import _middleware_dispatch_hooks
 
         _middleware_dispatch_hooks.set(self)
-        return await self._run_stack("before_run", invocation_context)
+
+        return await self._run_stack("before_run", trace)
 
     async def after_run_callback(self, *, invocation_context):
-        await self._run_stack_void("after_run", invocation_context)
+        trace = self._get_trace()
+        await self._run_stack_void("after_run", trace)
 
     async def on_event_callback(self, *, invocation_context, event):
-        return await self._run_stack("on_event", invocation_context, event)
+        trace = self._get_trace()
+        return await self._run_stack("on_event", trace, event)
 
     # --- Agent lifecycle ---
 
     async def before_agent_callback(self, *, agent, callback_context):
+        trace = self._get_trace()
+        agent_name = getattr(agent, "name", str(agent))
         return await self._run_stack(
             "before_agent",
-            callback_context,
-            getattr(agent, "name", str(agent)),
+            trace,
+            agent_name,
+            agent_name=agent_name,
         )
 
     async def after_agent_callback(self, *, agent, callback_context):
+        trace = self._get_trace()
+        agent_name = getattr(agent, "name", str(agent))
         return await self._run_stack(
             "after_agent",
-            callback_context,
-            getattr(agent, "name", str(agent)),
+            trace,
+            agent_name,
+            agent_name=agent_name,
         )
 
     # --- Model lifecycle ---
 
     async def before_model_callback(self, *, callback_context, llm_request):
-        return await self._run_stack("before_model", callback_context, llm_request)
+        trace = self._get_trace()
+        agent_name = getattr(callback_context, "agent_name", None)
+        return await self._run_stack("before_model", trace, llm_request, agent_name=agent_name)
 
     async def after_model_callback(self, *, callback_context, llm_response):
-        return await self._run_stack("after_model", callback_context, llm_response)
+        trace = self._get_trace()
+        agent_name = getattr(callback_context, "agent_name", None)
+        return await self._run_stack("after_model", trace, llm_response, agent_name=agent_name)
 
     async def on_model_error_callback(self, *, callback_context, llm_request, error):
-        return await self._run_stack("on_model_error", callback_context, llm_request, error)
+        trace = self._get_trace()
+        agent_name = getattr(callback_context, "agent_name", None)
+        return await self._run_stack("on_model_error", trace, llm_request, error, agent_name=agent_name)
 
     # --- Tool lifecycle ---
 
     async def before_tool_callback(self, *, tool, tool_args, tool_context):
+        trace = self._get_trace()
+        agent_name = getattr(tool_context, "agent_name", None)
         return await self._run_stack(
             "before_tool",
-            tool_context,
+            trace,
             getattr(tool, "name", str(tool)),
             tool_args,
+            agent_name=agent_name,
         )
 
     async def after_tool_callback(self, *, tool, tool_args, tool_context, result):
+        trace = self._get_trace()
+        agent_name = getattr(tool_context, "agent_name", None)
         return await self._run_stack(
             "after_tool",
-            tool_context,
+            trace,
             getattr(tool, "name", str(tool)),
             tool_args,
             result,
+            agent_name=agent_name,
         )
 
     async def on_tool_error_callback(self, *, tool, tool_args, tool_context, error):
+        trace = self._get_trace()
+        agent_name = getattr(tool_context, "agent_name", None)
         return await self._run_stack(
             "on_tool_error",
-            tool_context,
+            trace,
             getattr(tool, "name", str(tool)),
             tool_args,
             error,
+            agent_name=agent_name,
         )
 
-    # --- Dispatch lifecycle ---
+    # --- Dispatch/Topology lifecycle (called from primitives) ---
 
     async def on_dispatch(self, ctx, task_name, agent_name):
-        await self._run_stack_void("on_dispatch", ctx, task_name, agent_name)
+        trace = self._get_trace()
+        result = await self._run_stack("on_dispatch", trace, task_name, agent_name)
+        return result  # may be DispatchDirective or None
 
     async def on_task_complete(self, ctx, task_name, result):
-        await self._run_stack_void("on_task_complete", ctx, task_name, result)
+        trace = self._get_trace()
+        await self._run_stack_void("on_task_complete", trace, task_name, result)
 
     async def on_task_error(self, ctx, task_name, error):
-        await self._run_stack_void("on_task_error", ctx, task_name, error)
+        trace = self._get_trace()
+        await self._run_stack_void("on_task_error", trace, task_name, error)
 
     async def on_join(self, ctx, joined, timed_out):
-        await self._run_stack_void("on_join", ctx, joined, timed_out)
+        trace = self._get_trace()
+        await self._run_stack_void("on_join", trace, joined, timed_out)
+
+    async def on_loop_iteration(self, ctx, loop_name, iteration):
+        trace = self._get_trace()
+        return await self._run_stack("on_loop_iteration", trace, loop_name, iteration)
+
+    async def on_fanout_start(self, ctx, fanout_name, branch_names):
+        trace = self._get_trace()
+        await self._run_stack_void("on_fanout_start", trace, fanout_name, branch_names)
+
+    async def on_fanout_complete(self, ctx, fanout_name, branch_names):
+        trace = self._get_trace()
+        await self._run_stack_void("on_fanout_complete", trace, fanout_name, branch_names)
+
+    async def on_route_selected(self, ctx, route_name, selected_agent):
+        trace = self._get_trace()
+        await self._run_stack_void("on_route_selected", trace, route_name, selected_agent)
+
+    async def on_fallback_attempt(self, ctx, fallback_name, agent_name, attempt, error):
+        trace = self._get_trace()
+        await self._run_stack_void("on_fallback_attempt", trace, fallback_name, agent_name, attempt, error)
+
+    async def on_timeout(self, ctx, timeout_name, seconds, timed_out):
+        trace = self._get_trace()
+        await self._run_stack_void("on_timeout", trace, timeout_name, seconds, timed_out)
 
     # --- Stream lifecycle ---
 
     async def on_stream_item(self, ctx, item, result, error):
-        await self._run_stack_void("on_stream_item", ctx, item, result, error)
+        trace = self._get_trace()
+        await self._run_stack_void("on_stream_item", trace, item, result, error)
+
+    async def on_stream_start(self, ctx, source_info):
+        trace = self._get_trace()
+        await self._run_stack_void("on_stream_start", trace, source_info)
+
+    async def on_stream_end(self, ctx, stats):
+        trace = self._get_trace()
+        await self._run_stack_void("on_stream_end", trace, stats)
+
+    async def on_backpressure(self, ctx, in_flight, max_concurrency):
+        trace = self._get_trace()
+        await self._run_stack_void("on_backpressure", trace, in_flight, max_concurrency)
 
     # --- Cleanup ---
 
@@ -427,3 +925,124 @@ class DispatchLogMiddleware:
                 "time": _time.time(),
             }
         )
+
+
+class TopologyLogMiddleware:
+    """Observability middleware for topology events.
+
+    Captures structured logs for loop iterations, fanout start/complete,
+    route selections, fallback attempts, and timeouts.
+    Access via the ``log`` attribute.
+    """
+
+    def __init__(self) -> None:
+        self.log: list[dict] = []
+
+    async def on_loop_iteration(self, ctx, loop_name, iteration):
+        self.log.append(
+            {
+                "event": "loop_iteration",
+                "loop": loop_name,
+                "iteration": iteration,
+                "time": _time.time(),
+            }
+        )
+        return None
+
+    async def on_fanout_start(self, ctx, fanout_name, branch_names):
+        self.log.append(
+            {
+                "event": "fanout_start",
+                "fanout": fanout_name,
+                "branches": list(branch_names),
+                "time": _time.time(),
+            }
+        )
+
+    async def on_fanout_complete(self, ctx, fanout_name, branch_names):
+        self.log.append(
+            {
+                "event": "fanout_complete",
+                "fanout": fanout_name,
+                "branches": list(branch_names),
+                "time": _time.time(),
+            }
+        )
+
+    async def on_route_selected(self, ctx, route_name, selected_agent):
+        self.log.append(
+            {
+                "event": "route_selected",
+                "route": route_name,
+                "selected": selected_agent,
+                "time": _time.time(),
+            }
+        )
+
+    async def on_fallback_attempt(self, ctx, fallback_name, agent_name, attempt, error):
+        self.log.append(
+            {
+                "event": "fallback_attempt",
+                "fallback": fallback_name,
+                "agent": agent_name,
+                "attempt": attempt,
+                "error": str(error) if error else None,
+                "time": _time.time(),
+            }
+        )
+
+    async def on_timeout(self, ctx, timeout_name, seconds, timed_out):
+        self.log.append(
+            {
+                "event": "timeout",
+                "timeout": timeout_name,
+                "seconds": seconds,
+                "timed_out": timed_out,
+                "time": _time.time(),
+            }
+        )
+
+
+class LatencyMiddleware:
+    """Per-agent latency tracking using TraceContext for start timestamps.
+
+    Access via the ``latencies`` dict: ``{agent_name: [durations_in_seconds]}``.
+    """
+
+    def __init__(self) -> None:
+        self.latencies: dict[str, list[float]] = {}
+
+    async def before_agent(self, ctx, agent_name):
+        if isinstance(ctx, TraceContext):
+            ctx[f"_latency_{agent_name}"] = _time.monotonic()
+        return None
+
+    async def after_agent(self, ctx, agent_name):
+        if isinstance(ctx, TraceContext):
+            start = ctx.get(f"_latency_{agent_name}")
+            if start is not None:
+                duration = _time.monotonic() - start
+                self.latencies.setdefault(agent_name, []).append(duration)
+        return None
+
+
+class CostTracker:
+    """Token usage tracking via after_model.
+
+    Reads ``response.usage_metadata`` fields. Accumulates totals.
+
+    Access via ``total_input_tokens``, ``total_output_tokens``, ``calls``.
+    """
+
+    def __init__(self) -> None:
+        self.total_input_tokens: int = 0
+        self.total_output_tokens: int = 0
+        self.calls: int = 0
+
+    async def after_model(self, ctx, response):
+        self.calls += 1
+        usage = getattr(response, "usage_metadata", None)
+        if usage is not None:
+            self.total_input_tokens += getattr(usage, "prompt_token_count", 0) or 0
+            self.total_output_tokens += getattr(usage, "candidates_token_count", 0) or 0
+        return None

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated
 
 from adk_fluent._middleware_schema import MiddlewareSchema
@@ -48,3 +49,90 @@ class TestMiddlewareSchema:
         assert "MixedMiddleware" in r
         assert "config_key" in r
         assert "result" in r
+
+
+class TestConditionalMiddlewareDeferred:
+    """_ConditionalMiddleware returns guarded wrappers, not None."""
+
+    def test_guarded_wrapper_is_callable(self):
+        """__getattr__ returns a callable wrapper even when condition is false."""
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                return "fired"
+
+        cond = _ConditionalMiddleware(lambda: False, Inner())
+        hook = cond.before_agent
+        assert callable(hook)
+
+    def test_guarded_wrapper_skips_when_false(self):
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                return "fired"
+
+        cond = _ConditionalMiddleware(lambda: False, Inner())
+        result = asyncio.run(cond.before_agent(None, "x"))
+        assert result is None
+
+    def test_guarded_wrapper_fires_when_true(self):
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                return "fired"
+
+        cond = _ConditionalMiddleware(lambda: True, Inner())
+        result = asyncio.run(cond.before_agent(None, "x"))
+        assert result == "fired"
+
+    def test_string_shortcut_still_works(self):
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class Inner:
+            async def before_agent(self, ctx, name):
+                return "fired"
+
+        # "stream" won't match default execution mode
+        cond = _ConditionalMiddleware("stream", Inner())
+        hook = cond.before_agent
+        assert callable(hook)
+
+    def test_schema_forwarded(self):
+        """schema attribute is forwarded from inner middleware."""
+        from adk_fluent._middleware_schema import MiddlewareSchema
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class MySchema(MiddlewareSchema):
+            pass
+
+        class Inner:
+            schema = MySchema
+
+        cond = _ConditionalMiddleware(lambda: True, Inner())
+        assert cond.schema is MySchema
+
+    def test_agents_forwarded(self):
+        """agents attribute is forwarded from inner middleware."""
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class Inner:
+            agents = "writer"
+
+        cond = _ConditionalMiddleware(lambda: True, Inner())
+        assert cond.agents == "writer"
+
+    def test_missing_attr_raises(self):
+        """Accessing non-existent attribute raises AttributeError."""
+        import pytest
+
+        from adk_fluent.middleware import _ConditionalMiddleware
+
+        class Inner:
+            pass
+
+        cond = _ConditionalMiddleware(lambda: True, Inner())
+        with pytest.raises(AttributeError):
+            _ = cond.nonexistent_hook
