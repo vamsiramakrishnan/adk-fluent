@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "adk-fluent"
-version = "0.9.4"
+dynamic = ["version"]
 description = "Fluent builder API for Google's Agent Development Kit (ADK)"
 readme = "README.md"
 license = "MIT"
@@ -44,6 +44,7 @@ examples = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "hypothesis>=6.0",
     "pyright>=1.1",
     "ruff>=0.9",
     "pre-commit>=3.0",
@@ -75,6 +76,9 @@ adk-fluent = "adk_fluent.cli:main"
 
 [project.entry-points."adk_extensions"]
 fluent = "adk_fluent"
+
+[tool.hatch.version]
+path = "src/adk_fluent/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/adk_fluent"]
@@ -130,6 +134,13 @@ typeCheckingMode = "strict"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+norecursedirs = ["tests/golden"]
+markers = [
+    "slow: marks tests that take >10s (deselect with '-m \"not slow\"')",
+    "integration: marks tests requiring a full ADK install",
+    "generated: marks auto-generated test scaffolds",
+    "pipeline: marks tests for the codegen pipeline (generator/seed_generator/code_ir)",
+]
 
 [tool.ruff]
 target-version = "py311"
@@ -175,6 +186,7 @@ omit = ["src/adk_fluent/__init__.py"]
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
+fail_under = 60
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

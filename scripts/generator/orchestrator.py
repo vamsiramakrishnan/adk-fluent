@@ -11,9 +11,12 @@ This is the top-level coordinator that:
 from __future__ import annotations
 
 import ast
+import json
 import os
 import stat
+import time
 from collections import defaultdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from code_ir import emit_python, emit_stub
@@ -22,6 +25,93 @@ from .module_builder import specs_to_ir_module
 from .spec import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
 from .stubs import specs_to_ir_stub_module
 from .tests import specs_to_ir_test_module
+
+# ---------------------------------------------------------------------------
+# GENERATION STATS
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class GenerationStats:
+    """Structured statistics about a generation run."""
+
+    adk_version: str = "unknown"
+    builder_count: int = 0
+    module_count: int = 0
+    stub_count: int = 0
+    test_count: int = 0
+    total_methods: int = 0
+    total_extras: int = 0
+    total_aliases: int = 0
+    total_callbacks: int = 0
+    total_fields_forwarded: int = 0
+    builders_by_module: dict[str, int] = field(default_factory=dict)
+    elapsed_seconds: float = 0.0
+
+    def to_json(self) -> str:
+        """Serialize stats to JSON."""
+        return json.dumps(asdict(self), indent=2)
+
+    def print_summary(self, *, verbose: bool = False):
+        """Print a human-readable summary to stdout."""
+        print(f"\n  Generation Stats:")
+        print(f"    ADK version:      {self.adk_version}")
+        print(f"    Builders:         {self.builder_count}")
+        print(f"    Modules:          {self.module_count}")
+        print(f"    Stubs:            {self.stub_count}")
+        print(f"    Test files:       {self.test_count}")
+        print(f"    Total methods:    ~{self.total_methods}")
+        print(f"      - aliases:      {self.total_aliases}")
+        print(f"      - callbacks:    {self.total_callbacks}")
+        print(f"      - extras:       {self.total_extras}")
+        print(f"      - forwarded:    {self.total_fields_forwarded}")
+        print(f"    Elapsed:          {self.elapsed_seconds:.2f}s")
+
+        if verbose:
+            print(f"\n    Builders by module:")
+            for mod, count in sorted(self.builders_by_module.items()):
+                print(f"      {mod}: {count}")
+
+
+def _compute_stats(specs: list[BuilderSpec], by_module: dict[str, list[BuilderSpec]], adk_version: str) -> GenerationStats:
+    """Compute generation statistics from resolved specs."""
+
+    def _count_forwarded(s: BuilderSpec) -> int:
+        if s.inspection_mode == "init_signature" and s.init_params:
+            return len(
+                [
+                    p
+                    for p in s.init_params
+                    if p["name"] not in ("self", "args", "kwargs", "kwds") and p["name"] not in s.skip_fields
+                ]
+            )
+        return len([f for f in s.fields if f["name"] not in s.skip_fields])
+
+    total_aliases = 0
+    total_callbacks = 0
+    total_extras = 0
+    total_forwarded = 0
+
+    for s in specs:
+        if s.is_composite or s.is_standalone:
+            continue
+        total_aliases += len(s.aliases) + len(s.deprecated_aliases or {})
+        total_callbacks += len(s.callback_aliases)
+        total_extras += len(s.extras)
+        total_forwarded += _count_forwarded(s)
+
+    return GenerationStats(
+        adk_version=adk_version,
+        builder_count=len(specs),
+        module_count=len(by_module),
+        total_methods=total_aliases + total_callbacks + total_extras + total_forwarded,
+        total_aliases=total_aliases,
+        total_callbacks=total_callbacks,
+        total_extras=total_extras,
+        total_fields_forwarded=total_forwarded,
+        builders_by_module={mod: len(specs_list) for mod, specs_list in sorted(by_module.items())},
+    )
+
 
 # ---------------------------------------------------------------------------
 # FILE HELPERS
@@ -111,8 +201,15 @@ def generate_all(
     test_dir: str | None = None,
     stubs_only: bool = False,
     tests_only: bool = False,
-):
-    """Main generation pipeline."""
+    stats_json: str | None = None,
+) -> GenerationStats:
+    """Main generation pipeline.
+
+    Returns a GenerationStats object with structured metrics.
+    If *stats_json* is a file path, write the stats as JSON to that file.
+    """
+    t0 = time.monotonic()
+
     seed = parse_seed(seed_path)
     manifest = parse_manifest(manifest_path)
     specs = resolve_builder_specs(seed, manifest)
@@ -126,6 +223,8 @@ def generate_all(
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
+
+    stats = _compute_stats(specs, by_module, adk_version)
 
     # --- Generate runtime .py files ---
     if not stubs_only and not tests_only:
@@ -183,6 +282,7 @@ def generate_all(
             filepath = output_path / f"{module_name}.pyi"
             _write_file(filepath, stub)
             print(f"  Generated: {filepath}")
+        stats.stub_count = len(by_module)
 
     # --- Generate test scaffolds ---
     if test_dir and not stubs_only:
@@ -195,27 +295,14 @@ def generate_all(
             filepath = test_path / f"test_{module_name}_builder.py"
             _write_file(filepath, test_code)
             print(f"  Generated: {filepath}")
+        stats.test_count = len(by_module)
 
-    # --- Summary ---
-    print("\n  Summary:")
-    print(f"    ADK version:    {adk_version}")
-    print(f"    Builders:       {len(specs)}")
-    print(f"    Modules:        {len(by_module)}")
+    stats.elapsed_seconds = round(time.monotonic() - t0, 3)
+    stats.print_summary()
 
-    def _count_forwarded(s: BuilderSpec) -> int:
-        if s.inspection_mode == "init_signature" and s.init_params:
-            return len(
-                [
-                    p
-                    for p in s.init_params
-                    if p["name"] not in ("self", "args", "kwargs", "kwds") and p["name"] not in s.skip_fields
-                ]
-            )
-        return len([f for f in s.fields if f["name"] not in s.skip_fields])
+    # Write stats JSON if requested
+    if stats_json:
+        Path(stats_json).write_text(stats.to_json() + "\n")
+        print(f"\n  Stats written to: {stats_json}")
 
-    total_methods = sum(
-        len(s.aliases) + len(s.deprecated_aliases or {}) + len(s.callback_aliases) + len(s.extras) + _count_forwarded(s)
-        for s in specs
-        if not s.is_composite and not s.is_standalone
-    )
-    print(f"    Total methods:  ~{total_methods} (aliases + callbacks + forwarded)")
+    return stats

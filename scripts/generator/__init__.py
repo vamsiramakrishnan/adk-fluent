@@ -38,13 +38,14 @@ _sys.modules.setdefault("generator", _sys.modules[__name__])
 # Public API — preserves backward compatibility with the old monolithic generator.py
 from .ir_builders import spec_to_ir
 from .module_builder import specs_to_ir_module
-from .orchestrator import generate_all
+from .orchestrator import GenerationStats, generate_all
 from .spec import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
 from .stubs import specs_to_ir_stub_module
 from .tests import spec_to_ir_test, specs_to_ir_test_module
 
 __all__ = [
     "BuilderSpec",
+    "GenerationStats",
     "generate_all",
     "parse_manifest",
     "parse_seed",

@@ -165,6 +165,16 @@ test:
     @echo "Running tests..."
     @uv run pytest tests/ -v --tb=short
 
+# --- Pipeline tests only (fast inner loop) ---
+test-pipeline:
+    @echo "Running pipeline tests (generator/seed_generator/code_ir)..."
+    @uv run pytest tests/test_code_ir.py tests/test_seed_generator.py tests/test_generator_golden.py tests/test_property_based.py -v --tb=short
+
+# --- Update golden files ---
+update-golden:
+    @echo "Updating golden files..."
+    @uv run pytest tests/test_generator_golden.py --update-golden -v
+
 # --- Type checking ---
 typecheck:
     @echo "Type-checking generated stubs..."
@@ -316,6 +326,8 @@ help:
     @echo "  just fmt-changed    Auto-format only changed hand-written files (fast)"
     @echo "  just check-gen      Verify generated files are up-to-date"
     @echo "  just test           Run pytest suite"
+    @echo "  just test-pipeline  Run pipeline tests only (fast <5s)"
+    @echo "  just update-golden  Regenerate golden files"
     @echo "  just typecheck      Run pyright type-check"
     @echo "  just watch          Auto-run generate+test on changes"
     @echo "  just repl           Pre-loaded IPython playground"

@@ -15,6 +15,7 @@ def main():
     parser.add_argument("--test-dir", default=None, help="Output directory for test scaffolds")
     parser.add_argument("--stubs-only", action="store_true", help="Generate only .pyi stubs")
     parser.add_argument("--tests-only", action="store_true", help="Generate only test scaffolds")
+    parser.add_argument("--stats", default=None, metavar="FILE", help="Write generation stats as JSON to FILE")
     args = parser.parse_args()
 
     generate_all(
@@ -24,6 +25,7 @@ def main():
         test_dir=args.test_dir,
         stubs_only=args.stubs_only,
         tests_only=args.tests_only,
+        stats_json=args.stats,
     )
 
 
