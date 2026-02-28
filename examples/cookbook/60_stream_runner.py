@@ -37,11 +37,7 @@ assert isinstance(bounded_inbox, Inbox)
 from adk_fluent import Agent
 from adk_fluent.stream import StreamRunner, StreamStats
 
-processor = (
-    Agent("order_processor")
-    .model("gemini-2.5-flash")
-    .instruct("Process the incoming order event.")
-)
+processor = Agent("order_processor").model("gemini-2.5-flash").instruct("Process the incoming order event.")
 
 # Full fluent configuration
 results = []
@@ -71,11 +67,7 @@ keyed_runner = (
 )
 assert keyed_runner._session_strategy == "keyed"
 
-shared_runner = (
-    StreamRunner(processor)
-    .source(Source.from_iter(["order_1"]))
-    .session_strategy("shared")
-)
+shared_runner = StreamRunner(processor).source(Source.from_iter(["order_1"])).session_strategy("shared")
 assert shared_runner._session_strategy == "shared"
 
 # --- Agent shortcut: .run_on() ---
@@ -115,6 +107,7 @@ assert stats2.throughput > 0  # time has passed since creation
 
 # StreamRunner requires source to start
 import asyncio
+
 try:
     asyncio.run(StreamRunner(processor).start())
     assert False, "Should have raised ValueError"

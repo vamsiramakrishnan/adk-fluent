@@ -40,14 +40,10 @@ __all__ = [
 # ContextVar auto-scopes to the execution context (per runner invocation).
 # asyncio.create_task() propagates contextvars to child tasks, so nested
 # dispatch chains each get their own scope (copy-on-write semantics).
-_dispatch_tasks: ContextVar[dict[str, _asyncio.Task] | None] = ContextVar(
-    "_dispatch_tasks", default=None
-)
+_dispatch_tasks: ContextVar[dict[str, _asyncio.Task] | None] = ContextVar("_dispatch_tasks", default=None)
 # Global task budget: shared semaphore across ALL dispatch levels to prevent
 # exponential task explosion in deep dispatch chains (dispatch→dispatch→dispatch).
-_global_task_budget: ContextVar[_asyncio.Semaphore | None] = ContextVar(
-    "_global_task_budget", default=None
-)
+_global_task_budget: ContextVar[_asyncio.Semaphore | None] = ContextVar("_global_task_budget", default=None)
 
 
 # ======================================================================
@@ -1587,9 +1583,7 @@ class BuilderBase:
         """
         task_name = name or self._config.get("name", f"task_{next(_dispatch_counter)}")
         builder_name = f"dispatch_{task_name}"
-        return _DispatchBuilder(
-            builder_name, [self], (task_name,), on_complete, on_error, progress_key
-        )
+        return _DispatchBuilder(builder_name, [self], (task_name,), on_complete, on_error, progress_key)
 
     # ------------------------------------------------------------------
     # Task 7: Presets (.use())
@@ -2878,8 +2872,7 @@ class DispatchAgent(BaseAgent):
             _on_error = self._on_error
             _progress_key = self._progress_key
 
-            async def _run_child(agent=_child, tname=_name, on_ok=_on_complete,
-                                 on_err=_on_error, pkey=_progress_key):
+            async def _run_child(agent=_child, tname=_name, on_ok=_on_complete, on_err=_on_error, pkey=_progress_key):
                 await budget.acquire()
                 try:
                     events = []
@@ -3043,9 +3036,7 @@ def dispatch(
         else:
             task_names.append(f"task_{i}")
     name = f"dispatch_{next(_dispatch_counter)}"
-    return _DispatchBuilder(
-        name, list(agents), tuple(task_names), on_complete, on_error, progress_key
-    )
+    return _DispatchBuilder(name, list(agents), tuple(task_names), on_complete, on_error, progress_key)
 
 
 def join(
@@ -3119,9 +3110,7 @@ class _DispatchBuilder(BuilderBase):
     def to_ir(self):
         from adk_fluent._ir import DispatchNode
 
-        children = tuple(
-            a.to_ir() if isinstance(a, BuilderBase) else a for a in self._agents
-        )
+        children = tuple(a.to_ir() if isinstance(a, BuilderBase) else a for a in self._agents)
         return DispatchNode(
             name=self._config.get("name", "dispatch"),
             children=children,

@@ -21,38 +21,20 @@ from adk_fluent._base import _DispatchBuilder, _JoinBuilder, BuilderBase
 # and SEO optimization in the background while the main pipeline continues
 # with formatting and publishing.
 
-writer = (
-    Agent("content_writer")
-    .model("gemini-2.5-flash")
-    .instruct("Write a blog post about the given topic.")
-)
+writer = Agent("content_writer").model("gemini-2.5-flash").instruct("Write a blog post about the given topic.")
 email_sender = (
-    Agent("email_sender")
-    .model("gemini-2.5-flash")
-    .instruct("Send email notification about the new content.")
+    Agent("email_sender").model("gemini-2.5-flash").instruct("Send email notification about the new content.")
 )
-seo_optimizer = (
-    Agent("seo_optimizer")
-    .model("gemini-2.5-flash")
-    .instruct("Optimize the content for search engines.")
-)
-formatter = (
-    Agent("formatter")
-    .model("gemini-2.5-flash")
-    .instruct("Format the content for the website.")
-)
-publisher = (
-    Agent("publisher")
-    .model("gemini-2.5-flash")
-    .instruct("Publish the formatted content.")
-)
+seo_optimizer = Agent("seo_optimizer").model("gemini-2.5-flash").instruct("Optimize the content for search engines.")
+formatter = Agent("formatter").model("gemini-2.5-flash").instruct("Format the content for the website.")
+publisher = Agent("publisher").model("gemini-2.5-flash").instruct("Publish the formatted content.")
 
 # 1. Basic dispatch: fire-and-continue
 basic_pipeline = (
     writer
     >> dispatch(email_sender, seo_optimizer)  # non-blocking background tasks
-    >> formatter                               # runs immediately, doesn't wait
-    >> join()                                  # barrier: wait for all dispatched
+    >> formatter  # runs immediately, doesn't wait
+    >> join()  # barrier: wait for all dispatched
     >> publisher
 )
 
@@ -60,13 +42,14 @@ basic_pipeline = (
 named_pipeline = (
     writer
     >> dispatch(
-        email_sender, seo_optimizer,
+        email_sender,
+        seo_optimizer,
         names=["email", "seo"],
     )
     >> formatter
     >> join("seo", timeout=30)  # wait only for SEO before publishing
     >> publisher
-    >> join("email")            # collect email result at the end
+    >> join("email")  # collect email result at the end
 )
 
 # 3. Method form: .dispatch() on any builder
@@ -158,16 +141,19 @@ assert isinstance(named_pipeline, Pipeline)
 # IR generation works
 ir = d.to_ir()
 from adk_fluent._ir import DispatchNode
+
 assert isinstance(ir, DispatchNode)
 assert len(ir.children) == 2
 
 ir_j = join("email").to_ir()
 from adk_fluent._ir import JoinNode
+
 assert isinstance(ir_j, JoinNode)
 assert ir_j.target_names == ("email",)
 
 # Backend compilation works
 from adk_fluent.backends.adk import ADKBackend
+
 backend = ADKBackend()
 compiled = backend._compile_dispatch(ir)
 assert compiled.name == d._config["name"]

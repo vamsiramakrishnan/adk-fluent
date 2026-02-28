@@ -175,14 +175,13 @@ class StreamRunner:
                 original_handlers[sig] = loop.add_signal_handler(sig, self._stop_event.set)
 
         try:
+
             async def _process(item: str) -> None:
                 async with sem:
                     self.stats.in_flight += 1
                     try:
                         session = await self._resolve_session(runner, app_name, item)
-                        content = types.Content(
-                            role="user", parts=[types.Part(text=item)]
-                        )
+                        content = types.Content(role="user", parts=[types.Part(text=item)])
                         last_text = ""
                         async for event in runner.run_async(
                             user_id="_stream",
@@ -240,24 +239,16 @@ class StreamRunner:
         """Resolve the ADK session based on the configured strategy."""
         if self._session_strategy == "shared":
             if self._shared_session is None:
-                self._shared_session = (
-                    await runner.session_service.create_session(
-                        app_name=app_name, user_id="_stream"
-                    )
-                )
+                self._shared_session = await runner.session_service.create_session(app_name=app_name, user_id="_stream")
             return self._shared_session
 
         if self._session_strategy == "keyed" and self._session_key_fn:
             key = self._session_key_fn(item)
             if key not in self._keyed_sessions:
-                self._keyed_sessions[key] = (
-                    await runner.session_service.create_session(
-                        app_name=app_name, user_id=f"_stream_{key}"
-                    )
+                self._keyed_sessions[key] = await runner.session_service.create_session(
+                    app_name=app_name, user_id=f"_stream_{key}"
                 )
             return self._keyed_sessions[key]
 
         # Default: per_item — fresh session each time
-        return await runner.session_service.create_session(
-            app_name=app_name, user_id="_stream"
-        )
+        return await runner.session_service.create_session(app_name=app_name, user_id="_stream")
