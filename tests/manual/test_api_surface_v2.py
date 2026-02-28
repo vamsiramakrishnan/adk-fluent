@@ -139,14 +139,31 @@ class TestPrelude:
 
         expected = {
             # Tier 1: Core builders
-            "Agent", "Pipeline", "FanOut", "Loop",
+            "Agent",
+            "Pipeline",
+            "FanOut",
+            "Loop",
             # Tier 2: Composition namespaces
-            "C", "P", "S", "Route",
+            "C",
+            "P",
+            "S",
+            "Route",
             # Tier 3: Expression primitives
-            "until", "tap", "map_over", "gate", "race", "expect", "STransform",
+            "until",
+            "tap",
+            "map_over",
+            "gate",
+            "race",
+            "expect",
+            "STransform",
             # Tier 4: Patterns
-            "review_loop", "cascade", "chain", "fan_out_merge",
-            "map_reduce", "conditional", "supervised",
+            "review_loop",
+            "cascade",
+            "chain",
+            "fan_out_merge",
+            "map_reduce",
+            "conditional",
+            "supervised",
         }
         assert set(prelude.__all__) == expected
 

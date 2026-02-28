@@ -13,18 +13,16 @@ Verifies:
 
 import pytest
 
-from adk_fluent.agent import Agent
 from adk_fluent._transforms import S
+from adk_fluent.agent import Agent
 from adk_fluent.patterns import (
     cascade,
     chain,
     conditional,
     fan_out_merge,
-    map_reduce,
     review_loop,
     supervised,
 )
-
 
 # ======================================================================
 # review_loop

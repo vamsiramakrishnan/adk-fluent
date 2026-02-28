@@ -8,9 +8,8 @@ Verifies:
 - Copy-on-write semantics preserved
 """
 
-from adk_fluent.agent import Agent
 from adk_fluent._context import C, CComposite, CFromState, CWindow
-
+from adk_fluent.agent import Agent
 
 # ======================================================================
 # .reads() — shorthand for .context(C.from_state(...))

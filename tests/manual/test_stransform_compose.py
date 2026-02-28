@@ -11,8 +11,7 @@ Verifies:
 - S.branch() routing transforms
 """
 
-from adk_fluent._transforms import S, STransform, StateDelta, StateReplacement
-
+from adk_fluent._transforms import S, StateDelta, StateReplacement, STransform
 
 # ======================================================================
 # Basic callable behavior (backward compat)
