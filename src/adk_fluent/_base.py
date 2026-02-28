@@ -22,6 +22,7 @@ __all__ = [
     "race",
     "dispatch",
     "join",
+    "get_execution_mode",
     "FnAgent",
     "TapAgent",
     "CaptureAgent",
@@ -44,6 +45,15 @@ _dispatch_tasks: ContextVar[dict[str, _asyncio.Task] | None] = ContextVar("_disp
 # Global task budget: shared semaphore across ALL dispatch levels to prevent
 # exponential task explosion in deep dispatch chains (dispatch→dispatch→dispatch).
 _global_task_budget: ContextVar[_asyncio.Semaphore | None] = ContextVar("_global_task_budget", default=None)
+# Middleware hooks for dispatch/join lifecycle, set by _MiddlewarePlugin.
+_middleware_dispatch_hooks: ContextVar[Any] = ContextVar("_middleware_dispatch_hooks", default=None)
+# Execution mode: "pipeline" (default), "dispatched", or "stream".
+_execution_mode: ContextVar[str] = ContextVar("_execution_mode", default="pipeline")
+
+
+def get_execution_mode() -> str:
+    """Return the current execution mode: ``'pipeline'``, ``'dispatched'``, or ``'stream'``."""
+    return _execution_mode.get("pipeline")
 
 
 # ======================================================================
@@ -2831,6 +2841,7 @@ class DispatchAgent(BaseAgent):
     _on_complete: Callable | None
     _on_error: Callable | None
     _progress_key: str | None
+    _task_budget: int | None
 
     def __init__(
         self,
@@ -2839,6 +2850,7 @@ class DispatchAgent(BaseAgent):
         on_complete: Callable | None = None,
         on_error: Callable | None = None,
         progress_key: str | None = None,
+        task_budget: int | None = None,
         **kwargs: Any,
     ):
         super().__init__(**kwargs)
@@ -2846,6 +2858,7 @@ class DispatchAgent(BaseAgent):
         object.__setattr__(self, "_on_complete", on_complete)
         object.__setattr__(self, "_on_error", on_error)
         object.__setattr__(self, "_progress_key", progress_key)
+        object.__setattr__(self, "_task_budget", task_budget)
 
     async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
         import asyncio
@@ -2859,7 +2872,8 @@ class DispatchAgent(BaseAgent):
         # Get or initialize global task budget (shared across dispatch depths)
         budget = _global_task_budget.get()
         if budget is None:
-            budget = asyncio.Semaphore(_DEFAULT_TASK_BUDGET)
+            limit = self._task_budget or _DEFAULT_TASK_BUDGET
+            budget = asyncio.Semaphore(limit)
             _global_task_budget.set(budget)
 
         for i, child in enumerate(self.sub_agents):
@@ -2873,6 +2887,7 @@ class DispatchAgent(BaseAgent):
             _progress_key = self._progress_key
 
             async def _run_child(agent=_child, tname=_name, on_ok=_on_complete, on_err=_on_error, pkey=_progress_key):
+                _execution_mode.set("dispatched")
                 await budget.acquire()
                 try:
                     events = []
@@ -2902,6 +2917,11 @@ class DispatchAgent(BaseAgent):
                     if on_ok:
                         on_ok(tname, last_text)
 
+                    # Fire middleware hook
+                    mw_hooks = _middleware_dispatch_hooks.get()
+                    if mw_hooks:
+                        await mw_hooks.on_task_complete(ctx, tname, last_text)
+
                     return events
                 except Exception as exc:
                     handles = ctx.session.state.get("_dispatch_handles")
@@ -2910,6 +2930,10 @@ class DispatchAgent(BaseAgent):
                         handles[tname]["error"] = str(exc)
                     if on_err:
                         on_err(tname, exc)
+                    # Fire middleware hook
+                    mw_hooks = _middleware_dispatch_hooks.get()
+                    if mw_hooks:
+                        await mw_hooks.on_task_error(ctx, tname, exc)
                     raise
                 finally:
                     budget.release()
@@ -2923,6 +2947,11 @@ class DispatchAgent(BaseAgent):
                 handles = {}
                 ctx.session.state["_dispatch_handles"] = handles
             handles[task_name] = {"status": "running", "agent": child.name}
+
+            # Fire on_dispatch middleware hook
+            mw_hooks = _middleware_dispatch_hooks.get()
+            if mw_hooks:
+                await mw_hooks.on_dispatch(ctx, task_name, child.name)
 
         # Return immediately — pipeline continues without waiting
         return
@@ -3002,6 +3031,14 @@ class JoinAgent(BaseAgent):
             if name and name in handles:
                 handles[name]["status"] = "timed_out"
 
+        # Fire on_join middleware hook
+        task_to_name = {v: k for k, v in to_wait.items()}
+        joined = [task_to_name[t] for t in done if not t.cancelled() and t.exception() is None]
+        timed_out = [task_to_name[t] for t in pending]
+        mw_hooks = _middleware_dispatch_hooks.get()
+        if mw_hooks:
+            await mw_hooks.on_join(ctx, joined, timed_out)
+
         # Remove joined tasks from registry
         for name in to_wait:
             tasks.pop(name, None)
@@ -3021,6 +3058,7 @@ def dispatch(
     on_complete: Callable | None = None,
     on_error: Callable | None = None,
     progress_key: str | None = None,
+    task_budget: int | None = None,
 ) -> BuilderBase:
     """Dispatch agents as background tasks. Pipeline continues immediately.
 
@@ -3036,7 +3074,7 @@ def dispatch(
         else:
             task_names.append(f"task_{i}")
     name = f"dispatch_{next(_dispatch_counter)}"
-    return _DispatchBuilder(name, list(agents), tuple(task_names), on_complete, on_error, progress_key)
+    return _DispatchBuilder(name, list(agents), tuple(task_names), on_complete, on_error, progress_key, task_budget)
 
 
 def join(
@@ -3071,6 +3109,7 @@ class _DispatchBuilder(BuilderBase):
         on_complete: Callable | None,
         on_error: Callable | None,
         progress_key: str | None,
+        task_budget: int | None = None,
     ):
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list] = {}
@@ -3080,6 +3119,12 @@ class _DispatchBuilder(BuilderBase):
         self._on_complete = on_complete
         self._on_error = on_error
         self._progress_key = progress_key
+        self._task_budget = task_budget
+
+    def task_budget(self, n: int) -> Self:
+        """Set the max concurrent tasks for this dispatch (and nested dispatches)."""
+        self._task_budget = n
+        return self
 
     def _fork_for_operator(self) -> Self:
         clone = super()._fork_for_operator()
@@ -3088,6 +3133,7 @@ class _DispatchBuilder(BuilderBase):
         clone._on_complete = self._on_complete
         clone._on_error = self._on_error
         clone._progress_key = self._progress_key
+        clone._task_budget = self._task_budget
         return clone
 
     def build(self):
@@ -3105,6 +3151,7 @@ class _DispatchBuilder(BuilderBase):
             on_complete=self._on_complete,
             on_error=self._on_error,
             progress_key=self._progress_key,
+            task_budget=self._task_budget,
         )
 
     def to_ir(self):

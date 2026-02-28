@@ -409,6 +409,8 @@ __all__ = [
     "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
+    "DispatchLogMiddleware",
+    "get_execution_mode",
     "review_loop",
     "map_reduce",
     "cascade",
@@ -475,6 +477,7 @@ from ._base import DispatchAgent
 from ._base import JoinAgent
 from ._base import dispatch
 from ._base import join
+from ._base import get_execution_mode
 from ._ir import DispatchNode
 from ._ir import JoinNode
 from .source import Source
@@ -598,6 +601,7 @@ from .middleware import Middleware
 from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
 from .middleware import StructuredLogMiddleware
+from .middleware import DispatchLogMiddleware
 from .patterns import review_loop
 from .patterns import map_reduce
 from .patterns import cascade
