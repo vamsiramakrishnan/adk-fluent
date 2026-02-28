@@ -1,0 +1,39 @@
+name: Release Checklist
+description: Track steps for a new release (maintainers only)
+labels: ["release", "chore"]
+assignees:
+  - vamsiramakrishnan
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Release Checklist
+
+        Use this issue to track all steps for a release.
+        Only maintainers should create this issue.
+
+  - type: input
+    id: version
+    attributes:
+      label: Target Version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Steps
+      options:
+        - label: "Update `src/adk_fluent/_version.py` to the target version"
+        - label: "Run `just scan seed generate` against the target ADK version"
+        - label: "Run `just test` — all tests pass"
+        - label: "Run `just typecheck` and `just typecheck-core` — no errors"
+        - label: "Update `ADK_VERSION` in `.github/workflows/ci.yml`"
+        - label: "Update `CHANGELOG.md` — move `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD`"
+        - label: "Update `SECURITY.md` supported versions table"
+        - label: "Create PR, get approval, merge to master"
+        - label: "Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`"
+        - label: "Verify CI publishes to PyPI successfully"
+        - label: "Verify `pip install adk-fluent==X.Y.Z` works"
+        - label: "Create GitHub Release from the tag (release-drafter draft)"
