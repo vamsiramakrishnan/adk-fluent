@@ -16,7 +16,7 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 """
 
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
-from adk_fluent._base import expect, gate, map_over, race, tap, until
+from adk_fluent._base import dispatch, expect, gate, join, map_over, race, tap, until
 from adk_fluent._transforms import STransform
 from adk_fluent.patterns import (
     cascade,
@@ -27,6 +27,8 @@ from adk_fluent.patterns import (
     review_loop,
     supervised,
 )
+from adk_fluent.source import Inbox, Source
+from adk_fluent.stream import StreamRunner
 
 __all__ = [
     # Tier 1: Core builders
@@ -46,6 +48,8 @@ __all__ = [
     "gate",
     "race",
     "expect",
+    "dispatch",
+    "join",
     "STransform",
     # Tier 4: Patterns
     "review_loop",
@@ -55,4 +59,8 @@ __all__ = [
     "map_reduce",
     "conditional",
     "supervised",
+    # Tier 5: Stream execution
+    "Source",
+    "Inbox",
+    "StreamRunner",
 ]

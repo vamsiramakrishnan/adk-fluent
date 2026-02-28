@@ -6,6 +6,7 @@ import asyncio as _asyncio
 import itertools
 import types
 from collections.abc import AsyncGenerator, Callable
+from contextvars import ContextVar
 from typing import Any, Self
 
 from google.adk.agents.base_agent import BaseAgent
@@ -19,6 +20,8 @@ __all__ = [
     "map_over",
     "gate",
     "race",
+    "dispatch",
+    "join",
     "FnAgent",
     "TapAgent",
     "CaptureAgent",
@@ -27,7 +30,20 @@ __all__ = [
     "TimeoutAgent",
     "GateAgent",
     "RaceAgent",
+    "DispatchAgent",
+    "JoinAgent",
 ]
+
+# ---------------------------------------------------------------------------
+# Dispatch/Join: per-invocation task tracking via ContextVar
+# ---------------------------------------------------------------------------
+# ContextVar auto-scopes to the execution context (per runner invocation).
+# asyncio.create_task() propagates contextvars to child tasks, so nested
+# dispatch chains each get their own scope (copy-on-write semantics).
+_dispatch_tasks: ContextVar[dict[str, _asyncio.Task] | None] = ContextVar("_dispatch_tasks", default=None)
+# Global task budget: shared semaphore across ALL dispatch levels to prevent
+# exponential task explosion in deep dispatch chains (dispatch→dispatch→dispatch).
+_global_task_budget: ContextVar[_asyncio.Semaphore | None] = ContextVar("_global_task_budget", default=None)
 
 
 # ======================================================================
@@ -1544,6 +1560,31 @@ class BuilderBase:
         name = f"{my_name}_timeout_{next(_timeout_counter)}"
         return _TimeoutBuilder(name, self, seconds)
 
+    def dispatch(
+        self,
+        *,
+        name: str | None = None,
+        on_complete: Callable | None = None,
+        on_error: Callable | None = None,
+        progress_key: str | None = None,
+    ) -> BuilderBase:
+        """Wrap this builder as a background dispatch task.
+
+        Works on ANY builder (Agent, Pipeline, FanOut, Loop).
+        Returns a _DispatchBuilder that fires this builder as a background
+        task and continues the pipeline immediately.
+
+        .. note:: Returns a new **_DispatchBuilder**, not self.
+
+        Usage:
+            bg_email = email_agent.dispatch(name="email")
+            bg_pipeline = (researcher >> analyzer).dispatch(name="analysis")
+            workflow = writer >> bg_email >> bg_pipeline >> join()
+        """
+        task_name = name or self._config.get("name", f"task_{next(_dispatch_counter)}")
+        builder_name = f"dispatch_{task_name}"
+        return _DispatchBuilder(builder_name, [self], (task_name,), on_complete, on_error, progress_key)
+
     # ------------------------------------------------------------------
     # Task 7: Presets (.use())
     # ------------------------------------------------------------------
@@ -2769,3 +2810,352 @@ class RaceAgent(BaseAgent):
             for task in tasks:
                 if not task.done():
                     task.cancel()
+
+
+# ======================================================================
+# Dispatch/Join: fire-and-continue background execution
+# ======================================================================
+
+_DEFAULT_TASK_BUDGET = 50
+
+
+class DispatchAgent(BaseAgent):
+    """Launches sub-agents as background tasks, returns immediately.
+
+    Tasks are tracked via ContextVar so JoinAgent can await them later.
+    A global task budget (asyncio.Semaphore) prevents exponential
+    explosion in deep dispatch chains (dispatch→dispatch→dispatch).
+    """
+
+    _task_names: tuple[str, ...]
+    _on_complete: Callable | None
+    _on_error: Callable | None
+    _progress_key: str | None
+
+    def __init__(
+        self,
+        *,
+        task_names: tuple[str, ...] = (),
+        on_complete: Callable | None = None,
+        on_error: Callable | None = None,
+        progress_key: str | None = None,
+        **kwargs: Any,
+    ):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_task_names", task_names)
+        object.__setattr__(self, "_on_complete", on_complete)
+        object.__setattr__(self, "_on_error", on_error)
+        object.__setattr__(self, "_progress_key", progress_key)
+
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
+        import asyncio
+
+        # Get or initialize per-invocation task registry
+        tasks = _dispatch_tasks.get()
+        if tasks is None:
+            tasks = {}
+            _dispatch_tasks.set(tasks)
+
+        # Get or initialize global task budget (shared across dispatch depths)
+        budget = _global_task_budget.get()
+        if budget is None:
+            budget = asyncio.Semaphore(_DEFAULT_TASK_BUDGET)
+            _global_task_budget.set(budget)
+
+        for i, child in enumerate(self.sub_agents):
+            task_name = self._task_names[i] if i < len(self._task_names) else child.name
+
+            # Capture loop vars
+            _child = child
+            _name = task_name
+            _on_complete = self._on_complete
+            _on_error = self._on_error
+            _progress_key = self._progress_key
+
+            async def _run_child(agent=_child, tname=_name, on_ok=_on_complete, on_err=_on_error, pkey=_progress_key):
+                await budget.acquire()
+                try:
+                    events = []
+                    last_text = ""
+                    async for event in agent.run_async(ctx):
+                        events.append(event)
+                        # Stream partial results if progress_key set
+                        if pkey and event.content and event.content.parts:
+                            for part in event.content.parts:
+                                if part.text:
+                                    last_text = part.text
+                                    ctx.session.state[pkey] = last_text
+
+                    # Store final result in state
+                    if last_text:
+                        results = ctx.session.state.get("_dispatch_results")
+                        if results is None:
+                            results = {}
+                            ctx.session.state["_dispatch_results"] = results
+                        results[tname] = last_text
+
+                    # Update handle status
+                    handles = ctx.session.state.get("_dispatch_handles")
+                    if handles and tname in handles:
+                        handles[tname]["status"] = "completed"
+
+                    if on_ok:
+                        on_ok(tname, last_text)
+
+                    return events
+                except Exception as exc:
+                    handles = ctx.session.state.get("_dispatch_handles")
+                    if handles and tname in handles:
+                        handles[tname]["status"] = "error"
+                        handles[tname]["error"] = str(exc)
+                    if on_err:
+                        on_err(tname, exc)
+                    raise
+                finally:
+                    budget.release()
+
+            task = asyncio.create_task(_run_child())
+            tasks[task_name] = task
+
+            # Serializable metadata in session state
+            handles = ctx.session.state.get("_dispatch_handles")
+            if handles is None:
+                handles = {}
+                ctx.session.state["_dispatch_handles"] = handles
+            handles[task_name] = {"status": "running", "agent": child.name}
+
+        # Return immediately — pipeline continues without waiting
+        return
+        yield  # async generator protocol
+
+
+class JoinAgent(BaseAgent):
+    """Blocks until dispatched tasks complete, yields their events.
+
+    Supports selective join (by name), timeout, and status reporting
+    via session state.
+    """
+
+    _target_names: tuple[str, ...] | None
+    _timeout: float | None
+
+    def __init__(
+        self,
+        *,
+        target_names: tuple[str, ...] | None = None,
+        timeout: float | None = None,
+        **kwargs: Any,
+    ):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_target_names", target_names)
+        object.__setattr__(self, "_timeout", timeout)
+
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
+        import asyncio
+
+        tasks = _dispatch_tasks.get()
+        if not tasks:
+            return
+            yield  # async generator protocol
+
+        # Select tasks to wait for
+        if self._target_names:
+            to_wait = {k: v for k, v in tasks.items() if k in self._target_names}
+        else:
+            to_wait = dict(tasks)
+
+        if not to_wait:
+            return
+            yield
+
+        # stdlib: asyncio.wait with optional timeout
+        done, pending = await asyncio.wait(
+            to_wait.values(),
+            timeout=self._timeout,
+        )
+
+        # Cancel timed-out tasks
+        for task in pending:
+            task.cancel()
+
+        # Yield events from completed tasks into the main stream
+        for task in done:
+            if not task.cancelled() and task.exception() is None:
+                for event in task.result():
+                    yield event
+
+        # Update session state metadata
+        handles = ctx.session.state.get("_dispatch_handles", {})
+        task_to_name = {v: k for k, v in to_wait.items()}
+        for task in done:
+            name = task_to_name.get(task)
+            if name and name in handles:
+                if task.cancelled():
+                    handles[name]["status"] = "cancelled"
+                elif task.exception():
+                    handles[name]["status"] = "error"
+                    handles[name]["error"] = str(task.exception())
+                else:
+                    handles[name]["status"] = "completed"
+        for task in pending:
+            name = task_to_name.get(task)
+            if name and name in handles:
+                handles[name]["status"] = "timed_out"
+
+        # Remove joined tasks from registry
+        for name in to_wait:
+            tasks.pop(name, None)
+
+
+# ======================================================================
+# Dispatch/Join builders
+# ======================================================================
+
+_dispatch_counter = itertools.count(1)
+_join_counter = itertools.count(1)
+
+
+def dispatch(
+    *agents,
+    names: list[str] | None = None,
+    on_complete: Callable | None = None,
+    on_error: Callable | None = None,
+    progress_key: str | None = None,
+) -> BuilderBase:
+    """Dispatch agents as background tasks. Pipeline continues immediately.
+
+    Usage:
+        writer >> dispatch(email_sender, audit_logger) >> formatter >> join()
+    """
+    task_names = []
+    for i, a in enumerate(agents):
+        if names and i < len(names):
+            task_names.append(names[i])
+        elif hasattr(a, "_config"):
+            task_names.append(a._config.get("name", f"task_{i}"))
+        else:
+            task_names.append(f"task_{i}")
+    name = f"dispatch_{next(_dispatch_counter)}"
+    return _DispatchBuilder(name, list(agents), tuple(task_names), on_complete, on_error, progress_key)
+
+
+def join(
+    *names: str,
+    timeout: float | None = None,
+) -> BuilderBase:
+    """Wait for dispatched background tasks to complete.
+
+    Usage:
+        join()                  # wait for all dispatched tasks
+        join("email")           # wait only for the "email" task
+        join("a", "b")          # wait for tasks "a" and "b"
+        join(timeout=30)        # wait max 30s, continue with whatever completed
+    """
+    target_names = tuple(names) if names else None
+    name = f"join_{next(_join_counter)}"
+    return _JoinBuilder(name, target_names, timeout)
+
+
+class _DispatchBuilder(BuilderBase):
+    """Builder for fire-and-continue dispatch."""
+
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(
+        self,
+        name: str,
+        agents: list,
+        task_names: tuple[str, ...],
+        on_complete: Callable | None,
+        on_error: Callable | None,
+        progress_key: str | None,
+    ):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._agents = agents
+        self._task_names = task_names
+        self._on_complete = on_complete
+        self._on_error = on_error
+        self._progress_key = progress_key
+
+    def _fork_for_operator(self) -> Self:
+        clone = super()._fork_for_operator()
+        clone._agents = list(self._agents)
+        clone._task_names = self._task_names
+        clone._on_complete = self._on_complete
+        clone._on_error = self._on_error
+        clone._progress_key = self._progress_key
+        return clone
+
+    def build(self):
+        built_agents = []
+        for a in self._agents:
+            if isinstance(a, BuilderBase):
+                built_agents.append(a.build())
+            else:
+                built_agents.append(a)
+
+        return DispatchAgent(
+            name=self._config["name"],
+            sub_agents=built_agents,
+            task_names=self._task_names,
+            on_complete=self._on_complete,
+            on_error=self._on_error,
+            progress_key=self._progress_key,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import DispatchNode
+
+        children = tuple(a.to_ir() if isinstance(a, BuilderBase) else a for a in self._agents)
+        return DispatchNode(
+            name=self._config.get("name", "dispatch"),
+            children=children,
+            task_names=self._task_names,
+            progress_key=self._progress_key,
+        )
+
+
+class _JoinBuilder(BuilderBase):
+    """Builder for dispatch synchronization barrier."""
+
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+
+    def __init__(
+        self,
+        name: str,
+        target_names: tuple[str, ...] | None,
+        timeout: float | None,
+    ):
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list] = {}
+        self._lists: dict[str, list] = {}
+        self._target_names = target_names
+        self._timeout = timeout
+
+    def _fork_for_operator(self) -> Self:
+        clone = super()._fork_for_operator()
+        clone._target_names = self._target_names
+        clone._timeout = self._timeout
+        return clone
+
+    def build(self):
+        return JoinAgent(
+            name=self._config["name"],
+            target_names=self._target_names,
+            timeout=self._timeout,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import JoinNode
+
+        return JoinNode(
+            name=self._config.get("name", "join"),
+            target_names=self._target_names,
+            timeout=self._timeout,
+        )
