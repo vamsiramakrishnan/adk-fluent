@@ -322,6 +322,7 @@ __all__ = [
     "CFromAgentsWindowed",
     "CUser",
     "CManusCascade",
+    "CWhen",
     "_compile_context_spec",
     "SessionStrategy",
     "ExecutionMode",
@@ -377,6 +378,7 @@ __all__ = [
     "MComposite",
     "MiddlewareSchema",
     "PredicateSchema",
+    "evaluate_predicate",
     "_FnStepBuilder",
     "_CaptureBuilder",
     "_FallbackBuilder",
@@ -541,6 +543,7 @@ from ._context import CRolling
 from ._context import CFromAgentsWindowed
 from ._context import CUser
 from ._context import CManusCascade
+from ._context import CWhen
 from ._context import _compile_context_spec
 from ._enums import SessionStrategy
 from ._enums import ExecutionMode
@@ -596,6 +599,7 @@ from ._middleware import M
 from ._middleware import MComposite
 from ._middleware_schema import MiddlewareSchema
 from ._predicate_schema import PredicateSchema
+from ._predicate_utils import evaluate_predicate
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
 from ._primitive_builders import _CaptureBuilder

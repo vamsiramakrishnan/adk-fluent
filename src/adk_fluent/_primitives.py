@@ -30,10 +30,13 @@ __all__ = [
     "RaceAgent",
     "DispatchAgent",
     "JoinAgent",
+    "_LoopHookAgent",
+    "_FanOutHookAgent",
     "get_execution_mode",
     "_dispatch_tasks",
     "_global_task_budget",
     "_middleware_dispatch_hooks",
+    "_topology_hooks",
     "_execution_mode",
     "_DEFAULT_MAX_TASKS",
 ]
@@ -46,18 +49,22 @@ __all__ = [
 # dispatch chains each get their own scope (copy-on-write semantics).
 _dispatch_tasks: ContextVar[dict[str, _asyncio.Task] | None] = ContextVar("_dispatch_tasks", default=None)
 # Global task budget: shared semaphore across ALL dispatch levels to prevent
-# exponential task explosion in deep dispatch chains (dispatch→dispatch→dispatch).
+# exponential task explosion in deep dispatch chains (dispatch->dispatch->dispatch).
 _global_task_budget: ContextVar[_asyncio.Semaphore | None] = ContextVar("_global_task_budget", default=None)
 
 
 # ---------------------------------------------------------------------------
-# Typed protocol for middleware dispatch hooks
+# Typed protocol for middleware dispatch hooks (v1 compat)
 # ---------------------------------------------------------------------------
 
 
 @runtime_checkable
 class DispatchHooks(Protocol):
-    """Protocol for middleware dispatch/join lifecycle hooks."""
+    """Protocol for middleware dispatch/join lifecycle hooks.
+
+    Deprecated: use ``TopologyHooks`` from ``middleware.py`` instead.
+    Kept for backward compat -- ``_middleware_dispatch_hooks`` still works.
+    """
 
     async def on_dispatch(self, ctx: Any, task_name: str, agent_name: str) -> None: ...
     async def on_task_complete(self, ctx: Any, task_name: str, result: str) -> None: ...
@@ -65,8 +72,15 @@ class DispatchHooks(Protocol):
     async def on_join(self, ctx: Any, joined: list[str], timed_out: list[str]) -> None: ...
 
 
-# Middleware hooks for dispatch/join lifecycle, set by _MiddlewarePlugin.
+# Deprecated: use _topology_hooks instead.  Kept as backward compat alias.
 _middleware_dispatch_hooks: ContextVar[DispatchHooks | None] = ContextVar("_middleware_dispatch_hooks", default=None)
+
+# Canonical topology hooks ContextVar -- set by _MiddlewarePlugin.
+# Import from middleware.py at module level would create circular import,
+# so we define our own and middleware.py also defines one. The _MiddlewarePlugin
+# sets BOTH ContextVars in before_run_callback.
+_topology_hooks: ContextVar[Any | None] = ContextVar("_topology_hooks", default=None)
+
 # Execution mode: "pipeline" (default), "dispatched", or "stream".
 _execution_mode: ContextVar[str] = ContextVar("_execution_mode", default="pipeline")
 
@@ -80,6 +94,14 @@ def get_execution_mode() -> ExecutionMode:
     return ExecutionMode(_execution_mode.get("pipeline"))
 
 
+def _get_topology_hooks() -> Any | None:
+    """Get topology hooks, preferring _topology_hooks over deprecated alias."""
+    hooks = _topology_hooks.get()
+    if hooks is not None:
+        return hooks
+    return _middleware_dispatch_hooks.get()
+
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -87,7 +109,7 @@ def get_execution_mode() -> ExecutionMode:
 _DEFAULT_MAX_TASKS = 50
 """Default maximum concurrent dispatch tasks across all levels."""
 
-# Deprecated alias — will be removed in a future release.
+# Deprecated alias -- will be removed in a future release.
 _DEFAULT_TASK_BUDGET = _DEFAULT_MAX_TASKS
 
 
@@ -124,7 +146,7 @@ class FnAgent(BaseAgent):
             for k, v in result.items():
                 ctx.session.state[k] = v
         return
-        yield  # noqa: RET504 — required for async generator protocol
+        yield  # noqa: RET504 -- required for async generator protocol
 
 
 class FallbackAgent(BaseAgent):
@@ -132,11 +154,18 @@ class FallbackAgent(BaseAgent):
 
     async def _run_async_impl(self, ctx):
         last_exc = None
-        for child in self.sub_agents:
+        for attempt, child in enumerate(self.sub_agents):
+            # Fire topology hook
+            hooks = _get_topology_hooks()
+            if hooks:
+                fn = getattr(hooks, "on_fallback_attempt", None)
+                if fn is not None:
+                    await fn(ctx, self.name, child.name, attempt, last_exc)
+
             try:
                 async for event in child.run_async(ctx):
                     yield event
-                return  # success — stop trying
+                return  # success -- stop trying
             except Exception as exc:
                 last_exc = exc
                 continue
@@ -154,10 +183,10 @@ class TapAgent(BaseAgent):
         object.__setattr__(self, "_fn_ref", fn)
 
     async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
-        # Pass read-only view — tap should never mutate state
+        # Pass read-only view -- tap should never mutate state
         self._fn_ref(types.MappingProxyType(dict(ctx.session.state)))
         return
-        yield  # noqa: RET504 — required for async generator protocol
+        yield  # noqa: RET504 -- required for async generator protocol
 
 
 class CaptureAgent(BaseAgent):
@@ -178,7 +207,7 @@ class CaptureAgent(BaseAgent):
                     ctx.session.state[self._capture_key] = "\n".join(texts)
                     break
         return
-        yield  # noqa: RET504 — required for async generator protocol
+        yield  # noqa: RET504 -- required for async generator protocol
 
 
 class MapOverAgent(BaseAgent):
@@ -240,7 +269,20 @@ class TimeoutAgent(BaseAgent):
                 yield item
         except TimeoutError:
             task.cancel()
+            # Fire topology hook
+            hooks = _get_topology_hooks()
+            if hooks:
+                fn = getattr(hooks, "on_timeout", None)
+                if fn is not None:
+                    await fn(ctx, self.name, self._seconds, True)
             raise
+        else:
+            # Completed without timeout -- fire hook with timed_out=False
+            hooks = _get_topology_hooks()
+            if hooks:
+                fn = getattr(hooks, "on_timeout", None)
+                if fn is not None:
+                    await fn(ctx, self.name, self._seconds, False)
         finally:
             if not task.done():
                 task.cancel()
@@ -324,6 +366,80 @@ class RaceAgent(BaseAgent):
 
 
 # ======================================================================
+# Topology Hook Agents (injected by backend during compilation)
+# ======================================================================
+
+
+class _LoopHookAgent(BaseAgent):
+    """Zero-cost agent injected at the start of each loop iteration.
+
+    Reads _topology_hooks ContextVar and fires on_loop_iteration.
+    Tracks iteration count via a mutable dict (survives ADK state resets).
+    If LoopDirective(break_loop=True) is returned, yields escalate event.
+    """
+
+    _loop_name: str
+    _iteration_counter: dict[str, int]
+
+    def __init__(self, *, loop_name: str, **kwargs: Any):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_loop_name", loop_name)
+        object.__setattr__(self, "_iteration_counter", {"n": 0})
+
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
+        from google.adk.events.event_actions import EventActions
+
+        iteration = self._iteration_counter["n"]
+        self._iteration_counter["n"] += 1
+
+        hooks = _get_topology_hooks()
+        if hooks:
+            fn = getattr(hooks, "on_loop_iteration", None)
+            if fn is not None:
+                directive = await fn(ctx, self._loop_name, iteration)
+                # Check for LoopDirective(break_loop=True)
+                if directive is not None and getattr(directive, "break_loop", False):
+                    yield Event(
+                        invocation_id=ctx.invocation_id,
+                        author=self.name,
+                        branch=ctx.branch,
+                        actions=EventActions(escalate=True),
+                    )
+                    return
+        return
+        yield  # noqa: RET504 -- required for async generator protocol
+
+
+class _FanOutHookAgent(BaseAgent):
+    """Zero-cost agent injected before/after parallel execution.
+
+    Fires on_fanout_start or on_fanout_complete based on ``phase``.
+    """
+
+    _fanout_name: str
+    _branch_names: list[str]
+    _phase: str  # "start" or "complete"
+
+    def __init__(self, *, fanout_name: str, branch_names: list[str], phase: str, **kwargs: Any):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_fanout_name", fanout_name)
+        object.__setattr__(self, "_branch_names", branch_names)
+        object.__setattr__(self, "_phase", phase)
+
+    async def _run_async_impl(self, ctx) -> AsyncGenerator[Event, None]:
+        hooks = _get_topology_hooks()
+        if hooks:
+            if self._phase == "start":
+                fn = getattr(hooks, "on_fanout_start", None)
+            else:
+                fn = getattr(hooks, "on_fanout_complete", None)
+            if fn is not None:
+                await fn(ctx, self._fanout_name, self._branch_names)
+        return
+        yield  # noqa: RET504 -- required for async generator protocol
+
+
+# ======================================================================
 # Dispatch/Join: fire-and-continue background execution
 # ======================================================================
 
@@ -333,7 +449,7 @@ class DispatchAgent(BaseAgent):
 
     Tasks are tracked via ContextVar so JoinAgent can await them later.
     A global task budget (asyncio.Semaphore) prevents exponential
-    explosion in deep dispatch chains (dispatch→dispatch→dispatch).
+    explosion in deep dispatch chains (dispatch->dispatch->dispatch).
     """
 
     _task_names: tuple[str, ...]
@@ -350,7 +466,7 @@ class DispatchAgent(BaseAgent):
         max_tasks: int | None = None,
         on_complete: Callable | None = None,
         on_error: Callable | None = None,
-        # Deprecated aliases — accept but forward
+        # Deprecated aliases -- accept but forward
         progress_key: str | None = None,
         task_budget: int | None = None,
         **kwargs: Any,
@@ -380,6 +496,21 @@ class DispatchAgent(BaseAgent):
 
         for i, child in enumerate(self.sub_agents):
             task_name = self._task_names[i] if i < len(self._task_names) else child.name
+
+            # Fire on_dispatch topology hook (may return DispatchDirective)
+            hooks = _get_topology_hooks()
+            if hooks:
+                fn = getattr(hooks, "on_dispatch", None)
+                if fn is not None:
+                    directive = await fn(ctx, task_name, child.name)
+                    # Check for DispatchDirective
+                    if directive is not None:
+                        if getattr(directive, "cancel", False):
+                            continue  # skip this dispatch
+                        inject = getattr(directive, "inject_state", None)
+                        if inject:
+                            for k, v in inject.items():
+                                ctx.session.state[k] = v
 
             # Capture loop vars
             _child = child
@@ -420,9 +551,11 @@ class DispatchAgent(BaseAgent):
                         on_ok(tname, last_text)
 
                     # Fire middleware hook
-                    mw_hooks = _middleware_dispatch_hooks.get()
+                    mw_hooks = _get_topology_hooks()
                     if mw_hooks:
-                        await mw_hooks.on_task_complete(ctx, tname, last_text)
+                        fn = getattr(mw_hooks, "on_task_complete", None)
+                        if fn is not None:
+                            await fn(ctx, tname, last_text)
 
                     return events
                 except Exception as exc:
@@ -433,9 +566,11 @@ class DispatchAgent(BaseAgent):
                     if on_err:
                         on_err(tname, exc)
                     # Fire middleware hook
-                    mw_hooks = _middleware_dispatch_hooks.get()
+                    mw_hooks = _get_topology_hooks()
                     if mw_hooks:
-                        await mw_hooks.on_task_error(ctx, tname, exc)
+                        fn = getattr(mw_hooks, "on_task_error", None)
+                        if fn is not None:
+                            await fn(ctx, tname, exc)
                     raise
                 finally:
                     budget.release()
@@ -450,14 +585,9 @@ class DispatchAgent(BaseAgent):
                 ctx.session.state["_dispatch_status"] = status
             status[task_name] = {"status": "running", "agent": child.name}
 
-            # Fire on_dispatch middleware hook
-            mw_hooks = _middleware_dispatch_hooks.get()
-            if mw_hooks:
-                await mw_hooks.on_dispatch(ctx, task_name, child.name)
-
-        # Return immediately — pipeline continues without waiting
+        # Return immediately -- pipeline continues without waiting
         return
-        yield  # noqa: RET504 — required for async generator protocol
+        yield  # noqa: RET504 -- required for async generator protocol
 
 
 class JoinAgent(BaseAgent):
@@ -487,7 +617,7 @@ class JoinAgent(BaseAgent):
         tasks = _dispatch_tasks.get()
         if not tasks:
             return
-            yield  # noqa: RET504 — required for async generator protocol
+            yield  # noqa: RET504 -- required for async generator protocol
 
         # Select tasks to wait for
         if self._target_names:
@@ -497,7 +627,7 @@ class JoinAgent(BaseAgent):
 
         if not to_wait:
             return
-            yield  # noqa: RET504 — required for async generator protocol
+            yield  # noqa: RET504 -- required for async generator protocol
 
         # stdlib: asyncio.wait with optional timeout
         done, pending = await asyncio.wait(
@@ -534,12 +664,14 @@ class JoinAgent(BaseAgent):
             if name and name in status_map:
                 status_map[name]["status"] = "timed_out"
 
-        # Fire on_join middleware hook
+        # Fire on_join topology hook
         joined = [task_to_name[t] for t in done if not t.cancelled() and t.exception() is None]
         timed_out = [task_to_name[t] for t in pending]
-        mw_hooks = _middleware_dispatch_hooks.get()
-        if mw_hooks:
-            await mw_hooks.on_join(ctx, joined, timed_out)
+        hooks = _get_topology_hooks()
+        if hooks:
+            fn = getattr(hooks, "on_join", None)
+            if fn is not None:
+                await fn(ctx, joined, timed_out)
 
         # Remove joined tasks from registry
         for name in to_wait:

@@ -36,22 +36,36 @@ def test_compile_sequence_node(backend):
 
 def test_compile_parallel_node(backend):
     from google.adk.agents.parallel_agent import ParallelAgent
+    from google.adk.agents.sequential_agent import SequentialAgent
 
     children = (AgentNode(name="a"), AgentNode(name="b"))
     node = ParallelNode(name="fan", children=children)
     result = backend.compile(node)
     agent = result.root_agent
-    assert isinstance(agent, ParallelAgent)
+    # ParallelNode compiles to a SequentialAgent sandwich with fanout hook agents
+    assert isinstance(agent, SequentialAgent)
+    assert agent.name == "_fan_observed"
+    # Middle sub-agent is the actual ParallelAgent
+    assert isinstance(agent.sub_agents[1], ParallelAgent)
+    assert agent.sub_agents[1].name == "fan"
+    assert len(agent.sub_agents[1].sub_agents) == 2
 
 
 def test_compile_loop_node(backend):
     from google.adk.agents.loop_agent import LoopAgent
+
+    from adk_fluent._primitives import _LoopHookAgent
 
     body = AgentNode(name="step")
     node = LoopNode(name="loop", children=(body,), max_iterations=3)
     result = backend.compile(node)
     agent = result.root_agent
     assert isinstance(agent, LoopAgent)
+    # Loop hook agent is prepended as first sub-agent
+    assert isinstance(agent.sub_agents[0], _LoopHookAgent)
+    assert agent.sub_agents[0].name == "_loop_hook"
+    # Original children follow
+    assert agent.sub_agents[1].name == "step"
 
 
 def test_compile_transform_node(backend):

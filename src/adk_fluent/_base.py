@@ -1669,13 +1669,21 @@ class BuilderBase:
     def middleware(self, mw) -> Self:
         """Attach a middleware to this builder.
 
+        Accepts raw middleware instances or ``MComposite`` chains
+        (from ``M.retry(3) | M.log()``).
+
         Middleware is app-global -- it applies to the entire execution,
         not just this agent. When to_app() is called, all middleware
         from the builder chain is collected and compiled into a plugin.
         """
+        from adk_fluent._middleware import MComposite
+
         if not hasattr(self, "_middlewares"):
             self._middlewares = []
-        self._middlewares.append(mw)
+        if isinstance(mw, MComposite):
+            self._middlewares.extend(mw.to_stack())
+        else:
+            self._middlewares.append(mw)
         return self
 
     def produces(self, schema: type) -> Self:

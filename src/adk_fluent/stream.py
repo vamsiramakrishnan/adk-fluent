@@ -152,8 +152,17 @@ class StreamRunner:
         return self.max_tasks(n)
 
     def middleware(self, mw: Any) -> StreamRunner:
-        """Add middleware for stream execution observability."""
-        self._middlewares.append(mw)
+        """Add middleware for stream execution observability.
+
+        Accepts raw middleware instances or ``MComposite`` chains
+        (from ``M.retry(3) | M.log()``).
+        """
+        from adk_fluent._middleware import MComposite
+
+        if isinstance(mw, MComposite):
+            self._middlewares.extend(mw.to_stack())
+        else:
+            self._middlewares.append(mw)
         return self
 
     def graceful_shutdown(self, timeout: float = 30) -> StreamRunner:
@@ -206,6 +215,12 @@ class StreamRunner:
                 original_handlers[sig] = loop.add_signal_handler(sig, self._stop_event.set)
 
         try:
+            # Fire on_stream_start middleware hook
+            source_info = {"concurrency": self._concurrency, "max_tasks": self._max_tasks}
+            for mw in all_mw:
+                hook = getattr(mw, "on_stream_start", None)
+                if hook:
+                    await hook(None, source_info)
 
             async def _process(item: str) -> None:
                 from adk_fluent._primitives import _execution_mode
@@ -213,6 +228,14 @@ class StreamRunner:
                 _execution_mode.set("stream")
                 async with sem:
                     self.stats.in_flight += 1
+
+                    # Fire on_backpressure if at concurrency limit
+                    if self.stats.in_flight >= self._concurrency:
+                        for mw in all_mw:
+                            bp_hook = getattr(mw, "on_backpressure", None)
+                            if bp_hook:
+                                await bp_hook(None, self.stats.in_flight, self._concurrency)
+
                     result_text: str | None = None
                     error: Exception | None = None
                     try:
@@ -262,6 +285,12 @@ class StreamRunner:
                         task.cancel()
 
         finally:
+            # Fire on_stream_end middleware hook
+            for mw in all_mw:
+                hook = getattr(mw, "on_stream_end", None)
+                if hook:
+                    await hook(None, self.stats)
+
             # Restore original signal handlers
             for sig in original_handlers:
                 with contextlib.suppress(NotImplementedError, OSError):

@@ -429,13 +429,43 @@ class LlmAgentConfig(BuilderBase):
         return self
 
     def input_schema(self, value: CodeConfig | None) -> Self:
-        """Schema defining the expected input structure when this agent is invoked as a tool by another agent. When another agent invokes this agent via ``AgentTool``, the calling agent's arguments are validated against this Pydantic model. Irrelevant for top-level agents. Prefer ``.accepts(Model)`` for clarity."""
+        """Schema defining the expected input structure when this agent is invoked as a tool by another agent.
+
+        When another agent invokes this agent via ``AgentTool``, the calling
+        agent's arguments are validated against this Pydantic model. Irrelevant
+        for top-level agents — only for agents that serve as tools.
+
+        .. note::
+
+           Prefer ``.accepts(Model)`` over this method for clarity.
+           ``.accepts()`` is the recommended alias on BuilderBase.
+
+           - ``.accepts(Model)`` → tool-mode input validation (same as this)
+           - ``.consumes(Model)`` → contract annotation (no runtime effect)
+        """
         self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
         return self
 
     def output_schema(self, value: CodeConfig | None) -> Self:
-        """Force the LLM to respond with structured JSON matching a Pydantic model. When set, the agent replies only with data matching this schema and cannot use tools. Prefer ``.returns(Model)`` or ``@ Model`` — they set the same constraint AND enable automatic parsing in ``.ask()``."""
+        """Force the LLM to respond with structured JSON matching a Pydantic model.
+
+        When set, the agent replies **only** with JSON data conforming to
+        this schema. The agent **cannot use tools** while ``output_schema``
+        is active.
+
+        .. note::
+
+           Prefer ``.returns(Model)`` or ``@ Model`` over this method.
+           ``.returns()`` sets the same ADK constraint AND automatically
+           parses the response in ``.ask()`` calls. This method sets the
+           raw ADK field without automatic parsing.
+
+           - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
+           - ``.output_schema(Model)`` → LLM constraint only (raw field)
+           - ``.writes(key)`` → stores text in state (no format constraint)
+           - ``.produces(Model)`` → contract annotation (no runtime effect)
+        """
         self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
         return self

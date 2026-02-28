@@ -224,10 +224,12 @@ class ADKBackend:
         return SequentialAgent(**kwargs)
 
     def _compile_parallel(self, node: ParallelNode) -> Any:
-        """ParallelNode -> ParallelAgent."""
+        """ParallelNode -> ParallelAgent, wrapped with fanout hook agents."""
         from google.adk.agents.parallel_agent import ParallelAgent
+        from google.adk.agents.sequential_agent import SequentialAgent
 
         from adk_fluent._base import _compose_callbacks
+        from adk_fluent._primitives import _FanOutHookAgent
 
         kwargs: dict[str, Any] = {
             "name": node.name,
@@ -240,17 +242,43 @@ class ADKBackend:
             if cb_fns:
                 kwargs[cb_field] = _compose_callbacks(list(cb_fns))
 
-        return ParallelAgent(**kwargs)
+        parallel = ParallelAgent(**kwargs)
+
+        # Wrap with fanout hook agents for topology observability
+        branch_names = [c.name for c in node.children]
+        start_hook = _FanOutHookAgent(
+            name=f"_{node.name}_start",
+            fanout_name=node.name,
+            branch_names=branch_names,
+            phase="start",
+        )
+        end_hook = _FanOutHookAgent(
+            name=f"_{node.name}_end",
+            fanout_name=node.name,
+            branch_names=branch_names,
+            phase="complete",
+        )
+        return SequentialAgent(
+            name=f"_{node.name}_observed",
+            sub_agents=[start_hook, parallel, end_hook],
+        )
 
     def _compile_loop(self, node: LoopNode) -> Any:
-        """LoopNode -> LoopAgent."""
+        """LoopNode -> LoopAgent, with loop hook agent prepended."""
         from google.adk.agents.loop_agent import LoopAgent
 
         from adk_fluent._base import _compose_callbacks
+        from adk_fluent._primitives import _LoopHookAgent
+
+        children = self._compile_children(node.children)
+
+        # Inject loop hook agent as first sub_agent for topology observability
+        hook_agent = _LoopHookAgent(name=f"_{node.name}_hook", loop_name=node.name)
+        children = [hook_agent] + children
 
         kwargs: dict[str, Any] = {
             "name": node.name,
-            "sub_agents": self._compile_children(node.children),
+            "sub_agents": children,
         }
         if node.description:
             kwargs["description"] = node.description
