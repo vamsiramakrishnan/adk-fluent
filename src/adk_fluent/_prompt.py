@@ -842,19 +842,7 @@ def _compile_pipe_static(pipe: PPipe, state: dict[str, Any]) -> str:
     return source_text
 
 
-def _evaluate_predicate(predicate: Any, state: dict[str, Any]) -> bool:
-    """Evaluate a PWhen predicate against state."""
-    if predicate is None:
-        return False
-    if isinstance(predicate, str):
-        return bool(state.get(predicate))
-    if callable(predicate):
-        try:
-            return bool(predicate(state))
-        except Exception:
-            _log.warning("PWhen predicate raised an exception; treating as False")
-            return False
-    return bool(predicate)
+from adk_fluent._predicate_utils import evaluate_predicate as _evaluate_predicate  # noqa: E402
 
 
 def _resolve_from_state(keys: tuple[str, ...], state: dict[str, Any]) -> str:

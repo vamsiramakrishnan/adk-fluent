@@ -520,24 +520,30 @@ class S:
         return STransform(_identity, reads=frozenset(), writes=frozenset(), name="identity")
 
     @staticmethod
-    def when(predicate: Callable[[dict], bool], transform: STransform) -> STransform:
+    def when(predicate: Callable[[dict], bool] | str, transform: STransform) -> STransform:
         """Conditional transform. Applies transform only if predicate(state) is truthy.
 
-        >>> S.when(lambda s: s.get("verbose"), S.log("score"))
-        >>> S.when(lambda s: "draft" in s, S.rename(draft="input"))
+        String predicate is a shortcut for state key check::
+
+            S.when("verbose", S.log("score"))   # apply if state["verbose"] truthy
+            S.when(lambda s: "draft" in s, S.rename(draft="input"))
         """
+        from adk_fluent._predicate_utils import evaluate_predicate
 
         def _when(state: dict) -> StateDelta | StateReplacement:
-            try:
-                if predicate(state):
-                    return transform(state)
-            except (KeyError, TypeError, ValueError):
-                pass
+            if evaluate_predicate(predicate, state):
+                return transform(state)
             return StateDelta({})
+
+        reads = _merge_keysets(None, transform._reads_keys)  # predicate reads opaque
+        if isinstance(predicate, str):
+            # String predicate reads a known key — merge it in
+            pred_reads = frozenset({predicate})
+            reads = _merge_keysets(pred_reads, transform._reads_keys)
 
         return STransform(
             _when,
-            reads=_merge_keysets(None, transform._reads_keys),  # predicate reads opaque
+            reads=reads,
             writes=transform._writes_keys,
             name=f"when_{transform.__name__}",
         )

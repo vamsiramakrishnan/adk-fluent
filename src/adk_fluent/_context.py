@@ -71,6 +71,7 @@ __all__ = [
     "CFromAgentsWindowed",
     "CUser",
     "CManusCascade",
+    "CWhen",
     "_compile_context_spec",
 ]
 
@@ -137,6 +138,35 @@ class CPipe(CTransform):
     def __post_init__(self) -> None:
         object.__setattr__(self, "include_contents", "none")
         object.__setattr__(self, "instruction_provider", _make_pipe_provider(self.source, self.transform))
+
+
+# ======================================================================
+# Conditional
+# ======================================================================
+
+
+@dataclass(frozen=True)
+class CWhen(CTransform):
+    """Conditional context inclusion.
+
+    Include the wrapped block only if the predicate evaluates to truthy
+    at runtime. When ``predicate`` is a string, it is treated as a
+    state key check: include when ``state[key]`` is truthy.
+
+    PredicateSchema classes work via the callable path.
+    """
+
+    predicate: Any = None
+    block: CTransform | None = None
+    _kind: str = "when"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "include_contents", "none")
+        object.__setattr__(
+            self,
+            "instruction_provider",
+            _make_when_provider(self.predicate, self.block),
+        )
 
 
 # ======================================================================
@@ -876,6 +906,22 @@ def _fingerprint_events(events: list) -> str:
 # ======================================================================
 # Composition provider factories
 # ======================================================================
+
+
+def _make_when_provider(predicate: Any, block: CTransform | None) -> Callable:
+    """Create a provider that conditionally includes a block's output."""
+    from adk_fluent._predicate_utils import evaluate_predicate
+
+    async def _provider(ctx: Any) -> str:
+        state = dict(ctx.state) if hasattr(ctx, "state") else {}
+        if not evaluate_predicate(predicate, state):
+            return ""
+        if block is None or block.instruction_provider is None:
+            return ""
+        return await block.instruction_provider(ctx)
+
+    _provider.__name__ = "when"
+    return _provider
 
 
 def _make_composite_provider(blocks: tuple[CTransform, ...]) -> Callable:
@@ -2135,6 +2181,17 @@ class C:
         from adk_fluent._transforms import S
 
         return S.capture(key)
+
+    @staticmethod
+    def when(predicate: Callable | str, block: CTransform) -> CWhen:
+        """Include block only if predicate is truthy at runtime.
+
+        String predicate is a shortcut for state key check::
+
+            C.when("has_history", C.rolling("conversation"))
+            C.when(lambda s: s.get("debug"), C.notes("debug_scratchpad"))
+        """
+        return CWhen(predicate=predicate, block=block)
 
     @staticmethod
     def select(

@@ -244,6 +244,20 @@ def test_when_exception_safe():
     assert result.updates == {}
 
 
+def test_when_string_key():
+    """S.when() accepts string shortcut for state key check."""
+    t = S.when("verbose", S.set(debug=True))
+    # Key present and truthy
+    result = t({"verbose": True})
+    assert result.updates == {"debug": True}
+    # Key present but falsy
+    result = t({"verbose": False})
+    assert result.updates == {}
+    # Key missing
+    result = t({})
+    assert result.updates == {}
+
+
 # ======================================================================
 # S.branch() — routing transforms
 # ======================================================================
