@@ -2,25 +2,22 @@
 
 import pytest  # noqa: F401 (used inside test methods)
 
-from adk_fluent.plugin import (
-    AgentSimulatorPlugin,
-    BasePlugin,
-    BigQueryAgentAnalyticsPlugin,
-    ContextFilterPlugin,
-    DebugLoggingPlugin,
-    GlobalInstructionPlugin,
-    LoggingPlugin,
-    MultimodalToolResultsPlugin,
-    RecordingsPlugin,
-    ReflectAndRetryToolPlugin,
-    ReplayPlugin,
-    SaveFilesAsArtifactsPlugin,
-)
+from adk_fluent.plugin import AgentSimulatorPlugin
+from adk_fluent.plugin import BasePlugin
+from adk_fluent.plugin import BigQueryAgentAnalyticsPlugin
+from adk_fluent.plugin import ContextFilterPlugin
+from adk_fluent.plugin import DebugLoggingPlugin
+from adk_fluent.plugin import GlobalInstructionPlugin
+from adk_fluent.plugin import LoggingPlugin
+from adk_fluent.plugin import MultimodalToolResultsPlugin
+from adk_fluent.plugin import RecordingsPlugin
+from adk_fluent.plugin import ReflectAndRetryToolPlugin
+from adk_fluent.plugin import ReplayPlugin
+from adk_fluent.plugin import SaveFilesAsArtifactsPlugin
 
 
 class TestRecordingsPluginBuilder:
     """Tests for RecordingsPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = RecordingsPlugin()
@@ -48,7 +45,6 @@ class TestRecordingsPluginBuilder:
 
 class TestReplayPluginBuilder:
     """Tests for ReplayPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = ReplayPlugin()
@@ -76,51 +72,48 @@ class TestReplayPluginBuilder:
 
 class TestBasePluginBuilder:
     """Tests for BasePlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BasePlugin("test_name")
+        builder = BasePlugin('test_name')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BasePlugin("test_name")
+        builder = BasePlugin('test_name')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
 
 class TestBigQueryAgentAnalyticsPluginBuilder:
     """Tests for BigQueryAgentAnalyticsPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
+        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
     def test_chaining_returns_self(self):
         """.table_id() returns the builder instance for chaining."""
-        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
+        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
         result = builder.table_id("test_value")
         assert result is builder
 
     def test_config_accumulation(self):
         """Setting .table_id() stores the value in builder._config."""
-        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
+        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
         builder.table_id("test_value")
         assert builder._config["table_id"] == "test_value"
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
+        builder = BigQueryAgentAnalyticsPlugin('test_project_id', 'test_dataset_id', 'test_kwargs')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")
 
 
 class TestContextFilterPluginBuilder:
     """Tests for ContextFilterPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = ContextFilterPlugin()
@@ -148,7 +141,6 @@ class TestContextFilterPluginBuilder:
 
 class TestDebugLoggingPluginBuilder:
     """Tests for DebugLoggingPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = DebugLoggingPlugin()
@@ -176,7 +168,6 @@ class TestDebugLoggingPluginBuilder:
 
 class TestGlobalInstructionPluginBuilder:
     """Tests for GlobalInstructionPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = GlobalInstructionPlugin()
@@ -204,7 +195,6 @@ class TestGlobalInstructionPluginBuilder:
 
 class TestLoggingPluginBuilder:
     """Tests for LoggingPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = LoggingPlugin()
@@ -232,7 +222,6 @@ class TestLoggingPluginBuilder:
 
 class TestMultimodalToolResultsPluginBuilder:
     """Tests for MultimodalToolResultsPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = MultimodalToolResultsPlugin()
@@ -260,7 +249,6 @@ class TestMultimodalToolResultsPluginBuilder:
 
 class TestReflectAndRetryToolPluginBuilder:
     """Tests for ReflectAndRetryToolPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = ReflectAndRetryToolPlugin()
@@ -288,7 +276,6 @@ class TestReflectAndRetryToolPluginBuilder:
 
 class TestSaveFilesAsArtifactsPluginBuilder:
     """Tests for SaveFilesAsArtifactsPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
         builder = SaveFilesAsArtifactsPlugin()
@@ -316,15 +303,14 @@ class TestSaveFilesAsArtifactsPluginBuilder:
 
 class TestAgentSimulatorPluginBuilder:
     """Tests for AgentSimulatorPlugin builder mechanics (no .build() calls)."""
-
     def test_builder_creation(self):
         """Builder constructor stores args in _config."""
-        builder = AgentSimulatorPlugin("test_simulator_engine")
+        builder = AgentSimulatorPlugin('test_simulator_engine')
         assert builder is not None
         assert isinstance(builder._config, dict)
 
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
-        builder = AgentSimulatorPlugin("test_simulator_engine")
+        builder = AgentSimulatorPlugin('test_simulator_engine')
         with pytest.raises(AttributeError, match="not a recognized parameter"):
             builder.zzz_not_a_real_field("oops")

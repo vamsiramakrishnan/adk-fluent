@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
+from typing import TYPE_CHECKING
 
 from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
 from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
@@ -30,7 +31,6 @@ if TYPE_CHECKING:
 
 class BaseArtifactService(BuilderBase):
     """Abstract base class for artifact services."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -51,11 +51,10 @@ class BaseArtifactService(BuilderBase):
 
 class FileArtifactService(BuilderBase):
     """Stores filesystem-backed artifacts beneath a configurable root directory."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"root_dir"}
+    _KNOWN_PARAMS: set[str] | None = {'root_dir'}
 
     def __init__(self, root_dir: str) -> None:
         self._config: dict[str, Any] = {"root_dir": root_dir}
@@ -72,11 +71,10 @@ class FileArtifactService(BuilderBase):
 
 class GcsArtifactService(BuilderBase):
     """An artifact service implementation using Google Cloud Storage (GCS)."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"bucket_name"}
+    _KNOWN_PARAMS: set[str] | None = {'bucket_name'}
 
     def __init__(self, bucket_name: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"bucket_name": bucket_name, "kwargs": kwargs}
@@ -93,7 +91,6 @@ class GcsArtifactService(BuilderBase):
 
 class InMemoryArtifactService(BuilderBase):
     """An in-memory implementation of the artifact service."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -120,11 +117,10 @@ class InMemoryArtifactService(BuilderBase):
 
 class PerAgentDatabaseSessionService(BuilderBase):
     """Routes session storage to per-agent `.adk/session.db` files."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"agents_root", "app_name_to_dir"}
+    _KNOWN_PARAMS: set[str] | None = {'agents_root', 'app_name_to_dir'}
 
     def __init__(self, agents_root: str) -> None:
         self._config: dict[str, Any] = {"agents_root": agents_root}
@@ -147,7 +143,6 @@ class PerAgentDatabaseSessionService(BuilderBase):
 
 class BaseMemoryService(BuilderBase):
     """Base class for memory services."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -168,7 +163,6 @@ class BaseMemoryService(BuilderBase):
 
 class InMemoryMemoryService(BuilderBase):
     """An in-memory memory service for prototyping purpose only."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -189,11 +183,10 @@ class InMemoryMemoryService(BuilderBase):
 
 class VertexAiMemoryBankService(BuilderBase):
     """Implementation of the BaseMemoryService using Vertex AI Memory Bank."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "location", "project"}
+    _KNOWN_PARAMS: set[str] | None = {'agent_engine_id', 'express_mode_api_key', 'location', 'project'}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -234,11 +227,10 @@ class VertexAiMemoryBankService(BuilderBase):
 
 class VertexAiRagMemoryService(BuilderBase):
     """A memory service that uses Vertex AI RAG for storage and retrieval."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"rag_corpus", "similarity_top_k", "vector_distance_threshold"}
+    _KNOWN_PARAMS: set[str] | None = {'rag_corpus', 'similarity_top_k', 'vector_distance_threshold'}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -273,7 +265,6 @@ class VertexAiRagMemoryService(BuilderBase):
 
 class BaseSessionService(BuilderBase):
     """Base class for session services."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -294,11 +285,10 @@ class BaseSessionService(BuilderBase):
 
 class DatabaseSessionService(BuilderBase):
     """A session service that uses a database for storage."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"db_url"}
+    _KNOWN_PARAMS: set[str] | None = {'db_url'}
 
     def __init__(self, db_url: str, kwargs: str) -> None:
         self._config: dict[str, Any] = {"db_url": db_url, "kwargs": kwargs}
@@ -315,7 +305,6 @@ class DatabaseSessionService(BuilderBase):
 
 class InMemorySessionService(BuilderBase):
     """An in-memory implementation of the session service."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -336,11 +325,10 @@ class InMemorySessionService(BuilderBase):
 
 class SqliteSessionService(BuilderBase):
     """A session service that uses an SQLite database for storage via aiosqlite."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"db_path"}
+    _KNOWN_PARAMS: set[str] | None = {'db_path'}
 
     def __init__(self, db_path: str) -> None:
         self._config: dict[str, Any] = {"db_path": db_path}
@@ -357,11 +345,10 @@ class SqliteSessionService(BuilderBase):
 
 class VertexAiSessionService(BuilderBase):
     """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "location", "project"}
+    _KNOWN_PARAMS: set[str] | None = {'agent_engine_id', 'express_mode_api_key', 'location', 'project'}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -402,11 +389,10 @@ class VertexAiSessionService(BuilderBase):
 
 class ForwardingArtifactService(BuilderBase):
     """Artifact service that forwards to the parent tool context."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"tool_context"}
+    _KNOWN_PARAMS: set[str] | None = {'tool_context'}
 
     def __init__(self, tool_context: str) -> None:
         self._config: dict[str, Any] = {"tool_context": tool_context}

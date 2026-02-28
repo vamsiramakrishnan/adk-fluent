@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Self
 
 from google.adk.planners.base_planner import BasePlanner as _ADK_BasePlanner
 from google.adk.planners.built_in_planner import BuiltInPlanner as _ADK_BuiltInPlanner
@@ -15,7 +15,6 @@ from adk_fluent._base import BuilderBase
 
 class BasePlanner(BuilderBase):
     """Abstract base class for all planners."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
@@ -36,11 +35,10 @@ class BasePlanner(BuilderBase):
 
 class BuiltInPlanner(BuilderBase):
     """The built-in planner that uses model's built-in thinking features."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"thinking_config"}
+    _KNOWN_PARAMS: set[str] | None = {'thinking_config'}
 
     def __init__(self, thinking_config: str) -> None:
         self._config: dict[str, Any] = {"thinking_config": thinking_config}
@@ -57,7 +55,6 @@ class BuiltInPlanner(BuilderBase):
 
 class PlanReActPlanner(BuilderBase):
     """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation."""
-
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
