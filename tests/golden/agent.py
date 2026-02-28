@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents import LlmAgent
 
@@ -18,9 +17,10 @@ if TYPE_CHECKING:
 
 class Agent(BuilderBase):
     """An agent powered by a large language model."""
-    _ALIASES: dict[str, str] = {'describe': 'description', 'instruct': 'instruction'}
-    _CALLBACK_ALIASES: dict[str, str] = {'before_model': 'before_model_callback'}
-    _ADDITIVE_FIELDS: set[str] = {'before_model_callback'}
+
+    _ALIASES: dict[str, str] = {"describe": "description", "instruct": "instruction"}
+    _CALLBACK_ALIASES: dict[str, str] = {"before_model": "before_model_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"before_model_callback"}
     _ADK_TARGET_CLASS = LlmAgent
 
     def __init__(self, name: str) -> None:
