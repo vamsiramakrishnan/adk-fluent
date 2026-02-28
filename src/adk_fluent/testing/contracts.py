@@ -2,7 +2,7 @@
 
 Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 
-**Sequence passes (13 total):**
+**Sequence passes (14 total):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
@@ -33,6 +33,9 @@ Checks SequenceNode, ParallelNode, and LoopNode IR trees:
     that ``reads_keys()`` from ToolSchema, CallbackSchema, and PredicateSchema
     are produced by upstream agents.  Also promotes schema ``writes_keys()``
     so downstream consumers can depend on them.
+14. **MiddlewareSchema dependency validation** -- checks that scoped middleware
+    ``reads_keys()`` are produced by upstream agents at the target agent's position.
+    Promotes middleware ``writes_keys()`` so downstream consumers can depend on them.
 
 **Parallel checks:**
 - Write isolation: two branches should not write to the same output_key
@@ -138,12 +141,15 @@ def _get_transform_reads(child: Any) -> set[str] | None:
 # ======================================================================
 
 
-def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str, str] | str]:
+def _check_sequence_contracts(
+    children: tuple, scope: str = "", middlewares: tuple | list = ()
+) -> list[dict[str, str] | str]:
     """Check contracts on an ordered sequence of children.
 
     Args:
         children: Tuple of IR nodes in sequence order.
         scope: Optional prefix for nested scopes (e.g., "loop.body").
+        middlewares: Optional middleware instances to validate (Pass 14).
 
     Returns:
         List of issues (str or dict).
@@ -659,6 +665,80 @@ def _check_sequence_contracts(children: tuple, scope: str = "") -> list[dict[str
             if schema is not None and hasattr(schema, "writes_keys"):
                 schema_available |= schema.writes_keys()
 
+    # =================================================================
+    # Pass 14: MiddlewareSchema dependency validation
+    # =================================================================
+    if middlewares:
+        # Build available-keys map at each agent position
+        mw_available: dict[str, set[str]] = {}
+        mw_cumulative: set[str] = set()
+
+        for child in children:
+            child_name = getattr(child, "name", "?")
+            mw_available[child_name] = set(mw_cumulative)
+            # Accumulate keys from this child
+            ok = getattr(child, "output_key", None)
+            if ok:
+                mw_cumulative.add(ok)
+            writes = getattr(child, "writes_keys", frozenset())
+            if writes:
+                mw_cumulative |= writes
+            for sa in ("tool_schema", "callback_schema"):
+                s = getattr(child, sa, None)
+                if s is not None and hasattr(s, "writes_keys"):
+                    mw_cumulative |= s.writes_keys()
+
+        # Check each scoped middleware
+        for mw in middlewares:
+            agents_scope = getattr(mw, "agents", None)
+            schema_cls = getattr(mw, "schema", None)
+            if agents_scope is None or schema_cls is None:
+                continue
+            if not hasattr(schema_cls, "reads_keys"):
+                continue
+
+            # Normalize target agents
+            if isinstance(agents_scope, str):
+                target_names = (agents_scope,)
+            elif isinstance(agents_scope, tuple):
+                target_names = agents_scope
+            else:
+                continue  # regex/callable scopes can't be statically resolved
+
+            schema_reads = schema_cls.reads_keys()
+            schema_writes = schema_cls.writes_keys() if hasattr(schema_cls, "writes_keys") else frozenset()
+
+            for target in target_names:
+                if target not in mw_available:
+                    continue  # agent not in this pipeline
+                available = mw_available[target]
+                missing = schema_reads - available
+                for key in sorted(missing):
+                    issues.append(
+                        {
+                            "level": "warning",
+                            "agent": _scoped(target),
+                            "message": (
+                                f"MiddlewareSchema reads key '{key}' but it is not produced by any upstream agent"
+                            ),
+                            "hint": (
+                                f"Add .save_as('{key}') to an upstream agent "
+                                f"or use S.set() / S.capture() to provide this key."
+                            ),
+                        }
+                    )
+
+                # Promote middleware writes at this agent's position
+                if schema_writes:
+                    found = False
+                    for child in children:
+                        cn = getattr(child, "name", "?")
+                        if cn == target:
+                            found = True
+                            continue
+                        if found and cn in mw_available:
+                            mw_available[cn] |= schema_writes
+
     return issues
 
 
@@ -777,7 +857,7 @@ def _check_loop_contracts(children: tuple, parent_name: str = "") -> list[dict[s
 def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     """Verify contracts on an IR tree. Dispatches by node type.
 
-    Checks SequenceNode (full 13-pass analysis), ParallelNode (isolation),
+    Checks SequenceNode (full 14-pass analysis), ParallelNode (isolation),
     LoopNode (body sequence validation), and DispatchNode (independent agents).
 
     Returns a list where each item is either:
@@ -790,7 +870,8 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     if isinstance(ir_node, SequenceNode):
         if not ir_node.children:
             return []
-        return _check_sequence_contracts(ir_node.children)
+        middlewares = getattr(ir_node, "middlewares", ())
+        return _check_sequence_contracts(ir_node.children, middlewares=middlewares)
 
     if isinstance(ir_node, ParallelNode):
         if not ir_node.children:

@@ -207,3 +207,124 @@ class TestMWhenPredicateSchema:
 
         result = M.when(lambda: True, Inner())
         assert len(result) == 1
+
+
+class TestContractCheckerPass14:
+    """Pass 14: Middleware schema validation in contract checker."""
+
+    def _make_agent_node(self, name, output_key=None):
+        """Create a minimal AgentNode-like object for testing."""
+        from types import SimpleNamespace
+
+        return SimpleNamespace(
+            name=name,
+            output_key=output_key,
+            tool_schema=None,
+            callback_schema=None,
+            prompt_schema=None,
+            writes_keys=frozenset(),
+            reads_keys=frozenset(),
+            include_contents="default",
+            instruction="",
+            context_spec=None,
+            produces_type=None,
+            consumes_type=None,
+            rules=(),
+            predicate=None,
+        )
+
+    def _make_sequence(self, children, middlewares=()):
+        """Create a SequenceNode with optional middlewares attached."""
+        from adk_fluent._ir_generated import SequenceNode
+
+        node = SequenceNode(name="test_seq", children=tuple(children))
+        # SequenceNode is frozen and has no middlewares field;
+        # attach it via object.__setattr__ so getattr() finds it.
+        object.__setattr__(node, "middlewares", tuple(middlewares))
+        return node
+
+    def test_scoped_middleware_reads_satisfied(self):
+        """Scoped middleware whose reads are produced upstream: no warnings."""
+        from adk_fluent._middleware_schema import MiddlewareSchema
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsResult(MiddlewareSchema):
+            result: Annotated[str, Reads()]
+
+        class MyMW:
+            agents = "reviewer"
+            schema = NeedsResult
+
+        producer = self._make_agent_node("writer", output_key="result")
+        consumer = self._make_agent_node("reviewer")
+        seq = self._make_sequence([producer, consumer], middlewares=[MyMW()])
+
+        issues = check_contracts(seq)
+        mw_issues = [i for i in issues if isinstance(i, dict) and "MiddlewareSchema" in i.get("message", "")]
+        assert len(mw_issues) == 0
+
+    def test_scoped_middleware_reads_unsatisfied(self):
+        """Scoped middleware whose reads are NOT produced upstream: warning."""
+        from adk_fluent._middleware_schema import MiddlewareSchema
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsMissing(MiddlewareSchema):
+            missing_key: Annotated[str, Reads()]
+
+        class MyMW:
+            agents = "reviewer"
+            schema = NeedsMissing
+
+        producer = self._make_agent_node("writer", output_key="result")
+        consumer = self._make_agent_node("reviewer")
+        seq = self._make_sequence([producer, consumer], middlewares=[MyMW()])
+
+        issues = check_contracts(seq)
+        mw_issues = [i for i in issues if isinstance(i, dict) and "MiddlewareSchema" in i.get("message", "")]
+        assert len(mw_issues) == 1
+        assert "missing_key" in mw_issues[0]["message"]
+
+    def test_unscoped_middleware_skipped(self):
+        """Middleware without agents scope: no validation."""
+        from adk_fluent._middleware_schema import MiddlewareSchema
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsMissing(MiddlewareSchema):
+            missing_key: Annotated[str, Reads()]
+
+        class GlobalMW:
+            schema = NeedsMissing
+
+        agent = self._make_agent_node("writer")
+        seq = self._make_sequence([agent], middlewares=[GlobalMW()])
+
+        issues = check_contracts(seq)
+        mw_issues = [i for i in issues if isinstance(i, dict) and "MiddlewareSchema" in i.get("message", "")]
+        assert len(mw_issues) == 0
+
+    def test_middleware_writes_promoted(self):
+        """Scoped middleware writes become available to downstream middleware."""
+        from adk_fluent._middleware_schema import MiddlewareSchema
+        from adk_fluent.testing.contracts import check_contracts
+
+        class WriterSchema(MiddlewareSchema):
+            enriched: Annotated[str, Writes()]
+
+        class WriterMW:
+            agents = "enricher"
+            schema = WriterSchema
+
+        class ReaderSchema(MiddlewareSchema):
+            enriched: Annotated[str, Reads()]
+
+        class ReaderMW:
+            agents = "consumer"
+            schema = ReaderSchema
+
+        enricher = self._make_agent_node("enricher")
+        consumer = self._make_agent_node("consumer")
+        seq = self._make_sequence([enricher, consumer], middlewares=[WriterMW(), ReaderMW()])
+
+        issues = check_contracts(seq)
+        mw_issues = [i for i in issues if isinstance(i, dict) and "MiddlewareSchema" in i.get("message", "")]
+        assert len(mw_issues) == 0
