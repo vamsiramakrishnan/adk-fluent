@@ -12,6 +12,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Pin the ADK version to match the committed manifest.json.
+  # This ensures CI is hermetic — `just scan` in CI installs the same ADK
+  # that generated the committed manifest.  Bump this when updating the manifest.
+  ADK_VERSION: "1.25.0"
+
 jobs:
   # ---------------------------------------------------------------------------
   # LINT — pre-commit on hand-written files only (generated files excluded)
@@ -133,7 +139,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # ---------------------------------------------------------------------------
-  # BUILD — produces the wheel and sdist
+  # BUILD — produces the wheel and sdist, then smoke-tests the wheel
   # ---------------------------------------------------------------------------
   build:
     needs: [lint, check-gen, typecheck, test]
@@ -157,16 +163,46 @@ jobs:
       - name: Build package
         run: uv build
 
-      - uses: actions/upload-artifact@v7
+      - name: Smoke-test wheel install
+        run: |
+          uv venv /tmp/smoke-venv
+          VIRTUAL_ENV=/tmp/smoke-venv uv pip install dist/*.whl
+          /tmp/smoke-venv/bin/python -c "
+          from adk_fluent import Agent, Pipeline, FanOut, Loop
+          from adk_fluent._version import __version__
+          a = Agent('smoke-test').instruct('hello')
+          print(f'Smoke test passed: adk-fluent v{__version__}')
+          "
+
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
 
   # ---------------------------------------------------------------------------
+  # VERSION CHECK — on tagged releases, assert tag matches _version.py
+  # ---------------------------------------------------------------------------
+  version-check:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches _version.py
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          VERSION=$(python -c "exec(open('src/adk_fluent/_version.py').read()); print(__version__)")
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Tag v$TAG does not match _version.py ($VERSION)"
+            exit 1
+          fi
+          echo "Version check passed: v$TAG == $VERSION"
+
+  # ---------------------------------------------------------------------------
   # PUBLISH — PyPI via Trusted Publishing
   # ---------------------------------------------------------------------------
   publish-pypi:
-    needs: build
+    needs: [build, version-check]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment:

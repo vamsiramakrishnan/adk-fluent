@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://vamsiramakrishnan.github.io/adk-fluent/
+    about: Check the docs before filing — your answer may already be there.
+  - name: Discussions
+    url: https://github.com/vamsiramakrishnan/adk-fluent/discussions
+    about: Ask questions and share ideas in Discussions (not Issues).
+  - name: Google ADK Issues
+    url: https://github.com/google/adk-python/issues
+    about: For bugs in the upstream google-adk package itself.

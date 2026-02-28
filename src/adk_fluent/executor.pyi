@@ -3,7 +3,9 @@ Generated from google-adk 1.25.0 (manifest 64f69f672b0d)"""
 
 from typing import Any, Self
 
-from google.adk.code_executors.agent_engine_sandbox_code_executor import AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor
+from google.adk.code_executors.agent_engine_sandbox_code_executor import (
+    AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
+)
 from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
 from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
 from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor
@@ -23,7 +25,6 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
     def code_block_delimiter(self, value: tuple[str, str]) -> Self: ...
     def build(self) -> _ADK_AgentEngineSandboxCodeExecutor: ...
 
-
 class BaseCodeExecutor(BuilderBase):
     """Abstract base class for all code executors."""
     def __init__(self) -> None: ...
@@ -34,7 +35,6 @@ class BaseCodeExecutor(BuilderBase):
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self: ...
     def code_block_delimiter(self, value: tuple[str, str]) -> Self: ...
     def build(self) -> _ADK_BaseCodeExecutor: ...
-
 
 class BuiltInCodeExecutor(BuilderBase):
     """A code executor that uses the Model's built-in code executor."""
@@ -47,7 +47,6 @@ class BuiltInCodeExecutor(BuilderBase):
     def code_block_delimiter(self, value: tuple[str, str]) -> Self: ...
     def build(self) -> _ADK_BuiltInCodeExecutor: ...
 
-
 class UnsafeLocalCodeExecutor(BuilderBase):
     """A code executor that unsafely execute code in the current local context."""
     def __init__(self) -> None: ...
@@ -58,7 +57,6 @@ class UnsafeLocalCodeExecutor(BuilderBase):
     def execution_result_delimiters(self, value: tuple[str, str]) -> Self: ...
     def code_block_delimiter(self, value: tuple[str, str]) -> Self: ...
     def build(self) -> _ADK_UnsafeLocalCodeExecutor: ...
-
 
 class VertexAiCodeExecutor(BuilderBase):
     """A code executor that uses Vertex Code Interpreter Extension to execute code."""

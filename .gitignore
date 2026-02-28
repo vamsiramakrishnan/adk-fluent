@@ -9,6 +9,7 @@ dist/
 docs/_build/
 manifest.json
 manifest.previous.json
+.hypothesis/
 .worktrees/
 .gemini
 .claude

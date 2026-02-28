@@ -1,0 +1,24 @@
+# Optional: install scripts/ as a proper package for cleaner imports.
+#
+# This eliminates sys.path hacks in generator/__init__.py. To use:
+#
+#   uv pip install -e ./scripts
+#
+# After that, `from code_ir import ...`, `from generator import ...`, and
+# `from seed_generator import ...` work anywhere without path manipulation.
+#
+# This is NOT required — the existing sys.path setup in generator/__init__.py
+# works fine for normal development and CI.  This is for IDE ergonomics.
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "adk-fluent-scripts"
+version = "0.0.0"
+description = "Internal codegen scripts for adk-fluent (not published)"
+requires-python = ">=3.11"
+
+[tool.hatch.build.targets.wheel]
+packages = ["code_ir", "generator", "seed_generator"]

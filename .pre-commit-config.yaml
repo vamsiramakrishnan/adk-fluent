@@ -1,10 +1,12 @@
 # Generated files are owned by `just generate` — not by pre-commit.
+# Golden files are generator output snapshots — also excluded.
 # The exclude pattern below keeps formatters from touching generated output.
 exclude: |
   (?x)^(
     src/adk_fluent/(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|
     src/adk_fluent/_ir_generated\.py$|
-    tests/generated/
+    tests/generated/|
+    tests/golden/
   )
 
 repos:
