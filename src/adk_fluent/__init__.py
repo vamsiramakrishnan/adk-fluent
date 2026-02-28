@@ -376,7 +376,6 @@ __all__ = [
     "M",
     "MComposite",
     "PredicateSchema",
-    "PromptSchema",
     "_FnStepBuilder",
     "_CaptureBuilder",
     "_FallbackBuilder",
@@ -418,6 +417,7 @@ __all__ = [
     "PScaffolded",
     "PVersioned",
     "_compile_prompt_spec",
+    "PromptSchema",
     "Route",
     "DeclarativeField",
     "DeclarativeMetaclass",
@@ -594,7 +594,6 @@ from ._ir_generated import FullNode
 from ._middleware import M
 from ._middleware import MComposite
 from ._predicate_schema import PredicateSchema
-from ._prompt_schema import PromptSchema
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
 from ._primitive_builders import _CaptureBuilder
@@ -655,6 +654,7 @@ from ._prompt import PAdapt
 from ._prompt import PScaffolded
 from ._prompt import PVersioned
 from ._prompt import _compile_prompt_spec
+from ._prompt_schema import PromptSchema
 from ._routing import Route
 from ._schema_base import DeclarativeField
 from ._schema_base import DeclarativeMetaclass

@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-25T06:36:32.341777+00:00"
+generated_at = "2026-02-28T17:00:14.517579+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -14,9 +14,39 @@ list_extend_fields = ["after_agent_callbacks", "after_model_callbacks", "after_t
 [field_docs]
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
 disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
-input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent. When another agent invokes this agent via ``AgentTool``, the calling agent's arguments are validated against this Pydantic model. Irrelevant for top-level agents. Prefer ``.accepts(Model)`` for clarity."
+input_schema = """Schema defining the expected input structure when this agent is invoked as a tool by another agent.
+
+When another agent invokes this agent via ``AgentTool``, the calling
+agent's arguments are validated against this Pydantic model. Irrelevant
+for top-level agents — only for agents that serve as tools.
+
+.. note::
+
+   Prefer ``.accepts(Model)`` over this method for clarity.
+   ``.accepts()`` is the recommended alias on BuilderBase.
+
+   - ``.accepts(Model)`` → tool-mode input validation (same as this)
+   - ``.consumes(Model)`` → contract annotation (no runtime effect)
+"""
 output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)`` / ``.writes(key)``."
-output_schema = "Force the LLM to respond with structured JSON matching a Pydantic model. When set, the agent replies only with data matching this schema and cannot use tools. Prefer ``.returns(Model)`` or ``@ Model`` — they set the same constraint AND enable automatic parsing in ``.ask()``."
+output_schema = """Force the LLM to respond with structured JSON matching a Pydantic model.
+
+When set, the agent replies **only** with JSON data conforming to
+this schema. The agent **cannot use tools** while ``output_schema``
+is active.
+
+.. note::
+
+   Prefer ``.returns(Model)`` or ``@ Model`` over this method.
+   ``.returns()`` sets the same ADK constraint AND automatically
+   parses the response in ``.ask()`` calls. This method sets the
+   raw ADK field without automatic parsing.
+
+   - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
+   - ``.output_schema(Model)`` → LLM constraint only (raw field)
+   - ``.writes(key)`` → stores text in state (no format constraint)
+   - ``.produces(Model)`` → contract annotation (no runtime effect)
+"""
 save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."
 
 [builders.ActiveStreamingTool]
@@ -436,6 +466,27 @@ focused = (
 )
 '''
 see_also = ["Agent.isolate", "Agent.stay"]
+
+[[builders.Agent.extras]]
+name = "tool_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach a ToolSchema declaring tool state dependencies."
+behavior = "field_set"
+target_field = "_tool_schema"
+
+[[builders.Agent.extras]]
+name = "callback_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach a CallbackSchema declaring callback state dependencies."
+behavior = "field_set"
+target_field = "_callback_schema"
+
+[[builders.Agent.extras]]
+name = "prompt_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach a PromptSchema declaring prompt state dependencies."
+behavior = "field_set"
+target_field = "_prompt_schema"
 
 [[builders.Agent.extras]]
 name = "to_ir"

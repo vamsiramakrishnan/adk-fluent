@@ -327,6 +327,31 @@ focused = (
 see_also = ["Agent.isolate", "Agent.stay"]
 
 # ---------------------------------------------------------------------------
+# SCHEMA EXTRAS
+# ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "tool_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach a ToolSchema declaring tool state dependencies."
+behavior = "field_set"
+target_field = "_tool_schema"
+
+[[builders.Agent.extras]]
+name = "callback_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach a CallbackSchema declaring callback state dependencies."
+behavior = "field_set"
+target_field = "_callback_schema"
+
+[[builders.Agent.extras]]
+name = "prompt_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach a PromptSchema declaring prompt state dependencies."
+behavior = "field_set"
+target_field = "_prompt_schema"
+
+# ---------------------------------------------------------------------------
 # IR CONVERSION EXTRAS
 # ---------------------------------------------------------------------------
 # These wire to_ir() through the codegen so it survives regeneration.
