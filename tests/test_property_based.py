@@ -68,7 +68,19 @@ class TestClassifierProperties:
         """classify_class always returns one of the known tags."""
         from scripts.seed_generator.classifier import classify_class
 
-        known_tags = {"agent", "runtime", "eval", "auth", "service", "config", "tool", "plugin", "planner", "executor", "data"}
+        known_tags = {
+            "agent",
+            "runtime",
+            "eval",
+            "auth",
+            "service",
+            "config",
+            "tool",
+            "plugin",
+            "planner",
+            "executor",
+            "data",
+        }
         tag = classify_class(name, module, mro)
         assert tag in known_tags, f"Unknown tag: {tag}"
 
@@ -223,10 +235,7 @@ class TestGeneratedCodeProperties:
                     "module": "google.adk.test",
                     "mro_chain": ["TestClass", "BaseModel"],
                     "inspection_mode": "pydantic",
-                    "fields": [
-                        {"name": fn, "type_str": "str", "required": False}
-                        for fn in field_names
-                    ],
+                    "fields": [{"name": fn, "type_str": "str", "required": False} for fn in field_names],
                     "init_params": [],
                     "doc": "Test class.",
                 },

@@ -54,7 +54,7 @@ class GenerationStats:
 
     def print_summary(self, *, verbose: bool = False):
         """Print a human-readable summary to stdout."""
-        print(f"\n  Generation Stats:")
+        print("\n  Generation Stats:")
         print(f"    ADK version:      {self.adk_version}")
         print(f"    Builders:         {self.builder_count}")
         print(f"    Modules:          {self.module_count}")
@@ -68,12 +68,14 @@ class GenerationStats:
         print(f"    Elapsed:          {self.elapsed_seconds:.2f}s")
 
         if verbose:
-            print(f"\n    Builders by module:")
+            print("\n    Builders by module:")
             for mod, count in sorted(self.builders_by_module.items()):
                 print(f"      {mod}: {count}")
 
 
-def _compute_stats(specs: list[BuilderSpec], by_module: dict[str, list[BuilderSpec]], adk_version: str) -> GenerationStats:
+def _compute_stats(
+    specs: list[BuilderSpec], by_module: dict[str, list[BuilderSpec]], adk_version: str
+) -> GenerationStats:
     """Compute generation statistics from resolved specs."""
 
     def _count_forwarded(s: BuilderSpec) -> int:

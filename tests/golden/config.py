@@ -13,6 +13,7 @@ from adk_fluent._base import BuilderBase
 
 class RunConfig(BuilderBase):
     """Configuration for agent runs."""
+
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
