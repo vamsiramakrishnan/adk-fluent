@@ -274,6 +274,9 @@ __all__ = [
     "map_over",
     "gate",
     "race",
+    "dispatch",
+    "join",
+    "get_execution_mode",
     "FnAgent",
     "TapAgent",
     "CaptureAgent",
@@ -284,14 +287,6 @@ __all__ = [
     "RaceAgent",
     "DispatchAgent",
     "JoinAgent",
-    "dispatch",
-    "join",
-    "DispatchNode",
-    "JoinNode",
-    "Source",
-    "Inbox",
-    "StreamRunner",
-    "StreamStats",
     "C",
     "CTransform",
     "CComposite",
@@ -360,6 +355,8 @@ __all__ = [
     "RouteNode",
     "TransferNode",
     "CaptureNode",
+    "DispatchNode",
+    "JoinNode",
     "ExecutionConfig",
     "CompactionConfig",
     "AgentEvent",
@@ -409,6 +406,7 @@ __all__ = [
     "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
+    "DispatchLogMiddleware",
     "review_loop",
     "map_reduce",
     "cascade",
@@ -430,6 +428,8 @@ __all__ = [
     "gate",
     "race",
     "expect",
+    "dispatch",
+    "join",
     "STransform",
     "review_loop",
     "cascade",
@@ -438,7 +438,16 @@ __all__ = [
     "map_reduce",
     "conditional",
     "supervised",
+    "Source",
+    "Inbox",
+    "StreamRunner",
+    "DispatchLogMiddleware",
+    "get_execution_mode",
     "Preset",
+    "Source",
+    "Inbox",
+    "StreamRunner",
+    "StreamStats",
     "Backend",
     "final_text",
     "ADKBackend",
@@ -463,6 +472,9 @@ from ._base import expect
 from ._base import map_over
 from ._base import gate
 from ._base import race
+from ._base import dispatch
+from ._base import join
+from ._base import get_execution_mode
 from ._base import FnAgent
 from ._base import TapAgent
 from ._base import CaptureAgent
@@ -473,14 +485,6 @@ from ._base import GateAgent
 from ._base import RaceAgent
 from ._base import DispatchAgent
 from ._base import JoinAgent
-from ._base import dispatch
-from ._base import join
-from ._ir import DispatchNode
-from ._ir import JoinNode
-from .source import Source
-from .source import Inbox
-from .stream import StreamRunner
-from .stream import StreamStats
 from ._context import C
 from ._context import CTransform
 from ._context import CComposite
@@ -549,6 +553,8 @@ from ._ir import TimeoutNode
 from ._ir import RouteNode
 from ._ir import TransferNode
 from ._ir import CaptureNode
+from ._ir import DispatchNode
+from ._ir import JoinNode
 from ._ir import ExecutionConfig
 from ._ir import CompactionConfig
 from ._ir import AgentEvent
@@ -598,6 +604,7 @@ from .middleware import Middleware
 from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
 from .middleware import StructuredLogMiddleware
+from .middleware import DispatchLogMiddleware
 from .patterns import review_loop
 from .patterns import map_reduce
 from .patterns import cascade
@@ -619,6 +626,8 @@ from .prelude import map_over
 from .prelude import gate
 from .prelude import race
 from .prelude import expect
+from .prelude import dispatch
+from .prelude import join
 from .prelude import STransform
 from .prelude import review_loop
 from .prelude import cascade
@@ -627,7 +636,16 @@ from .prelude import fan_out_merge
 from .prelude import map_reduce
 from .prelude import conditional
 from .prelude import supervised
+from .prelude import Source
+from .prelude import Inbox
+from .prelude import StreamRunner
+from .prelude import DispatchLogMiddleware
+from .prelude import get_execution_mode
 from .presets import Preset
+from .source import Source
+from .source import Inbox
+from .stream import StreamRunner
+from .stream import StreamStats
 from .backends import Backend
 from .backends import final_text
 from .backends.adk import ADKBackend

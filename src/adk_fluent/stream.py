@@ -89,6 +89,8 @@ class StreamRunner:
         # Session caches for "shared" and "keyed" strategies
         self._shared_session: Any = None
         self._keyed_sessions: dict[str, Any] = {}
+        self._task_budget: int = 50
+        self._middlewares: list[Any] = []
 
     # ------------------------------------------------------------------
     # Fluent configuration (each returns self for chaining)
@@ -137,6 +139,16 @@ class StreamRunner:
         self._on_error = fn
         return self
 
+    def task_budget(self, n: int) -> StreamRunner:
+        """Max concurrent dispatch tasks across all stream items (default 50)."""
+        self._task_budget = n
+        return self
+
+    def middleware(self, mw: Any) -> StreamRunner:
+        """Add middleware for stream execution observability."""
+        self._middlewares.append(mw)
+        return self
+
     def graceful_shutdown(self, timeout: float = 30) -> StreamRunner:
         """Max seconds to wait for in-flight items during shutdown."""
         self._shutdown_timeout = timeout
@@ -158,9 +170,21 @@ class StreamRunner:
         from google.adk.runners import InMemoryRunner
         from google.genai import types
 
+        from adk_fluent._base import _global_task_budget
+
         agent = self._builder.build()
         app_name = f"_stream_{agent.name}"
+
+        # Collect middleware from StreamRunner and builder
+        all_mw: list[Any] = list(self._middlewares)
+        builder_mw = getattr(self._builder, "_middlewares", [])
+        if builder_mw:
+            all_mw.extend(builder_mw)
+
         runner = InMemoryRunner(agent=agent, app_name=app_name)
+
+        # Set global task budget for all dispatch agents within this stream
+        _global_task_budget.set(asyncio.Semaphore(self._task_budget))
 
         # stdlib: Semaphore for concurrency, Event for shutdown
         sem = asyncio.Semaphore(self._concurrency)
@@ -177,8 +201,13 @@ class StreamRunner:
         try:
 
             async def _process(item: str) -> None:
+                from adk_fluent._base import _execution_mode
+
+                _execution_mode.set("stream")
                 async with sem:
                     self.stats.in_flight += 1
+                    result_text: str | None = None
+                    error: Exception | None = None
                     try:
                         session = await self._resolve_session(runner, app_name, item)
                         content = types.Content(role="user", parts=[types.Part(text=item)])
@@ -193,14 +222,21 @@ class StreamRunner:
                                     if part.text:
                                         last_text = part.text
                         self.stats.processed += 1
+                        result_text = last_text
                         if self._on_result:
                             self._on_result(item, last_text)
                     except Exception as exc:
                         self.stats.errors += 1
+                        error = exc
                         if self._on_error:
                             self._on_error(item, exc)
                     finally:
                         self.stats.in_flight -= 1
+                        # Fire on_stream_item middleware hook
+                        for mw in all_mw:
+                            hook = getattr(mw, "on_stream_item", None)
+                            if hook:
+                                await hook(None, item, result_text, error)
 
             # Main loop: read source, dispatch tasks with bounded concurrency
             async for item in self._source:

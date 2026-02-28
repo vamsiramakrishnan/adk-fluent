@@ -16,8 +16,9 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 """
 
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
-from adk_fluent._base import dispatch, expect, gate, join, map_over, race, tap, until
+from adk_fluent._base import dispatch, expect, gate, get_execution_mode, join, map_over, race, tap, until
 from adk_fluent._transforms import STransform
+from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
     cascade,
     chain,
@@ -63,4 +64,7 @@ __all__ = [
     "Source",
     "Inbox",
     "StreamRunner",
+    # Tier 6: Observability
+    "DispatchLogMiddleware",
+    "get_execution_mode",
 ]

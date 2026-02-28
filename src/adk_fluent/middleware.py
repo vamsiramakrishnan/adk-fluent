@@ -20,6 +20,7 @@ __all__ = [
     "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
+    "DispatchLogMiddleware",
 ]
 
 
@@ -31,11 +32,13 @@ class Middleware(Protocol):
     Stack execution: in-order, first non-None return short-circuits.
 
     Lifecycle groups:
-        Runner:  on_user_message, before_run, after_run, on_event
-        Agent:   before_agent, after_agent
-        Model:   before_model, after_model, on_model_error
-        Tool:    before_tool, after_tool, on_tool_error
-        Cleanup: close
+        Runner:   on_user_message, before_run, after_run, on_event
+        Agent:    before_agent, after_agent
+        Model:    before_model, after_model, on_model_error
+        Tool:     before_tool, after_tool, on_tool_error
+        Dispatch: on_dispatch, on_task_complete, on_task_error, on_join
+        Stream:   on_stream_item
+        Cleanup:  close
     """
 
     @classmethod
@@ -99,6 +102,30 @@ class Middleware(Protocol):
         """Called when a tool execution fails."""
         return None
 
+    # --- Dispatch lifecycle ---
+
+    async def on_dispatch(self, ctx: Any, task_name: str, agent_name: str) -> None:
+        """Called when a task is dispatched as background."""
+        return None
+
+    async def on_task_complete(self, ctx: Any, task_name: str, result: str) -> None:
+        """Called when a dispatched task completes successfully."""
+        return None
+
+    async def on_task_error(self, ctx: Any, task_name: str, error: Exception) -> None:
+        """Called when a dispatched task fails."""
+        return None
+
+    async def on_join(self, ctx: Any, joined_names: list[str], timed_out_names: list[str]) -> None:
+        """Called after a join completes."""
+        return None
+
+    # --- Stream lifecycle ---
+
+    async def on_stream_item(self, ctx: Any, item: str, result: str | None, error: Exception | None) -> None:
+        """Called after each stream item is processed."""
+        return None
+
     # --- Cleanup ---
 
     async def close(self) -> None:
@@ -157,6 +184,10 @@ class _MiddlewarePlugin(BasePlugin):
         return await self._run_stack("on_user_message", invocation_context, user_message)
 
     async def before_run_callback(self, *, invocation_context):
+        # Make middleware hooks accessible to DispatchAgent/JoinAgent via ContextVar
+        from adk_fluent._base import _middleware_dispatch_hooks
+
+        _middleware_dispatch_hooks.set(self)
         return await self._run_stack("before_run", invocation_context)
 
     async def after_run_callback(self, *, invocation_context):
@@ -219,6 +250,25 @@ class _MiddlewarePlugin(BasePlugin):
             tool_args,
             error,
         )
+
+    # --- Dispatch lifecycle ---
+
+    async def on_dispatch(self, ctx, task_name, agent_name):
+        await self._run_stack_void("on_dispatch", ctx, task_name, agent_name)
+
+    async def on_task_complete(self, ctx, task_name, result):
+        await self._run_stack_void("on_task_complete", ctx, task_name, result)
+
+    async def on_task_error(self, ctx, task_name, error):
+        await self._run_stack_void("on_task_error", ctx, task_name, error)
+
+    async def on_join(self, ctx, joined_names, timed_out_names):
+        await self._run_stack_void("on_join", ctx, joined_names, timed_out_names)
+
+    # --- Stream lifecycle ---
+
+    async def on_stream_item(self, ctx, item, result, error):
+        await self._run_stack_void("on_stream_item", ctx, item, result, error)
 
     # --- Cleanup ---
 
@@ -308,3 +358,72 @@ class StructuredLogMiddleware:
     async def on_tool_error(self, ctx, tool_name, args, error):
         self._record("on_tool_error", tool_name=tool_name, error=str(error))
         return None
+
+
+class DispatchLogMiddleware:
+    """Observability middleware for dispatch/join lifecycle.
+
+    Captures structured logs for dispatch, task completion, task error,
+    and join events.  Access via the ``log`` attribute.
+
+    Usage::
+
+        mw = DispatchLogMiddleware()
+        pipeline = writer >> dispatch(emailer) >> formatter >> join()
+        pipeline.middleware(mw)
+        # After execution: mw.log contains dispatch/join events
+    """
+
+    def __init__(self) -> None:
+        self.log: list[dict] = []
+
+    async def on_dispatch(self, ctx, task_name, agent_name):
+        self.log.append(
+            {
+                "event": "dispatch",
+                "task": task_name,
+                "agent": agent_name,
+                "time": _time.time(),
+            }
+        )
+
+    async def on_task_complete(self, ctx, task_name, result):
+        self.log.append(
+            {
+                "event": "task_complete",
+                "task": task_name,
+                "result_len": len(result) if result else 0,
+                "time": _time.time(),
+            }
+        )
+
+    async def on_task_error(self, ctx, task_name, error):
+        self.log.append(
+            {
+                "event": "task_error",
+                "task": task_name,
+                "error": str(error),
+                "time": _time.time(),
+            }
+        )
+
+    async def on_join(self, ctx, joined, timed_out):
+        self.log.append(
+            {
+                "event": "join",
+                "joined": joined,
+                "timed_out": timed_out,
+                "time": _time.time(),
+            }
+        )
+
+    async def on_stream_item(self, ctx, item, result, error):
+        self.log.append(
+            {
+                "event": "stream_item",
+                "item": item[:200] if item else "",
+                "result_len": len(result) if result else 0,
+                "error": str(error) if error else None,
+                "time": _time.time(),
+            }
+        )
