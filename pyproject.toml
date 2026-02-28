@@ -173,6 +173,10 @@ ignore = [
 "tests/generated/*.py" = ["F811", "E711", "E712", "E731"]
 # Manual tests use lambdas for quick callback stubs
 "tests/**/*.py" = ["E731"]
+# Script sub-package __init__.py files manipulate sys.modules before imports
+"scripts/*/__init__.py" = ["E402"]
+# Golden files are generated snapshots — may reference forward-ref types
+"tests/golden/*.py" = ["F821", "I001"]
 # Examples prioritize readability over import order
 "examples/**/*.py" = ["E402", "I001", "F401", "E721", "B011"]
 

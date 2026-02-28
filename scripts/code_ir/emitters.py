@@ -77,16 +77,43 @@ def _classify_import(line: str) -> int:
 def _sort_and_group_imports(raw_lines: list[str]) -> list[str]:
     """Sort and group imports into future / stdlib / third-party / first-party.
 
+    Merges ``from X import a`` and ``from X import b`` into ``from X import a, b``.
     Produces isort/ruff-compatible import blocks separated by blank lines.
     """
-    groups: dict[int, list[str]] = {0: [], 1: [], 2: [], 3: []}
+    # Phase 1: parse and merge "from M import ..." lines by module
+    # key = (group, module_path), value = set of imported names
+    from_imports: dict[tuple[int, str], set[str]] = {}
+    # Plain "import X" lines (no merging needed)
+    plain_imports: dict[int, list[str]] = {0: [], 1: [], 2: [], 3: []}
+
     for line in raw_lines:
         stripped = line.strip()
         if not stripped:
             continue
         group = _classify_import(stripped)
-        if stripped not in groups[group]:
-            groups[group].append(stripped)
+
+        if stripped.startswith("from ") and " import " in stripped:
+            _, rest = stripped.split("from ", 1)
+            module, names_str = rest.split(" import ", 1)
+            module = module.strip()
+            names = {n.strip() for n in names_str.split(",")}
+            key = (group, module)
+            from_imports.setdefault(key, set()).update(names)
+        else:
+            if stripped not in plain_imports[group]:
+                plain_imports[group].append(stripped)
+
+    # Phase 2: rebuild merged import lines
+    # Sort names to match ruff/isort convention: ALL_CAPS first, then case-insensitive
+    def _isort_name_key(name: str) -> tuple[bool, str]:
+        return (not name.isupper(), name.lower())
+
+    groups: dict[int, list[str]] = {0: [], 1: [], 2: [], 3: []}
+    for (group, module), names in from_imports.items():
+        joined = ", ".join(sorted(names, key=_isort_name_key))
+        groups[group].append(f"from {module} import {joined}")
+    for group, lines in plain_imports.items():
+        groups[group].extend(lines)
 
     # Sort within each group
     for g in groups.values():

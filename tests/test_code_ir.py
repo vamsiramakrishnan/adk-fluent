@@ -165,8 +165,9 @@ def test_emit_python_module():
         ],
     )
     source = emit_python(mod)
-    # Should deduplicate imports
-    assert source.count("from typing import Self") == 1
+    # Should deduplicate and merge imports from the same module
+    assert source.count("from typing import") == 1
+    assert "from typing import Any, Self" in source
     assert "class Agent(BuilderBase):" in source
 
 
