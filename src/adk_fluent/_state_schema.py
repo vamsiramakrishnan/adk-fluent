@@ -379,11 +379,7 @@ def check_state_schema_contracts(
                     upstream_keys.add(ok)
 
             for field in consumes_type._field_list:
-                if (
-                    field.required
-                    and field.full_key not in upstream_keys
-                    and field.name not in upstream_keys
-                ):
+                if field.required and field.full_key not in upstream_keys and field.name not in upstream_keys:
                     issues.append(
                         {
                             "level": "error",
