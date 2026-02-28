@@ -151,7 +151,7 @@ class Agent(BuilderBase):
         return self
 
     def save_as(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."""
+        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."""
         self = self._maybe_fork_for_mutation()
         self._config["output_key"] = value
         return self
@@ -363,13 +363,13 @@ class Agent(BuilderBase):
         return self
 
     def input_schema(self, value: type[BaseModel] | None) -> Self:
-        """Schema defining the expected input structure when this agent is invoked as a tool by another agent."""
+        """Schema defining the expected input structure when this agent is invoked as a tool by another agent. When another agent invokes this agent via ``AgentTool``, the calling agent's arguments are validated against this Pydantic model. Irrelevant for top-level agents. Prefer ``.accepts(Model)`` for clarity."""
         self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
         return self
 
     def output_schema(self, value: type[BaseModel] | None) -> Self:
-        """Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."""
+        """Force the LLM to respond with structured JSON matching a Pydantic model. When set, the agent replies only with data matching this schema and cannot use tools. Prefer ``.returns(Model)`` or ``@ Model`` — they set the same constraint AND enable automatic parsing in ``.ask()``."""
         self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
         return self

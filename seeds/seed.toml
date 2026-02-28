@@ -14,10 +14,10 @@ list_extend_fields = ["after_agent_callbacks", "after_model_callbacks", "after_t
 [field_docs]
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
 disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
-input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent."
-output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)``."
-output_schema = "Pydantic model enforcing structured JSON output. When set, the agent replies only with data matching this schema and cannot use tools. Use the ``@`` operator as shorthand: ``agent @ MyModel``."
-save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``."
+input_schema = "Schema defining the expected input structure when this agent is invoked as a tool by another agent. When another agent invokes this agent via ``AgentTool``, the calling agent's arguments are validated against this Pydantic model. Irrelevant for top-level agents. Prefer ``.accepts(Model)`` for clarity."
+output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)`` / ``.writes(key)``."
+output_schema = "Force the LLM to respond with structured JSON matching a Pydantic model. When set, the agent replies only with data matching this schema and cannot use tools. Prefer ``.returns(Model)`` or ``@ Model`` — they set the same constraint AND enable automatic parsing in ``.ask()``."
+save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."
 
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"

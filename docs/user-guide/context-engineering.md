@@ -237,3 +237,41 @@ pipeline = (
 ```
 
 The classifier sees only its instruction -- no history, no prior agent output. The handler sees the original user message and classified intent from state, plus user-only history for conversational continuity. Each agent gets exactly the context it needs.
+
+## What Gets Sent to the LLM
+
+Understanding exactly what the LLM receives helps debug unexpected behavior.
+
+### `.reads()` suppresses history
+
+When you use `.reads("topic")`, the agent's `include_contents` is set to `"none"`. This means **no conversation history is sent**. The agent sees only:
+
+1. Its instruction text (with `{template}` variables resolved)
+1. The injected state values as a `<conversation_context>` block
+
+```python
+# This agent sees NO conversation history — only state["topic"]
+Agent("writer").reads("topic").instruct("Write about {topic}.")
+```
+
+### `.context()` controls what history is included
+
+Different `C` primitives set different `include_contents` values:
+
+| Primitive             | `include_contents` | What the LLM sees                          |
+| --------------------- | ------------------ | ------------------------------------------ |
+| _(default)_           | `"default"`        | All conversation history                   |
+| `C.none()`            | `"none"`           | Nothing — just the instruction             |
+| `C.user_only()`       | `"none"`           | User messages only (injected via provider) |
+| `C.window(n=3)`       | `"none"`           | Last 3 turns (injected via provider)       |
+| `C.from_state("key")` | `"none"`           | State values (injected via provider)       |
+
+### Composing preserves the most restrictive setting
+
+When composing with `+`, the result inherits `include_contents="none"` if **any** component sets it. The combined `instruction_provider` assembles all components.
+
+### Unreferenced state is NOT sent
+
+Only state keys explicitly declared in `.reads()` or `{template}` variables are sent to the LLM. All other state keys are invisible to the agent.
+
+See also: [Data Flow Between Agents](data-flow.md) for the complete picture of all five data-flow concerns.
