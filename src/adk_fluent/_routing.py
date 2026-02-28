@@ -70,8 +70,11 @@ class Route:
         self._rules.append((lambda s, t=threshold, k=key: float(s.get(k, 0)) < t, agent))
         return self
 
-    def when(self, predicate: Callable, agent) -> Route:
-        """Branch to agent when predicate(state) is truthy. Supports complex multi-key logic."""
+    def when(self, predicate: Callable | type, agent) -> Route:
+        """Branch to agent when predicate(state) is truthy.
+
+        Accepts a callable or a PredicateSchema class.
+        """
         self._rules.append((predicate, agent))
         return self
 
@@ -181,6 +184,15 @@ def _make_route_agent(name, rules, default_agent, sub_agents):
                 target = default_agent
 
             if target is not None:
+                # Fire topology hook
+                from adk_fluent._primitives import _get_topology_hooks
+
+                hooks = _get_topology_hooks()
+                if hooks:
+                    fn = getattr(hooks, "on_route_selected", None)
+                    if fn is not None:
+                        await fn(ctx, name, getattr(target, "name", str(target)))
+
                 async for event in target.run_async(ctx):
                     yield event
 

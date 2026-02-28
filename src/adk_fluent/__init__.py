@@ -289,6 +289,8 @@ __all__ = [
     "RaceAgent",
     "DispatchAgent",
     "JoinAgent",
+    "CallbackSchema",
+    "PredicateSchema",
     "C",
     "CTransform",
     "CComposite",
@@ -372,6 +374,8 @@ __all__ = [
     "ParallelNode",
     "LoopNode",
     "FullNode",
+    "M",
+    "MComposite",
     "_FnStepBuilder",
     "_CaptureBuilder",
     "_FallbackBuilder",
@@ -383,9 +387,12 @@ __all__ = [
     "_DispatchBuilder",
     "_JoinBuilder",
     "_fn_step",
+    "_LoopHookAgent",
+    "_FanOutHookAgent",
     "_dispatch_tasks",
     "_global_task_budget",
     "_middleware_dispatch_hooks",
+    "_topology_hooks",
     "_execution_mode",
     "_DEFAULT_MAX_TASKS",
     "P",
@@ -411,17 +418,19 @@ __all__ = [
     "PVersioned",
     "_compile_prompt_spec",
     "Route",
-    "StateSchema",
-    "CapturedBy",
-    "Scoped",
-    "ToolSchema",
-    "CallbackSchema",
+    "DeclarativeField",
+    "DeclarativeMetaclass",
+    "DeclarativeSchema",
     "Reads",
     "Writes",
     "Param",
     "Confirms",
     "Timeout",
+    "StateSchema",
+    "CapturedBy",
+    "Scoped",
     "check_state_schema_contracts",
+    "ToolSchema",
     "S",
     "STransform",
     "StateDelta",
@@ -429,12 +438,10 @@ __all__ = [
     "infer_visibility",
     "VisibilityPlugin",
     "agent",
-    "M",
-    "MComposite",
-    "Middleware",
     "TraceContext",
     "DispatchDirective",
     "LoopDirective",
+    "Middleware",
     "TopologyHooks",
     "_MiddlewarePlugin",
     "RetryMiddleware",
@@ -448,7 +455,6 @@ __all__ = [
     "_ConditionalMiddleware",
     "_SingleHookMiddleware",
     "_trace_context",
-    "_topology_hooks",
     "review_loop",
     "map_reduce",
     "cascade",
@@ -500,6 +506,8 @@ from ._base import GateAgent
 from ._base import RaceAgent
 from ._base import DispatchAgent
 from ._base import JoinAgent
+from ._callback_schema import CallbackSchema
+from ._predicate_schema import PredicateSchema
 from ._context import C
 from ._context import CTransform
 from ._context import CComposite
@@ -583,6 +591,8 @@ from ._ir_generated import SequenceNode
 from ._ir_generated import ParallelNode
 from ._ir_generated import LoopNode
 from ._ir_generated import FullNode
+from ._middleware import M
+from ._middleware import MComposite
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
 from ._primitive_builders import _CaptureBuilder
@@ -612,10 +622,13 @@ from ._primitives import GateAgent
 from ._primitives import RaceAgent
 from ._primitives import DispatchAgent
 from ._primitives import JoinAgent
+from ._primitives import _LoopHookAgent
+from ._primitives import _FanOutHookAgent
 from ._primitives import get_execution_mode
 from ._primitives import _dispatch_tasks
 from ._primitives import _global_task_budget
 from ._primitives import _middleware_dispatch_hooks
+from ._primitives import _topology_hooks
 from ._primitives import _execution_mode
 from ._primitives import _DEFAULT_MAX_TASKS
 from ._prompt import P
@@ -641,17 +654,19 @@ from ._prompt import PScaffolded
 from ._prompt import PVersioned
 from ._prompt import _compile_prompt_spec
 from ._routing import Route
-from ._state_schema import StateSchema
-from ._state_schema import CapturedBy
-from ._state_schema import Scoped
-from ._state_schema import check_state_schema_contracts
-from ._tool_schema import ToolSchema
-from ._callback_schema import CallbackSchema
+from ._schema_base import DeclarativeField
+from ._schema_base import DeclarativeMetaclass
+from ._schema_base import DeclarativeSchema
 from ._schema_base import Reads
 from ._schema_base import Writes
 from ._schema_base import Param
 from ._schema_base import Confirms
 from ._schema_base import Timeout
+from ._state_schema import StateSchema
+from ._state_schema import CapturedBy
+from ._state_schema import Scoped
+from ._state_schema import check_state_schema_contracts
+from ._tool_schema import ToolSchema
 from ._transforms import S
 from ._transforms import STransform
 from ._transforms import StateDelta
@@ -659,12 +674,10 @@ from ._transforms import StateReplacement
 from ._visibility import infer_visibility
 from ._visibility import VisibilityPlugin
 from .decorators import agent
-from ._middleware import M
-from ._middleware import MComposite
-from .middleware import Middleware
 from .middleware import TraceContext
 from .middleware import DispatchDirective
 from .middleware import LoopDirective
+from .middleware import Middleware
 from .middleware import TopologyHooks
 from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
@@ -693,6 +706,7 @@ from .prelude import Loop
 from .prelude import C
 from .prelude import P
 from .prelude import S
+from .prelude import M
 from .prelude import Route
 from .prelude import until
 from .prelude import tap
