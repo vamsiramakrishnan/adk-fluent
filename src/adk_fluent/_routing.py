@@ -21,7 +21,7 @@ def _make_fallback_builder(children: list):
         else:
             names.append("?")
     name = "_or_".join(names)
-    return _FallbackBuilder(name, children)
+    return _FallbackBuilder(name, _children=children)
 
 
 class Route:

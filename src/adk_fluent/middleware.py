@@ -185,7 +185,7 @@ class _MiddlewarePlugin(BasePlugin):
 
     async def before_run_callback(self, *, invocation_context):
         # Make middleware hooks accessible to DispatchAgent/JoinAgent via ContextVar
-        from adk_fluent._base import _middleware_dispatch_hooks
+        from adk_fluent._primitives import _middleware_dispatch_hooks
 
         _middleware_dispatch_hooks.set(self)
         return await self._run_stack("before_run", invocation_context)

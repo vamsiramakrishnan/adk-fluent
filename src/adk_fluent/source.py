@@ -44,9 +44,18 @@ class Source:
     async def from_async(agen: AsyncIterator[str]) -> AsyncIterator[str]:
         """Pass through an existing async iterator.
 
-        Use this to adapt any async generator or async iterator into a
-        source that :class:`~adk_fluent.stream.StreamRunner` can consume.
+        .. deprecated::
+            ``Source.from_async()`` is a no-op wrapper that re-yields an async
+            iterator unchanged. Pass your async iterator directly to
+            ``StreamRunner.source()`` instead.
         """
+        import warnings
+
+        warnings.warn(
+            "Source.from_async() is a no-op. Pass your async iterator directly to StreamRunner.source().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         async for item in agen:
             yield item
 

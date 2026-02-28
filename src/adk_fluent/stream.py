@@ -109,11 +109,14 @@ class StreamRunner:
     def session_strategy(self, strategy: str) -> StreamRunner:
         """Session management strategy.
 
-        - ``"per_item"`` (default): Fresh session per stream item (stateless).
-        - ``"shared"``: Single persistent session (stateful, sequential context).
-        - ``"keyed"``: Session per key extracted by ``.session_key(fn)``.
+        Accepts :class:`~adk_fluent._enums.SessionStrategy` enum values
+        or plain strings (backwards compatible).
+
+        - ``SessionStrategy.PER_ITEM`` / ``"per_item"`` (default): Fresh session per stream item.
+        - ``SessionStrategy.SHARED`` / ``"shared"``: Single persistent session.
+        - ``SessionStrategy.KEYED`` / ``"keyed"``: Session per key extracted by ``.session_key(fn)``.
         """
-        self._session_strategy = strategy
+        self._session_strategy = str(strategy)
         return self
 
     def session_key(self, fn: Callable[[str], str]) -> StreamRunner:
@@ -139,10 +142,14 @@ class StreamRunner:
         self._on_error = fn
         return self
 
-    def task_budget(self, n: int) -> StreamRunner:
+    def max_tasks(self, n: int) -> StreamRunner:
         """Max concurrent dispatch tasks across all stream items (default 50)."""
         self._task_budget = n
         return self
+
+    def task_budget(self, n: int) -> StreamRunner:
+        """Deprecated: use ``max_tasks()`` instead."""
+        return self.max_tasks(n)
 
     def middleware(self, mw: Any) -> StreamRunner:
         """Add middleware for stream execution observability."""
@@ -170,7 +177,7 @@ class StreamRunner:
         from google.adk.runners import InMemoryRunner
         from google.genai import types
 
-        from adk_fluent._base import _global_task_budget
+        from adk_fluent._primitives import _global_task_budget
 
         agent = self._builder.build()
         app_name = f"_stream_{agent.name}"
@@ -201,7 +208,7 @@ class StreamRunner:
         try:
 
             async def _process(item: str) -> None:
-                from adk_fluent._base import _execution_mode
+                from adk_fluent._primitives import _execution_mode
 
                 _execution_mode.set("stream")
                 async with sem:

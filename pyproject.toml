@@ -169,6 +169,8 @@ ignore = [
 "src/adk_fluent/planner.py" = ["F821"]
 # __init__.py is a generated re-export hub
 "src/adk_fluent/__init__.py" = ["F401", "F811", "I001"]
+# _base.py has re-exports at bottom of file (after BuilderBase class definition)
+"src/adk_fluent/_base.py" = ["E402", "I001"]
 # Generated test scaffolds use patterns ruff dislikes
 "tests/generated/*.py" = ["F811", "E711", "E712", "E731"]
 # Manual tests use lambdas for quick callback stubs

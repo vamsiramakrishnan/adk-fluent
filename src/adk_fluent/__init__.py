@@ -448,6 +448,9 @@ __all__ = [
     "Inbox",
     "StreamRunner",
     "StreamStats",
+    "SessionStrategy",
+    "ExecutionMode",
+    "PrimitiveBuilderBase",
     "Backend",
     "final_text",
     "ADKBackend",
@@ -646,6 +649,9 @@ from .source import Source
 from .source import Inbox
 from .stream import StreamRunner
 from .stream import StreamStats
+from ._enums import SessionStrategy
+from ._enums import ExecutionMode
+from ._primitive_builders import PrimitiveBuilderBase
 from .backends import Backend
 from .backends import final_text
 from .backends.adk import ADKBackend

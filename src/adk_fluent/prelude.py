@@ -16,7 +16,10 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 """
 
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
-from adk_fluent._base import dispatch, expect, gate, get_execution_mode, join, map_over, race, tap, until
+from adk_fluent._base import until
+from adk_fluent._enums import ExecutionMode, SessionStrategy
+from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
+from adk_fluent._primitives import get_execution_mode
 from adk_fluent._transforms import STransform
 from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
@@ -67,4 +70,7 @@ __all__ = [
     # Tier 6: Observability
     "DispatchLogMiddleware",
     "get_execution_mode",
+    # Tier 7: Enums
+    "SessionStrategy",
+    "ExecutionMode",
 ]

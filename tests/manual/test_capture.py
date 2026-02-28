@@ -74,14 +74,14 @@ class TestCaptureBuilder:
     """_CaptureBuilder produces CaptureAgent and CaptureNode."""
 
     def test_build_returns_capture_agent(self):
-        builder = _CaptureBuilder("capture_query", "query")
+        builder = _CaptureBuilder("capture_query", _capture_key="query")
         agent = builder.build()
         assert isinstance(agent, CaptureAgent)
         assert agent.name == "capture_query"
         assert agent._capture_key == "query"
 
     def test_to_ir_returns_capture_node(self):
-        builder = _CaptureBuilder("capture_query", "query")
+        builder = _CaptureBuilder("capture_query", _capture_key="query")
         node = builder.to_ir()
         assert isinstance(node, CaptureNode)
         assert node.name == "capture_query"

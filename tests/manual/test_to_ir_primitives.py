@@ -39,7 +39,7 @@ def test_fallback_to_ir():
 
     a = Agent("a")
     b = Agent("b")
-    ir = _FallbackBuilder("fb", [a, b]).to_ir()
+    ir = _FallbackBuilder("fb", _children=[a, b]).to_ir()
     assert isinstance(ir, FallbackNode)
     assert len(ir.children) == 2
 
@@ -73,7 +73,7 @@ def test_timeout_to_ir():
     from adk_fluent import Agent
     from adk_fluent._base import _TimeoutBuilder
 
-    ir = _TimeoutBuilder("to", Agent("a"), 30.0).to_ir()
+    ir = _TimeoutBuilder("to", _agent=Agent("a"), _seconds=30.0).to_ir()
     assert isinstance(ir, TimeoutNode)
     assert ir.seconds == 30.0
 
@@ -96,7 +96,7 @@ def test_nested_to_ir_recursion():
 
     a = Agent("a")
     b = Agent("b")
-    ir = _FallbackBuilder("fb", [a, b]).to_ir()
+    ir = _FallbackBuilder("fb", _children=[a, b]).to_ir()
     # Children should be IR nodes, not builders
     from adk_fluent._ir_generated import AgentNode
 

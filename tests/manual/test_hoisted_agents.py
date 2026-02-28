@@ -70,8 +70,8 @@ def test_fallback_agent_same_type_across_builds():
     from adk_fluent._base import _FallbackBuilder
 
     child = Agent("c")
-    a1 = _FallbackBuilder("fb1", [child]).build()
-    a2 = _FallbackBuilder("fb2", [child]).build()
+    a1 = _FallbackBuilder("fb1", _children=[child]).build()
+    a2 = _FallbackBuilder("fb2", _children=[child]).build()
     assert type(a1) is type(a2)
 
 
@@ -100,8 +100,8 @@ def test_timeout_agent_same_type_across_builds():
     from adk_fluent._base import _TimeoutBuilder
 
     child = Agent("c")
-    a1 = _TimeoutBuilder("to1", child, 5.0).build()
-    a2 = _TimeoutBuilder("to2", child, 5.0).build()
+    a1 = _TimeoutBuilder("to1", _agent=child, _seconds=5.0).build()
+    a2 = _TimeoutBuilder("to2", _agent=child, _seconds=5.0).build()
     assert type(a1) is type(a2)
 
 
