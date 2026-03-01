@@ -141,6 +141,8 @@ def _agent_to_ir(builder):
         reads_keys = reads_keys | prompt_schema_cls.reads_keys()
     # Note: NO writes_keys merging — prompts only read state
 
+    artifact_schema_cls = builder._config.get("_artifact_schema")
+
     return AgentNode(
         name=builder._config.get("name", ""),
         description=builder._config.get("description", ""),
@@ -169,6 +171,7 @@ def _agent_to_ir(builder):
         tool_schema=tool_schema,
         callback_schema=callback_schema,
         prompt_schema=prompt_schema_cls,
+        artifact_schema=artifact_schema_cls,
     )
 
 

@@ -51,6 +51,7 @@ def ir_to_mermaid(
 
     def _walk(n: Any) -> str:
         from adk_fluent._ir import (
+            ArtifactNode,
             CaptureNode,
             DispatchNode,
             FallbackNode,
@@ -111,6 +112,11 @@ def ir_to_mermaid(
             targets = getattr(n, "target_names", None)
             label = f"{name} join({', '.join(targets)})" if targets else f"{name} join(all)"
             lines.append(f'    {nid}(("{_sanitize(label)}"))')
+        elif isinstance(n, ArtifactNode):
+            op = getattr(n, "op", "?")
+            fname = getattr(n, "filename", "?")
+            label = f"{op} ({fname})" if fname else op
+            lines.append(f'    {nid}{{{{"{_sanitize(label)} artifact"}}}}')
         else:
             lines.append(f'    {nid}["{_sanitize(name)}"]')
 
@@ -162,6 +168,18 @@ def ir_to_mermaid(
                 route_key = getattr(n, "key", None)
                 if route_key:
                     _consumers.setdefault(route_key, []).append(nid)
+
+            # Artifact flow tracking
+            if isinstance(n, ArtifactNode):
+                for afn in getattr(n, "produces_artifact", frozenset()):
+                    _producers.setdefault(f"artifact:{afn}", []).append(nid)
+                for afn in getattr(n, "consumes_artifact", frozenset()):
+                    _consumers.setdefault(f"artifact:{afn}", []).append(nid)
+                # State keys produced/consumed by artifact ops
+                for sk in getattr(n, "produces_state", frozenset()):
+                    _producers.setdefault(sk, []).append(nid)
+                for sk in getattr(n, "consumes_state", frozenset()):
+                    _consumers.setdefault(sk, []).append(nid)
 
         # Context annotations
         if show_context and isinstance(n, AgentNode):

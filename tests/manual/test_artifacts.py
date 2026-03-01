@@ -453,6 +453,122 @@ class TestExports:
         assert hasattr(A, "publish")
 
 
+class TestContentTransformsPost:
+    """A.as_json, A.as_csv, A.as_text — post-snapshot transforms."""
+
+    def test_as_json_parses_string(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.as_json("data")
+        assert isinstance(t, STransform)
+        result = t({"data": '{"x": 1}'})
+        assert result == {"data": {"x": 1}}
+
+    def test_as_json_reads_writes_keys(self):
+        from adk_fluent import A
+
+        t = A.as_json("data")
+        assert t._reads_keys == frozenset({"data"})
+        assert t._writes_keys == frozenset({"data"})
+
+    def test_as_csv_parses_string(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        csv_text = "name,score\nAlice,90\nBob,85"
+        t = A.as_csv("rows")
+        assert isinstance(t, STransform)
+        result = t({"rows": csv_text})
+        rows = result["rows"]
+        assert len(rows) == 2
+        assert rows[0]["name"] == "Alice"
+        assert rows[0]["score"] == "90"
+
+    def test_as_csv_with_columns(self):
+        from adk_fluent import A
+
+        csv_text = "name,score,grade\nAlice,90,A\nBob,85,B"
+        t = A.as_csv("rows", columns=["name", "score"])
+        result = t({"rows": csv_text})
+        rows = result["rows"]
+        assert set(rows[0].keys()) == {"name", "score"}
+
+    def test_as_text_identity(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.as_text("content")
+        assert isinstance(t, STransform)
+        result = t({"content": "hello world"})
+        assert result == {"content": "hello world"}
+
+    def test_as_text_decode_bytes(self):
+        from adk_fluent import A
+
+        t = A.as_text("content")
+        result = t({"content": b"hello bytes"})
+        assert result == {"content": "hello bytes"}
+
+    def test_as_text_custom_encoding(self):
+        from adk_fluent import A
+
+        t = A.as_text("content", encoding="latin-1")
+        result = t({"content": "café".encode("latin-1")})
+        assert result["content"] == "café"
+
+
+class TestContentTransformsPre:
+    """A.from_json, A.from_csv, A.from_markdown — pre-publish transforms."""
+
+    def test_from_json_serializes(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.from_json("config")
+        assert isinstance(t, STransform)
+        result = t({"config": {"x": 1, "y": [2, 3]}})
+        import json
+
+        assert json.loads(result["config"]) == {"x": 1, "y": [2, 3]}
+
+    def test_from_json_indent(self):
+        from adk_fluent import A
+
+        t = A.from_json("config", indent=2)
+        result = t({"config": {"x": 1}})
+        assert "\n" in result["config"]  # indented output has newlines
+
+    def test_from_csv_serializes(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        rows = [{"name": "Alice", "score": "90"}, {"name": "Bob", "score": "85"}]
+        t = A.from_csv("rows")
+        assert isinstance(t, STransform)
+        result = t({"rows": rows})
+        assert "Alice" in result["rows"]
+        assert "Bob" in result["rows"]
+        assert "name,score" in result["rows"] or "score,name" in result["rows"]
+
+    def test_from_markdown_converts_to_html(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.from_markdown("report")
+        assert isinstance(t, STransform)
+        result = t({"report": "# Hello\n\nWorld"})
+        assert "<h1>" in result["report"] or "<h1" in result["report"] or "<pre>" in result["report"]
+        assert "Hello" in result["report"]
+
+    def test_from_json_reads_writes_keys(self):
+        from adk_fluent import A
+
+        t = A.from_json("data")
+        assert t._reads_keys == frozenset({"data"})
+        assert t._writes_keys == frozenset({"data"})
+
+
 class TestBuilderMethod:
     def test_artifacts_builder_method(self):
         from adk_fluent import Agent
@@ -483,6 +599,89 @@ class TestBuilderMethod:
             )
         )
         assert agent is not None
+        assert len(agent._lists.get("_artifact_transforms", [])) == 2
+
+
+class TestMultiArtifactOps:
+    """A.publish_many, A.snapshot_many — batch operations."""
+
+    def test_publish_many_returns_tuple(self):
+        from adk_fluent import A
+
+        result = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_publish_many_each_is_atransform(self):
+        from adk_fluent import A
+        from adk_fluent._artifacts import ATransform
+
+        result = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        for t in result:
+            assert isinstance(t, ATransform)
+            assert t._op == "publish"
+
+    def test_publish_many_correct_keys(self):
+        from adk_fluent import A
+
+        r, d = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        assert r._filename == "report.md"
+        assert r._from_key == "report"
+        assert d._filename == "data.json"
+        assert d._from_key == "raw_data"
+
+    def test_snapshot_many_returns_tuple(self):
+        from adk_fluent import A
+
+        result = A.snapshot_many(
+            ("report.md", "report_text"),
+            ("data.json", "raw_data"),
+        )
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_snapshot_many_each_is_atransform(self):
+        from adk_fluent import A
+        from adk_fluent._artifacts import ATransform
+
+        result = A.snapshot_many(
+            ("report.md", "report_text"),
+            ("data.json", "raw_data"),
+        )
+        for t in result:
+            assert isinstance(t, ATransform)
+            assert t._op == "snapshot"
+
+    def test_snapshot_many_correct_keys(self):
+        from adk_fluent import A
+
+        r, d = A.snapshot_many(
+            ("report.md", "report_text"),
+            ("data.json", "raw_data"),
+        )
+        assert r._filename == "report.md"
+        assert r._into_key == "report_text"
+        assert d._filename == "data.json"
+        assert d._into_key == "raw_data"
+
+    def test_publish_many_with_artifacts_builder(self):
+        """publish_many result works with .artifacts() via unpacking."""
+        from adk_fluent import A, Agent
+
+        transforms = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        agent = Agent("writer").artifacts(*transforms)
         assert len(agent._lists.get("_artifact_transforms", [])) == 2
 
 
@@ -522,6 +721,104 @@ class TestEndToEnd:
             if isinstance(i, dict) and "artifact" in i.get("message", "").lower() and i["level"] == "error"
         ]
         assert len(artifact_errors) == 0
+
+
+class TestForLlm:
+    """A.for_llm — CTransform-compatible artifact context injection."""
+
+    def test_for_llm_returns_ctransform(self):
+        from adk_fluent import A
+        from adk_fluent._context import CTransform
+
+        result = A.for_llm("report.md")
+        assert isinstance(result, CTransform)
+
+    def test_for_llm_include_contents_none(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result.include_contents == "none"
+
+    def test_for_llm_has_instruction_provider(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result.instruction_provider is not None
+        assert callable(result.instruction_provider)
+
+    def test_for_llm_filename_stored(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result._filename == "report.md"
+
+    def test_for_llm_scope_default(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result._scope == "session"
+
+    def test_for_llm_scope_user(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md", scope="user")
+        assert result._scope == "user"
+
+    def test_for_llm_composes_with_c_plus(self):
+        """A.for_llm() can be combined with C blocks via +."""
+        from adk_fluent import A, C
+        from adk_fluent._context import CTransform
+
+        combined = C.from_state("topic") + A.for_llm("report.md")
+        assert isinstance(combined, CTransform)
+
+
+class TestToolFactories:
+    """A.tool.save, A.tool.load, A.tool.list, A.tool.version — FunctionTool generation."""
+
+    def test_tool_save_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.save("save_report", mime=A.mime.markdown)
+        assert isinstance(tool, FunctionTool)
+
+    def test_tool_save_name(self):
+        from adk_fluent import A
+
+        tool = A.tool.save("save_report")
+        assert tool.name == "save_report"
+
+    def test_tool_save_with_allowed(self):
+        from adk_fluent import A
+
+        tool = A.tool.save("save_file", allowed=["report.md", "summary.txt"])
+        assert tool.name == "save_file"
+
+    def test_tool_load_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.load("read_file")
+        assert isinstance(tool, FunctionTool)
+
+    def test_tool_list_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.list("list_files")
+        assert isinstance(tool, FunctionTool)
+
+    def test_tool_version_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.version("check_version")
+        assert isinstance(tool, FunctionTool)
 
 
 class TestContractChecking:
@@ -577,3 +874,313 @@ class TestContractChecking:
             if isinstance(i, dict) and "state key" in i.get("message", "").lower() and i["level"] == "error"
         ]
         assert len(state_issues) > 0
+
+
+class TestArtifactSchema:
+    """ArtifactSchema with Produces/Consumes annotations."""
+
+    def test_produces_annotation(self):
+        from adk_fluent._artifact_schema import Produces
+
+        p = Produces("report.md", mime="text/markdown")
+        assert p.filename == "report.md"
+        assert p.mime == "text/markdown"
+        assert p.scope == "session"
+
+    def test_consumes_annotation(self):
+        from adk_fluent._artifact_schema import Consumes
+
+        c = Consumes("data.csv", mime="text/csv")
+        assert c.filename == "data.csv"
+        assert c.mime == "text/csv"
+
+    def test_schema_definition(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class ResearchArtifacts(ArtifactSchema):
+            findings: str = Produces("findings.json", mime="application/json")
+            report: str = Produces("report.md", mime="text/markdown")
+            source: str = Consumes("raw_data.csv", mime="text/csv")
+
+        assert len(ResearchArtifacts._field_list) == 3
+
+    def test_schema_produces_fields(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class Artifacts(ArtifactSchema):
+            report: str = Produces("report.md")
+            source: str = Consumes("data.csv")
+
+        produces = Artifacts.produces_fields()
+        assert len(produces) == 1
+        assert produces[0].filename == "report.md"
+
+    def test_schema_consumes_fields(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class Artifacts(ArtifactSchema):
+            report: str = Produces("report.md")
+            source: str = Consumes("data.csv")
+
+        consumes = Artifacts.consumes_fields()
+        assert len(consumes) == 1
+        assert consumes[0].filename == "data.csv"
+
+    def test_schema_produced_filenames(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Produces
+
+        class Artifacts(ArtifactSchema):
+            report: str = Produces("report.md")
+            config: str = Produces("config.json")
+
+        assert Artifacts.produced_filenames() == frozenset({"report.md", "config.json"})
+
+    def test_schema_consumed_filenames(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes
+
+        class Artifacts(ArtifactSchema):
+            source: str = Consumes("data.csv")
+
+        assert Artifacts.consumed_filenames() == frozenset({"data.csv"})
+
+
+class TestPass16:
+    """Pass 16: ArtifactSchema contract validation."""
+
+    def test_schema_consumes_without_producer_is_error(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsData(ArtifactSchema):
+            source: str = Consumes("data.csv")
+
+        pipeline = Agent("reader").artifact_schema(NeedsData) >> Agent("writer")
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        errors = [i for i in issues if i["level"] == "error" and "data.csv" in i["message"]]
+        assert len(errors) >= 1
+
+    def test_schema_consumes_with_producer_is_clean(self):
+        from adk_fluent import A, Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsData(ArtifactSchema):
+            source: str = Consumes("data.csv")
+
+        pipeline = Agent("writer") >> A.save("data.csv", content="a,b") >> Agent("reader").artifact_schema(NeedsData)
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        schema_errors = [i for i in issues if i["level"] == "error" and "data.csv" in i["message"]]
+        assert len(schema_errors) == 0
+
+    def test_schema_produces_promotes_artifacts(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+        from adk_fluent.testing.contracts import check_contracts
+
+        class ProducerSchema(ArtifactSchema):
+            report: str = Produces("report.md")
+
+        class ConsumerSchema(ArtifactSchema):
+            source: str = Consumes("report.md")
+
+        pipeline = Agent("writer").artifact_schema(ProducerSchema) >> Agent("reader").artifact_schema(ConsumerSchema)
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        schema_errors = [i for i in issues if i["level"] == "error" and "report.md" in i["message"]]
+        assert len(schema_errors) == 0
+
+    def test_schema_mime_mismatch_is_warning(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+        from adk_fluent.testing.contracts import check_contracts
+
+        class ProducerSchema(ArtifactSchema):
+            report: str = Produces("report.md", mime="text/markdown")
+
+        class ConsumerSchema(ArtifactSchema):
+            source: str = Consumes("report.md", mime="application/json")
+
+        pipeline = Agent("writer").artifact_schema(ProducerSchema) >> Agent("reader").artifact_schema(ConsumerSchema)
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        warnings = [i for i in issues if i["level"] == "warning" and "MIME" in i["message"]]
+        assert len(warnings) >= 1
+
+
+class TestVisualization:
+    """Artifact edges in Mermaid visualization."""
+
+    def test_artifact_node_rendered(self):
+        from adk_fluent import A, Agent
+        from adk_fluent.viz import ir_to_mermaid
+
+        pipeline = Agent("writer") >> A.publish("report.md", from_key="output") >> Agent("reader")
+        ir = pipeline.to_ir()
+        mermaid = ir_to_mermaid(ir)
+        assert "publish" in mermaid.lower() or "report" in mermaid.lower()
+
+    def test_artifact_node_shape(self):
+        """ArtifactNode should have a distinct shape (hexagon)."""
+        from adk_fluent import A, Agent
+        from adk_fluent.viz import ir_to_mermaid
+
+        pipeline = Agent("writer") >> A.publish("report.md", from_key="output")
+        ir = pipeline.to_ir()
+        mermaid = ir_to_mermaid(ir)
+        # Hexagon shape uses {{...}} syntax in Mermaid
+        assert "artifact" in mermaid.lower()
+
+    def test_artifact_data_flow_edges(self):
+        """Artifact produces/consumes should generate data flow edges."""
+        from adk_fluent import A, Agent
+        from adk_fluent.viz import ir_to_mermaid
+
+        pipeline = (
+            Agent("writer").writes("output")
+            >> A.publish("report.md", from_key="output")
+            >> A.snapshot("report.md", into_key="text")
+            >> Agent("reader")
+        )
+        ir = pipeline.to_ir()
+        mermaid = ir_to_mermaid(ir, show_data_flow=True)
+        # Should show artifact flow edges
+        assert "report.md" in mermaid
+
+
+class TestPhase2Exports:
+    """Phase 2+3 exports are importable."""
+
+    def test_artifact_schema_importable(self):
+        from adk_fluent.prelude import ArtifactSchema
+
+        assert ArtifactSchema is not None
+
+    def test_produces_importable(self):
+        from adk_fluent.prelude import Produces
+
+        assert Produces is not None
+
+    def test_consumes_importable(self):
+        from adk_fluent.prelude import Consumes
+
+        assert Consumes is not None
+
+    def test_for_llm_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "for_llm")
+
+    def test_tool_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "tool")
+
+    def test_content_transforms_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "as_json")
+        assert hasattr(A, "as_csv")
+        assert hasattr(A, "as_text")
+        assert hasattr(A, "from_json")
+        assert hasattr(A, "from_csv")
+        assert hasattr(A, "from_markdown")
+
+    def test_batch_ops_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "publish_many")
+        assert hasattr(A, "snapshot_many")
+
+
+class TestPhase2E2E:
+    """End-to-end integration tests for Phase 2+3."""
+
+    def test_snapshot_then_as_json_pipeline(self):
+        """A.snapshot >> A.as_json composes in a pipeline."""
+        from adk_fluent import A, Agent
+
+        pipeline = (
+            Agent("writer") >> A.snapshot("data.json", into_key="data") >> A.as_json("data") >> Agent("processor")
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent._ir_generated import SequenceNode
+
+        assert isinstance(ir, SequenceNode)
+
+    def test_from_json_then_publish_pipeline(self):
+        """A.from_json >> A.publish composes in a pipeline."""
+        from adk_fluent import A, Agent
+
+        pipeline = Agent("processor") >> A.from_json("config") >> A.publish("config.json", from_key="config")
+        ir = pipeline.to_ir()
+        from adk_fluent._ir_generated import SequenceNode
+
+        assert isinstance(ir, SequenceNode)
+
+    def test_full_roundtrip_pipeline(self):
+        """Full pipeline: agent >> snapshot >> transform >> agent >> serialize >> publish."""
+        from adk_fluent import A, Agent
+
+        pipeline = (
+            Agent("loader")
+            >> A.snapshot("data.csv", into_key="rows")
+            >> A.as_csv("rows")
+            >> Agent("processor")
+            >> A.from_json("result")
+            >> A.publish("result.json", from_key="result")
+        )
+        ir = pipeline.to_ir()
+        assert ir is not None
+
+    def test_schema_with_tools_and_transforms(self):
+        """Agent with artifact_schema, tools, and pipeline transforms all compose."""
+        from adk_fluent import A, Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class WorkerArtifacts(ArtifactSchema):
+            result: str = Produces("result.json", mime="application/json")
+            source: str = Consumes("input.csv", mime="text/csv")
+
+        pipeline = Agent("loader").artifacts(A.save("input.csv", content="a,b\n1,2")) >> Agent(
+            "worker"
+        ).artifact_schema(WorkerArtifacts).tool(A.tool.load("read_input")).tool(
+            A.tool.save("save_result", allowed=["result.json"])
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent._ir_generated import SequenceNode
+
+        assert isinstance(ir, SequenceNode)
+        # Worker agent should have artifact_schema set on its IR node
+        from adk_fluent._ir_generated import AgentNode
+
+        agent_nodes = [c for c in ir.children if isinstance(c, AgentNode)]
+        worker_node = [n for n in agent_nodes if n.name == "worker"][0]
+        assert worker_node.artifact_schema is WorkerArtifacts
+
+    def test_contract_checking_full_pipeline(self):
+        """Contract checker validates both Pass 15 and Pass 16 in same pipeline."""
+        from adk_fluent import A, Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+        from adk_fluent.testing.contracts import check_contracts
+
+        class ProducerSchema(ArtifactSchema):
+            report: str = Produces("report.md")
+
+        class ConsumerSchema(ArtifactSchema):
+            source: str = Consumes("report.md")
+
+        pipeline = (
+            Agent("writer").artifact_schema(ProducerSchema)
+            >> A.publish("report.md", from_key="output")
+            >> Agent("reader").artifact_schema(ConsumerSchema)
+            >> A.snapshot("report.md", into_key="text")
+            >> Agent("final")
+        )
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        # No artifact-related errors (Pass 15 handles A.publish/snapshot, Pass 16 handles schemas)
+        artifact_errors = [i for i in issues if i["level"] == "error" and "artifact" in i["message"].lower()]
+        assert len(artifact_errors) == 0

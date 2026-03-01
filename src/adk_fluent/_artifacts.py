@@ -11,6 +11,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from adk_fluent._context import CTransform
+from adk_fluent._transforms import STransform
+
 __all__ = ["A", "ATransform"]
 
 # Gemini-supported inline MIME prefixes (from LoadArtifactsTool)
@@ -120,6 +123,241 @@ class ATransform:
         return self._name
 
 
+def _make_artifact_context_provider(
+    filename: str,
+    scope: str,
+    version: int | None,
+) -> Callable:
+    """Create an async instruction_provider that loads artifact content."""
+
+    async def _provider(ctx: Any) -> str:
+        svc = ctx._invocation_context.artifact_service
+        if svc is None:
+            return f"[Artifact '{filename}' unavailable: no artifact service configured]"
+
+        app_name = ctx._invocation_context.app_name
+        user_id = ctx._invocation_context.user_id
+        session_id = ctx.session.id
+        is_user = scope == "user"
+        svc_session_id = None if is_user else session_id
+
+        try:
+            part = await svc.load_artifact(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=filename,
+                version=version,
+            )
+        except Exception:
+            return f"[Artifact '{filename}' could not be loaded]"
+
+        if part is None:
+            return f"[Artifact '{filename}' not found]"
+
+        # Text content -> inject directly
+        if part.text is not None:
+            return part.text
+
+        # Binary content -> detect MIME and provide description
+        if part.inline_data:
+            mime = part.inline_data.mime_type or _MimeConstants.detect(filename)
+            if _MimeConstants.is_text_like(mime):
+                return part.inline_data.data.decode("utf-8", errors="replace")
+            size_kb = len(part.inline_data.data) / 1024
+            return f"[Binary artifact: {filename}, type: {mime}, size: {size_kb:.1f}KB]"
+
+        return f"[Artifact '{filename}': unrecognized format]"
+
+    return _provider
+
+
+@dataclass(frozen=True)
+class _ArtifactContextBlock(CTransform):
+    """CTransform that loads artifact content for LLM context injection."""
+
+    _filename: str = ""
+    _scope: Literal["session", "user"] = "session"
+    _version: int | None = None
+
+    def __post_init__(self) -> None:
+        provider = _make_artifact_context_provider(self._filename, self._scope, self._version)
+        object.__setattr__(self, "instruction_provider", provider)
+        object.__setattr__(self, "include_contents", "none")
+
+
+class _ToolFactory:
+    """Generates ADK FunctionTools for LLM artifact interaction.
+
+    Usage:
+        Agent("worker").tools(
+            A.tool.load("read_data"),
+            A.tool.save("save_result", allowed=["result.json"]),
+        )
+    """
+
+    @staticmethod
+    def save(
+        name: str,
+        *,
+        mime: str | None = None,
+        allowed: list[str] | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM save artifact content."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        allowed_set = frozenset(allowed) if allowed else None
+
+        async def _save_fn(filename: str, content: str, tool_context: Any) -> dict:
+            """Save content as a versioned artifact."""
+            if allowed_set and filename not in allowed_set:
+                return {"error": f"Filename '{filename}' not in allowed list: {sorted(allowed_set)}"}
+
+            from google.genai import types as genai_types
+
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            resolved_mime = mime or _MimeConstants.detect(filename)
+            part = genai_types.Part.from_text(text=content)
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            version = await svc.save_artifact(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+                filename=filename,
+                artifact=part,
+            )
+            delta_filename = f"user:{filename}" if is_user else filename
+            ctx._event_actions.artifact_delta[delta_filename] = version
+            return {"saved": filename, "version": version, "mime_type": resolved_mime}
+
+        _save_fn.__name__ = name
+        return FunctionTool(func=_save_fn)
+
+    @staticmethod
+    def load(
+        name: str,
+        *,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM load artifact content."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        async def _load_fn(filename: str, tool_context: Any) -> dict:
+            """Load artifact content."""
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            part = await svc.load_artifact(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+                filename=filename,
+            )
+            if part is None:
+                return {"error": f"Artifact '{filename}' not found"}
+
+            if part.text is not None:
+                return {"filename": filename, "content": part.text}
+            if part.inline_data:
+                mime_type = part.inline_data.mime_type or _MimeConstants.detect(filename)
+                if _MimeConstants.is_text_like(mime_type):
+                    return {
+                        "filename": filename,
+                        "content": part.inline_data.data.decode("utf-8", errors="replace"),
+                    }
+                size_kb = len(part.inline_data.data) / 1024
+                return {
+                    "filename": filename,
+                    "type": mime_type,
+                    "size_kb": round(size_kb, 1),
+                    "note": "Binary content — cannot display as text",
+                }
+            return {"filename": filename, "content": str(part)}
+
+        _load_fn.__name__ = name
+        return FunctionTool(func=_load_fn)
+
+    @staticmethod
+    def list(
+        name: str,
+        *,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM list available artifacts."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        async def _list_fn(tool_context: Any) -> dict:
+            """List available artifact filenames."""
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            keys = await svc.list_artifact_keys(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+            )
+            return {"artifacts": keys}
+
+        _list_fn.__name__ = name
+        return FunctionTool(func=_list_fn)
+
+    @staticmethod
+    def version(
+        name: str,
+        *,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM check artifact version metadata."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        async def _version_fn(filename: str, tool_context: Any) -> dict:
+            """Get artifact version metadata."""
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            ver = await svc.get_artifact_version(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+                filename=filename,
+            )
+            if ver is None:
+                return {"error": f"Artifact '{filename}' not found"}
+
+            return {
+                "filename": filename,
+                "version": ver.version,
+                "mime_type": ver.mime_type,
+                "create_time": ver.create_time,
+                "canonical_uri": ver.canonical_uri,
+            }
+
+        _version_fn.__name__ = name
+        return FunctionTool(func=_version_fn)
+
+
 class A:
     """Artifact operations — bridge between state and artifact service.
 
@@ -131,6 +369,7 @@ class A:
     """
 
     mime = _MimeConstants()
+    tool = _ToolFactory()
 
     @staticmethod
     def publish(
@@ -331,6 +570,132 @@ class A:
         )
 
     @staticmethod
+    def as_json(key: str) -> STransform:
+        """Parse JSON string in state[key] to dict/list.
+
+        Usage: A.snapshot("data.json", into_key="data") >> A.as_json("data")
+        """
+        import json as _json
+
+        return STransform(
+            lambda state: {key: _json.loads(state[key])},
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"as_json_{key}",
+        )
+
+    @staticmethod
+    def as_csv(key: str, *, columns: list[str] | None = None) -> STransform:
+        """Parse CSV string in state[key] to list[dict].
+
+        Usage: A.snapshot("data.csv", into_key="rows") >> A.as_csv("rows")
+        """
+        import csv as _csv
+        import io as _io
+
+        def _parse_csv(state: dict) -> dict:
+            reader = _csv.DictReader(_io.StringIO(state[key]))
+            if columns:
+                return {key: [{c: row[c] for c in columns} for row in reader]}
+            return {key: list(reader)}
+
+        return STransform(
+            _parse_csv,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"as_csv_{key}",
+        )
+
+    @staticmethod
+    def as_text(key: str, *, encoding: str = "utf-8") -> STransform:
+        """Ensure state[key] is a decoded string. Decodes bytes if needed.
+
+        Usage: A.snapshot("raw.bin", into_key="text") >> A.as_text("text")
+        """
+
+        def _to_text(state: dict) -> dict:
+            val = state[key]
+            if isinstance(val, bytes):
+                return {key: val.decode(encoding, errors="replace")}
+            return {key: str(val)}
+
+        return STransform(
+            _to_text,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"as_text_{key}",
+        )
+
+    @staticmethod
+    def from_json(key: str, *, indent: int | None = None) -> STransform:
+        """Serialize state[key] dict/list to JSON string.
+
+        Usage: A.from_json("config") >> A.publish("config.json", from_key="config")
+        """
+        import json as _json
+
+        return STransform(
+            lambda state: {key: _json.dumps(state[key], indent=indent, default=str)},
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"from_json_{key}",
+        )
+
+    @staticmethod
+    def from_csv(key: str) -> STransform:
+        """Serialize state[key] list[dict] to CSV string.
+
+        Usage: A.from_csv("rows") >> A.publish("results.csv", from_key="rows")
+        """
+        import csv as _csv
+        import io as _io
+
+        def _to_csv(state: dict) -> dict:
+            rows = state[key]
+            if not rows:
+                return {key: ""}
+            buf = _io.StringIO()
+            fieldnames = list(rows[0].keys())
+            writer = _csv.DictWriter(buf, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+            return {key: buf.getvalue()}
+
+        return STransform(
+            _to_csv,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"from_csv_{key}",
+        )
+
+    @staticmethod
+    def from_markdown(key: str) -> STransform:
+        """Convert Markdown state[key] to HTML string.
+
+        Uses Python's built-in markdown if available, falls back to minimal conversion.
+        Usage: A.from_markdown("report") >> A.publish("report.html", from_key="report")
+        """
+
+        def _md_to_html(state: dict) -> dict:
+            text = state[key]
+            try:
+                import markdown
+
+                return {key: markdown.markdown(text)}
+            except ImportError:
+                # Minimal fallback: wrap in <pre> if markdown not installed
+                import html
+
+                return {key: f"<pre>{html.escape(text)}</pre>"}
+
+        return STransform(
+            _md_to_html,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"from_markdown_{key}",
+        )
+
+    @staticmethod
     def when(predicate: str | Callable, transform: ATransform) -> ATransform:
         """Conditional artifact operation. Uniform with S.when(), C.when(), etc."""
         if isinstance(predicate, str):
@@ -363,3 +728,45 @@ class A:
             _consumes_state=transform._consumes_state,
             _name=f"when_{transform._name}",
         )
+
+    @staticmethod
+    def for_llm(
+        filename: str,
+        *,
+        version: int | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> CTransform:
+        """Load artifact directly into LLM context. No state bridge.
+
+        Text artifacts are decoded and injected as instruction context.
+        Binary artifacts get a placeholder description with MIME and size.
+        Composes with C module: Agent("x").context(C.from_state("topic") + A.for_llm("report.md"))
+        """
+        return _ArtifactContextBlock(
+            _filename=filename,
+            _scope=scope,
+            _version=version,
+        )
+
+    @staticmethod
+    def publish_many(
+        *pairs: tuple[str, str],
+        mime: str | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> tuple[ATransform, ...]:
+        """Batch publish: multiple (filename, from_key) pairs.
+
+        Usage: Agent("w").artifacts(*A.publish_many(("r.md", "report"), ("d.json", "data")))
+        """
+        return tuple(A.publish(filename, from_key=key, mime=mime, scope=scope) for filename, key in pairs)
+
+    @staticmethod
+    def snapshot_many(
+        *pairs: tuple[str, str],
+        scope: Literal["session", "user"] = "session",
+    ) -> tuple[ATransform, ...]:
+        """Batch snapshot: multiple (filename, into_key) pairs.
+
+        Usage: Agent("r").artifacts(*A.snapshot_many(("r.md", "text"), ("d.json", "data")))
+        """
+        return tuple(A.snapshot(filename, into_key=key, scope=scope) for filename, key in pairs)

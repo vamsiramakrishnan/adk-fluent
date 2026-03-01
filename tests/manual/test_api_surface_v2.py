@@ -185,6 +185,9 @@ class TestPrelude:
             "ExecutionMode",
             # Tier 8: Schemas
             "MiddlewareSchema",
+            "ArtifactSchema",
+            "Produces",
+            "Consumes",
             # Tier 9: Tool registry
             "ToolRegistry",
             "SearchToolset",
@@ -195,7 +198,7 @@ class TestPrelude:
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 41
+        assert len(prelude.__all__) == 44
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

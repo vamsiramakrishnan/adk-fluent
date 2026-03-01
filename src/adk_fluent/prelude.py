@@ -16,6 +16,7 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 """
 
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
+from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
 from adk_fluent._artifacts import A, ATransform
 from adk_fluent._base import until
 from adk_fluent._enums import ExecutionMode, SessionStrategy
@@ -87,6 +88,9 @@ __all__ = [
     "ExecutionMode",
     # Tier 8: Schemas
     "MiddlewareSchema",
+    "ArtifactSchema",
+    "Produces",
+    "Consumes",
     # Tier 9: Tool registry
     "ToolRegistry",
     "SearchToolset",

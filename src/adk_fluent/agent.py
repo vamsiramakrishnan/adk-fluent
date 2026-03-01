@@ -624,6 +624,12 @@ class Agent(BuilderBase):
         self._config["_prompt_schema"] = schema
         return self
 
+    def artifact_schema(self, schema: type) -> Self:
+        """Attach an ArtifactSchema declaring artifact dependencies."""
+        self = self._maybe_fork_for_mutation()
+        self._config["_artifact_schema"] = schema
+        return self
+
     def to_ir(self) -> Any:
         """Convert this Agent builder to an AgentNode IR node."""
         from adk_fluent._helpers import _agent_to_ir
