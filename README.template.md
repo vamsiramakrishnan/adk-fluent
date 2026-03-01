@@ -11,16 +11,23 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![Wiki](https://img.shields.io/badge/wiki-GitHub-green)](https://github.com/vamsiramakrishnan/adk-fluent/wiki)
 [![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
 [![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
+[![Coverage](https://codecov.io/gh/vamsiramakrishnan/adk-fluent/branch/master/graph/badge.svg)](https://codecov.io/gh/vamsiramakrishnan/adk-fluent)
+[![Status](https://img.shields.io/badge/status-beta-yellow)](https://github.com/vamsiramakrishnan/adk-fluent)
 
 ## Table of Contents
 
 - [Install](#install)
 - [Quick Start](#quick-start)
+- [Zero to Running](#zero-to-running)
 - [Expression Language](#expression-language)
 - [Context Engineering (C Module)](#context-engineering-c-module)
+- [Common Errors](#common-errors)
 - [Fluent API Reference](#fluent-api-reference)
+- [When to Use adk-fluent](#when-to-use-adk-fluent)
 - [Run with adk web](#run-with-adk-web)
 - [Cookbook](#cookbook)
+- [Performance](#performance)
+- [ADK Compatibility](#adk-compatibility)
 - [How It Works](#how-it-works)
 - [Features](#features)
 - [Development](#development)
@@ -65,12 +72,25 @@ print(dir(agent))  # All methods including forwarded ADK fields
 ## Quick Start
 
 ```python
+from adk_fluent import Agent
+
+# Create an agent and get a response -- no Runner, no Session, no boilerplate
+agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.")
+print(agent.ask("What is the capital of France?"))
+# => The capital of France is Paris.
+```
+
+`.ask()` handles Runner, Session, and cleanup internally. One line to define, one line to run.
+
+For ADK integration, `.build()` returns the native ADK object:
+
+```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 
-# Simple agent — model as optional second arg or via .model()
+# Simple agent -- returns a native LlmAgent
 agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
 
-# Pipeline — build with .step() or >> operator
+# Pipeline -- sequential agents
 pipeline = (
     Pipeline("research")
     .step(Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
@@ -78,7 +98,7 @@ pipeline = (
     .build()
 )
 
-# Fan-out — build with .branch() or | operator
+# Fan-out -- parallel agents
 fanout = (
     FanOut("parallel_research")
     .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web."))
@@ -86,7 +106,7 @@ fanout = (
     .build()
 )
 
-# Loop — build with .step() + .max_iterations() or * operator
+# Loop -- iterative refinement
 loop = (
     Loop("refine")
     .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft."))
@@ -156,6 +176,32 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 ```
 
 <!-- INJECT_MERMAID_DIAGRAM -->
+
+## Zero to Running
+
+### Fastest: Google AI Studio (free tier)
+
+```bash
+pip install adk-fluent
+export GOOGLE_API_KEY="your-key-from-aistudio.google.com"
+python quickstart.py
+```
+
+Get a free API key at [aistudio.google.com](https://aistudio.google.com/apikey).
+
+### Production: Vertex AI
+
+```bash
+pip install adk-fluent
+export GOOGLE_CLOUD_PROJECT="your-project-id"
+export GOOGLE_CLOUD_LOCATION="us-central1"
+export GOOGLE_GENAI_USE_VERTEXAI="TRUE"
+python quickstart.py
+```
+
+Requires a GCP project with the Vertex AI API enabled. See [Vertex AI setup](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform).
+
+Both paths produce the same result -- the [`quickstart.py`](quickstart.py) file works with either configuration.
 
 ## Expression Language
 
