@@ -11,6 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from adk_fluent._context import CTransform
 from adk_fluent._transforms import STransform
 
 __all__ = ["A", "ATransform"]
@@ -120,6 +121,69 @@ class ATransform:
     @property
     def __name__(self) -> str:  # type: ignore[override]
         return self._name
+
+
+def _make_artifact_context_provider(
+    filename: str,
+    scope: str,
+    version: int | None,
+) -> Callable:
+    """Create an async instruction_provider that loads artifact content."""
+
+    async def _provider(ctx: Any) -> str:
+        svc = ctx._invocation_context.artifact_service
+        if svc is None:
+            return f"[Artifact '{filename}' unavailable: no artifact service configured]"
+
+        app_name = ctx._invocation_context.app_name
+        user_id = ctx._invocation_context.user_id
+        session_id = ctx.session.id
+        is_user = scope == "user"
+        svc_session_id = None if is_user else session_id
+
+        try:
+            part = await svc.load_artifact(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=filename,
+                version=version,
+            )
+        except Exception:
+            return f"[Artifact '{filename}' could not be loaded]"
+
+        if part is None:
+            return f"[Artifact '{filename}' not found]"
+
+        # Text content -> inject directly
+        if part.text is not None:
+            return part.text
+
+        # Binary content -> detect MIME and provide description
+        if part.inline_data:
+            mime = part.inline_data.mime_type or _MimeConstants.detect(filename)
+            if _MimeConstants.is_text_like(mime):
+                return part.inline_data.data.decode("utf-8", errors="replace")
+            size_kb = len(part.inline_data.data) / 1024
+            return f"[Binary artifact: {filename}, type: {mime}, size: {size_kb:.1f}KB]"
+
+        return f"[Artifact '{filename}': unrecognized format]"
+
+    return _provider
+
+
+@dataclass(frozen=True)
+class _ArtifactContextBlock(CTransform):
+    """CTransform that loads artifact content for LLM context injection."""
+
+    _filename: str = ""
+    _scope: Literal["session", "user"] = "session"
+    _version: int | None = None
+
+    def __post_init__(self) -> None:
+        provider = _make_artifact_context_provider(self._filename, self._scope, self._version)
+        object.__setattr__(self, "instruction_provider", provider)
+        object.__setattr__(self, "include_contents", "none")
 
 
 class A:
@@ -490,4 +554,23 @@ class A:
             _produces_state=transform._produces_state,
             _consumes_state=transform._consumes_state,
             _name=f"when_{transform._name}",
+        )
+
+    @staticmethod
+    def for_llm(
+        filename: str,
+        *,
+        version: int | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> CTransform:
+        """Load artifact directly into LLM context. No state bridge.
+
+        Text artifacts are decoded and injected as instruction context.
+        Binary artifacts get a placeholder description with MIME and size.
+        Composes with C module: Agent("x").context(C.from_state("topic") + A.for_llm("report.md"))
+        """
+        return _ArtifactContextBlock(
+            _filename=filename,
+            _scope=scope,
+            _version=version,
         )

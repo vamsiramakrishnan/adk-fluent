@@ -640,6 +640,56 @@ class TestEndToEnd:
         assert len(artifact_errors) == 0
 
 
+class TestForLlm:
+    """A.for_llm — CTransform-compatible artifact context injection."""
+
+    def test_for_llm_returns_ctransform(self):
+        from adk_fluent import A
+        from adk_fluent._context import CTransform
+
+        result = A.for_llm("report.md")
+        assert isinstance(result, CTransform)
+
+    def test_for_llm_include_contents_none(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result.include_contents == "none"
+
+    def test_for_llm_has_instruction_provider(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result.instruction_provider is not None
+        assert callable(result.instruction_provider)
+
+    def test_for_llm_filename_stored(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result._filename == "report.md"
+
+    def test_for_llm_scope_default(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md")
+        assert result._scope == "session"
+
+    def test_for_llm_scope_user(self):
+        from adk_fluent import A
+
+        result = A.for_llm("report.md", scope="user")
+        assert result._scope == "user"
+
+    def test_for_llm_composes_with_c_plus(self):
+        """A.for_llm() can be combined with C blocks via +."""
+        from adk_fluent import A, C
+        from adk_fluent._context import CTransform
+
+        combined = C.from_state("topic") + A.for_llm("report.md")
+        assert isinstance(combined, CTransform)
+
+
 class TestContractChecking:
     def test_snapshot_without_upstream_publish_is_error(self):
         from adk_fluent import Agent
