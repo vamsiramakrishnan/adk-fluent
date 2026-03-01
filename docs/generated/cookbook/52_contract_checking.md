@@ -1,6 +1,8 @@
 # Contract Checking: Catch Data Flow Bugs Before Runtime
 
-*How to configure agents for production runtime.*
+:::{tip} What you'll learn
+How to configure agents for production runtime.
+:::
 
 _Source: `52_contract_checking.py`_
 
@@ -18,19 +20,16 @@ graph TD
     n3 -. "order_details" .-> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # In native ADK, if Agent B reads {summary} from state but Agent A never
 # writes it, you discover this at runtime when the template renders as
 # a literal "{summary}" string — or worse, silently produces garbage.
 # There's no static analysis to catch these wiring errors.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S
 from adk_fluent.testing import check_contracts
@@ -81,7 +80,6 @@ order_pipeline = (
 order_issues = check_contracts(order_pipeline.to_ir())
 order_errors = [i for i in order_issues if isinstance(i, dict) and i.get("level") == "error"]
 ```
-
 :::
 ::::
 

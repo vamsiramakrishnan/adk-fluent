@@ -6,13 +6,14 @@ scenario: a medical information agent with safety guards that
 screen requests and responses for dangerous self-diagnosis or
 treatment recommendations.
 
-*How to register lifecycle callbacks with accumulation semantics.*
+:::{tip} What you'll learn
+How to register lifecycle callbacks with accumulation semantics.
+:::
 
 _Source: `12_guards.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -40,10 +41,8 @@ agent_native = LlmAgent(
     after_model_callback=medical_safety_screen,
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -60,7 +59,6 @@ builder = (
     .guard(medical_safety_screen)
 )
 ```
-
 :::
 ::::
 

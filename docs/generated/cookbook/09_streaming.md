@@ -1,12 +1,18 @@
 # Live Translation Pipeline -- Streaming with .stream()
 
-Demonstrates the .stream() method for token-by-token output. The
-scenario: a real-time multilingual translation service that transcribes
-audio input and streams translated text as it generates -- critical
-for live conferences, court interpreting, and broadcast captioning.
-No LLM calls are made here -- we verify builder and pipeline mechanics.
+Real-world use case: Real-time translation pipeline for live event
+transcription. Transcribes audio, translates, and formats subtitles --
+all streaming. Critical for live conferences, court interpreting, and
+broadcast captioning where latency matters.
 
-*How to compose agents into a sequential pipeline.*
+In other frameworks: LangGraph supports streaming via astream_events but
+requires graph compilation and manual event filtering. adk-fluent exposes
+.stream() directly on any pipeline, making token-by-token output a single
+async for loop.
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `09_streaming.py`_
 
@@ -20,9 +26,8 @@ graph TD
     n2 --> n3
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -52,10 +57,8 @@ pipeline_native = SequentialAgent(
     sub_agents=[transcriber_native, translator_native],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -82,7 +85,6 @@ pipeline_fluent = transcriber >> translator
 built_native = pipeline_native
 built_fluent = pipeline_fluent.build()
 ```
-
 :::
 ::::
 

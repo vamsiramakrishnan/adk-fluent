@@ -1,6 +1,8 @@
 # Contracts and Testing: Medical Imaging Pipeline with Strict Data Contracts
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `46_contracts_and_testing.py`_
 
@@ -19,19 +21,16 @@ graph TD
     n2 -. "modality" .-> n3
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in contract verification or mock testing.
 # In a medical imaging pipeline, data flow errors between the DICOM
 # parser and the diagnosis agent would only surface at runtime --
 # potentially with patient data at stake.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -67,7 +66,6 @@ mb = mock_backend(
 # Build the pipeline for deployment
 agent_fluent = imaging_pipeline.build()
 ```
-
 :::
 ::::
 

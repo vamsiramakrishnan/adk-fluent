@@ -2,26 +2,25 @@
 
 ## Builders in this module
 
-| Builder                                                                  | Description                                                                    |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| [BaseArtifactService](builder-BaseArtifactService)                       | Abstract base class for artifact services.                                     |
-| [FileArtifactService](builder-FileArtifactService)                       | Stores filesystem-backed artifacts beneath a configurable root directory.      |
-| [GcsArtifactService](builder-GcsArtifactService)                         | An artifact service implementation using Google Cloud Storage (GCS).           |
-| [InMemoryArtifactService](builder-InMemoryArtifactService)               | An in-memory implementation of the artifact service.                           |
-| [PerAgentDatabaseSessionService](builder-PerAgentDatabaseSessionService) | Routes session storage to per-agent \`.                                        |
-| [BaseMemoryService](builder-BaseMemoryService)                           | Base class for memory services.                                                |
-| [InMemoryMemoryService](builder-InMemoryMemoryService)                   | An in-memory memory service for prototyping purpose only.                      |
-| [VertexAiMemoryBankService](builder-VertexAiMemoryBankService)           | Implementation of the BaseMemoryService using Vertex AI Memory Bank.           |
-| [VertexAiRagMemoryService](builder-VertexAiRagMemoryService)             | A memory service that uses Vertex AI RAG for storage and retrieval.            |
-| [BaseSessionService](builder-BaseSessionService)                         | Base class for session services.                                               |
-| [DatabaseSessionService](builder-DatabaseSessionService)                 | A session service that uses a database for storage.                            |
-| [InMemorySessionService](builder-InMemorySessionService)                 | An in-memory implementation of the session service.                            |
-| [SqliteSessionService](builder-SqliteSessionService)                     | A session service that uses an SQLite database for storage via aiosqlite.      |
-| [VertexAiSessionService](builder-VertexAiSessionService)                 | Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. |
-| [ForwardingArtifactService](builder-ForwardingArtifactService)           | Artifact service that forwards to the parent tool context.                     |
+| Builder | Description |
+|---------|-------------|
+| [BaseArtifactService](builder-BaseArtifactService) | Abstract base class for artifact services. |
+| [FileArtifactService](builder-FileArtifactService) | Stores filesystem-backed artifacts beneath a configurable root directory. |
+| [GcsArtifactService](builder-GcsArtifactService) | An artifact service implementation using Google Cloud Storage (GCS). |
+| [InMemoryArtifactService](builder-InMemoryArtifactService) | An in-memory implementation of the artifact service. |
+| [PerAgentDatabaseSessionService](builder-PerAgentDatabaseSessionService) | Routes session storage to per-agent `. |
+| [BaseMemoryService](builder-BaseMemoryService) | Base class for memory services. |
+| [InMemoryMemoryService](builder-InMemoryMemoryService) | An in-memory memory service for prototyping purpose only. |
+| [VertexAiMemoryBankService](builder-VertexAiMemoryBankService) | Implementation of the BaseMemoryService using Vertex AI Memory Bank. |
+| [VertexAiRagMemoryService](builder-VertexAiRagMemoryService) | A memory service that uses Vertex AI RAG for storage and retrieval. |
+| [BaseSessionService](builder-BaseSessionService) | Base class for session services. |
+| [DatabaseSessionService](builder-DatabaseSessionService) | A session service that uses a database for storage. |
+| [InMemorySessionService](builder-InMemorySessionService) | An in-memory implementation of the session service. |
+| [SqliteSessionService](builder-SqliteSessionService) | A session service that uses an SQLite database for storage via aiosqlite. |
+| [VertexAiSessionService](builder-VertexAiSessionService) | Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. |
+| [ForwardingArtifactService](builder-ForwardingArtifactService) | Artifact service that forwards to the parent tool context. |
 
 (builder-BaseArtifactService)=
-
 ## BaseArtifactService
 
 > Fluent builder for `google.adk.artifacts.base_artifact_service.BaseArtifactService`
@@ -45,21 +44,20 @@ result = (
 BaseArtifactService(args: Any, kwargs: Any)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `args`   | `Any` |
+| Argument | Type |
+|----------|------|
+| `args` | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
 
-#### `.build() -> BaseArtifactService`
+#### `.build() -> BaseArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseArtifactService.
 
-______________________________________________________________________
+---
 
 (builder-FileArtifactService)=
-
 ## FileArtifactService
 
 > Fluent builder for `google.adk.artifacts.file_artifact_service.FileArtifactService`
@@ -83,20 +81,19 @@ result = (
 FileArtifactService(root_dir: Path | str)
 ```
 
-| Argument   | Type   |
-| ---------- | ------ |
-| `root_dir` | \`Path |
+| Argument | Type |
+|----------|------|
+| `root_dir` | `Path | str` |
 
 ### Control Flow & Execution
 
-#### `.build() -> FileArtifactService`
+#### `.build() -> FileArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK FileArtifactService.
 
-______________________________________________________________________
+---
 
 (builder-GcsArtifactService)=
-
 ## GcsArtifactService
 
 > Fluent builder for `google.adk.artifacts.gcs_artifact_service.GcsArtifactService`
@@ -120,21 +117,20 @@ result = (
 GcsArtifactService(bucket_name: str, kwargs: Any)
 ```
 
-| Argument      | Type  |
-| ------------- | ----- |
-| `bucket_name` | `str` |
-| `kwargs`      | `Any` |
+| Argument | Type |
+|----------|------|
+| `bucket_name` | {py:class}`str` |
+| `kwargs` | `Any` |
 
 ### Control Flow & Execution
 
-#### `.build() -> GcsArtifactService`
+#### `.build() -> GcsArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GcsArtifactService.
 
-______________________________________________________________________
+---
 
 (builder-InMemoryArtifactService)=
-
 ## InMemoryArtifactService
 
 > Fluent builder for `google.adk.artifacts.in_memory_artifact_service.InMemoryArtifactService`
@@ -154,7 +150,7 @@ result = (
 
 ### Control Flow & Execution
 
-#### `.build() -> InMemoryArtifactService`
+#### `.build() -> InMemoryArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemoryArtifactService.
 
@@ -162,14 +158,13 @@ Resolve into a native ADK InMemoryArtifactService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field               | Type                              |
-| ------------------- | --------------------------------- |
+| Field | Type |
+|-------|------|
 | `.artifacts(value)` | `dict[str, list[_ArtifactEntry]]` |
 
-______________________________________________________________________
+---
 
 (builder-PerAgentDatabaseSessionService)=
-
 ## PerAgentDatabaseSessionService
 
 > Fluent builder for `google.adk.cli.utils.local_storage.PerAgentDatabaseSessionService`
@@ -193,13 +188,13 @@ result = (
 PerAgentDatabaseSessionService(agents_root: Path | str)
 ```
 
-| Argument      | Type   |
-| ------------- | ------ |
-| `agents_root` | \`Path |
+| Argument | Type |
+|----------|------|
+| `agents_root` | `Path | str` |
 
 ### Control Flow & Execution
 
-#### `.build() -> PerAgentDatabaseSessionService`
+#### `.build() -> PerAgentDatabaseSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PerAgentDatabaseSessionService.
 
@@ -207,14 +202,13 @@ Resolve into a native ADK PerAgentDatabaseSessionService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                     | Type                  |
-| ------------------------- | --------------------- |
-| `.app_name_to_dir(value)` | \`Mapping\[str, str\] |
+| Field | Type |
+|-------|------|
+| `.app_name_to_dir(value)` | `Mapping[str, str] | None` |
 
-______________________________________________________________________
+---
 
 (builder-BaseMemoryService)=
-
 ## BaseMemoryService
 
 > Fluent builder for `google.adk.memory.base_memory_service.BaseMemoryService`
@@ -238,21 +232,20 @@ result = (
 BaseMemoryService(args: Any, kwargs: Any)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `args`   | `Any` |
+| Argument | Type |
+|----------|------|
+| `args` | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
 
-#### `.build() -> BaseMemoryService`
+#### `.build() -> BaseMemoryService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseMemoryService.
 
-______________________________________________________________________
+---
 
 (builder-InMemoryMemoryService)=
-
 ## InMemoryMemoryService
 
 > Fluent builder for `google.adk.memory.in_memory_memory_service.InMemoryMemoryService`
@@ -272,14 +265,13 @@ result = (
 
 ### Control Flow & Execution
 
-#### `.build() -> InMemoryMemoryService`
+#### `.build() -> InMemoryMemoryService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemoryMemoryService.
 
-______________________________________________________________________
+---
 
 (builder-VertexAiMemoryBankService)=
-
 ## VertexAiMemoryBankService
 
 > Fluent builder for `google.adk.memory.vertex_ai_memory_bank_service.VertexAiMemoryBankService`
@@ -299,7 +291,7 @@ result = (
 
 ### Control Flow & Execution
 
-#### `.build() -> VertexAiMemoryBankService`
+#### `.build() -> VertexAiMemoryBankService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiMemoryBankService.
 
@@ -307,17 +299,16 @@ Resolve into a native ADK VertexAiMemoryBankService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type  |
-| ------------------------------ | ----- |
-| `.project(value)`              | \`str |
-| `.location(value)`             | \`str |
-| `.agent_engine_id(value)`      | \`str |
-| `.express_mode_api_key(value)` | \`str |
+| Field | Type |
+|-------|------|
+| `.project(value)` | `str | None` |
+| `.location(value)` | `str | None` |
+| `.agent_engine_id(value)` | `str | None` |
+| `.express_mode_api_key(value)` | `str | None` |
 
-______________________________________________________________________
+---
 
 (builder-VertexAiRagMemoryService)=
-
 ## VertexAiRagMemoryService
 
 > Fluent builder for `google.adk.memory.vertex_ai_rag_memory_service.VertexAiRagMemoryService`
@@ -337,7 +328,7 @@ result = (
 
 ### Control Flow & Execution
 
-#### `.build() -> VertexAiRagMemoryService`
+#### `.build() -> VertexAiRagMemoryService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiRagMemoryService.
 
@@ -345,16 +336,15 @@ Resolve into a native ADK VertexAiRagMemoryService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type    |
-| ----------------------------------- | ------- |
-| `.rag_corpus(value)`                | \`str   |
-| `.similarity_top_k(value)`          | \`int   |
-| `.vector_distance_threshold(value)` | `float` |
+| Field | Type |
+|-------|------|
+| `.rag_corpus(value)` | `str | None` |
+| `.similarity_top_k(value)` | `int | None` |
+| `.vector_distance_threshold(value)` | {py:class}`float` |
 
-______________________________________________________________________
+---
 
 (builder-BaseSessionService)=
-
 ## BaseSessionService
 
 > Fluent builder for `google.adk.sessions.base_session_service.BaseSessionService`
@@ -378,21 +368,20 @@ result = (
 BaseSessionService(args: Any, kwargs: Any)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `args`   | `Any` |
+| Argument | Type |
+|----------|------|
+| `args` | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
 
-#### `.build() -> BaseSessionService`
+#### `.build() -> BaseSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseSessionService.
 
-______________________________________________________________________
+---
 
 (builder-DatabaseSessionService)=
-
 ## DatabaseSessionService
 
 > Fluent builder for `google.adk.sessions.database_session_service.DatabaseSessionService`
@@ -416,21 +405,20 @@ result = (
 DatabaseSessionService(db_url: str, kwargs: Any)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `db_url` | `str` |
+| Argument | Type |
+|----------|------|
+| `db_url` | {py:class}`str` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
 
-#### `.build() -> DatabaseSessionService`
+#### `.build() -> DatabaseSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DatabaseSessionService.
 
-______________________________________________________________________
+---
 
 (builder-InMemorySessionService)=
-
 ## InMemorySessionService
 
 > Fluent builder for `google.adk.sessions.in_memory_session_service.InMemorySessionService`
@@ -450,14 +438,13 @@ result = (
 
 ### Control Flow & Execution
 
-#### `.build() -> InMemorySessionService`
+#### `.build() -> InMemorySessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemorySessionService.
 
-______________________________________________________________________
+---
 
 (builder-SqliteSessionService)=
-
 ## SqliteSessionService
 
 > Fluent builder for `google.adk.sessions.sqlite_session_service.SqliteSessionService`
@@ -481,20 +468,19 @@ result = (
 SqliteSessionService(db_path: str)
 ```
 
-| Argument  | Type  |
-| --------- | ----- |
-| `db_path` | `str` |
+| Argument | Type |
+|----------|------|
+| `db_path` | {py:class}`str` |
 
 ### Control Flow & Execution
 
-#### `.build() -> SqliteSessionService`
+#### `.build() -> SqliteSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SqliteSessionService.
 
-______________________________________________________________________
+---
 
 (builder-VertexAiSessionService)=
-
 ## VertexAiSessionService
 
 > Fluent builder for `google.adk.sessions.vertex_ai_session_service.VertexAiSessionService`
@@ -514,7 +500,7 @@ result = (
 
 ### Control Flow & Execution
 
-#### `.build() -> VertexAiSessionService`
+#### `.build() -> VertexAiSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiSessionService.
 
@@ -522,17 +508,16 @@ Resolve into a native ADK VertexAiSessionService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type  |
-| ------------------------------ | ----- |
-| `.project(value)`              | \`str |
-| `.location(value)`             | \`str |
-| `.agent_engine_id(value)`      | \`str |
-| `.express_mode_api_key(value)` | \`str |
+| Field | Type |
+|-------|------|
+| `.project(value)` | `str | None` |
+| `.location(value)` | `str | None` |
+| `.agent_engine_id(value)` | `str | None` |
+| `.express_mode_api_key(value)` | `str | None` |
 
-______________________________________________________________________
+---
 
 (builder-ForwardingArtifactService)=
-
 ## ForwardingArtifactService
 
 > Fluent builder for `google.adk.tools._forwarding_artifact_service.ForwardingArtifactService`
@@ -556,12 +541,12 @@ result = (
 ForwardingArtifactService(tool_context: ToolContext)
 ```
 
-| Argument       | Type          |
-| -------------- | ------------- |
+| Argument | Type |
+|----------|------|
 | `tool_context` | `ToolContext` |
 
 ### Control Flow & Execution
 
-#### `.build() -> ForwardingArtifactService`
+#### `.build() -> ForwardingArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ForwardingArtifactService.

@@ -97,7 +97,7 @@ Add a custom named section.
 Include block only if predicate is truthy at runtime.
 
 String predicate is a shortcut for state key check:
-P.when("verbose", P.context("...")) # include if state\["verbose"\] truthy
+P.when("verbose", P.context("...")) # include if state["verbose"] truthy
 
 **Parameters:**
 

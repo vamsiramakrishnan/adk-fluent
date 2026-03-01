@@ -1,14 +1,21 @@
 # Document Processing Pipeline -- Sequential Pipeline
 
-Demonstrates a SequentialAgent that chains steps in order.  The
-scenario: a document processing pipeline that extracts key data
-from a contract, analyzes legal risks, then produces an executive
-summary.
+Real-world use case: Contract review system used by legal teams to process
+vendor agreements at scale. Extracts key terms, identifies legal risks,
+and produces executive summaries -- replacing hours of manual review.
+
+In other frameworks: LangGraph requires a StateGraph with TypedDict state,
+3 node functions, and 5 edge declarations (~35 lines). CrewAI needs 3 Agent
+objects with role/goal/backstory plus 3 Task objects (~30 lines). Native ADK
+needs 3 LlmAgent + 1 SequentialAgent (~20 lines). adk-fluent composes the
+same pipeline in a single expression.
 
 Pipeline topology:
-extractor >> risk_analyst >> summarizer
+    extractor >> risk_analyst >> summarizer
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `04_sequential_pipeline.py`_
 
@@ -24,9 +31,8 @@ graph TD
     n3 --> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -61,10 +67,8 @@ pipeline_native = SequentialAgent(
     sub_agents=[extractor, analyst, summarizer],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -98,7 +102,6 @@ pipeline_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 
@@ -112,6 +115,6 @@ assert pipeline_fluent.sub_agents[1].name == "risk_analyst"
 assert pipeline_fluent.sub_agents[2].name == "summarizer"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::

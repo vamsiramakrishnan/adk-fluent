@@ -5,12 +5,14 @@ safety guardrails, and dependency injection -- inspired by Manus AI's
 tool-using agent and the OpenAI Agents SDK patterns.
 
 Pipeline topology:
-task_agent \[tools: search, calc, read_file\] \[guardrail\] \[inject: api_key\]
-\>> verifier \[C.from_state("task_result")\]
+    task_agent [tools: search, calc, read_file] [guardrail] [inject: api_key]
+        >> verifier [C.from_state("task_result")]
 
 Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 
-*How to attach tools to an agent using the fluent API.*
+:::{tip} What you'll learn
+How to attach tools to an agent using the fluent API.
+:::
 
 _Source: `58_multi_tool_agent.py`_
 
@@ -24,9 +26,8 @@ graph TD
     n2 --> n3
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 import functools
 
@@ -63,10 +64,8 @@ agent_native = LlmAgent(
     ],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, C
 
@@ -125,7 +124,6 @@ verifier = (
 # Compose: task agent -> verifier pipeline
 verified_agent = task_agent.writes("task_result") >> verifier
 ```
-
 :::
 ::::
 
@@ -174,6 +172,6 @@ ir_t = multi_t.to_ir()
 assert len(ir_t.tools) == 3
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

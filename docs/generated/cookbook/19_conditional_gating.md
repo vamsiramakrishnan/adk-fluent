@@ -1,6 +1,8 @@
 # Fraud Detection Pipeline with Conditional Gating
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `19_conditional_gating.py`_
 
@@ -16,9 +18,8 @@ graph TD
     n3 --> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires manually implementing before_agent_callback
 # that returns Content to skip an agent:
@@ -36,10 +37,8 @@ graph TD
 #       before_agent_callback=fraud_gate,
 #   )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -74,7 +73,6 @@ compliance_notifier = (
 
 pipeline = risk_scorer >> fraud_investigator >> compliance_notifier
 ```
-
 :::
 ::::
 

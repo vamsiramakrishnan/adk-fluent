@@ -142,7 +142,34 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 
 ## What's Next
 
-- **[User Guide](user-guide/index.md)** -- deep dive into builders, operators, prompts, callbacks, and more
-- **[API Reference](generated/api/index.md)** -- complete method reference for all 130+ builders
-- **[Cookbook](generated/cookbook/index.md)** -- 34 annotated examples with side-by-side Native ADK vs Fluent comparisons
-- **[Migration Guide](generated/migration/from-native-adk.md)** -- migrate existing ADK code to adk-fluent
+::::{grid} 1 2 2 2
+:gutter: 3
+
+:::{grid-item-card} 📘 Read the User Guide
+:link: user-guide/index
+:link-type: doc
+
+Deep dive into builders, operators, callbacks, and more.
+:::
+
+:::{grid-item-card} 📚 API Reference
+:link: generated/api/index
+:link-type: doc
+
+Complete method reference for all 130+ builders.
+:::
+
+:::{grid-item-card} 🍳 Explore the Cookbook
+:link: generated/cookbook/index
+:link-type: doc
+
+Browse 34+ side-by-side examples with native ADK comparisons.
+:::
+
+:::{grid-item-card} 🔄 Migration Guide
+:link: generated/migration/from-native-adk
+:link-type: doc
+
+Migrate existing ADK code to adk-fluent effortlessly.
+:::
+::::

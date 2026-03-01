@@ -68,7 +68,7 @@ M.scope(("writer", "reviewer"), M.log())
 
 **Parameters:**
 
-- `agents` (*str | tuple\[str, ...\]*)
+- `agents` (*str | tuple[str, ...]*)
 - `mw` (*MComposite | Any*)
 
 ### `M.when(condition: str | Callable[[], bool] | type, mw: MComposite | Any) -> MComposite`
@@ -89,7 +89,7 @@ M.when(PremiumOnly, M.scope("writer", M.cost()))
 
 **Parameters:**
 
-- `condition` (*str | Callable\[\[\], bool\] | type*)
+- `condition` (*str | Callable\[[], bool\] | type*)
 - `mw` (*MComposite | Any*)
 
 ## Single-hook shortcuts

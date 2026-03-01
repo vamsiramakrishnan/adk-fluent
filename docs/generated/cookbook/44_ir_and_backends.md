@@ -5,7 +5,9 @@ compilation, and to_mermaid() for architecture documentation. The
 scenario: a mortgage approval pipeline where the platform team
 inspects the agent graph for optimization before deployment.
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `44_ir_and_backends.py`_
 
@@ -25,9 +27,8 @@ graph TD
     n3 --> n6
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -51,10 +52,8 @@ underwriter = LlmAgent(
 )
 pipeline_native = SequentialAgent(name="mortgage_pipeline", sub_agents=[doc_collector, parallel_checks, underwriter])
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -84,7 +83,6 @@ mermaid = mortgage_pipeline.to_mermaid()
 # 4. Build directly for comparison
 built_fluent = mortgage_pipeline.build()
 ```
-
 :::
 ::::
 

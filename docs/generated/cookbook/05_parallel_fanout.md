@@ -5,10 +5,21 @@ scenario: a market research system that simultaneously gathers
 intelligence from web sources, academic papers, and social media
 to produce a comprehensive competitive analysis.
 
-Pipeline topology:
-( web_analyst | academic_analyst | social_analyst )
+Real-world use case: Competitive intelligence system that simultaneously
+gathers data from web, academic, and social media sources. Used by market
+research teams to produce comprehensive analysis in minutes instead of days.
 
-*How to compose agents into a sequential pipeline.*
+In other frameworks: LangGraph requires a StateGraph with fan-out nodes and
+edge wiring (~30 lines). CrewAI supports parallel via Crew(process="parallel")
+but lacks explicit fan-out composition. adk-fluent uses the | operator for
+declarative parallel execution.
+
+Pipeline topology:
+    ( web_analyst | academic_analyst | social_analyst )
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `05_parallel_fanout.py`_
 
@@ -25,9 +36,8 @@ graph TD
     n1 --> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.parallel_agent import ParallelAgent
@@ -60,10 +70,8 @@ fanout_native = ParallelAgent(
     ],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, FanOut
 
@@ -90,7 +98,6 @@ fanout_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 
@@ -104,6 +111,6 @@ assert fanout_fluent.sub_agents[1].name == "academic_analyst"
 assert fanout_fluent.sub_agents[2].name == "social_analyst"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FanOut](../api/workflow.md#builder-FanOut)
 :::

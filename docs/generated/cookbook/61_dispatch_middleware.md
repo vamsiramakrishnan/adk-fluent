@@ -4,17 +4,18 @@ Demonstrates the dispatch/join middleware hooks for observing
 background agent lifecycle events.
 
 Key concepts:
+  - DispatchLogMiddleware: built-in observability for dispatch/join
+  - on_dispatch: fired when a task is dispatched as background
+  - on_task_complete: fired when a dispatched task completes
+  - on_task_error: fired when a dispatched task fails
+  - on_join: fired after a join barrier completes
+  - on_stream_item: fired after each stream item is processed
+  - get_execution_mode(): query current mode (pipeline/dispatched/stream)
+  - task_budget(): configure max concurrent dispatch tasks
 
-- DispatchLogMiddleware: built-in observability for dispatch/join
-- on_dispatch: fired when a task is dispatched as background
-- on_task_complete: fired when a dispatched task completes
-- on_task_error: fired when a dispatched task fails
-- on_join: fired after a join barrier completes
-- on_stream_item: fired after each stream item is processed
-- get_execution_mode(): query current mode (pipeline/dispatched/stream)
-- task_budget(): configure max concurrent dispatch tasks
-
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `61_dispatch_middleware.py`_
 
@@ -27,9 +28,8 @@ graph TD
     n1 --> n2
 ```
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, dispatch, get_execution_mode, join
 from adk_fluent._primitive_builders import BackgroundTask
@@ -140,6 +140,5 @@ assert gem2 is get_execution_mode
 
 print("All dispatch middleware assertions passed!")
 ```
-
 :::
 ::::

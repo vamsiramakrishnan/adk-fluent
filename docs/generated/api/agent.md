@@ -2,13 +2,12 @@
 
 ## Builders in this module
 
-| Builder                        | Description                                         |
-| ------------------------------ | --------------------------------------------------- |
+| Builder | Description |
+|---------|-------------|
 | [BaseAgent](builder-BaseAgent) | Base class for all agents in Agent Development Kit. |
-| [Agent](builder-Agent)         | LLM-based Agent.                                    |
+| [Agent](builder-Agent) | LLM-based Agent. |
 
 (builder-BaseAgent)=
-
 ## BaseAgent
 
 > Fluent builder for `google.adk.agents.base_agent.BaseAgent`
@@ -33,50 +32,50 @@ result = (
 BaseAgent(name: str)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `name`   | `str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
-#### `.describe(value: str) -> Self`
+#### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
 - Set the `description` field.
 
-#### `.sub_agent(value: BaseAgent) -> Self`
+#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
-Append to `sub_agents` (lazy — built at .build() time).
+Append to ``sub_agents`` (lazy — built at .build() time).
 
 ### Callbacks
 
-#### `.after_agent(*fns: Callable) -> Self`
+#### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.after_agent_if(condition: bool, fn: Callable) -> Self`
+#### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
 
-#### `.before_agent(*fns: Callable) -> Self`
+#### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.before_agent_if(condition: bool, fn: Callable) -> Self`
+#### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
 ### Control Flow & Execution
 
-#### `.build() -> BaseAgent`
+#### `.build() -> BaseAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseAgent.
 
@@ -84,14 +83,13 @@ Resolve into a native ADK BaseAgent.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                | Type              |
-| -------------------- | ----------------- |
+| Field | Type |
+|-------|------|
 | `.sub_agents(value)` | `list[BaseAgent]` |
 
-______________________________________________________________________
+---
 
 (builder-Agent)=
-
 ## Agent
 
 > Fluent builder for `google.adk.agents.llm_agent.LlmAgent`
@@ -116,37 +114,37 @@ result = (
 Agent(name: str)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `name`   | `str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
-#### `.describe(value: str) -> Self`
+#### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
 - Set the `description` field.
 
-#### `.global_instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self`
+#### `.global_instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `global_instruction`
 - Set the `global_instruction` field.
 
-#### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self`
+#### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `instruction`
 - Set the `instruction` field.
 
-#### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self`
+#### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `static_instruction`
 - Set the `static_instruction` field.
 
-#### `.sub_agent(value: BaseAgent) -> Self`
+#### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
-Append to `sub_agents` (lazy — built at .build() time).
+Append to ``sub_agents`` (lazy — built at .build() time).
 
-#### `.tool(fn_or_tool: Any, *, require_confirmation: bool = False) -> Self`
+#### `.tool(fn_or_tool: Any, *, require_confirmation: bool = False) -> Self` {bdg-success}`Core Configuration`
 
 Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True.
 
@@ -164,7 +162,7 @@ agent = Agent("helper").tool(search).build()
 
 ### Configuration
 
-#### `.agent_tool(agent: Any) -> Self`
+#### `.agent_tool(agent: Any) -> Self` {bdg-info}`Configuration`
 
 Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name.
 
@@ -182,7 +180,7 @@ coordinator = (
 )
 ```
 
-#### `.artifact_schema(schema: type) -> Self`
+#### `.artifact_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach an ArtifactSchema declaring artifact dependencies.
 
@@ -194,7 +192,7 @@ Attach an ArtifactSchema declaring artifact dependencies.
 Agent("researcher").artifact_schema(ResearchArtifacts)
 ```
 
-#### `.artifacts(*transforms: Any) -> Self`
+#### `.artifacts(*transforms: Any) -> Self` {bdg-info}`Configuration`
 
 Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes.
 
@@ -206,11 +204,11 @@ Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this ag
 Agent("writer").artifacts(A.publish("report.md", from_key="output"))
 ```
 
-#### `.callback_schema(schema: type) -> Self`
+#### `.callback_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach a CallbackSchema declaring callback state dependencies.
 
-#### `.context(spec: Any) -> Self`
+#### `.context(spec: Any) -> Self` {bdg-info}`Configuration`
 
 Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.).
 
@@ -230,7 +228,7 @@ agent = (
 )
 ```
 
-#### `.guard(fn: Callable[..., Any]) -> Self`
+#### `.guard(fn: Callable[..., Any]) -> Self` {bdg-info}`Configuration`
 
 Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response.
 
@@ -247,7 +245,7 @@ def safety_check(callback_context, llm_request, llm_response, agent):
 agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
 ```
 
-#### `.hide() -> Self`
+#### `.hide() -> Self` {bdg-info}`Configuration`
 
 Force this agent's events to be internal (override topology inference).
 
@@ -260,7 +258,7 @@ Force this agent's events to be internal (override topology inference).
 agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
 ```
 
-#### `.memory(mode: str = 'preload') -> Self`
+#### `.memory(mode: str = 'preload') -> Self` {bdg-info}`Configuration`
 
 Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'.
 
@@ -272,11 +270,11 @@ Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'.
 agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
 ```
 
-#### `.memory_auto_save() -> Self`
+#### `.memory_auto_save() -> Self` {bdg-info}`Configuration`
 
 Auto-save session to memory after each agent run.
 
-#### `.no_peers() -> Self`
+#### `.no_peers() -> Self` {bdg-info}`Configuration`
 
 Prevent this agent from transferring to sibling agents. The agent can still return to its parent.
 
@@ -293,11 +291,11 @@ focused = (
 )
 ```
 
-#### `.prompt_schema(schema: type) -> Self`
+#### `.prompt_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach a PromptSchema declaring prompt state dependencies.
 
-#### `.show() -> Self`
+#### `.show() -> Self` {bdg-info}`Configuration`
 
 Force this agent's events to be user-facing (override topology inference).
 
@@ -310,7 +308,7 @@ Force this agent's events to be user-facing (override topology inference).
 agent = Agent("logger").model("m").instruct("Log progress.").show()
 ```
 
-#### `.stay() -> Self`
+#### `.stay() -> Self` {bdg-info}`Configuration`
 
 Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning.
 
@@ -327,119 +325,119 @@ specialist = (
 )
 ```
 
-#### `.to_ir() -> Any`
+#### `.to_ir() -> Any` {bdg-info}`Configuration`
 
 Convert this Agent builder to an AgentNode IR node.
 
-#### `.tool_schema(schema: type) -> Self`
+#### `.tool_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach a ToolSchema declaring tool state dependencies.
 
-#### `.tools(value: Any) -> Self`
+#### `.tools(value: Any) -> Self` {bdg-info}`Configuration`
 
 Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset.
 
 ### Callbacks
 
-#### `.after_agent(*fns: Callable) -> Self`
+#### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.after_agent_if(condition: bool, fn: Callable) -> Self`
+#### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
 
-#### `.after_model(*fns: Callable) -> Self`
+#### `.after_model(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_model_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.after_model_if(condition: bool, fn: Callable) -> Self`
+#### `.after_model_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_model_callback` only if `condition` is `True`.
 
-#### `.after_tool(*fns: Callable) -> Self`
+#### `.after_tool(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_tool_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.after_tool_if(condition: bool, fn: Callable) -> Self`
+#### `.after_tool_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_tool_callback` only if `condition` is `True`.
 
-#### `.before_agent(*fns: Callable) -> Self`
+#### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.before_agent_if(condition: bool, fn: Callable) -> Self`
+#### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
 
-#### `.before_model(*fns: Callable) -> Self`
+#### `.before_model(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_model_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.before_model_if(condition: bool, fn: Callable) -> Self`
+#### `.before_model_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_model_callback` only if `condition` is `True`.
 
-#### `.before_tool(*fns: Callable) -> Self`
+#### `.before_tool(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_tool_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.before_tool_if(condition: bool, fn: Callable) -> Self`
+#### `.before_tool_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_tool_callback` only if `condition` is `True`.
 
-#### `.on_model_error(*fns: Callable) -> Self`
+#### `.on_model_error(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `on_model_error_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.on_model_error_if(condition: bool, fn: Callable) -> Self`
+#### `.on_model_error_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `on_model_error_callback` only if `condition` is `True`.
 
-#### `.on_tool_error(*fns: Callable) -> Self`
+#### `.on_tool_error(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `on_tool_error_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
-#### `.on_tool_error_if(condition: bool, fn: Callable) -> Self`
+#### `.on_tool_error_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `on_tool_error_callback` only if `condition` is `True`.
 
 ### Control Flow & Execution
 
-#### `.ask(prompt: str) -> str`
+#### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot execution. Build agent, send prompt, return response text.
 
@@ -452,19 +450,19 @@ reply = Agent("qa", "gemini-2.5-flash").instruct("Answer questions.").ask("What 
 print(reply)
 ```
 
-#### `.ask_async(prompt: str) -> str`
+#### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 Async one-shot execution.
 
-#### `.build() -> LlmAgent`
+#### `.build() -> LlmAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LlmAgent.
 
-#### `.events(prompt: str) -> AsyncIterator[Any]`
+#### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
 
-#### `.isolate() -> Self`
+#### `.isolate() -> Self` {bdg-primary}`Control Flow & Execution`
 
 Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return.
 
@@ -483,19 +481,19 @@ specialist = (
 )
 ```
 
-#### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]`
+#### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Run agent against multiple prompts with bounded concurrency.
 
-#### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]`
+#### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Async batch execution against multiple prompts.
 
-#### `.session() -> Any`
+#### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
 
 Create an interactive session context manager. Use with 'async with'.
 
-#### `.stream(prompt: str) -> AsyncIterator[str]`
+#### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
 
 Streaming execution. Yields response text chunks.
 
@@ -508,7 +506,7 @@ async for chunk in Agent("writer", "gemini-2.5-flash").instruct("Write a poem.")
     print(chunk, end="")
 ```
 
-#### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self`
+#### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Run a smoke test. Calls .ask() internally, asserts output matches condition.
 
@@ -516,16 +514,16 @@ Run a smoke test. Calls .ask() internally, asserts output matches condition.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                 | Type                         |
-| ------------------------------------- | ---------------------------- |
-| `.sub_agents(value)`                  | `list[BaseAgent]`            |
-| `.model(value)`                       | \`str                        |
-| `.generate_content_config(value)`     | \`GenerateContentConfig      |
-| `.disallow_transfer_to_parent(value)` | `bool`                       |
-| `.disallow_transfer_to_peers(value)`  | `bool`                       |
-| `.include_contents(value)`            | `Literal['default', 'none']` |
-| `.input_schema(value)`                | \`type\[BaseModel\]          |
-| `.output_schema(value)`               | \`type\[BaseModel\]          |
-| `.output_key(value)`                  | \`str                        |
-| `.planner(value)`                     | \`BasePlanner                |
-| `.code_executor(value)`               | \`BaseCodeExecutor           |
+| Field | Type |
+|-------|------|
+| `.sub_agents(value)` | `list[BaseAgent]` |
+| `.model(value)` | `str | BaseLlm` |
+| `.generate_content_config(value)` | `GenerateContentConfig | None` |
+| `.disallow_transfer_to_parent(value)` | {py:class}`bool` |
+| `.disallow_transfer_to_peers(value)` | {py:class}`bool` |
+| `.include_contents(value)` | `Literal['default', 'none']` |
+| `.input_schema(value)` | `type[BaseModel] | None` |
+| `.output_schema(value)` | `type[BaseModel] | None` |
+| `.output_key(value)` | `str | None` |
+| `.planner(value)` | `BasePlanner | None` |
+| `.code_executor(value)` | `BaseCodeExecutor | None` |

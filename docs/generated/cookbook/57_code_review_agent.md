@@ -5,16 +5,27 @@ Gemini CLI's code review and GitHub Copilot's review features.
 Uses parallel fan-out for concurrent analysis, typed output for
 structured findings, and conditional gating.
 
+Real-world use case: Automated code review agent inspired by Gemini CLI and
+GitHub Copilot code review. Analyzes code for style, bugs, and security
+issues, then produces structured feedback.
+
+In other frameworks: LangGraph and CrewAI both require separate agent/node
+definitions for each review dimension plus aggregation logic. adk-fluent
+composes parallel reviewers with | and sequences with >> for a concise review
+pipeline.
+
 Pipeline topology:
-diff_parser \[save_as: parsed_changes\]
-\>> ( style_checker | security_scanner | logic_reviewer )
-\>> tap(log)
-\>> finding_aggregator @ ReviewResult
-\>> comment_writer \[gated: findings_count > 0\]
+    diff_parser [save_as: parsed_changes]
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> tap(log)
+        >> finding_aggregator @ ReviewResult
+        >> comment_writer [gated: findings_count > 0]
 
 Uses: >>, |, @, proceed_if, save_as, tap
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `57_code_review_agent.py`_
 
@@ -40,9 +51,8 @@ graph TD
     n8 --> n9
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # A native ADK code review agent requires:
 #   - 6 LlmAgent declarations
@@ -52,10 +62,8 @@ graph TD
 #   - Custom BaseAgent for conditional gating
 # Total: ~80 lines of boilerplate
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -167,7 +175,6 @@ code_review = (
     >> comment_writer
 )
 ```
-
 :::
 ::::
 
@@ -193,6 +200,6 @@ assert len(fanout.sub_agents) == 3
 assert built.sub_agents[3].output_schema is ReviewResult
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

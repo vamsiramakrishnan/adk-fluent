@@ -37,7 +37,26 @@ html_theme_options = {
     "source_repository": "https://github.com/vamsiramakrishnan/adk-fluent",
     "source_branch": "master",
     "source_directory": "docs/",
+    "light_css_variables": {
+        "color-brand-primary": "#4f46e5",
+        "color-brand-content": "#4338ca",
+        "font-stack": "Inter, sans-serif",
+        "font-stack--monospace": "'JetBrains Mono', 'Fira Code', monospace",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#818cf8",
+        "color-brand-content": "#6366f1",
+    },
 }
+
+pygments_style = "github-light"
+pygments_dark_style = "github-dark"
+
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d+\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
+
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # Source settings
 source_suffix = {

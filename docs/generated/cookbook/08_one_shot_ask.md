@@ -5,13 +5,14 @@ queries.  The scenario: a code review agent that can be invoked
 with a single line to get feedback on a code snippet.
 No LLM calls are made here -- we only verify builder mechanics.
 
-*How to use one-shot execution for quick queries.*
+:::{tip} What you'll learn
+How to use one-shot execution for quick queries.
+:::
 
 _Source: `08_one_shot_ask.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires 15+ lines of boilerplate:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -35,10 +36,8 @@ _Source: `08_one_shot_ask.py`_
 #
 #   result = asyncio.run(run())
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -60,7 +59,6 @@ builder = (
     )
 )
 ```
-
 :::
 ::::
 

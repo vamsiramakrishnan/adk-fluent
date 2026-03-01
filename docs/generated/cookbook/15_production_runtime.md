@@ -1,12 +1,18 @@
 # Production Deployment -- to_app() with Middleware Stack
 
-Demonstrates deploying a fluent builder to production using to_app(),
-which compiles through the IR to a native ADK App with middleware.
-The scenario: an e-commerce order processing agent deployed with
-retry logic for transient failures and structured logging for
-operational visibility.
+Real-world use case: E-commerce order processing with retry middleware
+for transient failures. Production systems need resilience -- this shows
+how middleware and pipelines compose to handle validation, payment, and
+fulfillment with automatic retries and structured logging.
 
-*How to configure agents for production runtime.*
+In other frameworks: LangGraph handles retries via custom node wrappers
+that must be applied to each node individually. adk-fluent uses middleware
+composition with the M module, applying cross-cutting concerns uniformly
+across the entire pipeline.
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `15_production_runtime.py`_
 
@@ -22,9 +28,8 @@ graph TD
     n3 --> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -50,10 +55,8 @@ pipeline_native = SequentialAgent(
     sub_agents=[order_validator, payment_processor, fulfillment],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
 
@@ -81,7 +84,6 @@ app = pipeline.to_app()
 # Also build the sequential agent directly for comparison
 built_fluent = pipeline.build()
 ```
-
 :::
 ::::
 
@@ -106,6 +108,6 @@ assert isinstance(pipeline._middlewares[0], RetryMiddleware)
 assert isinstance(pipeline._middlewares[1], StructuredLogMiddleware)
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Runner](../api/runtime.md#builder-Runner)
 :::

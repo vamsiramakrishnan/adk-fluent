@@ -4,13 +4,14 @@ Demonstrates creating a minimal LLM agent using both native ADK and
 the fluent builder.  The scenario: an agent that classifies incoming
 customer emails into categories (billing, technical, general).
 
-*How to create a basic agent with the fluent API.*
+:::{tip} What you'll learn
+How to create a basic agent with the fluent API.
+:::
 
 _Source: `01_simple_agent.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -25,10 +26,8 @@ agent_native = LlmAgent(
     description="Classifies customer emails by intent",
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -44,7 +43,6 @@ agent_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 
@@ -58,6 +56,6 @@ assert agent_native.instruction == agent_fluent.instruction
 assert agent_native.description == agent_fluent.description
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

@@ -6,7 +6,9 @@ disallow_transfer_to_parent, disallow_transfer_to_peers, and the
 where a coordinator routes to specialist agents that must complete their
 task before returning control.
 
-*How to build a team of agents with a coordinator.*
+:::{tip} What you'll learn
+How to build a team of agents with a coordinator.
+:::
 
 _Source: `54_transfer_control.py`_
 
@@ -23,9 +25,8 @@ graph TD
     n1 --> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -78,10 +79,8 @@ coordinator_native = LlmAgent(
     sub_agents=[billing_native, technical_native, general_native],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -150,7 +149,6 @@ coordinator_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 

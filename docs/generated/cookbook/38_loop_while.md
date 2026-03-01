@@ -1,6 +1,8 @@
 # Retry If: API Integration Agent That Retries on Transient Failures
 
-*How to use retry if: api integration agent that retries on transient failures with the fluent API.*
+:::{tip} What you'll learn
+How to use retry if: api integration agent that retries on transient failures with the fluent API.
+:::
 
 _Source: `38_loop_while.py`_
 
@@ -15,9 +17,8 @@ graph TD
     n1 --> n3
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in conditional retry. You'd need to:
 #   1. Wrap the agent in a LoopAgent
@@ -26,10 +27,8 @@ graph TD
 # For a payment gateway integration, this means 30+ lines of boilerplate
 # just to handle transient 503 errors.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -73,7 +72,6 @@ via_loop = (
     .loop_until(lambda s: s.get("sync_status") == "complete", max_iterations=4)
 )
 ```
-
 :::
 ::::
 
@@ -108,6 +106,6 @@ assert len(built.sub_agents) >= 2
 assert built.sub_agents[-1].name == "_until_check"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Loop](../api/workflow.md#builder-Loop)
 :::

@@ -1,0 +1,2 @@
+:root { --mermaid-font-family: var(--font-stack); }
+[data-theme="dark"] .mermaid { filter: invert(1) hue-rotate(180deg); }

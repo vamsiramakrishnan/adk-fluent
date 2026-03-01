@@ -5,10 +5,20 @@ iteration count.  The scenario: an essay refinement workflow where
 a critic evaluates the draft and a reviser improves it, repeating
 up to 3 times until quality standards are met.
 
-Pipeline topology:
-( critic >> reviser ) * 3
+Real-world use case: Essay refinement loop where a writer drafts and a critic
+provides feedback iteratively. Used by content teams to improve quality through
+structured iteration.
 
-*How to compose agents into a sequential pipeline.*
+In other frameworks: LangGraph models loops as conditional back-edges in a
+StateGraph, requiring a routing function to decide continue vs stop (~25 lines).
+adk-fluent uses * N for fixed iterations or * until() for conditional loops.
+
+Pipeline topology:
+    ( critic >> reviser ) * 3
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `06_loop_agent.py`_
 
@@ -23,9 +33,8 @@ graph TD
     n1 --> n3
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.loop_agent import LoopAgent
@@ -56,10 +65,8 @@ loop_native = LoopAgent(
     ],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -88,7 +95,6 @@ loop_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 
@@ -102,6 +108,6 @@ assert loop_fluent.sub_agents[0].name == "critic"
 assert loop_fluent.sub_agents[1].name == "reviser"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

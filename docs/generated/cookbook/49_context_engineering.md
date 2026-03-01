@@ -1,6 +1,16 @@
 # Context Engineering: Customer Support Pipeline
 
-*How to compose agents into a sequential pipeline.*
+Real-world use case: Customer support pipeline with context-aware routing.
+Uses context engineering to control what each agent sees -- stateless
+classifiers see only the current message while specialists see full history.
+
+In other frameworks: LangGraph manages context through TypedDict state slicing,
+requiring manual state key management. adk-fluent uses the C module (C.none(),
+C.from_state(), C.user_only()) for declarative context control.
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `49_context_engineering.py`_
 
@@ -26,9 +36,8 @@ graph TD
     n2 -. "customer_message" .-> n6
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # In native ADK, a 4-agent support pipeline where each agent sees all
 # conversation history — including internal classifier reasoning and
@@ -38,10 +47,8 @@ graph TD
 # session.events and inject state keys. That's ~40 lines of boilerplate
 # per agent.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S, C
 from adk_fluent._routing import Route
@@ -92,7 +99,6 @@ support_pipeline = (
 
 built = support_pipeline.build()
 ```
-
 :::
 ::::
 

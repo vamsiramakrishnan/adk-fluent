@@ -1,6 +1,8 @@
 # Visibility: Content Review Pipeline
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `51_visibility_policies.py`_
 
@@ -18,9 +20,8 @@ graph TD
     n4 --> n5
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # In native ADK, a 4-agent content pipeline (draft → fact-check →
 # compliance → publish) sends all intermediate outputs to the user.
@@ -28,10 +29,8 @@ graph TD
 # the compliance report — when they only want the final published version.
 # There's no built-in way to suppress intermediate events.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 from adk_fluent._visibility import infer_visibility
@@ -91,7 +90,6 @@ prod_pipeline.filtered()
 compliance_agent = Agent("compliance").model(MODEL).instruct("Review.").show()
 cleanup_agent = Agent("cleanup").model(MODEL).instruct("Clean up.").hide()
 ```
-
 :::
 ::::
 

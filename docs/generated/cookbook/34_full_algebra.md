@@ -5,12 +5,22 @@ in a real-world code review system. A diff parser extracts changes,
 parallel reviewers check style, security, and logic independently,
 then findings are aggregated into a structured verdict.
 
-Pipeline topology:
-diff_parser
-\>> ( style_checker | security_scanner | logic_reviewer )
-\>> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
+Real-world use case: Automated code review pipeline that runs style, security,
+and logic reviewers in parallel, then merges findings. Used by engineering teams
+as a pre-merge quality gate.
 
-*How to compose agents into a sequential pipeline.*
+In other frameworks: LangGraph models this as a fan-out subgraph with merge
+node (~45 lines). adk-fluent composes parallel reviewers with | and sequences
+with >> in a single expression.
+
+Pipeline topology:
+    diff_parser
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `34_full_algebra.py`_
 
@@ -36,9 +46,8 @@ graph TD
     n3 --> n7
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # A native ADK code review pipeline requires:
 #   - 5 LlmAgent declarations
@@ -48,10 +57,8 @@ graph TD
 # That's ~60 lines of boilerplate. The fluent algebra below
 # expresses the same architecture in a single readable expression.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -103,7 +110,6 @@ review_pipeline = (
     )
 )
 ```
-
 :::
 ::::
 

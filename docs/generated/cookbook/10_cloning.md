@@ -5,13 +5,14 @@ a shared base configuration.  The scenario: A/B testing two customer
 support agents -- one using a formal tone and one using a casual tone
 -- while sharing the same underlying tool (order lookup).
 
-*How to attach tools to an agent using the fluent API.*
+:::{tip} What you'll learn
+How to attach tools to an agent using the fluent API.
+:::
 
 _Source: `10_cloning.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no clone mechanism. You must manually duplicate all parameters:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -32,10 +33,8 @@ _Source: `10_cloning.py`_
 #       tools=[lookup_order],
 #   )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -61,7 +60,6 @@ variant_b = base.clone("casual_support").instruct(
     "Be warm and personable. Use the customer's first name."
 )
 ```
-
 :::
 ::::
 

@@ -5,6 +5,7 @@
 maxdepth: 2
 ---
 architecture-and-concepts
+comparison
 builders
 expression-language
 data-flow

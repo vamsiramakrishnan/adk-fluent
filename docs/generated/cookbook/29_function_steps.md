@@ -1,12 +1,13 @@
 # ETL Pipeline: Plain Functions as Data Cleaning Steps (>> fn)
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `29_function_steps.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires subclassing BaseAgent for any custom logic node.
 # In an ETL pipeline, every data cleaning step becomes a full class:
@@ -32,10 +33,8 @@ loader = LlmAgent(name="loader", model="gemini-2.5-flash", instruction="Load int
 
 pipeline_native = SequentialAgent(name="etl_pipeline", sub_agents=[extractor, normalizer, loader])
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -85,7 +84,6 @@ def sanitize_pii(s):
 
 preprocess_pipeline = sanitize_pii >> Agent("analyzer").model("gemini-2.5-flash")
 ```
-
 :::
 ::::
 

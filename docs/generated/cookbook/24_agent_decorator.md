@@ -1,12 +1,13 @@
 # Domain Expert Agent via @agent Decorator
 
-*How to use the agent decorator pattern.*
+:::{tip} What you'll learn
+How to use the agent decorator pattern.
+:::
 
 _Source: `24_agent_decorator.py`_
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -22,10 +23,8 @@ _Source: `24_agent_decorator.py`_
 #       tools=[lookup_drug_interaction],
 #   )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent.decorators import agent
 
@@ -52,7 +51,6 @@ def log_query(callback_context, llm_request):
 # Build when ready to deploy:
 built = pharma_advisor.build()
 ```
-
 :::
 ::::
 
@@ -80,6 +78,6 @@ assert isinstance(built, LlmAgent)
 assert built.name == "pharma_advisor"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

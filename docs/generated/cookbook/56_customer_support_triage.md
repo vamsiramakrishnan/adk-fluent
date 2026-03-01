@@ -4,20 +4,33 @@ Demonstrates building a customer support triage system inspired by
 real call center architectures and Google's ADK agent samples. Uses
 state capture, context engineering, routing, and escalation gates.
 
+Real-world use case: Multi-tier IT helpdesk triage system inspired by real
+call center architectures and Google's ADK agent samples. Classifies tickets
+by intent and routes to billing, technical, account, or general support
+specialists with satisfaction monitoring and escalation.
+
+In other frameworks: LangGraph requires a StateGraph with conditional_edges
+for intent routing, custom node functions per handler, and manual state
+management (~50 lines). CrewAI handles routing implicitly through LLM
+delegation, lacking deterministic control. adk-fluent uses Route() with
+explicit .eq() branches for deterministic, testable routing.
+
 Pipeline topology:
-S.capture("customer_message")
-\>> intent_classifier \[C.none, save_as: intent\]
-\>> Route("intent")
-├─ "billing"   -> billing_specialist
-├─ "technical" -> tech_support
-├─ "account"   -> account_manager
-└─ otherwise   -> general_support
-\>> satisfaction_monitor
-\>> gate(resolved == "no") -> escalate
+    S.capture("customer_message")
+        >> intent_classifier [C.none, save_as: intent]
+        >> Route("intent")
+            ├─ "billing"   -> billing_specialist
+            ├─ "technical" -> tech_support
+            ├─ "account"   -> account_manager
+            └─ otherwise   -> general_support
+        >> satisfaction_monitor
+        >> gate(resolved == "no") -> escalate
 
 Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `56_customer_support_triage.py`_
 
@@ -51,9 +64,8 @@ graph TD
     n3 -. "intent" .-> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # Native ADK triage requires:
 #   - 5+ LlmAgent declarations
@@ -63,10 +75,8 @@ graph TD
 #   - Custom escalation gate via BaseAgent + EventActions(escalate=True)
 # Total: ~100 lines plus custom agent classes
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, S, C, gate
 from adk_fluent._routing import Route
@@ -163,7 +173,6 @@ support_system = (
     >> escalation_gate
 )
 ```
-
 :::
 ::::
 

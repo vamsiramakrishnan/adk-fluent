@@ -5,12 +5,14 @@ The scenario: a product launch coordinator that routes tasks to
 marketing, engineering, and legal teams based on the request.
 
 Pipeline topology:
-launch_coordinator
-|-- marketing
-|-- engineering
-'-- legal
+    launch_coordinator
+        |-- marketing
+        |-- engineering
+        '-- legal
 
-*How to compose agents into a sequential pipeline.*
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `07_team_coordinator.py`_
 
@@ -27,9 +29,8 @@ graph TD
     n1 --> n4
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -67,10 +68,8 @@ coordinator_native = LlmAgent(
     ],
 )
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -103,7 +102,6 @@ coordinator_fluent = (
     .build()
 )
 ```
-
 :::
 ::::
 

@@ -1,15 +1,26 @@
 # Investment Analysis Pipeline: Full Expression Language in Production
 
-Pipeline topology:
-asset_classifier
-\>> Route("asset_class")
-├─ "equity"       -> equity_screener
-├─ "fixed_income" -> credit_analyst >> rate_modeler
-└─ "alternative"  -> ( quant_modeler | market_sentiment ) >> risk_aggregator
-\>> ( portfolio_reviewer >> analysis_refiner ) * until(approved)
-\>> report_generator  \[gated: only if approved\]
+Real-world use case: Investment analysis pipeline for portfolio managers.
+Classifies assets, routes to specialized analysts, and performs quality
+review before delivery. Replaces manual triage and review cycles that
+typically span multiple teams and days of back-and-forth.
 
-*How to compose agents into a sequential pipeline.*
+In other frameworks: LangGraph requires StateGraph with conditional_edges
+for routing (~50 lines). adk-fluent uses Route() and >> to express the
+same topology declaratively.
+
+Pipeline topology:
+    asset_classifier
+        >> Route("asset_class")
+            ├─ "equity"       -> equity_screener
+            ├─ "fixed_income" -> credit_analyst >> rate_modeler
+            └─ "alternative"  -> ( quant_modeler | market_sentiment ) >> risk_aggregator
+        >> ( portfolio_reviewer >> analysis_refiner ) * until(approved)
+        >> report_generator  [gated: only if approved]
+
+:::{tip} What you'll learn
+How to compose agents into a sequential pipeline.
+:::
 
 _Source: `28_real_world_pipeline.py`_
 
@@ -48,19 +59,16 @@ graph TD
     n2 -. "asset_class" .-> n3
 ```
 
-::::\{tab-set}
-:::\{tab-item} Native ADK
-
+::::{tab-set}
+:::{tab-item} Native ADK
 ```python
 # A real-world investment analysis pipeline in native ADK would be 100+ lines
 # of explicit agent construction, manual routing, callback wiring, and
 # custom BaseAgent subclasses for state logic. See below for the fluent
 # equivalent that reads like a business process document.
 ```
-
 :::
-:::\{tab-item} adk-fluent
-
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._routing import Route
@@ -137,7 +145,6 @@ pipeline = (
     >> report_generator
 )
 ```
-
 :::
 ::::
 
@@ -159,6 +166,6 @@ assert isinstance(built, SequentialAgent)
 assert len(built.sub_agents) >= 3
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::
