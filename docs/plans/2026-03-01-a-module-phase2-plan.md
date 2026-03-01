@@ -8,26 +8,26 @@
 
 **Tech Stack:** Python stdlib (`json`, `csv`, `io`), existing `STransform` from `_transforms.py`, `CTransform` from `_context.py`, `DeclarativeMetaclass` from `_schema_base.py`, ADK's `FunctionTool`
 
----
+______________________________________________________________________
 
 ## Context for Implementers
 
 ### Key files (all paths relative to repo root)
 
-| File | Role |
-|------|------|
-| `src/adk_fluent/_artifacts.py` | A class, ATransform, _MimeConstants — **main file to modify** |
-| `src/adk_fluent/_transforms.py` | STransform class — content transforms return these |
-| `src/adk_fluent/_context.py` | CTransform class — A.for_llm() returns one of these |
-| `src/adk_fluent/_primitives.py` | ArtifactAgent runtime — may need new ops |
-| `src/adk_fluent/_primitive_builders.py` | _ArtifactBuilder — may need batch support |
-| `src/adk_fluent/_ir.py` | ArtifactNode — already in Node union |
-| `src/adk_fluent/_schema_base.py` | DeclarativeMetaclass — base for ArtifactSchema |
-| `src/adk_fluent/testing/contracts.py` | Pass 15 exists — add Pass 16 |
-| `src/adk_fluent/viz.py` | ir_to_mermaid() — add ArtifactNode rendering |
-| `src/adk_fluent/prelude.py` | Public exports |
-| `seeds/seed.manual.toml` | Builder method definitions |
-| `tests/manual/test_artifacts.py` | All artifact tests (currently 41 tests) |
+| File                                    | Role                                                           |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `src/adk_fluent/_artifacts.py`          | A class, ATransform, \_MimeConstants — **main file to modify** |
+| `src/adk_fluent/_transforms.py`         | STransform class — content transforms return these             |
+| `src/adk_fluent/_context.py`            | CTransform class — A.for_llm() returns one of these            |
+| `src/adk_fluent/_primitives.py`         | ArtifactAgent runtime — may need new ops                       |
+| `src/adk_fluent/_primitive_builders.py` | \_ArtifactBuilder — may need batch support                     |
+| `src/adk_fluent/_ir.py`                 | ArtifactNode — already in Node union                           |
+| `src/adk_fluent/_schema_base.py`        | DeclarativeMetaclass — base for ArtifactSchema                 |
+| `src/adk_fluent/testing/contracts.py`   | Pass 15 exists — add Pass 16                                   |
+| `src/adk_fluent/viz.py`                 | ir_to_mermaid() — add ArtifactNode rendering                   |
+| `src/adk_fluent/prelude.py`             | Public exports                                                 |
+| `seeds/seed.manual.toml`                | Builder method definitions                                     |
+| `tests/manual/test_artifacts.py`        | All artifact tests (currently 41 tests)                        |
 
 ### STransform constructor
 
@@ -55,7 +55,7 @@ just preflight
 uv run pytest tests/ -x --tb=short -q
 ```
 
----
+______________________________________________________________________
 
 ## Phase 2: Transform Helpers + LLM-Aware Loading + Tool Factories
 
@@ -64,6 +64,7 @@ uv run pytest tests/ -x --tb=short -q
 These are STransform factories on the `A` class. Each takes a state key name and returns an `STransform` that parses the string value at that key into a structured value.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -224,13 +225,14 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add post-snapshot content transforms as_json, as_csv, as_text"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Content Transforms — Pre-Publish (A.from_json, A.from_csv, A.from_markdown)
 
 STransform factories that serialize structured state values into strings suitable for publishing to artifacts.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -381,13 +383,14 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add pre-publish content transforms from_json, from_csv, from_markdown"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: LLM-Aware Loading (A.for_llm)
 
 Returns a CTransform descriptor that loads artifact content into LLM context at runtime. Text artifacts become instruction text; multimodal artifacts (image/audio/video/pdf) get a placeholder description (full multimodal injection requires ADK-level changes beyond our scope).
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -562,13 +565,14 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add A.for_llm() CTransform for LLM-aware artifact loading"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Tool Factories (A.tool namespace)
 
 A nested class `_ToolFactory` exposed as `A.tool` that generates ADK `FunctionTool` instances for LLM agents to interact with artifacts at runtime.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -830,13 +834,14 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add A.tool factories for LLM artifact interaction"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Multi-Artifact Operations (A.publish_many, A.snapshot_many)
 
 Batch factories that create multiple ATransform instances. These return a tuple of ATransforms suitable for `.artifacts(...)`.
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -979,7 +984,7 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add A.publish_many, A.snapshot_many batch operations"
 ```
 
----
+______________________________________________________________________
 
 ## Phase 3: ArtifactSchema + Contract Integration + Visualization
 
@@ -988,6 +993,7 @@ git commit -m "feat(A): add A.publish_many, A.snapshot_many batch operations"
 Declarative schema using the existing `DeclarativeMetaclass` infrastructure. Two new annotation types: `Produces` (agent creates this artifact) and `Consumes` (agent requires this artifact).
 
 **Files:**
+
 - Create: `src/adk_fluent/_artifact_schema.py`
 - Modify: `src/adk_fluent/_schema_base.py` (add new annotations)
 - Test: `tests/manual/test_artifacts.py`
@@ -1210,13 +1216,14 @@ git add src/adk_fluent/_artifact_schema.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add ArtifactSchema with Produces/Consumes annotations"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Pass 16 — ArtifactSchema Contract Validation
 
 Add a new contract checking pass that validates ArtifactSchema dependencies in sequences: consumed artifacts must have upstream producers, and MIME types must be compatible.
 
 **Files:**
+
 - Modify: `src/adk_fluent/testing/contracts.py`
 - Modify: `src/adk_fluent/_ir.py` (add `artifact_schema` field to AgentNode via `scripts/ir_generator.py`)
 - Test: `tests/manual/test_artifacts.py`
@@ -1404,13 +1411,14 @@ git add src/adk_fluent/testing/contracts.py src/adk_fluent/_ir_generated.py \
 git commit -m "feat(A): add Pass 16 ArtifactSchema contract validation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Visualization Integration — Artifact Edges
 
 Add ArtifactNode rendering and artifact flow edges to `viz.py`. Artifact nodes get a distinctive shape; artifact flow uses dashed edges with `artifact:` prefix labels.
 
 **Files:**
+
 - Modify: `src/adk_fluent/viz.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -1514,13 +1522,14 @@ git add src/adk_fluent/viz.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add artifact node rendering and flow edges to visualization"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Exports + Prelude + Prelude Test Update
 
 Add `ArtifactSchema`, `Produces`, `Consumes` to prelude. Update the prelude test.
 
 **Files:**
+
 - Modify: `src/adk_fluent/prelude.py`
 - Modify: `tests/manual/test_api_surface_v2.py`
 - Regenerate: `src/adk_fluent/__init__.py` (via `just generate`)
@@ -1623,13 +1632,14 @@ git add src/adk_fluent/prelude.py src/adk_fluent/__init__.py \
 git commit -m "feat(A): export ArtifactSchema, Produces, Consumes in prelude"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: End-to-End Integration Tests
 
 Comprehensive integration tests covering Phase 2+3 features working together.
 
 **Files:**
+
 - Test: `tests/manual/test_artifacts.py`
 
 **Step 1: Write the tests**
@@ -1748,20 +1758,20 @@ git add tests/manual/test_artifacts.py
 git commit -m "test(A): add Phase 2+3 end-to-end integration tests"
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Task | Phase | What it adds | New tests |
-|------|-------|-------------|-----------|
-| 1 | 2 | A.as_json, A.as_csv, A.as_text | 7 |
-| 2 | 2 | A.from_json, A.from_csv, A.from_markdown | 5 |
-| 3 | 2 | A.for_llm (CTransform) | 7 |
-| 4 | 2 | A.tool.save/load/list/version | 6 |
-| 5 | 2 | A.publish_many, A.snapshot_many | 7 |
-| 6 | 3 | ArtifactSchema, Produces, Consumes | 7 |
-| 7 | 3 | Pass 16 contract validation | 4 |
-| 8 | 3 | Artifact edges in viz.py | 3 |
-| 9 | 3 | Prelude exports | 7 |
-| 10 | 3 | End-to-end integration | 5 |
-| **Total** | | | **~58 new tests** |
+| Task      | Phase | What it adds                             | New tests         |
+| --------- | ----- | ---------------------------------------- | ----------------- |
+| 1         | 2     | A.as_json, A.as_csv, A.as_text           | 7                 |
+| 2         | 2     | A.from_json, A.from_csv, A.from_markdown | 5                 |
+| 3         | 2     | A.for_llm (CTransform)                   | 7                 |
+| 4         | 2     | A.tool.save/load/list/version            | 6                 |
+| 5         | 2     | A.publish_many, A.snapshot_many          | 7                 |
+| 6         | 3     | ArtifactSchema, Produces, Consumes       | 7                 |
+| 7         | 3     | Pass 16 contract validation              | 4                 |
+| 8         | 3     | Artifact edges in viz.py                 | 3                 |
+| 9         | 3     | Prelude exports                          | 7                 |
+| 10        | 3     | End-to-end integration                   | 5                 |
+| **Total** |       |                                          | **~58 new tests** |

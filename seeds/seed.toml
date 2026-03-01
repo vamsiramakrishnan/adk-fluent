@@ -2414,4 +2414,3 @@ extra_skip_fields = []
 name = "build"
 returns = "VertexAiSearchTool"
 doc = "Resolve into a native ADK VertexAiSearchTool."
-
