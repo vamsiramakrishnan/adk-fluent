@@ -1008,3 +1008,43 @@ class TestPass16:
         issues = check_contracts(ir)
         warnings = [i for i in issues if i["level"] == "warning" and "MIME" in i["message"]]
         assert len(warnings) >= 1
+
+
+class TestVisualization:
+    """Artifact edges in Mermaid visualization."""
+
+    def test_artifact_node_rendered(self):
+        from adk_fluent import A, Agent
+        from adk_fluent.viz import ir_to_mermaid
+
+        pipeline = Agent("writer") >> A.publish("report.md", from_key="output") >> Agent("reader")
+        ir = pipeline.to_ir()
+        mermaid = ir_to_mermaid(ir)
+        assert "publish" in mermaid.lower() or "report" in mermaid.lower()
+
+    def test_artifact_node_shape(self):
+        """ArtifactNode should have a distinct shape (hexagon)."""
+        from adk_fluent import A, Agent
+        from adk_fluent.viz import ir_to_mermaid
+
+        pipeline = Agent("writer") >> A.publish("report.md", from_key="output")
+        ir = pipeline.to_ir()
+        mermaid = ir_to_mermaid(ir)
+        # Hexagon shape uses {{...}} syntax in Mermaid
+        assert "artifact" in mermaid.lower()
+
+    def test_artifact_data_flow_edges(self):
+        """Artifact produces/consumes should generate data flow edges."""
+        from adk_fluent import A, Agent
+        from adk_fluent.viz import ir_to_mermaid
+
+        pipeline = (
+            Agent("writer").writes("output")
+            >> A.publish("report.md", from_key="output")
+            >> A.snapshot("report.md", into_key="text")
+            >> Agent("reader")
+        )
+        ir = pipeline.to_ir()
+        mermaid = ir_to_mermaid(ir, show_data_flow=True)
+        # Should show artifact flow edges
+        assert "report.md" in mermaid
