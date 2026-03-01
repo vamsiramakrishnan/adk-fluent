@@ -95,10 +95,11 @@ exclude_patterns = [
     "generated/cookbook/conftest.md",
 ]
 
-# Copy standalone HTML references into the build output as-is
+# Copy standalone HTML references and llms.txt into the build output as-is
 html_extra_path = [
     "user-guide/pcs-visual-reference.html",
     "user-guide/operator-algebra-reference.html",
+    "llms.txt",
 ]
 
 # Suppress warnings for auto-generated cross-references and duplicate targets
