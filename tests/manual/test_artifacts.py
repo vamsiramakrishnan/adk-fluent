@@ -453,6 +453,71 @@ class TestExports:
         assert hasattr(A, "publish")
 
 
+class TestContentTransformsPost:
+    """A.as_json, A.as_csv, A.as_text — post-snapshot transforms."""
+
+    def test_as_json_parses_string(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.as_json("data")
+        assert isinstance(t, STransform)
+        result = t({"data": '{"x": 1}'})
+        assert result == {"data": {"x": 1}}
+
+    def test_as_json_reads_writes_keys(self):
+        from adk_fluent import A
+
+        t = A.as_json("data")
+        assert t._reads_keys == frozenset({"data"})
+        assert t._writes_keys == frozenset({"data"})
+
+    def test_as_csv_parses_string(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        csv_text = "name,score\nAlice,90\nBob,85"
+        t = A.as_csv("rows")
+        assert isinstance(t, STransform)
+        result = t({"rows": csv_text})
+        rows = result["rows"]
+        assert len(rows) == 2
+        assert rows[0]["name"] == "Alice"
+        assert rows[0]["score"] == "90"
+
+    def test_as_csv_with_columns(self):
+        from adk_fluent import A
+
+        csv_text = "name,score,grade\nAlice,90,A\nBob,85,B"
+        t = A.as_csv("rows", columns=["name", "score"])
+        result = t({"rows": csv_text})
+        rows = result["rows"]
+        assert set(rows[0].keys()) == {"name", "score"}
+
+    def test_as_text_identity(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.as_text("content")
+        assert isinstance(t, STransform)
+        result = t({"content": "hello world"})
+        assert result == {"content": "hello world"}
+
+    def test_as_text_decode_bytes(self):
+        from adk_fluent import A
+
+        t = A.as_text("content")
+        result = t({"content": b"hello bytes"})
+        assert result == {"content": "hello bytes"}
+
+    def test_as_text_custom_encoding(self):
+        from adk_fluent import A
+
+        t = A.as_text("content", encoding="latin-1")
+        result = t({"content": "café".encode("latin-1")})
+        assert result["content"] == "café"
+
+
 class TestBuilderMethod:
     def test_artifacts_builder_method(self):
         from adk_fluent import Agent

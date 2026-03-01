@@ -11,6 +11,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from adk_fluent._transforms import STransform
+
 __all__ = ["A", "ATransform"]
 
 # Gemini-supported inline MIME prefixes (from LoadArtifactsTool)
@@ -328,6 +330,63 @@ class A:
             _produces_state=frozenset(),
             _consumes_state=frozenset(),
             _name=f"delete_{filename.replace('.', '_')}",
+        )
+
+    @staticmethod
+    def as_json(key: str) -> STransform:
+        """Parse JSON string in state[key] to dict/list.
+
+        Usage: A.snapshot("data.json", into_key="data") >> A.as_json("data")
+        """
+        import json as _json
+
+        return STransform(
+            lambda state: {key: _json.loads(state[key])},
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"as_json_{key}",
+        )
+
+    @staticmethod
+    def as_csv(key: str, *, columns: list[str] | None = None) -> STransform:
+        """Parse CSV string in state[key] to list[dict].
+
+        Usage: A.snapshot("data.csv", into_key="rows") >> A.as_csv("rows")
+        """
+        import csv as _csv
+        import io as _io
+
+        def _parse_csv(state: dict) -> dict:
+            reader = _csv.DictReader(_io.StringIO(state[key]))
+            if columns:
+                return {key: [{c: row[c] for c in columns} for row in reader]}
+            return {key: list(reader)}
+
+        return STransform(
+            _parse_csv,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"as_csv_{key}",
+        )
+
+    @staticmethod
+    def as_text(key: str, *, encoding: str = "utf-8") -> STransform:
+        """Ensure state[key] is a decoded string. Decodes bytes if needed.
+
+        Usage: A.snapshot("raw.bin", into_key="text") >> A.as_text("text")
+        """
+
+        def _to_text(state: dict) -> dict:
+            val = state[key]
+            if isinstance(val, bytes):
+                return {key: val.decode(encoding, errors="replace")}
+            return {key: str(val)}
+
+        return STransform(
+            _to_text,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"as_text_{key}",
         )
 
     @staticmethod
