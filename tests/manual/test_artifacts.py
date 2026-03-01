@@ -874,3 +874,137 @@ class TestContractChecking:
             if isinstance(i, dict) and "state key" in i.get("message", "").lower() and i["level"] == "error"
         ]
         assert len(state_issues) > 0
+
+
+class TestArtifactSchema:
+    """ArtifactSchema with Produces/Consumes annotations."""
+
+    def test_produces_annotation(self):
+        from adk_fluent._artifact_schema import Produces
+
+        p = Produces("report.md", mime="text/markdown")
+        assert p.filename == "report.md"
+        assert p.mime == "text/markdown"
+        assert p.scope == "session"
+
+    def test_consumes_annotation(self):
+        from adk_fluent._artifact_schema import Consumes
+
+        c = Consumes("data.csv", mime="text/csv")
+        assert c.filename == "data.csv"
+        assert c.mime == "text/csv"
+
+    def test_schema_definition(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class ResearchArtifacts(ArtifactSchema):
+            findings: str = Produces("findings.json", mime="application/json")
+            report: str = Produces("report.md", mime="text/markdown")
+            source: str = Consumes("raw_data.csv", mime="text/csv")
+
+        assert len(ResearchArtifacts._field_list) == 3
+
+    def test_schema_produces_fields(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class Artifacts(ArtifactSchema):
+            report: str = Produces("report.md")
+            source: str = Consumes("data.csv")
+
+        produces = Artifacts.produces_fields()
+        assert len(produces) == 1
+        assert produces[0].filename == "report.md"
+
+    def test_schema_consumes_fields(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class Artifacts(ArtifactSchema):
+            report: str = Produces("report.md")
+            source: str = Consumes("data.csv")
+
+        consumes = Artifacts.consumes_fields()
+        assert len(consumes) == 1
+        assert consumes[0].filename == "data.csv"
+
+    def test_schema_produced_filenames(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Produces
+
+        class Artifacts(ArtifactSchema):
+            report: str = Produces("report.md")
+            config: str = Produces("config.json")
+
+        assert Artifacts.produced_filenames() == frozenset({"report.md", "config.json"})
+
+    def test_schema_consumed_filenames(self):
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes
+
+        class Artifacts(ArtifactSchema):
+            source: str = Consumes("data.csv")
+
+        assert Artifacts.consumed_filenames() == frozenset({"data.csv"})
+
+
+class TestPass16:
+    """Pass 16: ArtifactSchema contract validation."""
+
+    def test_schema_consumes_without_producer_is_error(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsData(ArtifactSchema):
+            source: str = Consumes("data.csv")
+
+        pipeline = Agent("reader").artifact_schema(NeedsData) >> Agent("writer")
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        errors = [i for i in issues if i["level"] == "error" and "data.csv" in i["message"]]
+        assert len(errors) >= 1
+
+    def test_schema_consumes_with_producer_is_clean(self):
+        from adk_fluent import A, Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes
+        from adk_fluent.testing.contracts import check_contracts
+
+        class NeedsData(ArtifactSchema):
+            source: str = Consumes("data.csv")
+
+        pipeline = Agent("writer") >> A.save("data.csv", content="a,b") >> Agent("reader").artifact_schema(NeedsData)
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        schema_errors = [i for i in issues if i["level"] == "error" and "data.csv" in i["message"]]
+        assert len(schema_errors) == 0
+
+    def test_schema_produces_promotes_artifacts(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+        from adk_fluent.testing.contracts import check_contracts
+
+        class ProducerSchema(ArtifactSchema):
+            report: str = Produces("report.md")
+
+        class ConsumerSchema(ArtifactSchema):
+            source: str = Consumes("report.md")
+
+        pipeline = Agent("writer").artifact_schema(ProducerSchema) >> Agent("reader").artifact_schema(ConsumerSchema)
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        schema_errors = [i for i in issues if i["level"] == "error" and "report.md" in i["message"]]
+        assert len(schema_errors) == 0
+
+    def test_schema_mime_mismatch_is_warning(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+        from adk_fluent.testing.contracts import check_contracts
+
+        class ProducerSchema(ArtifactSchema):
+            report: str = Produces("report.md", mime="text/markdown")
+
+        class ConsumerSchema(ArtifactSchema):
+            source: str = Consumes("report.md", mime="application/json")
+
+        pipeline = Agent("writer").artifact_schema(ProducerSchema) >> Agent("reader").artifact_schema(ConsumerSchema)
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        warnings = [i for i in issues if i["level"] == "warning" and "MIME" in i["message"]]
+        assert len(warnings) >= 1

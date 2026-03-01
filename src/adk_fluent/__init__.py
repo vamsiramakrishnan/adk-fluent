@@ -267,6 +267,9 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "ArtifactSchema",
+    "Consumes",
+    "Produces",
     "A",
     "ATransform",
     "BuilderBase",
@@ -502,6 +505,9 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._artifact_schema import ArtifactSchema
+from ._artifact_schema import Consumes
+from ._artifact_schema import Produces
 from ._artifacts import A
 from ._artifacts import ATransform
 from ._base import BuilderBase

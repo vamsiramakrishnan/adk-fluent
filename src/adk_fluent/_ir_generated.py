@@ -70,6 +70,7 @@ class AgentNode:
     tool_schema: type | None = None  # ToolSchema class, preserved for diagnostics
     callback_schema: type | None = None  # CallbackSchema class, preserved for diagnostics
     prompt_schema: type | None = None  # PromptSchema class, preserved for diagnostics
+    artifact_schema: type | None = None  # ArtifactSchema class, preserved for diagnostics
 
 
 @dataclass(frozen=True)

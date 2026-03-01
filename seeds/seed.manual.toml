@@ -373,6 +373,15 @@ doc = "Attach a PromptSchema declaring prompt state dependencies."
 behavior = "field_set"
 target_field = "_prompt_schema"
 
+[[builders.Agent.extras]]
+name = "artifact_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach an ArtifactSchema declaring artifact dependencies."
+behavior = "field_set"
+target_field = "_artifact_schema"
+example = '''Agent("researcher").artifact_schema(ResearchArtifacts)'''
+see_also = ["ArtifactSchema", "Produces", "Consumes"]
+
 # ---------------------------------------------------------------------------
 # IR CONVERSION EXTRAS
 # ---------------------------------------------------------------------------

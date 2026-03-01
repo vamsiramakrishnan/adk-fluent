@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-01T07:19:41.501200+00:00"
+generated_at = "2026-03-01T08:53:46.192274+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -511,6 +511,17 @@ signature = "(self, schema: type) -> Self"
 doc = "Attach a PromptSchema declaring prompt state dependencies."
 behavior = "field_set"
 target_field = "_prompt_schema"
+
+[[builders.Agent.extras]]
+name = "artifact_schema"
+signature = "(self, schema: type) -> Self"
+doc = "Attach an ArtifactSchema declaring artifact dependencies."
+behavior = "field_set"
+target_field = "_artifact_schema"
+example = '''
+Agent("researcher").artifact_schema(ResearchArtifacts)
+'''
+see_also = ["ArtifactSchema", "Produces", "Consumes"]
 
 [[builders.Agent.extras]]
 name = "to_ir"
@@ -2403,3 +2414,4 @@ extra_skip_fields = []
 name = "build"
 returns = "VertexAiSearchTool"
 doc = "Resolve into a native ADK VertexAiSearchTool."
+

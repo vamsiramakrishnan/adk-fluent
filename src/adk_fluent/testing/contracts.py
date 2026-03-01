@@ -2,7 +2,7 @@
 
 Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 
-**Sequence passes (15 total):**
+**Sequence passes (16 total):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
@@ -39,6 +39,10 @@ Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 15. **Artifact availability** -- checks that ``consumes_artifact`` filenames are
     produced by an upstream ``A.publish()`` or ``A.save()``.  Also validates that
     bridge operations (publish) have their ``from_key`` available in state.
+16. **ArtifactSchema dependency validation** -- checks that ``ArtifactSchema``
+    consumed artifacts are produced upstream.  Also checks MIME compatibility
+    and promotes schema-produced artifacts so downstream consumers can depend
+    on them.
 
 **Parallel checks:**
 - Write isolation: two branches should not write to the same output_key
@@ -790,6 +794,55 @@ def _check_sequence_contracts(
         for key in child.produces_state:
             produced_keys.add(key)
 
+    # =================================================================
+    # Pass 16: ArtifactSchema dependency validation
+    # =================================================================
+
+    artifact_mime_map: dict[str, str | None] = {}  # filename -> mime
+
+    for child in children:
+        child_name = getattr(child, "name", "?")
+
+        # Track MIME from ArtifactNode produces
+        if isinstance(child, ArtifactNode):
+            for artifact_name in child.produces_artifact:
+                artifact_mime_map[artifact_name] = child.mime
+
+        # Check ArtifactSchema on AgentNodes
+        schema = getattr(child, "artifact_schema", None)
+        if schema is None:
+            continue
+
+        # Check consumed artifacts are available
+        for consumed in schema.consumes_fields():
+            if consumed.filename not in artifacts_available:
+                issues.append(
+                    {
+                        "level": "error",
+                        "agent": _scoped(child_name),
+                        "message": (f"ArtifactSchema consumes '{consumed.filename}' but not produced upstream"),
+                    }
+                )
+
+            # MIME compatibility check
+            producer_mime = artifact_mime_map.get(consumed.filename)
+            if producer_mime and consumed.mime and producer_mime != consumed.mime:
+                issues.append(
+                    {
+                        "level": "warning",
+                        "agent": _scoped(child_name),
+                        "message": (
+                            f"MIME mismatch: '{consumed.filename}' produced as "
+                            f"{producer_mime}, consumed as {consumed.mime}"
+                        ),
+                    }
+                )
+
+        # Promote produced artifacts from schema
+        for produced in schema.produces_fields():
+            artifacts_available.add(produced.filename)
+            artifact_mime_map[produced.filename] = produced.mime
+
     return issues
 
 
@@ -908,7 +961,7 @@ def _check_loop_contracts(children: tuple, parent_name: str = "") -> list[dict[s
 def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     """Verify contracts on an IR tree. Dispatches by node type.
 
-    Checks SequenceNode (full 15-pass analysis), ParallelNode (isolation),
+    Checks SequenceNode (full 16-pass analysis), ParallelNode (isolation),
     LoopNode (body sequence validation), and DispatchNode (independent agents).
 
     Returns a list where each item is either:
