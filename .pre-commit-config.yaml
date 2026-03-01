@@ -6,7 +6,8 @@ exclude: |
     src/adk_fluent/(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|
     src/adk_fluent/_ir_generated\.py$|
     tests/generated/|
-    tests/golden/
+    tests/golden/|
+    docs/generated/
   )
 
 repos:
