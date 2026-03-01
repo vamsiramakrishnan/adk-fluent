@@ -1171,6 +1171,30 @@ adk web race                  # race() first-to-finish
 
 Browse by use case on the [docs site](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/recipes-by-use-case/).
 
+## Performance
+
+adk-fluent is a **build-time layer**. Calling `.build()` produces a native ADK object -- the same `LlmAgent`, `SequentialAgent`, or `ParallelAgent` you'd construct manually. After `.build()`, adk-fluent is not in the execution path. There is no runtime wrapper, proxy, or middleware layer injected by the builder itself.
+
+**Build overhead:** Builder construction adds microseconds of Python dict manipulation per agent. For context, a single Gemini API call takes 500ms-30s.
+
+Verify yourself:
+
+```bash
+python scripts/benchmark.py
+```
+
+## ADK Compatibility
+
+| adk-fluent | google-adk | Tested in CI | Notes           |
+| ---------- | ---------- | ------------ | --------------- |
+| 0.11.x     | 1.25.0     | Yes          | Current release |
+| 0.9.x      | 1.25.0     | Yes          |                 |
+| 0.1-0.8    | 1.20.0+    | Yes          | Initial series  |
+
+CI pins `google-adk==1.25.0` for hermetic builds. The `>=1.20.0` floor in `pyproject.toml` means newer ADK versions should work, but only the pinned version is tested.
+
+A [weekly sync workflow](.github/workflows/sync-adk.yml) scans for new ADK releases every Monday, regenerates code, runs tests, and opens a PR automatically. If you hit an incompatibility, [open an issue](https://github.com/vamsiramakrishnan/adk-fluent/issues).
+
 ## How It Works
 
 adk-fluent is **auto-generated** from the installed ADK package:
@@ -1217,6 +1241,7 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 - **Context control**: `.static()` for cacheable context, `.history("none")` for stateless agents, `.inject_context()` for dynamic preambles
 - **State transforms**: `S.pick`, `S.drop`, `S.rename`, `S.default`, `S.merge`, `S.transform`, `S.compute`, `S.guard`
 - **Full IDE autocomplete** via `.pyi` type stubs
+- **PEP 561 `py.typed`** marker included -- type checkers recognize the package natively
 - **Zero-maintenance** `__getattr__` forwarding for any ADK field
 - **Callback accumulation**: multiple `.before_model()` calls append, not replace
 - **Typo detection**: misspelled methods raise `AttributeError` with suggestions
@@ -1231,10 +1256,14 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 
 ## Development
 
+**Requires:** Python 3.11+, [just](https://github.com/casey/just#installation), [uv](https://docs.astral.sh/uv/)
+
+**Container:** Open in VS Code or GitHub Codespaces with the included Dev Container for a pre-configured environment.
+
 ```bash
 # Setup
 uv venv .venv && source .venv/bin/activate
-uv pip install google-adk pytest pyright
+uv pip install -e ".[dev]"
 
 # Full pipeline: scan -> seed -> generate -> docs
 just all
@@ -1242,15 +1271,23 @@ just all
 # Run tests (780+ tests)
 just test
 
-# Type check generated stubs
-just typecheck
+# Type check hand-written code
+just typecheck-core
 
-# Generate cookbook stubs for new builders
-just cookbook-gen
-
-# Convert cookbook to adk-web agent folders
-just agents
+# Local CI (lint + check-gen + test)
+just ci
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development guide.
+
+## Latest Changes
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history. Recent highlights:
+
+- **v0.9.6** -- `T` module for tool composition, `ToolRegistry` with BM25-indexed discovery
+- **v0.9.5** -- Middleware v2 (`TraceContext`, per-agent scoping, topology hooks), `M` module, `P` module, `MiddlewareSchema`
+- **v0.9.3** -- Error reference page, recipes-by-use-case index
+- **v0.9.1** -- Copy-on-write frozen builders, `.explain()` rich output, CLI (`adk-fluent visualize`)
 
 ## Publishing
 
