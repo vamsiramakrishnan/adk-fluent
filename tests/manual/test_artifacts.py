@@ -461,7 +461,7 @@ class TestBuilderMethod:
         agent = (
             Agent("writer")
             .instruct("Write.")
-            .save_as("report")
+            .writes("report")
             .artifacts(
                 A.publish("report.md", from_key="report"),
             )
@@ -476,7 +476,7 @@ class TestBuilderMethod:
         agent = (
             Agent("writer")
             .instruct("Write.")
-            .save_as("report")
+            .writes("report")
             .artifacts(
                 A.publish("report.md", from_key="report"),
                 A.save("backup.txt", content="static"),
@@ -493,10 +493,10 @@ class TestEndToEnd:
         from adk_fluent._artifacts import A
 
         pipeline = (
-            Agent("researcher").model("gemini-2.5-flash").instruct("Research the topic.").save_as("findings")
+            Agent("researcher").model("gemini-2.5-flash").instruct("Research the topic.").writes("findings")
             >> A.publish("findings.md", from_key="findings")
             >> A.snapshot("findings.md", into_key="source")
-            >> Agent("writer").model("gemini-2.5-flash").instruct("Write report from {source}.").save_as("report")
+            >> Agent("writer").model("gemini-2.5-flash").instruct("Write report from {source}.").writes("report")
             >> A.publish("report.md", from_key="report")
         )
         app = pipeline.build()
@@ -509,7 +509,7 @@ class TestEndToEnd:
         from adk_fluent.testing.contracts import check_contracts
 
         pipeline = (
-            Agent("researcher").instruct("Research.").save_as("findings")
+            Agent("researcher").instruct("Research.").writes("findings")
             >> A.publish("findings.md", from_key="findings")
             >> A.snapshot("findings.md", into_key="source")
             >> Agent("writer").instruct("Write.")
@@ -544,7 +544,7 @@ class TestContractChecking:
         from adk_fluent._artifacts import A
 
         pipeline = (
-            Agent("writer").instruct("Write.").save_as("report")
+            Agent("writer").instruct("Write.").writes("report")
             >> A.publish("report.md", from_key="report")
             >> A.snapshot("report.md", into_key="text")
         )
