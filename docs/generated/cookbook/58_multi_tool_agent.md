@@ -4,11 +4,25 @@ Demonstrates building a versatile task agent with multiple tools,
 safety guardrails, and dependency injection -- inspired by Manus AI's
 tool-using agent and the OpenAI Agents SDK patterns.
 
+Pipeline topology:
+task_agent \[tools: search, calc, read_file\] \[guardrail\] \[inject: api_key\]
+\>> verifier \[C.from_state("task_result")\]
+
 Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 
 *How to attach tools to an agent using the fluent API.*
 
 _Source: `58_multi_tool_agent.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["task_agent_then_verifier (sequence)"]]
+    n2["task_agent"]
+    n3["verifier"]
+    n2 --> n3
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK
@@ -109,10 +123,7 @@ verifier = (
 )
 
 # Compose: task agent -> verifier pipeline
-verified_agent = (
-    task_agent.writes("task_result")
-    >> verifier
-)
+verified_agent = task_agent.writes("task_result") >> verifier
 ```
 
 :::
@@ -148,6 +159,19 @@ built = verified_agent.build()
 assert len(built.sub_agents) == 2
 assert built.sub_agents[0].name == "task_agent"
 assert built.sub_agents[1].name == "verifier"
+
+# --- T Module equivalent ---
+# T module composes all tools in a single fluent expression
+from adk_fluent._tools import T
+
+multi_t = (
+    Agent("multi_tool_t")
+    .model("gemini-2.5-flash")
+    .instruct("Help with various tasks.")
+    .tools(T.fn(search_web) | T.fn(calculate) | T.fn(read_file))
+)
+ir_t = multi_t.to_ir()
+assert len(ir_t.tools) == 3
 ```
 
 :::\{seealso}

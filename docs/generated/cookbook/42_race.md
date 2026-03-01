@@ -1,8 +1,32 @@
 # Race: Fastest-Response Search Across Multiple Providers
 
-*How to run inline smoke tests on agents.*
+Pipeline topology:
+race( westlaw_search, lexis_search )    -- first to finish wins
+
+```
+Research pipeline:
+    query_classifier >> race( federal_search, state_search ) >> citation_formatter
+```
+
+*How to compose agents into a sequential pipeline.*
 
 _Source: `42_race.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["query_classifier_then_race_federal_search_state_search_then_citation_formatter (sequence)"]]
+    n2["query_classifier"]
+    n3{{"race_federal_search_state_search (race)"}}
+    n4["federal_search"]
+    n5["state_search"]
+    n6["citation_formatter"]
+    n3 --> n4
+    n3 --> n5
+    n2 --> n3
+    n3 --> n6
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

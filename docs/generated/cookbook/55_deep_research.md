@@ -5,11 +5,44 @@ Gemini's Deep Research feature and Perplexity. A query is decomposed
 into sub-questions, searched in parallel across multiple sources,
 synthesized, quality-reviewed in a loop, and formatted as a report.
 
+Pipeline topology:
+query_analyzer
+\>> ( web_searcher | academic_searcher | news_searcher )
+\>> synthesizer
+\>> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
+\>> report_writer @ ResearchReport
+
 Uses: >>, |, *, @, S.*, C.\*, save_as, loop_until
 
 *How to compose agents into a sequential pipeline.*
 
 _Source: `55_deep_research.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["query_analyzer_then_web_searcher_and_academic_searcher_and_news_searcher_then_synthesizer_then_quality_reviewer_then_revision_agent_x3_then_report_writer (sequence)"]]
+    n2["query_analyzer"]
+    n3{"web_searcher_and_academic_searcher_and_news_searcher (parallel)"}
+    n4["web_searcher"]
+    n5["academic_searcher"]
+    n6["news_searcher"]
+    n7["synthesizer"]
+    n8(("quality_reviewer_then_revision_agent_x3 (loop x3)"))
+    n9["quality_reviewer"]
+    n10["revision_agent"]
+    n11["report_writer"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n8 --> n9
+    n8 --> n10
+    n2 --> n3
+    n3 --> n7
+    n7 --> n8
+    n8 --> n11
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK
@@ -102,10 +135,7 @@ quality_loop = (
     .writes("quality_score")
     >> Agent("revision_agent")
     .model(MODEL)
-    .instruct(
-        "Revise the synthesis based on reviewer feedback. "
-        "Address gaps and improve weak sections."
-    )
+    .instruct("Revise the synthesis based on reviewer feedback. Address gaps and improve weak sections.")
     .context(C.from_state("synthesis", "quality_score"))
     .writes("synthesis")
 ).loop_until(lambda s: float(s.get("quality_score", 0)) >= 0.85, max_iterations=3)
@@ -114,22 +144,13 @@ quality_loop = (
 report_writer = (
     Agent("report_writer")
     .model(MODEL)
-    .instruct(
-        "Write the final research report with executive summary, "
-        "key findings, and confidence assessment."
-    )
+    .instruct("Write the final research report with executive summary, key findings, and confidence assessment.")
     .context(C.from_state("synthesis"))
     @ ResearchReport
 )
 
 # Compose the full deep research pipeline
-deep_research = (
-    query_analyzer
-    >> parallel_search
-    >> synthesizer
-    >> quality_loop
-    >> report_writer
-)
+deep_research = query_analyzer >> parallel_search >> synthesizer >> quality_loop >> report_writer
 ```
 
 :::

@@ -141,12 +141,12 @@ Resolve into a native ADK BaseAgentConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                    |
-| -------------------------------- | --------------------------------------- |
-| `.agent_class(value)`            | `Union[Literal[BaseAgent], str]`        |
-| `.sub_agents(value)`             | `Union[list[AgentRefConfig], NoneType]` |
-| `.before_agent_callbacks(value)` | `Union[list[CodeConfig], NoneType]`     |
-| `.after_agent_callbacks(value)`  | `Union[list[CodeConfig], NoneType]`     |
+| Field                            | Type                     |
+| -------------------------------- | ------------------------ |
+| `.agent_class(value)`            | \`Literal\['BaseAgent'\] |
+| `.sub_agents(value)`             | \`list\[AgentRefConfig\] |
+| `.before_agent_callbacks(value)` | \`list\[CodeConfig\]     |
+| `.after_agent_callbacks(value)`  | \`list\[CodeConfig\]     |
 
 ______________________________________________________________________
 
@@ -179,10 +179,10 @@ Resolve into a native ADK AgentRefConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                 | Type                   |
-| --------------------- | ---------------------- |
-| `.config_path(value)` | `Union[str, NoneType]` |
-| `.code(value)`        | `Union[str, NoneType]` |
+| Field                 | Type  |
+| --------------------- | ----- |
+| `.config_path(value)` | \`str |
+| `.code(value)`        | \`str |
 
 ______________________________________________________________________
 
@@ -225,9 +225,9 @@ Resolve into a native ADK ArgumentConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type                   |
-| -------------- | ---------------------- |
-| `.name(value)` | `Union[str, NoneType]` |
+| Field          | Type  |
+| -------------- | ----- |
+| `.name(value)` | \`str |
 
 ______________________________________________________________________
 
@@ -277,9 +277,9 @@ Resolve into a native ADK CodeConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type                                    |
-| -------------- | --------------------------------------- |
-| `.args(value)` | `Union[list[ArgumentConfig], NoneType]` |
+| Field          | Type                     |
+| -------------- | ------------------------ |
+| `.args(value)` | \`list\[ArgumentConfig\] |
 
 ______________________________________________________________________
 
@@ -358,7 +358,7 @@ LlmAgentConfig(name: str, instruction: str)
 - **Maps to:** `description`
 - Optional. The description of the agent.
 
-#### `.history(value: Literal[default, none]) -> Self`
+#### `.history(value: Literal['default', 'none']) -> Self`
 
 - **Maps to:** `include_contents`
 - Optional. LlmAgent.include_contents.
@@ -368,12 +368,12 @@ LlmAgentConfig(name: str, instruction: str)
 - **Maps to:** `instruction`
 - Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content.
 
-#### `.writes(value: Union[str, NoneType]) -> Self`
+#### `.outputs(value: str | None) -> Self`
 
 - **Maps to:** `output_key`
-- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key.
+- Deprecated: use `.writes(key)` instead. Session state key where the agent's response text is stored.
 
-#### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+#### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self`
 
 - **Maps to:** `static_instruction`
 - Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
@@ -412,12 +412,12 @@ Append to `before_model_callbacks` (lazy — built at .build() time).
 
 Append to `before_tool_callbacks` (lazy — built at .build() time).
 
-#### `.include_history(value: Literal[default, none]) -> Self`
+#### `.include_history(value: Literal['default', 'none']) -> Self`
 
 - **Maps to:** `include_contents`
 - Optional. LlmAgent.include_contents.
 
-#### `.static_instruct(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+#### `.static_instruct(value: Content | str | File | Part | list[str | File | Part] | None) -> Self`
 
 - **Maps to:** `static_instruction`
 - Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
@@ -432,24 +432,24 @@ Resolve into a native ADK LlmAgentConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                 | Type                                     |
-| ------------------------------------- | ---------------------------------------- |
-| `.agent_class(value)`                 | `str`                                    |
-| `.sub_agents(value)`                  | `Union[list[AgentRefConfig], NoneType]`  |
-| `.before_agent_callbacks(value)`      | `Union[list[CodeConfig], NoneType]`      |
-| `.after_agent_callbacks(value)`       | `Union[list[CodeConfig], NoneType]`      |
-| `.model(value)`                       | `Union[str, NoneType]`                   |
-| `.model_code(value)`                  | `Union[CodeConfig, NoneType]`            |
-| `.disallow_transfer_to_parent(value)` | `Union[bool, NoneType]`                  |
-| `.disallow_transfer_to_peers(value)`  | `Union[bool, NoneType]`                  |
-| `.accepts(value)`                     | `Union[CodeConfig, NoneType]`            |
-| `.returns(value)`                     | `Union[CodeConfig, NoneType]`            |
-| `.tools(value)`                       | `Union[list[ToolConfig], NoneType]`      |
-| `.before_model_callbacks(value)`      | `Union[list[CodeConfig], NoneType]`      |
-| `.after_model_callbacks(value)`       | `Union[list[CodeConfig], NoneType]`      |
-| `.before_tool_callbacks(value)`       | `Union[list[CodeConfig], NoneType]`      |
-| `.after_tool_callbacks(value)`        | `Union[list[CodeConfig], NoneType]`      |
-| `.generate_content_config(value)`     | `Union[GenerateContentConfig, NoneType]` |
+| Field                                 | Type                     |
+| ------------------------------------- | ------------------------ |
+| `.agent_class(value)`                 | `str`                    |
+| `.sub_agents(value)`                  | \`list\[AgentRefConfig\] |
+| `.before_agent_callbacks(value)`      | \`list\[CodeConfig\]     |
+| `.after_agent_callbacks(value)`       | \`list\[CodeConfig\]     |
+| `.model(value)`                       | \`str                    |
+| `.model_code(value)`                  | \`CodeConfig             |
+| `.disallow_transfer_to_parent(value)` | \`bool                   |
+| `.disallow_transfer_to_peers(value)`  | \`bool                   |
+| `.input_schema(value)`                | \`CodeConfig             |
+| `.output_schema(value)`               | \`CodeConfig             |
+| `.tools(value)`                       | \`list\[ToolConfig\]     |
+| `.before_model_callbacks(value)`      | \`list\[CodeConfig\]     |
+| `.after_model_callbacks(value)`       | \`list\[CodeConfig\]     |
+| `.before_tool_callbacks(value)`       | \`list\[CodeConfig\]     |
+| `.after_tool_callbacks(value)`        | \`list\[CodeConfig\]     |
+| `.generate_content_config(value)`     | \`GenerateContentConfig  |
 
 ______________________________________________________________________
 
@@ -514,13 +514,13 @@ Resolve into a native ADK LoopAgentConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                    |
-| -------------------------------- | --------------------------------------- |
-| `.agent_class(value)`            | `str`                                   |
-| `.sub_agents(value)`             | `Union[list[AgentRefConfig], NoneType]` |
-| `.before_agent_callbacks(value)` | `Union[list[CodeConfig], NoneType]`     |
-| `.after_agent_callbacks(value)`  | `Union[list[CodeConfig], NoneType]`     |
-| `.max_iterations(value)`         | `Union[int, NoneType]`                  |
+| Field                            | Type                     |
+| -------------------------------- | ------------------------ |
+| `.agent_class(value)`            | `str`                    |
+| `.sub_agents(value)`             | \`list\[AgentRefConfig\] |
+| `.before_agent_callbacks(value)` | \`list\[CodeConfig\]     |
+| `.after_agent_callbacks(value)`  | \`list\[CodeConfig\]     |
+| `.max_iterations(value)`         | \`int                    |
 
 ______________________________________________________________________
 
@@ -585,12 +585,12 @@ Resolve into a native ADK ParallelAgentConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                    |
-| -------------------------------- | --------------------------------------- |
-| `.agent_class(value)`            | `str`                                   |
-| `.sub_agents(value)`             | `Union[list[AgentRefConfig], NoneType]` |
-| `.before_agent_callbacks(value)` | `Union[list[CodeConfig], NoneType]`     |
-| `.after_agent_callbacks(value)`  | `Union[list[CodeConfig], NoneType]`     |
+| Field                            | Type                     |
+| -------------------------------- | ------------------------ |
+| `.agent_class(value)`            | `str`                    |
+| `.sub_agents(value)`             | \`list\[AgentRefConfig\] |
+| `.before_agent_callbacks(value)` | \`list\[CodeConfig\]     |
+| `.after_agent_callbacks(value)`  | \`list\[CodeConfig\]     |
 
 ______________________________________________________________________
 
@@ -616,12 +616,12 @@ result = (
 
 ### Configuration
 
-#### `.input_audio_transcribe(value: Union[AudioTranscriptionConfig, NoneType]) -> Self`
+#### `.input_audio_transcribe(value: AudioTranscriptionConfig | None) -> Self`
 
 - **Maps to:** `input_audio_transcription`
 - Set the `input_audio_transcription` field.
 
-#### `.output_audio_transcribe(value: Union[AudioTranscriptionConfig, NoneType]) -> Self`
+#### `.output_audio_transcribe(value: AudioTranscriptionConfig | None) -> Self`
 
 - **Maps to:** `output_audio_transcription`
 - Set the `output_audio_transcription` field.
@@ -636,23 +636,23 @@ Resolve into a native ADK RunConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                   | Type                                              |
-| --------------------------------------- | ------------------------------------------------- |
-| `.speech_config(value)`                 | `Union[SpeechConfig, NoneType]`                   |
-| `.response_modalities(value)`           | `Union[list[str], NoneType]`                      |
-| `.save_input_blobs_as_artifacts(value)` | `bool`                                            |
-| `.support_cfc(value)`                   | `bool`                                            |
-| `.streaming_mode(value)`                | `StreamingMode`                                   |
-| `.realtime_input_config(value)`         | `Union[RealtimeInputConfig, NoneType]`            |
-| `.enable_affective_dialog(value)`       | `Union[bool, NoneType]`                           |
-| `.proactivity(value)`                   | `Union[ProactivityConfig, NoneType]`              |
-| `.session_resumption(value)`            | `Union[SessionResumptionConfig, NoneType]`        |
-| `.context_window_compression(value)`    | `Union[ContextWindowCompressionConfig, NoneType]` |
-| `.save_live_blob(value)`                | `bool`                                            |
-| `.tool_thread_pool_config(value)`       | `Union[ToolThreadPoolConfig, NoneType]`           |
-| `.save_live_audio(value)`               | `bool`                                            |
-| `.max_llm_calls(value)`                 | `int`                                             |
-| `.custom_metadata(value)`               | `Union[dict[str, Any], NoneType]`                 |
+| Field                                   | Type                             |
+| --------------------------------------- | -------------------------------- |
+| `.speech_config(value)`                 | \`SpeechConfig                   |
+| `.response_modalities(value)`           | \`list\[str\]                    |
+| `.save_input_blobs_as_artifacts(value)` | `bool`                           |
+| `.support_cfc(value)`                   | `bool`                           |
+| `.streaming_mode(value)`                | `StreamingMode`                  |
+| `.realtime_input_config(value)`         | \`RealtimeInputConfig            |
+| `.enable_affective_dialog(value)`       | \`bool                           |
+| `.proactivity(value)`                   | \`ProactivityConfig              |
+| `.session_resumption(value)`            | \`SessionResumptionConfig        |
+| `.context_window_compression(value)`    | \`ContextWindowCompressionConfig |
+| `.save_live_blob(value)`                | `bool`                           |
+| `.tool_thread_pool_config(value)`       | \`ToolThreadPoolConfig           |
+| `.save_live_audio(value)`               | `bool`                           |
+| `.max_llm_calls(value)`                 | `int`                            |
+| `.custom_metadata(value)`               | \`dict\[str, Any\]               |
 
 ______________________________________________________________________
 
@@ -752,12 +752,12 @@ Resolve into a native ADK SequentialAgentConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                    |
-| -------------------------------- | --------------------------------------- |
-| `.agent_class(value)`            | `str`                                   |
-| `.sub_agents(value)`             | `Union[list[AgentRefConfig], NoneType]` |
-| `.before_agent_callbacks(value)` | `Union[list[CodeConfig], NoneType]`     |
-| `.after_agent_callbacks(value)`  | `Union[list[CodeConfig], NoneType]`     |
+| Field                            | Type                     |
+| -------------------------------- | ------------------------ |
+| `.agent_class(value)`            | `str`                    |
+| `.sub_agents(value)`             | \`list\[AgentRefConfig\] |
+| `.before_agent_callbacks(value)` | \`list\[CodeConfig\]     |
+| `.after_agent_callbacks(value)`  | \`list\[CodeConfig\]     |
 
 ______________________________________________________________________
 
@@ -801,11 +801,11 @@ Resolve into a native ADK EventsCompactionConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                                    |
-| ------------------------------ | --------------------------------------- |
-| `.summarizer(value)`           | `Union[BaseEventsSummarizer, NoneType]` |
-| `.token_threshold(value)`      | `Union[int, NoneType]`                  |
-| `.event_retention_size(value)` | `Union[int, NoneType]`                  |
+| Field                          | Type                   |
+| ------------------------------ | ---------------------- |
+| `.summarizer(value)`           | \`BaseEventsSummarizer |
+| `.token_threshold(value)`      | \`int                  |
+| `.event_retention_size(value)` | \`int                  |
 
 ______________________________________________________________________
 
@@ -1000,25 +1000,25 @@ Resolve into a native ADK BigQueryLoggerConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                             | Type                                  |
-| --------------------------------- | ------------------------------------- |
-| `.enabled(value)`                 | `bool`                                |
-| `.event_allowlist(value)`         | \`list\[str\]                         |
-| `.event_denylist(value)`          | \`list\[str\]                         |
-| `.max_content_length(value)`      | `int`                                 |
-| `.table_id(value)`                | `str`                                 |
-| `.clustering_fields(value)`       | `list[str]`                           |
-| `.log_multi_modal_content(value)` | `bool`                                |
-| `.retry_config(value)`            | `RetryConfig`                         |
-| `.batch_size(value)`              | `int`                                 |
-| `.batch_flush_interval(value)`    | `float`                               |
-| `.shutdown_timeout(value)`        | `float`                               |
-| `.queue_max_size(value)`          | `int`                                 |
-| `.content_formatter(value)`       | `Optional[Callable[[Any, str], Any]]` |
-| `.gcs_bucket_name(value)`         | `Optional[str]`                       |
-| `.connection_id(value)`           | `Optional[str]`                       |
-| `.log_session_metadata(value)`    | `bool`                                |
-| `.custom_tags(value)`             | `dict[str, Any]`                      |
+| Field                             | Type                            |
+| --------------------------------- | ------------------------------- |
+| `.enabled(value)`                 | `bool`                          |
+| `.event_allowlist(value)`         | \`list\[str\]                   |
+| `.event_denylist(value)`          | \`list\[str\]                   |
+| `.max_content_length(value)`      | `int`                           |
+| `.table_id(value)`                | `str`                           |
+| `.clustering_fields(value)`       | `list[str]`                     |
+| `.log_multi_modal_content(value)` | `bool`                          |
+| `.retry_config(value)`            | `RetryConfig`                   |
+| `.batch_size(value)`              | `int`                           |
+| `.batch_flush_interval(value)`    | `float`                         |
+| `.shutdown_timeout(value)`        | `float`                         |
+| `.queue_max_size(value)`          | `int`                           |
+| `.content_formatter(value)`       | \`Callable\[\[Any, str\], Any\] |
+| `.gcs_bucket_name(value)`         | \`str                           |
+| `.connection_id(value)`           | \`str                           |
+| `.log_session_metadata(value)`    | `bool`                          |
+| `.custom_tags(value)`             | `dict[str, Any]`                |
 
 ______________________________________________________________________
 
@@ -1089,10 +1089,10 @@ Resolve into a native ADK GetSessionConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                       | Type                     |
-| --------------------------- | ------------------------ |
-| `.num_recent_events(value)` | `Union[int, NoneType]`   |
-| `.after_timestamp(value)`   | `Union[float, NoneType]` |
+| Field                       | Type    |
+| --------------------------- | ------- |
+| `.num_recent_events(value)` | \`int   |
+| `.after_timestamp(value)`   | \`float |
 
 ______________________________________________________________________
 
@@ -1125,13 +1125,13 @@ Resolve into a native ADK BaseGoogleCredentialsConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type                           |
-| ----------------------------------- | ------------------------------ |
-| `.credentials(value)`               | `Union[Credentials, NoneType]` |
-| `.external_access_token_key(value)` | `Union[str, NoneType]`         |
-| `.client_id(value)`                 | `Union[str, NoneType]`         |
-| `.client_secret(value)`             | `Union[str, NoneType]`         |
-| `.scopes(value)`                    | `Union[list[str], NoneType]`   |
+| Field                               | Type          |
+| ----------------------------------- | ------------- |
+| `.credentials(value)`               | \`Credentials |
+| `.external_access_token_key(value)` | \`str         |
+| `.client_id(value)`                 | \`str         |
+| `.client_secret(value)`             | \`str         |
+| `.scopes(value)`                    | \`list\[str\] |
 
 ______________________________________________________________________
 
@@ -1180,8 +1180,8 @@ These fields are available via `__getattr__` forwarding.
 | --------------------------------- | ---------------------------- |
 | `.tool_simulation_configs(value)` | `list[ToolSimulationConfig]` |
 | `.simulation_model(value)`        | `str`                        |
-| `.tracing_path(value)`            | `Union[str, NoneType]`       |
-| `.environment_data(value)`        | `Union[str, NoneType]`       |
+| `.tracing_path(value)`            | \`str                        |
+| `.environment_data(value)`        | \`str                        |
 
 ______________________________________________________________________
 
@@ -1214,14 +1214,14 @@ Resolve into a native ADK InjectionConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                              | Type                              |
-| ---------------------------------- | --------------------------------- |
-| `.injection_probability(value)`    | `float`                           |
-| `.match_args(value)`               | `Union[dict[str, Any], NoneType]` |
-| `.injected_latency_seconds(value)` | `float`                           |
-| `.random_seed(value)`              | `Union[int, NoneType]`            |
-| `.injected_error(value)`           | `Union[InjectedError, NoneType]`  |
-| `.injected_response(value)`        | `Union[dict[str, Any], NoneType]` |
+| Field                              | Type               |
+| ---------------------------------- | ------------------ |
+| `.injection_probability(value)`    | `float`            |
+| `.match_args(value)`               | \`dict\[str, Any\] |
+| `.injected_latency_seconds(value)` | `float`            |
+| `.random_seed(value)`              | \`int              |
+| `.injected_error(value)`           | \`InjectedError    |
+| `.injected_response(value)`        | \`dict\[str, Any\] |
 
 ______________________________________________________________________
 
@@ -1360,13 +1360,13 @@ Resolve into a native ADK BigQueryCredentialsConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type                           |
-| ----------------------------------- | ------------------------------ |
-| `.credentials(value)`               | `Union[Credentials, NoneType]` |
-| `.external_access_token_key(value)` | `Union[str, NoneType]`         |
-| `.client_id(value)`                 | `Union[str, NoneType]`         |
-| `.client_secret(value)`             | `Union[str, NoneType]`         |
-| `.scopes(value)`                    | `Union[list[str], NoneType]`   |
+| Field                               | Type          |
+| ----------------------------------- | ------------- |
+| `.credentials(value)`               | \`Credentials |
+| `.external_access_token_key(value)` | \`str         |
+| `.client_id(value)`                 | \`str         |
+| `.client_secret(value)`             | \`str         |
+| `.scopes(value)`                    | \`list\[str\] |
 
 ______________________________________________________________________
 
@@ -1392,7 +1392,7 @@ result = (
 
 ### Configuration
 
-#### `.locate(value: Union[str, NoneType]) -> Self`
+#### `.locate(value: str | None) -> Self`
 
 - **Maps to:** `location`
 - Set the `location` field.
@@ -1407,14 +1407,14 @@ Resolve into a native ADK BigQueryToolConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                           | Type                              |
-| ------------------------------- | --------------------------------- |
-| `.write_mode(value)`            | `WriteMode`                       |
-| `.maximum_bytes_billed(value)`  | `Union[int, NoneType]`            |
-| `.max_query_result_rows(value)` | `int`                             |
-| `.application_name(value)`      | `Union[str, NoneType]`            |
-| `.compute_project_id(value)`    | `Union[str, NoneType]`            |
-| `.job_labels(value)`            | `Union[dict[str, str], NoneType]` |
+| Field                           | Type               |
+| ------------------------------- | ------------------ |
+| `.write_mode(value)`            | `WriteMode`        |
+| `.maximum_bytes_billed(value)`  | \`int              |
+| `.max_query_result_rows(value)` | `int`              |
+| `.application_name(value)`      | \`str              |
+| `.compute_project_id(value)`    | \`str              |
+| `.job_labels(value)`            | \`dict\[str, str\] |
 
 ______________________________________________________________________
 
@@ -1447,13 +1447,13 @@ Resolve into a native ADK BigtableCredentialsConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type                           |
-| ----------------------------------- | ------------------------------ |
-| `.credentials(value)`               | `Union[Credentials, NoneType]` |
-| `.external_access_token_key(value)` | `Union[str, NoneType]`         |
-| `.client_id(value)`                 | `Union[str, NoneType]`         |
-| `.client_secret(value)`             | `Union[str, NoneType]`         |
-| `.scopes(value)`                    | `Union[list[str], NoneType]`   |
+| Field                               | Type          |
+| ----------------------------------- | ------------- |
+| `.credentials(value)`               | \`Credentials |
+| `.external_access_token_key(value)` | \`str         |
+| `.client_id(value)`                 | \`str         |
+| `.client_secret(value)`             | \`str         |
+| `.scopes(value)`                    | \`list\[str\] |
 
 ______________________________________________________________________
 
@@ -1521,13 +1521,13 @@ Resolve into a native ADK DataAgentCredentialsConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type                           |
-| ----------------------------------- | ------------------------------ |
-| `.credentials(value)`               | `Union[Credentials, NoneType]` |
-| `.external_access_token_key(value)` | `Union[str, NoneType]`         |
-| `.client_id(value)`                 | `Union[str, NoneType]`         |
-| `.client_secret(value)`             | `Union[str, NoneType]`         |
-| `.scopes(value)`                    | `Union[list[str], NoneType]`   |
+| Field                               | Type          |
+| ----------------------------------- | ------------- |
+| `.credentials(value)`               | \`Credentials |
+| `.external_access_token_key(value)` | \`str         |
+| `.client_id(value)`                 | \`str         |
+| `.client_secret(value)`             | \`str         |
+| `.scopes(value)`                    | \`list\[str\] |
 
 ______________________________________________________________________
 
@@ -1553,12 +1553,12 @@ result = (
 ### Constructor
 
 ```python
-ExampleToolConfig(examples: Union[list[Example], str])
+ExampleToolConfig(examples: list[Example] | str)
 ```
 
-| Argument   | Type                        |
-| ---------- | --------------------------- |
-| `examples` | `Union[list[Example], str]` |
+| Argument   | Type              |
+| ---------- | ----------------- |
+| `examples` | \`list\[Example\] |
 
 ### Control Flow & Execution
 
@@ -1597,17 +1597,17 @@ Resolve into a native ADK McpToolsetConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                       | Type                                                                                            |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `.stdio_server_params(value)`               | `Union[StdioServerParameters, NoneType]`                                                        |
-| `.stdio_connection_params(value)`           | `Union[StdioConnectionParams, NoneType]`                                                        |
-| `.sse_connection_params(value)`             | `Union[SseConnectionParams, NoneType]`                                                          |
-| `.streamable_http_connection_params(value)` | `Union[StreamableHTTPConnectionParams, NoneType]`                                               |
-| `.tool_filter(value)`                       | `Union[list[str], NoneType]`                                                                    |
-| `.tool_name_prefix(value)`                  | `Union[str, NoneType]`                                                                          |
-| `.auth_scheme(value)`                       | `Union[APIKey, HTTPBase, OAuth2, OpenIdConnect, HTTPBearer, OpenIdConnectWithConfig, NoneType]` |
-| `.auth_credential(value)`                   | `Union[AuthCredential, NoneType]`                                                               |
-| `.use_mcp_resources(value)`                 | `bool`                                                                                          |
+| Field                                       | Type                             |
+| ------------------------------------------- | -------------------------------- |
+| `.stdio_server_params(value)`               | \`StdioServerParameters          |
+| `.stdio_connection_params(value)`           | \`StdioConnectionParams          |
+| `.sse_connection_params(value)`             | \`SseConnectionParams            |
+| `.streamable_http_connection_params(value)` | \`StreamableHTTPConnectionParams |
+| `.tool_filter(value)`                       | \`list\[str\]                    |
+| `.tool_name_prefix(value)`                  | \`str                            |
+| `.auth_scheme(value)`                       | \`APIKey                         |
+| `.auth_credential(value)`                   | \`AuthCredential                 |
+| `.use_mcp_resources(value)`                 | `bool`                           |
 
 ______________________________________________________________________
 
@@ -1675,13 +1675,13 @@ Resolve into a native ADK PubSubCredentialsConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type                           |
-| ----------------------------------- | ------------------------------ |
-| `.credentials(value)`               | `Union[Credentials, NoneType]` |
-| `.external_access_token_key(value)` | `Union[str, NoneType]`         |
-| `.client_id(value)`                 | `Union[str, NoneType]`         |
-| `.client_secret(value)`             | `Union[str, NoneType]`         |
-| `.scopes(value)`                    | `Union[list[str], NoneType]`   |
+| Field                               | Type          |
+| ----------------------------------- | ------------- |
+| `.credentials(value)`               | \`Credentials |
+| `.external_access_token_key(value)` | \`str         |
+| `.client_id(value)`                 | \`str         |
+| `.client_secret(value)`             | \`str         |
+| `.scopes(value)`                    | \`list\[str\] |
 
 ______________________________________________________________________
 
@@ -1714,13 +1714,13 @@ Resolve into a native ADK SpannerCredentialsConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type                           |
-| ----------------------------------- | ------------------------------ |
-| `.credentials(value)`               | `Union[Credentials, NoneType]` |
-| `.external_access_token_key(value)` | `Union[str, NoneType]`         |
-| `.client_id(value)`                 | `Union[str, NoneType]`         |
-| `.client_secret(value)`             | `Union[str, NoneType]`         |
-| `.scopes(value)`                    | `Union[list[str], NoneType]`   |
+| Field                               | Type          |
+| ----------------------------------- | ------------- |
+| `.credentials(value)`               | \`Credentials |
+| `.external_access_token_key(value)` | \`str         |
+| `.client_id(value)`                 | \`str         |
+| `.client_secret(value)`             | \`str         |
+| `.scopes(value)`                    | \`list\[str\] |
 
 ______________________________________________________________________
 
@@ -1817,6 +1817,6 @@ Resolve into a native ADK ToolConfig.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type                              |
-| -------------- | --------------------------------- |
-| `.args(value)` | `Union[ToolArgsConfig, NoneType]` |
+| Field          | Type             |
+| -------------- | ---------------- |
+| `.args(value)` | \`ToolArgsConfig |

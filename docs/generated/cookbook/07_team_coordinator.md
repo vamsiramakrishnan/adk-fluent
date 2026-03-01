@@ -4,9 +4,28 @@ Demonstrates an LLM agent that delegates to specialized sub-agents.
 The scenario: a product launch coordinator that routes tasks to
 marketing, engineering, and legal teams based on the request.
 
-*How to build a team of agents with a coordinator.*
+Pipeline topology:
+launch_coordinator
+|-- marketing
+|-- engineering
+'-- legal
+
+*How to compose agents into a sequential pipeline.*
 
 _Source: `07_team_coordinator.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1["launch_coordinator"]
+    n2["marketing"]
+    n3["engineering"]
+    n4["legal"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

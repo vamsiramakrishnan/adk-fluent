@@ -165,11 +165,11 @@ Resolve into a native ADK BigQueryAgentAnalyticsPlugin.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field              | Type                             |
-| ------------------ | -------------------------------- |
-| `.table_id(value)` | `Optional[str]`                  |
-| `.config(value)`   | `Optional[BigQueryLoggerConfig]` |
-| `.location(value)` | `str`                            |
+| Field              | Type                   |
+| ------------------ | ---------------------- |
+| `.table_id(value)` | \`str                  |
+| `.config(value)`   | \`BigQueryLoggerConfig |
+| `.location(value)` | `str`                  |
 
 ______________________________________________________________________
 
@@ -202,11 +202,11 @@ Resolve into a native ADK ContextFilterPlugin.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                             | Type                                                             |
-| --------------------------------- | ---------------------------------------------------------------- |
-| `.num_invocations_to_keep(value)` | `Optional[int]`                                                  |
-| `.custom_filter(value)`           | `Optional[Callable[[list[types.Content]], list[types.Content]]]` |
-| `.name(value)`                    | `str`                                                            |
+| Field                             | Type                                                           |
+| --------------------------------- | -------------------------------------------------------------- |
+| `.num_invocations_to_keep(value)` | \`int                                                          |
+| `.custom_filter(value)`           | \`Callable\[\[list\[types.Content\]\], list\[types.Content\]\] |
+| `.name(value)`                    | `str`                                                          |
 
 ______________________________________________________________________
 
@@ -277,10 +277,10 @@ Resolve into a native ADK GlobalInstructionPlugin.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                        | Type                              |
-| ---------------------------- | --------------------------------- |
-| `.global_instruction(value)` | `Union[str, InstructionProvider]` |
-| `.name(value)`               | `str`                             |
+| Field                        | Type  |
+| ---------------------------- | ----- |
+| `.global_instruction(value)` | \`str |
+| `.name(value)`               | `str` |
 
 ______________________________________________________________________
 

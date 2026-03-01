@@ -1,13 +1,29 @@
 # Market Research Fan-Out -- Parallel FanOut
 
-Demonstrates a ParallelAgent that runs branches concurrently. The
+Demonstrates a ParallelAgent that runs branches concurrently.  The
 scenario: a market research system that simultaneously gathers
 intelligence from web sources, academic papers, and social media
 to produce a comprehensive competitive analysis.
 
-*How to run agents in parallel using FanOut.*
+Pipeline topology:
+( web_analyst | academic_analyst | social_analyst )
+
+*How to compose agents into a sequential pipeline.*
 
 _Source: `05_parallel_fanout.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1{"market_research (parallel)"}
+    n2["web_analyst"]
+    n3["academic_analyst"]
+    n4["social_analyst"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

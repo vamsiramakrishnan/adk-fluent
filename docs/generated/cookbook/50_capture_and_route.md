@@ -1,8 +1,39 @@
 # Capture and Route: IT Helpdesk Triage
 
-*How to implement conditional routing and branching.*
+Pipeline topology:
+S.capture("ticket")
+\>> triage \[save_as: priority\]
+\>> Route("priority")
+├─ "p1" -> incident_commander
+├─ "p2" -> senior_support
+└─ else -> support_bot
+
+*How to compose agents into a sequential pipeline.*
 
 _Source: `50_capture_and_route.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["capture_ticket_then_triage_routed (sequence)"]]
+    n2>"capture_ticket capture(ticket)"]
+    n3["triage"]
+    n4{"route_priority (route)"}
+    n5["incident_commander"]
+    n6["senior_support"]
+    n7["support_bot"]
+    n4 --> n5
+    n4 --> n6
+    n4 -.-> n7
+    n2 --> n3
+    n3 --> n4
+    n3 -. "priority" .-> n4
+    n2 -. "ticket" .-> n3
+    n2 -. "ticket" .-> n5
+    n2 -. "ticket" .-> n6
+    n2 -. "ticket" .-> n7
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

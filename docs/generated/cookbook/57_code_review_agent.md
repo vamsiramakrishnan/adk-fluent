@@ -5,11 +5,40 @@ Gemini CLI's code review and GitHub Copilot's review features.
 Uses parallel fan-out for concurrent analysis, typed output for
 structured findings, and conditional gating.
 
+Pipeline topology:
+diff_parser \[save_as: parsed_changes\]
+\>> ( style_checker | security_scanner | logic_reviewer )
+\>> tap(log)
+\>> finding_aggregator @ ReviewResult
+\>> comment_writer \[gated: findings_count > 0\]
+
 Uses: >>, |, @, proceed_if, save_as, tap
 
-*How to run agents in parallel using FanOut.*
+*How to compose agents into a sequential pipeline.*
 
 _Source: `57_code_review_agent.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_tap_6_then_finding_aggregator_then_comment_writer (sequence)"]]
+    n2["diff_parser"]
+    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
+    n4["style_checker"]
+    n5["security_scanner"]
+    n6["logic_reviewer"]
+    n7>"tap_6 tap"]
+    n8["finding_aggregator"]
+    n9["comment_writer"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n2 --> n3
+    n3 --> n7
+    n7 --> n8
+    n8 --> n9
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

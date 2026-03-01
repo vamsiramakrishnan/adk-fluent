@@ -4,6 +4,20 @@
 
 _Source: `52_contract_checking.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["capture_customer_request_then_parser_then_fulfillment (sequence)"]]
+    n2>"capture_customer_request capture(customer_request)"]
+    n3["parser"]
+    n4["fulfillment"]
+    n2 --> n3
+    n3 --> n4
+    n2 -. "customer_request" .-> n3
+    n3 -. "order_details" .-> n4
+```
+
 ::::\{tab-set}
 :::\{tab-item} Native ADK
 

@@ -1,13 +1,28 @@
 # Document Processing Pipeline -- Sequential Pipeline
 
-Demonstrates a SequentialAgent that chains steps in order. The
+Demonstrates a SequentialAgent that chains steps in order.  The
 scenario: a document processing pipeline that extracts key data
 from a contract, analyzes legal risks, then produces an executive
 summary.
 
+Pipeline topology:
+extractor >> risk_analyst >> summarizer
+
 *How to compose agents into a sequential pipeline.*
 
 _Source: `04_sequential_pipeline.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["contract_review (sequence)"]]
+    n2["extractor"]
+    n3["risk_analyst"]
+    n4["summarizer"]
+    n2 --> n3
+    n3 --> n4
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

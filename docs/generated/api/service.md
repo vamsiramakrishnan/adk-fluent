@@ -207,9 +207,9 @@ Resolve into a native ADK PerAgentDatabaseSessionService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                     | Type                          |
-| ------------------------- | ----------------------------- |
-| `.app_name_to_dir(value)` | `Optional[Mapping[str, str]]` |
+| Field                     | Type                  |
+| ------------------------- | --------------------- |
+| `.app_name_to_dir(value)` | \`Mapping\[str, str\] |
 
 ______________________________________________________________________
 
@@ -307,12 +307,12 @@ Resolve into a native ADK VertexAiMemoryBankService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type            |
-| ------------------------------ | --------------- |
-| `.project(value)`              | `Optional[str]` |
-| `.location(value)`             | `Optional[str]` |
-| `.agent_engine_id(value)`      | `Optional[str]` |
-| `.express_mode_api_key(value)` | `Optional[str]` |
+| Field                          | Type  |
+| ------------------------------ | ----- |
+| `.project(value)`              | \`str |
+| `.location(value)`             | \`str |
+| `.agent_engine_id(value)`      | \`str |
+| `.express_mode_api_key(value)` | \`str |
 
 ______________________________________________________________________
 
@@ -345,11 +345,11 @@ Resolve into a native ADK VertexAiRagMemoryService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                               | Type            |
-| ----------------------------------- | --------------- |
-| `.rag_corpus(value)`                | `Optional[str]` |
-| `.similarity_top_k(value)`          | `Optional[int]` |
-| `.vector_distance_threshold(value)` | `float`         |
+| Field                               | Type    |
+| ----------------------------------- | ------- |
+| `.rag_corpus(value)`                | \`str   |
+| `.similarity_top_k(value)`          | \`int   |
+| `.vector_distance_threshold(value)` | `float` |
 
 ______________________________________________________________________
 
@@ -522,12 +522,12 @@ Resolve into a native ADK VertexAiSessionService.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type            |
-| ------------------------------ | --------------- |
-| `.project(value)`              | `Optional[str]` |
-| `.location(value)`             | `Optional[str]` |
-| `.agent_engine_id(value)`      | `Optional[str]` |
-| `.express_mode_api_key(value)` | `Optional[str]` |
+| Field                          | Type  |
+| ------------------------------ | ----- |
+| `.project(value)`              | \`str |
+| `.location(value)`             | \`str |
+| `.agent_engine_id(value)`      | \`str |
+| `.express_mode_api_key(value)` | \`str |
 
 ______________________________________________________________________
 

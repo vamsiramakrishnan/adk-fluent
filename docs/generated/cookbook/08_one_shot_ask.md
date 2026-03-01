@@ -1,7 +1,7 @@
 # Quick Code Review -- One-Shot Execution with .ask()
 
 Demonstrates the .ask() convenience method for fire-and-forget
-queries. The scenario: a code review agent that can be invoked
+queries.  The scenario: a code review agent that can be invoked
 with a single line to get feedback on a code snippet.
 No LLM calls are made here -- we only verify builder mechanics.
 

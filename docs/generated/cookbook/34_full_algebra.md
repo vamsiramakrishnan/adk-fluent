@@ -5,9 +5,36 @@ in a real-world code review system. A diff parser extracts changes,
 parallel reviewers check style, security, and logic independently,
 then findings are aggregated into a structured verdict.
 
+Pipeline topology:
+diff_parser
+\>> ( style_checker | security_scanner | logic_reviewer )
+\>> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
+
 *How to compose agents into a sequential pipeline.*
 
 _Source: `34_full_algebra.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_finding_aggregator_or_backup_aggregator (sequence)"]]
+    n2["diff_parser"]
+    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
+    n4["style_checker"]
+    n5["security_scanner"]
+    n6["logic_reviewer"]
+    n7[/"finding_aggregator_or_backup_aggregator (fallback)"\]
+    n8["finding_aggregator"]
+    n9["backup_aggregator"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n7 --> n8
+    n7 --> n9
+    n2 --> n3
+    n3 --> n7
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

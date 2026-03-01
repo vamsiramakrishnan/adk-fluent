@@ -10,6 +10,16 @@ No LLM calls are made here -- we verify builder and pipeline mechanics.
 
 _Source: `09_streaming.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["transcriber_then_translator (sequence)"]]
+    n2["transcriber"]
+    n3["translator"]
+    n2 --> n3
+```
+
 ::::\{tab-set}
 :::\{tab-item} Native ADK
 
@@ -27,20 +37,14 @@ from google.adk.agents.sequential_agent import SequentialAgent
 transcriber_native = LlmAgent(
     name="transcriber",
     model="gemini-2.5-flash",
-    instruction=(
-        "Transcribe the incoming audio stream to text. "
-        "Preserve speaker labels and timestamps."
-    ),
+    instruction=("Transcribe the incoming audio stream to text. Preserve speaker labels and timestamps."),
     output_key="transcript",
 )
 
 translator_native = LlmAgent(
     name="translator",
     model="gemini-2.5-flash",
-    instruction=(
-        "Translate the transcript to Spanish. "
-        "Preserve speaker labels and formatting."
-    ),
+    instruction=("Translate the transcript to Spanish. Preserve speaker labels and formatting."),
 )
 
 pipeline_native = SequentialAgent(
@@ -62,20 +66,14 @@ from adk_fluent import Agent
 transcriber = (
     Agent("transcriber")
     .model("gemini-2.5-flash")
-    .instruct(
-        "Transcribe the incoming audio stream to text. "
-        "Preserve speaker labels and timestamps."
-    )
+    .instruct("Transcribe the incoming audio stream to text. Preserve speaker labels and timestamps.")
     .writes("transcript")
 )
 
 translator = (
     Agent("translator")
     .model("gemini-2.5-flash")
-    .instruct(
-        "Translate the transcript to Spanish. "
-        "Preserve speaker labels and formatting."
-    )
+    .instruct("Translate the transcript to Spanish. Preserve speaker labels and formatting.")
 )
 
 pipeline_fluent = transcriber >> translator

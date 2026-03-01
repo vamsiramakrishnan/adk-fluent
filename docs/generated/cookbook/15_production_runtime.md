@@ -10,6 +10,18 @@ operational visibility.
 
 _Source: `15_production_runtime.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["order_validator_then_payment_processor_then_fulfillment (sequence)"]]
+    n2["order_validator"]
+    n3["payment_processor"]
+    n4["fulfillment"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::\{tab-set}
 :::\{tab-item} Native ADK
 

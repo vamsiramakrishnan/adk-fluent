@@ -1,13 +1,27 @@
 # Essay Refinement Loop -- Loop Agent
 
 Demonstrates a LoopAgent that iterates sub-agents until a maximum
-iteration count. The scenario: an essay refinement workflow where
+iteration count.  The scenario: an essay refinement workflow where
 a critic evaluates the draft and a reviser improves it, repeating
 up to 3 times until quality standards are met.
 
-*How to create looping agent workflows.*
+Pipeline topology:
+( critic >> reviser ) * 3
+
+*How to compose agents into a sequential pipeline.*
 
 _Source: `06_loop_agent.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1(("essay_refiner (loop x3)"))
+    n2["critic"]
+    n3["reviser"]
+    n1 --> n2
+    n1 --> n3
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

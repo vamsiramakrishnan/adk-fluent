@@ -1,7 +1,7 @@
 # Email Classifier Agent -- Simple Agent Creation
 
 Demonstrates creating a minimal LLM agent using both native ADK and
-the fluent builder. The scenario: an agent that classifies incoming
+the fluent builder.  The scenario: an agent that classifies incoming
 customer emails into categories (billing, technical, general).
 
 *How to create a basic agent with the fluent API.*

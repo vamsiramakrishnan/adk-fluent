@@ -85,10 +85,10 @@ Resolve into a native ADK ActiveStreamingTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field            | Type                                |
-| ---------------- | ----------------------------------- |
-| `.task(value)`   | `Union[Task, NoneType]`             |
-| `.stream(value)` | `Union[LiveRequestQueue, NoneType]` |
+| Field            | Type               |
+| ---------------- | ------------------ |
+| `.task(value)`   | \`Task             |
+| `.stream(value)` | \`LiveRequestQueue |
 
 ______________________________________________________________________
 
@@ -177,17 +177,17 @@ Resolve into a native ADK APIHubToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                                        |
-| ------------------------------ | ------------------------------------------- |
-| `.access_token(value)`         | `Optional[str]`                             |
-| `.service_account_json(value)` | `Optional[str]`                             |
-| `.name(value)`                 | `str`                                       |
-| `.description(value)`          | `str`                                       |
-| `.lazy_load_spec(value)`       | `Any`                                       |
-| `.auth_scheme(value)`          | `Optional[AuthScheme]`                      |
-| `.auth_credential(value)`      | `Optional[AuthCredential]`                  |
-| `.apihub_client(value)`        | `Optional[APIHubClient]`                    |
-| `.tool_filter(value)`          | `Optional[Union[ToolPredicate, List[str]]]` |
+| Field                          | Type             |
+| ------------------------------ | ---------------- |
+| `.access_token(value)`         | \`str            |
+| `.service_account_json(value)` | \`str            |
+| `.name(value)`                 | `str`            |
+| `.description(value)`          | `str`            |
+| `.lazy_load_spec(value)`       | `Any`            |
+| `.auth_scheme(value)`          | \`AuthScheme     |
+| `.auth_credential(value)`      | \`AuthCredential |
+| `.apihub_client(value)`        | \`APIHubClient   |
+| `.tool_filter(value)`          | \`ToolPredicate  |
 
 ______________________________________________________________________
 
@@ -231,20 +231,20 @@ Resolve into a native ADK ApplicationIntegrationToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                  | Type                                        |
-| -------------------------------------- | ------------------------------------------- |
-| `.connection_template_override(value)` | `Optional[str]`                             |
-| `.integration(value)`                  | `Optional[str]`                             |
-| `.triggers(value)`                     | `Optional[List[str]]`                       |
-| `.connection(value)`                   | `Optional[str]`                             |
-| `.entity_operations(value)`            | `Optional[str]`                             |
-| `.actions(value)`                      | `Optional[list[str]]`                       |
-| `.tool_name_prefix(value)`             | `Optional[str]`                             |
-| `.tool_instructions(value)`            | `Optional[str]`                             |
-| `.service_account_json(value)`         | `Optional[str]`                             |
-| `.auth_scheme(value)`                  | `Optional[AuthScheme]`                      |
-| `.auth_credential(value)`              | `Optional[AuthCredential]`                  |
-| `.tool_filter(value)`                  | `Optional[Union[ToolPredicate, List[str]]]` |
+| Field                                  | Type             |
+| -------------------------------------- | ---------------- |
+| `.connection_template_override(value)` | \`str            |
+| `.integration(value)`                  | \`str            |
+| `.triggers(value)`                     | \`list\[str\]    |
+| `.connection(value)`                   | \`str            |
+| `.entity_operations(value)`            | \`str            |
+| `.actions(value)`                      | \`list\[str\]    |
+| `.tool_name_prefix(value)`             | \`str            |
+| `.tool_instructions(value)`            | \`str            |
+| `.service_account_json(value)`         | \`str            |
+| `.auth_scheme(value)`                  | \`AuthScheme     |
+| `.auth_credential(value)`              | \`AuthCredential |
+| `.tool_filter(value)`                  | \`ToolPredicate  |
 
 ______________________________________________________________________
 
@@ -289,16 +289,16 @@ Resolve into a native ADK IntegrationConnectorTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                             | Type                                   |
-| --------------------------------- | -------------------------------------- |
-| `.connection_host(value)`         | `str`                                  |
-| `.connection_service_name(value)` | `str`                                  |
-| `.entity(value)`                  | `str`                                  |
-| `.operation(value)`               | `str`                                  |
-| `.action(value)`                  | `str`                                  |
-| `.rest_api_tool(value)`           | `RestApiTool`                          |
-| `.auth_scheme(value)`             | `Optional[Union[AuthScheme, str]]`     |
-| `.auth_credential(value)`         | `Optional[Union[AuthCredential, str]]` |
+| Field                             | Type             |
+| --------------------------------- | ---------------- |
+| `.connection_host(value)`         | `str`            |
+| `.connection_service_name(value)` | `str`            |
+| `.entity(value)`                  | `str`            |
+| `.operation(value)`               | `str`            |
+| `.action(value)`                  | `str`            |
+| `.rest_api_tool(value)`           | `RestApiTool`    |
+| `.auth_scheme(value)`             | \`AuthScheme     |
+| `.auth_credential(value)`         | \`AuthCredential |
 
 ______________________________________________________________________
 
@@ -342,10 +342,10 @@ Resolve into a native ADK BaseAuthenticatedTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                | Type                                   |
-| ------------------------------------ | -------------------------------------- |
-| `.auth_config(value)`                | `AuthConfig`                           |
-| `.response_for_auth_required(value)` | `Optional[Union[dict[str, Any], str]]` |
+| Field                                | Type               |
+| ------------------------------------ | ------------------ |
+| `.auth_config(value)`                | `AuthConfig`       |
+| `.response_for_auth_required(value)` | \`dict\[str, Any\] |
 
 ______________________________________________________________________
 
@@ -389,10 +389,10 @@ Resolve into a native ADK BaseTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                     | Type                       |
-| ------------------------- | -------------------------- |
-| `.is_long_running(value)` | `bool`                     |
-| `.custom_metadata(value)` | `Optional[dict[str, Any]]` |
+| Field                     | Type               |
+| ------------------------- | ------------------ |
+| `.is_long_running(value)` | `bool`             |
+| `.custom_metadata(value)` | \`dict\[str, Any\] |
 
 ______________________________________________________________________
 
@@ -425,10 +425,10 @@ Resolve into a native ADK BaseToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type            |
+| -------------------------- | --------------- |
+| `.tool_filter(value)`      | \`ToolPredicate |
+| `.tool_name_prefix(value)` | \`str           |
 
 ______________________________________________________________________
 
@@ -461,11 +461,11 @@ Resolve into a native ADK BigQueryToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                                        |
-| ------------------------------ | ------------------------------------------- |
-| `.tool_filter(value)`          | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.credentials_config(value)`   | `Optional[BigQueryCredentialsConfig]`       |
-| `.bigquery_tool_config(value)` | `Optional[BigQueryToolConfig]`              |
+| Field                          | Type                        |
+| ------------------------------ | --------------------------- |
+| `.tool_filter(value)`          | \`ToolPredicate             |
+| `.credentials_config(value)`   | \`BigQueryCredentialsConfig |
+| `.bigquery_tool_config(value)` | \`BigQueryToolConfig        |
 
 ______________________________________________________________________
 
@@ -498,11 +498,11 @@ Resolve into a native ADK BigtableToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                        |
-| -------------------------------- | ------------------------------------------- |
-| `.tool_filter(value)`            | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.credentials_config(value)`     | `Optional[BigtableCredentialsConfig]`       |
-| `.bigtable_tool_settings(value)` | `Optional[BigtableToolSettings]`            |
+| Field                            | Type                        |
+| -------------------------------- | --------------------------- |
+| `.tool_filter(value)`            | \`ToolPredicate             |
+| `.credentials_config(value)`     | \`BigtableCredentialsConfig |
+| `.bigtable_tool_settings(value)` | \`BigtableToolSettings      |
 
 ______________________________________________________________________
 
@@ -618,11 +618,11 @@ Resolve into a native ADK DataAgentToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                        |
-| -------------------------------- | ------------------------------------------- |
-| `.tool_filter(value)`            | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.credentials_config(value)`     | `Optional[DataAgentCredentialsConfig]`      |
-| `.data_agent_tool_config(value)` | `Optional[DataAgentToolConfig]`             |
+| Field                            | Type                         |
+| -------------------------------- | ---------------------------- |
+| `.tool_filter(value)`            | \`ToolPredicate              |
+| `.credentials_config(value)`     | \`DataAgentCredentialsConfig |
+| `.data_agent_tool_config(value)` | \`DataAgentToolConfig        |
 
 ______________________________________________________________________
 
@@ -655,13 +655,13 @@ Resolve into a native ADK DiscoveryEngineSearchTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                                |
-| -------------------------- | --------------------------------------------------- |
-| `.data_store_id(value)`    | `Optional[str]`                                     |
-| `.data_store_specs(value)` | `Optional[list[types.VertexAISearchDataStoreSpec]]` |
-| `.search_engine_id(value)` | `Optional[str]`                                     |
-| `.filter(value)`           | `Optional[str]`                                     |
-| `.max_results(value)`      | `Optional[int]`                                     |
+| Field                      | Type                                        |
+| -------------------------- | ------------------------------------------- |
+| `.data_store_id(value)`    | \`str                                       |
+| `.data_store_specs(value)` | \`list\[types.VertexAISearchDataStoreSpec\] |
+| `.search_engine_id(value)` | \`str                                       |
+| `.filter(value)`           | \`str                                       |
+| `.max_results(value)`      | \`int                                       |
 
 ______________________________________________________________________
 
@@ -714,12 +714,12 @@ result = (
 ### Constructor
 
 ```python
-ExampleTool(examples: Union[list[Example], BaseExampleProvider])
+ExampleTool(examples: list[Example] | BaseExampleProvider)
 ```
 
-| Argument   | Type                                        |
-| ---------- | ------------------------------------------- |
-| `examples` | `Union[list[Example], BaseExampleProvider]` |
+| Argument   | Type              |
+| ---------- | ----------------- |
+| `examples` | \`list\[Example\] |
 
 ### Control Flow & Execution
 
@@ -768,9 +768,9 @@ Resolve into a native ADK FunctionTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                               |
-| ------------------------------ | ---------------------------------- |
-| `.require_confirmation(value)` | `Union[bool, Callable[..., bool]]` |
+| Field                          | Type   |
+| ------------------------------ | ------ |
+| `.require_confirmation(value)` | \`bool |
 
 ______________________________________________________________________
 
@@ -813,12 +813,12 @@ Resolve into a native ADK GoogleApiTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                        | Type                       |
-| ---------------------------- | -------------------------- |
-| `.client_id(value)`          | `Optional[str]`            |
-| `.client_secret(value)`      | `Optional[str]`            |
-| `.service_account(value)`    | `Optional[ServiceAccount]` |
-| `.additional_headers(value)` | `Optional[Dict[str, str]]` |
+| Field                        | Type               |
+| ---------------------------- | ------------------ |
+| `.client_id(value)`          | \`str              |
+| `.client_secret(value)`      | \`str              |
+| `.service_account(value)`    | \`ServiceAccount   |
+| `.additional_headers(value)` | \`dict\[str, str\] |
 
 ______________________________________________________________________
 
@@ -862,14 +862,14 @@ Resolve into a native ADK GoogleApiToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                        | Type                                        |
-| ---------------------------- | ------------------------------------------- |
-| `.client_id(value)`          | `Optional[str]`                             |
-| `.client_secret(value)`      | `Optional[str]`                             |
-| `.tool_filter(value)`        | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`    | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)`   | `Optional[str]`                             |
-| `.additional_headers(value)` | `Optional[Dict[str, str]]`                  |
+| Field                        | Type               |
+| ---------------------------- | ------------------ |
+| `.client_id(value)`          | \`str              |
+| `.client_secret(value)`      | \`str              |
+| `.tool_filter(value)`        | \`ToolPredicate    |
+| `.service_account(value)`    | \`ServiceAccount   |
+| `.tool_name_prefix(value)`   | \`str              |
+| `.additional_headers(value)` | \`dict\[str, str\] |
 
 ______________________________________________________________________
 
@@ -902,13 +902,13 @@ Resolve into a native ADK CalendarToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.client_id(value)`        | `Optional[str]`                             |
-| `.client_secret(value)`    | `Optional[str]`                             |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`  | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
 ______________________________________________________________________
 
@@ -941,13 +941,13 @@ Resolve into a native ADK DocsToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.client_id(value)`        | `Optional[str]`                             |
-| `.client_secret(value)`    | `Optional[str]`                             |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`  | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
 ______________________________________________________________________
 
@@ -980,13 +980,13 @@ Resolve into a native ADK GmailToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.client_id(value)`        | `Optional[str]`                             |
-| `.client_secret(value)`    | `Optional[str]`                             |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`  | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
 ______________________________________________________________________
 
@@ -1019,13 +1019,13 @@ Resolve into a native ADK SheetsToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.client_id(value)`        | `Optional[str]`                             |
-| `.client_secret(value)`    | `Optional[str]`                             |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`  | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
 ______________________________________________________________________
 
@@ -1058,13 +1058,13 @@ Resolve into a native ADK SlidesToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.client_id(value)`        | `Optional[str]`                             |
-| `.client_secret(value)`    | `Optional[str]`                             |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`  | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
 ______________________________________________________________________
 
@@ -1097,13 +1097,13 @@ Resolve into a native ADK YoutubeToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                        |
-| -------------------------- | ------------------------------------------- |
-| `.client_id(value)`        | `Optional[str]`                             |
-| `.client_secret(value)`    | `Optional[str]`                             |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.service_account(value)`  | `Optional[ServiceAccount]`                  |
-| `.tool_name_prefix(value)` | `Optional[str]`                             |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
 ______________________________________________________________________
 
@@ -1246,10 +1246,10 @@ Resolve into a native ADK GoogleTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                        | Type                                    |
-| ---------------------------- | --------------------------------------- |
-| `.credentials_config(value)` | `Optional[BaseGoogleCredentialsConfig]` |
-| `.tool_settings(value)`      | `Optional[BaseModel]`                   |
+| Field                        | Type                          |
+| ---------------------------- | ----------------------------- |
+| `.credentials_config(value)` | \`BaseGoogleCredentialsConfig |
+| `.tool_settings(value)`      | \`BaseModel                   |
 
 ______________________________________________________________________
 
@@ -1459,13 +1459,13 @@ Resolve into a native ADK McpTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                                                    |
-| ------------------------------ | ------------------------------------------------------- |
-| `.auth_scheme(value)`          | `Optional[AuthScheme]`                                  |
-| `.auth_credential(value)`      | `Optional[AuthCredential]`                              |
-| `.require_confirmation(value)` | `Union[bool, Callable[..., bool]]`                      |
-| `.header_provider(value)`      | `Optional[Callable[[ReadonlyContext], Dict[str, str]]]` |
-| `.progress_callback(value)`    | `Optional[Union[ProgressFnT, ProgressCallbackFactory]]` |
+| Field                          | Type                                                |
+| ------------------------------ | --------------------------------------------------- |
+| `.auth_scheme(value)`          | \`AuthScheme                                        |
+| `.auth_credential(value)`      | \`AuthCredential                                    |
+| `.require_confirmation(value)` | \`bool                                              |
+| `.header_provider(value)`      | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
+| `.progress_callback(value)`    | \`ProgressFnT                                       |
 
 ______________________________________________________________________
 
@@ -1529,12 +1529,12 @@ result = (
 ### Constructor
 
 ```python
-McpToolset(connection_params: Union[StdioServerParameters, StdioConnectionParams, SseConnectionParams, StreamableHTTPConnectionParams])
+McpToolset(connection_params: StdioServerParameters | StdioConnectionParams | SseConnectionParams | StreamableHTTPConnectionParams)
 ```
 
-| Argument            | Type                                                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `connection_params` | `Union[StdioServerParameters, StdioConnectionParams, SseConnectionParams, StreamableHTTPConnectionParams]` |
+| Argument            | Type                    |
+| ------------------- | ----------------------- |
+| `connection_params` | \`StdioServerParameters |
 
 ### Control Flow & Execution
 
@@ -1546,17 +1546,17 @@ Resolve into a native ADK McpToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                                                    |
-| ------------------------------ | ------------------------------------------------------- |
-| `.tool_filter(value)`          | `Optional[Union[ToolPredicate, List[str]]]`             |
-| `.tool_name_prefix(value)`     | `Optional[str]`                                         |
-| `.errlog(value)`               | `TextIO`                                                |
-| `.auth_scheme(value)`          | `Optional[AuthScheme]`                                  |
-| `.auth_credential(value)`      | `Optional[AuthCredential]`                              |
-| `.require_confirmation(value)` | `Union[bool, Callable[..., bool]]`                      |
-| `.header_provider(value)`      | `Optional[Callable[[ReadonlyContext], Dict[str, str]]]` |
-| `.progress_callback(value)`    | `Optional[Union[ProgressFnT, ProgressCallbackFactory]]` |
-| `.use_mcp_resources(value)`    | `Optional[bool]`                                        |
+| Field                          | Type                                                |
+| ------------------------------ | --------------------------------------------------- |
+| `.tool_filter(value)`          | \`ToolPredicate                                     |
+| `.tool_name_prefix(value)`     | \`str                                               |
+| `.errlog(value)`               | `TextIO`                                            |
+| `.auth_scheme(value)`          | \`AuthScheme                                        |
+| `.auth_credential(value)`      | \`AuthCredential                                    |
+| `.require_confirmation(value)` | \`bool                                              |
+| `.header_provider(value)`      | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
+| `.progress_callback(value)`    | \`ProgressFnT                                       |
+| `.use_mcp_resources(value)`    | \`bool                                              |
 
 ______________________________________________________________________
 
@@ -1589,18 +1589,18 @@ Resolve into a native ADK OpenAPIToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                      | Type                                                    |
-| -------------------------- | ------------------------------------------------------- |
-| `.spec_dict(value)`        | `Optional[Dict[str, Any]]`                              |
-| `.spec_str(value)`         | `Optional[str]`                                         |
-| `.spec_str_type(value)`    | `Literal['json', 'yaml']`                               |
-| `.auth_scheme(value)`      | `Optional[AuthScheme]`                                  |
-| `.auth_credential(value)`  | `Optional[AuthCredential]`                              |
-| `.credential_key(value)`   | `Optional[str]`                                         |
-| `.tool_filter(value)`      | `Optional[Union[ToolPredicate, List[str]]]`             |
-| `.tool_name_prefix(value)` | `Optional[str]`                                         |
-| `.ssl_verify(value)`       | `Optional[Union[bool, str, ssl.SSLContext]]`            |
-| `.header_provider(value)`  | `Optional[Callable[[ReadonlyContext], Dict[str, str]]]` |
+| Field                      | Type                                                |
+| -------------------------- | --------------------------------------------------- |
+| `.spec_dict(value)`        | \`dict\[str, Any\]                                  |
+| `.spec_str(value)`         | \`str                                               |
+| `.spec_str_type(value)`    | `Literal['json', 'yaml']`                           |
+| `.auth_scheme(value)`      | \`AuthScheme                                        |
+| `.auth_credential(value)`  | \`AuthCredential                                    |
+| `.credential_key(value)`   | \`str                                               |
+| `.tool_filter(value)`      | \`ToolPredicate                                     |
+| `.tool_name_prefix(value)` | \`str                                               |
+| `.ssl_verify(value)`       | \`bool                                              |
+| `.header_provider(value)`  | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
 
 ______________________________________________________________________
 
@@ -1626,14 +1626,14 @@ result = (
 ### Constructor
 
 ```python
-RestApiTool(name: str, description: str, endpoint: Union[OperationEndpoint, str])
+RestApiTool(name: str, description: str, endpoint: OperationEndpoint | str)
 ```
 
-| Argument      | Type                            |
-| ------------- | ------------------------------- |
-| `name`        | `str`                           |
-| `description` | `str`                           |
-| `endpoint`    | `Union[OperationEndpoint, str]` |
+| Argument      | Type                |
+| ------------- | ------------------- |
+| `name`        | `str`               |
+| `description` | `str`               |
+| `endpoint`    | \`OperationEndpoint |
 
 ### Control Flow & Execution
 
@@ -1645,15 +1645,15 @@ Resolve into a native ADK RestApiTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                            | Type                                                    |
-| -------------------------------- | ------------------------------------------------------- |
-| `.operation(value)`              | `Union[Operation, str]`                                 |
-| `.auth_scheme(value)`            | `Optional[Union[AuthScheme, str]]`                      |
-| `.auth_credential(value)`        | `Optional[Union[AuthCredential, str]]`                  |
-| `.should_parse_operation(value)` | `Any`                                                   |
-| `.ssl_verify(value)`             | `Optional[Union[bool, str, ssl.SSLContext]]`            |
-| `.header_provider(value)`        | `Optional[Callable[[ReadonlyContext], Dict[str, str]]]` |
-| `.credential_key(value)`         | `Optional[str]`                                         |
+| Field                            | Type                                                |
+| -------------------------------- | --------------------------------------------------- |
+| `.operation(value)`              | \`Operation                                         |
+| `.auth_scheme(value)`            | \`AuthScheme                                        |
+| `.auth_credential(value)`        | \`AuthCredential                                    |
+| `.should_parse_operation(value)` | `Any`                                               |
+| `.ssl_verify(value)`             | \`bool                                              |
+| `.header_provider(value)`        | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
+| `.credential_key(value)`         | \`str                                               |
 
 ______________________________________________________________________
 
@@ -1761,10 +1761,10 @@ Resolve into a native ADK BaseRetrievalTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                     | Type                       |
-| ------------------------- | -------------------------- |
-| `.is_long_running(value)` | `bool`                     |
-| `.custom_metadata(value)` | `Optional[dict[str, Any]]` |
+| Field                     | Type               |
+| ------------------------- | ------------------ |
+| `.is_long_running(value)` | `bool`             |
+| `.custom_metadata(value)` | \`dict\[str, Any\] |
 
 ______________________________________________________________________
 
@@ -1945,11 +1945,11 @@ Resolve into a native ADK SpannerToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                           | Type                                        |
-| ------------------------------- | ------------------------------------------- |
-| `.tool_filter(value)`           | `Optional[Union[ToolPredicate, List[str]]]` |
-| `.credentials_config(value)`    | `Optional[SpannerCredentialsConfig]`        |
-| `.spanner_tool_settings(value)` | `Optional[SpannerToolSettings]`             |
+| Field                           | Type                       |
+| ------------------------------- | -------------------------- |
+| `.tool_filter(value)`           | \`ToolPredicate            |
+| `.credentials_config(value)`    | \`SpannerCredentialsConfig |
+| `.spanner_tool_settings(value)` | \`SpannerToolSettings      |
 
 ______________________________________________________________________
 
@@ -1993,14 +1993,14 @@ Resolve into a native ADK ToolboxToolset.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                        | Type                                                    |
-| ---------------------------- | ------------------------------------------------------- |
-| `.toolset_name(value)`       | `Optional[str]`                                         |
-| `.tool_names(value)`         | `Optional[List[str]]`                                   |
-| `.auth_token_getters(value)` | `Optional[Mapping[str, Callable[[], str]]]`             |
-| `.bound_params(value)`       | `Optional[Mapping[str, Union[Callable[[], Any], Any]]]` |
-| `.credentials(value)`        | `Optional[CredentialConfig]`                            |
-| `.additional_headers(value)` | `Optional[Mapping[str, str]]`                           |
+| Field                        | Type                                                  |
+| ---------------------------- | ----------------------------------------------------- |
+| `.toolset_name(value)`       | \`str                                                 |
+| `.tool_names(value)`         | \`list\[str\]                                         |
+| `.auth_token_getters(value)` | \`Mapping\[str, Callable\[\[\], str\]\]               |
+| `.bound_params(value)`       | \`Mapping\[str, Union\[Callable\[\[\], Any\], Any\]\] |
+| `.credentials(value)`        | \`CredentialConfig                                    |
+| `.additional_headers(value)` | \`Mapping\[str, str\]                                 |
 
 ______________________________________________________________________
 
@@ -2097,11 +2097,11 @@ Resolve into a native ADK VertexAiSearchTool.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                              | Type                                                |
-| ---------------------------------- | --------------------------------------------------- |
-| `.data_store_id(value)`            | `Optional[str]`                                     |
-| `.data_store_specs(value)`         | `Optional[list[types.VertexAISearchDataStoreSpec]]` |
-| `.search_engine_id(value)`         | `Optional[str]`                                     |
-| `.filter(value)`                   | `Optional[str]`                                     |
-| `.max_results(value)`              | `Optional[int]`                                     |
-| `.bypass_multi_tools_limit(value)` | `bool`                                              |
+| Field                              | Type                                        |
+| ---------------------------------- | ------------------------------------------- |
+| `.data_store_id(value)`            | \`str                                       |
+| `.data_store_specs(value)`         | \`list\[types.VertexAISearchDataStoreSpec\] |
+| `.search_engine_id(value)`         | \`str                                       |
+| `.filter(value)`                   | \`str                                       |
+| `.max_results(value)`              | \`int                                       |
+| `.bypass_multi_tools_limit(value)` | `bool`                                      |

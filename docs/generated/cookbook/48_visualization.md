@@ -8,6 +8,24 @@ incident response platform's agent topology for runbooks and onboarding.
 
 _Source: `48_visualization.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["alert_ingestor_then_log_analyzer_and_metrics_checker_and_trace_analyzer_then_incident_responder (sequence)"]]
+    n2["alert_ingestor"]
+    n3{"log_analyzer_and_metrics_checker_and_trace_analyzer (parallel)"}
+    n4["log_analyzer"]
+    n5["metrics_checker"]
+    n6["trace_analyzer"]
+    n7["incident_responder"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n2 --> n3
+    n3 --> n7
+```
+
 ::::\{tab-set}
 :::\{tab-item} Native ADK
 

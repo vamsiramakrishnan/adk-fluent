@@ -8,10 +8,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 from doc_generator import (
+    NAMESPACE_MODULES,
+    _introspect_namespace,
     cookbook_to_markdown,
+    gen_api_index,
     gen_api_reference_for_builder,
     gen_api_reference_module,
     gen_migration_guide,
+    gen_namespace_reference,
     process_cookbook_file,
 )
 from generator import BuilderSpec
@@ -317,3 +321,78 @@ class TestGenMigrationGuide:
         spec = _make_spec(name="Composite", is_composite=True, source_class="__composite__")
         md = gen_migration_guide([spec], self._by_module([spec]))
         assert "_(composite)_" in md
+
+
+# ---------------------------------------------------------------------------
+# Tests: namespace module doc generation (P, C, S, A, M, T)
+# ---------------------------------------------------------------------------
+
+
+class TestGenNamespaceReference:
+    def test_all_six_namespaces_in_registry(self):
+        letters = {ns.letter for ns in NAMESPACE_MODULES}
+        assert letters == {"P", "C", "S", "A", "M", "T"}
+
+    def test_introspect_returns_public_methods(self):
+        ns = next(n for n in NAMESPACE_MODULES if n.letter == "P")
+        methods = _introspect_namespace(ns)
+        names = {m.name for m in methods}
+        assert "role" in names
+        assert "task" in names
+        assert "constraint" in names
+        assert len(methods) >= 15
+
+    def test_no_private_methods(self):
+        ns = next(n for n in NAMESPACE_MODULES if n.letter == "P")
+        methods = _introspect_namespace(ns)
+        md = gen_namespace_reference(ns, methods)
+        assert "_compile_prompt_spec" not in md
+        assert "_fingerprint" not in md
+
+    def test_namespace_markdown_structure(self):
+        ns = next(n for n in NAMESPACE_MODULES if n.letter == "S")
+        methods = _introspect_namespace(ns)
+        md = gen_namespace_reference(ns, methods)
+        assert "# Module: transforms" in md
+        assert "`from adk_fluent import S`" in md
+        assert "## Quick Reference" in md
+        assert "S.pick" in md
+        assert "S.rename" in md
+        assert "## Composition Operators" in md
+        assert ">>" in md
+
+    def test_params_extracted(self):
+        ns = next(n for n in NAMESPACE_MODULES if n.letter == "C")
+        methods = _introspect_namespace(ns)
+        md = gen_namespace_reference(ns, methods)
+        assert "C.window" in md
+        assert "`n`" in md
+
+    def test_index_includes_namespaces(self):
+        spec = _make_spec()
+        by_module = {"agent": [spec]}
+        md = gen_api_index(by_module, namespace_specs=NAMESPACE_MODULES)
+        assert "prompt" in md
+        assert "context" in md
+        assert "transforms" in md
+        assert "artifacts" in md
+        assert "middleware" in md
+        assert "tools" in md
+
+    def test_category_grouping(self):
+        ns = next(n for n in NAMESPACE_MODULES if n.letter == "M")
+        methods = _introspect_namespace(ns)
+        md = gen_namespace_reference(ns, methods)
+        # M has category comments: "Built-in factories", "Composition operators",
+        # "Single-hook shortcuts"
+        assert "## Built-in factories" in md
+        assert "## Single-hook shortcuts" in md
+
+    def test_types_table(self):
+        ns = next(n for n in NAMESPACE_MODULES if n.letter == "S")
+        methods = _introspect_namespace(ns)
+        md = gen_namespace_reference(ns, methods)
+        assert "## Types" in md
+        assert "STransform" in md
+        assert "StateDelta" in md
+        assert "StateReplacement" in md

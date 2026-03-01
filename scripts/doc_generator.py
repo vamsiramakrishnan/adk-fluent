@@ -18,7 +18,9 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import importlib
 import importlib.util
+import inspect
 import re
 import sys
 from collections import defaultdict
@@ -31,6 +33,107 @@ with contextlib.suppress(ImportError):
 # Import BuilderSpec resolution from generator (same directory)
 sys.path.insert(0, str(Path(__file__).parent))
 from generator import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
+
+# ---------------------------------------------------------------------------
+# NAMESPACE MODULE SPECS (P, C, S, A, M, T)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class NamespaceSpec:
+    """Specification for a hand-written namespace module to document."""
+
+    letter: str  # "P", "C", "S", etc.
+    module_path: str  # "adk_fluent._prompt"
+    class_name: str  # "P"
+    output_stem: str  # "prompt" (-> prompt.md)
+    display_name: str  # "Prompt Composition"
+    base_type: str  # "PTransform"
+    operators: list[tuple[str, str, str]]  # [("op", "name", "description")]
+
+
+@dataclass
+class NamespaceMethod:
+    """A public static method extracted from a namespace class."""
+
+    name: str
+    signature_str: str  # "(text: str) -> PRole"
+    params: list[tuple[str, str, str]]  # [(name, type_str, default_repr)]
+    return_type: str
+    docstring: str
+    category: str  # from phase/section comments
+
+
+NAMESPACE_MODULES: list[NamespaceSpec] = [
+    NamespaceSpec(
+        letter="P",
+        module_path="adk_fluent._prompt",
+        class_name="P",
+        output_stem="prompt",
+        display_name="Prompt Composition",
+        base_type="PTransform",
+        operators=[
+            ("+", "union (PComposite)", "Merge prompt sections into a composite"),
+            ("|", "pipe (PPipe)", "Post-process the compiled output"),
+        ],
+    ),
+    NamespaceSpec(
+        letter="C",
+        module_path="adk_fluent._context",
+        class_name="C",
+        output_stem="context",
+        display_name="Context Engineering",
+        base_type="CTransform",
+        operators=[
+            ("+", "union (CComposite)", "Combine context transforms"),
+            ("|", "pipe (CPipe)", "Chain context processing"),
+        ],
+    ),
+    NamespaceSpec(
+        letter="S",
+        module_path="adk_fluent._transforms",
+        class_name="S",
+        output_stem="transforms",
+        display_name="State Transforms",
+        base_type="STransform",
+        operators=[
+            (">>", "chain", "Sequential — first runs, state updated, second runs on result"),
+            ("+", "combine", "Both run on original state, results merge"),
+        ],
+    ),
+    NamespaceSpec(
+        letter="A",
+        module_path="adk_fluent._artifacts",
+        class_name="A",
+        output_stem="artifacts",
+        display_name="Artifact Operations",
+        base_type="ATransform",
+        operators=[],
+    ),
+    NamespaceSpec(
+        letter="M",
+        module_path="adk_fluent._middleware",
+        class_name="M",
+        output_stem="middleware",
+        display_name="Middleware Composition",
+        base_type="MComposite",
+        operators=[
+            ("|", "compose (MComposite)", "Stack middleware into a chain"),
+        ],
+    ),
+    NamespaceSpec(
+        letter="T",
+        module_path="adk_fluent._tools",
+        class_name="T",
+        output_stem="tools",
+        display_name="Tool Composition",
+        base_type="TComposite",
+        operators=[
+            ("|", "compose (TComposite)", "Combine tools into a collection"),
+        ],
+    ),
+]
+
 
 # ---------------------------------------------------------------------------
 # HELPERS
@@ -442,7 +545,10 @@ def gen_api_reference_module(specs: list[BuilderSpec], module_name: str) -> str:
     return "\n".join(parts)
 
 
-def gen_api_index(by_module: dict[str, list[BuilderSpec]]) -> str:
+def gen_api_index(
+    by_module: dict[str, list[BuilderSpec]],
+    namespace_specs: list[NamespaceSpec] | None = None,
+) -> str:
     """Generate docs/generated/api/index.md with module summary and toctree."""
     lines: list[str] = []
 
@@ -462,6 +568,11 @@ def gen_api_index(by_module: dict[str, list[BuilderSpec]]) -> str:
     for module_name in sorted(by_module.keys()):
         count = len(by_module[module_name])
         lines.append(f"| `{module_name}` | {count} | [{module_name}]({module_name}.md) |")
+
+    # Append namespace modules to the table
+    if namespace_specs:
+        for ns in namespace_specs:
+            lines.append(f"| `{ns.output_stem}` | {ns.letter} | [{ns.output_stem}]({ns.output_stem}.md) |")
     lines.append("")
 
     # --- Toctree ---
@@ -470,8 +581,287 @@ def gen_api_index(by_module: dict[str, list[BuilderSpec]]) -> str:
     lines.append("")
     for module_name in sorted(by_module.keys()):
         lines.append(module_name)
+    if namespace_specs:
+        for ns in namespace_specs:
+            lines.append(ns.output_stem)
     lines.append("```")
     lines.append("")
+
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# NAMESPACE MODULE INTROSPECTION & GENERATION
+# ---------------------------------------------------------------------------
+
+
+def _md_normalize(text: str) -> str:
+    """Normalize reStructuredText conventions in docstrings for Markdown.
+
+    - Convert ``double backticks`` to `single backticks`
+    - Escape bare [ ] in body text (not inside backticks)
+    - Convert :: code-block markers to plain colons
+    """
+    # ``foo`` -> `foo`
+    text = re.sub(r"``(.+?)``", r"`\1`", text)
+    # Trailing :: (rst literal block) -> :
+    text = re.sub(r"::\s*$", ":", text, flags=re.MULTILINE)
+    # Escape [ ] outside backtick spans so mdformat doesn't touch them
+    parts = re.split(r"(`[^`]+`)", text)
+    result: list[str] = []
+    for part in parts:
+        if part.startswith("`") and part.endswith("`"):
+            result.append(part)  # inside backticks, leave as-is
+        else:
+            # Escape [ and ] that aren't part of markdown links
+            part = re.sub(r"\[(?![^\]]*\]\()", r"\\[", part)
+            part = re.sub(r"(?<!\])\](?!\()", r"\\]", part)
+            result.append(part)
+    return "".join(result)
+
+
+def _md_table(header: tuple[str, ...], rows: list[tuple[str, ...]]) -> list[str]:
+    """Build a markdown table with mdformat-compatible column alignment."""
+    n_cols = len(header)
+    # Compute column widths (min width from header and all rows)
+    widths = [len(h) for h in header]
+    for row in rows:
+        for i in range(n_cols):
+            widths[i] = max(widths[i], len(row[i]))
+
+    def _pad_row(cells: tuple[str, ...]) -> str:
+        parts = [cells[i].ljust(widths[i]) for i in range(n_cols)]
+        return "| " + " | ".join(parts) + " |"
+
+    result: list[str] = []
+    result.append(_pad_row(header))
+    separator = "| " + " | ".join("-" * w for w in widths) + " |"
+    result.append(separator)
+    for row in rows:
+        result.append(_pad_row(row))
+    return result
+
+
+def _first_sentence(text: str) -> str:
+    """Extract the first sentence from a docstring."""
+    if not text:
+        return ""
+    # Take first line or first sentence (up to period+space or period+newline)
+    line = text.split("\n\n", 1)[0].replace("\n", " ").strip()
+    # Normalize rst conventions for markdown
+    line = _md_normalize(line)
+    m = re.match(r"(.+?\.)\s", line)
+    return m.group(1) if m else line.rstrip(".")
+
+
+def _format_annotation(annotation: object) -> str:
+    """Render a type annotation as a readable string."""
+    if annotation is inspect.Parameter.empty:
+        return ""
+    if isinstance(annotation, str):
+        return annotation
+    if hasattr(annotation, "__name__"):
+        return annotation.__name__  # type: ignore[union-attr]
+    return str(annotation).replace("typing.", "")
+
+
+def _introspect_namespace(ns: NamespaceSpec) -> list[NamespaceMethod]:
+    """Introspect a namespace class and return its public static methods."""
+    mod = importlib.import_module(ns.module_path)
+    cls = getattr(mod, ns.class_name)
+
+    # --- Parse source for category comments ---
+    # Matches patterns like "# --- Phase A: Core sections ---"
+    # or "# --- Built-in factories ---"
+    try:
+        source = inspect.getsource(cls)
+        source_lines = source.split("\n")
+    except (OSError, TypeError):
+        source_lines = []
+
+    # Build (line_offset -> category_name) mapping
+    category_map: list[tuple[int, str]] = []
+    for i, line in enumerate(source_lines):
+        m = re.match(r"\s*#\s*---\s*(?:Phase\s+\w+:\s*)?(.+?)\s*---\s*$", line)
+        if m:
+            category_map.append((i, m.group(1).strip()))
+
+    def _category_for_line(lineno: int) -> str:
+        """Find the most recent category comment before the given line offset."""
+        result = "Methods"
+        for offset, cat in category_map:
+            if offset <= lineno:
+                result = cat
+            else:
+                break
+        return result
+
+    # --- Extract public static methods ---
+    methods: list[NamespaceMethod] = []
+
+    # Use source order by finding def lines in the class source
+    method_order: dict[str, int] = {}
+    for i, line in enumerate(source_lines):
+        m = re.match(r"\s+def\s+(\w+)\s*\(", line)
+        if m:
+            method_order[m.group(1)] = i
+
+    members = inspect.getmembers(cls, predicate=inspect.isfunction)
+    for name, func in members:
+        if name.startswith("_"):
+            continue
+
+        try:
+            sig = inspect.signature(func)
+        except (ValueError, TypeError):
+            continue
+
+        # Build params list
+        params: list[tuple[str, str, str]] = []
+        for pname, param in sig.parameters.items():
+            type_str = _format_annotation(param.annotation).strip("'")
+            if param.default is not inspect.Parameter.empty:
+                default_repr = repr(param.default)
+            else:
+                default_repr = ""
+            # Prefix with * or ** for VAR_POSITIONAL/VAR_KEYWORD
+            display_name = pname
+            if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                display_name = f"*{pname}"
+            elif param.kind == inspect.Parameter.VAR_KEYWORD:
+                display_name = f"**{pname}"
+            elif param.kind == inspect.Parameter.KEYWORD_ONLY and not default_repr:
+                default_repr = ""  # keyword-only without default
+            params.append((display_name, type_str, default_repr))
+
+        return_type = _format_annotation(sig.return_annotation).strip("'")
+        docstring = inspect.getdoc(func) or ""
+
+        # Build signature string — strip quotes from stringified annotations
+        sig_str = str(sig).replace("'", "")
+
+        # Determine category from source position
+        source_line = method_order.get(name, 0)
+        category = _category_for_line(source_line)
+
+        methods.append(
+            NamespaceMethod(
+                name=name,
+                signature_str=sig_str,
+                params=params,
+                return_type=return_type,
+                docstring=docstring,
+                category=category,
+            )
+        )
+
+    # Sort by source order
+    methods.sort(key=lambda m: method_order.get(m.name, 999))
+    return methods
+
+
+def gen_namespace_reference(ns: NamespaceSpec, methods: list[NamespaceMethod]) -> str:
+    """Generate MyST-flavored Markdown API reference for a namespace module."""
+    lines: list[str] = []
+
+    # --- Header ---
+    lines.append(f"# Module: {ns.output_stem}")
+    lines.append("")
+    lines.append(f"> `from adk_fluent import {ns.letter}`")
+    lines.append("")
+
+    # Class docstring (first paragraph)
+    mod = importlib.import_module(ns.module_path)
+    cls = getattr(mod, ns.class_name)
+    class_doc = inspect.getdoc(cls) or ""
+    if class_doc:
+        first_para = class_doc.split("\n\n", 1)[0].strip()
+        lines.append(_md_normalize(first_para))
+        lines.append("")
+
+    # --- Quick Reference Table (mdformat-aligned) ---
+    lines.append("## Quick Reference")
+    lines.append("")
+    # Build rows first, then compute column widths for alignment
+    header = ("Method", "Returns", "Description")
+    rows: list[tuple[str, str, str]] = []
+    for m in methods:
+        compact_params = ", ".join(p[0] if not p[2] else f"{p[0]}={p[2]}" for p in m.params)
+        desc = _first_sentence(m.docstring)
+        ret = m.return_type or ns.base_type
+        rows.append((f"`{ns.letter}.{m.name}({compact_params})`", f"`{ret}`", desc))
+    lines.extend(_md_table(header, rows))
+    lines.append("")
+
+    # --- Methods grouped by category ---
+    current_category = None
+    for m in methods:
+        if m.category != current_category:
+            current_category = m.category
+            lines.append(f"## {current_category}")
+            lines.append("")
+
+        # Method heading with full signature
+        lines.append(f"### `{ns.letter}.{m.name}{m.signature_str}`")
+        lines.append("")
+
+        # Docstring (strip leading >>> examples for cleaner display)
+        if m.docstring:
+            doc_lines = m.docstring.split("\n")
+            # Separate main doc from examples
+            main_doc: list[str] = []
+            for dl in doc_lines:
+                if dl.strip().startswith(">>>"):
+                    break
+                main_doc.append(dl)
+            doc_text = _md_normalize("\n".join(main_doc).strip())
+            if doc_text:
+                lines.append(doc_text)
+                lines.append("")
+
+        # Parameters
+        if m.params:
+            lines.append("**Parameters:**")
+            lines.append("")
+            for pname, ptype, pdefault in m.params:
+                parts = [f"- `{pname}`"]
+                if ptype:
+                    # Escape brackets in type annotations for markdown
+                    escaped_type = ptype.replace("[", "\\[").replace("]", "\\]")
+                    parts.append(f" (*{escaped_type}*)")
+                if pdefault:
+                    parts.append(f" — default: `{pdefault}`")
+                lines.append("".join(parts))
+            lines.append("")
+
+    # --- Composition Operators ---
+    if ns.operators:
+        lines.append("## Composition Operators")
+        lines.append("")
+        for op, op_name, op_desc in ns.operators:
+            lines.append(f"### `{op}` ({op_name})")
+            lines.append("")
+            lines.append(op_desc)
+            lines.append("")
+
+    # --- Types table ---
+    mod_all = getattr(mod, "__all__", [])
+    type_entries: list[tuple[str, str]] = []
+    for type_name in mod_all:
+        if type_name == ns.class_name or type_name.startswith("_"):
+            continue
+        obj = getattr(mod, type_name, None)
+        if obj is None or not isinstance(obj, type):
+            continue
+        type_doc = _first_sentence(inspect.getdoc(obj) or "")
+        type_entries.append((type_name, _md_normalize(type_doc)))
+
+    if type_entries:
+        lines.append("## Types")
+        lines.append("")
+        type_rows = [(f"`{tname}`", tdoc) for tname, tdoc in type_entries]
+        lines.extend(_md_table(("Type", "Description"), type_rows))
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -1045,15 +1435,40 @@ def generate_docs(
             filepath.write_text(md)
             print(f"  Generated: {filepath}")
 
-        # Generate API index
-        index_md = gen_api_index(by_module)
+        # --- Namespace Module References (P, C, S, A, M, T) ---
+        namespace_stems: set[str] = set()
+        ns_files: list[Path] = []
+        for ns in NAMESPACE_MODULES:
+            ns_methods = _introspect_namespace(ns)
+            md = gen_namespace_reference(ns, ns_methods)
+            filepath = api_dir / f"{ns.output_stem}.md"
+            filepath.write_text(md)
+            namespace_stems.add(ns.output_stem)
+            ns_files.append(filepath)
+            print(f"  Generated: {filepath}")
+
+        # Post-process with mdformat for idempotency (table alignment,
+        # bracket escaping, etc.)
+        try:
+            import subprocess
+
+            subprocess.run(
+                ["mdformat", *[str(f) for f in ns_files]],
+                check=False,
+                capture_output=True,
+            )
+        except FileNotFoundError:
+            pass  # mdformat not installed; skip post-processing
+
+        # Generate API index (includes namespace modules)
+        index_md = gen_api_index(by_module, namespace_specs=NAMESPACE_MODULES)
 
         # Discover hand-written .md files in the api/ directory and append
         # them to the index (summary table + toctree).
         hand_written: list[tuple[str, str]] = []  # (stem, title)
         for md_file in sorted(api_dir.glob("*.md")):
             stem = md_file.stem
-            if stem == "index" or stem in by_module:
+            if stem == "index" or stem in by_module or stem in namespace_stems:
                 continue
             # Extract title from first markdown heading
             first_line = md_file.read_text().split("\n", 1)[0]

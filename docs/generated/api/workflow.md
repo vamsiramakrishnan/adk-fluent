@@ -51,7 +51,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 
 ### Configuration
 
-#### `.to_ir()`
+#### `.to_ir() -> Any`
 
 Convert this Loop builder to a LoopNode IR node.
 
@@ -95,10 +95,10 @@ Append to `sub_agents` (lazy — built at .build() time).
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                    | Type                   |
-| ------------------------ | ---------------------- |
-| `.sub_agents(value)`     | `list[BaseAgent]`      |
-| `.max_iterations(value)` | `Union[int, NoneType]` |
+| Field                    | Type              |
+| ------------------------ | ----------------- |
+| `.sub_agents(value)`     | `list[BaseAgent]` |
+| `.max_iterations(value)` | \`int             |
 
 ______________________________________________________________________
 
@@ -145,7 +145,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 
 ### Configuration
 
-#### `.to_ir()`
+#### `.to_ir() -> Any`
 
 Convert this FanOut builder to a ParallelNode IR node.
 
@@ -238,7 +238,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 
 ### Configuration
 
-#### `.to_ir()`
+#### `.to_ir() -> Any`
 
 Convert this Pipeline builder to a SequenceNode IR node.
 

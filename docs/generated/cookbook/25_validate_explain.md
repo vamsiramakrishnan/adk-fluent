@@ -9,6 +9,18 @@ before going live.
 
 _Source: `25_validate_explain.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["intake_agent_then_adjuster_then_reviewer (sequence)"]]
+    n2["intake_agent"]
+    n3["adjuster"]
+    n4["reviewer"]
+    n2 --> n3
+    n3 --> n4
+```
+
 ::::\{tab-set}
 :::\{tab-item} adk-fluent
 

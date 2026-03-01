@@ -55,12 +55,12 @@ Resolve into a native ADK App.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                              | Type                                      |
-| ---------------------------------- | ----------------------------------------- |
-| `.plugins(value)`                  | `list[BasePlugin]`                        |
-| `.events_compaction_config(value)` | `Union[EventsCompactionConfig, NoneType]` |
-| `.context_cache_config(value)`     | `Union[ContextCacheConfig, NoneType]`     |
-| `.resumability_config(value)`      | `Union[ResumabilityConfig, NoneType]`     |
+| Field                              | Type                     |
+| ---------------------------------- | ------------------------ |
+| `.plugins(value)`                  | `list[BasePlugin]`       |
+| `.events_compaction_config(value)` | \`EventsCompactionConfig |
+| `.context_cache_config(value)`     | \`ContextCacheConfig     |
+| `.resumability_config(value)`      | \`ResumabilityConfig     |
 
 ______________________________________________________________________
 
@@ -93,13 +93,13 @@ Resolve into a native ADK InMemoryRunner.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                         |
-| ------------------------------ | ---------------------------- |
-| `.agent(value)`                | `Optional[BaseAgent]`        |
-| `.app_name(value)`             | `Optional[str]`              |
-| `.plugins(value)`              | `Optional[list[BasePlugin]]` |
-| `.app(value)`                  | `Optional[App]`              |
-| `.plugin_close_timeout(value)` | `float`                      |
+| Field                          | Type                 |
+| ------------------------------ | -------------------- |
+| `.agent(value)`                | \`BaseAgent          |
+| `.app_name(value)`             | \`str                |
+| `.plugins(value)`              | \`list\[BasePlugin\] |
+| `.app(value)`                  | \`App                |
+| `.plugin_close_timeout(value)` | `float`              |
 
 ______________________________________________________________________
 
@@ -142,14 +142,14 @@ Resolve into a native ADK Runner.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                              |
-| ------------------------------ | --------------------------------- |
-| `.app(value)`                  | `Optional[App]`                   |
-| `.app_name(value)`             | `Optional[str]`                   |
-| `.agent(value)`                | `Optional[BaseAgent]`             |
-| `.plugins(value)`              | `Optional[List[BasePlugin]]`      |
-| `.artifact_service(value)`     | `Optional[BaseArtifactService]`   |
-| `.memory_service(value)`       | `Optional[BaseMemoryService]`     |
-| `.credential_service(value)`   | `Optional[BaseCredentialService]` |
-| `.plugin_close_timeout(value)` | `float`                           |
-| `.auto_create_session(value)`  | `bool`                            |
+| Field                          | Type                    |
+| ------------------------------ | ----------------------- |
+| `.app(value)`                  | \`App                   |
+| `.app_name(value)`             | \`str                   |
+| `.agent(value)`                | \`BaseAgent             |
+| `.plugins(value)`              | \`list\[BasePlugin\]    |
+| `.artifact_service(value)`     | \`BaseArtifactService   |
+| `.memory_service(value)`       | \`BaseMemoryService     |
+| `.credential_service(value)`   | \`BaseCredentialService |
+| `.plugin_close_timeout(value)` | `float`                 |
+| `.auto_create_session(value)`  | `bool`                  |

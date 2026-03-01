@@ -1,13 +1,25 @@
 # Insurance Claim Processing: Structured Data Pipelines
 
 Demonstrates structured output schemas and the @ operator for typed
-agent responses. The scenario: an insurance company processes claims
+agent responses.  The scenario: an insurance company processes claims
 through a pipeline -- first ingesting claim details into a structured
 form, then assessing risk, then summarizing the outcome.
 
 *How to compose agents into a sequential pipeline.*
 
 _Source: `53_structured_schemas.py`_
+
+### Architecture
+
+```mermaid
+graph TD
+    n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
+    n2["intake_agent"]
+    n3["risk_agent"]
+    n4["summary_agent"]
+    n2 --> n3
+    n3 --> n4
+```
 
 ::::\{tab-set}
 :::\{tab-item} Native ADK

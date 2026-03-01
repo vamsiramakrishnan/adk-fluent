@@ -1,5 +1,21 @@
 # Research Data Pipeline: State Transforms with S Factories
 
+Pipeline topology:
+data_extractor
+\>> S.pick("clinical_findings", "lab_results")
+\>> S.rename(clinical_findings="analysis_input")
+\>> S.default(confidence_interval=0.95)
+\>> statistical_analyzer
+
+```
+Research pipeline:
+    ( literature_agent | trial_agent )
+        >> S.merge(into="combined_evidence")
+        >> S.default(...)
+        >> report_writer
+        >> S.compute(word_count=...)
+```
+
 *How to compose agents into a sequential pipeline.*
 
 _Source: `33_state_transforms.py`_

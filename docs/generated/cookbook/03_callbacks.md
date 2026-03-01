@@ -1,6 +1,6 @@
 # Content Moderation with Logging -- Additive Callbacks
 
-Demonstrates before_model and after_model callbacks. The scenario:
+Demonstrates before_model and after_model callbacks.  The scenario:
 a content moderation agent where we log every request before it
 reaches the model and audit every response after generation.
 

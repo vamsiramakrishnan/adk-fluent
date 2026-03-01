@@ -15,37 +15,6 @@ Flat dictionary at `session.state`. Written via `output_key` (LlmAgent writes it
 **Channel 3: Instruction Templating**
 `inject_session_state()` replaces `{key}` placeholders in instruction strings with `session.state[key]` values. Runs every invocation, just before the LLM call. This is the bridge: state values appear inside the system prompt.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    THE THREE CHANNELS                           │
-│                                                                 │
-│  ① CONVERSATION HISTORY          ② SESSION STATE               │
-│  ┌─────────────────────┐         ┌──────────────────┐          │
-│  │ session.events       │         │ session.state     │          │
-│  │                     │         │                  │          │
-│  │ user: "fly to LDN"  │         │ intent: "booking"│          │
-│  │ classifier:"booking"│         │ dest:   "London" │          │
-│  │ booker: "..."       │         │                  │          │
-│  └────────┬────────────┘         └────────┬─────────┘          │
-│           │                               │                    │
-│           │    ③ INSTRUCTION TEMPLATING    │                    │
-│           │    ┌──────────────────────┐    │                    │
-│           │    │ "Help book. Intent:  │    │                    │
-│           │    │  {intent}" → "Help   │◄───┘                    │
-│           │    │  book. Intent:       │                         │
-│           │    │  booking"            │                         │
-│           │    └──────────┬───────────┘                         │
-│           │               │                                    │
-│           ▼               ▼                                    │
-│        ┌─────────────────────────────┐                         │
-│        │        LLM PROMPT           │                         │
-│        │  sees "booking" from ① AND  │                         │
-│        │  sees "booking" from ③      │                         │
-│        │  (duplication by design)    │                         │
-│        └─────────────────────────────┘                         │
-└─────────────────────────────────────────────────────────────────┘
-```
-
 These three channels are configured independently but deeply entangled at runtime. In `classifier >> booker`:
 
 ```
@@ -167,11 +136,4 @@ The `>>` operator should respect this:
 
 Context engineering is not just overflow handling. It is the *continuous discipline* of assembling the smallest, highest-signal token set that maximizes an agent's likelihood of producing the desired outcome.
 
-| Operation | What it does | v1 Coverage | Gap |
-|-----------|-------------|-------------|-----|
-| **SELECT** | Choose which information enters context | Partial (event filters) | No relevance scoring, no recency decay, no semantic retrieval |
-| **COMPRESS** | Reduce token footprint without losing meaning | Good (summarization, rolling) | No reversible compaction, no dedup, no projection |
-| **WRITE** | Produce context artifacts for future consumption | Minimal (C.capture to state) | No scratchpads, no structured extraction, no note-taking |
-| **BUDGET** | Token-aware assembly with priority tiers | None | Entirely missing |
-| **PROTECT** | Guard context quality and safety | None | No freshness, no redaction, no validation |
 ```

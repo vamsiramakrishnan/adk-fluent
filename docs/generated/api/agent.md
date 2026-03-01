@@ -127,27 +127,17 @@ Agent(name: str)
 - **Maps to:** `description`
 - Set the `description` field.
 
-#### `.global_instruct(value: Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]) -> Self`
+#### `.global_instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self`
 
 - **Maps to:** `global_instruction`
 - Set the `global_instruction` field.
 
-#### `.history(value: Literal[default, none]) -> Self`
-
-- **Maps to:** `include_contents`
-- Set the `include_contents` field.
-
-#### `.instruct(value: Union[str, Callable[ReadonlyContext, Union[str, Awaitable[str]]]]) -> Self`
+#### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self`
 
 - **Maps to:** `instruction`
 - Set the `instruction` field.
 
-#### `.writes(value: Union[str, NoneType]) -> Self`
-
-- **Maps to:** `output_key`
-- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key.
-
-#### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+#### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self`
 
 - **Maps to:** `static_instruction`
 - Set the `static_instruction` field.
@@ -156,11 +146,11 @@ Agent(name: str)
 
 Append to `sub_agents` (lazy — built at .build() time).
 
-#### `.tool(fn_or_tool, *, require_confirmation: bool = False) -> Self`
+#### `.tool(fn_or_tool: Any, *, require_confirmation: bool = False) -> Self`
 
 Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True.
 
-**See also:** `FunctionTool`, `Agent.guardrail`
+**See also:** `FunctionTool`, `Agent.guard`
 
 **Example:**
 
@@ -173,6 +163,52 @@ agent = Agent("helper").tool(search).build()
 ```
 
 ### Configuration
+
+#### `.agent_tool(agent: Any) -> Self`
+
+Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name.
+
+**See also:** `Agent.tool`, `Agent.isolate`
+
+**Example:**
+
+```python
+specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
+coordinator = (
+    Agent("router", "gemini-2.5-flash")
+    .instruct("Route tasks to specialists.")
+    .agent_tool(specialist)
+    .build()
+)
+```
+
+#### `.artifact_schema(schema: type) -> Self`
+
+Attach an ArtifactSchema declaring artifact dependencies.
+
+**See also:** `ArtifactSchema`, `Produces`, `Consumes`
+
+**Example:**
+
+```python
+Agent("researcher").artifact_schema(ResearchArtifacts)
+```
+
+#### `.artifacts(*transforms: Any) -> Self`
+
+Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes.
+
+**See also:** `A`, `ATransform`
+
+**Example:**
+
+```python
+Agent("writer").artifacts(A.publish("report.md", from_key="output"))
+```
+
+#### `.callback_schema(schema: type) -> Self`
+
+Attach a CallbackSchema declaring callback state dependencies.
 
 #### `.context(spec: Any) -> Self`
 
@@ -194,6 +230,23 @@ agent = (
 )
 ```
 
+#### `.guard(fn: Callable[..., Any]) -> Self`
+
+Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response.
+
+**See also:** `Agent.before_model`, `Agent.after_model`
+
+**Example:**
+
+```python
+def safety_check(callback_context, llm_request, llm_response, agent):
+    if "unsafe" in str(llm_response):
+        return None  # Block response
+    return llm_response
+
+agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
+```
+
 #### `.hide() -> Self`
 
 Force this agent's events to be internal (override topology inference).
@@ -206,11 +259,6 @@ Force this agent's events to be internal (override topology inference).
 # Suppress terminal agent output from user view
 agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
 ```
-
-#### `.include_history(value: Literal[default, none]) -> Self`
-
-- **Maps to:** `include_contents`
-- Set the `include_contents` field.
 
 #### `.memory(mode: str = 'preload') -> Self`
 
@@ -228,6 +276,27 @@ agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
 
 Auto-save session to memory after each agent run.
 
+#### `.no_peers() -> Self`
+
+Prevent this agent from transferring to sibling agents. The agent can still return to its parent.
+
+**See also:** `Agent.isolate`, `Agent.stay`
+
+**Example:**
+
+```python
+focused = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic thoroughly.")
+    .no_peers()  # Don't hand off to sibling agents
+    .build()
+)
+```
+
+#### `.prompt_schema(schema: type) -> Self`
+
+Attach a PromptSchema declaring prompt state dependencies.
+
 #### `.show() -> Self`
 
 Force this agent's events to be user-facing (override topology inference).
@@ -241,14 +310,34 @@ Force this agent's events to be user-facing (override topology inference).
 agent = Agent("logger").model("m").instruct("Log progress.").show()
 ```
 
-#### `.static_instruct(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
+#### `.stay() -> Self`
 
-- **Maps to:** `static_instruction`
-- Set the `static_instruction` field.
+Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning.
 
-#### `.to_ir()`
+**See also:** `Agent.isolate`, `Agent.no_peers`
+
+**Example:**
+
+```python
+specialist = (
+    Agent("invoice_parser", "gemini-2.5-flash")
+    .instruct("Parse the invoice.")
+    .stay()  # Must finish before returning to coordinator
+    .build()
+)
+```
+
+#### `.to_ir() -> Any`
 
 Convert this Agent builder to an AgentNode IR node.
+
+#### `.tool_schema(schema: type) -> Self`
+
+Attach a ToolSchema declaring tool state dependencies.
+
+#### `.tools(value: Any) -> Self`
+
+Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset.
 
 ### Callbacks
 
@@ -324,23 +413,6 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 
 Append callback to `before_tool_callback` only if `condition` is `True`.
 
-#### `.guard(fn: Callable) -> Self`
-
-Attach a guard function as both before_model and after_model callback.
-
-**See also:** `Agent.before_model`, `Agent.after_model`
-
-**Example:**
-
-```python
-def safety_check(callback_context, llm_request, llm_response, agent):
-    if "unsafe" in str(llm_response):
-        return None  # Block response
-    return llm_response
-
-agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
-```
-
 #### `.on_model_error(*fns: Callable) -> Self`
 
 Append callback(s) to `on_model_error_callback`.
@@ -388,25 +460,7 @@ Async one-shot execution.
 
 Resolve into a native ADK LlmAgent.
 
-#### `.agent_tool(agent) -> Self`
-
-Add an agent as a tool (wraps in AgentTool). The coordinator LLM can route to this agent.
-
-**See also:** `Agent.tool`, `Agent.isolate`
-
-**Example:**
-
-```python
-specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
-coordinator = (
-    Agent("router", "gemini-2.5-flash")
-    .instruct("Route tasks to specialists.")
-    .agent_tool(specialist)
-    .build()
-)
-```
-
-#### `.events(prompt: str) -> AsyncIterator`
+#### `.events(prompt: str) -> AsyncIterator[Any]`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
 
@@ -437,7 +491,7 @@ Run agent against multiple prompts with bounded concurrency.
 
 Async batch execution against multiple prompts.
 
-#### `.session()`
+#### `.session() -> Any`
 
 Create an interactive session context manager. Use with 'async with'.
 
@@ -462,15 +516,16 @@ Run a smoke test. Calls .ask() internally, asserts output matches condition.
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                 | Type                                           |
-| ------------------------------------- | ---------------------------------------------- |
-| `.sub_agents(value)`                  | `list[BaseAgent]`                              |
-| `.model(value)`                       | `Union[str, BaseLlm]`                          |
-| `.tools(value)`                       | `list[Union[Callable, BaseTool, BaseToolset]]` |
-| `.generate_content_config(value)`     | `Union[GenerateContentConfig, NoneType]`       |
-| `.disallow_transfer_to_parent(value)` | `bool`                                         |
-| `.disallow_transfer_to_peers(value)`  | `bool`                                         |
-| `.accepts(value)`                     | `Union[type[BaseModel], NoneType]`             |
-| `.returns(value)`                     | `Union[type[BaseModel], NoneType]`             |
-| `.planner(value)`                     | `Union[BasePlanner, NoneType]`                 |
-| `.code_executor(value)`               | `Union[BaseCodeExecutor, NoneType]`            |
+| Field                                 | Type                         |
+| ------------------------------------- | ---------------------------- |
+| `.sub_agents(value)`                  | `list[BaseAgent]`            |
+| `.model(value)`                       | \`str                        |
+| `.generate_content_config(value)`     | \`GenerateContentConfig      |
+| `.disallow_transfer_to_parent(value)` | `bool`                       |
+| `.disallow_transfer_to_peers(value)`  | `bool`                       |
+| `.include_contents(value)`            | `Literal['default', 'none']` |
+| `.input_schema(value)`                | \`type\[BaseModel\]          |
+| `.output_schema(value)`               | \`type\[BaseModel\]          |
+| `.output_key(value)`                  | \`str                        |
+| `.planner(value)`                     | \`BasePlanner                |
+| `.code_executor(value)`               | \`BaseCodeExecutor           |

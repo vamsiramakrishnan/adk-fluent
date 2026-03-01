@@ -1,7 +1,7 @@
 # A/B Testing Agent Variants -- Agent Cloning with .clone()
 
 Demonstrates .clone() for creating independent agent variants from
-a shared base configuration. The scenario: A/B testing two customer
+a shared base configuration.  The scenario: A/B testing two customer
 support agents -- one using a formal tone and one using a casual tone
 -- while sharing the same underlying tool (order lookup).
 

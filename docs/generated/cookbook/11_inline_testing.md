@@ -1,9 +1,9 @@
 # Smoke-Testing a Customer Support Bot -- Inline Testing with .test()
 
 Demonstrates the .test() method for validating agent behavior during
-development. The scenario: a customer support bot that is
+development.  The scenario: a customer support bot that is
 smoke-tested inline before deployment to ensure it handles common
-queries correctly. No LLM calls are made here -- we verify that
+queries correctly.  No LLM calls are made here -- we verify that
 the builder exposes the test API with the right signature.
 
 *How to run inline smoke tests on agents.*

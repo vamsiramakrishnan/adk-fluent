@@ -1,6 +1,6 @@
 # Travel Planner with Weather and Flight Lookup -- Agent with Tools
 
-Demonstrates attaching function tools to an agent. The scenario:
+Demonstrates attaching function tools to an agent.  The scenario:
 a travel planning assistant that can look up weather forecasts and
 search for flights to help users plan trips.
 
@@ -66,6 +66,22 @@ agent_fluent = (
 assert type(agent_native) == type(agent_fluent)
 assert agent_native.name == agent_fluent.name
 assert len(agent_fluent.tools) == 2
+
+# --- T Module equivalent ---
+# T module provides composable tool chains as an alternative to individual .tool() calls
+from adk_fluent._tools import T
+from google.adk.tools.function_tool import FunctionTool
+
+travel_t = (
+    Agent("travel_planner_t")
+    .model("gemini-2.5-flash")
+    .instruct("Help users plan trips.")
+    .tools(T.fn(check_weather) | T.fn(search_flights))
+)
+ir_t = travel_t.to_ir()
+assert len(ir_t.tools) == 2
+assert isinstance(ir_t.tools[0], FunctionTool)
+assert isinstance(ir_t.tools[1], FunctionTool)
 ```
 
 :::\{seealso}

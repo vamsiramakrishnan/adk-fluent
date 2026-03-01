@@ -4,6 +4,16 @@
 
 _Source: `43_primitives_showcase.py`_
 
+### Architecture
+
+```mermaid
+graph TD
+    n1[["order_parser_then_tap_5 (sequence)"]]
+    n2["order_parser"]
+    n3>"tap_5 tap"]
+    n2 --> n3
+```
+
 ::::\{tab-set}
 :::\{tab-item} adk-fluent
 

@@ -16,7 +16,12 @@ Complete API reference for all **132 builders** across
 | `service`    | 15       | [service](service.md)       |
 | `tool`       | 51       | [tool](tool.md)             |
 | `workflow`   | 3        | [workflow](workflow.md)     |
-| `context`    | —        | [context](context.md)       |
+| `prompt`     | P        | [prompt](prompt.md)         |
+| `context`    | C        | [context](context.md)       |
+| `transforms` | S        | [transforms](transforms.md) |
+| `artifacts`  | A        | [artifacts](artifacts.md)   |
+| `middleware` | M        | [middleware](middleware.md) |
+| `tools`      | T        | [tools](tools.md)           |
 | `contracts`  | —        | [contracts](contracts.md)   |
 | `visibility` | —        | [visibility](visibility.md) |
 
@@ -33,7 +38,12 @@ runtime
 service
 tool
 workflow
+prompt
 context
+transforms
+artifacts
+middleware
+tools
 contracts
 visibility
 ```
