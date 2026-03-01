@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-03-01
+
+### Added
+
+- **`A` module Phase 2+3**: Advanced artifact lifecycle operations
+  - **Batch operations**: `A.publish_many()`, `A.snapshot_many()` for multi-artifact workflows
+  - **LLM tool factories**: `A.tool()` factories for LLM-driven artifact interaction
+  - **`A.for_llm()` CTransform**: Context transform for LLM-aware artifact loading
+  - **Content transforms**: Pre-publish (`from_json`, `from_csv`, `from_markdown`) and post-snapshot (`as_json`, `as_csv`, `as_text`) content transforms
+  - **`ArtifactSchema`**: Typed artifact declarations using `Annotated[type, Produces(...)]` and `Consumes(...)` annotations
+  - **Contract checker Pass 16**: Validates artifact availability across pipeline stages
+  - **Visualization**: Artifact node rendering and flow edges in Mermaid diagrams
+  - `ArtifactSchema`, `Produces`, `Consumes` exported from prelude
+- **Auto-generated API docs**: `doc_generator.py` now produces API reference pages for namespace modules (`P`, `C`, `S`, `A`, `M`, `T`)
+- **DevEx improvements**: Standalone `quickstart.py`, `scripts/benchmark.py` for build overhead measurement, README rewritten with `.ask()` lead, ASCII operator diagrams, Common Errors section, When to Use guide, tiered cookbook, Performance section, ADK Compatibility matrix
+
+### Changed
+
+- `ci: sync-adk.yml` moved from repo root to `.github/workflows/` for activation
+- README restructured: Quick Start leads with `.ask()` and visible output, Zero to Running section with AI Studio + Vertex AI paths
+
+### Fixed
+
+- `ToolRegistry.search` falls back to substring matching when BM25 scores zero
+
+## [0.10.0] - 2026-03-01
+
+### Added
+
+- **`A` module Phase 1**: Artifact management surface, consistent with `P`/`C`/`S`/`M`/`T`
+  - **`ATransform` descriptor**: Core factory methods (`A.publish()`, `A.snapshot()`, `A.save()`, `A.load()`, `A.list()`, `A.version()`, `A.delete()`) for artifact lifecycle
+  - **`A.mime` constants**: MIME type classifiers for artifact content
+  - **`ArtifactAgent` runtime**: Executes publish/snapshot/save/load/list/version/delete operations
+  - **`ArtifactNode` IR**: Intermediate representation for artifact operations with `_fn_step` detection
+  - **`.artifacts()` builder method**: Attach artifact transforms to agents via seed-generated method
+  - **Contract checker Pass 15**: Validates artifact availability across pipeline stages
+  - `A` and `ATransform` exported from prelude
+- **`Fallback` builder**: Explicit builder for `//` operator — `.attempt()` method for adding fallback alternatives
+- **Verb harmonization**: Consistent API naming across the entire surface
+  - `delegate()` → `agent_tool()` (wraps sub-agent as tool)
+  - `delegate_agent()` → `add_agent_tool()`
+  - `guardrail()` → `guard()`
+  - `retry_if()` → `loop_while()`
+  - `inject_context()` → `prepend()`
+  - `save_as()` retained as canonical (`.outputs()` deprecated in v0.8.0)
+  - `_TimeoutBuilder` → `TimedAgent`, `_DispatchBuilder` → `BackgroundTask`
+
+### Changed
+
+- `.tools()` now always appends (consistent with other list methods)
+- `C.template()` parameter alignment, `C.capture()` removed (use `S.capture()`)
+- `Route` gains `.gte()`, `.lte()`, `.ne()` comparison predicates
+- All cookbooks, README, and tests updated to use harmonized verb names
+
+### Removed
+
+- `.retry()` and `.fallback()` methods (use `loop_while()` and `//` operator)
+- `C.capture()` (use `S.capture()` instead)
+
+### Deprecated
+
+- `.delegate()` — use `.agent_tool()` instead
+- `.guardrail()` — use `.guard()` instead
+- `.retry_if()` — use `.loop_while()` instead
+- `.inject_context()` — use `.prepend()` instead
+
 ## [0.9.6] - 2026-03-01
 
 ### Added
@@ -73,6 +139,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recipes-by-use-case index reorganized with quick-find sections above the domain categories
 - Runnable examples page rewritten with full prerequisites section
 - Cookbook index includes "How to run these examples" section
+
+## [0.9.4] - 2026-02-27
+
+### Added
+
+- **`.explain(format="json")`**: Structured dict output for programmatic consumption
+- **`.explain(docs_url=...)`**: Appends API reference link; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
+- **`.explain(open_browser=True)`**: Opens API docs page in the default browser
+- **`--diff-markdown` flag on scanner**: Generates a publishable API diff Markdown page
+- **`just diff-md` command**: One-command API diff page generation
+- **Recipes quick-find tables**: "Quick find by primitive" (25 entries) and "Quick find by question" (13 entries) tables in recipes-by-use-case index
+- **Copy-paste-run contract**: Runnable examples page rewritten with full prerequisites section; cookbook index includes "How to run" section
 
 ## [0.9.3] - 2026-02-27
 
@@ -337,6 +415,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PyPI publishing via Trusted Publishing (OIDC)
 
 [0.1.0]: https://github.com/vamsiramakrishnan/adk-fluent/releases/tag/v0.1.0
+[0.10.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.6...v0.10.0
+[0.11.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.10.0...v0.11.0
 [0.2.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.1.0...v0.2.0
 [0.3.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.2.0...v0.3.0
 [0.3.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.0...v0.3.1
@@ -350,5 +430,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.8.0...v0.9.1
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2
 [0.9.3]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.2...v0.9.3
+[0.9.4]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.3...v0.9.4
 [0.9.5]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.4...v0.9.5
 [0.9.6]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.5...v0.9.6

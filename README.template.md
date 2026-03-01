@@ -1185,11 +1185,12 @@ python scripts/benchmark.py
 
 ## ADK Compatibility
 
-| adk-fluent | google-adk | Tested in CI | Notes           |
-| ---------- | ---------- | ------------ | --------------- |
-| 0.11.x     | 1.25.0     | Yes          | Current release |
-| 0.9.x      | 1.25.0     | Yes          |                 |
-| 0.1-0.8    | 1.20.0+    | Yes          | Initial series  |
+| adk-fluent  | google-adk | Tested in CI | Notes          |
+| ----------- | ---------- | ------------ | -------------- |
+| 0.11.x      | 1.25.0     | Yes          | Current        |
+| 0.10.x      | 1.25.0     | Yes          |                |
+| 0.9.x       | 1.25.0     | Yes          |                |
+| 0.1.x-0.8.x | 1.20.0+    | Yes          | Initial series |
 
 CI pins `google-adk==1.25.0` for hermetic builds. The `>=1.20.0` floor in `pyproject.toml` means newer ADK versions should work, but only the pinned version is tested.
 
@@ -1284,10 +1285,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development guide.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history. Recent highlights:
 
+- **v0.11.0** -- `A` module Phase 2+3 (batch ops, LLM tools, content transforms, ArtifactSchema), auto-generated namespace API docs, DevEx overhaul
+- **v0.10.0** -- `A` module Phase 1 (artifact lifecycle), `Fallback` builder, verb harmonization (`agent_tool`, `guard`, `loop_while`, `prepend`)
 - **v0.9.6** -- `T` module for tool composition, `ToolRegistry` with BM25-indexed discovery
 - **v0.9.5** -- Middleware v2 (`TraceContext`, per-agent scoping, topology hooks), `M` module, `P` module, `MiddlewareSchema`
-- **v0.9.3** -- Error reference page, recipes-by-use-case index
-- **v0.9.1** -- Copy-on-write frozen builders, `.explain()` rich output, CLI (`adk-fluent visualize`)
 
 ## Publishing
 

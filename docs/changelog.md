@@ -5,23 +5,152 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-03-01
+
+### Added
+
+- **`A` module Phase 2+3**: Advanced artifact lifecycle operations
+  - **Batch operations**: `A.publish_many()`, `A.snapshot_many()` for multi-artifact workflows
+  - **LLM tool factories**: `A.tool()` factories for LLM-driven artifact interaction
+  - **`A.for_llm()` CTransform**: Context transform for LLM-aware artifact loading
+  - **Content transforms**: Pre-publish (`from_json`, `from_csv`, `from_markdown`) and post-snapshot (`as_json`, `as_csv`, `as_text`) content transforms
+  - **`ArtifactSchema`**: Typed artifact declarations using `Annotated[type, Produces(...)]` and `Consumes(...)` annotations
+  - **Contract checker Pass 16**: Validates artifact availability across pipeline stages
+  - **Visualization**: Artifact node rendering and flow edges in Mermaid diagrams
+  - `ArtifactSchema`, `Produces`, `Consumes` exported from prelude
+- **Auto-generated API docs**: `doc_generator.py` now produces API reference pages for namespace modules (`P`, `C`, `S`, `A`, `M`, `T`)
+- **DevEx improvements**: Standalone `quickstart.py`, `scripts/benchmark.py` for build overhead measurement, README rewritten with `.ask()` lead, ASCII operator diagrams, Common Errors section, When to Use guide, tiered cookbook, Performance section, ADK Compatibility matrix
+
+### Changed
+
+- `ci: sync-adk.yml` moved from repo root to `.github/workflows/` for activation
+- README restructured: Quick Start leads with `.ask()` and visible output, Zero to Running section with AI Studio + Vertex AI paths
+
+### Fixed
+
+- `ToolRegistry.search` falls back to substring matching when BM25 scores zero
+
+## [0.10.0] - 2026-03-01
+
+### Added
+
+- **`A` module Phase 1**: Artifact management surface, consistent with `P`/`C`/`S`/`M`/`T`
+  - **`ATransform` descriptor**: Core factory methods (`A.publish()`, `A.snapshot()`, `A.save()`, `A.load()`, `A.list()`, `A.version()`, `A.delete()`) for artifact lifecycle
+  - **`A.mime` constants**: MIME type classifiers for artifact content
+  - **`ArtifactAgent` runtime**: Executes publish/snapshot/save/load/list/version/delete operations
+  - **`ArtifactNode` IR**: Intermediate representation for artifact operations with `_fn_step` detection
+  - **`.artifacts()` builder method**: Attach artifact transforms to agents via seed-generated method
+  - **Contract checker Pass 15**: Validates artifact availability across pipeline stages
+  - `A` and `ATransform` exported from prelude
+- **`Fallback` builder**: Explicit builder for `//` operator — `.attempt()` method for adding fallback alternatives
+- **Verb harmonization**: Consistent API naming across the entire surface
+  - `delegate()` → `agent_tool()` (wraps sub-agent as tool)
+  - `delegate_agent()` → `add_agent_tool()`
+  - `guardrail()` → `guard()`
+  - `retry_if()` → `loop_while()`
+  - `inject_context()` → `prepend()`
+  - `save_as()` retained as canonical (`.outputs()` deprecated in v0.8.0)
+  - `_TimeoutBuilder` → `TimedAgent`, `_DispatchBuilder` → `BackgroundTask`
+
+### Changed
+
+- `.tools()` now always appends (consistent with other list methods)
+- `C.template()` parameter alignment, `C.capture()` removed (use `S.capture()`)
+- `Route` gains `.gte()`, `.lte()`, `.ne()` comparison predicates
+- All cookbooks, README, and tests updated to use harmonized verb names
+
+### Removed
+
+- `.retry()` and `.fallback()` methods (use `loop_while()` and `//` operator)
+- `C.capture()` (use `S.capture()` instead)
+
+### Deprecated
+
+- `.delegate()` — use `.agent_tool()` instead
+- `.guardrail()` — use `.guard()` instead
+- `.retry_if()` — use `.loop_while()` instead
+- `.inject_context()` — use `.prepend()` instead
+
+## [0.9.6] - 2026-03-01
+
+### Added
+
+- **`T` module**: Fluent tool composition surface, consistent with `P`/`C`/`S`/`M`
+  - **`TComposite`**: Composable tool chain with `|` pipe operator — `T.fn(search) | T.fn(email) | T.google_search()`
+  - **Factory methods**: `T.fn()` (wrap callable/BaseTool), `T.agent()` (wrap agent as AgentTool), `T.toolset()` (wrap MCPToolset etc.), `T.google_search()` (built-in), `T.schema()` (attach ToolSchema)
+  - **`T.fn(fn, confirm=True)`**: Convenience for `require_confirmation` on FunctionTool
+  - **`T.search(registry)`**: BM25-indexed dynamic tool loading with two-phase pattern
+- **`ToolRegistry`**: BM25-indexed catalog for tool discovery — `register()`, `search()`, `get_tool()`, `from_tools()` factory
+  - Optional `rank_bm25` dependency (`pip install adk-fluent[search]`); falls back to substring matching
+- **`SearchToolset`**: Two-phase dynamic tool loading lifecycle
+  - Phase 1 (Discovery): meta-tools (`search_tools`, `load_tool`, `finalize_tools`) for BM25-powered tool discovery
+  - Phase 2 (Execution): frozen tool list for stable KV-cache performance
+  - `always_loaded` and `max_tools` configuration
+- **`search_aware_after_tool`**: Pre-built `after_tool` callback for search-aware agents — handles large result compression and error preservation
+- **`compress_large_result`**: Helper to write large tool outputs to temp files, keeping context lean
+- **Builder `.tools()` override**: Accepts `TComposite` chains, plain lists, or single tools/toolsets; extracts `_SchemaMarker` for contract checking
+- New cookbook example: T module tools (#66) — 13 sections covering full T surface
+- Updated cookbooks: #02 (agent with tools), #27 (delegate pattern), #58 (multi-tool agent) with T module alternatives
+
+### Changed
+
+- `pyproject.toml` adds `search` optional dependency group: `rank-bm25>=0.2.2`
+- Prelude exports expanded with `T`, `TComposite`, `ToolRegistry`, `SearchToolset`, `search_aware_after_tool`
+
+## [0.9.5] - 2026-03-01
+
+### Added
+
+- **Middleware v2**: Complete mechanism-level redesign of the middleware system
+  - **`TraceContext`**: Per-invocation state bag (`request_id`, `elapsed`, key-value store) created once per run, passed as first arg to all hooks, propagates via ContextVar
+  - **Per-agent scoping**: Middleware `agents` attribute filters hooks to specific agents — supports `str`, `tuple[str, ...]`, `re.Pattern`, and `Callable[[str], bool]`
+  - **Topology hooks**: 6 new lifecycle hooks — `on_loop_iteration`, `on_fanout_start`/`on_fanout_complete`, `on_route_selected`, `on_fallback_attempt`, `on_timeout`
+  - **Stream lifecycle hooks**: `on_stream_start`, `on_stream_end`, `on_backpressure`
+  - **Controllable dispatch**: `DispatchDirective(cancel=True)` to skip dispatches, `LoopDirective(break_loop=True)` to exit loops from middleware
+  - **Error boundary**: Middleware exceptions are caught and logged; `on_middleware_error` hook notifies other middleware
+  - **Conditional middleware**: `M.when("stream", mw)` / `M.when(callable, mw)` / `M.when(PredicateSchema, mw)` with deferred evaluation
+- **`M` module**: Fluent middleware composition surface, consistent with `P`/`C`/`S`
+  - Factory methods: `M.retry()`, `M.log()`, `M.cost()`, `M.latency()`, `M.topology_log()`, `M.dispatch_log()`
+  - Composition operators: `M.scope("agent", mw)`, `M.when(condition, mw)`, `|` pipe for chaining
+  - Single-hook shortcuts: `M.before_agent(fn)`, `M.after_agent(fn)`, `M.before_model(fn)`, `M.after_model(fn)`, `M.on_loop(fn)`, `M.on_timeout(fn)`, `M.on_route(fn)`, `M.on_fallback(fn)`
+  - `MComposite` composable chain class with `|` operator and `to_stack()` flattening
+- **Built-in middleware**: `TopologyLogMiddleware` (structured topology event logging), `LatencyMiddleware` (per-agent timing), `CostTracker` (token usage accumulation)
+- **`MiddlewareSchema`**: Typed middleware declarations using `Annotated[type, Reads(scope=...)]` and `Writes()` — declares state dependencies for contract checking
+- **Contract checker Pass 14**: Validates scoped middleware schemas against pipeline state flow — reads must be satisfied by prior writes, writes promoted downstream
+- **`M.when(PredicateSchema, mw)`**: Conditional middleware evaluated against session state at hook invocation time via `TraceContext.invocation_context`
+- **Dispatch/join/stream primitives**: `dispatch()`, `join()`, `StreamRunner`, `Source` factories (`from_iter`, `from_async`, `poll`, `callback`/`Inbox`), `StreamStats`, configurable `task_budget()`
+- **`P` namespace**: Structured prompt composition — `P.system()`, `P.user()`, `P.example()`, `P.constraint()`, `P.persona()`, with `|` composition
+- **`S` state transforms**: `S.pick()`, `S.drop()`, `S.rename()`, `S.merge()`, `S.default()`, `S.transform()`, `S.compute()`, `S.guard()`, `S.log()`, `S.capture()` — all with `_reads_keys`/`_writes_keys` traceability
+- **`DeclarativeMetaclass`**: Shared metaclass introspecting `Annotated` type hints into `DeclarativeField` objects — base for `ToolSchema`, `CallbackSchema`, `PredicateSchema`, `MiddlewareSchema`
+- **Recipes quick-find tables**: "Quick find by primitive" and "Quick find by question" tables in recipes-by-use-case index
+- **`.explain(format="json")`**: Structured dict output for programmatic consumption
+- **`.explain(docs_url=...)`**: Appends API reference link; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
+- **`.explain(open_browser=True)`**: Opens API docs page in the default browser
+- **`--diff-markdown` flag on scanner**: Generates a publishable API diff Markdown page
+- **`just diff-md` command**: One-command API diff page generation
+- **Copy-paste-run contract**: All examples document prerequisites; cookbook examples need no API key
+- New cookbook examples: M module composition (#62), topology hooks (#63), MiddlewareSchema contracts (#64), built-in middleware (#65)
+
+### Changed
+
+- `_ConditionalMiddleware` rewritten to return guarded async wrappers (deferred evaluation) instead of returning `None` from `__getattr__`
+- `SequenceNode` IR gains `middlewares` field for contract checker integration
+- `_pipeline_to_ir()` now wires middleware from builders through to IR
+- Recipes-by-use-case index reorganized with quick-find sections above the domain categories
+- Runnable examples page rewritten with full prerequisites section
+- Cookbook index includes "How to run these examples" section
+
 ## [0.9.4] - 2026-02-27
 
 ### Added
 
-- **Recipes quick-find tables**: "Quick find by primitive" (25 primitives with recipe links) and "Quick find by question" (13 common tasks) tables added to the recipes-by-use-case index page
-- **`.explain(format="json")`**: Returns a structured dict with builder name, config, data flow, tools, contract issues, and docs URL — suitable for tooling and programmatic consumption
-- **`.explain(docs_url=...)`**: Every `.explain()` call now appends a link to the relevant API reference docs page; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
-- **`.explain(open_browser=True)`**: Opens the API docs page for this builder in the default browser
-- **`--diff-markdown` flag on scanner**: `python scripts/scanner.py --diff old.json --diff-markdown docs/generated/api-diff.md` generates a publishable Markdown page showing new/removed classes, field changes, and breaking change warnings
-- **`just diff-md` command**: One-command API diff page generation for the docs site
-- **Copy-paste-run contract**: All examples now document a clear contract — interactive examples need only `.env` setup, cookbook examples need no API key at all. Prerequisites column added to all example tables
-
-### Changed
-
-- Recipes-by-use-case index reorganized with quick-find sections above the domain categories
-- Runnable examples page rewritten with full prerequisites section, `.env` setup guide, and per-example prerequisites column
-- Cookbook index now includes a "How to run these examples" section with copy-paste-ready commands
+- **`.explain(format="json")`**: Structured dict output for programmatic consumption
+- **`.explain(docs_url=...)`**: Appends API reference link; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
+- **`.explain(open_browser=True)`**: Opens API docs page in the default browser
+- **`--diff-markdown` flag on scanner**: Generates a publishable API diff Markdown page
+- **`just diff-md` command**: One-command API diff page generation
+- **Recipes quick-find tables**: "Quick find by primitive" (25 entries) and "Quick find by question" (13 entries) tables in recipes-by-use-case index
+- **Copy-paste-run contract**: Runnable examples page rewritten with full prerequisites section; cookbook index includes "How to run" section
 
 ## [0.9.3] - 2026-02-27
 
@@ -92,21 +221,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`.writes(key)` method**: Clearer name for storing agent response text in session state (replaces `.outputs()`)
+- **`.save_as(key)` method**: Clearer name for storing agent response text in session state (replaces `.outputs()`)
 - **`.stay()` method**: Prevent agent from transferring back to parent (positive alternative to `.disallow_transfer_to_parent(True)`)
 - **`.no_peers()` method**: Prevent agent from transferring to sibling agents (positive alternative to `.disallow_transfer_to_peers(True)`)
 - **`adk_fluent.prelude` module**: Minimal imports for most projects — `Agent, Pipeline, FanOut, Loop, C, S, Route, Prompt`
 - **`deprecated_aliases` codegen support**: Generator emits `DeprecationWarning` for deprecated method names pointing to their replacements
-- **Choosing the Right Method table**: Transfer control user guide now documents Pipeline.step, FanOut.branch, Loop.step, Agent.sub_agent, Agent.agent_tool
+- **Choosing the Right Method table**: Transfer control user guide now documents Pipeline.step, FanOut.branch, Loop.step, Agent.sub_agent, Agent.delegate
 
 ### Changed
 
-- All cookbook examples and user guides updated to use `.writes()` instead of `.outputs()`
+- All cookbook examples and user guides updated to use `.save_as()` instead of `.outputs()`
 - Deep search example updated to use `.context(C.none())` instead of `.history("none")`
 
 ### Deprecated
 
-- **`.outputs(key)`** — use `.writes(key)` instead
+- **`.outputs(key)`** — use `.save_as(key)` instead
 - **`.history()`** — use `.context()` with C module instead
 - **`.include_history()`** — use `.context()` with C module instead
 - **`.static_instruct()`** — use `.static()` instead
@@ -116,8 +245,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`.isolate()` convenience method**: Sets both `disallow_transfer_to_parent` and `disallow_transfer_to_peers` in one call for specialist agents
-- **`[field_docs]` seed system**: Rich IDE docstrings for `returns`, `accepts`, `output_key`, `disallow_transfer_to_parent`, `disallow_transfer_to_peers` — hover tooltips now explain behavior and constraints
-- **Structured data user guide**: `docs/user-guide/structured-data.md` — covers `.writes()`, `.returns()`, `@ Schema`, `.accepts()`, state access patterns
+- **`[field_docs]` seed system**: Rich IDE docstrings for `output_schema`, `input_schema`, `output_key`, `disallow_transfer_to_parent`, `disallow_transfer_to_peers` — hover tooltips now explain behavior and constraints
+- **Structured data user guide**: `docs/user-guide/structured-data.md` — covers `.outputs()`, `.output_schema()`, `@ Schema`, `.input_schema()`, state access patterns
 - **Transfer control user guide**: `docs/user-guide/transfer-control.md` — covers control flags, `.isolate()`, control matrix, common patterns
 - **Context engineering user guide**: `docs/user-guide/context-engineering.md` — C module primitives, composition, Agent.context() integration
 - **Visibility user guide**: `docs/user-guide/visibility.md` — topology inference, policies, .show()/.hide()
@@ -146,15 +275,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Context engineering**: `Agent.context()`, `C` module (context transforms), `S.capture()` for history-to-state bridging
 - **Visibility inference**: `VisibilityPlugin` and event visibility analysis
 - **Contract checker**: Cross-channel coherence analysis for inter-agent data flow
-- **Transfer control**: `.isolate()` for specialist agents, `.agent_tool()` for coordinator pattern
-- **Structured outputs**: `@` operator and `.returns()` for Pydantic-enforced JSON output
+- **Transfer control**: `.isolate()` for specialist agents, `.delegate()` for coordinator pattern
+- **Structured outputs**: `@` operator and `.output_schema()` for Pydantic-enforced JSON output
 
 ### Changed
 
 - Code generation pipeline uses `ruff check --fix || true` → `ruff format` → `ruff check` for lint-clean output
 - CI codegen steps aligned with justfile pipeline
 - Generated imports use isort-compatible grouping (future/stdlib/third-party/first-party)
-- `seed.manual.toml` now includes `agent_tool` extra for seed regeneration resilience
+- `seed.manual.toml` now includes `delegate` extra for seed regeneration resilience
 
 ### Fixed
 
@@ -220,7 +349,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `.tool()` docstring clarifies append semantics vs `.tools()` replace
-- `.returns()` docstring clarifies relationship with `@` operator
+- `.output_schema()` docstring clarifies relationship with `@` operator
 - `.tap()` and `.timeout()` docstrings warn about builder type change
 - Updated cookbook #07 to use `.sub_agent()` instead of `.member()`
 
@@ -239,7 +368,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New primitives: `tap`, `expect`, `gate`, `race`, `map_over`, `mock`, `loop_while`, `timeout`
+- New primitives: `tap`, `expect`, `gate`, `race`, `map_over`, `mock`, `retry_if`, `timeout`
 - `Route` builder for deterministic state-based branching
 - `S` state transform factories (`pick`, `drop`, `rename`, `default`, `merge`, `transform`, `compute`, `guard`, `log`)
 - `Prompt` builder for structured multi-section prompt composition
@@ -251,7 +380,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dict routing shorthand `>> {"key": agent}`
 - `.proceed_if()` conditional gating
 - `.loop_until()` conditional loop exit
-- `.prepend()` for dynamic context injection
+- `.inject_context()` for dynamic context injection
 - `.static()` for context-cacheable instructions
 - `.clone()` and `.with_()` for immutable variants
 - `.validate()` and `.explain()` introspection
@@ -286,6 +415,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PyPI publishing via Trusted Publishing (OIDC)
 
 [0.1.0]: https://github.com/vamsiramakrishnan/adk-fluent/releases/tag/v0.1.0
+[0.10.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.6...v0.10.0
+[0.11.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.10.0...v0.11.0
 [0.2.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.1.0...v0.2.0
 [0.3.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.2.0...v0.3.0
 [0.3.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.0...v0.3.1
@@ -300,3 +431,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2
 [0.9.3]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.2...v0.9.3
 [0.9.4]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.3...v0.9.4
+[0.9.5]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.4...v0.9.5
+[0.9.6]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.5...v0.9.6
