@@ -10,11 +10,12 @@
 
 **Design doc:** `docs/plans/2026-03-01-a-module-design.md`
 
----
+______________________________________________________________________
 
 ### Task 1: A.mime — MIME Type Constants and Classifiers
 
 **Files:**
+
 - Create: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -201,11 +202,12 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add A.mime constants and classifiers"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: ATransform Descriptor
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -353,11 +355,12 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add ATransform descriptor dataclass"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Core Factory Methods (publish, snapshot, save, load, list, version, delete, when)
 
 **Files:**
+
 - Modify: `src/adk_fluent/_artifacts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -758,13 +761,14 @@ git add src/adk_fluent/_artifacts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add core factories — publish, snapshot, save, load, list, version, delete, when"
 ```
 
----
+______________________________________________________________________
 
-### Task 4: ArtifactNode IR + _ArtifactBuilder + _fn_step Detection
+### Task 4: ArtifactNode IR + \_ArtifactBuilder + \_fn_step Detection
 
 **Files:**
+
 - Modify: `src/adk_fluent/_ir.py` (add ArtifactNode)
-- Modify: `src/adk_fluent/_primitive_builders.py` (add _ArtifactBuilder, extend _fn_step)
+- Modify: `src/adk_fluent/_primitive_builders.py` (add \_ArtifactBuilder, extend \_fn_step)
 - Test: `tests/manual/test_artifacts.py`
 
 **Step 1: Write the failing tests**
@@ -823,7 +827,7 @@ class TestFnStepDetection:
 Run: `uv run pytest tests/manual/test_artifacts.py::TestArtifactNode -x --tb=short -q`
 Expected: FAIL — `ImportError: cannot import name 'ArtifactNode'`
 
-**Step 3: Add ArtifactNode to _ir.py**
+**Step 3: Add ArtifactNode to \_ir.py**
 
 Add after `CaptureNode` in `src/adk_fluent/_ir.py`:
 
@@ -849,7 +853,7 @@ class ArtifactNode:
 
 Add `Literal` to the imports if not already present.
 
-**Step 4: Add _ArtifactBuilder and extend _fn_step in _primitive_builders.py**
+**Step 4: Add \_ArtifactBuilder and extend \_fn_step in \_primitive_builders.py**
 
 Add `_ArtifactBuilder` class after `_CaptureBuilder`:
 
@@ -915,11 +919,12 @@ git add src/adk_fluent/_ir.py src/adk_fluent/_primitive_builders.py tests/manual
 git commit -m "feat(A): add ArtifactNode IR, _ArtifactBuilder, and _fn_step detection"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: ArtifactAgent Runtime
 
 **Files:**
+
 - Modify: `src/adk_fluent/_primitives.py` (add ArtifactAgent)
 - Test: `tests/manual/test_artifacts.py`
 
@@ -1124,11 +1129,12 @@ git add src/adk_fluent/_primitives.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add ArtifactAgent runtime for publish/snapshot/save/load/list/version/delete"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Pipeline Integration (>> operator)
 
 **Files:**
+
 - Test: `tests/manual/test_artifacts.py`
 
 No code changes needed — `_fn_step()` already detects `_artifact_op` (Task 4), and `__rshift__` in `_base.py` already calls `_fn_step()` for callables. This task validates the integration end-to-end.
@@ -1189,11 +1195,12 @@ git add tests/manual/test_artifacts.py
 git commit -m "test(A): add pipeline integration tests for >> operator"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Module Export (prelude + __init__)
 
 **Files:**
+
 - Modify: `src/adk_fluent/prelude.py`
 - Run: `just generate` (regenerates `__init__.py` from `__all__` exports)
 
@@ -1251,11 +1258,12 @@ git add src/adk_fluent/prelude.py src/adk_fluent/__init__.py tests/manual/test_a
 git commit -m "feat(A): export A and ATransform from prelude and __init__"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Contract Checking Pass 15 (Artifact Availability)
 
 **Files:**
+
 - Modify: `src/adk_fluent/testing/contracts.py`
 - Test: `tests/manual/test_artifacts.py`
 
@@ -1371,11 +1379,12 @@ git add src/adk_fluent/testing/contracts.py tests/manual/test_artifacts.py
 git commit -m "feat(A): add contract checking Pass 15 — artifact availability validation"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Builder Method (.artifacts())
 
 **Files:**
+
 - Modify: `seeds/seed.manual.toml`
 - Run: `just seed && just generate`
 - Test: `tests/manual/test_artifacts.py`
@@ -1452,11 +1461,12 @@ git add src/adk_fluent/agent.py src/adk_fluent/agent.pyi  # regenerated
 git commit -m "feat(A): add .artifacts() builder method via seed"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: Full Integration Test + Preflight
 
 **Files:**
+
 - Test: `tests/manual/test_artifacts.py`
 
 **Step 1: Write end-to-end integration test**
@@ -1538,21 +1548,21 @@ git add tests/manual/test_artifacts.py
 git commit -m "test(A): add end-to-end integration tests for Phase 1"
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
-| Task | What | Key Files |
-|------|------|-----------|
-| 1 | A.mime constants + classifiers | `_artifacts.py`, `test_artifacts.py` |
-| 2 | ATransform descriptor dataclass | `_artifacts.py` |
-| 3 | Core factories (publish/snapshot/save/load/list/version/delete/when) | `_artifacts.py` |
-| 4 | ArtifactNode IR + _ArtifactBuilder + _fn_step detection | `_ir.py`, `_primitive_builders.py` |
-| 5 | ArtifactAgent runtime | `_primitives.py` |
-| 6 | Pipeline integration tests (>> operator) | `test_artifacts.py` |
-| 7 | Module export (prelude + __init__) | `prelude.py`, `__init__.py` |
-| 8 | Contract checking Pass 15 | `contracts.py` |
-| 9 | Builder method (.artifacts()) | `seed.manual.toml`, `_helpers.py` |
-| 10 | Full integration test + preflight | `test_artifacts.py` |
+| Task | What                                                                 | Key Files                            |
+| ---- | -------------------------------------------------------------------- | ------------------------------------ |
+| 1    | A.mime constants + classifiers                                       | `_artifacts.py`, `test_artifacts.py` |
+| 2    | ATransform descriptor dataclass                                      | `_artifacts.py`                      |
+| 3    | Core factories (publish/snapshot/save/load/list/version/delete/when) | `_artifacts.py`                      |
+| 4    | ArtifactNode IR + \_ArtifactBuilder + \_fn_step detection            | `_ir.py`, `_primitive_builders.py`   |
+| 5    | ArtifactAgent runtime                                                | `_primitives.py`                     |
+| 6    | Pipeline integration tests (>> operator)                             | `test_artifacts.py`                  |
+| 7    | Module export (prelude + __init__)                                   | `prelude.py`, `__init__.py`          |
+| 8    | Contract checking Pass 15                                            | `contracts.py`                       |
+| 9    | Builder method (.artifacts())                                        | `seed.manual.toml`, `_helpers.py`    |
+| 10   | Full integration test + preflight                                    | `test_artifacts.py`                  |
 
 Phase 2 and Phase 3 plans will be written after Phase 1 ships and patterns stabilize.
