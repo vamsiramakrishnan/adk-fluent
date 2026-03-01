@@ -171,7 +171,7 @@ from adk_fluent import Agent
 
 # 1. Define pipeline (>> produces SequentialAgent at build time)
 pipeline = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").outputs("draft")
+    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").writes("draft")
     >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review: {draft}")
 )
 
@@ -300,7 +300,7 @@ from adk_fluent import Agent, map_over
 
 pipeline = (
     map_over("complaints",
-        Agent("classifier").instruct("Classify: {current_item}").outputs("classification"),
+        Agent("classifier").instruct("Classify: {current_item}").writes("classification"),
         output_key="all_classifications"
     )
     >> Agent("reporter").instruct("Summarize: {all_classifications}")
@@ -315,13 +315,13 @@ pipeline = (
 # Research each topic in parallel, gate on quality, loop until all pass
 pipeline = (
     map_over("topics",
-        Agent("researcher").instruct("Research: {current_item}").outputs("finding")
+        Agent("researcher").instruct("Research: {current_item}").writes("finding")
         >> gate(lambda s: float(s.get("quality", 0)) > 0.7,
                 Agent("enhancer").instruct("Improve: {finding}"))
     )
     >> S.merge("findings", into="report")
-    >> (Agent("writer").instruct("Write: {report}").outputs("draft")
-        >> Agent("critic").instruct("Critique: {draft}").outputs("quality"))
+    >> (Agent("writer").instruct("Write: {report}").writes("draft")
+        >> Agent("critic").instruct("Critique: {draft}").writes("quality"))
         .loop_until(lambda s: s.get("quality") == "approved", max_iterations=3)
 )
 ```

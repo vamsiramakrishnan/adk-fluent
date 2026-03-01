@@ -62,7 +62,7 @@ class TestAgentContextInPipeline:
     """Context integrates with pipeline composition."""
 
     def test_pipeline_with_context(self):
-        pipeline = Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").save_as("intent") >> Agent(
+        pipeline = Agent("classifier").model("gemini-2.5-flash").instruct("Classify.").writes("intent") >> Agent(
             "handler"
         ).model("gemini-2.5-flash").instruct("Handle request.").context(C.from_state("intent"))
         built = pipeline.build()

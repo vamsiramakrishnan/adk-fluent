@@ -45,10 +45,11 @@ bounded_execution = (
 ).timeout(60)
 
 # --- ASSERT ---
-from adk_fluent._base import _TimeoutBuilder, BuilderBase
+from adk_fluent._primitive_builders import TimedAgent
+from adk_fluent._base import BuilderBase
 
-# .timeout() returns a _TimeoutBuilder
-assert isinstance(market_analyzer, _TimeoutBuilder)
+# .timeout() returns a TimedAgent
+assert isinstance(market_analyzer, TimedAgent)
 assert isinstance(market_analyzer, BuilderBase)
 
 # Stores the timeout duration
@@ -68,5 +69,5 @@ built_pipeline = trading_pipeline.build()
 assert len(built_pipeline.sub_agents) == 3
 
 # Pipeline-level timeout
-assert isinstance(bounded_execution, _TimeoutBuilder)
+assert isinstance(bounded_execution, TimedAgent)
 assert bounded_execution._seconds == 60

@@ -9,7 +9,7 @@ from adk_fluent.testing import check_contracts
 
 class TestTemplateVariableResolution:
     def test_resolved_template_var_no_issue(self):
-        pipeline = Agent("classifier").model("m").instruct("Classify.").save_as("intent") >> Agent("handler").model(
+        pipeline = Agent("classifier").model("m").instruct("Classify.").writes("intent") >> Agent("handler").model(
             "m"
         ).instruct("Intent: {intent}")
         issues = check_contracts(pipeline.to_ir())
@@ -25,7 +25,7 @@ class TestTemplateVariableResolution:
 
 class TestChannelDuplication:
     def test_duplication_warning(self):
-        pipeline = Agent("classifier").model("m").instruct("Classify.").save_as("intent") >> Agent("handler").model(
+        pipeline = Agent("classifier").model("m").instruct("Classify.").writes("intent") >> Agent("handler").model(
             "m"
         ).instruct("Intent: {intent}")
         issues = check_contracts(pipeline.to_ir())
@@ -35,7 +35,7 @@ class TestChannelDuplication:
 
 class TestRouteKeyValidation:
     def test_route_key_satisfied(self):
-        pipeline = Agent("classifier").model("m").instruct("Classify.").save_as("intent") >> Route("intent").eq(
+        pipeline = Agent("classifier").model("m").instruct("Classify.").writes("intent") >> Route("intent").eq(
             "booking", Agent("booker").model("m").instruct("Book.")
         )
         issues = check_contracts(pipeline.to_ir())
@@ -53,7 +53,7 @@ class TestRouteKeyValidation:
 
 class TestDataLossDetection:
     def test_no_data_loss_with_outputs(self):
-        pipeline = Agent("a").model("m").instruct("Do.").save_as("result") >> Agent("b").model("m").instruct(
+        pipeline = Agent("a").model("m").instruct("Do.").writes("result") >> Agent("b").model("m").instruct(
             "Use: {result}"
         )
         issues = check_contracts(pipeline.to_ir())

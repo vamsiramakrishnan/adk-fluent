@@ -50,7 +50,7 @@ review_pipeline = (
     Agent("diff_parser")
     .model("gemini-2.5-flash")
     .instruct("Parse the git diff into individual file changes with context.")
-    .save_as("parsed_diff")
+    .writes("parsed_diff")
     # Step 2: Three reviewers run in parallel
     >> (
         Agent("style_checker")

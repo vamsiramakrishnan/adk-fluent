@@ -40,7 +40,7 @@ This is the Tide Principle in practice: when ADK releases a new version, `scanne
 
 **BuilderBase** (`_base.py`, 1549 lines): operator overloading (`>>`, `|`, `*`), dynamic `__getattr__` field forwarding with Pydantic validation, `__repr__`, callback composition, `_prepare_build_config()`, `to_ir()`.
 
-**Key ergonomics**: `.instruct()`, `.outputs()`, `.tool()`, `.model()`, `.describe()`, `.history()`, `.static()` — all with .pyi type stubs for IDE autocomplete.
+**Key ergonomics**: `.instruct()`, `.writes()`, `.tool()`, `.model()`, `.describe()`, `.history()`, `.static()` — all with .pyi type stubs for IDE autocomplete.
 
 ### 1.4 Composition Primitives (Complete)
 
@@ -95,16 +95,16 @@ ______________________________________________________________________
 
 ### §1 Typed State System — 🔴 Not Started
 
-| v5 Component                                                   | Repo State                                                                                  | Gap                                                                  |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `StateSchema` base class                                       | ❌ Does not exist                                                                           | New `state/_schema.py` needed                                        |
-| Scope annotations (SessionScoped, UserScoped, AppScoped, Temp) | ❌ Does not exist                                                                           | New `state/_field_ref.py` needed                                     |
-| `StateFieldRef` descriptor                                     | ❌ Does not exist                                                                           | Part of `_field_ref.py`                                              |
-| `bind()` proxy for typed access                                | ❌ Does not exist                                                                           | New `state/_proxy.py` needed                                         |
-| Schema-bound agents (`.writes(BillingState.intent)`)           | ⚠️ `.outputs()`, `.produces()`, `.consumes()` exist but use untyped strings/Pydantic models | Need to accept StateFieldRef                                         |
-| Full-graph contract checking (topological order)               | ⚠️ `check_contracts()` exists but only checks adjacent SequenceNode pairs                   | Must generalize to full DAG traversal with type checking             |
-| Schema composition (multiple inheritance)                      | ❌ Does not exist                                                                           | Part of `_schema.py`                                                 |
-| Backward compatibility (mixed typed/untyped)                   | ⚠️ AgentNode has `writes_keys: frozenset[str]` and `reads_keys: frozenset[str]`             | Need to support both `frozenset[str]` and `frozenset[StateFieldRef]` |
+| v5 Component                                                   | Repo State                                                                                 | Gap                                                                  |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `StateSchema` base class                                       | ❌ Does not exist                                                                          | New `state/_schema.py` needed                                        |
+| Scope annotations (SessionScoped, UserScoped, AppScoped, Temp) | ❌ Does not exist                                                                          | New `state/_field_ref.py` needed                                     |
+| `StateFieldRef` descriptor                                     | ❌ Does not exist                                                                          | Part of `_field_ref.py`                                              |
+| `bind()` proxy for typed access                                | ❌ Does not exist                                                                          | New `state/_proxy.py` needed                                         |
+| Schema-bound agents (`.writes(BillingState.intent)`)           | ⚠️ `.writes()`, `.produces()`, `.consumes()` exist but use untyped strings/Pydantic models | Need to accept StateFieldRef                                         |
+| Full-graph contract checking (topological order)               | ⚠️ `check_contracts()` exists but only checks adjacent SequenceNode pairs                  | Must generalize to full DAG traversal with type checking             |
+| Schema composition (multiple inheritance)                      | ❌ Does not exist                                                                          | Part of `_schema.py`                                                 |
+| Backward compatibility (mixed typed/untyped)                   | ⚠️ AgentNode has `writes_keys: frozenset[str]` and `reads_keys: frozenset[str]`            | Need to support both `frozenset[str]` and `frozenset[StateFieldRef]` |
 
 **Size estimate:** ~500 lines new code across 3 files + modifications to AgentNode, check_contracts, and builder `.writes()`/`.reads()` methods.
 

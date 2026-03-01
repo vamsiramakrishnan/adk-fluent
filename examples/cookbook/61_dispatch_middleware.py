@@ -16,11 +16,9 @@ Key concepts:
 
 # --- FLUENT ---
 from adk_fluent import Agent, dispatch, get_execution_mode, join
-from adk_fluent._base import (
-    _DispatchBuilder,
-    _execution_mode,
-    _middleware_dispatch_hooks,
-)
+from adk_fluent._primitive_builders import BackgroundTask
+from adk_fluent._base import _execution_mode
+from adk_fluent._primitives import _middleware_dispatch_hooks
 from adk_fluent.middleware import (
     DispatchLogMiddleware,
     Middleware,
@@ -64,7 +62,7 @@ emailer = Agent("emailer").model("gemini-2.5-flash").instruct("Email.")
 
 # Via factory parameter
 d = dispatch(emailer, task_budget=25)
-assert isinstance(d, _DispatchBuilder)
+assert isinstance(d, BackgroundTask)
 assert d._max_tasks == 25
 built = d.build()
 assert built._max_tasks == 25

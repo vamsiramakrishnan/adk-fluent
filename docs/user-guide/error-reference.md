@@ -51,7 +51,7 @@ agent = Agent("helper").model("gemini-2.5-flash").build()
 
 ```python
 # Bad — output_schema must be a Pydantic BaseModel subclass
-agent = Agent("helper").model("gemini-2.5-flash").output_schema(dict).build()
+agent = Agent("helper").model("gemini-2.5-flash").returns(dict).build()
 
 # Fix
 from pydantic import BaseModel
@@ -59,7 +59,7 @@ from pydantic import BaseModel
 class Result(BaseModel):
     answer: str
 
-agent = Agent("helper").model("gemini-2.5-flash").output_schema(Result).build()
+agent = Agent("helper").model("gemini-2.5-flash").returns(Result).build()
 ```
 
 ______________________________________________________________________
@@ -97,7 +97,7 @@ Agent("x").model("gemini-2.5-flash")
 Agent("x").outputs("result")
 
 # Preferred
-Agent("x").save_as("result")
+Agent("x").writes("result")
 ```
 
 #### Method doesn't exist on this builder type
@@ -169,11 +169,10 @@ ______________________________________________________________________
 **Raised by:** `>>` operator with a dict on the right side
 
 When using `agent >> {"key": handler}` shorthand, the left-side agent must
-have `.save_as()` (or `.output_key()`) set so the router knows which state
-key to examine.
+have `.writes()` set so the router knows which state key to examine.
 
 ```
-ValueError: Left side of >> dict must have .outputs() or .output_key() set
+ValueError: Left side of >> dict must have .writes() set
 so the router knows which state key to check.
 ```
 
@@ -184,7 +183,7 @@ classifier = (
     Agent("classifier")
     .model("gemini-2.5-flash")
     .instruct("Classify as: billing, technical, general")
-    .save_as("category")  # router reads this key
+    .writes("category")  # router reads this key
 )
 
 pipeline = classifier >> {

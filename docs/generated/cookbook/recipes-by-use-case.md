@@ -21,14 +21,14 @@ Jump to recipes that demonstrate a specific adk-fluent primitive.
 | `expect`           | State assertions             | [#36](36_expect_assertions.md), [#43](43_primitives_showcase.md)                                                                                                                                                          |
 | `gate`             | Human-in-the-loop approval   | [#41](41_gate_approval.md), [#56](56_customer_support_triage.md)                                                                                                                                                          |
 | `proceed_if`       | Conditional gating           | [#19](19_conditional_gating.md), [#57](57_code_review_agent.md)                                                                                                                                                           |
-| `retry_if`         | Retry on transient failure   | [#38](38_retry_if.md)                                                                                                                                                                                                     |
+| `loop_while`       | Retry on transient failure   | [#38](38_retry_if.md)                                                                                                                                                                                                     |
 | `timeout`          | Execution deadline           | [#40](40_timeout.md)                                                                                                                                                                                                      |
 | `race`             | First response wins          | [#42](42_race.md)                                                                                                                                                                                                         |
 | `loop_until`       | Loop until predicate         | [#20](20_loop_until.md), [#28](28_real_world_pipeline.md)                                                                                                                                                                 |
 | `map_over`         | Iterate over items           | [#39](39_map_over.md)                                                                                                                                                                                                     |
 | `Preset`           | Reusable config bundle       | [#22](22_presets.md), [#28](28_real_world_pipeline.md)                                                                                                                                                                    |
-| `.guardrail()`     | Safety guardrails            | [#12](12_guardrails.md), [#58](58_multi_tool_agent.md)                                                                                                                                                                    |
-| `.delegate()`      | LLM-driven routing           | [#27](27_delegate_pattern.md)                                                                                                                                                                                             |
+| `.guard()`         | Safety guards                | [#12](12_guardrails.md), [#58](58_multi_tool_agent.md)                                                                                                                                                                    |
+| `.agent_tool()`    | LLM-driven routing           | [#27](27_delegate_pattern.md)                                                                                                                                                                                             |
 | `.session()`       | Interactive sessions         | [#13](13_interactive_session.md)                                                                                                                                                                                          |
 | `.explain()`       | Builder introspection        | [#25](25_validate_explain.md)                                                                                                                                                                                             |
 | `.to_mermaid()`    | Architecture diagrams        | [#48](48_visualization.md)                                                                                                                                                                                                |
@@ -124,25 +124,25 @@ Order routing, fraud detection, invoice parsing, and financial analysis.
 
 Multi-agent systems with coordinators, specialists, and routing.
 
-| Recipe                     | Key features                           | Cookbook                      |
-| -------------------------- | -------------------------------------- | ----------------------------- |
-| Product Launch Coordinator | Team coordinator pattern               | [#07](07_team_coordinator.md) |
-| Senior Architect Delegates | LLM-driven routing, `.delegate()`      | [#27](27_delegate_pattern.md) |
-| Multi-Language Routing     | Dict `>>` shorthand                    | [#18](18_dict_routing.md)     |
-| Multi-Tool Task Agent      | `.tool()`, `.guardrail()`, `.inject()` | [#58](58_multi_tool_agent.md) |
+| Recipe                     | Key features                        | Cookbook                      |
+| -------------------------- | ----------------------------------- | ----------------------------- |
+| Product Launch Coordinator | Team coordinator pattern            | [#07](07_team_coordinator.md) |
+| Senior Architect Delegates | LLM-driven routing, `.agent_tool()` | [#27](27_delegate_pattern.md) |
+| Multi-Language Routing     | Dict `>>` shorthand                 | [#18](18_dict_routing.md)     |
+| Multi-Tool Task Agent      | `.tool()`, `.guard()`, `.inject()`  | [#58](58_multi_tool_agent.md) |
 
 ## Safety, Guardrails & Compliance
 
 Content moderation, medical safety, legal approval gates, and contracts.
 
-| Recipe                           | Key features                                   | Cookbook                           |
-| -------------------------------- | ---------------------------------------------- | ---------------------------------- |
-| Content Moderation with Logging  | `before_model`, `after_model` callbacks        | [#03](03_callbacks.md)             |
-| Medical Advice Safety Guardrails | `.guardrail()` method                          | [#12](12_guardrails.md)            |
-| Legal Document Review            | `gate` with human approval                     | [#41](41_gate_approval.md)         |
-| Medical Imaging Contracts        | `.produces()`, `.consumes()`, strict contracts | [#46](46_contracts_and_testing.md) |
-| Contract Checking                | Catch data flow bugs early                     | [#52](52_contract_checking.md)     |
-| Enterprise Compliance Preset     | `Preset` for shared config                     | [#22](22_presets.md)               |
+| Recipe                          | Key features                                   | Cookbook                           |
+| ------------------------------- | ---------------------------------------------- | ---------------------------------- |
+| Content Moderation with Logging | `before_model`, `after_model` callbacks        | [#03](03_callbacks.md)             |
+| Medical Advice Safety Guards    | `.guard()` method                              | [#12](12_guardrails.md)            |
+| Legal Document Review           | `gate` with human approval                     | [#41](41_gate_approval.md)         |
+| Medical Imaging Contracts       | `.produces()`, `.consumes()`, strict contracts | [#46](46_contracts_and_testing.md) |
+| Contract Checking               | Catch data flow bugs early                     | [#52](52_contract_checking.md)     |
+| Enterprise Compliance Preset    | `Preset` for shared config                     | [#22](22_presets.md)               |
 
 ## Production & Deployment
 
@@ -156,7 +156,7 @@ Deploying, testing, serializing, and monitoring agents in production.
 | Dependency Injection        | Dev/staging/prod environments         | [#47](47_dependency_injection.md) |
 | ML Inference Monitoring     | `tap` for pure observation            | [#35](35_tap_observation.md)      |
 | Middleware Stack            | Production middleware for healthcare  | [#45](45_middleware.md)           |
-| Retry on Transient Failures | `retry_if` pattern                    | [#38](38_retry_if.md)             |
+| Retry on Transient Failures | `loop_while` pattern                  | [#38](38_retry_if.md)             |
 | Timeout for Trading Agent   | `timeout` execution deadline          | [#40](40_timeout.md)              |
 
 ## Developer Experience & Tooling

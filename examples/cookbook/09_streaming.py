@@ -47,7 +47,7 @@ transcriber = (
     Agent("transcriber")
     .model("gemini-2.5-flash")
     .instruct("Transcribe the incoming audio stream to text. Preserve speaker labels and timestamps.")
-    .save_as("transcript")
+    .writes("transcript")
 )
 
 translator = (

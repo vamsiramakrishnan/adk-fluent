@@ -105,7 +105,7 @@ Standalone agents demonstrating individual features.
 | `streaming`           | `.stream()` token-by-token               | .env          | `adk web streaming`           |
 | `cloning`             | `.clone()` A/B testing                   | .env          | `adk web cloning`             |
 | `inline_testing`      | `.test()` smoke tests                    | .env          | `adk web inline_testing`      |
-| `guardrails`          | `.guardrail()` safety checks             | .env          | `adk web guardrails`          |
+| `guardrails`          | `.guard()` safety checks                 | .env          | `adk web guardrails`          |
 | `interactive_session` | `.session()` chat loop                   | .env          | `adk web interactive_session` |
 
 ## Operators & routing
@@ -136,7 +136,7 @@ State management, presets, decorators, and serialization.
 | `agent_decorator`     | `@agent` decorator            | .env          | `adk web agent_decorator`     |
 | `validate_explain`    | `.validate()`, `.explain()`   | .env          | `adk web validate_explain`    |
 | `serialization`       | `to_dict`, `to_yaml`          | .env          | `adk web serialization`       |
-| `delegate_pattern`    | LLM-driven delegation         | .env          | `adk web delegate_pattern`    |
+| `delegate_pattern`    | LLM-driven agent_tool         | .env          | `adk web delegate_pattern`    |
 | `real_world_pipeline` | Full expression language      | .env          | `adk web real_world_pipeline` |
 | `function_steps`      | `>> fn` plain functions       | .env          | `adk web function_steps`      |
 | `typed_output`        | `@ Schema` operator           | .env          | `adk web typed_output`        |
@@ -150,7 +150,7 @@ Advanced primitives for observation, testing, and control flow.
 | `tap_observation`    | `tap` pure observation     | .env          | `adk web tap_observation`    |
 | `expect_assertions`  | `expect()` state contracts | .env          | `adk web expect_assertions`  |
 | `mock_testing`       | `mock_backend()` testing   | .env          | `adk web mock_testing`       |
-| `retry_if`           | `retry_if` on failures     | .env          | `adk web retry_if`           |
+| `retry_if`           | `loop_while` on failures   | .env          | `adk web retry_if`           |
 | `map_over`           | `map_over` batch iteration | .env          | `adk web map_over`           |
 | `timeout`            | `timeout` deadlines        | .env          | `adk web timeout`            |
 | `gate_approval`      | `gate` human approval      | .env          | `adk web gate_approval`      |

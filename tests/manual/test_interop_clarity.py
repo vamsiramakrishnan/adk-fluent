@@ -355,7 +355,7 @@ def test_no_issues_reads_writes_output():
 
 
 def test_detect_conflicting_schemas():
-    """Detects different schemas for .output_schema() and .returns()."""
+    """Detects different schemas for .returns() and .returns()."""
 
     class OtherModel(BaseModel):
         other: str

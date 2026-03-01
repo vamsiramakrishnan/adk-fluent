@@ -13,13 +13,13 @@ v5 established typed state, streaming edges, cost routing, A2A, telemetry, evalu
 
 v5.1 addresses the foundational problem that v5 left unmodeled: **agents in a DAG don't just execute in sequence — each agent has a different view of the world, and that view must be engineered.** ADK provides three independent communication channels (conversation history, session state, instruction templating) with minimal coordination between them. Developers manage this coordination manually. Most don't realize the coordination is needed.
 
-| v5 State                                      | v5.1 Change                                                                                      | Rationale                                                                                           |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `include_contents` is binary (all or nothing) | **Context Engineering (C module)**: declarative content transforms per agent                     | ADK's two-mode switch is insufficient for DAG composition; downstream agents need selective context |
-| `output_key` is a storage mechanism           | **`.outputs()` as role declaration**: data producer semantics for visibility, context, contracts | output_key duplicates text into state AND conversation; the library should manage the coordination  |
-| All events reach client                       | **Event Visibility**: topology-inferred presentation filtering via `on_event_callback` plugin    | Intermediate agent outputs leak to users; topology determines which agents are user-facing          |
-| Contract checking is state-only               | **Cross-channel contract validation**: state + contents + instructions analyzed together         | A state contract can pass while the developer loses data because include_contents is wrong          |
-| S module transforms state between agents      | **S module + C module**: state transforms AND content transforms as orthogonal capabilities      | State is one of three channels; the library needs to address all three                              |
+| v5 State                                      | v5.1 Change                                                                                     | Rationale                                                                                           |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `include_contents` is binary (all or nothing) | **Context Engineering (C module)**: declarative content transforms per agent                    | ADK's two-mode switch is insufficient for DAG composition; downstream agents need selective context |
+| `output_key` is a storage mechanism           | **`.writes()` as role declaration**: data producer semantics for visibility, context, contracts | output_key duplicates text into state AND conversation; the library should manage the coordination  |
+| All events reach client                       | **Event Visibility**: topology-inferred presentation filtering via `on_event_callback` plugin   | Intermediate agent outputs leak to users; topology determines which agents are user-facing          |
+| Contract checking is state-only               | **Cross-channel contract validation**: state + contents + instructions analyzed together        | A state contract can pass while the developer loses data because include_contents is wrong          |
+| S module transforms state between agents      | **S module + C module**: state transforms AND content transforms as orthogonal capabilities     | State is one of three channels; the library needs to address all three                              |
 
 v5's sections on streaming, cost routing, A2A, telemetry, evaluation, multi-modal, replay, and execution boundaries are **incorporated by reference** and not repeated. Their section numbers are preserved.
 
@@ -128,7 +128,7 @@ from adk_fluent import C
 
 | Transform                         | Effect                                             | Compiles To                         |
 | --------------------------------- | -------------------------------------------------- | ----------------------------------- |
-| `C.capture("user_message")`       | Snapshot latest user message text into state       | FnAgent reading from session.events |
+| `S.capture("user_message")`       | Snapshot latest user message text into state       | FnAgent reading from session.events |
 | `C.capture_turns("history", n=5)` | Snapshot last N turns as formatted text into state | FnAgent reading from session.events |
 
 **Context Templates** — declare exactly what the agent should see:
@@ -149,14 +149,14 @@ Compiles to an InstructionProvider that prepends the rendered template to the de
 
 ```python
 pipeline = (
-    Agent("classifier").instruct("Classify the user's intent.").outputs("intent")
+    Agent("classifier").instruct("Classify the user's intent.").writes("intent")
     >> Route("intent").eq("booking", booker).eq("info", info_agent)
 )
 ```
 
 The library infers:
 
-- `classifier` has `.outputs("intent")` and a successor → data producer, internal visibility
+- `classifier` has `.writes("intent")` and a successor → data producer, internal visibility
 - `Route` reads `"intent"` from state → contract satisfied
 - `booker` is terminal → user-facing, `C.default()`
 - Diagnostic: "booker will see classifier's raw text 'booking' in conversation AND 'booking' via state in instruction. Consider `C.user_only()` if instruction provides full context."
@@ -165,8 +165,8 @@ The library infers:
 
 ```python
 pipeline = (
-    C.capture("user_message")
-    >> Agent("classifier").instruct("Classify intent.").outputs("intent")
+    S.capture("user_message")
+    >> Agent("classifier").instruct("Classify intent.").writes("intent")
     >> Route("intent").eq("booking",
         Agent("booker")
             .instruct("Help book. Intent: {intent}")
@@ -175,7 +175,7 @@ pipeline = (
 )
 ```
 
-`C.capture("user_message")` snapshots the user's input to state. `C.from_state(...)` tells booker to get all its context from state variables — no conversation history needed. Compiles to `include_contents='none'` + InstructionProvider that reads `user_message` and `intent` from state.
+`S.capture("user_message")` snapshots the user's input to state. `C.from_state(...)` tells booker to get all its context from state variables — no conversation history needed. Compiles to `include_contents='none'` + InstructionProvider that reads `user_message` and `intent` from state.
 
 **Pattern 3: Selective conversation**
 
@@ -193,16 +193,16 @@ Reviewer sees user's original request but not drafter's output in conversation (
 
 ```python
 pipeline = (
-    Agent("drafter").outputs("draft")
+    Agent("drafter").writes("draft")
     >> loop_until(
         lambda s: s.get("approved"),
         Agent("reviewer")
             .instruct("Review: {draft}")
-            .outputs("feedback")
+            .writes("feedback")
             .context(C.from_state("draft"))
         >> Agent("refiner")
             .instruct("Refine based on feedback: {feedback}")
-            .outputs("draft")
+            .writes("draft")
             .context(C.from_state("draft", "feedback"))
     )
     >> Agent("presenter")
@@ -247,7 +247,7 @@ The compiled agent gets:
 - `instruction=_instruction_provider` (custom context assembly)
 - `bypass_state_injection=True` (InstructionProvider handles its own templating)
 
-**C.capture(key)** → compiles to a `FnAgent` (zero-cost, no LLM call):
+**S.capture(key)** → compiles to a `FnAgent` (zero-cost, no LLM call):
 
 ```python
 class CaptureAgent(BaseAgent):
@@ -299,8 +299,8 @@ They compose:
 
 ```python
 pipeline = (
-    C.capture("user_message")          # C: bridge conversation → state
-    >> classifier.outputs("intent")     # Agent: produce data to state
+    S.capture("user_message")          # C: bridge conversation → state
+    >> classifier.writes("intent")     # Agent: produce data to state
     >> S.set(attempt=0)                 # S: initialize state
     >> S.rename(intent="classification") # S: reshape state
     >> booker
@@ -319,12 +319,12 @@ ______________________________________________________________________
 
 v4/v5 §1 identified state typing as the biggest source of runtime errors. v5.1 extends this: the problem isn't just types and typos. It's that `output_key`, `include_contents`, `{template}` variables, and S/C transforms form a data-flow graph that ADK doesn't model. Errors in any channel manifest as silent failures — the agent runs, gets the wrong context, produces a subtly wrong answer.
 
-### 3.2 `.outputs()` as Role Declaration
+### 3.2 `.writes()` as Role Declaration
 
-`.outputs(key)` is not syntactic sugar for `output_key`. It's a declaration of the agent's role in the data flow:
+`.writes(key)` is not syntactic sugar for `output_key`. It's a declaration of the agent's role in the data flow:
 
 ```python
-classifier = Agent("classifier").instruct("Classify intent.").outputs("intent")
+classifier = Agent("classifier").instruct("Classify intent.").writes("intent")
 ```
 
 This declaration triggers four consequences:
@@ -334,7 +334,7 @@ This declaration triggers four consequences:
 1. **Contract validation:** Downstream agents that reference `{intent}` in instructions or `Route("intent")` in routing are validated.
 1. **Context engineering hint:** Downstream agents are informed that `"intent"` is available from state, enabling `C.from_state("intent")`.
 
-Without `.outputs()`, an agent's text goes only to conversation history (Channel 1). With `.outputs()`, it goes to both conversation history AND state (Channel 2). The library uses this distinction to infer visibility, suggest C transforms, and validate contracts.
+Without `.writes()`, an agent's text goes only to conversation history (Channel 1). With `.writes()`, it goes to both conversation history AND state (Channel 2). The library uses this distinction to infer visibility, suggest C transforms, and validate contracts.
 
 ### 3.3 `StateSchema` — Typed Declarations
 
@@ -357,12 +357,12 @@ The S module is retained in full from v5. `S.pick`, `S.drop`, `S.rename`, `S.def
 
 **New addition: `S.capture()`**
 
-`S.capture(key)` is a semantic alias for `C.capture(key)`. It exists in the S namespace because it writes to state, but its implementation reads from conversation events. This is the explicit bridge between Channel 1 and Channel 2.
+`S.capture(key)` is a semantic alias for `S.capture(key)`. It exists in the S namespace because it writes to state, but its implementation reads from conversation events. This is the explicit bridge between Channel 1 and Channel 2.
 
 ```python
 pipeline = (
-    S.capture("user_message")  # same as C.capture("user_message")
-    >> classifier.outputs("intent")
+    S.capture("user_message")  # same as S.capture("user_message")
+    >> classifier.writes("intent")
     >> booker.instruct("User: {user_message}\nIntent: {intent}")
 )
 ```
@@ -474,7 +474,7 @@ class VisibilityPlugin(BasePlugin):
 **Level 0 — Automatic** (default):
 
 ```python
-pipeline = classifier.outputs("intent") >> Route("intent").eq("booking", booker)
+pipeline = classifier.writes("intent") >> Route("intent").eq("booking", booker)
 root_agent = pipeline.build()
 # Visibility inferred: classifier=internal, route=zero_cost, booker=user
 # VisibilityPlugin attached automatically
@@ -718,7 +718,7 @@ class RemoteAgentNode:
 pipeline = (
     Agent("classifier", "gemini-2.5-flash")
         .instruct("Classify intent: {user_query}")
-        .outputs("intent")
+        .writes("intent")
     >> RemoteAgent(
         "payment_processor",
         endpoint="https://payments.internal/a2a",
@@ -1386,7 +1386,7 @@ _CHECKERS = [
     # Context contracts (Channel 1 ↔ Channel 2 ↔ Channel 3)
     check_context_contracts,       # C transform validity
     check_template_contracts,      # instruction {variables} resolvable
-    check_output_key_contracts,    # .outputs() reaches downstream readers
+    check_output_key_contracts,    # .writes() reaches downstream readers
     check_channel_coherence,       # detect duplication, data loss across channels
 
     # Structural contracts
@@ -1412,8 +1412,8 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
             if not any_upstream_produces(root, node, var):
                 issues.append(UnresolvedTemplateVar(
                     node.name, var,
-                    hint=f'No upstream agent produces "{var}" via .outputs(). '
-                         f'Did you mean to add .outputs("{var}") to an upstream agent, '
+                    hint=f'No upstream agent produces "{var}" via .writes(). '
+                         f'Did you mean to add .writes("{var}") to an upstream agent, '
                          f'or S.capture("{var}") / S.set({var}=...)?'
                 ))
 
@@ -1434,7 +1434,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
                 if not node.context_spec.includes_agent(pred.name):
                     issues.append(DataLoss(
                         node.name, pred.name,
-                        hint=f'"{pred.name}" has no .outputs() and "{node.name}" uses '
+                        hint=f'"{pred.name}" has no .writes() and "{node.name}" uses '
                              f'C.none(). "{pred.name}"\'s output reaches "{node.name}" '
                              f'through neither state nor conversation. Data is lost.'
                     ))
@@ -1445,7 +1445,7 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
                 issues.append(RouteMissingKey(
                     node.name, node.state_key,
                     hint=f'Route reads "{node.state_key}" from state, but no upstream '
-                         f'agent produces it via .outputs("{node.state_key}").'
+                         f'agent produces it via .writes("{node.state_key}").'
                 ))
 
     return issues
@@ -1454,19 +1454,19 @@ def check_channel_coherence(root: Node) -> list[ContractIssue]:
 ### 13.3 Diagnostic Output Format
 
 ```
-✓ classifier.outputs("intent") → Route("intent"): OK
+✓ classifier.writes("intent") → Route("intent"): OK
   State key "intent" produced by classifier, consumed by route.
 
 ⚠ booker reads {intent} in instruction: OK
-  "intent" is produced by classifier upstream via .outputs("intent").
+  "intent" is produced by classifier upstream via .writes("intent").
 
-⚠ booker has C.default() with predecessor classifier.outputs("intent"): INFO
+⚠ booker has C.default() with predecessor classifier.writes("intent"): INFO
   booker will see "booking" in conversation AND "booking" via {intent}.
   This is duplication. Consider: .context(C.user_only())
 
 ✗ presenter reads {summary} in instruction: ERROR
-  No upstream agent produces "summary" via .outputs() or S.set().
-  Did you mean to add .outputs("summary") to an upstream agent?
+  No upstream agent produces "summary" via .writes() or S.set().
+  Did you mean to add .writes("summary") to an upstream agent?
 ```
 
 Diagnostics are **advisory by default**. `check_all(..., strict=True)` promotes INFO and WARN to errors.
@@ -1548,7 +1548,7 @@ ______________________________________________________________________
 
 **Depends on:** 5a (state system), Phase 4 (FnAgent, backend)
 
-1. `C.capture()` and `C.none()` — simplest transforms, FnAgent compilation
+1. `S.capture()` and `C.none()` — simplest transforms, FnAgent compilation
 1. `C.user_only()`, `C.from_agents()`, `C.exclude_agents()` — InstructionProvider compilation
 1. `C.template()` — template-based context assembly
 1. `C.last_n_turns()` — history windowing
@@ -1569,7 +1569,7 @@ ______________________________________________________________________
 **Depends on:** 5a, 5i, 5j
 
 1. `check_template_contracts` — \{variable} resolution across graph
-1. `check_output_key_contracts` — .outputs() reaches consumers
+1. `check_output_key_contracts` — .writes() reaches consumers
 1. `check_channel_coherence` — duplication and data loss detection
 1. `check_visibility_contracts` — topology inference consistency
 1. Plain-language diagnostic formatting
@@ -1587,13 +1587,13 @@ Retained from v5. Extended: Context Engineering uses ADK's `InstructionProvider`
 Retained from v5. Context Engineering follows this precisely:
 
 - **Level 0:** No C transforms. Pipeline works with ADK defaults. Diagnostics suggest improvements.
-- **Level 1:** `.outputs()` + topology inference. Visibility and basic context handled automatically.
+- **Level 1:** `.writes()` + topology inference. Visibility and basic context handled automatically.
 - **Level 2:** Explicit C transforms for agents that need selective context.
 - **Level 3:** `C.template()` for full control over context assembly.
 
 ### 17.3 Declare Relationships, Infer Wiring
 
-The `>>` operator is the relationship. `.outputs()` is the data contract. `{template}` is the consumption point. `.context(C.xxx)` is the view declaration. The library's job is to connect these declarations across all three channels and tell the developer — clearly, at build time — when the connections don't add up.
+The `>>` operator is the relationship. `.writes()` is the data contract. `{template}` is the consumption point. `.context(C.xxx)` is the view declaration. The library's job is to connect these declarations across all three channels and tell the developer — clearly, at build time — when the connections don't add up.
 
 The S module is for when the developer needs to be the plumber. The C module is for when they need to control the view. The `>>` operator is for when they shouldn't have to think about either.
 
@@ -1610,7 +1610,7 @@ Retained from v5, with additions:
 | Criterion                                                         | Target                                                                | Measurement                                     |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------- |
 | Context Engineering reduces client-visible noise                  | Zero intermediate events in default `filtered` mode                   | Event count comparison: with/without visibility |
-| C transforms prevent data duplication                             | Agents with `.outputs()` predecessors get duplication diagnostic      | Contract checker coverage of all pipelines      |
+| C transforms prevent data duplication                             | Agents with `.writes()` predecessors get duplication diagnostic       | Contract checker coverage of all pipelines      |
 | Cross-channel contract checker catches 90%+ of state/context bugs | Coverage of template vars, output_keys, include_contents combinations | Integration test suite                          |
 | InstructionProvider compilation is correct                        | Filtered context matches expected content                             | Unit tests with session event fixtures          |
 
@@ -1622,7 +1622,7 @@ Retained from v5, with additions:
 
 | Operation                      | Budget               | Mechanism                                        |
 | ------------------------------ | -------------------- | ------------------------------------------------ |
-| C.capture() execution          | \< 1ms               | Single reverse scan of session.events            |
+| S.capture() execution          | \< 1ms               | Single reverse scan of session.events            |
 | InstructionProvider (C filter) | \< 5ms               | Event filtering + string formatting              |
 | Visibility inference           | \< 1ms at build time | Single DAG traversal                             |
 | VisibilityPlugin per event     | \< 0.1ms             | Dictionary lookup + metadata write               |
@@ -1640,9 +1640,9 @@ Retained from v5, with additions:
 | C.none()          | `include_contents='none'`                                | Direct pass-through            |
 | C.user_only()     | InstructionProvider + `include_contents='none'`          | Generated callable             |
 | C.from_state()    | InstructionProvider + `include_contents='none'`          | Generated callable             |
-| C.capture()       | FnAgent reading session.events                           | CaptureAgent subclass          |
+| S.capture()       | FnAgent reading session.events                           | CaptureAgent subclass          |
 | Event visibility  | `BasePlugin.on_event_callback` + `Event.custom_metadata` | VisibilityPlugin               |
-| .outputs()        | `LlmAgent.output_key`                                    | Direct pass-through + metadata |
+| .writes()         | `LlmAgent.output_key`                                    | Direct pass-through + metadata |
 | .show() / .hide() | `Event.custom_metadata` via VisibilityPlugin             | Visibility override in IR      |
 
 ______________________________________________________________________
@@ -1673,13 +1673,13 @@ ______________________________________________________________________
 **Rejected:** Custom SequentialAgent subclass — creates maintenance burden, breaks when ADK updates.
 **Rejected:** Post-processing event stream — would miss state_delta application timing.
 
-### ADR-011: Why .outputs() Is More Than output_key
+### ADR-011: Why .writes() Is More Than output_key
 
-**Context:** `output_key` writes agent text to state. It also creates duplication (text in both conversation and state). Options: (a) treat .outputs() as pure sugar, (b) treat it as a role declaration with downstream consequences.
+**Context:** `output_key` writes agent text to state. It also creates duplication (text in both conversation and state). Options: (a) treat .writes() as pure sugar, (b) treat it as a role declaration with downstream consequences.
 
 **Decision:** Role declaration.
 
-**Rationale:** `.outputs("intent")` tells the library four things: the agent produces structured data, the data has a name, downstream agents can read it from state, and the agent is likely an internal data producer (not user-facing). This single declaration drives visibility inference, context engineering hints, and contract validation. Treating it as sugar would miss the architectural signal — that the agent's text is data, not conversation.
+**Rationale:** `.writes("intent")` tells the library four things: the agent produces structured data, the data has a name, downstream agents can read it from state, and the agent is likely an internal data producer (not user-facing). This single declaration drives visibility inference, context engineering hints, and contract validation. Treating it as sugar would miss the architectural signal — that the agent's text is data, not conversation.
 
 ______________________________________________________________________
 

@@ -52,7 +52,7 @@ section_planner = (
     Agent("section_planner", MODEL)
     .describe("Breaks down the research plan into report sections.")
     .instruct(SECTION_PLANNER_PROMPT)
-    .save_as("report_sections")
+    .writes("report_sections")
 )
 
 section_researcher = (
@@ -61,7 +61,7 @@ section_researcher = (
     .planner(thinking)
     .instruct(SECTION_RESEARCHER_PROMPT)
     .tool(google_search)
-    .save_as("section_research_findings")
+    .writes("section_research_findings")
     .after_agent(collect_research_sources_callback)
 )
 
@@ -71,7 +71,7 @@ research_evaluator = (
     .instruct(RESEARCH_EVALUATOR_PROMPT.format(today=TODAY))
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .save_as("research_evaluation")
+    .writes("research_evaluation")
 ) @ Feedback
 
 enhanced_search = (
@@ -80,7 +80,7 @@ enhanced_search = (
     .planner(thinking)
     .instruct(ENHANCED_SEARCH_PROMPT)
     .tool(google_search)
-    .save_as("section_research_findings")
+    .writes("section_research_findings")
     .after_agent(collect_research_sources_callback)
 )
 
@@ -89,7 +89,7 @@ report_composer = (
     .context(C.none())
     .describe("Composes the final cited report.")
     .instruct(REPORT_COMPOSER_PROMPT)
-    .save_as("final_cited_report")
+    .writes("final_cited_report")
     .after_agent(citation_replacement_callback)
 )
 
@@ -115,7 +115,7 @@ root_agent = (
     .describe("The primary research assistant.")
     .instruct(INTERACTIVE_PLANNER_PROMPT.format(today=TODAY))
     .sub_agents([research_pipeline.build()])
-    .delegate(plan_generator)
-    .save_as("research_plan")
+    .agent_tool(plan_generator)
+    .writes("research_plan")
     .build()
 )

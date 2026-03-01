@@ -13,7 +13,7 @@ def test_diagnose_returns_diagnosis():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import Diagnosis, diagnose
 
-    pipeline = Agent("a").outputs("x") >> Agent("b").instruct("Use {x}.")
+    pipeline = Agent("a").writes("x") >> Agent("b").instruct("Use {x}.")
     ir = pipeline.to_ir()
     diag = diagnose(ir)
     assert isinstance(diag, Diagnosis)
@@ -24,7 +24,7 @@ def test_diagnosis_ok_property():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import diagnose
 
-    pipeline = Agent("a").outputs("x") >> Agent("b").instruct("Use {x}.")
+    pipeline = Agent("a").writes("x") >> Agent("b").instruct("Use {x}.")
     diag = diagnose(pipeline.to_ir())
     assert diag.ok
 
@@ -45,7 +45,7 @@ def test_diagnosis_agents_populated():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import diagnose
 
-    pipeline = Agent("writer").outputs("draft") >> Agent("reviewer")
+    pipeline = Agent("writer").writes("draft") >> Agent("reviewer")
     diag = diagnose(pipeline.to_ir())
     agent_names = [a.name for a in diag.agents]
     assert "writer" in agent_names
@@ -57,7 +57,7 @@ def test_diagnosis_data_flow_populated():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import diagnose
 
-    pipeline = Agent("writer").outputs("draft") >> Agent("reviewer").instruct("Review {draft}.")
+    pipeline = Agent("writer").writes("draft") >> Agent("reviewer").instruct("Review {draft}.")
     diag = diagnose(pipeline.to_ir())
     flow_keys = [f.key for f in diag.data_flow]
     assert "draft" in flow_keys
@@ -123,7 +123,7 @@ def test_builder_doctor_method(capsys):
     """.doctor() prints and returns report."""
     from adk_fluent import Agent
 
-    pipeline = Agent("a").outputs("x") >> Agent("b").instruct("Use {x}.")
+    pipeline = Agent("a").writes("x") >> Agent("b").instruct("Use {x}.")
     report = pipeline.doctor()
     assert isinstance(report, str)
     assert "Pipeline Diagnosis" in report
@@ -136,7 +136,7 @@ def test_format_diagnosis_shows_agents():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import diagnose, format_diagnosis
 
-    pipeline = Agent("writer").outputs("draft") >> Agent("reviewer").instruct("Review {draft}.")
+    pipeline = Agent("writer").writes("draft") >> Agent("reviewer").instruct("Review {draft}.")
     diag = diagnose(pipeline.to_ir())
     report = format_diagnosis(diag)
     assert "writer" in report
@@ -148,7 +148,7 @@ def test_format_diagnosis_shows_data_flow():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import diagnose, format_diagnosis
 
-    pipeline = Agent("writer").outputs("draft") >> Agent("reviewer").instruct("Review {draft}.")
+    pipeline = Agent("writer").writes("draft") >> Agent("reviewer").instruct("Review {draft}.")
     diag = diagnose(pipeline.to_ir())
     report = format_diagnosis(diag)
     assert "draft" in report

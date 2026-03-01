@@ -101,8 +101,8 @@ def test_matmul_vs_returns_equivalence():
 
 
 def test_save_as_vs_writes_equivalence():
-    """.save_as(key) and .writes(key) produce identical DataFlow."""
-    a1 = Agent("test1", "gemini-2.0-flash").save_as("out")
+    """.writes(key) and .writes(key) produce identical DataFlow."""
+    a1 = Agent("test1", "gemini-2.0-flash").writes("out")
     a2 = Agent("test2", "gemini-2.0-flash").writes("out")
 
     df1 = _extract_data_flow(a1)

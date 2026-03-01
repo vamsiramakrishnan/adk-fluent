@@ -50,8 +50,7 @@ for top-level agents — only for agents that serve as tools.
    - ``.accepts(Model)`` → tool-mode input validation (same as this)
    - ``.consumes(Model)`` → contract annotation (no runtime effect)
 """
-output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)`` / ``.writes(key)``."
-save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."
+output_key = "Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
 disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
 
@@ -76,14 +75,21 @@ optional_constructor_args = ["model"]
 
 # New aliases added via merge into auto-generated aliases
 [builders.Agent.manual_aliases]
-save_as = "output_key"
 
 # Deprecated aliases — still work but emit DeprecationWarning
 [builders.Agent.deprecated_aliases]
-outputs = { field = "output_key", use = "save_as" }
+save_as = { field = "output_key", use = "writes" }
+outputs = { field = "output_key", use = "writes" }
+output_key = { field = "output_key", use = "writes" }
+output_schema = { field = "output_schema", use = "returns" }
+input_schema = { field = "input_schema", use = "accepts" }
 history = { field = "include_contents", use = "context" }
 include_history = { field = "include_contents", use = "context" }
 static_instruct = { field = "static_instruction", use = "static" }
+retry_if = { field = "_retry_if", use = "loop_while" }
+inject_context = { field = "_inject_context", use = "prepend" }
+guardrail = { field = "_guardrail", use = "guard" }
+delegate = { field = "_delegate", use = "agent_tool" }
 
 # ---------------------------------------------------------------------------
 # AGENT EXTRAS (Phase 1)
@@ -102,7 +108,7 @@ def search(query: str) -> str:
 
 agent = Agent("helper").tool(search).build()
 '''
-see_also = ["FunctionTool", "Agent.guardrail"]
+see_also = ["FunctionTool", "Agent.guard"]
 
 [[builders.Agent.extras]]
 name = "tools"
@@ -112,9 +118,9 @@ behavior = "runtime_helper"
 helper_func = "_add_tools"
 
 [[builders.Agent.extras]]
-name = "guardrail"
+name = "guard"
 signature = "(self, fn: Callable[..., Any]) -> Self"
-doc = "Attach a guardrail function as both before_model and after_model callback."
+doc = "Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response."
 behavior = "dual_callback"
 target_fields = ["before_model_callback", "after_model_callback"]
 example = '''
@@ -123,7 +129,7 @@ def safety_check(callback_context, llm_request, llm_response, agent):
         return None  # Block response
     return llm_response
 
-agent = Agent("safe", "gemini-2.5-flash").guardrail(safety_check).build()
+agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
 '''
 see_also = ["Agent.before_model", "Agent.after_model"]
 
@@ -263,17 +269,17 @@ helper_func = "_add_memory_auto_save"
 # ---------------------------------------------------------------------------
 
 [[builders.Agent.extras]]
-name = "delegate"
+name = "agent_tool"
 signature = "(self, agent: Any) -> Self"
-doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
+doc = "Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."
 behavior = "runtime_helper"
-helper_func = "delegate_agent"
+helper_func = "add_agent_tool"
 example = '''
 specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route tasks to specialists.")
-    .delegate(specialist)
+    .agent_tool(specialist)
     .build()
 )
 '''
@@ -295,7 +301,7 @@ specialist = (
     Agent("invoice_parser", "gemini-2.5-flash")
     .instruct("Parse the invoice and extract line items.")
     .isolate()
-    .output_schema(Invoice)
+    .returns(Invoice)
     .build()
 )
 '''
@@ -336,6 +342,15 @@ see_also = ["Agent.isolate", "Agent.stay"]
 # ---------------------------------------------------------------------------
 # SCHEMA EXTRAS
 # ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "artifacts"
+signature = "(self, *transforms: Any) -> Self"
+doc = "Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes."
+behavior = "runtime_helper"
+helper_func = "_add_artifacts"
+example = '''Agent("writer").artifacts(A.publish("report.md", from_key="output"))'''
+see_also = ["A", "ATransform"]
 
 [[builders.Agent.extras]]
 name = "tool_schema"

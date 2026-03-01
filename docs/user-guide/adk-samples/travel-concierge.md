@@ -4,15 +4,15 @@ Full-lifecycle travel assistant with 6 specialist sub-agent groups orchestrated 
 
 ## Architecture
 
-Root coordinator delegates to 6 sub-agent groups, each containing their own specialist sub-agents:
+Root coordinator routes to 6 sub-agent groups, each containing their own specialist sub-agents:
 
 ```
 root_agent (gemini-2.0-flash-001)
-  |-- inspiration_agent       (delegates to place_agent, poi_agent; uses map_tool)
-  |-- planning_agent           (delegates to flight_search, flight_seat, hotel_search, hotel_room, itinerary; uses memorize)
-  |-- booking_agent            (delegates to create_reservation, payment_choice, process_payment)
-  |-- pre_trip_agent           (delegates to what_to_pack_agent; uses google_search_grounding AgentTool)
-  |-- in_trip_agent            (sub_agents: trip_monitor_agent; delegates to day_of_agent; uses memorize)
+  |-- inspiration_agent       (agent_tool: place_agent, poi_agent; uses map_tool)
+  |-- planning_agent           (agent_tool: flight_search, flight_seat, hotel_search, hotel_room, itinerary; uses memorize)
+  |-- booking_agent            (agent_tool: create_reservation, payment_choice, process_payment)
+  |-- pre_trip_agent           (agent_tool: what_to_pack_agent; uses google_search_grounding AgentTool)
+  |-- in_trip_agent            (sub_agents: trip_monitor_agent; agent_tool: day_of_agent; uses memorize)
   |-- post_trip_agent          (uses memorize)
 ```
 
@@ -549,8 +549,8 @@ place_agent = (
     .instruct(PLACE_AGENT_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(DestinationIdeas)
-    .save_as("place")
+    .returns(DestinationIdeas)
+    .writes("place")
     .generate_content_config(json_response_config)
 )
 
@@ -560,8 +560,8 @@ poi_agent = (
     .instruct(POI_AGENT_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(POISuggestions)
-    .save_as("poi")
+    .returns(POISuggestions)
+    .writes("poi")
     .generate_content_config(json_response_config)
 )
 
@@ -569,8 +569,8 @@ inspiration_agent = (
     Agent("inspiration_agent", MODEL)
     .describe("A travel inspiration agent...")
     .instruct(INSPIRATION_AGENT_PROMPT)
-    .delegate(place_agent)
-    .delegate(poi_agent)
+    .agent_tool(place_agent)
+    .agent_tool(poi_agent)
     .tool(map_tool)
 )
 
@@ -582,8 +582,8 @@ flight_search_agent = (
     .instruct(FLIGHT_SEARCH_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(FlightsSelection)
-    .save_as("flight")
+    .returns(FlightsSelection)
+    .writes("flight")
     .generate_content_config(json_response_config)
 )
 
@@ -593,11 +593,11 @@ planning_agent = (
     Agent("planning_agent", MODEL)
     .describe("Helps users with travel planning...")
     .instruct(PLANNING_AGENT_PROMPT)
-    .delegate(flight_search_agent)
-    .delegate(flight_seat_selection_agent)
-    .delegate(hotel_search_agent)
-    .delegate(hotel_room_selection_agent)
-    .delegate(itinerary_agent)
+    .agent_tool(flight_search_agent)
+    .agent_tool(flight_seat_selection_agent)
+    .agent_tool(hotel_search_agent)
+    .agent_tool(hotel_room_selection_agent)
+    .agent_tool(itinerary_agent)
     .tool(memorize)
     .generate_content_config(GenerateContentConfig(temperature=0.1, top_p=0.5))
 )
@@ -608,9 +608,9 @@ booking_agent = (
     Agent("booking_agent", MODEL)
     .describe("Complete the bookings by handling payment choices and processing.")
     .instruct(BOOKING_AGENT_PROMPT)
-    .delegate(create_reservation)
-    .delegate(payment_choice)
-    .delegate(process_payment)
+    .agent_tool(create_reservation)
+    .agent_tool(payment_choice)
+    .agent_tool(process_payment)
     .generate_content_config(GenerateContentConfig(temperature=0.0, top_p=0.5))
 )
 
@@ -621,7 +621,7 @@ pre_trip_agent = (
     .describe("Provides relevant travel information before the trip.")
     .instruct(PRETRIP_AGENT_PROMPT)
     .tool(AgentTool(agent=google_search_grounding.build()))
-    .delegate(what_to_pack_agent)
+    .agent_tool(what_to_pack_agent)
 )
 
 in_trip_agent = (
@@ -629,7 +629,7 @@ in_trip_agent = (
     .describe("Provide information during the tour.")
     .instruct(INTRIP_AGENT_PROMPT)
     .sub_agents([trip_monitor_agent.build()])
-    .delegate(day_of_agent)
+    .agent_tool(day_of_agent)
     .tool(memorize)
 )
 
@@ -661,8 +661,8 @@ root_agent = (
 
 ## What Changed
 
-- 14x `AgentTool(agent=...)` wrapping calls replaced by `.delegate()`
-- `output_key=` replaced by `.save_as()`
+- 14x `AgentTool(agent=...)` wrapping calls replaced by `.agent_tool()`
+- `output_key=` replaced by `.writes()`
 - `instruction=` replaced by `.instruct()`
 - `description=` replaced by `.describe()`
 - 30+ files across 15+ directories collapsed to 3 files in 1 directory

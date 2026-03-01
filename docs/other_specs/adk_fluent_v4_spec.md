@@ -137,9 +137,9 @@ agent = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the intent of: {user_query}")
     .tool(classify_tool)
-    .outputs("intent")
+    .writes("intent")
     .before_model(my_callback)
-    .delegate(handler_a, handler_b)
+    .agent_tool(handler_a, handler_b)
 )
 ```
 

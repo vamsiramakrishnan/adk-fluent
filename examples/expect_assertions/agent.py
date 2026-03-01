@@ -16,7 +16,7 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 # expect(): assert a state contract at a pipeline step
 # Raises ValueError with your message if predicate fails
 pipeline_fluent = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").save_as("draft")
+    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").writes("draft")
     >> expect(lambda s: "draft" in s, "Draft must exist before review")
     >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review the draft.")
 )

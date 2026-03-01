@@ -2,7 +2,7 @@
 
 Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 
-**Sequence passes (14 total):**
+**Sequence passes (15 total):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
@@ -36,6 +36,9 @@ Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 14. **MiddlewareSchema dependency validation** -- checks that scoped middleware
     ``reads_keys()`` are produced by upstream agents at the target agent's position.
     Promotes middleware ``writes_keys()`` so downstream consumers can depend on them.
+15. **Artifact availability** -- checks that ``consumes_artifact`` filenames are
+    produced by an upstream ``A.publish()`` or ``A.save()``.  Also validates that
+    bridge operations (publish) have their ``from_key`` available in state.
 
 **Parallel checks:**
 - Write isolation: two branches should not write to the same output_key
@@ -739,6 +742,54 @@ def _check_sequence_contracts(
                         if found and cn in mw_available:
                             mw_available[cn] |= schema_writes
 
+    # =================================================================
+    # Pass 15: Artifact availability
+    # =================================================================
+    from adk_fluent._ir import ArtifactNode
+
+    artifacts_available: set[str] = set()
+
+    for idx, child in enumerate(children):
+        child_name = getattr(child, "name", "?")
+
+        if not isinstance(child, ArtifactNode):
+            # Non-artifact nodes may still produce state keys (tracked in produced_keys already)
+            continue
+
+        # Check consumed artifacts are available upstream
+        for artifact_name in child.consumes_artifact:
+            if artifact_name not in artifacts_available:
+                issues.append(
+                    {
+                        "level": "error",
+                        "agent": _scoped(child_name),
+                        "message": (
+                            f"Consumes artifact '{artifact_name}' but no upstream A.publish() or A.save() produces it"
+                        ),
+                    }
+                )
+
+        # Check consumed state keys (bridge ops like publish reading from_key)
+        if child.bridges_state:
+            upstream_keys = produced_at[idx - 1] if idx > 0 else set()
+            for key in child.consumes_state:
+                if key not in upstream_keys:
+                    issues.append(
+                        {
+                            "level": "error",
+                            "agent": _scoped(child_name),
+                            "message": (f"A.publish() reads state key '{key}' but no upstream agent produces it"),
+                        }
+                    )
+
+        # Promote produced artifacts
+        for artifact_name in child.produces_artifact:
+            artifacts_available.add(artifact_name)
+
+        # Promote produced state keys (so downstream state checks see them)
+        for key in child.produces_state:
+            produced_keys.add(key)
+
     return issues
 
 
@@ -857,7 +908,7 @@ def _check_loop_contracts(children: tuple, parent_name: str = "") -> list[dict[s
 def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
     """Verify contracts on an IR tree. Dispatches by node type.
 
-    Checks SequenceNode (full 14-pass analysis), ParallelNode (isolation),
+    Checks SequenceNode (full 15-pass analysis), ParallelNode (isolation),
     LoopNode (body sequence validation), and DispatchNode (independent agents).
 
     Returns a list where each item is either:

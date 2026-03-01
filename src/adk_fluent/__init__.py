@@ -267,6 +267,8 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "A",
+    "ATransform",
     "BuilderBase",
     "BuilderError",
     "PrimitiveBuilderBase",
@@ -327,7 +329,7 @@ __all__ = [
     "SessionStrategy",
     "ExecutionMode",
     "deep_clone_builder",
-    "delegate_agent",
+    "add_agent_tool",
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",
@@ -339,6 +341,7 @@ __all__ = [
     "run_map_async",
     "StateKey",
     "Artifact",
+    "_add_artifacts",
     "_add_tool",
     "_add_tools",
     "_agent_to_ir",
@@ -362,6 +365,7 @@ __all__ = [
     "RouteNode",
     "TransferNode",
     "CaptureNode",
+    "ArtifactNode",
     "DispatchNode",
     "JoinNode",
     "ExecutionConfig",
@@ -382,15 +386,17 @@ __all__ = [
     "evaluate_predicate",
     "_FnStepBuilder",
     "_CaptureBuilder",
+    "_ArtifactBuilder",
     "_FallbackBuilder",
     "_TapBuilder",
     "_MapOverBuilder",
-    "_TimeoutBuilder",
+    "TimedAgent",
     "_GateBuilder",
     "_RaceBuilder",
-    "_DispatchBuilder",
+    "BackgroundTask",
     "_JoinBuilder",
     "_fn_step",
+    "ArtifactAgent",
     "_LoopHookAgent",
     "_FanOutHookAgent",
     "_dispatch_tasks",
@@ -423,6 +429,7 @@ __all__ = [
     "_compile_prompt_spec",
     "PromptSchema",
     "Route",
+    "Fallback",
     "DeclarativeField",
     "DeclarativeMetaclass",
     "DeclarativeSchema",
@@ -495,6 +502,8 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._artifacts import A
+from ._artifacts import ATransform
 from ._base import BuilderBase
 from ._base import BuilderError
 from ._base import PrimitiveBuilderBase
@@ -555,7 +564,7 @@ from ._context import _compile_context_spec
 from ._enums import SessionStrategy
 from ._enums import ExecutionMode
 from ._helpers import deep_clone_builder
-from ._helpers import delegate_agent
+from ._helpers import add_agent_tool
 from ._helpers import run_one_shot
 from ._helpers import run_one_shot_async
 from ._helpers import run_stream
@@ -567,6 +576,7 @@ from ._helpers import run_map
 from ._helpers import run_map_async
 from ._helpers import StateKey
 from ._helpers import Artifact
+from ._helpers import _add_artifacts
 from ._helpers import _add_tool
 from ._helpers import _add_tools
 from ._helpers import _agent_to_ir
@@ -590,6 +600,7 @@ from ._ir import TimeoutNode
 from ._ir import RouteNode
 from ._ir import TransferNode
 from ._ir import CaptureNode
+from ._ir import ArtifactNode
 from ._ir import DispatchNode
 from ._ir import JoinNode
 from ._ir import ExecutionConfig
@@ -611,13 +622,14 @@ from ._predicate_utils import evaluate_predicate
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
 from ._primitive_builders import _CaptureBuilder
+from ._primitive_builders import _ArtifactBuilder
 from ._primitive_builders import _FallbackBuilder
 from ._primitive_builders import _TapBuilder
 from ._primitive_builders import _MapOverBuilder
-from ._primitive_builders import _TimeoutBuilder
+from ._primitive_builders import TimedAgent
 from ._primitive_builders import _GateBuilder
 from ._primitive_builders import _RaceBuilder
-from ._primitive_builders import _DispatchBuilder
+from ._primitive_builders import BackgroundTask
 from ._primitive_builders import _JoinBuilder
 from ._primitive_builders import tap
 from ._primitive_builders import expect
@@ -630,6 +642,7 @@ from ._primitive_builders import _fn_step
 from ._primitives import FnAgent
 from ._primitives import TapAgent
 from ._primitives import CaptureAgent
+from ._primitives import ArtifactAgent
 from ._primitives import FallbackAgent
 from ._primitives import MapOverAgent
 from ._primitives import TimeoutAgent
@@ -670,6 +683,7 @@ from ._prompt import PVersioned
 from ._prompt import _compile_prompt_spec
 from ._prompt_schema import PromptSchema
 from ._routing import Route
+from ._routing import Fallback
 from ._schema_base import DeclarativeField
 from ._schema_base import DeclarativeMetaclass
 from ._schema_base import DeclarativeSchema
@@ -725,6 +739,9 @@ from .prelude import Agent
 from .prelude import Pipeline
 from .prelude import FanOut
 from .prelude import Loop
+from .prelude import Fallback
+from .prelude import A
+from .prelude import ATransform
 from .prelude import C
 from .prelude import P
 from .prelude import S

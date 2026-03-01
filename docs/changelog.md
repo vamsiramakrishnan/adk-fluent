@@ -92,21 +92,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`.save_as(key)` method**: Clearer name for storing agent response text in session state (replaces `.outputs()`)
+- **`.writes(key)` method**: Clearer name for storing agent response text in session state (replaces `.outputs()`)
 - **`.stay()` method**: Prevent agent from transferring back to parent (positive alternative to `.disallow_transfer_to_parent(True)`)
 - **`.no_peers()` method**: Prevent agent from transferring to sibling agents (positive alternative to `.disallow_transfer_to_peers(True)`)
 - **`adk_fluent.prelude` module**: Minimal imports for most projects — `Agent, Pipeline, FanOut, Loop, C, S, Route, Prompt`
 - **`deprecated_aliases` codegen support**: Generator emits `DeprecationWarning` for deprecated method names pointing to their replacements
-- **Choosing the Right Method table**: Transfer control user guide now documents Pipeline.step, FanOut.branch, Loop.step, Agent.sub_agent, Agent.delegate
+- **Choosing the Right Method table**: Transfer control user guide now documents Pipeline.step, FanOut.branch, Loop.step, Agent.sub_agent, Agent.agent_tool
 
 ### Changed
 
-- All cookbook examples and user guides updated to use `.save_as()` instead of `.outputs()`
+- All cookbook examples and user guides updated to use `.writes()` instead of `.outputs()`
 - Deep search example updated to use `.context(C.none())` instead of `.history("none")`
 
 ### Deprecated
 
-- **`.outputs(key)`** — use `.save_as(key)` instead
+- **`.outputs(key)`** — use `.writes(key)` instead
 - **`.history()`** — use `.context()` with C module instead
 - **`.include_history()`** — use `.context()` with C module instead
 - **`.static_instruct()`** — use `.static()` instead
@@ -116,8 +116,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`.isolate()` convenience method**: Sets both `disallow_transfer_to_parent` and `disallow_transfer_to_peers` in one call for specialist agents
-- **`[field_docs]` seed system**: Rich IDE docstrings for `output_schema`, `input_schema`, `output_key`, `disallow_transfer_to_parent`, `disallow_transfer_to_peers` — hover tooltips now explain behavior and constraints
-- **Structured data user guide**: `docs/user-guide/structured-data.md` — covers `.outputs()`, `.output_schema()`, `@ Schema`, `.input_schema()`, state access patterns
+- **`[field_docs]` seed system**: Rich IDE docstrings for `returns`, `accepts`, `output_key`, `disallow_transfer_to_parent`, `disallow_transfer_to_peers` — hover tooltips now explain behavior and constraints
+- **Structured data user guide**: `docs/user-guide/structured-data.md` — covers `.writes()`, `.returns()`, `@ Schema`, `.accepts()`, state access patterns
 - **Transfer control user guide**: `docs/user-guide/transfer-control.md` — covers control flags, `.isolate()`, control matrix, common patterns
 - **Context engineering user guide**: `docs/user-guide/context-engineering.md` — C module primitives, composition, Agent.context() integration
 - **Visibility user guide**: `docs/user-guide/visibility.md` — topology inference, policies, .show()/.hide()
@@ -146,15 +146,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Context engineering**: `Agent.context()`, `C` module (context transforms), `S.capture()` for history-to-state bridging
 - **Visibility inference**: `VisibilityPlugin` and event visibility analysis
 - **Contract checker**: Cross-channel coherence analysis for inter-agent data flow
-- **Transfer control**: `.isolate()` for specialist agents, `.delegate()` for coordinator pattern
-- **Structured outputs**: `@` operator and `.output_schema()` for Pydantic-enforced JSON output
+- **Transfer control**: `.isolate()` for specialist agents, `.agent_tool()` for coordinator pattern
+- **Structured outputs**: `@` operator and `.returns()` for Pydantic-enforced JSON output
 
 ### Changed
 
 - Code generation pipeline uses `ruff check --fix || true` → `ruff format` → `ruff check` for lint-clean output
 - CI codegen steps aligned with justfile pipeline
 - Generated imports use isort-compatible grouping (future/stdlib/third-party/first-party)
-- `seed.manual.toml` now includes `delegate` extra for seed regeneration resilience
+- `seed.manual.toml` now includes `agent_tool` extra for seed regeneration resilience
 
 ### Fixed
 
@@ -220,7 +220,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `.tool()` docstring clarifies append semantics vs `.tools()` replace
-- `.output_schema()` docstring clarifies relationship with `@` operator
+- `.returns()` docstring clarifies relationship with `@` operator
 - `.tap()` and `.timeout()` docstrings warn about builder type change
 - Updated cookbook #07 to use `.sub_agent()` instead of `.member()`
 
@@ -239,7 +239,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New primitives: `tap`, `expect`, `gate`, `race`, `map_over`, `mock`, `retry_if`, `timeout`
+- New primitives: `tap`, `expect`, `gate`, `race`, `map_over`, `mock`, `loop_while`, `timeout`
 - `Route` builder for deterministic state-based branching
 - `S` state transform factories (`pick`, `drop`, `rename`, `default`, `merge`, `transform`, `compute`, `guard`, `log`)
 - `Prompt` builder for structured multi-section prompt composition
@@ -251,7 +251,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dict routing shorthand `>> {"key": agent}`
 - `.proceed_if()` conditional gating
 - `.loop_until()` conditional loop exit
-- `.inject_context()` for dynamic context injection
+- `.prepend()` for dynamic context injection
 - `.static()` for context-cacheable instructions
 - `.clone()` and `.with_()` for immutable variants
 - `.validate()` and `.explain()` introspection

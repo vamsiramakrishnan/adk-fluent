@@ -17,8 +17,8 @@ class TestDirAgent:
     def test_describe_in_dir(self):
         assert "describe" in dir(Agent("x"))
 
-    def test_save_as_in_dir(self):
-        assert "save_as" in dir(Agent("x"))
+    def test_writes_in_dir(self):
+        assert "writes" in dir(Agent("x"))
 
     def test_after_model_in_dir(self):
         assert "after_model" in dir(Agent("x"))

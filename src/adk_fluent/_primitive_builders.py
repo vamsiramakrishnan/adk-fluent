@@ -19,13 +19,14 @@ __all__ = [
     # Builders
     "_FnStepBuilder",
     "_CaptureBuilder",
+    "_ArtifactBuilder",
     "_FallbackBuilder",
     "_TapBuilder",
     "_MapOverBuilder",
-    "_TimeoutBuilder",
+    "TimedAgent",
     "_GateBuilder",
     "_RaceBuilder",
-    "_DispatchBuilder",
+    "BackgroundTask",
     "_JoinBuilder",
     # Factory functions
     "tap",
@@ -87,6 +88,15 @@ def _fn_step(fn: Callable) -> BuilderBase:
     The function receives a dict (snapshot of session state) and returns
     a dict of updates to merge back into state.
     """
+    # Check for artifact operation (A module)
+    artifact_op = getattr(fn, "_artifact_op", None)
+    if artifact_op is not None:
+        name = getattr(fn, "__name__", f"artifact_{artifact_op}")
+        if not name.isidentifier():
+            name = f"artifact_{artifact_op}"
+        return _ArtifactBuilder(name, _atransform=fn)
+
+    # Check for capture_key (S.capture())
     capture_key = getattr(fn, "_capture_key", None)
     if capture_key is not None:
         name = getattr(fn, "__name__", f"capture_{capture_key}")
@@ -142,6 +152,37 @@ class _CaptureBuilder(PrimitiveBuilderBase):
         return CaptureNode(
             name=self._config.get("name", "capture"),
             key=self._capture_key,
+        )
+
+
+class _ArtifactBuilder(PrimitiveBuilderBase):
+    """Builder for artifact operations. Created by _fn_step() when it detects _artifact_op."""
+
+    _CUSTOM_ATTRS = ("_atransform",)
+
+    def build(self):
+        from adk_fluent._primitives import ArtifactAgent
+
+        return ArtifactAgent(name=self._config["name"], atransform=self._atransform)
+
+    def to_ir(self):
+        from adk_fluent._ir import ArtifactNode
+
+        at = self._atransform
+        return ArtifactNode(
+            name=self._config.get("name", at._name),
+            op=at._op,
+            bridges_state=at._bridges_state,
+            filename=at._filename,
+            from_key=at._from_key,
+            into_key=at._into_key,
+            mime=at._mime,
+            scope=at._scope,
+            version=at._version,
+            produces_artifact=at._produces_artifact,
+            consumes_artifact=at._consumes_artifact,
+            produces_state=at._produces_state,
+            consumes_state=at._consumes_state,
         )
 
 
@@ -302,7 +343,7 @@ class _MapOverBuilder(PrimitiveBuilderBase):
 _timeout_counter = itertools.count(1)
 
 
-class _TimeoutBuilder(PrimitiveBuilderBase):
+class TimedAgent(PrimitiveBuilderBase):
     """Builder that wraps an agent with a time limit."""
 
     _CUSTOM_ATTRS = ("_agent", "_seconds")
@@ -473,7 +514,7 @@ def dispatch(
         else:
             task_names.append(f"task_{i}")
     name = f"dispatch_{next(_dispatch_counter)}"
-    return _DispatchBuilder(
+    return BackgroundTask(
         name,
         _agents=list(agents),
         _task_names=tuple(task_names),
@@ -501,7 +542,7 @@ def join(
     return _JoinBuilder(name, _target_names=target_names, _timeout=timeout)
 
 
-class _DispatchBuilder(PrimitiveBuilderBase):
+class BackgroundTask(PrimitiveBuilderBase):
     """Builder for fire-and-continue dispatch."""
 
     _CUSTOM_ATTRS = ("_agents", "_task_names", "_on_complete", "_on_error", "_stream_to", "_max_tasks")

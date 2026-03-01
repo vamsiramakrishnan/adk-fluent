@@ -1,11 +1,11 @@
 """
-Guardrails with .guardrail()
+Guardrails with .guard()
 
-Converted from cookbook example: 12_guardrails.py
+Converted from cookbook example: 12_guards.py
 
 Usage:
     cd examples
-    adk web guardrails
+    adk web guards
 """
 
 
@@ -23,6 +23,6 @@ from dotenv import load_dotenv
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 # One call registers both before and after:
-builder = Agent("secure").model("gemini-2.5-flash").instruct("Be secure.").guardrail(pii_filter)
+builder = Agent("secure").model("gemini-2.5-flash").instruct("Be secure.").guard(pii_filter)
 
 root_agent = builder.build()

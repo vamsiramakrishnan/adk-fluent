@@ -51,7 +51,7 @@ risk_native = LlmAgent(
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline
 
-# Explicit builder chain: .output_schema() + .save_as()
+# Explicit builder chain: .returns() + .writes()
 intake_fluent = (
     Agent("intake_agent")
     .model("gemini-2.5-flash")
@@ -60,8 +60,8 @@ intake_fluent = (
         "policy number, incident date, and description from the raw "
         "claim submission. Return structured JSON only."
     )
-    .output_schema(ClaimIntake)
-    .save_as("intake_data")
+    .returns(ClaimIntake)
+    .writes("intake_data")
 )
 
 risk_fluent = (
@@ -72,11 +72,11 @@ risk_fluent = (
         "determine the risk level (low/medium/high), any red flags, "
         "and a recommended action (approve/investigate/deny)."
     )
-    .output_schema(RiskAssessment)
-    .save_as("risk_report")
+    .returns(RiskAssessment)
+    .writes("risk_report")
 )
 
-# The @ operator -- shorthand for .output_schema() in expressions
+# The @ operator -- shorthand for .returns() in expressions
 base_agent = (
     Agent("intake_agent").model("gemini-2.5-flash").instruct("Extract claim details and return structured JSON.")
 )
@@ -92,7 +92,7 @@ pipeline = intake_fluent >> risk_fluent >> summary_agent
 
 # --- ASSERT ---
 
-# 1. output_schema is set correctly via .output_schema()
+# 1. output_schema is set correctly via .returns()
 built_intake = intake_fluent.build()
 assert built_intake.output_schema == ClaimIntake
 assert built_intake.output_key == "intake_data"

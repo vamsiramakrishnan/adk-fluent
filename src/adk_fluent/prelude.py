@@ -16,12 +16,14 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 """
 
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
+from adk_fluent._artifacts import A, ATransform
 from adk_fluent._base import until
 from adk_fluent._enums import ExecutionMode, SessionStrategy
 from adk_fluent._middleware import M
 from adk_fluent._middleware_schema import MiddlewareSchema
 from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
 from adk_fluent._primitives import get_execution_mode
+from adk_fluent._routing import Fallback
 from adk_fluent._tool_registry import SearchToolset, ToolRegistry, search_aware_after_tool
 from adk_fluent._tools import T, TComposite
 from adk_fluent._transforms import STransform
@@ -44,7 +46,10 @@ __all__ = [
     "Pipeline",
     "FanOut",
     "Loop",
+    "Fallback",
     # Tier 2: Composition namespaces
+    "A",
+    "ATransform",
     "C",
     "P",
     "S",

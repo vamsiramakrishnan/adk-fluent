@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-01T03:24:03.862596+00:00"
+generated_at = "2026-03-01T07:19:41.501200+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -28,7 +28,7 @@ for top-level agents — only for agents that serve as tools.
    - ``.accepts(Model)`` → tool-mode input validation (same as this)
    - ``.consumes(Model)`` → contract annotation (no runtime effect)
 """
-output_key = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)`` / ``.writes(key)``."
+output_key = "Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."
 output_schema = """Force the LLM to respond with structured JSON matching a Pydantic model.
 
 When set, the agent replies **only** with JSON data conforming to
@@ -47,7 +47,6 @@ is active.
    - ``.writes(key)`` → stores text in state (no format constraint)
    - ``.produces(Model)`` → contract annotation (no runtime effect)
 """
-save_as = "Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."
 
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
@@ -211,7 +210,6 @@ extra_skip_fields = []
 describe = "description"
 global_instruct = "global_instruction"
 instruct = "instruction"
-save_as = "output_key"
 static = "static_instruction"
 
 [builders.Agent.callback_aliases]
@@ -225,9 +223,17 @@ on_model_error = "on_model_error_callback"
 on_tool_error = "on_tool_error_callback"
 
 [builders.Agent.deprecated_aliases]
+delegate = { field = "_delegate", use = "agent_tool" }
+guardrail = { field = "_guardrail", use = "guard" }
 history = { field = "include_contents", use = "context" }
 include_history = { field = "include_contents", use = "context" }
-outputs = { field = "output_key", use = "save_as" }
+inject_context = { field = "_inject_context", use = "prepend" }
+input_schema = { field = "input_schema", use = "accepts" }
+output_key = { field = "output_key", use = "writes" }
+output_schema = { field = "output_schema", use = "returns" }
+outputs = { field = "output_key", use = "writes" }
+retry_if = { field = "_retry_if", use = "loop_while" }
+save_as = { field = "output_key", use = "writes" }
 static_instruct = { field = "static_instruction", use = "static" }
 
 [[builders.Agent.terminals]]
@@ -255,7 +261,7 @@ def search(query: str) -> str:
 
 agent = Agent("helper").tool(search).build()
 '''
-see_also = ["FunctionTool", "Agent.guardrail"]
+see_also = ["FunctionTool", "Agent.guard"]
 
 [[builders.Agent.extras]]
 name = "tools"
@@ -265,9 +271,9 @@ behavior = "runtime_helper"
 helper_func = "_add_tools"
 
 [[builders.Agent.extras]]
-name = "guardrail"
+name = "guard"
 signature = "(self, fn: Callable[..., Any]) -> Self"
-doc = "Attach a guardrail function as both before_model and after_model callback."
+doc = "Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response."
 behavior = "dual_callback"
 target_fields = ["before_model_callback", "after_model_callback"]
 example = '''
@@ -276,7 +282,7 @@ def safety_check(callback_context, llm_request, llm_response, agent):
         return None  # Block response
     return llm_response
 
-agent = Agent("safe", "gemini-2.5-flash").guardrail(safety_check).build()
+agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
 '''
 see_also = ["Agent.before_model", "Agent.after_model"]
 
@@ -408,17 +414,17 @@ behavior = "runtime_helper_ctx"
 helper_func = "_add_memory_auto_save"
 
 [[builders.Agent.extras]]
-name = "delegate"
+name = "agent_tool"
 signature = "(self, agent: Any) -> Self"
-doc = "Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."
+doc = "Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."
 behavior = "runtime_helper"
-helper_func = "delegate_agent"
+helper_func = "add_agent_tool"
 example = '''
 specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route tasks to specialists.")
-    .delegate(specialist)
+    .agent_tool(specialist)
     .build()
 )
 '''
@@ -436,7 +442,7 @@ specialist = (
     Agent("invoice_parser", "gemini-2.5-flash")
     .instruct("Parse the invoice and extract line items.")
     .isolate()
-    .output_schema(Invoice)
+    .returns(Invoice)
     .build()
 )
 '''
@@ -473,6 +479,17 @@ focused = (
 )
 '''
 see_also = ["Agent.isolate", "Agent.stay"]
+
+[[builders.Agent.extras]]
+name = "artifacts"
+signature = "(self, *transforms: Any) -> Self"
+doc = "Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes."
+behavior = "runtime_helper"
+helper_func = "_add_artifacts"
+example = '''
+Agent("writer").artifacts(A.publish("report.md", from_key="output"))
+'''
+see_also = ["A", "ATransform"]
 
 [[builders.Agent.extras]]
 name = "tool_schema"

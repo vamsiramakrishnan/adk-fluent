@@ -142,10 +142,10 @@ Agent(name: str)
 - **Maps to:** `instruction`
 - Set the `instruction` field.
 
-#### `.outputs(value: Union[str, NoneType]) -> Self`
+#### `.writes(value: Union[str, NoneType]) -> Self`
 
 - **Maps to:** `output_key`
-- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: `.outputs(key)`.
+- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key.
 
 #### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
@@ -324,9 +324,9 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 
 Append callback to `before_tool_callback` only if `condition` is `True`.
 
-#### `.guardrail(fn: Callable) -> Self`
+#### `.guard(fn: Callable) -> Self`
 
-Attach a guardrail function as both before_model and after_model callback.
+Attach a guard function as both before_model and after_model callback.
 
 **See also:** `Agent.before_model`, `Agent.after_model`
 
@@ -338,7 +338,7 @@ def safety_check(callback_context, llm_request, llm_response, agent):
         return None  # Block response
     return llm_response
 
-agent = Agent("safe", "gemini-2.5-flash").guardrail(safety_check).build()
+agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
 ```
 
 #### `.on_model_error(*fns: Callable) -> Self`
@@ -388,9 +388,9 @@ Async one-shot execution.
 
 Resolve into a native ADK LlmAgent.
 
-#### `.delegate(agent) -> Self`
+#### `.agent_tool(agent) -> Self`
 
-Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent.
+Add an agent as a tool (wraps in AgentTool). The coordinator LLM can route to this agent.
 
 **See also:** `Agent.tool`, `Agent.isolate`
 
@@ -401,7 +401,7 @@ specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoice
 coordinator = (
     Agent("router", "gemini-2.5-flash")
     .instruct("Route tasks to specialists.")
-    .delegate(specialist)
+    .agent_tool(specialist)
     .build()
 )
 ```
@@ -424,7 +424,7 @@ specialist = (
     Agent("invoice_parser", "gemini-2.5-flash")
     .instruct("Parse the invoice and extract line items.")
     .isolate()
-    .output_schema(Invoice)
+    .returns(Invoice)
     .build()
 )
 ```
@@ -470,7 +470,7 @@ These fields are available via `__getattr__` forwarding.
 | `.generate_content_config(value)`     | `Union[GenerateContentConfig, NoneType]`       |
 | `.disallow_transfer_to_parent(value)` | `bool`                                         |
 | `.disallow_transfer_to_peers(value)`  | `bool`                                         |
-| `.input_schema(value)`                | `Union[type[BaseModel], NoneType]`             |
-| `.output_schema(value)`               | `Union[type[BaseModel], NoneType]`             |
+| `.accepts(value)`                     | `Union[type[BaseModel], NoneType]`             |
+| `.returns(value)`                     | `Union[type[BaseModel], NoneType]`             |
 | `.planner(value)`                     | `Union[BasePlanner, NoneType]`                 |
 | `.code_executor(value)`               | `Union[BaseCodeExecutor, NoneType]`            |

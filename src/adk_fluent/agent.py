@@ -97,7 +97,6 @@ class Agent(BuilderBase):
         "describe": "description",
         "global_instruct": "global_instruction",
         "instruct": "instruction",
-        "save_as": "output_key",
         "static": "static_instruction",
     }
     _CALLBACK_ALIASES: dict[str, str] = {
@@ -148,16 +147,36 @@ class Agent(BuilderBase):
         self._config["instruction"] = value
         return self
 
-    def save_as(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key via ``state['key']``. Alias for ``output_key``. Prefer ``.writes(key)``."""
-        self = self._maybe_fork_for_mutation()
-        self._config["output_key"] = value
-        return self
-
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Set the `static_instruction` field."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
+        return self
+
+    def delegate(self, value: Any) -> Self:
+        """Deprecated: use ``.agent_tool()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".delegate() is deprecated, use .agent_tool() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["_delegate"] = value
+        return self
+
+    def guardrail(self, value: Any) -> Self:
+        """Deprecated: use ``.guard()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".guardrail() is deprecated, use .guard() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["_guardrail"] = value
         return self
 
     def history(self, value: Literal["default", "none"]) -> Self:
@@ -186,13 +205,91 @@ class Agent(BuilderBase):
         self._config["include_contents"] = value
         return self
 
-    def outputs(self, value: str | None) -> Self:
-        """Deprecated: use ``.save_as()`` instead."""
+    def inject_context(self, value: Any) -> Self:
+        """Deprecated: use ``.prepend()`` instead."""
         self = self._maybe_fork_for_mutation()
         import warnings
 
         warnings.warn(
-            ".outputs() is deprecated, use .save_as() instead",
+            ".inject_context() is deprecated, use .prepend() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["_inject_context"] = value
+        return self
+
+    def input_schema(self, value: type[BaseModel] | None) -> Self:
+        """Deprecated: use ``.accepts()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".input_schema() is deprecated, use .accepts() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["input_schema"] = value
+        return self
+
+    def output_key(self, value: str | None) -> Self:
+        """Deprecated: use ``.writes()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".output_key() is deprecated, use .writes() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["output_key"] = value
+        return self
+
+    def output_schema(self, value: type[BaseModel] | None) -> Self:
+        """Deprecated: use ``.returns()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".output_schema() is deprecated, use .returns() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["output_schema"] = value
+        return self
+
+    def outputs(self, value: str | None) -> Self:
+        """Deprecated: use ``.writes()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".outputs() is deprecated, use .writes() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["output_key"] = value
+        return self
+
+    def retry_if(self, value: Any) -> Self:
+        """Deprecated: use ``.loop_while()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".retry_if() is deprecated, use .loop_while() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._config["_retry_if"] = value
+        return self
+
+    def save_as(self, value: str | None) -> Self:
+        """Deprecated: use ``.writes()`` instead."""
+        self = self._maybe_fork_for_mutation()
+        import warnings
+
+        warnings.warn(
+            ".save_as() is deprecated, use .writes() instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -354,48 +451,6 @@ class Agent(BuilderBase):
         self._config["disallow_transfer_to_peers"] = value
         return self
 
-    def input_schema(self, value: type[BaseModel] | None) -> Self:
-        """Schema defining the expected input structure when this agent is invoked as a tool by another agent.
-
-        When another agent invokes this agent via ``AgentTool``, the calling
-        agent's arguments are validated against this Pydantic model. Irrelevant
-        for top-level agents — only for agents that serve as tools.
-
-        .. note::
-
-           Prefer ``.accepts(Model)`` over this method for clarity.
-           ``.accepts()`` is the recommended alias on BuilderBase.
-
-           - ``.accepts(Model)`` → tool-mode input validation (same as this)
-           - ``.consumes(Model)`` → contract annotation (no runtime effect)
-        """
-        self = self._maybe_fork_for_mutation()
-        self._config["input_schema"] = value
-        return self
-
-    def output_schema(self, value: type[BaseModel] | None) -> Self:
-        """Force the LLM to respond with structured JSON matching a Pydantic model.
-
-        When set, the agent replies **only** with JSON data conforming to
-        this schema. The agent **cannot use tools** while ``output_schema``
-        is active.
-
-        .. note::
-
-           Prefer ``.returns(Model)`` or ``@ Model`` over this method.
-           ``.returns()`` sets the same ADK constraint AND automatically
-           parses the response in ``.ask()`` calls. This method sets the
-           raw ADK field without automatic parsing.
-
-           - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
-           - ``.output_schema(Model)`` → LLM constraint only (raw field)
-           - ``.writes(key)`` → stores text in state (no format constraint)
-           - ``.produces(Model)`` → contract annotation (no runtime effect)
-        """
-        self = self._maybe_fork_for_mutation()
-        self._config["output_schema"] = value
-        return self
-
     def planner(self, value: BasePlanner | None) -> Self:
         """Set the ``planner`` field."""
         self = self._maybe_fork_for_mutation()
@@ -426,8 +481,8 @@ class Agent(BuilderBase):
 
         return _add_tools(self, value)
 
-    def guardrail(self, fn: Callable[..., Any]) -> Self:
-        """Attach a guardrail function as both before_model and after_model callback."""
+    def guard(self, fn: Callable[..., Any]) -> Self:
+        """Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response."""
         self = self._maybe_fork_for_mutation()
         self._callbacks["before_model_callback"].append(fn)
         self._callbacks["after_model_callback"].append(fn)
@@ -515,11 +570,11 @@ class Agent(BuilderBase):
 
         return _add_memory_auto_save(self)
 
-    def delegate(self, agent: Any) -> Self:
-        """Add an agent as a delegatable tool (wraps in AgentTool). The coordinator LLM can route to this agent."""
-        from adk_fluent._helpers import delegate_agent
+    def agent_tool(self, agent: Any) -> Self:
+        """Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."""
+        from adk_fluent._helpers import add_agent_tool
 
-        return delegate_agent(self, agent)
+        return add_agent_tool(self, agent)
 
     def isolate(self) -> Self:
         """Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."""
@@ -544,6 +599,12 @@ class Agent(BuilderBase):
         return _no_peers_agent(
             self,
         )
+
+    def artifacts(self, *transforms: Any) -> Self:
+        """Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes."""
+        from adk_fluent._helpers import _add_artifacts
+
+        return _add_artifacts(self, transforms)
 
     def tool_schema(self, schema: type) -> Self:
         """Attach a ToolSchema declaring tool state dependencies."""

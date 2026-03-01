@@ -71,9 +71,9 @@ def test_map_over_to_ir():
 
 def test_timeout_to_ir():
     from adk_fluent import Agent
-    from adk_fluent._base import _TimeoutBuilder
+    from adk_fluent._primitive_builders import TimedAgent
 
-    ir = _TimeoutBuilder("to", _agent=Agent("a"), _seconds=30.0).to_ir()
+    ir = TimedAgent("to", _agent=Agent("a"), _seconds=30.0).to_ir()
     assert isinstance(ir, TimeoutNode)
     assert ir.seconds == 30.0
 

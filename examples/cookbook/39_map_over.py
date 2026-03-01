@@ -61,7 +61,7 @@ feedback_pipeline = (
     Agent("feedback_collector")
     .model("gemini-2.5-flash")
     .instruct("Collect customer feedback from all channels.")
-    .save_as("feedback_entries")
+    .writes("feedback_entries")
     >> map_over(
         "feedback_entries",
         Agent("sentiment_analyzer").model("gemini-2.5-flash").instruct("Analyze sentiment of this feedback entry."),

@@ -225,10 +225,10 @@ def test_derive_aliases_with_overrides():
     from scripts.seed_generator import derive_aliases
 
     fields = ["instruction", "output_key", "include_contents"]
-    overrides = {"outputs": "output_key", "history": "include_contents"}
+    overrides = {"writes": "output_key", "history": "include_contents"}
     aliases = derive_aliases(fields, overrides=overrides)
     assert aliases["instruct"] == "instruction"  # Derived
-    assert aliases["outputs"] == "output_key"  # Override
+    assert aliases["writes"] == "output_key"  # Override
     assert aliases["history"] == "include_contents"  # Override
 
 

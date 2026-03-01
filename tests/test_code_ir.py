@@ -226,7 +226,7 @@ def test_emit_python_keyword_only_params():
 
 def test_emit_python_raw_stmt():
     m = MethodNode(
-        name="guardrail",
+        name="guard",
         params=[Param("self"), Param("fn", type="Callable")],
         returns="Self",
         body=[

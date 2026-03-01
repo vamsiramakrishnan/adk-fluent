@@ -18,7 +18,7 @@ Every data-flow method in adk-fluent maps to exactly one of **five orthogonal co
 │   │           │   │ as a tool │   │ takes     │   │           │           │
 │   ├───────────┤   ├───────────┤   ├───────────┤   ├───────────┤           │
 │   │.reads()   │   │.accepts() │   │.returns() │   │.writes()  │           │
-│   │.context() │   │           │   │ @ Model   │   │.save_as() │           │
+│   │.context() │   │           │   │ @ Model   │   │           │           │
 │   ├───────────┤   ├───────────┤   ├───────────┤   ├───────────┤           │
 │   │include_   │   │input_     │   │output_    │   │output_key │           │
 │   │contents + │   │schema     │   │schema     │   │           │           │
@@ -36,13 +36,13 @@ Every data-flow method in adk-fluent maps to exactly one of **five orthogonal co
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-| Concern      | Method                           | What it controls                        | ADK field                            |
-| ------------ | -------------------------------- | --------------------------------------- | ------------------------------------ |
-| **Context**  | `.reads()` / `.context()`        | What the agent SEES                     | `include_contents` + `instruction`\* |
-| **Input**    | `.accepts()` / `.input_schema()` | What input the agent ACCEPTS as a tool  | `input_schema`                       |
-| **Output**   | `.returns()` / `@ Model`         | What SHAPE the response takes           | `output_schema`                      |
-| **Storage**  | `.writes()` / `.save_as()`       | Where the response is STORED            | `output_key`                         |
-| **Contract** | `.produces()` / `.consumes()`    | Checker ANNOTATIONS (no runtime effect) | _(extension fields)_                 |
+| Concern      | Method                        | What it controls                        | ADK field                            |
+| ------------ | ----------------------------- | --------------------------------------- | ------------------------------------ |
+| **Context**  | `.reads()` / `.context()`     | What the agent SEES                     | `include_contents` + `instruction`\* |
+| **Input**    | `.accepts()`                  | What input the agent ACCEPTS as a tool  | `input_schema`                       |
+| **Output**   | `.returns()` / `@ Model`      | What SHAPE the response takes           | `output_schema`                      |
+| **Storage**  | `.writes()`                   | Where the response is STORED            | `output_key`                         |
+| **Contract** | `.produces()` / `.consumes()` | Checker ANNOTATIONS (no runtime effect) | _(extension fields)_                 |
 
 \* Context compiles into the `instruction` field itself (as an async callable), not a separate `instruction_provider` field.
 

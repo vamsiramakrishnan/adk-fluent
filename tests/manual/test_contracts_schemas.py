@@ -36,7 +36,7 @@ class GatePred(PredicateSchema):
 
 class TestToolSchemaContracts:
     def test_tool_reads_satisfied(self):
-        pipeline = Agent("a").instruct("produce query").outputs("query") >> Agent("b").instruct("search").tool_schema(
+        pipeline = Agent("a").instruct("produce query").writes("query") >> Agent("b").instruct("search").tool_schema(
             ProducerTools
         )
         issues = check_contracts(pipeline.to_ir())

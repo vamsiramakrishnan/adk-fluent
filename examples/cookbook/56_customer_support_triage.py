@@ -44,7 +44,7 @@ classifier = (
         "Customer message: {customer_message}"
     )
     .context(C.none())  # Stateless — only sees the captured message
-    .save_as("intent")
+    .writes("intent")
 )
 
 # Step 3: Specialized handlers for each intent
@@ -57,7 +57,7 @@ billing_handler = (
         "Customer message: {customer_message}"
     )
     .context(C.from_state("customer_message"))
-    .save_as("agent_response")
+    .writes("agent_response")
 )
 
 technical_handler = (
@@ -69,7 +69,7 @@ technical_handler = (
         "Customer message: {customer_message}"
     )
     .context(C.from_state("customer_message"))
-    .save_as("agent_response")
+    .writes("agent_response")
 )
 
 account_handler = (
@@ -81,7 +81,7 @@ account_handler = (
         "Customer message: {customer_message}"
     )
     .context(C.from_state("customer_message"))
-    .save_as("agent_response")
+    .writes("agent_response")
 )
 
 general_handler = (
@@ -93,7 +93,7 @@ general_handler = (
         "Customer message: {customer_message}"
     )
     .context(C.user_only())
-    .save_as("agent_response")
+    .writes("agent_response")
 )
 
 # Step 4: Satisfaction check with escalation gate
@@ -101,7 +101,7 @@ satisfaction_check = (
     Agent("satisfaction_monitor")
     .model(MODEL)
     .instruct("Evaluate if the customer's issue was resolved satisfactorily. Set resolved to 'yes' or 'no'.")
-    .save_as("resolved")
+    .writes("resolved")
 )
 
 escalation_gate = gate(

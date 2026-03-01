@@ -263,7 +263,7 @@ The tables below show fluent method names that differ from the native field name
 | `include_contents`        | `.history()`         | alias              |
 | `include_contents`        | `.include_history()` | alias              |
 | `instruction`             | `.instruct()`        | alias              |
-| `output_key`              | `.outputs()`         | alias              |
+| `output_key`              | `.writes()`          | alias              |
 | `static_instruction`      | `.static()`          | alias              |
 | `static_instruction`      | `.static_instruct()` | alias              |
 | `after_agent_callback`    | `.after_agent()`     | callback, additive |
@@ -337,7 +337,7 @@ The tables below show fluent method names that differ from the native field name
 | `include_contents`   | `.history()`         | alias |
 | `include_contents`   | `.include_history()` | alias |
 | `instruction`        | `.instruct()`        | alias |
-| `output_key`         | `.outputs()`         | alias |
+| `output_key`         | `.writes()`          | alias |
 | `static_instruction` | `.static()`          | alias |
 | `static_instruction` | `.static_instruct()` | alias |
 

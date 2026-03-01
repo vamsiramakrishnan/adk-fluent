@@ -17,6 +17,7 @@ from adk_fluent._context import (
     CWindow,
     _compile_context_spec,
 )
+from adk_fluent._transforms import S
 
 # ======================================================================
 # Boundary primitives: C.none() and C.default()
@@ -278,24 +279,24 @@ class TestTemplate:
 
 
 # ======================================================================
-# C.capture()
+# S.capture()
 # ======================================================================
 
 
 class TestCapture:
     def test_returns_callable(self):
-        fn = C.capture("user_input")
+        fn = S.capture("user_input")
         assert callable(fn)
 
     def test_has_capture_key(self):
-        fn = C.capture("user_input")
+        fn = S.capture("user_input")
         assert fn._capture_key == "user_input"
 
     def test_delegates_to_s_capture(self):
-        """C.capture() should produce the same result as S.capture()."""
+        """S.capture() should produce the same result as S.capture()."""
         from adk_fluent._transforms import S
 
-        c_fn = C.capture("query")
+        c_fn = S.capture("query")
         s_fn = S.capture("query")
         assert c_fn._capture_key == s_fn._capture_key
 

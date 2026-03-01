@@ -52,7 +52,7 @@ query_analyzer = (
         "decompose it into 3-5 sub-questions, and determine which "
         "sources are most relevant (academic, news, web)."
     )
-    .save_as("research_plan")
+    .writes("research_plan")
 )
 
 # Stage 2: Parallel search across multiple source types
@@ -61,17 +61,17 @@ parallel_search = (
     .model(MODEL)
     .instruct("Search the web for relevant articles and blog posts. Summarize key findings.")
     .context(C.from_state("research_plan"))
-    .save_as("web_results")
+    .writes("web_results")
     | Agent("academic_searcher")
     .model(MODEL)
     .instruct("Search academic databases for peer-reviewed papers. Extract methodology and conclusions.")
     .context(C.from_state("research_plan"))
-    .save_as("academic_results")
+    .writes("academic_results")
     | Agent("news_searcher")
     .model(MODEL)
     .instruct("Search recent news for current developments and expert commentary.")
     .context(C.from_state("research_plan"))
-    .save_as("news_results")
+    .writes("news_results")
 )
 
 # Stage 3: Synthesize findings from all sources
@@ -84,7 +84,7 @@ synthesizer = (
         "Rate confidence on a 0-1 scale."
     )
     .context(C.from_state("web_results", "academic_results", "news_results"))
-    .save_as("synthesis")
+    .writes("synthesis")
 )
 
 # Stage 4: Quality review loop — reviewer scores until confident
@@ -96,12 +96,12 @@ quality_loop = (
         "Score quality from 0 to 1. If below 0.85, specify what needs improvement."
     )
     .context(C.from_state("synthesis"))
-    .save_as("quality_score")
+    .writes("quality_score")
     >> Agent("revision_agent")
     .model(MODEL)
     .instruct("Revise the synthesis based on reviewer feedback. Address gaps and improve weak sections.")
     .context(C.from_state("synthesis", "quality_score"))
-    .save_as("synthesis")
+    .writes("synthesis")
 ).loop_until(lambda s: float(s.get("quality_score", 0)) >= 0.85, max_iterations=3)
 
 # Stage 5: Format final report with typed output

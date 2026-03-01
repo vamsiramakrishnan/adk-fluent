@@ -29,7 +29,7 @@ def test_dead_key_detected():
     from adk_fluent import Agent
 
     pipeline = (
-        Agent("a").instruct("Classify.").outputs("classification")
+        Agent("a").instruct("Classify.").writes("classification")
         >> Agent("b").instruct("Write a report.")  # doesn't use {classification}
     )
     ir = pipeline.to_ir()
@@ -42,7 +42,7 @@ def test_no_dead_key_when_consumed():
     """Key produced and consumed via template var is not flagged."""
     from adk_fluent import Agent
 
-    pipeline = Agent("a").instruct("Classify.").outputs("classification") >> Agent("b").instruct(
+    pipeline = Agent("a").instruct("Classify.").writes("classification") >> Agent("b").instruct(
         "Review the {classification}."
     )
     ir = pipeline.to_ir()
@@ -56,7 +56,7 @@ def test_no_dead_key_for_last_agent():
     """Last agent's output_key is not flagged as dead (goes to user)."""
     from adk_fluent import Agent
 
-    pipeline = Agent("a").instruct("Write.") >> Agent("b").instruct("Review.").outputs("final_report")
+    pipeline = Agent("a").instruct("Write.") >> Agent("b").instruct("Review.").writes("final_report")
     ir = pipeline.to_ir()
     issues = check_contracts(ir)
     dead_issues = [i for i in issues if isinstance(i, dict) and "not consumed" in i.get("message", "")]

@@ -67,7 +67,7 @@ The S module provides pure state transforms that compile to `FnAgent` — a zero
 
 ```python
 pipeline = (
-    Agent("researcher").instruct("Find data.").outputs("findings")
+    Agent("researcher").instruct("Find data.").writes("findings")
     >> S.pick("findings", "sources")
     >> S.rename(findings="input")
     >> Agent("writer").instruct("Write report using {input}.")
@@ -128,7 +128,7 @@ The `>>` operator should respect this:
 
 ```python
 # Developer writes:
-classifier = Agent("classifier").instruct("Classify intent").outputs("intent")
+classifier = Agent("classifier").instruct("Classify intent").writes("intent")
 booker = Agent("booker").instruct("Help book. Intent: {intent}")
 pipeline = classifier >> Route("intent").eq("booking", booker)
 
@@ -141,7 +141,7 @@ pipeline = classifier >> Route("intent").eq("booking", booker)
 # booker has no output_key → it's a conversation producer → visibility: user
 ```
 
-No additional configuration needed. The developer expressed their intent through `.outputs()` and `{intent}`. The library infers the rest.
+No additional configuration needed. The developer expressed their intent through `.writes()` and `{intent}`. The library infers the rest.
 
 ### 2. Provide a clean user_message capture pattern
 
@@ -151,7 +151,7 @@ The hardest problem in pipeline state is preserving the user's original message 
 # Explicit: developer captures what they want passed through
 pipeline = (
     S.capture("user_message")           # snapshot current user input into state
-    >> classifier.outputs("intent")
+    >> classifier.writes("intent")
     >> Route("intent").eq("booking",
         booker.instruct("User said: {user_message}\nIntent: {intent}\nHelp them book.")
     )
@@ -167,7 +167,7 @@ For the 80% case where downstream agents just need the user message + structured
 Not type-checking. Not compile errors. Diagnostics — like a linter that explains what will happen at runtime and flags likely mistakes:
 
 ```
-⚠ classifier.outputs("intent") → Route("intent"): OK
+⚠ classifier.writes("intent") → Route("intent"): OK
   State key "intent" flows from classifier to Route via output_key.
 
 ⚠ booker reads {intent} from instruction template: OK
@@ -194,7 +194,7 @@ For the simplest pipeline — `a >> b` where a has `output_key` and b's instruct
 pipeline = (
     Agent("extractor")
         .instruct("Extract name and email from the user's message.")
-        .outputs("extracted")               # → I'm a data producer
+        .writes("extracted")               # → I'm a data producer
     >> Agent("formatter")
         .instruct("Format this data nicely: {extracted}")  # → I consume from state
 )
@@ -206,7 +206,7 @@ pipeline = (
 #     → visibility=user (terminal)
 ```
 
-The S module exists for when the developer needs explicit wiring — renaming keys, merging outputs, computing derived values, guarding invariants. But for the straight-through case of "produce data, consume data," `>>` plus `.outputs()` plus `{template}` should be sufficient.
+The S module exists for when the developer needs explicit wiring — renaming keys, merging outputs, computing derived values, guarding invariants. But for the straight-through case of "produce data, consume data," `>>` plus `.writes()` plus `{template}` should be sufficient.
 
 ## What This Means for adk-fluent
 
@@ -224,6 +224,6 @@ The S module stays as-is. It's already clean. The improvement is in making the *
 
 ## The Principle
 
-Great composition libraries don't expose plumbing. They let developers declare relationships and infer the wiring. The `>>` operator is the relationship. `.outputs()` is the data contract. `{template}` is the consumption point. The library's job is to connect these declarations across all three channels and tell the developer — clearly, at build time — when the connections don't add up.
+Great composition libraries don't expose plumbing. They let developers declare relationships and infer the wiring. The `>>` operator is the relationship. `.writes()` is the data contract. `{template}` is the consumption point. The library's job is to connect these declarations across all three channels and tell the developer — clearly, at build time — when the connections don't add up.
 
 The S module is for when the developer needs to be the plumber. The `>>` operator is for when they shouldn't have to be.

@@ -56,8 +56,8 @@ frontend_expert = (
     )
 )
 
-# .delegate() wraps each agent as AgentTool — the senior architect's LLM
-# decides when to delegate (LLM-driven routing, unlike Route which is deterministic)
+# .agent_tool() wraps each agent as AgentTool — the senior architect's LLM
+# decides when to invoke them (LLM-driven routing, unlike Route which is deterministic)
 senior_architect = (
     Agent("senior_architect")
     .model("gemini-2.5-flash")
@@ -66,8 +66,8 @@ senior_architect = (
         "requests and delegate to the appropriate specialist based on the "
         "technical domain involved."
     )
-    .delegate(db_expert)
-    .delegate(frontend_expert)
+    .agent_tool(db_expert)
+    .agent_tool(frontend_expert)
 )
 ```
 

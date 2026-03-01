@@ -47,7 +47,7 @@ kyc_verifier = (
     Agent("kyc_verifier")
     .model("gemini-2.5-flash")
     .instruct("Verify the customer's identity documents and return approval status.")
-    .save_as("kyc_status")
+    .writes("kyc_status")
     .mock(["KYC: approved", "KYC: pending review"])
 )
 
@@ -56,7 +56,7 @@ risk_assessor = (
     Agent("risk_assessor")
     .model("gemini-2.5-flash")
     .instruct("Evaluate the customer's financial risk profile.")
-    .save_as("risk_level")
+    .writes("risk_level")
     .mock(lambda req: "risk_level: low")
 )
 
@@ -66,7 +66,7 @@ account_provisioner = (
     .model("gemini-2.5-flash")
     .mock(["Account ACT-10042 created successfully."])
     .instruct("Provision a new bank account for the approved customer.")
-    .save_as("account_id")
+    .writes("account_id")
 )
 
 # Full onboarding pipeline with all agents mocked for integration testing

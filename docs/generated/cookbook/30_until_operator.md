@@ -30,7 +30,7 @@ onboarding_loop = (
     Agent("document_checker")
     .model("gemini-2.5-flash")
     .instruct("Review the uploaded identity documents for completeness and clarity.")
-    .save_as("identity_status")
+    .writes("identity_status")
     >> Agent("verification_agent")
     .model("gemini-2.5-flash")
     .instruct("Cross-reference document data against external databases. Report verification status.")

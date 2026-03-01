@@ -225,14 +225,14 @@ story = (
     Agent("story_agent", MODEL)
     .describe(STORY_DESC)
     .instruct(STORY_PROMPT)
-    .save_as("story")
+    .writes("story")
 )
 
 screenplay = (
     Agent("screenplay_agent", MODEL)
     .describe("Agent responsible for writing a screenplay based on a story.")
     .instruct(SCREENPLAY_PROMPT)
-    .save_as("screenplay")
+    .writes("screenplay")
 )
 
 storyboard = (
@@ -240,7 +240,7 @@ storyboard = (
     .describe("Agent responsible for creating storyboard images for each scene "
               "in the screenplay using Vertex AI Imagen.")
     .instruct(STORYBOARD_PROMPT)
-    .save_as("storyboard")
+    .writes("storyboard")
     .tool(storyboard_generate)
 )
 
@@ -249,7 +249,7 @@ video = (
     .describe("Agent responsible for creating video clips for each scene "
               "using Veo 3.0 with storyboard images as reference.")
     .instruct(VIDEO_PROMPT)
-    .save_as("video")
+    .writes("video")
     .tool(video_generate)
 )
 
@@ -272,7 +272,7 @@ root_agent = (
 - 6 `.txt` prompt files replaced by Python constants in `prompt.py`
 - `load_prompt_from_file()` utility eliminated entirely
 - `utils/` directory removed
-- `Agent(name=..., model=..., instruction=..., output_key=...)` replaced by `Agent("name", MODEL).instruct(...).save_as(...)`
+- `Agent(name=..., model=..., instruction=..., output_key=...)` replaced by `Agent("name", MODEL).instruct(...).writes(...)`
 - `tools=[fn]` replaced by `.tool(fn)` with append semantics
 - `sub_agents=[...]` parameter replaced by `.sub_agents([...])` method
 - `ToolContext` parameter simplified in stub tool signatures

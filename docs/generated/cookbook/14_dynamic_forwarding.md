@@ -35,7 +35,7 @@ agent_fluent = (
     Agent("ticket_router")
     .model("gemini-2.5-flash")
     .instruct("Classify incoming support tickets by department.")
-    .output_key("department")
+    .writes("department")
     .include_contents("none")
     .build()
 )

@@ -73,7 +73,7 @@ class SearchPrompt(PromptSchema):
 
 # ── Pipeline ─────────────────────────────────────────────────────────
 
-classifier = Agent("classifier").save_as("confidence").instruct("Classify the user's intent and confidence.")
+classifier = Agent("classifier").writes("confidence").instruct("Classify the user's intent and confidence.")
 
 searcher = (
     Agent("searcher").tool_schema(SearchTools).prompt_schema(SearchPrompt).instruct("Search for relevant documents.")

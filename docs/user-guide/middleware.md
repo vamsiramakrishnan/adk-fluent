@@ -11,7 +11,7 @@ from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
 
 pipeline = (
     Agent("a") >> Agent("b")
-).middleware(RetryMiddleware(max_retries=3))
+).middleware(RetryMiddleware(max_iterations=3))
  .middleware(StructuredLogMiddleware())
 
 app = pipeline.to_app()
@@ -59,7 +59,7 @@ Retries on model or tool errors with exponential backoff:
 from adk_fluent import RetryMiddleware
 
 retry = RetryMiddleware(
-    max_retries=3,       # Maximum retry attempts (default: 3)
+    max_iterations=3,       # Maximum retry attempts (default: 3)
     base_delay=1.0,      # Initial delay in seconds (default: 1.0)
     backoff_factor=2.0,  # Multiplier per retry (default: 2.0)
 )

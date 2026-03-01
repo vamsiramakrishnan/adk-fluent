@@ -374,7 +374,7 @@ class RemoteAgentNode:
 pipeline = (
     Agent("classifier", "gemini-2.5-flash")
         .instruct("Classify intent: {user_query}")
-        .outputs("intent")
+        .writes("intent")
     >> RemoteAgent(
         "payment_processor",
         endpoint="https://payments.internal/a2a",

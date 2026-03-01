@@ -981,7 +981,7 @@ result = Agent("helper", "gemini-2.5-flash").instruct("Help.").ask("Hi")
 pipeline = Agent("a") >> Agent("b")
 
 # Level 2: State transforms (scope-aware)
-pipeline = Agent("a").outputs("x") >> S.pick("x") >> Agent("b")
+pipeline = Agent("a").writes("x") >> S.pick("x") >> Agent("b")
 
 # Level 3: Middleware (compiles to ADK Plugin)
 agent.use(token_budget(50_000)).use(cost_tracker(bq_sink))

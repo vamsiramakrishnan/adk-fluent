@@ -386,8 +386,7 @@ class BuilderBase:
             output_key = self._config.get("output_key")
             if not output_key:
                 raise ValueError(
-                    "Left side of >> dict must have .outputs() or .output_key() set "
-                    "so the router knows which state key to check."
+                    "Left side of >> dict must have .writes() set so the router knows which state key to check."
                 )
             route = Route(output_key)
             for value, agent_builder in other.items():
@@ -1389,15 +1388,8 @@ class BuilderBase:
     # Task 10: Retry and Fallback
     # ------------------------------------------------------------------
 
-    def retry(self, max_attempts: int = 3, backoff: float = 1.0) -> Self:
-        """Configure retry behavior with exponential backoff."""
-        self._config["_retry"] = {"max_attempts": max_attempts, "backoff": backoff}
-        return self
-
-    def fallback(self, model: str) -> Self:
-        """Add a fallback model to try if primary fails."""
-        self._config.setdefault("_fallbacks", []).append(model)
-        return self
+    # .retry() and .fallback() removed in v0.10.0.
+    # Use .generate_content_config() for model-level retry/fallback settings.
 
     # ------------------------------------------------------------------
     # Task 11: Debug Trace Mode (.debug())
@@ -1412,15 +1404,15 @@ class BuilderBase:
     # Control Flow: proceed_if, loop_until, until
     # ------------------------------------------------------------------
 
-    def inject_context(self, fn: Callable) -> Self:
-        """Prepend dynamic context to the prompt via before_model_callback.
+    def prepend(self, fn: Callable) -> Self:
+        """Prepend dynamic text to the LLM prompt via before_model_callback.
 
         The function receives the callback context and returns a string.
-        That string is prepended as a system-level content part before
-        the LLM processes the request.
+        That string is prepended as a content part before the LLM
+        processes the request.
 
         Usage:
-            agent.inject_context(lambda ctx: f"User: {ctx.state.get('user')}")
+            agent.prepend(lambda ctx: f"User: {ctx.state.get('user')}")
         """
 
         def _inject_cb(callback_context, llm_request):
@@ -1541,25 +1533,25 @@ class BuilderBase:
         self._callbacks.setdefault("before_model_callback", []).append(_mock_cb)
         return self
 
-    def retry_if(self, predicate: Callable, *, max_retries: int = 3) -> BuilderBase:
-        """Retry agent execution while predicate(state) returns True.
+    def loop_while(self, predicate: Callable, *, max_iterations: int = 3) -> BuilderBase:
+        """Loop while predicate(state) returns True.
 
         Wraps in a LoopAgent + checkpoint that exits when the predicate
-        becomes False. Thin wrapper over loop_until() with inverted predicate.
+        becomes False. Natural pair with ``.loop_until()``.
 
         Args:
-            predicate: Receives state dict. Retry while this returns True.
-            max_retries: Maximum number of retries (default 3).
+            predicate: Receives state dict. Loop continues while True.
+            max_iterations: Maximum iterations (default 3).
 
         Usage:
-            agent.retry_if(lambda s: s.get("quality") != "good", max_retries=3)
+            agent.loop_while(lambda s: s.get("quality") != "good", max_iterations=3)
         """
-        return self.loop_until(lambda s: not predicate(s), max_iterations=max_retries)
+        return self.loop_until(lambda s: not predicate(s), max_iterations=max_iterations)
 
     def timeout(self, seconds: float) -> BuilderBase:
         """Wrap this agent with a time limit. Raises asyncio.TimeoutError if exceeded.
 
-        .. note:: Returns a new **_TimeoutBuilder**, not self.
+        .. note:: Returns a new **TimedAgent**, not self.
            The builder type changes after this call.
 
         Usage:
@@ -1567,7 +1559,7 @@ class BuilderBase:
         """
         my_name = self._config.get("name", "")
         name = f"{my_name}_timeout_{next(_timeout_counter)}"
-        return _TimeoutBuilder(name, _agent=self, _seconds=seconds)
+        return TimedAgent(name, _agent=self, _seconds=seconds)
 
     def dispatch(
         self,
@@ -1581,10 +1573,10 @@ class BuilderBase:
         """Wrap this builder as a background dispatch task.
 
         Works on ANY builder (Agent, Pipeline, FanOut, Loop).
-        Returns a _DispatchBuilder that fires this builder as a background
+        Returns a BackgroundTask that fires this builder as a background
         task and continues the pipeline immediately.
 
-        .. note:: Returns a new **_DispatchBuilder**, not self.
+        .. note:: Returns a new **BackgroundTask**, not self.
 
         Args:
             name: Task name for selective join.
@@ -1600,7 +1592,7 @@ class BuilderBase:
         """
         task_name = name or self._config.get("name", f"task_{next(_dispatch_counter)}")
         builder_name = f"dispatch_{task_name}"
-        return _DispatchBuilder(
+        return BackgroundTask(
             builder_name,
             _agents=[self],
             _task_names=(task_name,),
@@ -2145,7 +2137,7 @@ class BuilderBase:
 from adk_fluent._primitive_builders import (
     PrimitiveBuilderBase as PrimitiveBuilderBase,
     _CaptureBuilder as _CaptureBuilder,
-    _DispatchBuilder as _DispatchBuilder,
+    BackgroundTask as BackgroundTask,
     _FallbackBuilder as _FallbackBuilder,
     _FnStepBuilder as _FnStepBuilder,
     _GateBuilder as _GateBuilder,
@@ -2153,7 +2145,7 @@ from adk_fluent._primitive_builders import (
     _MapOverBuilder as _MapOverBuilder,
     _RaceBuilder as _RaceBuilder,
     _TapBuilder as _TapBuilder,
-    _TimeoutBuilder as _TimeoutBuilder,
+    TimedAgent as TimedAgent,
     _dispatch_counter as _dispatch_counter,
     _expect_counter as _expect_counter,
     _fn_step as _fn_step,

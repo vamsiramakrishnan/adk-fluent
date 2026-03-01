@@ -8,7 +8,7 @@ Pipeline topology:
     task_agent [tools: search, calc, read_file] [guardrail] [inject: api_key]
         >> verifier [C.from_state("task_result")]
 
-Uses: .tool(), .guardrail(), .inject(), .sub_agent(), .context()
+Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 """
 
 # --- NATIVE ---
@@ -77,7 +77,7 @@ def safety_guardrail(callback_context, llm_request):
 
 # The fluent builder provides:
 #   .tool()      -- add tools one at a time (appends, not replaces)
-#   .guardrail() -- registers both before_model and after_model
+#   .guard() -- registers both before_model and after_model
 #   .inject()    -- hides infra params from LLM schema
 task_agent = (
     Agent("task_agent")
@@ -91,7 +91,7 @@ task_agent = (
     .tool(calculate)
     .tool(read_file)
     .inject(api_key="prod_key")  # Hidden from LLM -- only visible to read_file
-    .guardrail(safety_guardrail)
+    .guard(safety_guardrail)
 )
 
 # Verifier agent checks the task agent's work
@@ -103,7 +103,7 @@ verifier = (
 )
 
 # Compose: task agent -> verifier pipeline
-verified_agent = task_agent.save_as("task_result") >> verifier
+verified_agent = task_agent.writes("task_result") >> verifier
 
 # --- ASSERT ---
 # Task agent has 3 tools (stored in _lists, not _config)
