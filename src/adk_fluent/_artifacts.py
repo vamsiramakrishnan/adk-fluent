@@ -747,3 +747,26 @@ class A:
             _scope=scope,
             _version=version,
         )
+
+    @staticmethod
+    def publish_many(
+        *pairs: tuple[str, str],
+        mime: str | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> tuple[ATransform, ...]:
+        """Batch publish: multiple (filename, from_key) pairs.
+
+        Usage: Agent("w").artifacts(*A.publish_many(("r.md", "report"), ("d.json", "data")))
+        """
+        return tuple(A.publish(filename, from_key=key, mime=mime, scope=scope) for filename, key in pairs)
+
+    @staticmethod
+    def snapshot_many(
+        *pairs: tuple[str, str],
+        scope: Literal["session", "user"] = "session",
+    ) -> tuple[ATransform, ...]:
+        """Batch snapshot: multiple (filename, into_key) pairs.
+
+        Usage: Agent("r").artifacts(*A.snapshot_many(("r.md", "text"), ("d.json", "data")))
+        """
+        return tuple(A.snapshot(filename, into_key=key, scope=scope) for filename, key in pairs)

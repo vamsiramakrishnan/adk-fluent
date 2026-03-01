@@ -602,6 +602,89 @@ class TestBuilderMethod:
         assert len(agent._lists.get("_artifact_transforms", [])) == 2
 
 
+class TestMultiArtifactOps:
+    """A.publish_many, A.snapshot_many — batch operations."""
+
+    def test_publish_many_returns_tuple(self):
+        from adk_fluent import A
+
+        result = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_publish_many_each_is_atransform(self):
+        from adk_fluent import A
+        from adk_fluent._artifacts import ATransform
+
+        result = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        for t in result:
+            assert isinstance(t, ATransform)
+            assert t._op == "publish"
+
+    def test_publish_many_correct_keys(self):
+        from adk_fluent import A
+
+        r, d = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        assert r._filename == "report.md"
+        assert r._from_key == "report"
+        assert d._filename == "data.json"
+        assert d._from_key == "raw_data"
+
+    def test_snapshot_many_returns_tuple(self):
+        from adk_fluent import A
+
+        result = A.snapshot_many(
+            ("report.md", "report_text"),
+            ("data.json", "raw_data"),
+        )
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+
+    def test_snapshot_many_each_is_atransform(self):
+        from adk_fluent import A
+        from adk_fluent._artifacts import ATransform
+
+        result = A.snapshot_many(
+            ("report.md", "report_text"),
+            ("data.json", "raw_data"),
+        )
+        for t in result:
+            assert isinstance(t, ATransform)
+            assert t._op == "snapshot"
+
+    def test_snapshot_many_correct_keys(self):
+        from adk_fluent import A
+
+        r, d = A.snapshot_many(
+            ("report.md", "report_text"),
+            ("data.json", "raw_data"),
+        )
+        assert r._filename == "report.md"
+        assert r._into_key == "report_text"
+        assert d._filename == "data.json"
+        assert d._into_key == "raw_data"
+
+    def test_publish_many_with_artifacts_builder(self):
+        """publish_many result works with .artifacts() via unpacking."""
+        from adk_fluent import A, Agent
+
+        transforms = A.publish_many(
+            ("report.md", "report"),
+            ("data.json", "raw_data"),
+        )
+        agent = Agent("writer").artifacts(*transforms)
+        assert len(agent._lists.get("_artifact_transforms", [])) == 2
+
+
 class TestEndToEnd:
     def test_full_pipeline_builds(self):
         """End-to-end: pipeline with A operations builds without error."""
