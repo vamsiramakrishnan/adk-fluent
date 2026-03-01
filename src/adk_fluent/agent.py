@@ -630,6 +630,59 @@ class Agent(BuilderBase):
         self._config["_artifact_schema"] = schema
         return self
 
+    def eval(
+        self,
+        prompt: str,
+        *,
+        expect: str | None = None,
+        criteria: Any | None = None,
+    ) -> Any:
+        """Inline evaluation. Run a single eval case against this agent.
+
+        Args:
+            prompt: The user prompt to evaluate.
+            expect: Expected response text (for response_match / semantic_match).
+            criteria: ``EComposite`` criteria (e.g., ``E.response_match()``).
+                      Defaults to ``E.response_match()`` if ``expect`` is provided.
+
+        Returns:
+            ``EvalSuite`` configured with a single case, ready to ``.run()``.
+
+        Usage::
+
+            report = await agent.eval("What is 2+2?", expect="4").run()
+            assert report.ok
+        """
+        from adk_fluent._eval import E, EvalSuite
+
+        suite = EvalSuite(self)
+        suite.case(prompt, expect=expect)
+        if criteria is not None:
+            suite.criteria(criteria)
+        elif expect is not None:
+            suite.criteria(E.response_match())
+        return suite
+
+    def eval_suite(self) -> Any:
+        """Create an evaluation suite builder for this agent.
+
+        Returns:
+            ``EvalSuite`` bound to this agent, ready for ``.case()`` / ``.criteria()`` calls.
+
+        Usage::
+
+            report = await (
+                agent.eval_suite()
+                .case("What is 2+2?", expect="4")
+                .case("Search for news", tools=[("google_search", {"query": "news"})])
+                .criteria(E.trajectory() | E.response_match())
+                .run()
+            )
+        """
+        from adk_fluent._eval import EvalSuite
+
+        return EvalSuite(self)
+
     def to_ir(self) -> Any:
         """Convert this Agent builder to an AgentNode IR node."""
         from adk_fluent._helpers import _agent_to_ir

@@ -452,6 +452,15 @@ __all__ = [
     "ToolSchema",
     "T",
     "TComposite",
+    "E",
+    "EComposite",
+    "ECriterion",
+    "ECase",
+    "EvalSuite",
+    "EvalReport",
+    "ComparisonReport",
+    "ComparisonSuite",
+    "EPersona",
     "S",
     "STransform",
     "StateDelta",
@@ -707,6 +716,15 @@ from ._tool_registry import SearchToolset
 from ._tool_registry import search_aware_after_tool
 from ._tool_registry import compress_large_result
 from ._tool_schema import ToolSchema
+from ._eval import E
+from ._eval import EComposite
+from ._eval import ECriterion
+from ._eval import ECase
+from ._eval import EvalSuite
+from ._eval import EvalReport
+from ._eval import ComparisonReport
+from ._eval import ComparisonSuite
+from ._eval import EPersona
 from ._tools import T
 from ._tools import TComposite
 from ._transforms import S
@@ -749,6 +767,7 @@ from .prelude import Fallback
 from .prelude import A
 from .prelude import ATransform
 from .prelude import C
+from .prelude import E
 from .prelude import P
 from .prelude import S
 from .prelude import M

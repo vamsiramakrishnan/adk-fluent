@@ -20,6 +20,7 @@ from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
 from adk_fluent._artifacts import A, ATransform
 from adk_fluent._base import until
 from adk_fluent._enums import ExecutionMode, SessionStrategy
+from adk_fluent._eval import E, EComposite, ECase, ECriterion, EvalSuite, EvalReport, ComparisonReport, ComparisonSuite, EPersona
 from adk_fluent._middleware import M
 from adk_fluent._middleware_schema import MiddlewareSchema
 from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
@@ -52,6 +53,15 @@ __all__ = [
     "A",
     "ATransform",
     "C",
+    "E",
+    "EComposite",
+    "ECase",
+    "ECriterion",
+    "EvalSuite",
+    "EvalReport",
+    "ComparisonReport",
+    "ComparisonSuite",
+    "EPersona",
     "P",
     "S",
     "M",
