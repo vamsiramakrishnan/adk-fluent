@@ -1093,3 +1093,94 @@ class TestPhase2Exports:
 
         assert hasattr(A, "publish_many")
         assert hasattr(A, "snapshot_many")
+
+
+class TestPhase2E2E:
+    """End-to-end integration tests for Phase 2+3."""
+
+    def test_snapshot_then_as_json_pipeline(self):
+        """A.snapshot >> A.as_json composes in a pipeline."""
+        from adk_fluent import A, Agent
+
+        pipeline = (
+            Agent("writer") >> A.snapshot("data.json", into_key="data") >> A.as_json("data") >> Agent("processor")
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent._ir_generated import SequenceNode
+
+        assert isinstance(ir, SequenceNode)
+
+    def test_from_json_then_publish_pipeline(self):
+        """A.from_json >> A.publish composes in a pipeline."""
+        from adk_fluent import A, Agent
+
+        pipeline = Agent("processor") >> A.from_json("config") >> A.publish("config.json", from_key="config")
+        ir = pipeline.to_ir()
+        from adk_fluent._ir_generated import SequenceNode
+
+        assert isinstance(ir, SequenceNode)
+
+    def test_full_roundtrip_pipeline(self):
+        """Full pipeline: agent >> snapshot >> transform >> agent >> serialize >> publish."""
+        from adk_fluent import A, Agent
+
+        pipeline = (
+            Agent("loader")
+            >> A.snapshot("data.csv", into_key="rows")
+            >> A.as_csv("rows")
+            >> Agent("processor")
+            >> A.from_json("result")
+            >> A.publish("result.json", from_key="result")
+        )
+        ir = pipeline.to_ir()
+        assert ir is not None
+
+    def test_schema_with_tools_and_transforms(self):
+        """Agent with artifact_schema, tools, and pipeline transforms all compose."""
+        from adk_fluent import A, Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+
+        class WorkerArtifacts(ArtifactSchema):
+            result: str = Produces("result.json", mime="application/json")
+            source: str = Consumes("input.csv", mime="text/csv")
+
+        pipeline = Agent("loader").artifacts(A.save("input.csv", content="a,b\n1,2")) >> Agent(
+            "worker"
+        ).artifact_schema(WorkerArtifacts).tool(A.tool.load("read_input")).tool(
+            A.tool.save("save_result", allowed=["result.json"])
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent._ir_generated import SequenceNode
+
+        assert isinstance(ir, SequenceNode)
+        # Worker agent should have artifact_schema set on its IR node
+        from adk_fluent._ir_generated import AgentNode
+
+        agent_nodes = [c for c in ir.children if isinstance(c, AgentNode)]
+        worker_node = [n for n in agent_nodes if n.name == "worker"][0]
+        assert worker_node.artifact_schema is WorkerArtifacts
+
+    def test_contract_checking_full_pipeline(self):
+        """Contract checker validates both Pass 15 and Pass 16 in same pipeline."""
+        from adk_fluent import A, Agent
+        from adk_fluent._artifact_schema import ArtifactSchema, Consumes, Produces
+        from adk_fluent.testing.contracts import check_contracts
+
+        class ProducerSchema(ArtifactSchema):
+            report: str = Produces("report.md")
+
+        class ConsumerSchema(ArtifactSchema):
+            source: str = Consumes("report.md")
+
+        pipeline = (
+            Agent("writer").artifact_schema(ProducerSchema)
+            >> A.publish("report.md", from_key="output")
+            >> Agent("reader").artifact_schema(ConsumerSchema)
+            >> A.snapshot("report.md", into_key="text")
+            >> Agent("final")
+        )
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        # No artifact-related errors (Pass 15 handles A.publish/snapshot, Pass 16 handles schemas)
+        artifact_errors = [i for i in issues if i["level"] == "error" and "artifact" in i["message"].lower()]
+        assert len(artifact_errors) == 0
