@@ -1552,7 +1552,7 @@ class BuilderBase:
     def timeout(self, seconds: float) -> BuilderBase:
         """Wrap this agent with a time limit. Raises asyncio.TimeoutError if exceeded.
 
-        .. note:: Returns a new **_TimeoutBuilder**, not self.
+        .. note:: Returns a new **TimedAgent**, not self.
            The builder type changes after this call.
 
         Usage:
@@ -1560,7 +1560,7 @@ class BuilderBase:
         """
         my_name = self._config.get("name", "")
         name = f"{my_name}_timeout_{next(_timeout_counter)}"
-        return _TimeoutBuilder(name, _agent=self, _seconds=seconds)
+        return TimedAgent(name, _agent=self, _seconds=seconds)
 
     def dispatch(
         self,
@@ -1574,10 +1574,10 @@ class BuilderBase:
         """Wrap this builder as a background dispatch task.
 
         Works on ANY builder (Agent, Pipeline, FanOut, Loop).
-        Returns a _DispatchBuilder that fires this builder as a background
+        Returns a BackgroundTask that fires this builder as a background
         task and continues the pipeline immediately.
 
-        .. note:: Returns a new **_DispatchBuilder**, not self.
+        .. note:: Returns a new **BackgroundTask**, not self.
 
         Args:
             name: Task name for selective join.
@@ -1593,7 +1593,7 @@ class BuilderBase:
         """
         task_name = name or self._config.get("name", f"task_{next(_dispatch_counter)}")
         builder_name = f"dispatch_{task_name}"
-        return _DispatchBuilder(
+        return BackgroundTask(
             builder_name,
             _agents=[self],
             _task_names=(task_name,),
@@ -2138,7 +2138,7 @@ class BuilderBase:
 from adk_fluent._primitive_builders import (
     PrimitiveBuilderBase as PrimitiveBuilderBase,
     _CaptureBuilder as _CaptureBuilder,
-    _DispatchBuilder as _DispatchBuilder,
+    BackgroundTask as BackgroundTask,
     _FallbackBuilder as _FallbackBuilder,
     _FnStepBuilder as _FnStepBuilder,
     _GateBuilder as _GateBuilder,
@@ -2146,7 +2146,7 @@ from adk_fluent._primitive_builders import (
     _MapOverBuilder as _MapOverBuilder,
     _RaceBuilder as _RaceBuilder,
     _TapBuilder as _TapBuilder,
-    _TimeoutBuilder as _TimeoutBuilder,
+    TimedAgent as TimedAgent,
     _dispatch_counter as _dispatch_counter,
     _expect_counter as _expect_counter,
     _fn_step as _fn_step,

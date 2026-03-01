@@ -23,10 +23,10 @@ __all__ = [
     "_FallbackBuilder",
     "_TapBuilder",
     "_MapOverBuilder",
-    "_TimeoutBuilder",
+    "TimedAgent",
     "_GateBuilder",
     "_RaceBuilder",
-    "_DispatchBuilder",
+    "BackgroundTask",
     "_JoinBuilder",
     # Factory functions
     "tap",
@@ -343,7 +343,7 @@ class _MapOverBuilder(PrimitiveBuilderBase):
 _timeout_counter = itertools.count(1)
 
 
-class _TimeoutBuilder(PrimitiveBuilderBase):
+class TimedAgent(PrimitiveBuilderBase):
     """Builder that wraps an agent with a time limit."""
 
     _CUSTOM_ATTRS = ("_agent", "_seconds")
@@ -514,7 +514,7 @@ def dispatch(
         else:
             task_names.append(f"task_{i}")
     name = f"dispatch_{next(_dispatch_counter)}"
-    return _DispatchBuilder(
+    return BackgroundTask(
         name,
         _agents=list(agents),
         _task_names=tuple(task_names),
@@ -542,7 +542,7 @@ def join(
     return _JoinBuilder(name, _target_names=target_names, _timeout=timeout)
 
 
-class _DispatchBuilder(PrimitiveBuilderBase):
+class BackgroundTask(PrimitiveBuilderBase):
     """Builder for fire-and-continue dispatch."""
 
     _CUSTOM_ATTRS = ("_agents", "_task_names", "_on_complete", "_on_error", "_stream_to", "_max_tasks")
