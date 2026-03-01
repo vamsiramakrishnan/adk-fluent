@@ -428,6 +428,7 @@ __all__ = [
     "_compile_prompt_spec",
     "PromptSchema",
     "Route",
+    "Fallback",
     "DeclarativeField",
     "DeclarativeMetaclass",
     "DeclarativeSchema",
@@ -680,6 +681,7 @@ from ._prompt import PVersioned
 from ._prompt import _compile_prompt_spec
 from ._prompt_schema import PromptSchema
 from ._routing import Route
+from ._routing import Fallback
 from ._schema_base import DeclarativeField
 from ._schema_base import DeclarativeMetaclass
 from ._schema_base import DeclarativeSchema
@@ -735,6 +737,7 @@ from .prelude import Agent
 from .prelude import Pipeline
 from .prelude import FanOut
 from .prelude import Loop
+from .prelude import Fallback
 from .prelude import C
 from .prelude import P
 from .prelude import S
