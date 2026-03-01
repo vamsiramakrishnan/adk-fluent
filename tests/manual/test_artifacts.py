@@ -451,3 +451,58 @@ class TestExports:
         from adk_fluent.prelude import A
 
         assert hasattr(A, "publish")
+
+
+class TestContractChecking:
+    def test_snapshot_without_upstream_publish_is_error(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+
+        pipeline = (
+            Agent("writer").instruct("Write.") >> A.snapshot("report.md", into_key="text")  # no upstream publish!
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent.testing.contracts import check_contracts
+
+        issues = check_contracts(ir)
+        artifact_issues = [i for i in issues if isinstance(i, dict) and "artifact" in i.get("message", "").lower()]
+        assert any(i["level"] == "error" for i in artifact_issues)
+
+    def test_snapshot_with_upstream_publish_is_clean(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+
+        pipeline = (
+            Agent("writer").instruct("Write.").save_as("report")
+            >> A.publish("report.md", from_key="report")
+            >> A.snapshot("report.md", into_key="text")
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent.testing.contracts import check_contracts
+
+        issues = check_contracts(ir)
+        artifact_errors = [
+            i
+            for i in issues
+            if isinstance(i, dict) and "artifact" in i.get("message", "").lower() and i["level"] == "error"
+        ]
+        assert len(artifact_errors) == 0
+
+    def test_publish_without_upstream_state_key_is_error(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+
+        pipeline = (
+            Agent("writer").instruct("Write.")
+            >> A.publish("report.md", from_key="report")  # writer has no save_as("report")!
+        )
+        ir = pipeline.to_ir()
+        from adk_fluent.testing.contracts import check_contracts
+
+        issues = check_contracts(ir)
+        state_issues = [
+            i
+            for i in issues
+            if isinstance(i, dict) and "state key" in i.get("message", "").lower() and i["level"] == "error"
+        ]
+        assert len(state_issues) > 0
