@@ -10,6 +10,31 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.mermaid",
+    "hoverxref.extension",
+    "sphinxext.opengraph",
+]
+
+# Hoverxref settings
+hoverxref_auto_ref = True
+hoverxref_domains = ["py"]
+hoverxref_role_types = {
+    "hoverxref": "tooltip",
+    "ref": "modal",
+    "class": "tooltip",
+    "meth": "tooltip",
+    "func": "tooltip",
+}
+hoverxref_intersphinx = [
+    "python",
+]
+
+# OpenGraph settings
+ogp_site_url = "https://vamsiramakrishnan.github.io/adk-fluent/"
+ogp_image = "https://vamsiramakrishnan.github.io/adk-fluent/_static/logo.png"
+ogp_description_length = 200
+ogp_type = "website"
+ogp_custom_meta_tags = [
+    '<meta name="twitter:card" content="summary_large_image">',
 ]
 
 # Mermaid settings - use CDN for GitHub Pages (no server-side rendering needed)
@@ -80,4 +105,5 @@ html_extra_path = [
 # - myst.header: heading level warnings in generated docs
 # - myst.xref_missing: cross-references to builder anchors not in seed (optional ADK extensions)
 # - docutils: duplicate target names from case variants (MCPTool vs McpTool)
-suppress_warnings = ["myst.header", "myst.xref_missing", "docutils"]
+# - hoverxref.ref_node_not_found: hoverxref warnings on auto-generated stubs that might be missing references
+suppress_warnings = ["myst.header", "myst.xref_missing", "docutils", "hoverxref.ref_node_not_found"]
