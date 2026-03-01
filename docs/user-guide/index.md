@@ -5,6 +5,7 @@
 maxdepth: 2
 ---
 architecture-and-concepts
+best-practices
 comparison
 builders
 expression-language
