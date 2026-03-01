@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import mimetypes
 
-__all__ = ["A", "ATransform"]
+__all__ = ["A"]
 
 # Gemini-supported inline MIME prefixes (from LoadArtifactsTool)
 _LLM_INLINE_PREFIXES = ("image/", "audio/", "video/")
@@ -87,7 +87,3 @@ class A:
     """
 
     mime = _MimeConstants()
-
-
-# Placeholder for future ATransform class
-ATransform = None
