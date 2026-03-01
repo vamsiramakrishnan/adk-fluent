@@ -26,6 +26,7 @@ __all__ = [
     "RouteNode",
     "TransferNode",
     "CaptureNode",
+    "ArtifactNode",
     "DispatchNode",
     "JoinNode",
     # Config
@@ -136,6 +137,25 @@ class CaptureNode:
 
     name: str
     key: str
+
+
+@dataclass(frozen=True)
+class ArtifactNode:
+    """Artifact operation in the IR."""
+
+    name: str
+    op: Literal["publish", "snapshot", "save", "load", "list", "version", "delete"]
+    bridges_state: bool
+    filename: str | None
+    from_key: str | None
+    into_key: str | None
+    mime: str | None
+    scope: Literal["session", "user"]
+    version: int | None
+    produces_artifact: frozenset[str]
+    consumes_artifact: frozenset[str]
+    produces_state: frozenset[str]
+    consumes_state: frozenset[str]
 
 
 @dataclass(frozen=True)
@@ -255,6 +275,7 @@ Node = (
     | RouteNode
     | TransferNode
     | CaptureNode
+    | ArtifactNode
     | DispatchNode
     | JoinNode
 )

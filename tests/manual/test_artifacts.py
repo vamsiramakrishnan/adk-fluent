@@ -277,6 +277,52 @@ class TestListVersionDelete:
         assert at._consumes_state == frozenset()
 
 
+class TestArtifactNode:
+    def test_artifact_node_creation(self):
+        from adk_fluent._ir import ArtifactNode
+
+        node = ArtifactNode(
+            name="publish_report",
+            op="publish",
+            bridges_state=True,
+            filename="report.md",
+            from_key="report",
+            into_key=None,
+            mime="text/markdown",
+            scope="session",
+            version=None,
+            produces_artifact=frozenset({"report.md"}),
+            consumes_artifact=frozenset(),
+            produces_state=frozenset(),
+            consumes_state=frozenset({"report"}),
+        )
+        assert node.name == "publish_report"
+        assert node.bridges_state is True
+
+
+class TestFnStepDetection:
+    def test_fn_step_detects_artifact_op(self):
+        from adk_fluent._artifacts import A
+        from adk_fluent._primitive_builders import _ArtifactBuilder, _fn_step
+
+        at = A.publish("report.md", from_key="report")
+        builder = _fn_step(at)
+        assert isinstance(builder, _ArtifactBuilder)
+
+    def test_fn_step_artifact_builder_to_ir(self):
+        from adk_fluent._artifacts import A
+        from adk_fluent._ir import ArtifactNode
+        from adk_fluent._primitive_builders import _fn_step
+
+        at = A.publish("report.md", from_key="report")
+        builder = _fn_step(at)
+        ir_node = builder.to_ir()
+        assert isinstance(ir_node, ArtifactNode)
+        assert ir_node.op == "publish"
+        assert ir_node.filename == "report.md"
+        assert ir_node.produces_artifact == frozenset({"report.md"})
+
+
 class TestWhen:
     def test_when_wraps_atransform(self):
         from adk_fluent._artifacts import A, ATransform

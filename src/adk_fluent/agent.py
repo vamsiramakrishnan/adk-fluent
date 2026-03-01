@@ -572,9 +572,9 @@ class Agent(BuilderBase):
 
     def agent_tool(self, agent: Any) -> Self:
         """Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."""
-        from adk_fluent._helpers import delegate_agent
+        from adk_fluent._helpers import add_agent_tool
 
-        return delegate_agent(self, agent)
+        return add_agent_tool(self, agent)
 
     def isolate(self) -> Self:
         """Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return."""
