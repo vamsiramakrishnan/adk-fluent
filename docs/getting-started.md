@@ -142,34 +142,35 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 
 ## What's Next
 
-::::{grid} 1 2 2 2
-:gutter: 3
-
-:::{grid-item-card} 📘 Read the User Guide
+````{grid} 1 2 2 2
+---
+gutter: 3
+---
+```{grid-item-card} 📘 Read the User Guide
 :link: user-guide/index
 :link-type: doc
 
 Deep dive into builders, operators, callbacks, and more.
-:::
+```
 
-:::{grid-item-card} 📚 API Reference
+```{grid-item-card} 📚 API Reference
 :link: generated/api/index
 :link-type: doc
 
 Complete method reference for all 130+ builders.
-:::
+```
 
-:::{grid-item-card} 🍳 Explore the Cookbook
+```{grid-item-card} 🍳 Explore the Cookbook
 :link: generated/cookbook/index
 :link-type: doc
 
 Browse 34+ side-by-side examples with native ADK comparisons.
-:::
+```
 
-:::{grid-item-card} 🔄 Migration Guide
+```{grid-item-card} 🔄 Migration Guide
 :link: generated/migration/from-native-adk
 :link-type: doc
 
 Migrate existing ADK code to adk-fluent effortlessly.
-:::
-::::
+```
+````

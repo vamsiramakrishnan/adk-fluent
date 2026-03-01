@@ -19,33 +19,34 @@ agent = Agent("helper", "gemini-2.5-flash").instruct("You are helpful.").build()
 
 Every `.build()` returns a real ADK object — fully compatible with `adk web`, `adk run`, and `adk deploy`.
 
-::::{grid} 1 2 2 2
-:gutter: 3
-
-:::{grid-item-card} 🚀 Getting Started
+````{grid} 1 2 2 2
+---
+gutter: 3
+---
+```{grid-item-card} 🚀 Getting Started
 :link: getting-started
 :link-type: doc
 Learn the core concepts and build your first fluent agent in 5 minutes.
-:::
+```
 
-:::{grid-item-card} 📘 User Guide
+```{grid-item-card} 📘 User Guide
 :link: user-guide/index
 :link-type: doc
 Deep dive into builders, operators, prompts, and callbacks.
-:::
+```
 
-:::{grid-item-card} 🍳 Cookbook
+```{grid-item-card} 🍳 Cookbook
 :link: generated/cookbook/index
 :link-type: doc
 34+ copy-pasteable recipes and side-by-side native ADK comparisons.
-:::
+```
 
-:::{grid-item-card} 📚 API Reference
+```{grid-item-card} 📚 API Reference
 :link: generated/api/index
 :link-type: doc
 Complete method reference for all 130+ builders.
-:::
-::::
+```
+````
 
 ```{toctree}
 ---

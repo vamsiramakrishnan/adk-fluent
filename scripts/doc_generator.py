@@ -320,7 +320,11 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
                 field_info = next((f for f in spec.fields if f["name"] == arg), None)
                 if field_info:
                     arg_type = field_info["type_str"]
-            safe_type = f"{{py:class}}`{arg_type}`" if arg_type in ("str", "bool", "int", "float", "list", "dict", "set") else f"`{arg_type}`"
+            safe_type = (
+                f"{{py:class}}`{arg_type}`"
+                if arg_type in ("str", "bool", "int", "float", "list", "dict", "set")
+                else f"`{arg_type}`"
+            )
             lines.append(f"| `{arg}` | {safe_type} |")
         lines.append("")
 
@@ -443,7 +447,9 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             lines.append(f"### {category}")
             lines.append("")
             for m in sorted(groups[category], key=lambda x: x.name):
-                badge_color = "primary" if "Control Flow" in m.category else ("success" if "Core" in m.category else "info")
+                badge_color = (
+                    "primary" if "Control Flow" in m.category else ("success" if "Core" in m.category else "info")
+                )
                 lines.append(f"#### `.{m.name}{m.signature}` {{bdg-{badge_color}}}`{m.category}`")
                 lines.append("")
                 if m.doc:
@@ -512,7 +518,11 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             lines.append("| Field | Type |")
             lines.append("|-------|------|")
             for fname, ftype in forwarded:
-                safe_type = f"{{py:class}}`{ftype}`" if ftype in ("str", "bool", "int", "float", "list", "dict", "set") else f"`{ftype}`"
+                safe_type = (
+                    f"{{py:class}}`{ftype}`"
+                    if ftype in ("str", "bool", "int", "float", "list", "dict", "set")
+                    else f"`{ftype}`"
+                )
                 lines.append(f"| `.{fname}(value)` | {safe_type} |")
             lines.append("")
 
@@ -1212,18 +1222,18 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
         lines.append("")
 
         # List items
-        lines.append("::::{grid} 1 2 2 2")
+        lines.append("````{grid} 1 2 2 2")
         lines.append(":gutter: 3")
         lines.append("")
         for item in items:
             stem = Path(item["filename"]).stem
-            lines.append(f":::{{grid-item-card}} {item['title']}")
+            lines.append(f"```{{grid-item-card}} {item['title']}")
             lines.append(f":link: {stem}")
             lines.append(":link-type: doc")
             lines.append("")
             lines.append(f"*{_learn_summary(item['title'])}*")
-            lines.append(":::")
-        lines.append("::::")
+            lines.append("```")
+        lines.append("````")
         lines.append("")
 
         # Toctree per category
