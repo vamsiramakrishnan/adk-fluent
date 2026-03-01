@@ -112,16 +112,18 @@ class ToolRegistry:
             for name, score in ranked[:top_k]:
                 if score > 0:
                     results.append({"name": name, "description": self._descriptions.get(name, "")})
-            return results
-        else:
-            # Substring fallback
-            query_lower = query.lower()
-            matches = []
-            for name, desc in self._descriptions.items():
-                text = (name + " " + desc).lower()
-                if any(word in text for word in query_lower.split()):
-                    matches.append({"name": name, "description": desc})
-            return matches[:top_k]
+            if results:
+                return results
+            # BM25 returned nothing (e.g. single-doc corpus → IDF=0); fall through
+
+        # Substring fallback
+        query_lower = query.lower()
+        matches = []
+        for name, desc in self._descriptions.items():
+            text = (name + " " + desc).lower()
+            if any(word in text for word in query_lower.split()):
+                matches.append({"name": name, "description": desc})
+        return matches[:top_k]
 
     def get_tool(self, name: str) -> Any | None:
         """Get a registered tool by name."""
