@@ -2168,19 +2168,9 @@ class C:
         return CFromState(keys=keys)
 
     @staticmethod
-    def template(template_str: str) -> CTemplate:
+    def template(text: str) -> CTemplate:
         """Render a template string with {key} and {key?} state placeholders."""
-        return CTemplate(template=template_str)
-
-    @staticmethod
-    def capture(key: str) -> Callable:
-        """Capture the most recent user message into state[key].
-
-        Delegates to S.capture(key) from adk_fluent._transforms.
-        """
-        from adk_fluent._transforms import S
-
-        return S.capture(key)
+        return CTemplate(template=text)
 
     @staticmethod
     def when(predicate: Callable | str, block: CTransform) -> CWhen:

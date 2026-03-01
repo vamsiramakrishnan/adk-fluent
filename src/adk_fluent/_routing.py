@@ -70,6 +70,24 @@ class Route:
         self._rules.append((lambda s, t=threshold, k=key: float(s.get(k, 0)) < t, agent))
         return self
 
+    def gte(self, threshold: float | int, agent) -> Route:
+        """Branch to agent when ``float(state[key]) >= threshold``."""
+        key = self._require_key("gte")
+        self._rules.append((lambda s, t=threshold, k=key: float(s.get(k, 0)) >= t, agent))
+        return self
+
+    def lte(self, threshold: float | int, agent) -> Route:
+        """Branch to agent when ``float(state[key]) <= threshold``."""
+        key = self._require_key("lte")
+        self._rules.append((lambda s, t=threshold, k=key: float(s.get(k, 0)) <= t, agent))
+        return self
+
+    def ne(self, value: Any, agent) -> Route:
+        """Branch to agent when ``state[key] != value``."""
+        key = self._require_key("ne")
+        self._rules.append((lambda s, v=value, k=key: s.get(k) != v, agent))
+        return self
+
     def when(self, predicate: Callable | type, agent) -> Route:
         """Branch to agent when predicate(state) is truthy.
 
