@@ -364,6 +364,7 @@ __all__ = [
     "RouteNode",
     "TransferNode",
     "CaptureNode",
+    "ArtifactNode",
     "DispatchNode",
     "JoinNode",
     "ExecutionConfig",
@@ -384,15 +385,17 @@ __all__ = [
     "evaluate_predicate",
     "_FnStepBuilder",
     "_CaptureBuilder",
+    "_ArtifactBuilder",
     "_FallbackBuilder",
     "_TapBuilder",
     "_MapOverBuilder",
-    "_TimeoutBuilder",
+    "TimedAgent",
     "_GateBuilder",
     "_RaceBuilder",
-    "_DispatchBuilder",
+    "BackgroundTask",
     "_JoinBuilder",
     "_fn_step",
+    "ArtifactAgent",
     "_LoopHookAgent",
     "_FanOutHookAgent",
     "_dispatch_tasks",
@@ -594,6 +597,7 @@ from ._ir import TimeoutNode
 from ._ir import RouteNode
 from ._ir import TransferNode
 from ._ir import CaptureNode
+from ._ir import ArtifactNode
 from ._ir import DispatchNode
 from ._ir import JoinNode
 from ._ir import ExecutionConfig
@@ -615,13 +619,14 @@ from ._predicate_utils import evaluate_predicate
 from ._primitive_builders import PrimitiveBuilderBase
 from ._primitive_builders import _FnStepBuilder
 from ._primitive_builders import _CaptureBuilder
+from ._primitive_builders import _ArtifactBuilder
 from ._primitive_builders import _FallbackBuilder
 from ._primitive_builders import _TapBuilder
 from ._primitive_builders import _MapOverBuilder
-from ._primitive_builders import _TimeoutBuilder
+from ._primitive_builders import TimedAgent
 from ._primitive_builders import _GateBuilder
 from ._primitive_builders import _RaceBuilder
-from ._primitive_builders import _DispatchBuilder
+from ._primitive_builders import BackgroundTask
 from ._primitive_builders import _JoinBuilder
 from ._primitive_builders import tap
 from ._primitive_builders import expect
@@ -634,6 +639,7 @@ from ._primitive_builders import _fn_step
 from ._primitives import FnAgent
 from ._primitives import TapAgent
 from ._primitives import CaptureAgent
+from ._primitives import ArtifactAgent
 from ._primitives import FallbackAgent
 from ._primitives import MapOverAgent
 from ._primitives import TimeoutAgent

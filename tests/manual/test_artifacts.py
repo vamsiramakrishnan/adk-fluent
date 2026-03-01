@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 
 class TestMimeConstants:
     def test_text_constants(self):
@@ -332,3 +334,70 @@ class TestWhen:
         assert isinstance(at, ATransform)
         assert at._op == "publish"
         assert at._filename == "report.md"
+
+
+class TestArtifactAgent:
+    def test_agent_creation(self):
+        from adk_fluent._artifacts import A
+        from adk_fluent._primitives import ArtifactAgent
+
+        at = A.publish("report.md", from_key="report")
+        agent = ArtifactAgent(name="publish_report", atransform=at)
+        assert agent.name == "publish_report"
+
+    @pytest.mark.asyncio
+    async def test_publish_saves_to_artifact_service(self):
+        """Integration test: publish reads state, saves artifact."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        from adk_fluent._artifacts import A
+        from adk_fluent._primitives import ArtifactAgent
+
+        at = A.publish("report.md", from_key="report")
+        agent = ArtifactAgent(name="test", atransform=at)
+
+        # Mock context
+        ctx = MagicMock()
+        ctx.session.state = {"report": "# My Report"}
+        ctx.session.id = "sess-1"
+        mock_svc = AsyncMock()
+        mock_svc.save_artifact = AsyncMock(return_value=0)
+        ctx._invocation_context.artifact_service = mock_svc
+        ctx._invocation_context.app_name = "test_app"
+        ctx._invocation_context.user_id = "user-1"
+        ctx._event_actions.artifact_delta = {}
+
+        async for _ in agent._run_async_impl(ctx):
+            pass
+
+        mock_svc.save_artifact.assert_called_once()
+        call_kwargs = mock_svc.save_artifact.call_args[1]
+        assert call_kwargs["filename"] == "report.md"
+        assert ctx._event_actions.artifact_delta["report.md"] == 0
+
+    @pytest.mark.asyncio
+    async def test_snapshot_loads_text_into_state(self):
+        """Integration test: snapshot loads artifact, writes to state."""
+        from unittest.mock import AsyncMock, MagicMock
+
+        import google.genai.types as types
+
+        from adk_fluent._artifacts import A
+        from adk_fluent._primitives import ArtifactAgent
+
+        at = A.snapshot("report.md", into_key="text")
+        agent = ArtifactAgent(name="test", atransform=at)
+
+        ctx = MagicMock()
+        ctx.session.state = {}
+        ctx.session.id = "sess-1"
+        mock_svc = AsyncMock()
+        mock_svc.load_artifact = AsyncMock(return_value=types.Part.from_text(text="# Report Content"))
+        ctx._invocation_context.artifact_service = mock_svc
+        ctx._invocation_context.app_name = "test_app"
+        ctx._invocation_context.user_id = "user-1"
+
+        async for _ in agent._run_async_impl(ctx):
+            pass
+
+        assert ctx.session.state["text"] == "# Report Content"

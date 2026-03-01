@@ -23,6 +23,7 @@ __all__ = [
     "FnAgent",
     "TapAgent",
     "CaptureAgent",
+    "ArtifactAgent",
     "FallbackAgent",
     "MapOverAgent",
     "TimeoutAgent",
@@ -208,6 +209,129 @@ class CaptureAgent(BaseAgent):
                     break
         return
         yield  # noqa: RET504 -- required for async generator protocol
+
+
+class ArtifactAgent(BaseAgent):
+    """Zero-cost artifact bridge/direct agent. No LLM call.
+
+    Handles both bridge ops (publish/snapshot) and direct ops
+    (save/load/list/version/delete).
+    """
+
+    _atransform: Any
+
+    def __init__(self, *, atransform: Any, **kwargs: Any):
+        super().__init__(**kwargs)
+        object.__setattr__(self, "_atransform", atransform)
+
+    async def _run_async_impl(self, ctx: Any) -> AsyncGenerator[Event, None]:
+        from google.genai import types as genai_types
+
+        at = self._atransform
+        svc = ctx._invocation_context.artifact_service
+        if svc is None:
+            raise ValueError("No artifact_service configured on Runner")
+
+        app_name = ctx._invocation_context.app_name
+        user_id = ctx._invocation_context.user_id
+        session_id = ctx.session.id
+        # User-scoped: session_id=None for the service call,
+        # and "user:<filename>" in artifact_delta so runner doesn't rewind.
+        is_user_scope = at._scope == "user"
+        svc_session_id = None if is_user_scope else session_id
+        delta_filename = f"user:{at._filename}" if is_user_scope else at._filename
+
+        if at._op == "publish":
+            content = ctx.session.state.get(at._from_key, "")
+            if isinstance(content, bytes):
+                part = genai_types.Part.from_bytes(
+                    data=content,
+                    mime_type=at._mime or "application/octet-stream",
+                )
+            else:
+                part = genai_types.Part.from_text(text=str(content))
+            version = await svc.save_artifact(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=at._filename,
+                artifact=part,
+            )
+            ctx._event_actions.artifact_delta[delta_filename] = version
+
+        elif at._op == "save":
+            if isinstance(at._content, bytes):
+                part = genai_types.Part.from_bytes(
+                    data=at._content,
+                    mime_type=at._mime or "application/octet-stream",
+                )
+            else:
+                part = genai_types.Part.from_text(text=str(at._content))
+            version = await svc.save_artifact(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=at._filename,
+                artifact=part,
+            )
+            ctx._event_actions.artifact_delta[delta_filename] = version
+
+        elif at._op == "snapshot":
+            part = await svc.load_artifact(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=at._filename,
+                version=at._version,
+            )
+            if part is not None:
+                if part.text is not None:
+                    ctx.session.state[at._into_key] = part.text
+                elif at._decode and part.inline_data:
+                    ctx.session.state[at._into_key] = part.inline_data.data.decode("utf-8", errors="replace")
+                elif part.inline_data:
+                    ctx.session.state[at._into_key] = (
+                        f"artifact://apps/{app_name}/users/{user_id}/sessions/{session_id}/artifacts/{delta_filename}"
+                    )
+                else:
+                    ctx.session.state[at._into_key] = str(part)
+
+        elif at._op == "load":
+            pass  # Direct pipeline load — handled by caller
+
+        elif at._op == "list":
+            keys = await svc.list_artifact_keys(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+            )
+            ctx.session.state[at._into_key] = keys
+
+        elif at._op == "version":
+            ver = await svc.get_artifact_version(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=at._filename,
+            )
+            if ver is not None:
+                ctx.session.state[at._into_key] = {
+                    "version": ver.version,
+                    "mime_type": ver.mime_type,
+                    "create_time": ver.create_time,
+                    "canonical_uri": ver.canonical_uri,
+                }
+
+        elif at._op == "delete":
+            await svc.delete_artifact(
+                app_name=app_name,
+                user_id=user_id,
+                session_id=svc_session_id,
+                filename=at._filename,
+            )
+
+        return
+        yield  # noqa: RET504 — async generator protocol
 
 
 class MapOverAgent(BaseAgent):
