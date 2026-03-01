@@ -108,6 +108,10 @@ jobs:
             --output-dir src/adk_fluent \
             --test-dir tests/generated
 
+      # --- LLMs CONTEXT ---
+      - name: Generate llms.txt and editor rules
+        run: python scripts/llms_generator.py manifest.json seeds/seed.toml
+
       # --- ARCHIVE ---
       - name: Archive manifest for next run
         run: cp manifest.json manifest.previous.json
@@ -120,6 +124,12 @@ jobs:
             tests/generated/
             manifest.json
             manifest.previous.json
+            docs/llms.txt
+            CLAUDE.md
+            .cursor/
+            .github/instructions/
+            .windsurfrules
+            .clinerules/
 
   # =========================================================================
   # JOB 2: Type-check generated stubs

@@ -35,6 +35,18 @@ GitHub Copilot in VS Code. Uses `.github/instructions/` for project context and 
 :link-type: doc
 AI code editor by Codeium. Uses `.windsurfrules` for project context and supports MCP servers.
 ```
+
+```{grid-item-card} Cline
+:link: cline
+:link-type: doc
+VS Code extension. Uses `.clinerules/` for project context and supports MCP servers.
+```
+
+```{grid-item-card} Zed
+:link: zed
+:link-type: doc
+High-performance editor. Uses `llms.txt` via `#fetch` and supports MCP context servers.
+```
 ````
 
 ## How it works
@@ -49,6 +61,10 @@ MCP servers
 
 Both approaches can be used independently, but combining them gives the best results.
 
+:::{tip}
+All rules files (`CLAUDE.md`, `.cursor/rules/adk-fluent.mdc`, `.windsurfrules`, etc.) are **auto-generated** from the same source of truth by `scripts/llms_generator.py`. They update automatically when the API changes, so they never go stale. Run `just llms` to regenerate them locally, or let CI handle it.
+:::
+
 ```{toctree}
 ---
 hidden: true
@@ -57,4 +73,6 @@ claude-code
 cursor
 vscode
 windsurf
+cline
+zed
 ```

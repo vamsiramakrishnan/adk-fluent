@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'scripts/doc_generator.py'
+      - 'scripts/llms_generator.py'
       - 'seeds/**'
       - '.github/workflows/docs.yml'
   pull_request:
@@ -13,6 +14,7 @@ on:
     paths:
       - 'docs/**'
       - 'scripts/doc_generator.py'
+      - 'scripts/llms_generator.py'
       - 'seeds/**'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
