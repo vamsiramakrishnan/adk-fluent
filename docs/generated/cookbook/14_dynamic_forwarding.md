@@ -1,29 +1,14 @@
 # Multi-Department Ticket Routing via Dynamic Field Forwarding
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use dynamic field forwarding.
 :::
 
 _Source: `14_dynamic_forwarding.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from google.adk.agents.llm_agent import LlmAgent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-# A helpdesk ticket router that classifies and routes support tickets.
-# The agent uses output_key to store the classification and include_contents
-# to avoid forwarding raw ticket text to downstream agents.
-agent_native = LlmAgent(
-    name="ticket_router",
-    model="gemini-2.5-flash",
-    instruction="Classify incoming support tickets by department.",
-    output_key="department",
-    include_contents="none",
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -39,6 +24,25 @@ agent_fluent = (
     .build()
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+
+# A helpdesk ticket router that classifies and routes support tickets.
+# The agent uses output_key to store the classification and include_contents
+# to avoid forwarding raw ticket text to downstream agents.
+agent_native = LlmAgent(
+    name="ticket_router",
+    model="gemini-2.5-flash",
+    instruction="Classify incoming support tickets by department.",
+    output_key="department",
+    include_contents="none",
+)
+```
+
 :::
 ::::
 

@@ -1,50 +1,14 @@
 # Mock Testing: Customer Onboarding Pipeline with Deterministic Mocks
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `37_mock_testing.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["kyc_verifier_then_risk_assessor_then_account_provisioner (sequence)"]]
-    n2["kyc_verifier"]
-    n3["risk_assessor"]
-    n4["account_provisioner"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK uses before_model_callback to bypass the LLM during tests:
-#
-#   from google.adk.models.llm_response import LlmResponse
-#   from google.genai import types
-#
-#   def mock_callback(callback_context, llm_request):
-#       return LlmResponse(
-#           content=types.Content(
-#               role="model",
-#               parts=[types.Part(text="KYC: approved")]
-#           )
-#       )
-#
-#   kyc_agent = LlmAgent(
-#       name="kyc_verifier", model="gemini-2.5-flash",
-#       instruction="Verify customer KYC documents.",
-#       before_model_callback=mock_callback,
-#   )
-#
-# For a multi-step onboarding pipeline, you'd need one callback per agent,
-# making test setup verbose and fragile.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -83,6 +47,47 @@ account_provisioner = (
 # Full onboarding pipeline with all agents mocked for integration testing
 onboarding_pipeline = kyc_verifier >> risk_assessor >> account_provisioner
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK uses before_model_callback to bypass the LLM during tests:
+#
+#   from google.adk.models.llm_response import LlmResponse
+#   from google.genai import types
+#
+#   def mock_callback(callback_context, llm_request):
+#       return LlmResponse(
+#           content=types.Content(
+#               role="model",
+#               parts=[types.Part(text="KYC: approved")]
+#           )
+#       )
+#
+#   kyc_agent = LlmAgent(
+#       name="kyc_verifier", model="gemini-2.5-flash",
+#       instruction="Verify customer KYC documents.",
+#       before_model_callback=mock_callback,
+#   )
+#
+# For a multi-step onboarding pipeline, you'd need one callback per agent,
+# making test setup verbose and fragile.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["kyc_verifier_then_risk_assessor_then_account_provisioner (sequence)"]]
+    n2["kyc_verifier"]
+    n3["risk_assessor"]
+    n4["account_provisioner"]
+    n2 --> n3
+    n3 --> n4
+```
+
 :::
 ::::
 

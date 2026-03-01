@@ -14,63 +14,26 @@ In other frameworks: LangGraph requires StateGraph with conditional back-edges
 for the quality loop, fan-out nodes for parallel search, and Pydantic
 integration for typed output (~60 lines of graph wiring). adk-fluent expresses
 the entire topology -- parallel search, quality loop, typed output -- in one
-expression using >>, |, *, and @.
+expression using >>, |, \*, and @.
 
 Pipeline topology:
-    query_analyzer
-        >> ( web_searcher | academic_searcher | news_searcher )
-        >> synthesizer
-        >> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
-        >> report_writer @ ResearchReport
+query_analyzer
+\>> ( web_searcher | academic_searcher | news_searcher )
+\>> synthesizer
+\>> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
+\>> report_writer @ ResearchReport
 
-Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
+Uses: >>, |, *, @, S.*, C.\*, save_as, loop_until
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `55_deep_research.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["query_analyzer_then_web_searcher_and_academic_searcher_and_news_searcher_then_synthesizer_then_quality_reviewer_then_revision_agent_x3_then_report_writer (sequence)"]]
-    n2["query_analyzer"]
-    n3{"web_searcher_and_academic_searcher_and_news_searcher (parallel)"}
-    n4["web_searcher"]
-    n5["academic_searcher"]
-    n6["news_searcher"]
-    n7["synthesizer"]
-    n8(("quality_reviewer_then_revision_agent_x3 (loop x3)"))
-    n9["quality_reviewer"]
-    n10["revision_agent"]
-    n11["report_writer"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n8 --> n9
-    n8 --> n10
-    n2 --> n3
-    n3 --> n7
-    n7 --> n8
-    n8 --> n11
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# A native ADK deep research pipeline requires:
-#   - 7+ LlmAgent declarations with manual output_key wiring
-#   - ParallelAgent for multi-source search
-#   - SequentialAgent for overall pipeline + review loop
-#   - Custom LoopAgent subclass with quality check logic
-#   - Manual include_contents="none" on stateless agents
-#   - Pydantic schema wiring for the final report
-# Total: ~120 lines of boilerplate
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -162,6 +125,48 @@ report_writer = (
 # Compose the full deep research pipeline
 deep_research = query_analyzer >> parallel_search >> synthesizer >> quality_loop >> report_writer
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# A native ADK deep research pipeline requires:
+#   - 7+ LlmAgent declarations with manual output_key wiring
+#   - ParallelAgent for multi-source search
+#   - SequentialAgent for overall pipeline + review loop
+#   - Custom LoopAgent subclass with quality check logic
+#   - Manual include_contents="none" on stateless agents
+#   - Pydantic schema wiring for the final report
+# Total: ~120 lines of boilerplate
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["query_analyzer_then_web_searcher_and_academic_searcher_and_news_searcher_then_synthesizer_then_quality_reviewer_then_revision_agent_x3_then_report_writer (sequence)"]]
+    n2["query_analyzer"]
+    n3{"web_searcher_and_academic_searcher_and_news_searcher (parallel)"}
+    n4["web_searcher"]
+    n5["academic_searcher"]
+    n6["news_searcher"]
+    n7["synthesizer"]
+    n8(("quality_reviewer_then_revision_agent_x3 (loop x3)"))
+    n9["quality_reviewer"]
+    n10["revision_agent"]
+    n11["report_writer"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n8 --> n9
+    n8 --> n10
+    n2 --> n3
+    n3 --> n7
+    n7 --> n8
+    n8 --> n11
+```
+
 :::
 ::::
 

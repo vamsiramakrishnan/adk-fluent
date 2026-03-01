@@ -1,53 +1,14 @@
 # Gate: Legal Document Review with Human Approval
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use gate: legal document review with human approval with the fluent API.
 :::
 
 _Source: `41_gate_approval.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["contract_drafter_then_gate_3_then_risk_disclosures_then_gate_4 (sequence)"]]
-    n2["contract_drafter"]
-    n3{{"gate_3 (gate)"}}
-    n4["risk_disclosures"]
-    n5{{"gate_4 (gate)"}}
-    n2 --> n3
-    n3 --> n4
-    n4 --> n5
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires a custom BaseAgent with EventActions(escalate=True)
-# to pause a pipeline for human approval:
-#
-#   from google.adk.agents.base_agent import BaseAgent
-#   from google.adk.events.event import Event
-#   from google.adk.events.event_actions import EventActions
-#   from google.genai import types
-#
-#   class LegalApprovalGate(BaseAgent):
-#       async def _run_async_impl(self, ctx):
-#           if ctx.session.state.get("liability_risk") == "high":
-#               if not ctx.session.state.get("_gate_approved"):
-#                   ctx.session.state["_gate_pending"] = True
-#                   yield Event(
-#                       invocation_id=ctx.invocation_id,
-#                       author=self.name, branch=ctx.branch,
-#                       content=types.Content(role="model",
-#                           parts=[types.Part(text="Senior counsel approval required.")]),
-#                       actions=EventActions(escalate=True),
-#                   )
-#
-# This is ~25 lines of boilerplate per approval gate.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, gate
 
@@ -96,6 +57,50 @@ multi_stage_review = (
     )
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires a custom BaseAgent with EventActions(escalate=True)
+# to pause a pipeline for human approval:
+#
+#   from google.adk.agents.base_agent import BaseAgent
+#   from google.adk.events.event import Event
+#   from google.adk.events.event_actions import EventActions
+#   from google.genai import types
+#
+#   class LegalApprovalGate(BaseAgent):
+#       async def _run_async_impl(self, ctx):
+#           if ctx.session.state.get("liability_risk") == "high":
+#               if not ctx.session.state.get("_gate_approved"):
+#                   ctx.session.state["_gate_pending"] = True
+#                   yield Event(
+#                       invocation_id=ctx.invocation_id,
+#                       author=self.name, branch=ctx.branch,
+#                       content=types.Content(role="model",
+#                           parts=[types.Part(text="Senior counsel approval required.")]),
+#                       actions=EventActions(escalate=True),
+#                   )
+#
+# This is ~25 lines of boilerplate per approval gate.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["contract_drafter_then_gate_3_then_risk_disclosures_then_gate_4 (sequence)"]]
+    n2["contract_drafter"]
+    n3{{"gate_3 (gate)"}}
+    n4["risk_disclosures"]
+    n5{{"gate_4 (gate)"}}
+    n2 --> n3
+    n3 --> n4
+    n4 --> n5
+```
+
 :::
 ::::
 

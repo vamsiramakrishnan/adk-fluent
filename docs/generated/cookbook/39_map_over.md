@@ -1,56 +1,14 @@
 # Map Over: Batch Processing Customer Feedback with Iteration
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use map over: batch processing customer feedback with iteration with the fluent API.
 :::
 
 _Source: `39_map_over.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["feedback_collector_then_map_over_feedback_entries_3_then_summary_writer (sequence)"]]
-    n2["feedback_collector"]
-    n3(("map_over_feedback_entries_3 (map feedback_entries)"))
-    n4["sentiment_analyzer"]
-    n5["summary_writer"]
-    n3 --> n4
-    n2 --> n3
-    n3 --> n5
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires a custom BaseAgent to iterate over list items:
-from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
-from google.adk.agents.llm_agent import LlmAgent
-
-
-class MapOverAgent(NativeBaseAgent):
-    """Custom agent that iterates a sub-agent over each item in a state list."""
-
-    async def _run_async_impl(self, ctx):
-        items = ctx.session.state.get("feedback_entries", [])
-        results = []
-        for item in items:
-            ctx.session.state["_item"] = item
-            async for event in self.sub_agents[0].run_async(ctx):
-                yield event
-            results.append(ctx.session.state.get("_item", None))
-        ctx.session.state["sentiment_scores"] = results
-
-
-sentiment_analyzer = LlmAgent(
-    name="sentiment_analyzer",
-    model="gemini-2.5-flash",
-    instruction="Analyze the sentiment of the customer feedback in _item. Rate as positive, neutral, or negative.",
-)
-native_mapper = MapOverAgent(name="feedback_mapper", sub_agents=[sentiment_analyzer])
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, map_over
 
@@ -95,6 +53,53 @@ feedback_pipeline = (
     .instruct("Write an executive summary of the sentiment analysis results.")
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires a custom BaseAgent to iterate over list items:
+from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
+from google.adk.agents.llm_agent import LlmAgent
+
+
+class MapOverAgent(NativeBaseAgent):
+    """Custom agent that iterates a sub-agent over each item in a state list."""
+
+    async def _run_async_impl(self, ctx):
+        items = ctx.session.state.get("feedback_entries", [])
+        results = []
+        for item in items:
+            ctx.session.state["_item"] = item
+            async for event in self.sub_agents[0].run_async(ctx):
+                yield event
+            results.append(ctx.session.state.get("_item", None))
+        ctx.session.state["sentiment_scores"] = results
+
+
+sentiment_analyzer = LlmAgent(
+    name="sentiment_analyzer",
+    model="gemini-2.5-flash",
+    instruction="Analyze the sentiment of the customer feedback in _item. Rate as positive, neutral, or negative.",
+)
+native_mapper = MapOverAgent(name="feedback_mapper", sub_agents=[sentiment_analyzer])
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["feedback_collector_then_map_over_feedback_entries_3_then_summary_writer (sequence)"]]
+    n2["feedback_collector"]
+    n3(("map_over_feedback_entries_3 (map feedback_entries)"))
+    n4["sentiment_analyzer"]
+    n5["summary_writer"]
+    n3 --> n4
+    n2 --> n3
+    n3 --> n5
+```
+
 :::
 ::::
 

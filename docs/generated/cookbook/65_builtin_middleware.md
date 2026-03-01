@@ -5,31 +5,23 @@ and the error boundary mechanism that prevents middleware failures from
 crashing the pipeline.
 
 Key concepts:
-  - CostTracker: token usage accumulation via after_model
-  - LatencyMiddleware: per-agent timing via TraceContext
-  - TopologyLogMiddleware: structured logging for topology events
-  - Error boundary: middleware exceptions caught, logged, and reported
-  - on_middleware_error: notification hook for other middleware
-  - Custom middleware with typed MiddlewareSchema
 
-:::{tip} What you'll learn
+- CostTracker: token usage accumulation via after_model
+- LatencyMiddleware: per-agent timing via TraceContext
+- TopologyLogMiddleware: structured logging for topology events
+- Error boundary: middleware exceptions caught, logged, and reported
+- on_middleware_error: notification hook for other middleware
+- Custom middleware with typed MiddlewareSchema
+
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `65_builtin_middleware.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["writer_then_reviewer (sequence)"]]
-    n2["writer"]
-    n3["reviewer"]
-    n2 --> n3
-```
-
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent._middleware import M, MComposite
 from adk_fluent.middleware import (
@@ -233,5 +225,17 @@ assert len(production_pipeline._middlewares) == 4
 
 print("All built-in middleware assertions passed!")
 ```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["writer_then_reviewer (sequence)"]]
+    n2["writer"]
+    n3["reviewer"]
+    n2 --> n3
+```
+
 :::
 ::::

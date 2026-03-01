@@ -2,15 +2,16 @@
 
 ## Builders in this module
 
-| Builder | Description |
-|---------|-------------|
+| Builder                                                                  | Description                                                                    |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | [AgentEngineSandboxCodeExecutor](builder-AgentEngineSandboxCodeExecutor) | A code executor that uses Agent Engine Code Execution Sandbox to execute code. |
-| [BaseCodeExecutor](builder-BaseCodeExecutor) | Abstract base class for all code executors. |
-| [BuiltInCodeExecutor](builder-BuiltInCodeExecutor) | A code executor that uses the Model's built-in code executor. |
-| [UnsafeLocalCodeExecutor](builder-UnsafeLocalCodeExecutor) | A code executor that unsafely execute code in the current local context. |
-| [VertexAiCodeExecutor](builder-VertexAiCodeExecutor) | A code executor that uses Vertex Code Interpreter Extension to execute code. |
+| [BaseCodeExecutor](builder-BaseCodeExecutor)                             | Abstract base class for all code executors.                                    |
+| [BuiltInCodeExecutor](builder-BuiltInCodeExecutor)                       | A code executor that uses the Model's built-in code executor.                  |
+| [UnsafeLocalCodeExecutor](builder-UnsafeLocalCodeExecutor)               | A code executor that unsafely execute code in the current local context.       |
+| [VertexAiCodeExecutor](builder-VertexAiCodeExecutor)                     | A code executor that uses Vertex Code Interpreter Extension to execute code.   |
 
 (builder-AgentEngineSandboxCodeExecutor)=
+
 ## AgentEngineSandboxCodeExecutor
 
 > Fluent builder for `google.adk.code_executors.agent_engine_sandbox_code_executor.AgentEngineSandboxCodeExecutor`
@@ -33,7 +34,13 @@ result = (
 
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
-Append to ``code_block_delimiters`` (lazy — built at .build() time).
+Append to `code_block_delimiters` (lazy — built at .build() time).
+
+**Example:**
+
+```python
+agentenginesandboxcodeexecutor = AgentEngineSandboxCodeExecutor("agentenginesandboxcodeexecutor").code_block_delimiter("...")
+```
 
 ### Control Flow & Execution
 
@@ -41,22 +48,29 @@ Append to ``code_block_delimiters`` (lazy — built at .build() time).
 
 Resolve into a native ADK AgentEngineSandboxCodeExecutor.
 
+**Example:**
+
+```python
+agentenginesandboxcodeexecutor = AgentEngineSandboxCodeExecutor("agentenginesandboxcodeexecutor").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.optimize_data_file(value)` | {py:class}`bool` |
-| `.stateful(value)` | {py:class}`bool` |
-| `.error_retry_attempts(value)` | {py:class}`int` |
-| `.code_block_delimiters(value)` | `list[tuple[str, str]]` |
-| `.execution_result_delimiters(value)` | `tuple[str, str]` |
-| `.sandbox_resource_name(value)` | {py:class}`str` |
+| Field                                 | Type                    |
+| ------------------------------------- | ----------------------- |
+| `.optimize_data_file(value)`          | {py:class}`bool`        |
+| `.stateful(value)`                    | {py:class}`bool`        |
+| `.error_retry_attempts(value)`        | {py:class}`int`         |
+| `.code_block_delimiters(value)`       | `list[tuple[str, str]]` |
+| `.execution_result_delimiters(value)` | `tuple[str, str]`       |
+| `.sandbox_resource_name(value)`       | {py:class}`str`         |
 
----
+______________________________________________________________________
 
 (builder-BaseCodeExecutor)=
+
 ## BaseCodeExecutor
 
 > Fluent builder for `google.adk.code_executors.base_code_executor.BaseCodeExecutor`
@@ -79,7 +93,13 @@ result = (
 
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
-Append to ``code_block_delimiters`` (lazy — built at .build() time).
+Append to `code_block_delimiters` (lazy — built at .build() time).
+
+**Example:**
+
+```python
+basecodeexecutor = BaseCodeExecutor("basecodeexecutor").code_block_delimiter("...")
+```
 
 ### Control Flow & Execution
 
@@ -87,21 +107,28 @@ Append to ``code_block_delimiters`` (lazy — built at .build() time).
 
 Resolve into a native ADK BaseCodeExecutor.
 
+**Example:**
+
+```python
+basecodeexecutor = BaseCodeExecutor("basecodeexecutor").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.optimize_data_file(value)` | {py:class}`bool` |
-| `.stateful(value)` | {py:class}`bool` |
-| `.error_retry_attempts(value)` | {py:class}`int` |
-| `.code_block_delimiters(value)` | `list[tuple[str, str]]` |
-| `.execution_result_delimiters(value)` | `tuple[str, str]` |
+| Field                                 | Type                    |
+| ------------------------------------- | ----------------------- |
+| `.optimize_data_file(value)`          | {py:class}`bool`        |
+| `.stateful(value)`                    | {py:class}`bool`        |
+| `.error_retry_attempts(value)`        | {py:class}`int`         |
+| `.code_block_delimiters(value)`       | `list[tuple[str, str]]` |
+| `.execution_result_delimiters(value)` | `tuple[str, str]`       |
 
----
+______________________________________________________________________
 
 (builder-BuiltInCodeExecutor)=
+
 ## BuiltInCodeExecutor
 
 > Fluent builder for `google.adk.code_executors.built_in_code_executor.BuiltInCodeExecutor`
@@ -124,7 +151,13 @@ result = (
 
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
-Append to ``code_block_delimiters`` (lazy — built at .build() time).
+Append to `code_block_delimiters` (lazy — built at .build() time).
+
+**Example:**
+
+```python
+builtincodeexecutor = BuiltInCodeExecutor("builtincodeexecutor").code_block_delimiter("...")
+```
 
 ### Control Flow & Execution
 
@@ -132,21 +165,28 @@ Append to ``code_block_delimiters`` (lazy — built at .build() time).
 
 Resolve into a native ADK BuiltInCodeExecutor.
 
+**Example:**
+
+```python
+builtincodeexecutor = BuiltInCodeExecutor("builtincodeexecutor").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.optimize_data_file(value)` | {py:class}`bool` |
-| `.stateful(value)` | {py:class}`bool` |
-| `.error_retry_attempts(value)` | {py:class}`int` |
-| `.code_block_delimiters(value)` | `list[tuple[str, str]]` |
-| `.execution_result_delimiters(value)` | `tuple[str, str]` |
+| Field                                 | Type                    |
+| ------------------------------------- | ----------------------- |
+| `.optimize_data_file(value)`          | {py:class}`bool`        |
+| `.stateful(value)`                    | {py:class}`bool`        |
+| `.error_retry_attempts(value)`        | {py:class}`int`         |
+| `.code_block_delimiters(value)`       | `list[tuple[str, str]]` |
+| `.execution_result_delimiters(value)` | `tuple[str, str]`       |
 
----
+______________________________________________________________________
 
 (builder-UnsafeLocalCodeExecutor)=
+
 ## UnsafeLocalCodeExecutor
 
 > Fluent builder for `google.adk.code_executors.unsafe_local_code_executor.UnsafeLocalCodeExecutor`
@@ -169,7 +209,13 @@ result = (
 
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
-Append to ``code_block_delimiters`` (lazy — built at .build() time).
+Append to `code_block_delimiters` (lazy — built at .build() time).
+
+**Example:**
+
+```python
+unsafelocalcodeexecutor = UnsafeLocalCodeExecutor("unsafelocalcodeexecutor").code_block_delimiter("...")
+```
 
 ### Control Flow & Execution
 
@@ -177,21 +223,28 @@ Append to ``code_block_delimiters`` (lazy — built at .build() time).
 
 Resolve into a native ADK UnsafeLocalCodeExecutor.
 
+**Example:**
+
+```python
+unsafelocalcodeexecutor = UnsafeLocalCodeExecutor("unsafelocalcodeexecutor").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.optimize_data_file(value)` | {py:class}`bool` |
-| `.stateful(value)` | {py:class}`bool` |
-| `.error_retry_attempts(value)` | {py:class}`int` |
-| `.code_block_delimiters(value)` | `list[tuple[str, str]]` |
-| `.execution_result_delimiters(value)` | `tuple[str, str]` |
+| Field                                 | Type                    |
+| ------------------------------------- | ----------------------- |
+| `.optimize_data_file(value)`          | {py:class}`bool`        |
+| `.stateful(value)`                    | {py:class}`bool`        |
+| `.error_retry_attempts(value)`        | {py:class}`int`         |
+| `.code_block_delimiters(value)`       | `list[tuple[str, str]]` |
+| `.execution_result_delimiters(value)` | `tuple[str, str]`       |
 
----
+______________________________________________________________________
 
 (builder-VertexAiCodeExecutor)=
+
 ## VertexAiCodeExecutor
 
 > Fluent builder for `google.adk.code_executors.vertex_ai_code_executor.VertexAiCodeExecutor`
@@ -215,15 +268,21 @@ result = (
 
 Resolve into a native ADK VertexAiCodeExecutor.
 
+**Example:**
+
+```python
+vertexaicodeexecutor = VertexAiCodeExecutor("vertexaicodeexecutor").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.optimize_data_file(value)` | `Any` |
-| `.stateful(value)` | `Any` |
-| `.error_retry_attempts(value)` | `Any` |
-| `.code_block_delimiters(value)` | `Any` |
+| Field                                 | Type  |
+| ------------------------------------- | ----- |
+| `.optimize_data_file(value)`          | `Any` |
+| `.stateful(value)`                    | `Any` |
+| `.error_retry_attempts(value)`        | `Any` |
+| `.code_block_delimiters(value)`       | `Any` |
 | `.execution_result_delimiters(value)` | `Any` |
-| `.resource_name(value)` | `Any` |
+| `.resource_name(value)`               | `Any` |

@@ -1,36 +1,14 @@
 # Dependency Injection: Multi-Environment Deployment (Dev/Staging/Prod)
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use dependency injection: multi-environment deployment (dev/staging/prod) with the fluent API.
 :::
 
 _Source: `47_dependency_injection.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-import functools
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-from google.adk.agents.llm_agent import LlmAgent
-
-
-def query_patient_records_native(patient_id: str, db_connection=None) -> str:
-    """Query patient records from the database."""
-    return f"Records for patient {patient_id} from {db_connection}"
-
-
-# Native ADK: manually wrap functions with partial or closures.
-# The db_connection parameter leaks into the LLM schema -- the model
-# sees it and may try to set it, which is a security concern.
-agent_native = LlmAgent(
-    name="patient_query",
-    model="gemini-2.5-flash",
-    instruction="Query patient records by ID.",
-    tools=[functools.partial(query_patient_records_native, db_connection="prod_ehr_db")],
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 import inspect
 
@@ -74,6 +52,32 @@ dev_agent = (
     .inject(db_connection="dev_mock_db")
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+import functools
+
+from google.adk.agents.llm_agent import LlmAgent
+
+
+def query_patient_records_native(patient_id: str, db_connection=None) -> str:
+    """Query patient records from the database."""
+    return f"Records for patient {patient_id} from {db_connection}"
+
+
+# Native ADK: manually wrap functions with partial or closures.
+# The db_connection parameter leaks into the LLM schema -- the model
+# sees it and may try to set it, which is a security concern.
+agent_native = LlmAgent(
+    name="patient_query",
+    model="gemini-2.5-flash",
+    instruction="Query patient records by ID.",
+    tools=[functools.partial(query_patient_records_native, db_connection="prod_ehr_db")],
+)
+```
+
 :::
 ::::
 

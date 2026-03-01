@@ -1,32 +1,14 @@
 # Customer Support Chat Session with .session()
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to manage interactive sessions with agents.
 :::
 
 _Source: `13_interactive_session.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires manual session lifecycle management:
-#   from google.adk.agents.llm_agent import LlmAgent
-#   from google.adk.runners import InMemoryRunner
-#
-#   agent = LlmAgent(
-#       name="support_bot",
-#       model="gemini-2.5-flash",
-#       instruction="You are a customer support agent for an online store.",
-#   )
-#   runner = InMemoryRunner(agent=agent, app_name="support_app")
-#   session = await runner.session_service.create_session(
-#       app_name="support_app", user_id="customer_42"
-#   )
-#   # Then manually call runner.run_async() for each message
-#   # No context manager -- you must track session/runner yourself
-```
-:::
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -52,6 +34,28 @@ builder = (
     )
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires manual session lifecycle management:
+#   from google.adk.agents.llm_agent import LlmAgent
+#   from google.adk.runners import InMemoryRunner
+#
+#   agent = LlmAgent(
+#       name="support_bot",
+#       model="gemini-2.5-flash",
+#       instruction="You are a customer support agent for an online store.",
+#   )
+#   runner = InMemoryRunner(agent=agent, app_name="support_app")
+#   session = await runner.session_service.create_session(
+#       app_name="support_app", user_id="customer_42"
+#   )
+#   # Then manually call runner.run_async() for each message
+#   # No context manager -- you must track session/runner yourself
+```
+
 :::
 ::::
 
@@ -65,6 +69,6 @@ assert builder._config["model"] == "gemini-2.5-flash"
 assert "customer support" in builder._config["instruction"]
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [InMemorySessionService](../api/service.md#builder-InMemorySessionService)
 :::

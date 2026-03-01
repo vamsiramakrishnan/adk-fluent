@@ -1,40 +1,14 @@
 # ETL Pipeline: Plain Functions as Data Cleaning Steps (>> fn)
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `29_function_steps.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires subclassing BaseAgent for any custom logic node.
-# In an ETL pipeline, every data cleaning step becomes a full class:
-from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
-from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents.sequential_agent import SequentialAgent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-
-class NormalizeCurrency(NativeBaseAgent):
-    """Custom agent just to normalize currency values to USD."""
-
-    async def _run_async_impl(self, ctx):
-        raw = ctx.session.state.get("raw_amounts", "")
-        # Strip currency symbols and normalize
-        cleaned = raw.replace("$", "").replace(",", "").strip()
-        ctx.session.state["normalized_amounts"] = cleaned
-        # yield nothing
-
-
-extractor = LlmAgent(name="extractor", model="gemini-2.5-flash", instruction="Extract financial data.")
-normalizer = NormalizeCurrency(name="normalize_currency")
-loader = LlmAgent(name="loader", model="gemini-2.5-flash", instruction="Load into report.")
-
-pipeline_native = SequentialAgent(name="etl_pipeline", sub_agents=[extractor, normalizer, loader])
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -84,6 +58,36 @@ def sanitize_pii(s):
 
 preprocess_pipeline = sanitize_pii >> Agent("analyzer").model("gemini-2.5-flash")
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires subclassing BaseAgent for any custom logic node.
+# In an ETL pipeline, every data cleaning step becomes a full class:
+from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.sequential_agent import SequentialAgent
+
+
+class NormalizeCurrency(NativeBaseAgent):
+    """Custom agent just to normalize currency values to USD."""
+
+    async def _run_async_impl(self, ctx):
+        raw = ctx.session.state.get("raw_amounts", "")
+        # Strip currency symbols and normalize
+        cleaned = raw.replace("$", "").replace(",", "").strip()
+        ctx.session.state["normalized_amounts"] = cleaned
+        # yield nothing
+
+
+extractor = LlmAgent(name="extractor", model="gemini-2.5-flash", instruction="Extract financial data.")
+normalizer = NormalizeCurrency(name="normalize_currency")
+loader = LlmAgent(name="loader", model="gemini-2.5-flash", instruction="Load into report.")
+
+pipeline_native = SequentialAgent(name="etl_pipeline", sub_agents=[extractor, normalizer, loader])
+```
+
 :::
 ::::
 

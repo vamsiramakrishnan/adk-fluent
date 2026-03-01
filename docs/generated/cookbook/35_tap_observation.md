@@ -1,52 +1,14 @@
 # ML Inference Monitoring: Performance Tap for Pure Observation
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use ml inference monitoring: performance tap for pure observation with the fluent API.
 :::
 
 _Source: `35_tap_observation.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["feature_engineer_then_tap_1_then_inference_engine (sequence)"]]
-    n2["feature_engineer"]
-    n3>"tap_1 tap"]
-    n4["inference_engine"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires subclassing BaseAgent for a pure observation step.
-# In an ML inference pipeline, you need to log latency and prediction
-# metadata without mutating the pipeline state:
-from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
-from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents.sequential_agent import SequentialAgent
-
-
-class LogInferenceMetrics(NativeBaseAgent):
-    """Custom agent just to log inference metrics without modifying state."""
-
-    async def _run_async_impl(self, ctx):
-        prediction = ctx.session.state.get("prediction", {})
-        print(f"Inference result: {prediction}")
-        print(f"Model confidence: {ctx.session.state.get('confidence', 'N/A')}")
-        # yield nothing -- pure observation
-
-
-preprocessor = LlmAgent(name="preprocessor", model="gemini-2.5-flash", instruction="Preprocess input.")
-logger = LogInferenceMetrics(name="metrics_logger")
-postprocessor = LlmAgent(name="postprocessor", model="gemini-2.5-flash", instruction="Format output.")
-
-pipeline_native = SequentialAgent(name="pipeline", sub_agents=[preprocessor, logger, postprocessor])
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, tap
 
@@ -89,6 +51,49 @@ pipeline_method = (
     .tap(lambda s: print(f"Anomaly detection complete, state keys: {list(s.keys())}"))
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires subclassing BaseAgent for a pure observation step.
+# In an ML inference pipeline, you need to log latency and prediction
+# metadata without mutating the pipeline state:
+from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.sequential_agent import SequentialAgent
+
+
+class LogInferenceMetrics(NativeBaseAgent):
+    """Custom agent just to log inference metrics without modifying state."""
+
+    async def _run_async_impl(self, ctx):
+        prediction = ctx.session.state.get("prediction", {})
+        print(f"Inference result: {prediction}")
+        print(f"Model confidence: {ctx.session.state.get('confidence', 'N/A')}")
+        # yield nothing -- pure observation
+
+
+preprocessor = LlmAgent(name="preprocessor", model="gemini-2.5-flash", instruction="Preprocess input.")
+logger = LogInferenceMetrics(name="metrics_logger")
+postprocessor = LlmAgent(name="postprocessor", model="gemini-2.5-flash", instruction="Format output.")
+
+pipeline_native = SequentialAgent(name="pipeline", sub_agents=[preprocessor, logger, postprocessor])
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["feature_engineer_then_tap_1_then_inference_engine (sequence)"]]
+    n2["feature_engineer"]
+    n3>"tap_1 tap"]
+    n4["inference_engine"]
+    n2 --> n3
+    n3 --> n4
+```
+
 :::
 ::::
 

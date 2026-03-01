@@ -1,46 +1,22 @@
 # Race: Fastest-Response Search Across Multiple Providers
 
 Pipeline topology:
-    race( westlaw_search, lexis_search )    -- first to finish wins
+race( westlaw_search, lexis_search )    -- first to finish wins
 
-    Research pipeline:
-        query_classifier >> race( federal_search, state_search ) >> citation_formatter
+```
+Research pipeline:
+    query_classifier >> race( federal_search, state_search ) >> citation_formatter
+```
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `42_race.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["query_classifier_then_race_federal_search_state_search_then_citation_formatter (sequence)"]]
-    n2["query_classifier"]
-    n3{{"race_federal_search_state_search (race)"}}
-    n4["federal_search"]
-    n5["state_search"]
-    n6["citation_formatter"]
-    n3 --> n4
-    n3 --> n5
-    n2 --> n3
-    n3 --> n6
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK's ParallelAgent runs all branches and merges results.
-# There is no built-in "first to finish" mechanism. You'd need to:
-#   1. Subclass BaseAgent
-#   2. Use asyncio.create_task for each sub-agent
-#   3. asyncio.wait(FIRST_COMPLETED) to get the winner
-#   4. Cancel remaining tasks
-# This is ~40 lines of async boilerplate.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, race
 
@@ -93,6 +69,37 @@ research_pipeline = (
     .instruct("Format the search results with proper Bluebook citations.")
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK's ParallelAgent runs all branches and merges results.
+# There is no built-in "first to finish" mechanism. You'd need to:
+#   1. Subclass BaseAgent
+#   2. Use asyncio.create_task for each sub-agent
+#   3. asyncio.wait(FIRST_COMPLETED) to get the winner
+#   4. Cancel remaining tasks
+# This is ~40 lines of async boilerplate.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["query_classifier_then_race_federal_search_state_search_then_citation_formatter (sequence)"]]
+    n2["query_classifier"]
+    n3{{"race_federal_search_state_search (race)"}}
+    n4["federal_search"]
+    n5["state_search"]
+    n6["citation_formatter"]
+    n3 --> n4
+    n3 --> n5
+    n2 --> n3
+    n3 --> n6
+```
+
 :::
 ::::
 

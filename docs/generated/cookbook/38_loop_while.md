@@ -1,34 +1,14 @@
 # Retry If: API Integration Agent That Retries on Transient Failures
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use retry if: api integration agent that retries on transient failures with the fluent API.
 :::
 
 _Source: `38_loop_while.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1(("charge_agent_then_verification_agent_x5 (loop x5)"))
-    n2["charge_agent"]
-    n3["verification_agent"]
-    n1 --> n2
-    n1 --> n3
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK has no built-in conditional retry. You'd need to:
-#   1. Wrap the agent in a LoopAgent
-#   2. Create a custom checkpoint BaseAgent that evaluates a predicate
-#   3. Yield Event(actions=EventActions(escalate=True)) to exit when satisfied
-# For a payment gateway integration, this means 30+ lines of boilerplate
-# just to handle transient 503 errors.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -72,6 +52,31 @@ via_loop = (
     .loop_until(lambda s: s.get("sync_status") == "complete", max_iterations=4)
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK has no built-in conditional retry. You'd need to:
+#   1. Wrap the agent in a LoopAgent
+#   2. Create a custom checkpoint BaseAgent that evaluates a predicate
+#   3. Yield Event(actions=EventActions(escalate=True)) to exit when satisfied
+# For a payment gateway integration, this means 30+ lines of boilerplate
+# just to handle transient 503 errors.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1(("charge_agent_then_verification_agent_x5 (loop x5)"))
+    n2["charge_agent"]
+    n3["verification_agent"]
+    n1 --> n2
+    n1 --> n3
+```
+
 :::
 ::::
 
@@ -106,6 +111,6 @@ assert len(built.sub_agents) >= 2
 assert built.sub_agents[-1].name == "_until_check"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Loop](../api/workflow.md#builder-Loop)
 :::

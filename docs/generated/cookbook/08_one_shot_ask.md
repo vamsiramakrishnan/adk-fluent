@@ -5,14 +5,40 @@ queries.  The scenario: a code review agent that can be invoked
 with a single line to get feedback on a code snippet.
 No LLM calls are made here -- we only verify builder mechanics.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use one-shot execution for quick queries.
 :::
 
 _Source: `08_one_shot_ask.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
+```python
+from adk_fluent import Agent
+
+# In production, one line is all you need:
+# feedback = (
+#     Agent("code_reviewer")
+#     .model("gemini-2.5-flash")
+#     .instruct("Review code for bugs, style issues, and security vulnerabilities.")
+#     .ask("Review this: def f(x): return x+1")
+# )
+
+# Builder mechanics verification (no LLM call):
+builder = (
+    Agent("code_reviewer")
+    .model("gemini-2.5-flash")
+    .instruct(
+        "Review code for bugs, style issues, and security vulnerabilities. "
+        "Focus on correctness, readability, and potential edge cases."
+    )
+)
+```
+
+:::
+:::\{tab-item} Native ADK
+
 ```python
 # Native ADK requires 15+ lines of boilerplate:
 #   from google.adk.agents.llm_agent import LlmAgent
@@ -36,29 +62,7 @@ _Source: `08_one_shot_ask.py`_
 #
 #   result = asyncio.run(run())
 ```
-:::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent
 
-# In production, one line is all you need:
-# feedback = (
-#     Agent("code_reviewer")
-#     .model("gemini-2.5-flash")
-#     .instruct("Review code for bugs, style issues, and security vulnerabilities.")
-#     .ask("Review this: def f(x): return x+1")
-# )
-
-# Builder mechanics verification (no LLM call):
-builder = (
-    Agent("code_reviewer")
-    .model("gemini-2.5-flash")
-    .instruct(
-        "Review code for bugs, style issues, and security vulnerabilities. "
-        "Focus on correctness, readability, and potential edge cases."
-    )
-)
-```
 :::
 ::::
 

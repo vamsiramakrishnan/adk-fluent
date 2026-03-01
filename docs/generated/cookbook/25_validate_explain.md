@@ -5,26 +5,15 @@ agent configurations before deployment. The scenario: a compliance
 team reviewing an insurance claims pipeline to verify correct wiring
 before going live.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `25_validate_explain.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["intake_agent_then_adjuster_then_reviewer (sequence)"]]
-    n2["intake_agent"]
-    n3["adjuster"]
-    n4["reviewer"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -61,6 +50,20 @@ base = Agent("agent").model("gemini-2.5-flash").instruct("Base instruction.")
 variant_a = base >> Agent("downstream_a")  # base is now frozen
 variant_b = base.instruct("Modified instruction.")  # forks a new clone
 ```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["intake_agent_then_adjuster_then_reviewer (sequence)"]]
+    n2["intake_agent"]
+    n3["adjuster"]
+    n4["reviewer"]
+    n2 --> n3
+    n3 --> n4
+```
+
 :::
 ::::
 

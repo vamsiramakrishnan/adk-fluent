@@ -15,55 +15,23 @@ composes parallel reviewers with | and sequences with >> for a concise review
 pipeline.
 
 Pipeline topology:
-    diff_parser [save_as: parsed_changes]
-        >> ( style_checker | security_scanner | logic_reviewer )
-        >> tap(log)
-        >> finding_aggregator @ ReviewResult
-        >> comment_writer [gated: findings_count > 0]
+diff_parser \[save_as: parsed_changes\]
+\>> ( style_checker | security_scanner | logic_reviewer )
+\>> tap(log)
+\>> finding_aggregator @ ReviewResult
+\>> comment_writer \[gated: findings_count > 0\]
 
 Uses: >>, |, @, proceed_if, save_as, tap
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `57_code_review_agent.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_tap_6_then_finding_aggregator_then_comment_writer (sequence)"]]
-    n2["diff_parser"]
-    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
-    n4["style_checker"]
-    n5["security_scanner"]
-    n6["logic_reviewer"]
-    n7>"tap_6 tap"]
-    n8["finding_aggregator"]
-    n9["comment_writer"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n2 --> n3
-    n3 --> n7
-    n7 --> n8
-    n8 --> n9
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# A native ADK code review agent requires:
-#   - 6 LlmAgent declarations
-#   - ParallelAgent for concurrent review passes
-#   - SequentialAgent for the pipeline
-#   - Manual output_schema wiring
-#   - Custom BaseAgent for conditional gating
-# Total: ~80 lines of boilerplate
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -175,6 +143,43 @@ code_review = (
     >> comment_writer
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# A native ADK code review agent requires:
+#   - 6 LlmAgent declarations
+#   - ParallelAgent for concurrent review passes
+#   - SequentialAgent for the pipeline
+#   - Manual output_schema wiring
+#   - Custom BaseAgent for conditional gating
+# Total: ~80 lines of boilerplate
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_tap_6_then_finding_aggregator_then_comment_writer (sequence)"]]
+    n2["diff_parser"]
+    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
+    n4["style_checker"]
+    n5["security_scanner"]
+    n6["logic_reviewer"]
+    n7>"tap_6 tap"]
+    n8["finding_aggregator"]
+    n9["comment_writer"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n2 --> n3
+    n3 --> n7
+    n7 --> n8
+    n8 --> n9
+```
+
 :::
 ::::
 
@@ -200,6 +205,6 @@ assert len(fanout.sub_agents) == 3
 assert built.sub_agents[3].output_schema is ReviewResult
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

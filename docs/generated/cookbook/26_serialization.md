@@ -1,22 +1,14 @@
 # Deployment Pipeline: Serialize Agent Configs with to_dict and to_yaml
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `26_serialization.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK agents are Pydantic models with model_dump(), but this
-# serializes the BUILT agent, not the builder configuration.
-# In a CI/CD pipeline, you want to inspect and version-control the
-# builder config — not the runtime object. There's no way to
-# reconstruct a builder from a serialized native agent.
-```
-:::
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -38,6 +30,18 @@ config_snapshot = ticket_router.to_dict()
 # Serialize to YAML — store in version control alongside infrastructure code
 yaml_manifest = ticket_router.to_yaml()
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK agents are Pydantic models with model_dump(), but this
+# serializes the BUILT agent, not the builder configuration.
+# In a CI/CD pipeline, you want to inspect and version-control the
+# builder config — not the runtime object. There's no way to
+# reconstruct a builder from a serialized native agent.
+```
+
 :::
 ::::
 

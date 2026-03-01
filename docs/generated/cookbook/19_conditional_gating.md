@@ -1,44 +1,14 @@
 # Fraud Detection Pipeline with Conditional Gating
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `19_conditional_gating.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["risk_scorer_then_fraud_investigator_then_compliance_notifier (sequence)"]]
-    n2["risk_scorer"]
-    n3["fraud_investigator"]
-    n4["compliance_notifier"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires manually implementing before_agent_callback
-# that returns Content to skip an agent:
-#
-#   from google.genai import types
-#
-#   def fraud_gate(callback_context):
-#       if callback_context.state.get("risk_level") != "high":
-#           return types.Content(role="model", parts=[])
-#       return None
-#
-#   agent = LlmAgent(
-#       name="fraud_investigator", model="gemini-2.5-flash",
-#       instruction="Perform deep fraud investigation on flagged transactions.",
-#       before_agent_callback=fraud_gate,
-#   )
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -73,6 +43,41 @@ compliance_notifier = (
 
 pipeline = risk_scorer >> fraud_investigator >> compliance_notifier
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires manually implementing before_agent_callback
+# that returns Content to skip an agent:
+#
+#   from google.genai import types
+#
+#   def fraud_gate(callback_context):
+#       if callback_context.state.get("risk_level") != "high":
+#           return types.Content(role="model", parts=[])
+#       return None
+#
+#   agent = LlmAgent(
+#       name="fraud_investigator", model="gemini-2.5-flash",
+#       instruction="Perform deep fraud investigation on flagged transactions.",
+#       before_agent_callback=fraud_gate,
+#   )
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["risk_scorer_then_fraud_investigator_then_compliance_notifier (sequence)"]]
+    n2["risk_scorer"]
+    n3["fraud_investigator"]
+    n4["compliance_notifier"]
+    n2 --> n3
+    n3 --> n4
+```
+
 :::
 ::::
 

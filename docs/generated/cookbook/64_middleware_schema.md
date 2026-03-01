@@ -5,23 +5,25 @@ enabling the contract checker to validate middleware reads/writes at
 compile time.
 
 Key concepts:
-  - MiddlewareSchema: base class for typed middleware declarations
-  - Reads(scope=...): field read from state before execution
-  - Writes(scope=...): field written to state after execution
-  - reads_keys() / writes_keys(): introspect declared dependencies
-  - schema attribute: bind a MiddlewareSchema to a middleware class
-  - agents attribute: scope middleware to specific pipeline agents
-  - Contract checker Pass 14: validates scoped middleware at build time
-  - M.when(PredicateSchema, mw): state-aware conditional middleware
 
-:::{tip} What you'll learn
+- MiddlewareSchema: base class for typed middleware declarations
+- Reads(scope=...): field read from state before execution
+- Writes(scope=...): field written to state after execution
+- reads_keys() / writes_keys(): introspect declared dependencies
+- schema attribute: bind a MiddlewareSchema to a middleware class
+- agents attribute: scope middleware to specific pipeline agents
+- Contract checker Pass 14: validates scoped middleware at build time
+- M.when(PredicateSchema, mw): state-aware conditional middleware
+
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `64_middleware_schema.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from typing import Annotated
 
@@ -268,5 +270,6 @@ assert callable(getattr(inner, "after_model", None))
 
 print("All MiddlewareSchema and contract checking assertions passed!")
 ```
+
 :::
 ::::

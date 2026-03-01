@@ -6,81 +6,15 @@ disallow_transfer_to_parent, disallow_transfer_to_peers, and the
 where a coordinator routes to specialist agents that must complete their
 task before returning control.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to build a team of agents with a coordinator.
 :::
 
 _Source: `54_transfer_control.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1["service_coordinator"]
-    n2["billing_specialist"]
-    n3["technical_specialist"]
-    n4["general_support"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from google.adk.agents.llm_agent import LlmAgent
-
-billing_native = LlmAgent(
-    name="billing_specialist",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You handle billing inquiries: refunds, payment disputes, "
-        "invoice corrections, and subscription changes. Resolve the "
-        "issue completely before finishing."
-    ),
-    description="Handles billing, payment, and subscription issues",
-    disallow_transfer_to_parent=True,
-    disallow_transfer_to_peers=True,
-)
-
-technical_native = LlmAgent(
-    name="technical_specialist",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You handle technical support: bug reports, integration issues, "
-        "API errors, and configuration problems. Walk the customer "
-        "through troubleshooting steps."
-    ),
-    description="Handles technical support and troubleshooting",
-    disallow_transfer_to_parent=True,
-    disallow_transfer_to_peers=True,
-)
-
-general_native = LlmAgent(
-    name="general_support",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You handle general inquiries: account information, product "
-        "questions, and feedback. You may transfer back to the "
-        "coordinator if the issue requires a specialist."
-    ),
-    description="Handles general inquiries and account questions",
-)
-
-coordinator_native = LlmAgent(
-    name="service_coordinator",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are the front-line customer service coordinator. Greet the "
-        "customer, understand their issue, and route to the right "
-        "specialist: billing for payment issues, technical for bugs "
-        "and integrations, or general for everything else."
-    ),
-    sub_agents=[billing_native, technical_native, general_native],
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -149,6 +83,77 @@ coordinator_fluent = (
     .build()
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+
+billing_native = LlmAgent(
+    name="billing_specialist",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You handle billing inquiries: refunds, payment disputes, "
+        "invoice corrections, and subscription changes. Resolve the "
+        "issue completely before finishing."
+    ),
+    description="Handles billing, payment, and subscription issues",
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
+)
+
+technical_native = LlmAgent(
+    name="technical_specialist",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You handle technical support: bug reports, integration issues, "
+        "API errors, and configuration problems. Walk the customer "
+        "through troubleshooting steps."
+    ),
+    description="Handles technical support and troubleshooting",
+    disallow_transfer_to_parent=True,
+    disallow_transfer_to_peers=True,
+)
+
+general_native = LlmAgent(
+    name="general_support",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You handle general inquiries: account information, product "
+        "questions, and feedback. You may transfer back to the "
+        "coordinator if the issue requires a specialist."
+    ),
+    description="Handles general inquiries and account questions",
+)
+
+coordinator_native = LlmAgent(
+    name="service_coordinator",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are the front-line customer service coordinator. Greet the "
+        "customer, understand their issue, and route to the right "
+        "specialist: billing for payment issues, technical for bugs "
+        "and integrations, or general for everything else."
+    ),
+    sub_agents=[billing_native, technical_native, general_native],
+)
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1["service_coordinator"]
+    n2["billing_specialist"]
+    n3["technical_specialist"]
+    n4["general_support"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+```
+
 :::
 ::::
 

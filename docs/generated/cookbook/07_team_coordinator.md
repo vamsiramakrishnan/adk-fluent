@@ -5,32 +5,56 @@ The scenario: a product launch coordinator that routes tasks to
 marketing, engineering, and legal teams based on the request.
 
 Pipeline topology:
-    launch_coordinator
-        |-- marketing
-        |-- engineering
-        '-- legal
+launch_coordinator
+|-- marketing
+|-- engineering
+'-- legal
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `07_team_coordinator.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1["launch_coordinator"]
-    n2["marketing"]
-    n3["engineering"]
-    n4["legal"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
+```python
+from adk_fluent import Agent
+
+coordinator_fluent = (
+    Agent("launch_coordinator")
+    .model("gemini-2.5-flash")
+    .instruct(
+        "You coordinate product launches. Analyze each request and "
+        "delegate to the right team: marketing for campaigns and "
+        "messaging, engineering for release readiness and deployment, "
+        "or legal for compliance and licensing reviews."
+    )
+    .sub_agent(
+        Agent("marketing")
+        .model("gemini-2.5-flash")
+        .instruct("Draft marketing campaigns, press releases, and social media strategies for the product launch.")
+    )
+    .sub_agent(
+        Agent("engineering")
+        .model("gemini-2.5-flash")
+        .instruct("Review technical readiness: CI/CD pipelines, load testing results, and deployment checklists.")
+    )
+    .sub_agent(
+        Agent("legal")
+        .model("gemini-2.5-flash")
+        .instruct(
+            "Review licensing terms, privacy compliance (GDPR/CCPA), and terms-of-service updates for the launch."
+        )
+    )
+    .build()
+)
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+:::
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -68,40 +92,21 @@ coordinator_native = LlmAgent(
     ],
 )
 ```
-:::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent
 
-coordinator_fluent = (
-    Agent("launch_coordinator")
-    .model("gemini-2.5-flash")
-    .instruct(
-        "You coordinate product launches. Analyze each request and "
-        "delegate to the right team: marketing for campaigns and "
-        "messaging, engineering for release readiness and deployment, "
-        "or legal for compliance and licensing reviews."
-    )
-    .sub_agent(
-        Agent("marketing")
-        .model("gemini-2.5-flash")
-        .instruct("Draft marketing campaigns, press releases, and social media strategies for the product launch.")
-    )
-    .sub_agent(
-        Agent("engineering")
-        .model("gemini-2.5-flash")
-        .instruct("Review technical readiness: CI/CD pipelines, load testing results, and deployment checklists.")
-    )
-    .sub_agent(
-        Agent("legal")
-        .model("gemini-2.5-flash")
-        .instruct(
-            "Review licensing terms, privacy compliance (GDPR/CCPA), and terms-of-service updates for the launch."
-        )
-    )
-    .build()
-)
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1["launch_coordinator"]
+    n2["marketing"]
+    n3["engineering"]
+    n4["legal"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
 ```
+
 :::
 ::::
 

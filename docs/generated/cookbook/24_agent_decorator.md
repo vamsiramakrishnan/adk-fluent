@@ -1,30 +1,14 @@
 # Domain Expert Agent via @agent Decorator
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use the agent decorator pattern.
 :::
 
 _Source: `24_agent_decorator.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK:
-#   from google.adk.agents.llm_agent import LlmAgent
-#
-#   def lookup_drug_interaction(drug_a: str, drug_b: str) -> str:
-#       return f"Checking interaction between {drug_a} and {drug_b}"
-#
-#   agent = LlmAgent(
-#       name="pharma_advisor",
-#       model="gemini-2.5-flash",
-#       instruction="You are a pharmaceutical advisor. Help healthcare professionals "
-#                   "check drug interactions and dosage guidelines.",
-#       tools=[lookup_drug_interaction],
-#   )
-```
-:::
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent.decorators import agent
 
@@ -51,6 +35,26 @@ def log_query(callback_context, llm_request):
 # Build when ready to deploy:
 built = pharma_advisor.build()
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK:
+#   from google.adk.agents.llm_agent import LlmAgent
+#
+#   def lookup_drug_interaction(drug_a: str, drug_b: str) -> str:
+#       return f"Checking interaction between {drug_a} and {drug_b}"
+#
+#   agent = LlmAgent(
+#       name="pharma_advisor",
+#       model="gemini-2.5-flash",
+#       instruction="You are a pharmaceutical advisor. Help healthcare professionals "
+#                   "check drug interactions and dosage guidelines.",
+#       tools=[lookup_drug_interaction],
+#   )
+```
+
 :::
 ::::
 
@@ -78,6 +82,6 @@ assert isinstance(built, LlmAgent)
 assert built.name == "pharma_advisor"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

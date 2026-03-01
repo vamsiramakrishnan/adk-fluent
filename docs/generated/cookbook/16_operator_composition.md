@@ -1,30 +1,43 @@
-# News Analysis Pipeline with Operator Composition: >>, |, *
+# News Analysis Pipeline with Operator Composition: >>, |, \*
 
 Pipeline topologies:
-    >>  scraper >> analyzer >> reporter
-    |   ( politics | markets )
-    *   ( draft_writer >> fact_checker ) * 3
+\>>  scraper >> analyzer >> reporter
+|   ( politics | markets )
+\*   ( draft_writer >> fact_checker ) * 3
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `16_operator_composition.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["scraper_then_analyzer_then_reporter (sequence)"]]
-    n2["scraper"]
-    n3["analyzer"]
-    n4["reporter"]
-    n2 --> n3
-    n3 --> n4
+```python
+from adk_fluent import Agent, Pipeline
+
+s = Agent("scraper").model("gemini-2.5-flash").instruct("Scrape news articles from sources.")
+a = Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze sentiment and key themes.")
+r = Agent("reporter").model("gemini-2.5-flash").instruct("Write a summary news report.")
+
+# >> creates Pipeline (SequentialAgent): scrape -> analyze -> report
+pipeline_fluent = s >> a >> r
+
+# | creates FanOut (ParallelAgent): gather from multiple beats simultaneously
+pol = Agent("politics").model("gemini-2.5-flash").instruct("Gather political news.")
+mkt = Agent("markets").model("gemini-2.5-flash").instruct("Gather financial market data.")
+parallel_fluent = pol | mkt
+
+# * creates Loop (LoopAgent): draft and fact-check up to 3 times
+dw = Agent("draft_writer").model("gemini-2.5-flash").instruct("Write a news draft.")
+fc = Agent("fact_checker").model("gemini-2.5-flash").instruct("Fact-check the draft.")
+loop_fluent = (dw >> fc) * 3
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+:::
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -51,28 +64,20 @@ draft_writer = LlmAgent(name="draft_writer", model="gemini-2.5-flash", instructi
 fact_checker = LlmAgent(name="fact_checker", model="gemini-2.5-flash", instruction="Fact-check the draft.")
 loop_native = LoopAgent(name="editorial_loop", max_iterations=3, sub_agents=[draft_writer, fact_checker])
 ```
+
 :::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent, Pipeline
+:::\{tab-item} Architecture
 
-s = Agent("scraper").model("gemini-2.5-flash").instruct("Scrape news articles from sources.")
-a = Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze sentiment and key themes.")
-r = Agent("reporter").model("gemini-2.5-flash").instruct("Write a summary news report.")
-
-# >> creates Pipeline (SequentialAgent): scrape -> analyze -> report
-pipeline_fluent = s >> a >> r
-
-# | creates FanOut (ParallelAgent): gather from multiple beats simultaneously
-pol = Agent("politics").model("gemini-2.5-flash").instruct("Gather political news.")
-mkt = Agent("markets").model("gemini-2.5-flash").instruct("Gather financial market data.")
-parallel_fluent = pol | mkt
-
-# * creates Loop (LoopAgent): draft and fact-check up to 3 times
-dw = Agent("draft_writer").model("gemini-2.5-flash").instruct("Write a news draft.")
-fc = Agent("fact_checker").model("gemini-2.5-flash").instruct("Fact-check the draft.")
-loop_fluent = (dw >> fc) * 3
+```mermaid
+graph TD
+    n1[["scraper_then_analyzer_then_reporter (sequence)"]]
+    n2["scraper"]
+    n3["analyzer"]
+    n4["reporter"]
+    n2 --> n3
+    n3 --> n4
 ```
+
 :::
 ::::
 

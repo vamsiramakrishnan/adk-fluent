@@ -1,28 +1,14 @@
 # Middleware: Production Middleware Stack for a Healthcare API Agent
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to configure agents for production runtime.
 :::
 
 _Source: `45_middleware.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from google.adk.agents.llm_agent import LlmAgent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-# Native ADK requires implementing BasePlugin with many callbacks.
-# For production healthcare APIs, you need retry logic for external
-# service calls, structured logging for HIPAA audit trails, and
-# rate limiting -- each requiring separate plugin implementations.
-agent_native = LlmAgent(
-    name="patient_lookup",
-    model="gemini-2.5-flash",
-    instruction="Look up patient records from the EHR system.",
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, RetryMiddleware, StructuredLogMiddleware
 
@@ -39,6 +25,24 @@ agent_fluent = (
     .middleware(StructuredLogMiddleware())
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+
+# Native ADK requires implementing BasePlugin with many callbacks.
+# For production healthcare APIs, you need retry logic for external
+# service calls, structured logging for HIPAA audit trails, and
+# rate limiting -- each requiring separate plugin implementations.
+agent_native = LlmAgent(
+    name="patient_lookup",
+    model="gemini-2.5-flash",
+    instruction="Look up patient records from the EHR system.",
+)
+```
+
 :::
 ::::
 

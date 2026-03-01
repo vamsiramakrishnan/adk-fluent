@@ -9,60 +9,22 @@ updates and conditional_edges for routing. adk-fluent uses S.capture() for
 state injection and Route() for declarative branching.
 
 Pipeline topology:
-    S.capture("ticket")
-        >> triage [save_as: priority]
-        >> Route("priority")
-            ├─ "p1" -> incident_commander
-            ├─ "p2" -> senior_support
-            └─ else -> support_bot
+S.capture("ticket")
+\>> triage \[save_as: priority\]
+\>> Route("priority")
+├─ "p1" -> incident_commander
+├─ "p2" -> senior_support
+└─ else -> support_bot
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `50_capture_and_route.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["capture_ticket_then_triage_routed (sequence)"]]
-    n2>"capture_ticket capture(ticket)"]
-    n3["triage"]
-    n4{"route_priority (route)"}
-    n5["incident_commander"]
-    n6["senior_support"]
-    n7["support_bot"]
-    n4 --> n5
-    n4 --> n6
-    n4 -.-> n7
-    n2 --> n3
-    n3 --> n4
-    n3 -. "priority" .-> n4
-    n2 -. "ticket" .-> n3
-    n2 -. "ticket" .-> n5
-    n2 -. "ticket" .-> n6
-    n2 -. "ticket" .-> n7
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# In native ADK, capturing the user's message into state for downstream
-# agents requires writing a custom BaseAgent subclass:
-#
-# class CaptureUserMessage(BaseAgent):
-#     async def _run_async_impl(self, ctx):
-#         for event in reversed(ctx.session.events):
-#             if event.author == "user":
-#                 ctx.session.state["ticket"] = event.content.parts[0].text
-#                 break
-#
-# Then manually wiring it as the first step in a SequentialAgent.
-# Route-based dispatch requires another custom agent with if/elif logic.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S
 from adk_fluent._routing import Route
@@ -110,6 +72,49 @@ contract_errors = [i for i in issues if isinstance(i, dict) and i.get("level") =
 
 built = helpdesk.build()
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# In native ADK, capturing the user's message into state for downstream
+# agents requires writing a custom BaseAgent subclass:
+#
+# class CaptureUserMessage(BaseAgent):
+#     async def _run_async_impl(self, ctx):
+#         for event in reversed(ctx.session.events):
+#             if event.author == "user":
+#                 ctx.session.state["ticket"] = event.content.parts[0].text
+#                 break
+#
+# Then manually wiring it as the first step in a SequentialAgent.
+# Route-based dispatch requires another custom agent with if/elif logic.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["capture_ticket_then_triage_routed (sequence)"]]
+    n2>"capture_ticket capture(ticket)"]
+    n3["triage"]
+    n4{"route_priority (route)"}
+    n5["incident_commander"]
+    n6["senior_support"]
+    n7["support_bot"]
+    n4 --> n5
+    n4 --> n6
+    n4 -.-> n7
+    n2 --> n3
+    n3 --> n4
+    n3 -. "priority" .-> n4
+    n2 -. "ticket" .-> n3
+    n2 -. "ticket" .-> n5
+    n2 -. "ticket" .-> n6
+    n2 -. "ticket" .-> n7
+```
+
 :::
 ::::
 

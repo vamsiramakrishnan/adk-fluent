@@ -1,46 +1,14 @@
 # Structured Invoice Parsing: Typed Output Contracts with @ Operator
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to use operator syntax for composing agents.
 :::
 
 _Source: `31_typed_output.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["ocr_agent_then_invoice_parser_then_bookkeeper (sequence)"]]
-    n2["ocr_agent"]
-    n3["invoice_parser"]
-    n4["bookkeeper"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from google.adk.agents.llm_agent import LlmAgent
-from pydantic import BaseModel
-
-
-class Invoice(BaseModel):
-    vendor: str
-    total_amount: float
-    due_date: str
-
-
-# Native: pass output_schema directly to enforce structured output
-parser_native = LlmAgent(
-    name="invoice_parser",
-    model="gemini-2.5-flash",
-    instruction="Parse the uploaded invoice image and extract structured data.",
-    output_schema=Invoice,
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -82,6 +50,43 @@ detailed_parser = (
     @ PurchaseOrder
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+from pydantic import BaseModel
+
+
+class Invoice(BaseModel):
+    vendor: str
+    total_amount: float
+    due_date: str
+
+
+# Native: pass output_schema directly to enforce structured output
+parser_native = LlmAgent(
+    name="invoice_parser",
+    model="gemini-2.5-flash",
+    instruction="Parse the uploaded invoice image and extract structured data.",
+    output_schema=Invoice,
+)
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["ocr_agent_then_invoice_parser_then_bookkeeper (sequence)"]]
+    n2["ocr_agent"]
+    n3["invoice_parser"]
+    n4["bookkeeper"]
+    n2 --> n3
+    n3 --> n4
+```
+
 :::
 ::::
 

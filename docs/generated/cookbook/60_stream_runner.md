@@ -4,16 +4,17 @@ Demonstrates the Source and StreamRunner for processing continuous
 data streams without a human in the loop.
 
 Key concepts:
-  - Source.from_iter(): wrap a sync iterable as an async stream
-  - Source.from_async(): pass through an async generator
-  - Source.poll(): poll a function at intervals
-  - Source.callback() / Inbox: push-based source for webhooks
-  - StreamRunner: bridges AsyncIterator → ADK runner.run_async()
-  - Session strategies: per_item, shared, keyed
-  - Callbacks: on_result, on_error (dead-letter queue)
-  - StreamStats: live counters (processed, errors, throughput)
 
-:::{tip} What you'll learn
+- Source.from_iter(): wrap a sync iterable as an async stream
+- Source.from_async(): pass through an async generator
+- Source.poll(): poll a function at intervals
+- Source.callback() / Inbox: push-based source for webhooks
+- StreamRunner: bridges AsyncIterator → ADK runner.run_async()
+- Session strategies: per_item, shared, keyed
+- Callbacks: on_result, on_error (dead-letter queue)
+- StreamStats: live counters (processed, errors, throughput)
+
+:::\{tip} What you'll learn
 How to register lifecycle callbacks with accumulation semantics.
 :::
 

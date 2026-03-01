@@ -18,7 +18,7 @@ State transform factories. Each method returns an `STransform` for use with `>>`
 | `S.log(*keys, label='')`                       | `STransform` | Debug-print selected keys (or all state if no keys given). |
 | `S.compute(**factories)`                       | `STransform` | Derive new keys from the full state dict                   |
 | `S.set(**values)`                              | `STransform` | Set explicit key-value pairs in state (additive merge)     |
-| `S.capture(key)`                               | `STransform` | Capture the most recent user message into state[key]       |
+| `S.capture(key)`                               | `STransform` | Capture the most recent user message into state\[key\]     |
 | `S.identity()`                                 | `STransform` | No-op transform.                                           |
 | `S.when(predicate, transform)`                 | `STransform` | Conditional transform.                                     |
 | `S.branch(key, **transforms)`                  | `STransform` | Route to different transforms based on a state key value   |
@@ -83,7 +83,7 @@ Assert a state invariant. Raises ValueError if predicate is falsy.
 
 **Parameters:**
 
-- `predicate` (*Callable\[[dict], bool\]*)
+- `predicate` (*Callable\[\[dict\], bool\]*)
 - `msg` (*str*) — default: `'State guard failed'`
 
 ### `S.log(*keys: str, label: str = ) -> STransform`
@@ -113,7 +113,7 @@ Set explicit key-value pairs in state (additive merge).
 
 ### `S.capture(key: str) -> STransform`
 
-Capture the most recent user message into state[key].
+Capture the most recent user message into state\[key\].
 
 The callable is a stub — real capture happens in CaptureAgent,
 which is wired by the >> operator when \_capture_key is detected.
@@ -137,12 +137,12 @@ pipeline = agent >> transform >> next_agent
 Conditional transform. Applies transform only if predicate(state) is truthy.
 
 String predicate is a shortcut for state key check:
-S.when("verbose", S.log("score")) # apply if state["verbose"] truthy
+S.when("verbose", S.log("score")) # apply if state\["verbose"\] truthy
 S.when(lambda s: "draft" in s, S.rename(draft="input"))
 
 **Parameters:**
 
-- `predicate` (*Callable\[[dict], bool\] | str*)
+- `predicate` (*Callable\[\[dict\], bool\] | str*)
 - `transform` (*STransform*)
 
 ### `S.branch(key: str, **transforms: STransform) -> STransform`

@@ -6,14 +6,35 @@ scenario: a medical information agent with safety guards that
 screen requests and responses for dangerous self-diagnosis or
 treatment recommendations.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to register lifecycle callbacks with accumulation semantics.
 :::
 
 _Source: `12_guards.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
+```python
+from adk_fluent import Agent
+
+# One call registers both before and after:
+builder = (
+    Agent("medical_info")
+    .model("gemini-2.5-flash")
+    .instruct(
+        "You provide general health and wellness information. "
+        "Always include a disclaimer that you are not a doctor. "
+        "Never prescribe medication or provide specific dosages. "
+        "For emergencies, direct users to call emergency services."
+    )
+    .guard(medical_safety_screen)
+)
+```
+
+:::
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -41,24 +62,7 @@ agent_native = LlmAgent(
     after_model_callback=medical_safety_screen,
 )
 ```
-:::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent
 
-# One call registers both before and after:
-builder = (
-    Agent("medical_info")
-    .model("gemini-2.5-flash")
-    .instruct(
-        "You provide general health and wellness information. "
-        "Always include a disclaimer that you are not a doctor. "
-        "Never prescribe medication or provide specific dosages. "
-        "For emergencies, direct users to call emergency services."
-    )
-    .guard(medical_safety_screen)
-)
-```
 :::
 ::::
 

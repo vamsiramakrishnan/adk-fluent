@@ -13,70 +13,15 @@ In other frameworks: LangGraph uses Pydantic with output_parser on chain calls.
 CrewAI uses output_pydantic on Task objects. adk-fluent uses the @ operator for
 inline schema binding on any agent.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `53_structured_schemas.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
-    n2["intake_agent"]
-    n3["risk_agent"]
-    n4["summary_agent"]
-    n2 --> n3
-    n3 --> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from pydantic import BaseModel
-from google.adk.agents.llm_agent import LlmAgent
-
-
-class ClaimIntake(BaseModel):
-    claimant_name: str
-    policy_number: str
-    incident_date: str
-    description: str
-
-
-class RiskAssessment(BaseModel):
-    risk_level: str
-    flags: list[str]
-    recommended_action: str
-
-
-intake_native = LlmAgent(
-    name="intake_agent",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are a claims intake specialist. Extract the claimant name, "
-        "policy number, incident date, and description from the raw "
-        "claim submission. Return structured JSON only."
-    ),
-    output_schema=ClaimIntake,
-    output_key="intake_data",
-)
-
-risk_native = LlmAgent(
-    name="risk_agent",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are a risk assessor. Analyze the claim intake data and "
-        "determine the risk level (low/medium/high), any red flags, "
-        "and a recommended action (approve/investigate/deny)."
-    ),
-    output_schema=RiskAssessment,
-    output_key="risk_report",
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -119,6 +64,66 @@ summary_agent = (
 )
 pipeline = intake_fluent >> risk_fluent >> summary_agent
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from pydantic import BaseModel
+from google.adk.agents.llm_agent import LlmAgent
+
+
+class ClaimIntake(BaseModel):
+    claimant_name: str
+    policy_number: str
+    incident_date: str
+    description: str
+
+
+class RiskAssessment(BaseModel):
+    risk_level: str
+    flags: list[str]
+    recommended_action: str
+
+
+intake_native = LlmAgent(
+    name="intake_agent",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a claims intake specialist. Extract the claimant name, "
+        "policy number, incident date, and description from the raw "
+        "claim submission. Return structured JSON only."
+    ),
+    output_schema=ClaimIntake,
+    output_key="intake_data",
+)
+
+risk_native = LlmAgent(
+    name="risk_agent",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a risk assessor. Analyze the claim intake data and "
+        "determine the risk level (low/medium/high), any red flags, "
+        "and a recommended action (approve/investigate/deny)."
+    ),
+    output_schema=RiskAssessment,
+    output_key="risk_report",
+)
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
+    n2["intake_agent"]
+    n3["risk_agent"]
+    n4["summary_agent"]
+    n2 --> n3
+    n3 --> n4
+```
+
 :::
 ::::
 

@@ -4,22 +4,24 @@ Demonstrates the TraceContext per-invocation state bag and the
 topology hooks protocol for observing workflow structure.
 
 Key concepts:
-  - TraceContext: request_id, elapsed, key-value store per invocation
-  - TopologyHooks protocol: on_loop_iteration, on_fanout_start/complete,
-    on_route_selected, on_fallback_attempt, on_timeout
-  - DispatchDirective: cancel dispatches or inject state
-  - LoopDirective: break out of loops from middleware
-  - TopologyLogMiddleware: built-in structured topology logging
-  - _trace_context ContextVar: access from any hook
 
-:::{tip} What you'll learn
+- TraceContext: request_id, elapsed, key-value store per invocation
+- TopologyHooks protocol: on_loop_iteration, on_fanout_start/complete,
+  on_route_selected, on_fallback_attempt, on_timeout
+- DispatchDirective: cancel dispatches or inject state
+- LoopDirective: break out of loops from middleware
+- TopologyLogMiddleware: built-in structured topology logging
+- \_trace_context ContextVar: access from any hook
+
+:::\{tip} What you'll learn
 How to run agents in parallel using FanOut.
 :::
 
 _Source: `63_trace_context_topology.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent.middleware import (
     DispatchDirective,
@@ -215,5 +217,6 @@ assert scoped.to_stack()[0].agents == "classifier"
 
 print("All TraceContext and topology hook assertions passed!")
 ```
+
 :::
 ::::

@@ -122,9 +122,9 @@ Filter events by metadata: author, type, and/or tag.
 
 **Parameters:**
 
-- `author` (*str | tuple[str, ...] | None*) — default: `None`
-- `type` (*str | tuple[str, ...] | None*) — default: `None`
-- `tag` (*str | tuple[str, ...] | None*) — default: `None`
+- `author` (*str | tuple\[str, ...\] | None*) — default: `None`
+- `type` (*str | tuple\[str, ...\] | None*) — default: `None`
+- `tag` (*str | tuple\[str, ...\] | None*) — default: `None`
 
 ### `C.recent(*, decay: str = exponential, half_life: int = 10, min_weight: float = 0.1) -> CRecent`
 

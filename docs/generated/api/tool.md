@@ -2,61 +2,62 @@
 
 ## Builders in this module
 
-| Builder | Description |
-|---------|-------------|
-| [ActiveStreamingTool](builder-ActiveStreamingTool) | Manages streaming tool related resources during invocation. |
-| [AgentTool](builder-AgentTool) | A tool that wraps an agent. |
-| [APIHubToolset](builder-APIHubToolset) | APIHubTool generates tools from a given API Hub resource. |
-| [ApplicationIntegrationToolset](builder-ApplicationIntegrationToolset) | ApplicationIntegrationToolset generates tools from a given Application. |
-| [IntegrationConnectorTool](builder-IntegrationConnectorTool) | A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint. |
-| [BaseAuthenticatedTool](builder-BaseAuthenticatedTool) | A base tool class that handles authentication before the actual tool logic. |
-| [BaseTool](builder-BaseTool) | The base class for all tools. |
-| [BaseToolset](builder-BaseToolset) | Base class for toolset. |
-| [BigQueryToolset](builder-BigQueryToolset) | BigQuery Toolset contains tools for interacting with BigQuery data and metadata. |
-| [BigtableToolset](builder-BigtableToolset) | Bigtable Toolset contains tools for interacting with Bigtable data and metadata. |
-| [ComputerUseTool](builder-ComputerUseTool) | A tool that wraps computer control functions for use with LLMs. |
-| [ComputerUseToolset](builder-ComputerUseToolset) | Fluent builder for ComputerUseToolset. |
-| [DataAgentToolset](builder-DataAgentToolset) | Data Agent Toolset contains tools for interacting with data agents. |
-| [DiscoveryEngineSearchTool](builder-DiscoveryEngineSearchTool) | Tool for searching the discovery engine. |
-| [EnterpriseWebSearchTool](builder-EnterpriseWebSearchTool) | A Gemini 2+ built-in tool using web grounding for Enterprise compliance. |
-| [ExampleTool](builder-ExampleTool) | A tool that adds (few-shot) examples to the LLM request. |
-| [FunctionTool](builder-FunctionTool) | A tool that wraps a user-defined Python function. |
-| [GoogleApiTool](builder-GoogleApiTool) | Fluent builder for GoogleApiTool. |
-| [GoogleApiToolset](builder-GoogleApiToolset) | Google API Toolset contains tools for interacting with Google APIs. |
-| [CalendarToolset](builder-CalendarToolset) | Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API. |
-| [DocsToolset](builder-DocsToolset) | Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API. |
-| [GmailToolset](builder-GmailToolset) | Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API. |
-| [SheetsToolset](builder-SheetsToolset) | Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API. |
-| [SlidesToolset](builder-SlidesToolset) | Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API. |
-| [YoutubeToolset](builder-YoutubeToolset) | Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API. |
-| [GoogleMapsGroundingTool](builder-GoogleMapsGroundingTool) | A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. |
-| [GoogleSearchAgentTool](builder-GoogleSearchAgentTool) | A tool that wraps a sub-agent that only uses google_search tool. |
-| [GoogleSearchTool](builder-GoogleSearchTool) | A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search. |
-| [GoogleTool](builder-GoogleTool) | GoogleTool class for tools that call Google APIs. |
-| [LoadArtifactsTool](builder-LoadArtifactsTool) | A tool that loads the artifacts and adds them to the session. |
-| [LoadMcpResourceTool](builder-LoadMcpResourceTool) | A tool that loads the MCP resources and adds them to the session. |
-| [LoadMemoryTool](builder-LoadMemoryTool) | A tool that loads the memory for the current user. |
-| [LongRunningFunctionTool](builder-LongRunningFunctionTool) | A function tool that returns the result asynchronously. |
-| [MCPTool](builder-MCPTool) | Deprecated name, use `McpTool` instead. |
-| [McpTool](builder-McpTool) | Turns an MCP Tool into an ADK Tool. |
-| [MCPToolset](builder-MCPToolset) | Deprecated name, use `McpToolset` instead. |
-| [McpToolset](builder-McpToolset) | Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. |
-| [OpenAPIToolset](builder-OpenAPIToolset) | Class for parsing OpenAPI spec into a list of RestApiTool. |
-| [RestApiTool](builder-RestApiTool) | A generic tool that interacts with a REST API. |
-| [PreloadMemoryTool](builder-PreloadMemoryTool) | A tool that preloads the memory for the current user. |
-| [PubSubToolset](builder-PubSubToolset) | Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions. |
-| [BaseRetrievalTool](builder-BaseRetrievalTool) | Fluent builder for BaseRetrievalTool. |
-| [SetModelResponseTool](builder-SetModelResponseTool) | Internal tool used for output schema workaround. |
-| [LoadSkillResourceTool](builder-LoadSkillResourceTool) | Tool to load resources (references or assets) from a skill. |
-| [LoadSkillTool](builder-LoadSkillTool) | Tool to load a skill's instructions. |
-| [SkillToolset](builder-SkillToolset) | A toolset for managing and interacting with agent skills. |
-| [SpannerToolset](builder-SpannerToolset) | Spanner Toolset contains tools for interacting with Spanner data, database and table information. |
-| [ToolboxToolset](builder-ToolboxToolset) | A class that provides access to toolbox toolsets. |
-| [TransferToAgentTool](builder-TransferToAgentTool) | A specialized FunctionTool for agent transfer with enum constraints. |
-| [UrlContextTool](builder-UrlContextTool) | A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. |
-| [VertexAiSearchTool](builder-VertexAiSearchTool) | A built-in tool using Vertex AI Search. |
+| Builder                                                                | Description                                                                                                                                               |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [ActiveStreamingTool](builder-ActiveStreamingTool)                     | Manages streaming tool related resources during invocation.                                                                                               |
+| [AgentTool](builder-AgentTool)                                         | A tool that wraps an agent.                                                                                                                               |
+| [APIHubToolset](builder-APIHubToolset)                                 | APIHubTool generates tools from a given API Hub resource.                                                                                                 |
+| [ApplicationIntegrationToolset](builder-ApplicationIntegrationToolset) | ApplicationIntegrationToolset generates tools from a given Application.                                                                                   |
+| [IntegrationConnectorTool](builder-IntegrationConnectorTool)           | A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint.                                                             |
+| [BaseAuthenticatedTool](builder-BaseAuthenticatedTool)                 | A base tool class that handles authentication before the actual tool logic.                                                                               |
+| [BaseTool](builder-BaseTool)                                           | The base class for all tools.                                                                                                                             |
+| [BaseToolset](builder-BaseToolset)                                     | Base class for toolset.                                                                                                                                   |
+| [BigQueryToolset](builder-BigQueryToolset)                             | BigQuery Toolset contains tools for interacting with BigQuery data and metadata.                                                                          |
+| [BigtableToolset](builder-BigtableToolset)                             | Bigtable Toolset contains tools for interacting with Bigtable data and metadata.                                                                          |
+| [ComputerUseTool](builder-ComputerUseTool)                             | A tool that wraps computer control functions for use with LLMs.                                                                                           |
+| [ComputerUseToolset](builder-ComputerUseToolset)                       | Fluent builder for ComputerUseToolset.                                                                                                                    |
+| [DataAgentToolset](builder-DataAgentToolset)                           | Data Agent Toolset contains tools for interacting with data agents.                                                                                       |
+| [DiscoveryEngineSearchTool](builder-DiscoveryEngineSearchTool)         | Tool for searching the discovery engine.                                                                                                                  |
+| [EnterpriseWebSearchTool](builder-EnterpriseWebSearchTool)             | A Gemini 2+ built-in tool using web grounding for Enterprise compliance.                                                                                  |
+| [ExampleTool](builder-ExampleTool)                                     | A tool that adds (few-shot) examples to the LLM request.                                                                                                  |
+| [FunctionTool](builder-FunctionTool)                                   | A tool that wraps a user-defined Python function.                                                                                                         |
+| [GoogleApiTool](builder-GoogleApiTool)                                 | Fluent builder for GoogleApiTool.                                                                                                                         |
+| [GoogleApiToolset](builder-GoogleApiToolset)                           | Google API Toolset contains tools for interacting with Google APIs.                                                                                       |
+| [CalendarToolset](builder-CalendarToolset)                             | Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API.                                                 |
+| [DocsToolset](builder-DocsToolset)                                     | Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API.                                                         |
+| [GmailToolset](builder-GmailToolset)                                   | Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API.                                                       |
+| [SheetsToolset](builder-SheetsToolset)                                 | Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API.                                                     |
+| [SlidesToolset](builder-SlidesToolset)                                 | Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API.                                                     |
+| [YoutubeToolset](builder-YoutubeToolset)                               | Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API.                                                          |
+| [GoogleMapsGroundingTool](builder-GoogleMapsGroundingTool)             | A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps.                                                |
+| [GoogleSearchAgentTool](builder-GoogleSearchAgentTool)                 | A tool that wraps a sub-agent that only uses google_search tool.                                                                                          |
+| [GoogleSearchTool](builder-GoogleSearchTool)                           | A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search.                                           |
+| [GoogleTool](builder-GoogleTool)                                       | GoogleTool class for tools that call Google APIs.                                                                                                         |
+| [LoadArtifactsTool](builder-LoadArtifactsTool)                         | A tool that loads the artifacts and adds them to the session.                                                                                             |
+| [LoadMcpResourceTool](builder-LoadMcpResourceTool)                     | A tool that loads the MCP resources and adds them to the session.                                                                                         |
+| [LoadMemoryTool](builder-LoadMemoryTool)                               | A tool that loads the memory for the current user.                                                                                                        |
+| [LongRunningFunctionTool](builder-LongRunningFunctionTool)             | A function tool that returns the result asynchronously.                                                                                                   |
+| [MCPTool](builder-MCPTool)                                             | Deprecated name, use `McpTool` instead.                                                                                                                   |
+| [McpTool](builder-McpTool)                                             | Turns an MCP Tool into an ADK Tool.                                                                                                                       |
+| [MCPToolset](builder-MCPToolset)                                       | Deprecated name, use `McpToolset` instead.                                                                                                                |
+| [McpToolset](builder-McpToolset)                                       | Connects to a MCP Server, and retrieves MCP Tools into ADK Tools.                                                                                         |
+| [OpenAPIToolset](builder-OpenAPIToolset)                               | Class for parsing OpenAPI spec into a list of RestApiTool.                                                                                                |
+| [RestApiTool](builder-RestApiTool)                                     | A generic tool that interacts with a REST API.                                                                                                            |
+| [PreloadMemoryTool](builder-PreloadMemoryTool)                         | A tool that preloads the memory for the current user.                                                                                                     |
+| [PubSubToolset](builder-PubSubToolset)                                 | Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions.                                                                     |
+| [BaseRetrievalTool](builder-BaseRetrievalTool)                         | Fluent builder for BaseRetrievalTool.                                                                                                                     |
+| [SetModelResponseTool](builder-SetModelResponseTool)                   | Internal tool used for output schema workaround.                                                                                                          |
+| [LoadSkillResourceTool](builder-LoadSkillResourceTool)                 | Tool to load resources (references or assets) from a skill.                                                                                               |
+| [LoadSkillTool](builder-LoadSkillTool)                                 | Tool to load a skill's instructions.                                                                                                                      |
+| [SkillToolset](builder-SkillToolset)                                   | A toolset for managing and interacting with agent skills.                                                                                                 |
+| [SpannerToolset](builder-SpannerToolset)                               | Spanner Toolset contains tools for interacting with Spanner data, database and table information.                                                         |
+| [ToolboxToolset](builder-ToolboxToolset)                               | A class that provides access to toolbox toolsets.                                                                                                         |
+| [TransferToAgentTool](builder-TransferToAgentTool)                     | A specialized FunctionTool for agent transfer with enum constraints.                                                                                      |
+| [UrlContextTool](builder-UrlContextTool)                               | A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. |
+| [VertexAiSearchTool](builder-VertexAiSearchTool)                       | A built-in tool using Vertex AI Search.                                                                                                                   |
 
 (builder-ActiveStreamingTool)=
+
 ## ActiveStreamingTool
 
 > Fluent builder for `google.adk.agents.active_streaming_tool.ActiveStreamingTool`
@@ -80,18 +81,25 @@ result = (
 
 Resolve into a native ADK ActiveStreamingTool.
 
+**Example:**
+
+```python
+activestreamingtool = ActiveStreamingTool("activestreamingtool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.task(value)` | `Task | None` |
-| `.stream(value)` | `LiveRequestQueue | None` |
+| Field            | Type               |
+| ---------------- | ------------------ |
+| `.task(value)`   | \`Task             |
+| `.stream(value)` | \`LiveRequestQueue |
 
----
+______________________________________________________________________
 
 (builder-AgentTool)=
+
 ## AgentTool
 
 > Fluent builder for `google.adk.tools.agent_tool.AgentTool`
@@ -115,9 +123,9 @@ result = (
 AgentTool(agent: BaseAgent)
 ```
 
-| Argument | Type |
-|----------|------|
-| `agent` | `BaseAgent` |
+| Argument | Type        |
+| -------- | ----------- |
+| `agent`  | `BaseAgent` |
 
 ### Control Flow & Execution
 
@@ -125,18 +133,25 @@ AgentTool(agent: BaseAgent)
 
 Resolve into a native ADK AgentTool.
 
+**Example:**
+
+```python
+agenttool = AgentTool("agenttool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
+| Field                        | Type             |
+| ---------------------------- | ---------------- |
 | `.skip_summarization(value)` | {py:class}`bool` |
-| `.include_plugins(value)` | {py:class}`bool` |
+| `.include_plugins(value)`    | {py:class}`bool` |
 
----
+______________________________________________________________________
 
 (builder-APIHubToolset)=
+
 ## APIHubToolset
 
 > Fluent builder for `google.adk.tools.apihub_tool.apihub_toolset.APIHubToolset`
@@ -160,8 +175,8 @@ result = (
 APIHubToolset(apihub_resource_name: str)
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument               | Type            |
+| ---------------------- | --------------- |
 | `apihub_resource_name` | {py:class}`str` |
 
 ### Control Flow & Execution
@@ -170,25 +185,32 @@ APIHubToolset(apihub_resource_name: str)
 
 Resolve into a native ADK APIHubToolset.
 
+**Example:**
+
+```python
+apihubtoolset = APIHubToolset("apihubtoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.access_token(value)` | `str | None` |
-| `.service_account_json(value)` | `str | None` |
-| `.name(value)` | {py:class}`str` |
-| `.description(value)` | {py:class}`str` |
-| `.lazy_load_spec(value)` | `Any` |
-| `.auth_scheme(value)` | `AuthScheme | None` |
-| `.auth_credential(value)` | `AuthCredential | None` |
-| `.apihub_client(value)` | `APIHubClient | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
+| Field                          | Type             |
+| ------------------------------ | ---------------- |
+| `.access_token(value)`         | \`str            |
+| `.service_account_json(value)` | \`str            |
+| `.name(value)`                 | {py:class}`str`  |
+| `.description(value)`          | {py:class}`str`  |
+| `.lazy_load_spec(value)`       | `Any`            |
+| `.auth_scheme(value)`          | \`AuthScheme     |
+| `.auth_credential(value)`      | \`AuthCredential |
+| `.apihub_client(value)`        | \`APIHubClient   |
+| `.tool_filter(value)`          | \`ToolPredicate  |
 
----
+______________________________________________________________________
 
 (builder-ApplicationIntegrationToolset)=
+
 ## ApplicationIntegrationToolset
 
 > Fluent builder for `google.adk.tools.application_integration_tool.application_integration_toolset.ApplicationIntegrationToolset`
@@ -212,9 +234,9 @@ result = (
 ApplicationIntegrationToolset(project: str, location: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `project` | {py:class}`str` |
+| Argument   | Type            |
+| ---------- | --------------- |
+| `project`  | {py:class}`str` |
 | `location` | {py:class}`str` |
 
 ### Control Flow & Execution
@@ -223,28 +245,35 @@ ApplicationIntegrationToolset(project: str, location: str)
 
 Resolve into a native ADK ApplicationIntegrationToolset.
 
+**Example:**
+
+```python
+applicationintegrationtoolset = ApplicationIntegrationToolset("applicationintegrationtoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.connection_template_override(value)` | `str | None` |
-| `.integration(value)` | `str | None` |
-| `.triggers(value)` | `list[str] | None` |
-| `.connection(value)` | `str | None` |
-| `.entity_operations(value)` | `str | None` |
-| `.actions(value)` | `list[str] | None` |
-| `.tool_name_prefix(value)` | `str | None` |
-| `.tool_instructions(value)` | `str | None` |
-| `.service_account_json(value)` | `str | None` |
-| `.auth_scheme(value)` | `AuthScheme | None` |
-| `.auth_credential(value)` | `AuthCredential | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
+| Field                                  | Type             |
+| -------------------------------------- | ---------------- |
+| `.connection_template_override(value)` | \`str            |
+| `.integration(value)`                  | \`str            |
+| `.triggers(value)`                     | \`list\[str\]    |
+| `.connection(value)`                   | \`str            |
+| `.entity_operations(value)`            | \`str            |
+| `.actions(value)`                      | \`list\[str\]    |
+| `.tool_name_prefix(value)`             | \`str            |
+| `.tool_instructions(value)`            | \`str            |
+| `.service_account_json(value)`         | \`str            |
+| `.auth_scheme(value)`                  | \`AuthScheme     |
+| `.auth_credential(value)`              | \`AuthCredential |
+| `.tool_filter(value)`                  | \`ToolPredicate  |
 
----
+______________________________________________________________________
 
 (builder-IntegrationConnectorTool)=
+
 ## IntegrationConnectorTool
 
 > Fluent builder for `google.adk.tools.application_integration_tool.integration_connector_tool.IntegrationConnectorTool`
@@ -268,10 +297,10 @@ result = (
 IntegrationConnectorTool(name: str, description: str, connection_name: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | {py:class}`str` |
-| `description` | {py:class}`str` |
+| Argument          | Type            |
+| ----------------- | --------------- |
+| `name`            | {py:class}`str` |
+| `description`     | {py:class}`str` |
 | `connection_name` | {py:class}`str` |
 
 ### Control Flow & Execution
@@ -280,24 +309,31 @@ IntegrationConnectorTool(name: str, description: str, connection_name: str)
 
 Resolve into a native ADK IntegrationConnectorTool.
 
+**Example:**
+
+```python
+integrationconnectortool = IntegrationConnectorTool("integrationconnectortool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.connection_host(value)` | {py:class}`str` |
-| `.connection_service_name(value)` | {py:class}`str` |
-| `.entity(value)` | {py:class}`str` |
-| `.operation(value)` | {py:class}`str` |
-| `.action(value)` | {py:class}`str` |
-| `.rest_api_tool(value)` | `RestApiTool` |
-| `.auth_scheme(value)` | `AuthScheme | str | None` |
-| `.auth_credential(value)` | `AuthCredential | str | None` |
+| Field                             | Type             |
+| --------------------------------- | ---------------- |
+| `.connection_host(value)`         | {py:class}`str`  |
+| `.connection_service_name(value)` | {py:class}`str`  |
+| `.entity(value)`                  | {py:class}`str`  |
+| `.operation(value)`               | {py:class}`str`  |
+| `.action(value)`                  | {py:class}`str`  |
+| `.rest_api_tool(value)`           | `RestApiTool`    |
+| `.auth_scheme(value)`             | \`AuthScheme     |
+| `.auth_credential(value)`         | \`AuthCredential |
 
----
+______________________________________________________________________
 
 (builder-BaseAuthenticatedTool)=
+
 ## BaseAuthenticatedTool
 
 > Fluent builder for `google.adk.tools.base_authenticated_tool.BaseAuthenticatedTool`
@@ -321,9 +357,9 @@ result = (
 BaseAuthenticatedTool(name: Any, description: Any)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `Any` |
+| Argument      | Type  |
+| ------------- | ----- |
+| `name`        | `Any` |
 | `description` | `Any` |
 
 ### Control Flow & Execution
@@ -332,18 +368,25 @@ BaseAuthenticatedTool(name: Any, description: Any)
 
 Resolve into a native ADK BaseAuthenticatedTool.
 
+**Example:**
+
+```python
+baseauthenticatedtool = BaseAuthenticatedTool("baseauthenticatedtool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.auth_config(value)` | `AuthConfig` |
-| `.response_for_auth_required(value)` | `dict[str, Any] | str | None` |
+| Field                                | Type               |
+| ------------------------------------ | ------------------ |
+| `.auth_config(value)`                | `AuthConfig`       |
+| `.response_for_auth_required(value)` | \`dict\[str, Any\] |
 
----
+______________________________________________________________________
 
 (builder-BaseTool)=
+
 ## BaseTool
 
 > Fluent builder for `google.adk.tools.base_tool.BaseTool`
@@ -367,9 +410,9 @@ result = (
 BaseTool(name: Any, description: Any)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `Any` |
+| Argument      | Type  |
+| ------------- | ----- |
+| `name`        | `Any` |
 | `description` | `Any` |
 
 ### Control Flow & Execution
@@ -378,18 +421,25 @@ BaseTool(name: Any, description: Any)
 
 Resolve into a native ADK BaseTool.
 
+**Example:**
+
+```python
+basetool = BaseTool("basetool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.is_long_running(value)` | {py:class}`bool` |
-| `.custom_metadata(value)` | `dict[str, Any] | None` |
+| Field                     | Type               |
+| ------------------------- | ------------------ |
+| `.is_long_running(value)` | {py:class}`bool`   |
+| `.custom_metadata(value)` | \`dict\[str, Any\] |
 
----
+______________________________________________________________________
 
 (builder-BaseToolset)=
+
 ## BaseToolset
 
 > Fluent builder for `google.adk.tools.base_toolset.BaseToolset`
@@ -413,18 +463,25 @@ result = (
 
 Resolve into a native ADK BaseToolset.
 
+**Example:**
+
+```python
+basetoolset = BaseToolset("basetoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type            |
+| -------------------------- | --------------- |
+| `.tool_filter(value)`      | \`ToolPredicate |
+| `.tool_name_prefix(value)` | \`str           |
 
----
+______________________________________________________________________
 
 (builder-BigQueryToolset)=
+
 ## BigQueryToolset
 
 > Fluent builder for `google.adk.tools.bigquery.bigquery_toolset.BigQueryToolset`
@@ -448,19 +505,26 @@ result = (
 
 Resolve into a native ADK BigQueryToolset.
 
+**Example:**
+
+```python
+bigquerytoolset = BigQueryToolset("bigquerytoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.credentials_config(value)` | `BigQueryCredentialsConfig | None` |
-| `.bigquery_tool_config(value)` | `BigQueryToolConfig | None` |
+| Field                          | Type                        |
+| ------------------------------ | --------------------------- |
+| `.tool_filter(value)`          | \`ToolPredicate             |
+| `.credentials_config(value)`   | \`BigQueryCredentialsConfig |
+| `.bigquery_tool_config(value)` | \`BigQueryToolConfig        |
 
----
+______________________________________________________________________
 
 (builder-BigtableToolset)=
+
 ## BigtableToolset
 
 > Fluent builder for `google.adk.tools.bigtable.bigtable_toolset.BigtableToolset`
@@ -484,19 +548,26 @@ result = (
 
 Resolve into a native ADK BigtableToolset.
 
+**Example:**
+
+```python
+bigtabletoolset = BigtableToolset("bigtabletoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.credentials_config(value)` | `BigtableCredentialsConfig | None` |
-| `.bigtable_tool_settings(value)` | `BigtableToolSettings | None` |
+| Field                            | Type                        |
+| -------------------------------- | --------------------------- |
+| `.tool_filter(value)`            | \`ToolPredicate             |
+| `.credentials_config(value)`     | \`BigtableCredentialsConfig |
+| `.bigtable_tool_settings(value)` | \`BigtableToolSettings      |
 
----
+______________________________________________________________________
 
 (builder-ComputerUseTool)=
+
 ## ComputerUseTool
 
 > Fluent builder for `google.adk.tools.computer_use.computer_use_tool.ComputerUseTool`
@@ -520,10 +591,10 @@ result = (
 ComputerUseTool(func: Callable[..., Any], screen_size: tuple[int, int])
 ```
 
-| Argument | Type |
-|----------|------|
-| `func` | `Callable[..., Any]` |
-| `screen_size` | `tuple[int, int]` |
+| Argument      | Type                 |
+| ------------- | -------------------- |
+| `func`        | `Callable[..., Any]` |
+| `screen_size` | `tuple[int, int]`    |
 
 ### Control Flow & Execution
 
@@ -531,17 +602,24 @@ ComputerUseTool(func: Callable[..., Any], screen_size: tuple[int, int])
 
 Resolve into a native ADK ComputerUseTool.
 
+**Example:**
+
+```python
+computerusetool = ComputerUseTool("computerusetool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
+| Field                         | Type              |
+| ----------------------------- | ----------------- |
 | `.virtual_screen_size(value)` | `tuple[int, int]` |
 
----
+______________________________________________________________________
 
 (builder-ComputerUseToolset)=
+
 ## ComputerUseToolset
 
 > Fluent builder for `google.adk.tools.computer_use.computer_use_toolset.ComputerUseToolset`
@@ -565,8 +643,8 @@ result = (
 ComputerUseToolset(computer: BaseComputer)
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument   | Type           |
+| ---------- | -------------- |
 | `computer` | `BaseComputer` |
 
 ### Control Flow & Execution
@@ -575,9 +653,16 @@ ComputerUseToolset(computer: BaseComputer)
 
 Resolve into a native ADK ComputerUseToolset.
 
----
+**Example:**
+
+```python
+computerusetoolset = ComputerUseToolset("computerusetoolset").build("...")
+```
+
+______________________________________________________________________
 
 (builder-DataAgentToolset)=
+
 ## DataAgentToolset
 
 > Fluent builder for `google.adk.tools.data_agent.data_agent_toolset.DataAgentToolset`
@@ -601,19 +686,26 @@ result = (
 
 Resolve into a native ADK DataAgentToolset.
 
+**Example:**
+
+```python
+dataagenttoolset = DataAgentToolset("dataagenttoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.credentials_config(value)` | `DataAgentCredentialsConfig | None` |
-| `.data_agent_tool_config(value)` | `DataAgentToolConfig | None` |
+| Field                            | Type                         |
+| -------------------------------- | ---------------------------- |
+| `.tool_filter(value)`            | \`ToolPredicate              |
+| `.credentials_config(value)`     | \`DataAgentCredentialsConfig |
+| `.data_agent_tool_config(value)` | \`DataAgentToolConfig        |
 
----
+______________________________________________________________________
 
 (builder-DiscoveryEngineSearchTool)=
+
 ## DiscoveryEngineSearchTool
 
 > Fluent builder for `google.adk.tools.discovery_engine_search_tool.DiscoveryEngineSearchTool`
@@ -637,21 +729,28 @@ result = (
 
 Resolve into a native ADK DiscoveryEngineSearchTool.
 
+**Example:**
+
+```python
+discoveryenginesearchtool = DiscoveryEngineSearchTool("discoveryenginesearchtool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.data_store_id(value)` | `str | None` |
-| `.data_store_specs(value)` | `list[types.VertexAISearchDataStoreSpec] | None` |
-| `.search_engine_id(value)` | `str | None` |
-| `.filter(value)` | `str | None` |
-| `.max_results(value)` | `int | None` |
+| Field                      | Type                                        |
+| -------------------------- | ------------------------------------------- |
+| `.data_store_id(value)`    | \`str                                       |
+| `.data_store_specs(value)` | \`list\[types.VertexAISearchDataStoreSpec\] |
+| `.search_engine_id(value)` | \`str                                       |
+| `.filter(value)`           | \`str                                       |
+| `.max_results(value)`      | \`int                                       |
 
----
+______________________________________________________________________
 
 (builder-EnterpriseWebSearchTool)=
+
 ## EnterpriseWebSearchTool
 
 > Fluent builder for `google.adk.tools.enterprise_search_tool.EnterpriseWebSearchTool`
@@ -675,9 +774,16 @@ result = (
 
 Resolve into a native ADK EnterpriseWebSearchTool.
 
----
+**Example:**
+
+```python
+enterprisewebsearchtool = EnterpriseWebSearchTool("enterprisewebsearchtool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-ExampleTool)=
+
 ## ExampleTool
 
 > Fluent builder for `google.adk.tools.example_tool.ExampleTool`
@@ -701,9 +807,9 @@ result = (
 ExampleTool(examples: list[Example] | BaseExampleProvider)
 ```
 
-| Argument | Type |
-|----------|------|
-| `examples` | `list[Example] | BaseExampleProvider` |
+| Argument   | Type              |
+| ---------- | ----------------- |
+| `examples` | \`list\[Example\] |
 
 ### Control Flow & Execution
 
@@ -711,9 +817,16 @@ ExampleTool(examples: list[Example] | BaseExampleProvider)
 
 Resolve into a native ADK ExampleTool.
 
----
+**Example:**
+
+```python
+exampletool = ExampleTool("exampletool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-FunctionTool)=
+
 ## FunctionTool
 
 > Fluent builder for `google.adk.tools.function_tool.FunctionTool`
@@ -737,9 +850,9 @@ result = (
 FunctionTool(func: Callable[..., Any])
 ```
 
-| Argument | Type |
-|----------|------|
-| `func` | `Callable[..., Any]` |
+| Argument | Type                 |
+| -------- | -------------------- |
+| `func`   | `Callable[..., Any]` |
 
 ### Control Flow & Execution
 
@@ -747,17 +860,24 @@ FunctionTool(func: Callable[..., Any])
 
 Resolve into a native ADK FunctionTool.
 
+**Example:**
+
+```python
+functiontool = FunctionTool("functiontool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.require_confirmation(value)` | `bool | Callable[..., bool]` |
+| Field                          | Type   |
+| ------------------------------ | ------ |
+| `.require_confirmation(value)` | \`bool |
 
----
+______________________________________________________________________
 
 (builder-GoogleApiTool)=
+
 ## GoogleApiTool
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_tool.GoogleApiTool`
@@ -781,8 +901,8 @@ result = (
 GoogleApiTool(rest_api_tool: RestApiTool)
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument        | Type          |
+| --------------- | ------------- |
 | `rest_api_tool` | `RestApiTool` |
 
 ### Control Flow & Execution
@@ -791,20 +911,27 @@ GoogleApiTool(rest_api_tool: RestApiTool)
 
 Resolve into a native ADK GoogleApiTool.
 
+**Example:**
+
+```python
+googleapitool = GoogleApiTool("googleapitool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.additional_headers(value)` | `dict[str, str] | None` |
+| Field                        | Type               |
+| ---------------------------- | ------------------ |
+| `.client_id(value)`          | \`str              |
+| `.client_secret(value)`      | \`str              |
+| `.service_account(value)`    | \`ServiceAccount   |
+| `.additional_headers(value)` | \`dict\[str, str\] |
 
----
+______________________________________________________________________
 
 (builder-GoogleApiToolset)=
+
 ## GoogleApiToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolset.GoogleApiToolset`
@@ -828,9 +955,9 @@ result = (
 GoogleApiToolset(api_name: str, api_version: str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `api_name` | {py:class}`str` |
+| Argument      | Type            |
+| ------------- | --------------- |
+| `api_name`    | {py:class}`str` |
 | `api_version` | {py:class}`str` |
 
 ### Control Flow & Execution
@@ -839,22 +966,29 @@ GoogleApiToolset(api_name: str, api_version: str)
 
 Resolve into a native ADK GoogleApiToolset.
 
+**Example:**
+
+```python
+googleapitoolset = GoogleApiToolset("googleapitoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
-| `.additional_headers(value)` | `dict[str, str] | None` |
+| Field                        | Type               |
+| ---------------------------- | ------------------ |
+| `.client_id(value)`          | \`str              |
+| `.client_secret(value)`      | \`str              |
+| `.tool_filter(value)`        | \`ToolPredicate    |
+| `.service_account(value)`    | \`ServiceAccount   |
+| `.tool_name_prefix(value)`   | \`str              |
+| `.additional_headers(value)` | \`dict\[str, str\] |
 
----
+______________________________________________________________________
 
 (builder-CalendarToolset)=
+
 ## CalendarToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolsets.CalendarToolset`
@@ -878,21 +1012,28 @@ result = (
 
 Resolve into a native ADK CalendarToolset.
 
+**Example:**
+
+```python
+calendartoolset = CalendarToolset("calendartoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
----
+______________________________________________________________________
 
 (builder-DocsToolset)=
+
 ## DocsToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolsets.DocsToolset`
@@ -916,21 +1057,28 @@ result = (
 
 Resolve into a native ADK DocsToolset.
 
+**Example:**
+
+```python
+docstoolset = DocsToolset("docstoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
----
+______________________________________________________________________
 
 (builder-GmailToolset)=
+
 ## GmailToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolsets.GmailToolset`
@@ -954,21 +1102,28 @@ result = (
 
 Resolve into a native ADK GmailToolset.
 
+**Example:**
+
+```python
+gmailtoolset = GmailToolset("gmailtoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
----
+______________________________________________________________________
 
 (builder-SheetsToolset)=
+
 ## SheetsToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolsets.SheetsToolset`
@@ -992,21 +1147,28 @@ result = (
 
 Resolve into a native ADK SheetsToolset.
 
+**Example:**
+
+```python
+sheetstoolset = SheetsToolset("sheetstoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
----
+______________________________________________________________________
 
 (builder-SlidesToolset)=
+
 ## SlidesToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolsets.SlidesToolset`
@@ -1030,21 +1192,28 @@ result = (
 
 Resolve into a native ADK SlidesToolset.
 
+**Example:**
+
+```python
+slidestoolset = SlidesToolset("slidestoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
----
+______________________________________________________________________
 
 (builder-YoutubeToolset)=
+
 ## YoutubeToolset
 
 > Fluent builder for `google.adk.tools.google_api_tool.google_api_toolsets.YoutubeToolset`
@@ -1068,21 +1237,28 @@ result = (
 
 Resolve into a native ADK YoutubeToolset.
 
+**Example:**
+
+```python
+youtubetoolset = YoutubeToolset("youtubetoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.client_id(value)` | `str | None` |
-| `.client_secret(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.service_account(value)` | `ServiceAccount | None` |
-| `.tool_name_prefix(value)` | `str | None` |
+| Field                      | Type             |
+| -------------------------- | ---------------- |
+| `.client_id(value)`        | \`str            |
+| `.client_secret(value)`    | \`str            |
+| `.tool_filter(value)`      | \`ToolPredicate  |
+| `.service_account(value)`  | \`ServiceAccount |
+| `.tool_name_prefix(value)` | \`str            |
 
----
+______________________________________________________________________
 
 (builder-GoogleMapsGroundingTool)=
+
 ## GoogleMapsGroundingTool
 
 > Fluent builder for `google.adk.tools.google_maps_grounding_tool.GoogleMapsGroundingTool`
@@ -1106,9 +1282,16 @@ result = (
 
 Resolve into a native ADK GoogleMapsGroundingTool.
 
----
+**Example:**
+
+```python
+googlemapsgroundingtool = GoogleMapsGroundingTool("googlemapsgroundingtool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-GoogleSearchAgentTool)=
+
 ## GoogleSearchAgentTool
 
 > Fluent builder for `google.adk.tools.google_search_agent_tool.GoogleSearchAgentTool`
@@ -1132,9 +1315,9 @@ result = (
 GoogleSearchAgentTool(agent: LlmAgent)
 ```
 
-| Argument | Type |
-|----------|------|
-| `agent` | `LlmAgent` |
+| Argument | Type       |
+| -------- | ---------- |
+| `agent`  | `LlmAgent` |
 
 ### Control Flow & Execution
 
@@ -1142,9 +1325,16 @@ GoogleSearchAgentTool(agent: LlmAgent)
 
 Resolve into a native ADK GoogleSearchAgentTool.
 
----
+**Example:**
+
+```python
+googlesearchagenttool = GoogleSearchAgentTool("googlesearchagenttool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-GoogleSearchTool)=
+
 ## GoogleSearchTool
 
 > Fluent builder for `google.adk.tools.google_search_tool.GoogleSearchTool`
@@ -1168,18 +1358,25 @@ result = (
 
 Resolve into a native ADK GoogleSearchTool.
 
+**Example:**
+
+```python
+googlesearchtool = GoogleSearchTool("googlesearchtool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
+| Field                              | Type             |
+| ---------------------------------- | ---------------- |
 | `.bypass_multi_tools_limit(value)` | {py:class}`bool` |
-| `.model(value)` | `str | None` |
+| `.model(value)`                    | \`str            |
 
----
+______________________________________________________________________
 
 (builder-GoogleTool)=
+
 ## GoogleTool
 
 > Fluent builder for `google.adk.tools.google_tool.GoogleTool`
@@ -1203,9 +1400,9 @@ result = (
 GoogleTool(func: Callable[..., Any])
 ```
 
-| Argument | Type |
-|----------|------|
-| `func` | `Callable[..., Any]` |
+| Argument | Type                 |
+| -------- | -------------------- |
+| `func`   | `Callable[..., Any]` |
 
 ### Control Flow & Execution
 
@@ -1213,18 +1410,25 @@ GoogleTool(func: Callable[..., Any])
 
 Resolve into a native ADK GoogleTool.
 
+**Example:**
+
+```python
+googletool = GoogleTool("googletool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.credentials_config(value)` | `BaseGoogleCredentialsConfig | None` |
-| `.tool_settings(value)` | `BaseModel | None` |
+| Field                        | Type                          |
+| ---------------------------- | ----------------------------- |
+| `.credentials_config(value)` | \`BaseGoogleCredentialsConfig |
+| `.tool_settings(value)`      | \`BaseModel                   |
 
----
+______________________________________________________________________
 
 (builder-LoadArtifactsTool)=
+
 ## LoadArtifactsTool
 
 > Fluent builder for `google.adk.tools.load_artifacts_tool.LoadArtifactsTool`
@@ -1248,9 +1452,16 @@ result = (
 
 Resolve into a native ADK LoadArtifactsTool.
 
----
+**Example:**
+
+```python
+loadartifactstool = LoadArtifactsTool("loadartifactstool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-LoadMcpResourceTool)=
+
 ## LoadMcpResourceTool
 
 > Fluent builder for `google.adk.tools.load_mcp_resource_tool.LoadMcpResourceTool`
@@ -1274,8 +1485,8 @@ result = (
 LoadMcpResourceTool(mcp_toolset: McpToolset)
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument      | Type         |
+| ------------- | ------------ |
 | `mcp_toolset` | `McpToolset` |
 
 ### Control Flow & Execution
@@ -1284,9 +1495,16 @@ LoadMcpResourceTool(mcp_toolset: McpToolset)
 
 Resolve into a native ADK LoadMcpResourceTool.
 
----
+**Example:**
+
+```python
+loadmcpresourcetool = LoadMcpResourceTool("loadmcpresourcetool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-LoadMemoryTool)=
+
 ## LoadMemoryTool
 
 > Fluent builder for `google.adk.tools.load_memory_tool.LoadMemoryTool`
@@ -1310,9 +1528,16 @@ result = (
 
 Resolve into a native ADK LoadMemoryTool.
 
----
+**Example:**
+
+```python
+loadmemorytool = LoadMemoryTool("loadmemorytool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-LongRunningFunctionTool)=
+
 ## LongRunningFunctionTool
 
 > Fluent builder for `google.adk.tools.long_running_tool.LongRunningFunctionTool`
@@ -1336,9 +1561,9 @@ result = (
 LongRunningFunctionTool(func: Callable)
 ```
 
-| Argument | Type |
-|----------|------|
-| `func` | `Callable` |
+| Argument | Type       |
+| -------- | ---------- |
+| `func`   | `Callable` |
 
 ### Control Flow & Execution
 
@@ -1346,9 +1571,16 @@ LongRunningFunctionTool(func: Callable)
 
 Resolve into a native ADK LongRunningFunctionTool.
 
----
+**Example:**
+
+```python
+longrunningfunctiontool = LongRunningFunctionTool("longrunningfunctiontool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-MCPTool)=
+
 ## MCPTool
 
 > Fluent builder for `google.adk.tools.mcp_tool.mcp_tool.MCPTool`
@@ -1372,9 +1604,9 @@ result = (
 MCPTool(args: Any, kwargs: Any)
 ```
 
-| Argument | Type |
-|----------|------|
-| `args` | `Any` |
+| Argument | Type  |
+| -------- | ----- |
+| `args`   | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
@@ -1383,9 +1615,16 @@ MCPTool(args: Any, kwargs: Any)
 
 Resolve into a native ADK MCPTool.
 
----
+**Example:**
+
+```python
+mcptool = MCPTool("mcptool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-McpTool)=
+
 ## McpTool
 
 > Fluent builder for `google.adk.tools.mcp_tool.mcp_tool.McpTool`
@@ -1409,9 +1648,9 @@ result = (
 McpTool(mcp_tool: McpBaseTool, mcp_session_manager: MCPSessionManager)
 ```
 
-| Argument | Type |
-|----------|------|
-| `mcp_tool` | `McpBaseTool` |
+| Argument              | Type                |
+| --------------------- | ------------------- |
+| `mcp_tool`            | `McpBaseTool`       |
 | `mcp_session_manager` | `MCPSessionManager` |
 
 ### Control Flow & Execution
@@ -1420,21 +1659,28 @@ McpTool(mcp_tool: McpBaseTool, mcp_session_manager: MCPSessionManager)
 
 Resolve into a native ADK McpTool.
 
+**Example:**
+
+```python
+mcptool = McpTool("mcptool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.auth_scheme(value)` | `AuthScheme | None` |
-| `.auth_credential(value)` | `AuthCredential | None` |
-| `.require_confirmation(value)` | `bool | Callable[..., bool]` |
-| `.header_provider(value)` | `Callable[[ReadonlyContext], dict[str, str]] | None` |
-| `.progress_callback(value)` | `ProgressFnT | ProgressCallbackFactory | None` |
+| Field                          | Type                                                |
+| ------------------------------ | --------------------------------------------------- |
+| `.auth_scheme(value)`          | \`AuthScheme                                        |
+| `.auth_credential(value)`      | \`AuthCredential                                    |
+| `.require_confirmation(value)` | \`bool                                              |
+| `.header_provider(value)`      | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
+| `.progress_callback(value)`    | \`ProgressFnT                                       |
 
----
+______________________________________________________________________
 
 (builder-MCPToolset)=
+
 ## MCPToolset
 
 > Fluent builder for `google.adk.tools.mcp_tool.mcp_toolset.MCPToolset`
@@ -1458,9 +1704,9 @@ result = (
 MCPToolset(args: Any, kwargs: Any)
 ```
 
-| Argument | Type |
-|----------|------|
-| `args` | `Any` |
+| Argument | Type  |
+| -------- | ----- |
+| `args`   | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
@@ -1469,9 +1715,16 @@ MCPToolset(args: Any, kwargs: Any)
 
 Resolve into a native ADK MCPToolset.
 
----
+**Example:**
+
+```python
+mcptoolset = MCPToolset("mcptoolset").build("...")
+```
+
+______________________________________________________________________
 
 (builder-McpToolset)=
+
 ## McpToolset
 
 > Fluent builder for `google.adk.tools.mcp_tool.mcp_toolset.McpToolset`
@@ -1495,9 +1748,9 @@ result = (
 McpToolset(connection_params: StdioServerParameters | StdioConnectionParams | SseConnectionParams | StreamableHTTPConnectionParams)
 ```
 
-| Argument | Type |
-|----------|------|
-| `connection_params` | `StdioServerParameters | StdioConnectionParams | SseConnectionParams | StreamableHTTPConnectionParams` |
+| Argument            | Type                    |
+| ------------------- | ----------------------- |
+| `connection_params` | \`StdioServerParameters |
 
 ### Control Flow & Execution
 
@@ -1505,25 +1758,32 @@ McpToolset(connection_params: StdioServerParameters | StdioConnectionParams | Ss
 
 Resolve into a native ADK McpToolset.
 
+**Example:**
+
+```python
+mcptoolset = McpToolset("mcptoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.tool_name_prefix(value)` | `str | None` |
-| `.errlog(value)` | `TextIO` |
-| `.auth_scheme(value)` | `AuthScheme | None` |
-| `.auth_credential(value)` | `AuthCredential | None` |
-| `.require_confirmation(value)` | `bool | Callable[..., bool]` |
-| `.header_provider(value)` | `Callable[[ReadonlyContext], dict[str, str]] | None` |
-| `.progress_callback(value)` | `ProgressFnT | ProgressCallbackFactory | None` |
-| `.use_mcp_resources(value)` | `bool | None` |
+| Field                          | Type                                                |
+| ------------------------------ | --------------------------------------------------- |
+| `.tool_filter(value)`          | \`ToolPredicate                                     |
+| `.tool_name_prefix(value)`     | \`str                                               |
+| `.errlog(value)`               | `TextIO`                                            |
+| `.auth_scheme(value)`          | \`AuthScheme                                        |
+| `.auth_credential(value)`      | \`AuthCredential                                    |
+| `.require_confirmation(value)` | \`bool                                              |
+| `.header_provider(value)`      | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
+| `.progress_callback(value)`    | \`ProgressFnT                                       |
+| `.use_mcp_resources(value)`    | \`bool                                              |
 
----
+______________________________________________________________________
 
 (builder-OpenAPIToolset)=
+
 ## OpenAPIToolset
 
 > Fluent builder for `google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset.OpenAPIToolset`
@@ -1547,26 +1807,33 @@ result = (
 
 Resolve into a native ADK OpenAPIToolset.
 
+**Example:**
+
+```python
+openapitoolset = OpenAPIToolset("openapitoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.spec_dict(value)` | `dict[str, Any] | None` |
-| `.spec_str(value)` | `str | None` |
-| `.spec_str_type(value)` | `Literal['json', 'yaml']` |
-| `.auth_scheme(value)` | `AuthScheme | None` |
-| `.auth_credential(value)` | `AuthCredential | None` |
-| `.credential_key(value)` | `str | None` |
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.tool_name_prefix(value)` | `str | None` |
-| `.ssl_verify(value)` | `bool | str | ssl.SSLContext | None` |
-| `.header_provider(value)` | `Callable[[ReadonlyContext], dict[str, str]] | None` |
+| Field                      | Type                                                |
+| -------------------------- | --------------------------------------------------- |
+| `.spec_dict(value)`        | \`dict\[str, Any\]                                  |
+| `.spec_str(value)`         | \`str                                               |
+| `.spec_str_type(value)`    | `Literal['json', 'yaml']`                           |
+| `.auth_scheme(value)`      | \`AuthScheme                                        |
+| `.auth_credential(value)`  | \`AuthCredential                                    |
+| `.credential_key(value)`   | \`str                                               |
+| `.tool_filter(value)`      | \`ToolPredicate                                     |
+| `.tool_name_prefix(value)` | \`str                                               |
+| `.ssl_verify(value)`       | \`bool                                              |
+| `.header_provider(value)`  | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
 
----
+______________________________________________________________________
 
 (builder-RestApiTool)=
+
 ## RestApiTool
 
 > Fluent builder for `google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool.RestApiTool`
@@ -1590,11 +1857,11 @@ result = (
 RestApiTool(name: str, description: str, endpoint: OperationEndpoint | str)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | {py:class}`str` |
-| `description` | {py:class}`str` |
-| `endpoint` | `OperationEndpoint | str` |
+| Argument      | Type                |
+| ------------- | ------------------- |
+| `name`        | {py:class}`str`     |
+| `description` | {py:class}`str`     |
+| `endpoint`    | \`OperationEndpoint |
 
 ### Control Flow & Execution
 
@@ -1602,23 +1869,30 @@ RestApiTool(name: str, description: str, endpoint: OperationEndpoint | str)
 
 Resolve into a native ADK RestApiTool.
 
+**Example:**
+
+```python
+restapitool = RestApiTool("restapitool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.operation(value)` | `Operation | str` |
-| `.auth_scheme(value)` | `AuthScheme | str | None` |
-| `.auth_credential(value)` | `AuthCredential | str | None` |
-| `.should_parse_operation(value)` | `Any` |
-| `.ssl_verify(value)` | `bool | str | ssl.SSLContext | None` |
-| `.header_provider(value)` | `Callable[[ReadonlyContext], dict[str, str]] | None` |
-| `.credential_key(value)` | `str | None` |
+| Field                            | Type                                                |
+| -------------------------------- | --------------------------------------------------- |
+| `.operation(value)`              | \`Operation                                         |
+| `.auth_scheme(value)`            | \`AuthScheme                                        |
+| `.auth_credential(value)`        | \`AuthCredential                                    |
+| `.should_parse_operation(value)` | `Any`                                               |
+| `.ssl_verify(value)`             | \`bool                                              |
+| `.header_provider(value)`        | \`Callable\[\[ReadonlyContext\], dict\[str, str\]\] |
+| `.credential_key(value)`         | \`str                                               |
 
----
+______________________________________________________________________
 
 (builder-PreloadMemoryTool)=
+
 ## PreloadMemoryTool
 
 > Fluent builder for `google.adk.tools.preload_memory_tool.PreloadMemoryTool`
@@ -1642,9 +1916,16 @@ result = (
 
 Resolve into a native ADK PreloadMemoryTool.
 
----
+**Example:**
+
+```python
+preloadmemorytool = PreloadMemoryTool("preloadmemorytool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-PubSubToolset)=
+
 ## PubSubToolset
 
 > Fluent builder for `google.adk.tools.pubsub.pubsub_toolset.PubSubToolset`
@@ -1668,19 +1949,26 @@ result = (
 
 Resolve into a native ADK PubSubToolset.
 
+**Example:**
+
+```python
+pubsubtoolset = PubSubToolset("pubsubtoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.credentials_config(value)` | `PubSubCredentialsConfig | None` |
-| `.pubsub_tool_config(value)` | `PubSubToolConfig | None` |
+| Field                        | Type                      |
+| ---------------------------- | ------------------------- |
+| `.tool_filter(value)`        | \`ToolPredicate           |
+| `.credentials_config(value)` | \`PubSubCredentialsConfig |
+| `.pubsub_tool_config(value)` | \`PubSubToolConfig        |
 
----
+______________________________________________________________________
 
 (builder-BaseRetrievalTool)=
+
 ## BaseRetrievalTool
 
 > Fluent builder for `google.adk.tools.retrieval.base_retrieval_tool.BaseRetrievalTool`
@@ -1704,9 +1992,9 @@ result = (
 BaseRetrievalTool(name: Any, description: Any)
 ```
 
-| Argument | Type |
-|----------|------|
-| `name` | `Any` |
+| Argument      | Type  |
+| ------------- | ----- |
+| `name`        | `Any` |
 | `description` | `Any` |
 
 ### Control Flow & Execution
@@ -1715,18 +2003,25 @@ BaseRetrievalTool(name: Any, description: Any)
 
 Resolve into a native ADK BaseRetrievalTool.
 
+**Example:**
+
+```python
+baseretrievaltool = BaseRetrievalTool("baseretrievaltool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.is_long_running(value)` | {py:class}`bool` |
-| `.custom_metadata(value)` | `dict[str, Any] | None` |
+| Field                     | Type               |
+| ------------------------- | ------------------ |
+| `.is_long_running(value)` | {py:class}`bool`   |
+| `.custom_metadata(value)` | \`dict\[str, Any\] |
 
----
+______________________________________________________________________
 
 (builder-SetModelResponseTool)=
+
 ## SetModelResponseTool
 
 > Fluent builder for `google.adk.tools.set_model_response_tool.SetModelResponseTool`
@@ -1750,8 +2045,8 @@ result = (
 SetModelResponseTool(output_schema: type[BaseModel])
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument        | Type              |
+| --------------- | ----------------- |
 | `output_schema` | `type[BaseModel]` |
 
 ### Control Flow & Execution
@@ -1760,9 +2055,16 @@ SetModelResponseTool(output_schema: type[BaseModel])
 
 Resolve into a native ADK SetModelResponseTool.
 
----
+**Example:**
+
+```python
+setmodelresponsetool = SetModelResponseTool("setmodelresponsetool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-LoadSkillResourceTool)=
+
 ## LoadSkillResourceTool
 
 > Fluent builder for `google.adk.tools.skill_toolset.LoadSkillResourceTool`
@@ -1786,8 +2088,8 @@ result = (
 LoadSkillResourceTool(toolset: 'SkillToolset')
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument  | Type             |
+| --------- | ---------------- |
 | `toolset` | `'SkillToolset'` |
 
 ### Control Flow & Execution
@@ -1796,9 +2098,16 @@ LoadSkillResourceTool(toolset: 'SkillToolset')
 
 Resolve into a native ADK LoadSkillResourceTool.
 
----
+**Example:**
+
+```python
+loadskillresourcetool = LoadSkillResourceTool("loadskillresourcetool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-LoadSkillTool)=
+
 ## LoadSkillTool
 
 > Fluent builder for `google.adk.tools.skill_toolset.LoadSkillTool`
@@ -1822,8 +2131,8 @@ result = (
 LoadSkillTool(toolset: 'SkillToolset')
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument  | Type             |
+| --------- | ---------------- |
 | `toolset` | `'SkillToolset'` |
 
 ### Control Flow & Execution
@@ -1832,9 +2141,16 @@ LoadSkillTool(toolset: 'SkillToolset')
 
 Resolve into a native ADK LoadSkillTool.
 
----
+**Example:**
+
+```python
+loadskilltool = LoadSkillTool("loadskilltool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-SkillToolset)=
+
 ## SkillToolset
 
 > Fluent builder for `google.adk.tools.skill_toolset.SkillToolset`
@@ -1858,8 +2174,8 @@ result = (
 SkillToolset(skills: list[models.Skill])
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument | Type                 |
+| -------- | -------------------- |
 | `skills` | `list[models.Skill]` |
 
 ### Control Flow & Execution
@@ -1868,9 +2184,16 @@ SkillToolset(skills: list[models.Skill])
 
 Resolve into a native ADK SkillToolset.
 
----
+**Example:**
+
+```python
+skilltoolset = SkillToolset("skilltoolset").build("...")
+```
+
+______________________________________________________________________
 
 (builder-SpannerToolset)=
+
 ## SpannerToolset
 
 > Fluent builder for `google.adk.tools.spanner.spanner_toolset.SpannerToolset`
@@ -1894,19 +2217,26 @@ result = (
 
 Resolve into a native ADK SpannerToolset.
 
+**Example:**
+
+```python
+spannertoolset = SpannerToolset("spannertoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.tool_filter(value)` | `ToolPredicate | list[str] | None` |
-| `.credentials_config(value)` | `SpannerCredentialsConfig | None` |
-| `.spanner_tool_settings(value)` | `SpannerToolSettings | None` |
+| Field                           | Type                       |
+| ------------------------------- | -------------------------- |
+| `.tool_filter(value)`           | \`ToolPredicate            |
+| `.credentials_config(value)`    | \`SpannerCredentialsConfig |
+| `.spanner_tool_settings(value)` | \`SpannerToolSettings      |
 
----
+______________________________________________________________________
 
 (builder-ToolboxToolset)=
+
 ## ToolboxToolset
 
 > Fluent builder for `google.adk.tools.toolbox_toolset.ToolboxToolset`
@@ -1930,10 +2260,10 @@ result = (
 ToolboxToolset(server_url: str, kwargs: Any)
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument     | Type            |
+| ------------ | --------------- |
 | `server_url` | {py:class}`str` |
-| `kwargs` | `Any` |
+| `kwargs`     | `Any`           |
 
 ### Control Flow & Execution
 
@@ -1941,22 +2271,29 @@ ToolboxToolset(server_url: str, kwargs: Any)
 
 Resolve into a native ADK ToolboxToolset.
 
+**Example:**
+
+```python
+toolboxtoolset = ToolboxToolset("toolboxtoolset").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.toolset_name(value)` | `str | None` |
-| `.tool_names(value)` | `list[str] | None` |
-| `.auth_token_getters(value)` | `Mapping[str, Callable[[], str]] | None` |
-| `.bound_params(value)` | `Mapping[str, Union[Callable[[], Any], Any]] | None` |
-| `.credentials(value)` | `CredentialConfig | None` |
-| `.additional_headers(value)` | `Mapping[str, str] | None` |
+| Field                        | Type                                                  |
+| ---------------------------- | ----------------------------------------------------- |
+| `.toolset_name(value)`       | \`str                                                 |
+| `.tool_names(value)`         | \`list\[str\]                                         |
+| `.auth_token_getters(value)` | \`Mapping\[str, Callable\[\[\], str\]\]               |
+| `.bound_params(value)`       | \`Mapping\[str, Union\[Callable\[\[\], Any\], Any\]\] |
+| `.credentials(value)`        | \`CredentialConfig                                    |
+| `.additional_headers(value)` | \`Mapping\[str, str\]                                 |
 
----
+______________________________________________________________________
 
 (builder-TransferToAgentTool)=
+
 ## TransferToAgentTool
 
 > Fluent builder for `google.adk.tools.transfer_to_agent_tool.TransferToAgentTool`
@@ -1980,8 +2317,8 @@ result = (
 TransferToAgentTool(agent_names: list[str])
 ```
 
-| Argument | Type |
-|----------|------|
+| Argument      | Type        |
+| ------------- | ----------- |
 | `agent_names` | `list[str]` |
 
 ### Control Flow & Execution
@@ -1990,9 +2327,16 @@ TransferToAgentTool(agent_names: list[str])
 
 Resolve into a native ADK TransferToAgentTool.
 
----
+**Example:**
+
+```python
+transfertoagenttool = TransferToAgentTool("transfertoagenttool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-UrlContextTool)=
+
 ## UrlContextTool
 
 > Fluent builder for `google.adk.tools.url_context_tool.UrlContextTool`
@@ -2016,9 +2360,16 @@ result = (
 
 Resolve into a native ADK UrlContextTool.
 
----
+**Example:**
+
+```python
+urlcontexttool = UrlContextTool("urlcontexttool").build("...")
+```
+
+______________________________________________________________________
 
 (builder-VertexAiSearchTool)=
+
 ## VertexAiSearchTool
 
 > Fluent builder for `google.adk.tools.vertex_ai_search_tool.VertexAiSearchTool`
@@ -2042,15 +2393,21 @@ result = (
 
 Resolve into a native ADK VertexAiSearchTool.
 
+**Example:**
+
+```python
+vertexaisearchtool = VertexAiSearchTool("vertexaisearchtool").build("...")
+```
+
 ### Forwarded Fields
 
 These fields are available via `__getattr__` forwarding.
 
-| Field | Type |
-|-------|------|
-| `.data_store_id(value)` | `str | None` |
-| `.data_store_specs(value)` | `list[types.VertexAISearchDataStoreSpec] | None` |
-| `.search_engine_id(value)` | `str | None` |
-| `.filter(value)` | `str | None` |
-| `.max_results(value)` | `int | None` |
-| `.bypass_multi_tools_limit(value)` | {py:class}`bool` |
+| Field                              | Type                                        |
+| ---------------------------------- | ------------------------------------------- |
+| `.data_store_id(value)`            | \`str                                       |
+| `.data_store_specs(value)`         | \`list\[types.VertexAISearchDataStoreSpec\] |
+| `.search_engine_id(value)`         | \`str                                       |
+| `.filter(value)`                   | \`str                                       |
+| `.max_results(value)`              | \`int                                       |
+| `.bypass_multi_tools_limit(value)` | {py:class}`bool`                            |

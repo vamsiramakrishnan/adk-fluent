@@ -10,24 +10,45 @@ requires graph compilation and manual event filtering. adk-fluent exposes
 .stream() directly on any pipeline, making token-by-token output a single
 async for loop.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `09_streaming.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["transcriber_then_translator (sequence)"]]
-    n2["transcriber"]
-    n3["translator"]
-    n2 --> n3
+```python
+from adk_fluent import Agent
+
+# The fluent API makes streaming a single async for loop:
+# async for chunk in pipeline.stream("audio data here"):
+#     print(chunk, end="")
+
+transcriber = (
+    Agent("transcriber")
+    .model("gemini-2.5-flash")
+    .instruct("Transcribe the incoming audio stream to text. Preserve speaker labels and timestamps.")
+    .writes("transcript")
+)
+
+translator = (
+    Agent("translator")
+    .model("gemini-2.5-flash")
+    .instruct("Translate the transcript to Spanish. Preserve speaker labels and formatting.")
+)
+
+pipeline_fluent = transcriber >> translator
+
+# Build both to compare
+built_native = pipeline_native
+built_fluent = pipeline_fluent.build()
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+:::
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -57,34 +78,18 @@ pipeline_native = SequentialAgent(
     sub_agents=[transcriber_native, translator_native],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent
+:::\{tab-item} Architecture
 
-# The fluent API makes streaming a single async for loop:
-# async for chunk in pipeline.stream("audio data here"):
-#     print(chunk, end="")
-
-transcriber = (
-    Agent("transcriber")
-    .model("gemini-2.5-flash")
-    .instruct("Transcribe the incoming audio stream to text. Preserve speaker labels and timestamps.")
-    .writes("transcript")
-)
-
-translator = (
-    Agent("translator")
-    .model("gemini-2.5-flash")
-    .instruct("Translate the transcript to Spanish. Preserve speaker labels and formatting.")
-)
-
-pipeline_fluent = transcriber >> translator
-
-# Build both to compare
-built_native = pipeline_native
-built_fluent = pipeline_fluent.build()
+```mermaid
+graph TD
+    n1[["transcriber_then_translator (sequence)"]]
+    n2["transcriber"]
+    n3["translator"]
+    n2 --> n3
 ```
+
 :::
 ::::
 

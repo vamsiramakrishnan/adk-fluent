@@ -14,51 +14,19 @@ node (~45 lines). adk-fluent composes parallel reviewers with | and sequences
 with >> in a single expression.
 
 Pipeline topology:
-    diff_parser
-        >> ( style_checker | security_scanner | logic_reviewer )
-        >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
+diff_parser
+\>> ( style_checker | security_scanner | logic_reviewer )
+\>> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `34_full_algebra.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_finding_aggregator_or_backup_aggregator (sequence)"]]
-    n2["diff_parser"]
-    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
-    n4["style_checker"]
-    n5["security_scanner"]
-    n6["logic_reviewer"]
-    n7[/"finding_aggregator_or_backup_aggregator (fallback)"\]
-    n8["finding_aggregator"]
-    n9["backup_aggregator"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n7 --> n8
-    n7 --> n9
-    n2 --> n3
-    n3 --> n7
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# A native ADK code review pipeline requires:
-#   - 5 LlmAgent declarations
-#   - 1 ParallelAgent for fan-out
-#   - 1 SequentialAgent for the overall pipeline
-#   - Manual output_schema wiring on the aggregator
-# That's ~60 lines of boilerplate. The fluent algebra below
-# expresses the same architecture in a single readable expression.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -110,6 +78,43 @@ review_pipeline = (
     )
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# A native ADK code review pipeline requires:
+#   - 5 LlmAgent declarations
+#   - 1 ParallelAgent for fan-out
+#   - 1 SequentialAgent for the overall pipeline
+#   - Manual output_schema wiring on the aggregator
+# That's ~60 lines of boilerplate. The fluent algebra below
+# expresses the same architecture in a single readable expression.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_finding_aggregator_or_backup_aggregator (sequence)"]]
+    n2["diff_parser"]
+    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
+    n4["style_checker"]
+    n5["security_scanner"]
+    n6["logic_reviewer"]
+    n7[/"finding_aggregator_or_backup_aggregator (fallback)"\]
+    n8["finding_aggregator"]
+    n9["backup_aggregator"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n7 --> n8
+    n7 --> n9
+    n2 --> n3
+    n3 --> n7
+```
+
 :::
 ::::
 

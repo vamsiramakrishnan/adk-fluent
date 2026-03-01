@@ -1,51 +1,30 @@
 # Research Data Pipeline: State Transforms with S Factories
 
 Pipeline topology:
-    data_extractor
-        >> S.pick("clinical_findings", "lab_results")
-        >> S.rename(clinical_findings="analysis_input")
-        >> S.default(confidence_interval=0.95)
-        >> statistical_analyzer
+data_extractor
+\>> S.pick("clinical_findings", "lab_results")
+\>> S.rename(clinical_findings="analysis_input")
+\>> S.default(confidence_interval=0.95)
+\>> statistical_analyzer
 
-    Research pipeline:
-        ( literature_agent | trial_agent )
-            >> S.merge(into="combined_evidence")
-            >> S.default(...)
-            >> report_writer
-            >> S.compute(word_count=...)
+```
+Research pipeline:
+    ( literature_agent | trial_agent )
+        >> S.merge(into="combined_evidence")
+        >> S.default(...)
+        >> report_writer
+        >> S.compute(word_count=...)
+```
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `33_state_transforms.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK requires custom BaseAgent subclasses for any state transform.
-# In a clinical research pipeline, each data cleaning step becomes a class:
-from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-
-class SelectResearchFields(NativeBaseAgent):
-    async def _run_async_impl(self, ctx):
-        # Keep only "clinical_findings" and "lab_results"
-        for key in list(ctx.session.state.keys()):
-            if key not in ("clinical_findings", "lab_results"):
-                del ctx.session.state[key]
-
-
-class RenameForReport(NativeBaseAgent):
-    async def _run_async_impl(self, ctx):
-        if "clinical_findings" in ctx.session.state:
-            ctx.session.state["analysis"] = ctx.session.state.pop("clinical_findings")
-
-
-# Each transform = a new class. No composability.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S, Pipeline
 from adk_fluent._transforms import StateDelta, StateReplacement
@@ -139,6 +118,33 @@ research_pipeline = (
     )
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK requires custom BaseAgent subclasses for any state transform.
+# In a clinical research pipeline, each data cleaning step becomes a class:
+from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
+
+
+class SelectResearchFields(NativeBaseAgent):
+    async def _run_async_impl(self, ctx):
+        # Keep only "clinical_findings" and "lab_results"
+        for key in list(ctx.session.state.keys()):
+            if key not in ("clinical_findings", "lab_results"):
+                del ctx.session.state[key]
+
+
+class RenameForReport(NativeBaseAgent):
+    async def _run_async_impl(self, ctx):
+        if "clinical_findings" in ctx.session.state:
+            ctx.session.state["analysis"] = ctx.session.state.pop("clinical_findings")
+
+
+# Each transform = a new class. No composability.
+```
+
 :::
 ::::
 

@@ -16,67 +16,27 @@ delegation, lacking deterministic control. adk-fluent uses Route() with
 explicit .eq() branches for deterministic, testable routing.
 
 Pipeline topology:
-    S.capture("customer_message")
-        >> intent_classifier [C.none, save_as: intent]
-        >> Route("intent")
-            ├─ "billing"   -> billing_specialist
-            ├─ "technical" -> tech_support
-            ├─ "account"   -> account_manager
-            └─ otherwise   -> general_support
-        >> satisfaction_monitor
-        >> gate(resolved == "no") -> escalate
+S.capture("customer_message")
+\>> intent_classifier \[C.none, save_as: intent\]
+\>> Route("intent")
+├─ "billing"   -> billing_specialist
+├─ "technical" -> tech_support
+├─ "account"   -> account_manager
+└─ otherwise   -> general_support
+\>> satisfaction_monitor
+\>> gate(resolved == "no") -> escalate
 
 Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `56_customer_support_triage.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["capture_customer_message_then_intent_classifier_routed_then_satisfaction_monitor_then_gate_9 (sequence)"]]
-    n2>"capture_customer_message capture(customer_message)"]
-    n3["intent_classifier"]
-    n4{"route_intent (route)"}
-    n5["billing_specialist"]
-    n6["tech_support"]
-    n7["account_manager"]
-    n8["general_support"]
-    n9["satisfaction_monitor"]
-    n10{{"gate_9 (gate)"}}
-    n4 --> n5
-    n4 --> n6
-    n4 --> n7
-    n4 -.-> n8
-    n2 --> n3
-    n3 --> n4
-    n4 --> n9
-    n9 --> n10
-    n2 -. "customer_message" .-> n3
-    n2 -. "customer_message" .-> n5
-    n2 -. "customer_message" .-> n6
-    n2 -. "customer_message" .-> n7
-    n2 -. "customer_message" .-> n8
-    n3 -. "intent" .-> n4
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK triage requires:
-#   - 5+ LlmAgent declarations
-#   - Custom BaseAgent for state capture
-#   - Manual include_contents="none" for stateless classification
-#   - Custom routing logic via InstructionProvider
-#   - Custom escalation gate via BaseAgent + EventActions(escalate=True)
-# Total: ~100 lines plus custom agent classes
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, S, C, gate
 from adk_fluent._routing import Route
@@ -173,6 +133,51 @@ support_system = (
     >> escalation_gate
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK triage requires:
+#   - 5+ LlmAgent declarations
+#   - Custom BaseAgent for state capture
+#   - Manual include_contents="none" for stateless classification
+#   - Custom routing logic via InstructionProvider
+#   - Custom escalation gate via BaseAgent + EventActions(escalate=True)
+# Total: ~100 lines plus custom agent classes
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["capture_customer_message_then_intent_classifier_routed_then_satisfaction_monitor_then_gate_9 (sequence)"]]
+    n2>"capture_customer_message capture(customer_message)"]
+    n3["intent_classifier"]
+    n4{"route_intent (route)"}
+    n5["billing_specialist"]
+    n6["tech_support"]
+    n7["account_manager"]
+    n8["general_support"]
+    n9["satisfaction_monitor"]
+    n10{{"gate_9 (gate)"}}
+    n4 --> n5
+    n4 --> n6
+    n4 --> n7
+    n4 -.-> n8
+    n2 --> n3
+    n3 --> n4
+    n4 --> n9
+    n9 --> n10
+    n2 -. "customer_message" .-> n3
+    n2 -. "customer_message" .-> n5
+    n2 -. "customer_message" .-> n6
+    n2 -. "customer_message" .-> n7
+    n2 -. "customer_message" .-> n8
+    n3 -. "intent" .-> n4
+```
+
 :::
 ::::
 

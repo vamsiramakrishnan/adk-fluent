@@ -1191,29 +1191,32 @@ def cookbook_to_markdown(parsed: dict) -> str:
     # We try to dynamically evaluate the file to grab the mermaid graph
     filepath = str(Path("examples/cookbook") / parsed["filename"])
     mermaid_src = _get_mermaid_from_cookbook(filepath)
-    if mermaid_src:
-        lines.append("### Architecture")
-        lines.append("")
-        lines.append("```mermaid")
-        lines.append(mermaid_src)
-        lines.append("```")
-        lines.append("")
 
-    # --- Tabbed side-by-side comparison ---
-    if parsed["native"] or parsed["fluent"]:
+    # --- Tabbed comparison + Architecture ---
+    if parsed["native"] or parsed["fluent"] or mermaid_src:
         lines.append("::::{tab-set}")
-        if parsed["native"]:
-            lines.append(":::{tab-item} Native ADK")
-            lines.append("```python")
-            lines.append(parsed["native"])
-            lines.append("```")
-            lines.append(":::")
+
         if parsed["fluent"]:
             lines.append(":::{tab-item} adk-fluent")
             lines.append("```python")
             lines.append(parsed["fluent"])
             lines.append("```")
             lines.append(":::")
+
+        if parsed["native"]:
+            lines.append(":::{tab-item} Native ADK")
+            lines.append("```python")
+            lines.append(parsed["native"])
+            lines.append("```")
+            lines.append(":::")
+
+        if mermaid_src:
+            lines.append(":::{tab-item} Architecture")
+            lines.append("```mermaid")
+            lines.append(mermaid_src)
+            lines.append("```")
+            lines.append(":::")
+
         lines.append("::::")
         lines.append("")
 

@@ -9,43 +9,21 @@ that returns the target node name. adk-fluent uses Route("key").eq() for
 declarative, readable branching without routing functions.
 
 Pipeline topology:
-    Route("category")
-        ├─ "electronics" -> electronics
-        ├─ "clothing"    -> clothing
-        ├─ "grocery"     -> grocery
-        └─ otherwise     -> general
+Route("category")
+├─ "electronics" -> electronics
+├─ "clothing"    -> clothing
+├─ "grocery"     -> grocery
+└─ otherwise     -> general
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `17_route_branching.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1{"route_category (route)"}
-    n2["electronics"]
-    n3["clothing"]
-    n4["grocery"]
-    n5["general"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
-    n1 -.-> n5
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK has no built-in deterministic router. You'd need:
-#   1. An LlmAgent coordinator (wastes API calls for simple routing), OR
-#   2. A custom BaseAgent subclass with predicate logic (~30 lines)
-# Neither approach is ergonomic for common routing patterns.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 from adk_fluent._routing import Route
@@ -80,6 +58,33 @@ complex_route = (
     .otherwise(regular_handler)
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK has no built-in deterministic router. You'd need:
+#   1. An LlmAgent coordinator (wastes API calls for simple routing), OR
+#   2. A custom BaseAgent subclass with predicate logic (~30 lines)
+# Neither approach is ergonomic for common routing patterns.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1{"route_category (route)"}
+    n2["electronics"]
+    n3["clothing"]
+    n4["grocery"]
+    n5["general"]
+    n1 --> n2
+    n1 --> n3
+    n1 --> n4
+    n1 -.-> n5
+```
+
 :::
 ::::
 

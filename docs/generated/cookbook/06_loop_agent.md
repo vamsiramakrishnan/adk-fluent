@@ -14,27 +14,49 @@ StateGraph, requiring a routing function to decide continue vs stop (~25 lines).
 adk-fluent uses * N for fixed iterations or * until() for conditional loops.
 
 Pipeline topology:
-    ( critic >> reviser ) * 3
+( critic >> reviser ) * 3
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `06_loop_agent.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1(("essay_refiner (loop x3)"))
-    n2["critic"]
-    n3["reviser"]
-    n1 --> n2
-    n1 --> n3
+```python
+from adk_fluent import Agent, Loop
+
+loop_fluent = (
+    Loop("essay_refiner")
+    .max_iterations(3)
+    .step(
+        Agent("critic")
+        .model("gemini-2.5-flash")
+        .instruct(
+            "Evaluate the essay for clarity, structure, grammar, "
+            "and argument strength. Provide specific, actionable "
+            "feedback. If the essay meets a high quality bar, "
+            "say APPROVED."
+        )
+    )
+    .step(
+        Agent("reviser")
+        .model("gemini-2.5-flash")
+        .instruct(
+            "Revise the essay based on the critic's feedback. "
+            "Improve clarity, fix grammatical issues, and strengthen "
+            "weak arguments while preserving the author's voice."
+        )
+    )
+    .build()
+)
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+:::
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.loop_agent import LoopAgent
@@ -65,36 +87,19 @@ loop_native = LoopAgent(
     ],
 )
 ```
-:::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent, Loop
 
-loop_fluent = (
-    Loop("essay_refiner")
-    .max_iterations(3)
-    .step(
-        Agent("critic")
-        .model("gemini-2.5-flash")
-        .instruct(
-            "Evaluate the essay for clarity, structure, grammar, "
-            "and argument strength. Provide specific, actionable "
-            "feedback. If the essay meets a high quality bar, "
-            "say APPROVED."
-        )
-    )
-    .step(
-        Agent("reviser")
-        .model("gemini-2.5-flash")
-        .instruct(
-            "Revise the essay based on the critic's feedback. "
-            "Improve clarity, fix grammatical issues, and strengthen "
-            "weak arguments while preserving the author's voice."
-        )
-    )
-    .build()
-)
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1(("essay_refiner (loop x3)"))
+    n2["critic"]
+    n3["reviser"]
+    n1 --> n2
+    n1 --> n3
 ```
+
 :::
 ::::
 
@@ -108,6 +113,6 @@ assert loop_fluent.sub_agents[0].name == "critic"
 assert loop_fluent.sub_agents[1].name == "reviser"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)
 :::

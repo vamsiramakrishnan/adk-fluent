@@ -5,55 +5,15 @@ compilation, and to_mermaid() for architecture documentation. The
 scenario: a mortgage approval pipeline where the platform team
 inspects the agent graph for optimization before deployment.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `44_ir_and_backends.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["doc_collector_then_credit_check_and_income_verifier_then_underwriter (sequence)"]]
-    n2["doc_collector"]
-    n3{"credit_check_and_income_verifier (parallel)"}
-    n4["credit_check"]
-    n5["income_verifier"]
-    n6["underwriter"]
-    n3 --> n4
-    n3 --> n5
-    n2 --> n3
-    n3 --> n6
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents.sequential_agent import SequentialAgent
-from google.adk.agents.parallel_agent import ParallelAgent
-
-# Native mortgage pipeline: 5 agents across sequential + parallel stages
-doc_collector = LlmAgent(
-    name="doc_collector", model="gemini-2.5-flash", instruction="Collect and validate required mortgage documents."
-)
-credit_check = LlmAgent(name="credit_check", model="gemini-2.5-flash", instruction="Run credit check on the applicant.")
-income_verifier = LlmAgent(
-    name="income_verifier",
-    model="gemini-2.5-flash",
-    instruction="Verify employment and income from pay stubs and tax returns.",
-)
-parallel_checks = ParallelAgent(name="parallel_checks", sub_agents=[credit_check, income_verifier])
-underwriter = LlmAgent(
-    name="underwriter",
-    model="gemini-2.5-flash",
-    instruction="Make final loan approval decision based on all gathered data.",
-)
-pipeline_native = SequentialAgent(name="mortgage_pipeline", sub_agents=[doc_collector, parallel_checks, underwriter])
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -83,6 +43,51 @@ mermaid = mortgage_pipeline.to_mermaid()
 # 4. Build directly for comparison
 built_fluent = mortgage_pipeline.build()
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.sequential_agent import SequentialAgent
+from google.adk.agents.parallel_agent import ParallelAgent
+
+# Native mortgage pipeline: 5 agents across sequential + parallel stages
+doc_collector = LlmAgent(
+    name="doc_collector", model="gemini-2.5-flash", instruction="Collect and validate required mortgage documents."
+)
+credit_check = LlmAgent(name="credit_check", model="gemini-2.5-flash", instruction="Run credit check on the applicant.")
+income_verifier = LlmAgent(
+    name="income_verifier",
+    model="gemini-2.5-flash",
+    instruction="Verify employment and income from pay stubs and tax returns.",
+)
+parallel_checks = ParallelAgent(name="parallel_checks", sub_agents=[credit_check, income_verifier])
+underwriter = LlmAgent(
+    name="underwriter",
+    model="gemini-2.5-flash",
+    instruction="Make final loan approval decision based on all gathered data.",
+)
+pipeline_native = SequentialAgent(name="mortgage_pipeline", sub_agents=[doc_collector, parallel_checks, underwriter])
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["doc_collector_then_credit_check_and_income_verifier_then_underwriter (sequence)"]]
+    n2["doc_collector"]
+    n3{"credit_check_and_income_verifier (parallel)"}
+    n4["credit_check"]
+    n5["income_verifier"]
+    n6["underwriter"]
+    n3 --> n4
+    n3 --> n5
+    n2 --> n3
+    n3 --> n6
+```
+
 :::
 ::::
 

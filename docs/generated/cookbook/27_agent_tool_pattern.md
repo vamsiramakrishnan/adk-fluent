@@ -1,49 +1,14 @@
 # Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to delegate tasks between agents.
 :::
 
 _Source: `27_agent_tool_pattern.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    c["senior_architect"]
-    d0["database_specialist"]
-    c -.->|delegates| d0
-    d1["frontend_specialist"]
-    c -.->|delegates| d1
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-from google.adk.agents.llm_agent import LlmAgent
-from google.adk.tools.agent_tool import AgentTool
-
-# Native: manually create an AgentTool for each specialist
-database_specialist = LlmAgent(
-    name="database_specialist",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are a database architecture specialist. Design schemas, "
-        "optimize queries, and recommend indexing strategies."
-    ),
-)
-
-coordinator_native = LlmAgent(
-    name="tech_lead",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are a senior tech lead. Analyze architecture requests and agent_tool to the appropriate specialist."
-    ),
-    tools=[AgentTool(agent=database_specialist)],
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -80,6 +45,46 @@ senior_architect = (
     .agent_tool(frontend_expert)
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.tools.agent_tool import AgentTool
+
+# Native: manually create an AgentTool for each specialist
+database_specialist = LlmAgent(
+    name="database_specialist",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a database architecture specialist. Design schemas, "
+        "optimize queries, and recommend indexing strategies."
+    ),
+)
+
+coordinator_native = LlmAgent(
+    name="tech_lead",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a senior tech lead. Analyze architecture requests and agent_tool to the appropriate specialist."
+    ),
+    tools=[AgentTool(agent=database_specialist)],
+)
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    c["senior_architect"]
+    d0["database_specialist"]
+    c -.->|delegates| d0
+    d1["frontend_specialist"]
+    c -.->|delegates| d1
+```
+
 :::
 ::::
 
@@ -109,6 +114,6 @@ assert len(ir_t.tools) == 2
 assert all(isinstance(t, AgentTool) for t in ir_t.tools)
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

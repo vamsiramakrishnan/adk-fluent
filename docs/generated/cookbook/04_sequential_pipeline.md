@@ -11,28 +11,54 @@ needs 3 LlmAgent + 1 SequentialAgent (~20 lines). adk-fluent composes the
 same pipeline in a single expression.
 
 Pipeline topology:
-    extractor >> risk_analyst >> summarizer
+extractor >> risk_analyst >> summarizer
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `04_sequential_pipeline.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["contract_review (sequence)"]]
-    n2["extractor"]
-    n3["risk_analyst"]
-    n4["summarizer"]
-    n2 --> n3
-    n3 --> n4
+```python
+from adk_fluent import Agent, Pipeline
+
+pipeline_fluent = (
+    Pipeline("contract_review")
+    .describe("Extract, analyze, and summarize contracts")
+    .step(
+        Agent("extractor")
+        .model("gemini-2.5-flash")
+        .instruct(
+            "Extract key terms from the contract: parties involved, "
+            "effective dates, payment terms, and termination clauses."
+        )
+    )
+    .step(
+        Agent("risk_analyst")
+        .model("gemini-2.5-flash")
+        .instruct(
+            "Analyze the extracted terms for legal risks. Flag any "
+            "unusual clauses, missing protections, or liability concerns."
+        )
+    )
+    .step(
+        Agent("summarizer")
+        .model("gemini-2.5-flash")
+        .instruct(
+            "Produce a one-page executive summary combining the extracted "
+            "terms and risk analysis. Use clear, non-legal language."
+        )
+    )
+    .build()
+)
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+:::
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -67,41 +93,20 @@ pipeline_native = SequentialAgent(
     sub_agents=[extractor, analyst, summarizer],
 )
 ```
-:::
-:::{tab-item} adk-fluent
-```python
-from adk_fluent import Agent, Pipeline
 
-pipeline_fluent = (
-    Pipeline("contract_review")
-    .describe("Extract, analyze, and summarize contracts")
-    .step(
-        Agent("extractor")
-        .model("gemini-2.5-flash")
-        .instruct(
-            "Extract key terms from the contract: parties involved, "
-            "effective dates, payment terms, and termination clauses."
-        )
-    )
-    .step(
-        Agent("risk_analyst")
-        .model("gemini-2.5-flash")
-        .instruct(
-            "Analyze the extracted terms for legal risks. Flag any "
-            "unusual clauses, missing protections, or liability concerns."
-        )
-    )
-    .step(
-        Agent("summarizer")
-        .model("gemini-2.5-flash")
-        .instruct(
-            "Produce a one-page executive summary combining the extracted "
-            "terms and risk analysis. Use clear, non-legal language."
-        )
-    )
-    .build()
-)
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["contract_review (sequence)"]]
+    n2["extractor"]
+    n3["risk_analyst"]
+    n4["summarizer"]
+    n2 --> n3
+    n3 --> n4
 ```
+
 :::
 ::::
 
@@ -115,6 +120,6 @@ assert pipeline_fluent.sub_agents[1].name == "risk_analyst"
 assert pipeline_fluent.sub_agents[2].name == "summarizer"
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::

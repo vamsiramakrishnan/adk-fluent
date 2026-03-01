@@ -5,67 +5,20 @@ safety guardrails, and dependency injection -- inspired by Manus AI's
 tool-using agent and the OpenAI Agents SDK patterns.
 
 Pipeline topology:
-    task_agent [tools: search, calc, read_file] [guardrail] [inject: api_key]
-        >> verifier [C.from_state("task_result")]
+task_agent \[tools: search, calc, read_file\] \[guardrail\] \[inject: api_key\]
+\>> verifier \[C.from_state("task_result")\]
 
 Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to attach tools to an agent using the fluent API.
 :::
 
 _Source: `58_multi_tool_agent.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["task_agent_then_verifier (sequence)"]]
-    n2["task_agent"]
-    n3["verifier"]
-    n2 --> n3
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-import functools
-
-from google.adk.agents.llm_agent import LlmAgent
-
-
-def search_web_native(query: str) -> str:
-    """Search the web for information."""
-    return f"Results for: {query}"
-
-
-def calculate_native(expression: str) -> str:
-    """Evaluate a mathematical expression."""
-    return f"Result: {expression}"
-
-
-def read_file_native(path: str, api_key: str = "") -> str:
-    """Read a file from storage."""
-    return f"Contents of {path}"
-
-
-# Native: tools with infra params leak into LLM schema
-agent_native = LlmAgent(
-    name="task_agent",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are a versatile task agent. Use your tools to research, "
-        "calculate, and read files to complete the user's request."
-    ),
-    tools=[
-        search_web_native,
-        calculate_native,
-        functools.partial(read_file_native, api_key="prod_key"),
-    ],
-)
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, C
 
@@ -124,6 +77,58 @@ verifier = (
 # Compose: task agent -> verifier pipeline
 verified_agent = task_agent.writes("task_result") >> verifier
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+import functools
+
+from google.adk.agents.llm_agent import LlmAgent
+
+
+def search_web_native(query: str) -> str:
+    """Search the web for information."""
+    return f"Results for: {query}"
+
+
+def calculate_native(expression: str) -> str:
+    """Evaluate a mathematical expression."""
+    return f"Result: {expression}"
+
+
+def read_file_native(path: str, api_key: str = "") -> str:
+    """Read a file from storage."""
+    return f"Contents of {path}"
+
+
+# Native: tools with infra params leak into LLM schema
+agent_native = LlmAgent(
+    name="task_agent",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a versatile task agent. Use your tools to research, "
+        "calculate, and read files to complete the user's request."
+    ),
+    tools=[
+        search_web_native,
+        calculate_native,
+        functools.partial(read_file_native, api_key="prod_key"),
+    ],
+)
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["task_agent_then_verifier (sequence)"]]
+    n2["task_agent"]
+    n3["verifier"]
+    n2 --> n3
+```
+
 :::
 ::::
 
@@ -172,6 +177,6 @@ ir_t = multi_t.to_ir()
 assert len(ir_t.tools) == 3
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

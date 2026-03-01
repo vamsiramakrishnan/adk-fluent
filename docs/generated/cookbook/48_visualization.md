@@ -4,39 +4,15 @@ Demonstrates to_mermaid() for generating architecture diagrams that
 stay in sync with code. The scenario: a DevOps team documenting their
 incident response platform's agent topology for runbooks and onboarding.
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to build a team of agents with a coordinator.
 :::
 
 _Source: `48_visualization.py`_
 
-### Architecture
+::::\{tab-set}
+:::\{tab-item} adk-fluent
 
-```mermaid
-graph TD
-    n1[["alert_ingestor_then_log_analyzer_and_metrics_checker_and_trace_analyzer_then_incident_responder (sequence)"]]
-    n2["alert_ingestor"]
-    n3{"log_analyzer_and_metrics_checker_and_trace_analyzer (parallel)"}
-    n4["log_analyzer"]
-    n5["metrics_checker"]
-    n6["trace_analyzer"]
-    n7["incident_responder"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n2 --> n3
-    n3 --> n7
-```
-
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK has no built-in visualization. Complex agent graphs
-# must be manually diagrammed and maintained separately from code.
-# Diagrams go stale after the first refactor.
-```
-:::
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -83,6 +59,35 @@ explanation = incident_pipeline.explain()
 # Build for deployment
 built = incident_pipeline.build()
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK has no built-in visualization. Complex agent graphs
+# must be manually diagrammed and maintained separately from code.
+# Diagrams go stale after the first refactor.
+```
+
+:::
+:::\{tab-item} Architecture
+
+```mermaid
+graph TD
+    n1[["alert_ingestor_then_log_analyzer_and_metrics_checker_and_trace_analyzer_then_incident_responder (sequence)"]]
+    n2["alert_ingestor"]
+    n3{"log_analyzer_and_metrics_checker_and_trace_analyzer (parallel)"}
+    n4["log_analyzer"]
+    n5["metrics_checker"]
+    n6["trace_analyzer"]
+    n7["incident_responder"]
+    n3 --> n4
+    n3 --> n5
+    n3 --> n6
+    n2 --> n3
+    n3 --> n7
+```
+
 :::
 ::::
 

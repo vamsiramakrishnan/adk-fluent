@@ -8,8 +8,9 @@ equivalent. Each recipe demonstrates a specific pattern or feature.
 Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Email Classifier Agent -- Simple Agent Creation
 
 Demonstrates creating a minimal LLM agent using both native ADK and
@@ -123,8 +124,9 @@ Pipeline topology:
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 01_simple_agent
 02_agent_with_tools
 03_callbacks
@@ -139,8 +141,9 @@ Pipeline topology:
 Running agents: one-shot, streaming, cloning, testing, and sessions.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Quick Code Review -- One-Shot Execution with .ask()
 
 Demonstrates the .ask() convenience method for fire-and-forget
@@ -218,8 +221,9 @@ treatment recommendations.
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 08_one_shot_ask
 09_streaming
 10_cloning
@@ -234,8 +238,9 @@ treatment recommendations.
 Advanced composition: dynamic forwarding, operators, routing, and conditional logic.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Multi-Department Ticket Routing via Dynamic Field Forwarding
 :link: 14_dynamic_forwarding
 :link-type: doc
@@ -314,8 +319,9 @@ Pipeline topology:
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 14_dynamic_forwarding
 15_production_runtime
 16_operator_composition
@@ -330,8 +336,9 @@ Pipeline topology:
 Real-world patterns: state management, presets, decorators, serialization, and more.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Order Processing with Typed State Keys
 :link: 21_statekey
 :link-type: doc
@@ -561,8 +568,9 @@ Pipeline topology:
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 21_statekey
 22_presets
 23_with_variants
@@ -595,8 +603,9 @@ Pipeline topology:
 IR compilation, middleware, contracts, testing, dependency injection, and visualization.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Pipeline Optimization with IR -- Inspecting and Compiling Agent Graphs
 
 Demonstrates to_ir() for pipeline analysis, to_app() for production
@@ -639,8 +648,9 @@ incident response platform's agent topology for runbooks and onboarding.
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 44_ir_and_backends
 45_middleware
 46_contracts_and_testing
@@ -653,8 +663,9 @@ incident response platform's agent topology for runbooks and onboarding.
 Context engineering, visibility, memory, and contract verification.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Context Engineering: Customer Support Pipeline
 
 Real-world use case: Customer support pipeline with context-aware routing.
@@ -1007,8 +1018,9 @@ Key concepts:
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 49_context_engineering
 50_capture_and_route
 51_visibility_policies
@@ -1034,8 +1046,9 @@ Key concepts:
 Additional examples.
 
 ````{grid} 1 2 2 2
-:gutter: 3
-
+---
+gutter: 3
+---
 ```{grid-item-card} Recipes by Use Case
 :link: recipes-by-use-case
 :link-type: doc
@@ -1045,7 +1058,8 @@ Additional examples.
 ````
 
 ```{toctree}
-:hidden:
-
+---
+hidden:
+---
 recipes-by-use-case
 ```

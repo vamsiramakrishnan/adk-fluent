@@ -1,19 +1,14 @@
-# A/B Prompt Testing for Marketing Copy with .with_()
+# A/B Prompt Testing for Marketing Copy with .with\_()
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to run inline smoke tests on agents.
 :::
 
 _Source: `23_with_variants.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK provides no cloning or variant mechanism. You'd manually
-# duplicate constructor calls, risking drift when the base config changes.
-```
-:::
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -39,6 +34,15 @@ variant_b = base_copywriter.with_(
 assert base_copywriter._config["name"] == "copywriter"
 assert base_copywriter._config["model"] == "gemini-2.5-flash"
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK provides no cloning or variant mechanism. You'd manually
+# duplicate constructor calls, risking drift when the base config changes.
+```
+
 :::
 ::::
 

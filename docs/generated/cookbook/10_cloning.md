@@ -5,36 +5,15 @@ a shared base configuration.  The scenario: A/B testing two customer
 support agents -- one using a formal tone and one using a casual tone
 -- while sharing the same underlying tool (order lookup).
 
-:::{tip} What you'll learn
+:::\{tip} What you'll learn
 How to attach tools to an agent using the fluent API.
 :::
 
 _Source: `10_cloning.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
-```python
-# Native ADK has no clone mechanism. You must manually duplicate all parameters:
-#   from google.adk.agents.llm_agent import LlmAgent
-#
-#   def lookup_order(order_id: str) -> str:
-#       return f"Order {order_id}: shipped, arriving Thursday"
-#
-#   formal = LlmAgent(
-#       name="formal",
-#       model="gemini-2.5-flash",
-#       instruction="Use formal, professional language when helping customers.",
-#       tools=[lookup_order],
-#   )
-#   casual = LlmAgent(
-#       name="casual",
-#       model="gemini-2.5-flash",
-#       instruction="Use friendly, casual language when helping customers.",
-#       tools=[lookup_order],
-#   )
-```
-:::
-:::{tab-item} adk-fluent
+::::\{tab-set}
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -60,6 +39,31 @@ variant_b = base.clone("casual_support").instruct(
     "Be warm and personable. Use the customer's first name."
 )
 ```
+
+:::
+:::\{tab-item} Native ADK
+
+```python
+# Native ADK has no clone mechanism. You must manually duplicate all parameters:
+#   from google.adk.agents.llm_agent import LlmAgent
+#
+#   def lookup_order(order_id: str) -> str:
+#       return f"Order {order_id}: shipped, arriving Thursday"
+#
+#   formal = LlmAgent(
+#       name="formal",
+#       model="gemini-2.5-flash",
+#       instruction="Use formal, professional language when helping customers.",
+#       tools=[lookup_order],
+#   )
+#   casual = LlmAgent(
+#       name="casual",
+#       model="gemini-2.5-flash",
+#       instruction="Use friendly, casual language when helping customers.",
+#       tools=[lookup_order],
+#   )
+```
+
 :::
 ::::
 
