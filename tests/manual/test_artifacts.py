@@ -486,6 +486,44 @@ class TestBuilderMethod:
         assert len(agent._lists.get("_artifact_transforms", [])) == 2
 
 
+class TestEndToEnd:
+    def test_full_pipeline_builds(self):
+        """End-to-end: pipeline with A operations builds without error."""
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+
+        pipeline = (
+            Agent("researcher").model("gemini-2.5-flash").instruct("Research the topic.").save_as("findings")
+            >> A.publish("findings.md", from_key="findings")
+            >> A.snapshot("findings.md", into_key="source")
+            >> Agent("writer").model("gemini-2.5-flash").instruct("Write report from {source}.").save_as("report")
+            >> A.publish("report.md", from_key="report")
+        )
+        app = pipeline.build()
+        assert app is not None
+
+    def test_full_pipeline_contract_check(self):
+        """Contract checker validates artifact flow correctly."""
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+        from adk_fluent.testing.contracts import check_contracts
+
+        pipeline = (
+            Agent("researcher").instruct("Research.").save_as("findings")
+            >> A.publish("findings.md", from_key="findings")
+            >> A.snapshot("findings.md", into_key="source")
+            >> Agent("writer").instruct("Write.")
+        )
+        ir = pipeline.to_ir()
+        issues = check_contracts(ir)
+        artifact_errors = [
+            i
+            for i in issues
+            if isinstance(i, dict) and "artifact" in i.get("message", "").lower() and i["level"] == "error"
+        ]
+        assert len(artifact_errors) == 0
+
+
 class TestContractChecking:
     def test_snapshot_without_upstream_publish_is_error(self):
         from adk_fluent import Agent
