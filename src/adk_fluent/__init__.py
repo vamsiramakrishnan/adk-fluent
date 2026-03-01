@@ -779,6 +779,9 @@ from .prelude import get_execution_mode
 from .prelude import SessionStrategy
 from .prelude import ExecutionMode
 from .prelude import MiddlewareSchema
+from .prelude import ArtifactSchema
+from .prelude import Produces
+from .prelude import Consumes
 from .prelude import ToolRegistry
 from .prelude import SearchToolset
 from .prelude import search_aware_after_tool
