@@ -179,3 +179,95 @@ pipeline = (agent_a >> agent_b >> agent_c).middleware(
 ::::
 
 *Tip:* If you need to share pure configuration (like a specific model version and temperature) across many agents without using middleware, use a `Preset`.
+
+## 6. The Interplay of Namespace Modules (C, S, A, T, M, P)
+
+The true power of `adk-fluent` emerges when the single-letter namespace modules are used *together*. They are designed to act as a cohesive functional pipeline, mapping external data into isolated state, scoping that state into the LLM's context, and applying resilience.
+
+### Scenario: The ETL RAG Pattern
+
+Consider a scenario where an agent needs to answer a question based on a specific uploaded file.
+
+::::\{tab-set}
+:::\{tab-item} ❌ Anti-Pattern: Monolithic Prompts & State
+
+```python
+# The agent tries to do too much at once. The raw file contents might blow up the context window.
+agent = (
+    Agent("qa_bot")
+    .instruct("Read the file stored in state['file_contents'] and answer the user. File: {file_contents}")
+    # Relies on the user manually injecting 'file_contents' into the session state beforehand
+)
+```
+
+:::
+:::\{tab-item} ✅ Best Practice: A -> S -> C -> P
+
+```python
+from adk_fluent import A, S, C, P, Agent
+
+# 1. (A) Read the artifact into state
+# 2. (S) Transform the raw text into a cleaned summary to save tokens
+# 3. (C) Scope the agent to ONLY see the summarized context (hide the rest of the chat)
+# 4. (P) Compose the prompt dynamically
+
+pipeline = (
+    A.read_text("knowledge_base.txt", into_key="raw_text")
+    >> S.transform("raw_text", lambda text: text[:2000].strip()) # Clean it up
+    >> S.rename(raw_text="clean_context")
+    >> Agent("qa_bot")
+    .context(C.from_state("clean_context") + C.user_only()) # Hide previous assistant messages
+    .instruct(
+        P.system("You are a QA bot.") +
+        P.guidelines("Only answer using the provided context. If you don't know, say so.") +
+        P.text("Context: {clean_context}")
+    )
+)
+```
+
+:::
+::::
+
+### Scenario: The Resilient Tool Coordinator
+
+When an agent relies on external tools (like an API), those tools will inevitably fail or rate-limit. Instead of writing complex error-handling code inside your tools, use the interplay of `T` (Tools) and `M` (Middleware).
+
+::::\{tab-set}
+:::\{tab-item} ❌ Anti-Pattern: Fat Tools
+
+```python
+# Tool is polluted with retry logic and error handling
+def fetch_weather(city: str) -> str:
+    for attempt in range(3):
+        try:
+            return api.get_weather(city)
+        except RateLimitError:
+            time.sleep(1)
+    return "Error fetching weather"
+
+agent = Agent("weather_bot").tool(fetch_weather)
+```
+
+:::
+:::\{tab-item} ✅ Best Practice: T + M Interplay
+
+```python
+from adk_fluent import Agent
+from adk_fluent._tools import T
+from adk_fluent._middleware import M
+
+# Tool is pure business logic
+def fetch_weather(city: str) -> str:
+    return api.get_weather(city)
+
+# 1. (T) Wrap the tool and apply strict schemas
+# 2. (M) Apply exponential backoff and observability at the agent level
+agent = (
+    Agent("weather_bot")
+    .tools(T.fn(fetch_weather) | T.schema(WeatherOutputSchema))
+    .middleware(M.retry(max_attempts=3) | M.log())
+)
+```
+
+:::
+::::
