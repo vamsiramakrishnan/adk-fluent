@@ -29,6 +29,12 @@ gutter: 3
 Learn the core concepts and build your first fluent agent in 5 minutes.
 ```
 
+```{grid-item-card} 🤖 Editor & AI Agent Setup
+:link: editor-setup/index
+:link-type: doc
+Configure Claude Code, Cursor, Copilot, and other AI coding agents for adk-fluent.
+```
+
 ```{grid-item-card} 📘 User Guide
 :link: user-guide/index
 :link-type: doc
@@ -54,6 +60,7 @@ maxdepth: 2
 caption: Getting Started
 ---
 getting-started
+editor-setup/index
 ```
 
 ```{toctree}
