@@ -690,6 +690,54 @@ class TestForLlm:
         assert isinstance(combined, CTransform)
 
 
+class TestToolFactories:
+    """A.tool.save, A.tool.load, A.tool.list, A.tool.version — FunctionTool generation."""
+
+    def test_tool_save_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.save("save_report", mime=A.mime.markdown)
+        assert isinstance(tool, FunctionTool)
+
+    def test_tool_save_name(self):
+        from adk_fluent import A
+
+        tool = A.tool.save("save_report")
+        assert tool.name == "save_report"
+
+    def test_tool_save_with_allowed(self):
+        from adk_fluent import A
+
+        tool = A.tool.save("save_file", allowed=["report.md", "summary.txt"])
+        assert tool.name == "save_file"
+
+    def test_tool_load_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.load("read_file")
+        assert isinstance(tool, FunctionTool)
+
+    def test_tool_list_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.list("list_files")
+        assert isinstance(tool, FunctionTool)
+
+    def test_tool_version_creates_function_tool(self):
+        from google.adk.tools import FunctionTool
+
+        from adk_fluent import A
+
+        tool = A.tool.version("check_version")
+        assert isinstance(tool, FunctionTool)
+
+
 class TestContractChecking:
     def test_snapshot_without_upstream_publish_is_error(self):
         from adk_fluent import Agent

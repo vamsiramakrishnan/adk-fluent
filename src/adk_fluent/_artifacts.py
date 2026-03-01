@@ -186,6 +186,178 @@ class _ArtifactContextBlock(CTransform):
         object.__setattr__(self, "include_contents", "none")
 
 
+class _ToolFactory:
+    """Generates ADK FunctionTools for LLM artifact interaction.
+
+    Usage:
+        Agent("worker").tools(
+            A.tool.load("read_data"),
+            A.tool.save("save_result", allowed=["result.json"]),
+        )
+    """
+
+    @staticmethod
+    def save(
+        name: str,
+        *,
+        mime: str | None = None,
+        allowed: list[str] | None = None,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM save artifact content."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        allowed_set = frozenset(allowed) if allowed else None
+
+        async def _save_fn(filename: str, content: str, tool_context: Any) -> dict:
+            """Save content as a versioned artifact."""
+            if allowed_set and filename not in allowed_set:
+                return {"error": f"Filename '{filename}' not in allowed list: {sorted(allowed_set)}"}
+
+            from google.genai import types as genai_types
+
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            resolved_mime = mime or _MimeConstants.detect(filename)
+            part = genai_types.Part.from_text(text=content)
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            version = await svc.save_artifact(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+                filename=filename,
+                artifact=part,
+            )
+            delta_filename = f"user:{filename}" if is_user else filename
+            ctx._event_actions.artifact_delta[delta_filename] = version
+            return {"saved": filename, "version": version, "mime_type": resolved_mime}
+
+        _save_fn.__name__ = name
+        return FunctionTool(func=_save_fn)
+
+    @staticmethod
+    def load(
+        name: str,
+        *,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM load artifact content."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        async def _load_fn(filename: str, tool_context: Any) -> dict:
+            """Load artifact content."""
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            part = await svc.load_artifact(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+                filename=filename,
+            )
+            if part is None:
+                return {"error": f"Artifact '{filename}' not found"}
+
+            if part.text is not None:
+                return {"filename": filename, "content": part.text}
+            if part.inline_data:
+                mime_type = part.inline_data.mime_type or _MimeConstants.detect(filename)
+                if _MimeConstants.is_text_like(mime_type):
+                    return {
+                        "filename": filename,
+                        "content": part.inline_data.data.decode("utf-8", errors="replace"),
+                    }
+                size_kb = len(part.inline_data.data) / 1024
+                return {
+                    "filename": filename,
+                    "type": mime_type,
+                    "size_kb": round(size_kb, 1),
+                    "note": "Binary content — cannot display as text",
+                }
+            return {"filename": filename, "content": str(part)}
+
+        _load_fn.__name__ = name
+        return FunctionTool(func=_load_fn)
+
+    @staticmethod
+    def list(
+        name: str,
+        *,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM list available artifacts."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        async def _list_fn(tool_context: Any) -> dict:
+            """List available artifact filenames."""
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            keys = await svc.list_artifact_keys(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+            )
+            return {"artifacts": keys}
+
+        _list_fn.__name__ = name
+        return FunctionTool(func=_list_fn)
+
+    @staticmethod
+    def version(
+        name: str,
+        *,
+        scope: Literal["session", "user"] = "session",
+    ) -> Any:
+        """Create a FunctionTool that lets the LLM check artifact version metadata."""
+        from google.adk.tools.function_tool import FunctionTool
+
+        async def _version_fn(filename: str, tool_context: Any) -> dict:
+            """Get artifact version metadata."""
+            ctx = tool_context
+            svc = ctx._invocation_context.artifact_service
+            if svc is None:
+                return {"error": "No artifact service configured"}
+
+            is_user = scope == "user"
+            svc_session_id = None if is_user else ctx.session.id
+
+            ver = await svc.get_artifact_version(
+                app_name=ctx._invocation_context.app_name,
+                user_id=ctx._invocation_context.user_id,
+                session_id=svc_session_id,
+                filename=filename,
+            )
+            if ver is None:
+                return {"error": f"Artifact '{filename}' not found"}
+
+            return {
+                "filename": filename,
+                "version": ver.version,
+                "mime_type": ver.mime_type,
+                "create_time": ver.create_time,
+                "canonical_uri": ver.canonical_uri,
+            }
+
+        _version_fn.__name__ = name
+        return FunctionTool(func=_version_fn)
+
+
 class A:
     """Artifact operations — bridge between state and artifact service.
 
@@ -197,6 +369,7 @@ class A:
     """
 
     mime = _MimeConstants()
+    tool = _ToolFactory()
 
     @staticmethod
     def publish(
