@@ -401,3 +401,42 @@ class TestArtifactAgent:
             pass
 
         assert ctx.session.state["text"] == "# Report Content"
+
+
+class TestPipelineIntegration:
+    def test_agent_rshift_atransform(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+        from adk_fluent.workflow import Pipeline
+
+        pipeline = Agent("writer").instruct("Write.") >> A.publish("report.md", from_key="output")
+        assert isinstance(pipeline, Pipeline)
+
+    def test_atransform_in_multi_step_pipeline(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+        from adk_fluent.workflow import Pipeline
+
+        pipeline = (
+            Agent("researcher").instruct("Research.")
+            >> A.publish("findings.md", from_key="findings")
+            >> A.snapshot("findings.md", into_key="source")
+            >> Agent("writer").instruct("Write from {source}.")
+        )
+        assert isinstance(pipeline, Pipeline)
+
+    def test_pipeline_to_ir_includes_artifact_nodes(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+        from adk_fluent._ir import ArtifactNode
+
+        pipeline = (
+            Agent("writer").instruct("Write.")
+            >> A.publish("report.md", from_key="output")
+        )
+        ir = pipeline.to_ir()
+        # IR should contain an ArtifactNode in SequenceNode's children
+        children = ir.children if hasattr(ir, "children") else []
+        artifact_nodes = [c for c in children if isinstance(c, ArtifactNode)]
+        assert len(artifact_nodes) == 1
+        assert artifact_nodes[0].op == "publish"
