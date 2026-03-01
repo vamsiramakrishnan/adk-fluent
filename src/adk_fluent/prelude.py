@@ -16,6 +16,7 @@ For tools, configs, and services, import directly from ``adk_fluent``.
 """
 
 from adk_fluent import Agent, C, FanOut, Loop, P, Pipeline, Route, S
+from adk_fluent._artifacts import A, ATransform
 from adk_fluent._base import until
 from adk_fluent._enums import ExecutionMode, SessionStrategy
 from adk_fluent._middleware import M
@@ -47,6 +48,8 @@ __all__ = [
     "Loop",
     "Fallback",
     # Tier 2: Composition namespaces
+    "A",
+    "ATransform",
     "C",
     "P",
     "S",

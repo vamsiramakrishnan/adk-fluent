@@ -738,6 +738,8 @@ from .prelude import Pipeline
 from .prelude import FanOut
 from .prelude import Loop
 from .prelude import Fallback
+from .prelude import A
+from .prelude import ATransform
 from .prelude import C
 from .prelude import P
 from .prelude import S
