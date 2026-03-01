@@ -1048,3 +1048,48 @@ class TestVisualization:
         mermaid = ir_to_mermaid(ir, show_data_flow=True)
         # Should show artifact flow edges
         assert "report.md" in mermaid
+
+
+class TestPhase2Exports:
+    """Phase 2+3 exports are importable."""
+
+    def test_artifact_schema_importable(self):
+        from adk_fluent.prelude import ArtifactSchema
+
+        assert ArtifactSchema is not None
+
+    def test_produces_importable(self):
+        from adk_fluent.prelude import Produces
+
+        assert Produces is not None
+
+    def test_consumes_importable(self):
+        from adk_fluent.prelude import Consumes
+
+        assert Consumes is not None
+
+    def test_for_llm_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "for_llm")
+
+    def test_tool_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "tool")
+
+    def test_content_transforms_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "as_json")
+        assert hasattr(A, "as_csv")
+        assert hasattr(A, "as_text")
+        assert hasattr(A, "from_json")
+        assert hasattr(A, "from_csv")
+        assert hasattr(A, "from_markdown")
+
+    def test_batch_ops_on_a(self):
+        from adk_fluent import A
+
+        assert hasattr(A, "publish_many")
+        assert hasattr(A, "snapshot_many")
