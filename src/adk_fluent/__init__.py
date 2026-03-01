@@ -267,6 +267,8 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "A",
+    "ATransform",
     "BuilderBase",
     "BuilderError",
     "PrimitiveBuilderBase",
@@ -327,7 +329,7 @@ __all__ = [
     "SessionStrategy",
     "ExecutionMode",
     "deep_clone_builder",
-    "delegate_agent",
+    "add_agent_tool",
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",
@@ -495,6 +497,8 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._artifacts import A
+from ._artifacts import ATransform
 from ._base import BuilderBase
 from ._base import BuilderError
 from ._base import PrimitiveBuilderBase
@@ -555,7 +559,7 @@ from ._context import _compile_context_spec
 from ._enums import SessionStrategy
 from ._enums import ExecutionMode
 from ._helpers import deep_clone_builder
-from ._helpers import delegate_agent
+from ._helpers import add_agent_tool
 from ._helpers import run_one_shot
 from ._helpers import run_one_shot_async
 from ._helpers import run_stream

@@ -356,7 +356,7 @@ class LlmAgentConfig(BuilderBase):
         return self
 
     def outputs(self, value: str | None) -> Self:
-        """Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: ``.save_as(key)`` / ``.writes(key)``."""
+        """Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."""
         self = self._maybe_fork_for_mutation()
         self._config["output_key"] = value
         return self
