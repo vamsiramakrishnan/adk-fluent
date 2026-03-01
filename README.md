@@ -394,7 +394,7 @@ Eight control loop primitives for agent orchestration:
 | `tap(fn)`              | Observe state without mutating | Custom `BaseAgent` (no LLM)             |
 | `expect(pred, msg)`    | Assert state contract          | Raises `ValueError` on failure          |
 | `.mock(responses)`     | Bypass LLM for testing         | `before_model_callback` → `LlmResponse` |
-| `.loop_while(pred)`      | Retry while condition holds    | `LoopAgent` + checkpoint escalate       |
+| `.loop_while(pred)`    | Retry while condition holds    | `LoopAgent` + checkpoint escalate       |
 | `map_over(key, agent)` | Iterate agent over list        | Custom `BaseAgent` loop                 |
 | `.timeout(seconds)`    | Time-bound execution           | `asyncio` deadline + cancel             |
 | `gate(pred, msg)`      | Human-in-the-loop approval     | `EventActions(escalate=True)`           |
@@ -739,7 +739,7 @@ The `Agent` builder wraps ADK's `LlmAgent`. Every method returns `self` for chai
 | `.model(name)`          | `model`       | LLM model identifier (`"gemini-2.5-flash"`, `"gemini-2.5-pro"`, etc.)      |
 | `.instruct(text_or_fn)` | `instruction` | System instruction. Accepts a string or `Callable[[ReadonlyContext], str]` |
 | `.describe(text)`       | `description` | Agent description (used in delegation and tool descriptions)               |
-| `.writes(key)`         | `output_key`  | Store the agent's final response in session state under this key           |
+| `.writes(key)`          | `output_key`  | Store the agent's final response in session state under this key           |
 | `.tool(fn)`             | —             | Add a tool function or `BaseTool` instance. Multiple calls accumulate      |
 | `.build()`              | —             | Resolve into a native ADK `LlmAgent`                                       |
 
@@ -752,7 +752,7 @@ The `Agent` builder wraps ADK's `LlmAgent`. Every method returns `self` for chai
 | `.static(content)`       | `static_instruction` | Cacheable instruction that never changes. Sent as system instruction for context caching                      |
 | `.history("none")`       | `include_contents`   | Control conversation history: `"default"` (full history) or `"none"` (stateless)                              |
 | `.global_instruct(text)` | `global_instruction` | Instruction inherited by all sub-agents                                                                       |
-| `.prepend(fn)`    | —                    | Prepend dynamic context via `before_model_callback`. The function receives callback context, returns a string |
+| `.prepend(fn)`           | —                    | Prepend dynamic context via `before_model_callback`. The function receives callback context, returns a string |
 
 Template variables in string instructions are auto-resolved from session state:
 
@@ -861,7 +861,7 @@ All callback methods are **additive** -- multiple calls accumulate handlers, nev
 | `.after_tool(fn)`     | `after_tool_callback`     | Runs after each tool call                                             |
 | `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors                                                    |
 | `.on_tool_error(fn)`  | `on_tool_error_callback`  | Handles tool errors                                                   |
-| `.guard(fn)`      | —                         | Registers `fn` as both `before_model` and `after_model`               |
+| `.guard(fn)`          | —                         | Registers `fn` as both `before_model` and `after_model`               |
 
 Conditional variants append only when the condition is true:
 
@@ -879,7 +879,7 @@ agent = (
 | ------------------------------------- | ---------------------------------------------------------------------------- |
 | `.proceed_if(pred)`                   | Only run this agent if `pred(state)` is truthy. Uses `before_agent_callback` |
 | `.loop_until(pred, max_iterations=N)` | Wrap in a loop that exits when `pred(state)` is satisfied                    |
-| `.loop_while(pred, max_iterations=3)`   | Retry while `pred(state)` returns True. Inverse of `loop_until`              |
+| `.loop_while(pred, max_iterations=3)` | Retry while `pred(state)` returns True. Inverse of `loop_until`              |
 | `.mock(responses)`                    | Bypass LLM with canned responses (list or callable). For testing             |
 | `.tap(fn)`                            | Append observation step: `self >> tap(fn)`. Returns Pipeline                 |
 | `.timeout(seconds)`                   | Wrap with time limit. Raises `asyncio.TimeoutError` on expiry                |
@@ -1176,7 +1176,7 @@ pytest examples/cookbook/ -v
 | 09  | Streaming            | `.stream()` execution                |
 | 10  | Cloning              | `.clone()` deep copy                 |
 | 11  | Inline Testing       | `.test()` smoke tests                |
-| 12  | Guards               | `.guard()` shorthand             |
+| 12  | Guards               | `.guard()` shorthand                 |
 | 13  | Interactive Session  | `.session()` context manager         |
 | 14  | Dynamic Forwarding   | `__getattr__` field access           |
 | 15  | Production Runtime   | Full agent setup                     |
@@ -1191,7 +1191,7 @@ pytest examples/cookbook/ -v
 | 24  | @agent Decorator     | Decorator syntax                     |
 | 25  | Validate & Explain   | `.validate()` `.explain()`           |
 | 26  | Serialization        | `to_dict` / `to_yaml`                |
-| 27  | Agent Tool Pattern   | `.agent_tool()`                        |
+| 27  | Agent Tool Pattern   | `.agent_tool()`                      |
 | 28  | Real-World Pipeline  | Full composition                     |
 | 29  | Function Steps       | `>> fn` zero-cost transforms         |
 | 30  | Until Operator       | `* until(pred)` conditional loops    |
@@ -1202,7 +1202,7 @@ pytest examples/cookbook/ -v
 | 35  | Tap Observation      | `tap()` pure observation steps       |
 | 36  | Expect Assertions    | `expect()` state contract checks     |
 | 37  | Mock Testing         | `.mock()` bypass LLM for tests       |
-| 38  | Loop While           | `.loop_while()` conditional retry      |
+| 38  | Loop While           | `.loop_while()` conditional retry    |
 | 39  | Map Over             | `map_over()` iterate agent over list |
 | 40  | Timeout              | `.timeout()` time-bound execution    |
 | 41  | Gate Approval        | `gate()` human-in-the-loop           |
