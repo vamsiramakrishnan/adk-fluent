@@ -176,21 +176,47 @@ def _usage_example(spec: BuilderSpec) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _extract_doc_example(doc: str) -> tuple[str, str]:
-    """Splits a docstring into (main_doc, example_code)."""
+def _extract_doc_example(doc: str, spec_name: str, method_name: str, is_callback: bool) -> tuple[str, str]:
+    """Splits a docstring, strips native examples, and synthesizes a fluent example."""
     if not doc:
-        return "", ""
+        doc = ""
     parts = re.split(r"(?:^|\n)\s*Examples?:\s*(?:\n|$)", doc, maxsplit=1, flags=re.IGNORECASE)
-    if len(parts) == 2:
-        example = parts[1].strip()
-        if example.startswith("```python"):
-            example = example[9:].strip()
-        elif example.startswith("```"):
-            example = example[3:].strip()
-        if example.endswith("```"):
-            example = example[:-3].strip()
-        return parts[0].strip(), example.strip()
-    return doc.strip(), ""
+    main_doc = parts[0].strip()
+    main_doc = _md_normalize(main_doc)
+
+    # Auto-synthesize a snippet based on the builder context
+    var_name = spec_name.lower()
+    if var_name.endswith("config"):
+        var_name = "config"
+    elif var_name in ("agent", "baseagent", "llmagent"):
+        var_name = "agent"
+
+    # Heuristics for realistic dummy values
+    val = '"..."'
+    if method_name in ("model",):
+        val = '"gemini-2.5-flash"'
+    elif method_name in ("instruct", "static"):
+        val = '"You are a helpful assistant."'
+    elif method_name in ("name",):
+        val = '"my_agent"'
+    elif method_name in ("tool",):
+        val = "my_function"
+    elif method_name in ("history", "include_history"):
+        val = '"none"'
+    elif method_name in ("outputs", "writes"):
+        val = '"result_key"'
+    elif is_callback or "callback" in method_name:
+        val = "my_callback_fn"
+        if method_name.endswith("_if"):
+            val = "condition, my_callback_fn"
+
+    if spec_name in ("P", "C", "S", "M", "T", "A"):  # namespace modules
+        example_code = f"{spec_name}.{method_name}({val})"
+    else:
+        # Default chain example
+        example_code = f'{var_name} = {spec_name}("{var_name}").{method_name}({val})'
+
+    return main_doc, example_code
 
 
 @dataclass
@@ -341,7 +367,7 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             if not doc:
                 doc = f"Set the `{field_name}` field."
 
-            main_doc, example_code = _extract_doc_example(doc)
+            main_doc, example_code = _extract_doc_example(doc, spec.name, fluent_name, False)
             category = _categorize_method(fluent_name, False, spec.name)
 
             methods.append(
@@ -358,12 +384,15 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
     if spec.callback_aliases:
         for short_name, full_name in spec.callback_aliases.items():
             category = _categorize_method(short_name, True, spec.name)
+            _, example_code = _extract_doc_example("", spec.name, short_name, True)
+            _, example_code_if = _extract_doc_example("", spec.name, f"{short_name}_if", True)
+
             methods.append(
                 ApiMethod(
                     name=short_name,
                     signature="(*fns: Callable) -> Self",
                     doc=f"Append callback(s) to `{full_name}`.",
-                    example="",
+                    example=example_code,
                     category=category,
                     notes=[
                         "Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks."
@@ -375,7 +404,7 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
                     name=f"{short_name}_if",
                     signature="(condition: bool, fn: Callable) -> Self",
                     doc=f"Append callback to `{full_name}` only if `condition` is `True`.",
-                    example="",
+                    example=example_code_if,
                     category=category,
                     notes=[],
                 )
@@ -389,7 +418,7 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
             display_sig = sig.replace("(self, ", "(").replace("(self)", "()")
 
             doc = extra.get("doc", "")
-            main_doc, example_code = _extract_doc_example(doc)
+            main_doc, example_code = _extract_doc_example(doc, spec.name, name, False)
             if extra.get("example"):
                 example_code = extra["example"].strip()
 
@@ -418,7 +447,7 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
                 display_sig = "()"
 
             doc = terminal.get("doc", "")
-            main_doc, example_code = _extract_doc_example(doc)
+            main_doc, example_code = _extract_doc_example(doc, spec.name, t_name, False)
             category = "Control Flow & Execution"
 
             methods.append(
@@ -612,14 +641,59 @@ def _md_normalize(text: str) -> str:
     """Normalize reStructuredText conventions in docstrings for Markdown.
 
     - Convert ``double backticks`` to `single backticks`
+    - Convert Args:/Returns: sections to markdown lists
+    - Convert Note:/Warning: sections to admonitions
     - Escape bare [ ] in body text (not inside backticks)
     - Convert :: code-block markers to plain colons
     """
-    # ``foo`` -> `foo`
+    if not text:
+        return ""
+
+    # 1. Format Google-style headers (Args, Returns, Raises, Yields)
+    text = re.sub(r"(?:^|\n)(Args|Arguments|Returns|Raises|Yields):\s*\n", r"\n**\1:**\n\n", text)
+
+    # Convert indented argument lines: "    param_name (type): description" to "- **param_name** *(type)*: description"
+    def _format_args(m):
+        lines = m.group(0).split("\n")
+        out = []
+        for line in lines:
+            if not line.strip():
+                out.append(line)
+                continue
+            if line.startswith("    ") or line.startswith("\t"):
+                # Detect param: desc or param (type): desc
+                arg_match = re.match(r"^\s+([a-zA-Z0-9_]+)\s*(?:\(([^)]+)\))?\s*:\s*(.*)", line)
+                if arg_match:
+                    name, typ, desc = arg_match.groups()
+                    if typ:
+                        out.append(f"- **`{name}`** (*{typ}*): {desc}")
+                    else:
+                        out.append(f"- **`{name}`**: {desc}")
+                else:
+                    out.append(f"  {line.strip()}")  # Continued description
+            else:
+                out.append(line)
+        return "\n".join(out)
+
+    text = re.sub(r"(?:\n\*\*Args:\*\*\n\n|\n\*\*Arguments:\*\*\n\n)(?:[ \t]+.+\n?)+", _format_args, text)
+
+    # 2. Convert Note: and Warning: to MyST admonitions
+    def _format_admonition(match):
+        adm_type = match.group(1).lower()
+        content = match.group(2).strip()
+        # remove hanging indents from the content
+        content = re.sub(r"\n\s+", "\n", content)
+        return f"\n:::{{{adm_type}}}\n{content}\n:::\n"
+
+    text = re.sub(r"(?:^|\n)(Note|Warning):\s*((?:(?!\n\n)[^\n]+\n?)+)", _format_admonition, text)
+
+    # 3. Convert ``foo`` -> `foo`
     text = re.sub(r"``(.+?)``", r"`\1`", text)
-    # Trailing :: (rst literal block) -> :
+
+    # 4. Trailing :: (rst literal block) -> :
     text = re.sub(r"::\s*$", ":", text, flags=re.MULTILINE)
-    # Escape [ ] outside backtick spans so mdformat doesn't touch them
+
+    # 5. Escape [ ] outside backtick spans so mdformat doesn't touch them
     parts = re.split(r"(`[^`]+`)", text)
     result: list[str] = []
     for part in parts:
