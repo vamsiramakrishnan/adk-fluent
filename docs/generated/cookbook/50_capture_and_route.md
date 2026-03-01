@@ -16,8 +16,17 @@ Pipeline topology:
             ├─ "p2" -> senior_support
             └─ else -> support_bot
 
+:::{admonition} Why this matters
+:class: important
+User messages arrive as unstructured text, but pipelines need structured state for routing and template injection. `S.capture()` copies the user message into a named state key, making it available to downstream agents through instruction templates. Combined with `Route()`, this enables the pattern: capture the message, classify it, route to the right specialist -- all with the original message preserved for the specialist to reference.
+:::
+
+:::{warning} Without this
+Without state capture, the user's original message is only available through conversation history -- which means the specialist agent must parse through all previous messages to find it. If you strip history with `C.none()` (for efficiency), the specialist can't see the user's message at all. `S.capture()` solves this by putting the message in state where any agent can access it regardless of context settings.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to capture user input into state and route on it.
 :::
 
 _Source: `50_capture_and_route.py`_

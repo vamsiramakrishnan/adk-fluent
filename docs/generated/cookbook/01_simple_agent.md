@@ -4,6 +4,15 @@ Demonstrates creating a minimal LLM agent using both native ADK and
 the fluent builder.  The scenario: an agent that classifies incoming
 customer emails into categories (billing, technical, general).
 
+:::{admonition} Why this matters
+:class: important
+Every agent system starts with a single agent. In production, teams create dozens of these -- classifiers, extractors, summarizers, validators. The fluent builder ensures every agent is constructed correctly with type-safe method chaining, catching typos and missing fields at build time rather than at runtime. Native ADK uses positional and keyword constructor arguments where a misspelled parameter name silently becomes unused.
+:::
+
+:::{warning} Without this
+In native ADK, a typo like `LlmAgent(instuction="...")` silently creates an agent with no instruction -- the misspelled kwarg is ignored. The fluent builder raises an `AttributeError` immediately because `.instuct()` is not a valid method. This catches configuration errors before they reach production.
+:::
+
 :::{tip} What you'll learn
 How to create a basic agent with the fluent API.
 :::

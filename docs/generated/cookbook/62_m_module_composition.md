@@ -12,8 +12,17 @@ Key concepts:
   - M.before_agent(fn): single-hook shortcut for quick observability
   - MComposite: composable chain class with to_stack() for flattening
 
+:::{admonition} Why this matters
+:class: important
+The `M` module brings the same fluent composition to middleware that `S` provides for state transforms and `C` provides for context. `M.retry(3) | M.log() | M.cost()` reads as a pipeline of cross-cutting concerns, composed with the same `|` operator used for parallel agents. Scoped middleware (`M.scope("agent_name", mw)`) and conditional middleware (`M.when(condition, mw)`) provide surgical control over where and when middleware activates.
+:::
+
+:::{warning} Without this
+Without fluent middleware composition, middleware configuration is a flat list of class instances with no compositional structure. Applying retry only to specific agents requires manual `if agent.name == "..."` checks inside the middleware. Conditional middleware requires custom predicate logic in every middleware class. The M module makes these patterns declarative and composable.
+:::
+
 :::{tip} What you'll learn
-How to use operator syntax for composing agents.
+How to compose middleware fluently with the M module and | operator.
 :::
 
 _Source: `62_m_module_composition.py`_

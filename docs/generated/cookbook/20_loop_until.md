@@ -3,8 +3,17 @@
 Pipeline topology:
     ( resume_writer >> resume_reviewer ) * until(quality_score == "excellent")
 
+:::{admonition} Why this matters
+:class: important
+Fixed-iteration loops (`* 3`) waste cycles when quality is reached early and miss the mark when more iterations are needed. `loop_until()` exits the loop as soon as a predicate is satisfied -- such as a quality score exceeding a threshold or all required fields being present. This combines the safety of bounded iteration with the efficiency of early termination.
+:::
+
+:::{warning} Without this
+Without conditional loop exit, you either over-iterate (wasting tokens on unnecessary refinement cycles) or under-iterate (shipping low-quality output). In native ADK, conditional loop exit requires subclassing `LoopAgent` and overriding `_should_continue()` -- ~25 lines of boilerplate. With adk-fluent, the same logic is `* until(lambda s: s.get("score") >= 0.9)`.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to loop agents until a predicate is satisfied with loop_until().
 :::
 
 _Source: `20_loop_until.py`_

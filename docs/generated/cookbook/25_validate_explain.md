@@ -5,8 +5,17 @@ agent configurations before deployment. The scenario: a compliance
 team reviewing an insurance claims pipeline to verify correct wiring
 before going live.
 
+:::{admonition} Why this matters
+:class: important
+Before deploying a pipeline to production, you need to verify it's wired correctly. Does the risk analyst receive the extractor's output? Is the right model assigned to each agent? The `.validate()` method catches configuration errors at build time, `.explain()` produces a human-readable summary of the pipeline's structure, and `.inspect()` dumps the raw builder state for debugging. These tools replace "deploy and pray" with systematic verification.
+:::
+
+:::{warning} Without this
+Without introspection tools, pipeline bugs are discovered at runtime -- often in production. A mistyped template variable like `{sumary}` renders as a literal string instead of being filled from state, and the downstream agent receives garbage. With `.validate()`, this error is caught before the pipeline ever runs.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to debug and introspect agent configurations before deployment.
 :::
 
 _Source: `25_validate_explain.py`_

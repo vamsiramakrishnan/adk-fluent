@@ -28,8 +28,17 @@ Pipeline topology:
 
 Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 
+:::{admonition} Why this matters
+:class: important
+Customer support triage is one of the most common real-world agent deployments. This recipe shows the full pattern: capture the customer's message into state, classify intent with a stateless classifier (no history needed), route deterministically to the right specialist, monitor satisfaction, and escalate when the issue isn't resolved. Every piece -- `S.capture`, `C.none`, `Route`, `gate` -- exists because real call centers need each of these capabilities.
+:::
+
+:::{warning} Without this
+Without this pattern, support systems either use LLM-based routing (expensive and unpredictable for simple intent classification) or hardcode routing rules (brittle and hard to maintain). Without context engineering, the billing specialist sees the classifier's internal reasoning mixed into the conversation. Without escalation gates, unresolved tickets close silently. This recipe shows how to avoid all three failure modes.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to build a multi-tier support system with capture, routing, and escalation.
 :::
 
 _Source: `56_customer_support_triage.py`_

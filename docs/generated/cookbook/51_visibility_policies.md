@@ -1,7 +1,16 @@
 # Visibility: Content Review Pipeline
 
+:::{admonition} Why this matters
+:class: important
+In a content review pipeline, internal agents (drafter, fact-checker, compliance reviewer) produce intermediate outputs that are useful for the pipeline but confusing for the end user. Visibility policies control which agents' outputs are shown to the user and which are hidden. This keeps the user experience clean while preserving full internal observability for debugging.
+:::
+
+:::{warning} Without this
+Without visibility policies, every agent in the pipeline sends its output to the user. A 4-agent content pipeline floods the user with 4 messages: the draft, the fact-check results, the compliance notes, and the final published version. The user sees internal debate and contradictions that should have been resolved before the final output. Visibility policies ensure only the final, polished result reaches the user.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to hide internal agent outputs from end users with visibility policies.
 :::
 
 _Source: `51_visibility_policies.py`_

@@ -1,7 +1,16 @@
 # Multi-Language Support Routing with Dict >> Shorthand
 
+:::{admonition} Why this matters
+:class: important
+When routing is a simple 1:1 mapping from state values to agents (e.g., language code to translator), even the `Route` builder is more ceremony than needed. Dict routing (`detector >> {"en": english, "es": spanish}`) is the most concise way to express intent-based dispatch. It reads like a configuration table rather than code.
+:::
+
+:::{warning} Without this
+Without dict routing, simple 1:1 dispatch requires either a full `Route` chain with repeated `.eq()` calls or, in native ADK, an LLM coordinator that wastes API calls deciding which language agent to use -- a decision that should be a dictionary lookup, not an inference call.
+:::
+
 :::{tip} What you'll learn
-How to use dict-based routing.
+How to use dict-based routing for concise intent dispatch.
 :::
 
 _Source: `18_dict_routing.py`_

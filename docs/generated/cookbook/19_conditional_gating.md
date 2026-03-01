@@ -1,7 +1,16 @@
 # Fraud Detection Pipeline with Conditional Gating
 
+:::{admonition} Why this matters
+:class: important
+Not every pipeline stage should run unconditionally. A fraud detection system should skip the approval stage for low-risk transactions. A data pipeline should skip expensive enrichment when the data already has the required fields. `proceed_if()` conditionally gates pipeline stages based on state predicates, preventing unnecessary computation and API costs.
+:::
+
+:::{warning} Without this
+Without conditional gating, every transaction -- including the 95% that are low-risk -- passes through every pipeline stage, wasting API calls and increasing latency. In native ADK, conditional execution requires a custom `before_agent_callback` that checks state and returns an early-exit event -- ~20 lines of boilerplate per gate.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to conditionally skip pipeline stages with proceed_if().
 :::
 
 _Source: `19_conditional_gating.py`_

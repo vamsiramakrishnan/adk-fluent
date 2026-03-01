@@ -14,8 +14,17 @@ Pipeline topology:
             >> report_writer
             >> S.compute(word_count=...)
 
+:::{admonition} Why this matters
+:class: important
+State transforms are the glue between agents in a pipeline. When a clinical data extractor produces `clinical_findings` but the statistical analyzer expects `analysis_input`, you need to rename that field. When parallel research streams produce separate results, you need to merge them. The `S` module provides composable, single-line transforms (`S.pick`, `S.drop`, `S.rename`, `S.merge`, `S.compute`) that slot into any pipeline with `>>`.
+:::
+
+:::{warning} Without this
+Without composable state transforms, every field rename, merge, or filter requires a custom `BaseAgent` subclass in native ADK -- 15-30 lines of boilerplate per transform. In a clinical pipeline with 5 transform steps, that's 5 separate classes (~100 lines) doing work that `S.pick >> S.rename >> S.merge` handles in 3 lines.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to reshape state between agents with S.pick, S.merge, S.rename, and more.
 :::
 
 _Source: `33_state_transforms.py`_

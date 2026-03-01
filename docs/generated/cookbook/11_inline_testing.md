@@ -6,6 +6,15 @@ smoke-tested inline before deployment to ensure it handles common
 queries correctly.  No LLM calls are made here -- we verify that
 the builder exposes the test API with the right signature.
 
+:::{admonition} Why this matters
+:class: important
+Agent behavior is notoriously hard to test because outputs are non-deterministic. The `.test()` method lets you define smoke tests inline with the agent definition -- right next to the code that configures the agent. This catches regressions early: if a prompt change breaks expected behavior, the test fails immediately during development rather than in production.
+:::
+
+:::{warning} Without this
+Without inline testing, agent validation requires separate test files with full runner setup, session management, and response parsing. This friction means most agents ship untested. When a prompt change causes the agent to stop handling billing queries, nobody notices until customers complain. Inline `.test()` makes testing a one-liner next to the agent definition.
+:::
+
 :::{tip} What you'll learn
 How to run inline smoke tests on agents.
 :::

@@ -4,6 +4,15 @@ Demonstrates before_model and after_model callbacks.  The scenario:
 a content moderation agent where we log every request before it
 reaches the model and audit every response after generation.
 
+:::{admonition} Why this matters
+:class: important
+Callbacks provide hooks into the agent lifecycle for logging, auditing, content filtering, and compliance. In regulated industries, every model invocation must be logged for audit trails. Content moderation callbacks prevent harmful outputs from reaching users. The fluent builder's additive callback semantics mean multiple `.before_model()` and `.after_model()` calls accumulate rather than overwrite -- so a compliance team can add audit logging without removing the content moderation hooks.
+:::
+
+:::{warning} Without this
+Without lifecycle callbacks, you have no visibility into what the model receives or produces. Harmful content passes through unfiltered. Compliance audits fail because there's no record of model interactions. In native ADK, setting `before_model_callback` a second time silently overwrites the first -- meaning adding audit logging accidentally removes content filtering.
+:::
+
 :::{tip} What you'll learn
 How to register lifecycle callbacks with accumulation semantics.
 :::

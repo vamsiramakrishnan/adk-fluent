@@ -6,8 +6,17 @@ disallow_transfer_to_parent, disallow_transfer_to_peers, and the
 where a coordinator routes to specialist agents that must complete their
 task before returning control.
 
+:::{admonition} Why this matters
+:class: important
+In multi-agent systems, specialists must complete their task before returning control to the coordinator. Without transfer control, a billing specialist might try to hand off to a technical specialist (peer transfer) or prematurely return to the coordinator before resolving the issue. `.isolate()` prevents both, ensuring each specialist fully handles its assigned case before the pipeline continues.
+:::
+
+:::{warning} Without this
+Without transfer control, specialists can escape their designated role by transferring to peers or returning to the coordinator prematurely. A billing specialist that encounters a complex issue transfers to technical support instead of resolving it -- creating an infinite routing loop. `.isolate()` forces each specialist to complete its task, preventing these circular delegation patterns.
+:::
+
 :::{tip} What you'll learn
-How to build a team of agents with a coordinator.
+How to control agent transfer behavior with .isolate() and transfer flags.
 :::
 
 _Source: `54_transfer_control.py`_

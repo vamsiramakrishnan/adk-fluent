@@ -22,8 +22,17 @@ Key concepts:
   - .dispatch(name="x"): method form for any builder
   - Named tasks, callbacks, timeout, progress streaming
 
+:::{admonition} Why this matters
+:class: important
+Not every parallel task needs to block the pipeline. Email notifications, SEO optimization, and analytics ingestion can run in the background while the main pipeline continues. `dispatch()` fires agents as background tasks without blocking, and `join()` provides an explicit synchronization barrier when you need the results. This is the async/await pattern for agent pipelines.
+:::
+
+:::{warning} Without this
+Without dispatch/join, background tasks must either block the pipeline (slowing everything down) or be handled by an external task queue (adding infrastructure complexity). The `|` (parallel) operator blocks until all branches complete -- fine for parallel analysis, but wrong for fire-and-forget tasks like sending notifications. `dispatch()` fills this gap.
+:::
+
 :::{tip} What you'll learn
-How to register lifecycle callbacks with accumulation semantics.
+How to run agents in the background with dispatch() and synchronize with join().
 :::
 
 _Source: `59_dispatch_join.py`_

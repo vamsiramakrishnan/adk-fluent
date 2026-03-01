@@ -4,8 +4,17 @@ Demonstrates to_mermaid() for generating architecture diagrams that
 stay in sync with code. The scenario: a DevOps team documenting their
 incident response platform's agent topology for runbooks and onboarding.
 
+:::{admonition} Why this matters
+:class: important
+Architecture diagrams that drift from implementation are worse than no diagrams -- they actively mislead. `to_mermaid()` generates diagrams directly from the pipeline's IR, guaranteeing that documentation matches the running code. DevOps teams use these for runbooks, onboarding, and incident response -- situations where an outdated diagram can lead to incorrect troubleshooting.
+:::
+
+:::{warning} Without this
+Without code-generated diagrams, architecture documentation requires manual Mermaid/Draw.io maintenance. Every pipeline change requires a corresponding diagram update -- and that update is always forgotten. Within a month, diagrams show the wrong topology, and new team members build mental models based on outdated information.
+:::
+
 :::{tip} What you'll learn
-How to build a team of agents with a coordinator.
+How to generate live architecture diagrams with to_mermaid().
 :::
 
 _Source: `48_visualization.py`_

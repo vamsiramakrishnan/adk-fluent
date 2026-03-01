@@ -59,6 +59,16 @@ ______________________________________________________________________
 
 Build agents that classify tickets, route conversations, and escalate issues.
 
+Every support system needs the same core capabilities: classify intent, route to
+the right specialist, and escalate when the specialist fails. Without
+deterministic routing, an LLM coordinator wastes API calls deciding where to
+send a billing question -- a decision that should be instant and free. Without
+context engineering, each specialist sees the classifier's internal reasoning
+mixed in with the customer's actual message, leading to confused responses.
+Without escalation gates, unresolved tickets silently close instead of reaching
+a human. These recipes show how adk-fluent handles each of these concerns
+declaratively.
+
 | Recipe                          | Key features                           | Cookbook                             |
 | ------------------------------- | -------------------------------------- | ------------------------------------ |
 | Email Classifier Agent          | Simple agent creation                  | [#01](01_simple_agent.md)            |
@@ -71,6 +81,14 @@ Build agents that classify tickets, route conversations, and escalate issues.
 ## Data Processing & ETL
 
 Transform, validate, and pipeline structured data through multi-step workflows.
+
+Data pipelines break in predictable ways: missing fields crash downstream
+agents, renamed columns produce garbage, and unchecked nulls propagate silently
+until they corrupt the final output. In native ADK, every transform requires a
+custom BaseAgent subclass -- 15-30 lines of boilerplate per step. In adk-fluent,
+`S.pick`, `S.rename`, `S.guard`, and `S.compute` are composable one-liners that
+slot into any pipeline with `>>`. The result is a pipeline where data
+transformations are visible in the topology, not hidden in class files.
 
 | Recipe                             | Key features                       | Cookbook                         |
 | ---------------------------------- | ---------------------------------- | -------------------------------- |
@@ -85,6 +103,16 @@ Transform, validate, and pipeline structured data through multi-step workflows.
 
 Build research agents, deep search pipelines, and knowledge retrieval systems.
 
+Research pipelines have a unique failure mode: they need to be both broad and
+deep. A single-source search misses critical information. A sequential search
+wastes time when sources are independent. And a search without quality review
+produces reports full of contradictions that nobody trusts. adk-fluent's
+parallel operator `|` runs searches concurrently, the `//` fallback operator
+adds graceful degradation when a source is down, and the `* until()` loop
+operator iterates quality reviews until confidence thresholds are met. Without
+these, you end up with brittle pipelines that either miss sources or produce
+low-quality output.
+
 | Recipe                            | Key features                         | Cookbook                          |
 | --------------------------------- | ------------------------------------ | --------------------------------- |
 | Market Research Fan-Out           | Parallel `FanOut`                    | [#05](05_parallel_fanout.md)      |
@@ -97,6 +125,15 @@ Build research agents, deep search pipelines, and knowledge retrieval systems.
 ## Content Generation & Review
 
 Generate, refine, and review text content with iterative quality loops.
+
+Content quality is inherently iterative -- first drafts are rarely good enough.
+Without structured iteration, teams resort to manual copy-paste cycles between
+a writer and reviewer, losing context and version history with each round. The
+`* N` and `* until()` operators in adk-fluent formalize this iteration pattern,
+making it testable and bounded. The `@` operator ensures output conforms to
+a schema, and `tap()` lets you observe quality metrics without mutating the
+pipeline. Without these, quality loops are ad-hoc and unbounded, leading to
+either infinite loops or premature termination.
 
 | Recipe                      | Key features                         | Cookbook                         |
 | --------------------------- | ------------------------------------ | -------------------------------- |
@@ -112,6 +149,15 @@ Generate, refine, and review text content with iterative quality loops.
 
 Order routing, fraud detection, invoice parsing, and financial analysis.
 
+E-commerce and financial systems demand deterministic behavior -- routing a
+payment to the wrong processor is not a "hallucination," it's a financial
+incident. LLM-based routing is too slow and too unpredictable for decisions
+that can be made on a single state key. adk-fluent's `Route` primitive provides
+instant, deterministic branching based on state values. `proceed_if()` gates
+prevent unauthorized transactions from reaching downstream processors. `@`
+typed output ensures invoices and reports conform to expected schemas rather
+than returning free-form text that breaks downstream systems.
+
 | Recipe                           | Key features                    | Cookbook                         |
 | -------------------------------- | ------------------------------- | -------------------------------- |
 | E-Commerce Order Routing         | `Route` deterministic branching | [#17](17_route_branching.md)     |
@@ -124,6 +170,15 @@ Order routing, fraud detection, invoice parsing, and financial analysis.
 
 Multi-agent systems with coordinators, specialists, and routing.
 
+Most multi-agent systems start the same way: a coordinator decides which
+specialist to call. The critical design choice is whether the coordinator uses
+the LLM to decide (flexible but expensive and unpredictable) or uses
+deterministic rules (fast and testable but rigid). adk-fluent supports both:
+`.agent_tool()` lets the LLM pick the specialist when the decision is complex,
+while `Route()` provides instant deterministic dispatch when the decision is
+simple. Without this distinction, teams either waste API calls on trivial
+routing or lose flexibility on complex delegation.
+
 | Recipe                     | Key features                        | Cookbook                      |
 | -------------------------- | ----------------------------------- | ----------------------------- |
 | Product Launch Coordinator | Team coordinator pattern            | [#07](07_team_coordinator.md) |
@@ -134,6 +189,17 @@ Multi-agent systems with coordinators, specialists, and routing.
 ## Safety, Guardrails & Compliance
 
 Content moderation, medical safety, legal approval gates, and contracts.
+
+In regulated domains, an unguarded AI response can create legal liability,
+violate compliance requirements, or cause patient harm. Guardrails are not
+optional -- they are the difference between a prototype and a deployable
+system. adk-fluent's `.guard()` method registers safety checks as both
+pre-model and post-model hooks in a single call. `gate()` pauses the pipeline
+for human approval on high-risk decisions. Data contracts (`.produces()`,
+`.consumes()`) catch missing fields at build time rather than letting them
+surface in production with patient data at stake. Without these, every
+safety check is a hand-written callback scattered across the codebase with
+no guarantee of consistent application.
 
 | Recipe                          | Key features                                   | Cookbook                           |
 | ------------------------------- | ---------------------------------------------- | ---------------------------------- |
@@ -147,6 +213,17 @@ Content moderation, medical safety, legal approval gates, and contracts.
 ## Production & Deployment
 
 Deploying, testing, serializing, and monitoring agents in production.
+
+The gap between a working prototype and a production system is filled with
+concerns that have nothing to do with the agent's core logic: retries for
+transient failures, cost tracking for budget management, latency monitoring for
+SLA compliance, dependency injection for environment-specific configuration,
+and serialization for CI/CD pipelines. In native ADK, each of these requires
+custom boilerplate. adk-fluent's middleware system (`M.retry()`, `M.cost()`,
+`M.latency()`), dependency injection (`.inject()`), and serialization
+(`to_dict()`, `to_yaml()`) handle these cross-cutting concerns declaratively.
+Without them, production concerns leak into agent logic, making the code
+harder to test, harder to maintain, and harder to reason about.
 
 | Recipe                      | Key features                          | Cookbook                          |
 | --------------------------- | ------------------------------------- | --------------------------------- |
@@ -162,6 +239,16 @@ Deploying, testing, serializing, and monitoring agents in production.
 ## Developer Experience & Tooling
 
 Introspection, visualization, debugging, and IDE workflow.
+
+When an agent pipeline does something unexpected, you need to answer three
+questions fast: what is the pipeline topology, what data flows between agents,
+and which agent produced the wrong output? Without introspection tools, you
+resort to print-debugging across a graph of async agents -- a miserable
+experience. adk-fluent provides `.explain()` for human-readable pipeline
+summaries, `.validate()` for configuration errors, `.to_mermaid()` for
+architecture diagrams that stay in sync with code, and `.inspect()` for
+raw builder state. These tools turn debugging from guesswork into systematic
+investigation.
 
 | Recipe                        | Key features                              | Cookbook                         |
 | ----------------------------- | ----------------------------------------- | -------------------------------- |

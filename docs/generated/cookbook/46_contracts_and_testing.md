@@ -1,7 +1,16 @@
 # Contracts and Testing: Medical Imaging Pipeline with Strict Data Contracts
 
+:::{admonition} Why this matters
+:class: important
+Data contracts (`.produces()`, `.consumes()`) declare what each agent writes to and reads from state. The contract checker validates these declarations at build time, catching data flow bugs before the pipeline ever runs. In a medical imaging pipeline, this means catching a missing `diagnosis` field before it surfaces at runtime with patient data at stake -- not after.
+:::
+
+:::{warning} Without this
+Without data contracts, data flow bugs are silent at build time. Agent B expects a `diagnosis` field from Agent A, but Agent A never writes it. The pipeline compiles and starts running. When Agent B tries to read `diagnosis`, it gets `None`, produces a garbage report, and nobody notices until a clinician flags the output. Data contracts catch this at build time with a clear error message.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to enforce data contracts and test pipelines with mock backends.
 :::
 
 _Source: `46_contracts_and_testing.py`_

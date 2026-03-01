@@ -13,8 +13,17 @@ Key concepts:
   - Callbacks: on_result, on_error (dead-letter queue)
   - StreamStats: live counters (processed, errors, throughput)
 
+:::{admonition} Why this matters
+:class: important
+Many agent workloads don't involve a human in the loop: processing incoming webhooks, monitoring data feeds, analyzing log streams. `StreamRunner` bridges continuous data sources (iterables, async generators, polled endpoints, webhook callbacks) to ADK agents, handling session management, error recovery, and throughput monitoring automatically. This turns agents into stream processors.
+:::
+
+:::{warning} Without this
+Without StreamRunner, processing continuous data with agents requires manual session management for each item, custom error handling for failures, and ad-hoc metrics collection. A dead-letter queue for failed items, throughput tracking, and session isolation strategies all need to be built from scratch. StreamRunner provides all of this out of the box.
+:::
+
 :::{tip} What you'll learn
-How to register lifecycle callbacks with accumulation semantics.
+How to process continuous data streams without user interaction.
 :::
 
 _Source: `60_stream_runner.py`_
