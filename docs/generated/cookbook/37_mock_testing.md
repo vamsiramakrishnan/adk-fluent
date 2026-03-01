@@ -1,7 +1,16 @@
 # Mock Testing: Customer Onboarding Pipeline with Deterministic Mocks
 
+:::{admonition} Why this matters
+:class: important
+Testing agent pipelines with real LLM calls is slow, expensive, and non-deterministic. Mock backends provide deterministic responses for each agent in the pipeline, enabling fast, repeatable CI tests that verify pipeline topology and data flow without making any API calls. This is essential for regression testing: ensure that refactoring the pipeline doesn't break the data flow between agents.
+:::
+
+:::{warning} Without this
+Without mock backends, every test requires real LLM calls -- adding 5-30 seconds per test, costing real money, and producing non-deterministic results that cause flaky CI pipelines. Teams either skip testing entirely (shipping bugs) or test manually (slow and unreliable). Mock backends make agent testing as fast and reliable as unit testing regular functions.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to test pipelines deterministically with mock backends.
 :::
 
 _Source: `37_mock_testing.py`_

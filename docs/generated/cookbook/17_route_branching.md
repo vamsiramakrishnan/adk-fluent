@@ -15,8 +15,17 @@ Pipeline topology:
         ├─ "grocery"     -> grocery
         └─ otherwise     -> general
 
+:::{admonition} Why this matters
+:class: important
+Routing decisions based on simple state values -- order category, language code, priority level -- should be instant, deterministic, and free. Using an LLM to decide whether to route an order to the electronics or clothing handler wastes API calls and introduces unpredictability. The `Route` primitive provides deterministic branching on state keys with `.eq()`, `.contains()`, `.gt()`, and `.when()` predicates.
+:::
+
+:::{warning} Without this
+Without deterministic routing, you either waste LLM calls on trivial decisions (sending every order through a coordinator agent just to read a category field) or write custom `BaseAgent` subclasses with manual predicate logic (~30 lines per router). Both approaches are slower, more expensive, and harder to test than `Route("category").eq("electronics", handler)`.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to route agents deterministically based on state values.
 :::
 
 _Source: `17_route_branching.py`_

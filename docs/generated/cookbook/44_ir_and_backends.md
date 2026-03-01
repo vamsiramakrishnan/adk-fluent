@@ -5,8 +5,17 @@ compilation, and to_mermaid() for architecture documentation. The
 scenario: a mortgage approval pipeline where the platform team
 inspects the agent graph for optimization before deployment.
 
+:::{admonition} Why this matters
+:class: important
+The Intermediate Representation (IR) separates pipeline definition from execution. `to_ir()` produces a JSON-serializable graph that platform teams can analyze, optimize, and validate before deployment. `to_app()` compiles the IR into production-ready runtime objects. `to_mermaid()` generates architecture diagrams from the same IR. This means documentation, validation, and execution all derive from a single source of truth.
+:::
+
+:::{warning} Without this
+Without IR, there's no way to inspect or analyze a pipeline before running it. Configuration errors (wrong model, missing callback, broken data flow) are discovered at runtime -- in production. There's no automated way to generate architecture diagrams, and documentation drifts from implementation within days of any change.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to inspect, compile, and optimize agent graphs with to_ir() and to_app().
 :::
 
 _Source: `44_ir_and_backends.py`_

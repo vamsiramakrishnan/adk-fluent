@@ -1,7 +1,16 @@
 # Domain Expert Agent via @agent Decorator
 
+:::{admonition} Why this matters
+:class: important
+When an agent's tools and configuration are defined in the same file, the `@agent` decorator provides the most concise syntax -- the agent is defined as a decorated function that returns its instruction. This is ideal for domain-expert agents where tools, instructions, and configuration form a cohesive unit.
+:::
+
+:::{warning} Without this
+Without the decorator pattern, agent definitions require explicit builder chains or constructor calls. For simple agents with co-located tools, this adds ceremony. The `@agent` decorator reduces a 5-line builder chain to a 3-line decorated function, keeping the agent's purpose front and center.
+:::
+
 :::{tip} What you'll learn
-How to use the agent decorator pattern.
+How to use the @agent decorator for concise agent definitions.
 :::
 
 _Source: `24_agent_decorator.py`_

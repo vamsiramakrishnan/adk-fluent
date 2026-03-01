@@ -1,7 +1,16 @@
 # Contract Checking: Catch Data Flow Bugs Before Runtime
 
+:::{admonition} Why this matters
+:class: important
+Template variables like `{summary}` in agent instructions must be backed by a state key that some upstream agent actually produces. Contract checking validates this at build time -- before the pipeline ever runs. It catches the class of bugs where Agent B reads a state key that no upstream agent writes, or where a template variable references a key that doesn't exist.
+:::
+
+:::{warning} Without this
+Without contract checking, a template variable `{summary}` that references a missing state key renders as the literal string `{summary}` at runtime. The downstream agent receives the raw template placeholder as input, produces garbage output, and nobody notices until a user reports nonsensical results. Contract checking catches this at build time with a clear error: "Agent B reads 'summary' but no upstream agent produces it."
+:::
+
 :::{tip} What you'll learn
-How to configure agents for production runtime.
+How to catch missing state keys and template errors at build time.
 :::
 
 _Source: `52_contract_checking.py`_

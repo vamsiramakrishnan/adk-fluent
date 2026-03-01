@@ -5,6 +5,15 @@ queries.  The scenario: a code review agent that can be invoked
 with a single line to get feedback on a code snippet.
 No LLM calls are made here -- we only verify builder mechanics.
 
+:::{admonition} Why this matters
+:class: important
+Most agent interactions are fire-and-forget: classify this email, summarize this document, review this code snippet. Setting up a full `Runner`, `SessionService`, and `Session` just to ask a single question is 15+ lines of boilerplate that obscures the actual intent. The `.ask()` method collapses all of this into a single line, making agents as easy to invoke as function calls.
+:::
+
+:::{warning} Without this
+In native ADK, every agent invocation requires instantiating a `Runner`, creating a `SessionService`, managing a `Session`, wrapping the query in a `Content` object, and iterating over async events. That's 15-20 lines of plumbing for a one-line question. With `.ask()`, the same invocation is `result = await agent.ask("Review this code")`.
+:::
+
 :::{tip} What you'll learn
 How to use one-shot execution for quick queries.
 :::

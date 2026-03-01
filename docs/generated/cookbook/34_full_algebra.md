@@ -18,8 +18,17 @@ Pipeline topology:
         >> ( style_checker | security_scanner | logic_reviewer )
         >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
 
+:::{admonition} Why this matters
+:class: important
+This recipe demonstrates the full composition algebra in a realistic code review pipeline. Sequential (`>>`), parallel (`|`), typed output (`@`), and fallback (`//`) operators combine in a single expression to express: parse changes, run reviewers in parallel, aggregate findings into a structured verdict, and fall back to a backup aggregator if the primary fails. This is the expressive power that makes complex topologies readable and maintainable.
+:::
+
+:::{warning} Without this
+Building this pipeline in native ADK requires separate `ParallelAgent`, `SequentialAgent`, and custom fallback classes nested together -- ~45 lines where the topology is invisible. When the pipeline structure needs to change (add a new reviewer, change the fallback strategy), the modification is spread across multiple class definitions instead of being visible in a single expression.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to combine all composition operators in a single real-world expression.
 :::
 
 _Source: `34_full_algebra.py`_

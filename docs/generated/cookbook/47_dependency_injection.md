@@ -1,7 +1,16 @@
 # Dependency Injection: Multi-Environment Deployment (Dev/Staging/Prod)
 
+:::{admonition} Why this matters
+:class: important
+The same agent pipeline runs against different databases in dev, staging, and production. Hardcoding connection strings into agent tools creates configuration sprawl and makes testing impossible. `.inject()` binds environment-specific values (API keys, database URLs, feature flags) at deployment time, keeping agent definitions environment-agnostic and tool functions pure.
+:::
+
+:::{warning} Without this
+Without dependency injection, environment-specific configuration leaks into agent tool functions as hardcoded values or global variables. Changing from a dev database to production requires modifying the tool function code. Worse, the injected parameter appears in the LLM's tool schema, confusing the model with infrastructure details it should never see.
+:::
+
 :::{tip} What you'll learn
-How to use dependency injection: multi-environment deployment (dev/staging/prod) with the fluent API.
+How to inject environment-specific dependencies with .inject().
 :::
 
 _Source: `47_dependency_injection.py`_

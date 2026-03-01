@@ -1,7 +1,16 @@
 # Gate: Legal Document Review with Human Approval
 
+:::{admonition} Why this matters
+:class: important
+High-stakes decisions -- approving legal contracts, releasing financial reports, authorizing medical procedures -- require human sign-off. `gate()` pauses the pipeline at the decision point, presents a message to the approver, and resumes only when approval is granted. This brings human-in-the-loop governance into the pipeline topology rather than implementing it as an external system.
+:::
+
+:::{warning} Without this
+Without approval gates, AI-generated contracts, financial reports, and medical recommendations proceed directly to execution with no human oversight. In native ADK, implementing an approval gate requires a custom `BaseAgent` with `EventActions(escalate=True)` -- ~25 lines of boilerplate per gate. With adk-fluent, the same pattern is `gate(lambda s: s.get("risk") == "high", message="Review required")`.
+:::
+
 :::{tip} What you'll learn
-How to use gate: legal document review with human approval with the fluent API.
+How to pause pipelines for human approval with gate().
 :::
 
 _Source: `41_gate_approval.py`_

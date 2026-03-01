@@ -1,7 +1,16 @@
 # Map Over: Batch Processing Customer Feedback with Iteration
 
+:::{admonition} Why this matters
+:class: important
+Batch processing is ubiquitous: analyze each customer review individually, process each line item in an invoice, summarize each section of a document. `map_over()` iterates an agent over a list of items from state, running the agent once per item and collecting results. This eliminates the manual loop boilerplate of extracting the list, iterating, calling the agent, and aggregating results.
+:::
+
+:::{warning} Without this
+Without map_over, batch processing requires a custom `BaseAgent` subclass that manually iterates over a state list, invokes the sub-agent for each item, and collects results -- ~25 lines of boilerplate per batch operation. `map_over()` reduces this to a single composable primitive.
+:::
+
 :::{tip} What you'll learn
-How to use map over: batch processing customer feedback with iteration with the fluent API.
+How to iterate an agent over a list of items with map_over().
 :::
 
 _Source: `39_map_over.py`_

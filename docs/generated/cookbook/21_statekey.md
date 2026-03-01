@@ -1,7 +1,16 @@
 # Order Processing with Typed State Keys
 
+:::{admonition} Why this matters
+:class: important
+State keys are the backbone of inter-agent communication. When multiple agents read and write to shared state using raw strings, typos create silent bugs -- `s["order_toal"]` instead of `s["order_total"]` produces `None` with no error. Typed `StateKey` descriptors provide IDE autocompletion, scope enforcement (session vs. temp vs. user vs. app), and runtime validation. They turn state access from a stringly-typed minefield into a type-safe API.
+:::
+
+:::{warning} Without this
+Without typed state keys, a misspelled key name returns `None` instead of raising an error. The downstream agent receives empty data and produces garbage output. Debugging requires tracing through every state read/write across all agents to find the typo. With `StateKey`, the IDE catches the typo before you even run the code.
+:::
+
 :::{tip} What you'll learn
-How to work with state keys and state transforms.
+How to use typed StateKey descriptors for safe state access.
 :::
 
 _Source: `21_statekey.py`_

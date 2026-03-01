@@ -1,5 +1,14 @@
 # Enterprise Agent with Shared Compliance Preset
 
+:::{admonition} Why this matters
+:class: important
+Enterprise systems need consistent configuration across dozens of agents: the same model, the same compliance callbacks, the same audit logging, the same safety guardrails. Copy-pasting this configuration is fragile -- update the compliance callback in one agent and forget the other 19. `Preset()` bundles shared configuration into a reusable object that every agent can `.apply()`, ensuring organizational standards are enforced uniformly.
+:::
+
+:::{warning} Without this
+Without presets, shared configuration is duplicated across every agent definition. When the compliance team updates the audit callback, they must find and update every agent manually. Miss one and it's a compliance violation. Worse, native ADK has no equivalent -- you'd pass `**kwargs` from a dict, which breaks down when callbacks need additive semantics.
+:::
+
 :::{tip} What you'll learn
 How to define and apply reusable configuration presets.
 :::

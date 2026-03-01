@@ -14,8 +14,17 @@ Key concepts:
   - Contract checker Pass 14: validates scoped middleware at build time
   - M.when(PredicateSchema, mw): state-aware conditional middleware
 
+:::{admonition} Why this matters
+:class: important
+Middleware that reads and writes state keys can introduce the same data-flow bugs as agents -- reading a key that no agent produces, or writing a key that conflicts with another middleware. `MiddlewareSchema` declares these dependencies explicitly, enabling the contract checker to validate middleware reads/writes at build time. This extends compile-time safety from agents to the entire middleware stack.
+:::
+
+:::{warning} Without this
+Without typed middleware schemas, middleware state dependencies are implicit -- buried in the middleware's `before_agent` and `after_agent` implementations. A middleware that reads `cost_budget` from state silently gets `None` when no upstream agent sets it, producing incorrect cost tracking. MiddlewareSchema makes these dependencies explicit and checkable at build time.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to declare typed middleware state dependencies for compile-time validation.
 :::
 
 _Source: `64_middleware_schema.py`_

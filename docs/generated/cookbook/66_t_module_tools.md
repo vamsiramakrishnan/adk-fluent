@@ -14,8 +14,17 @@ Key concepts:
   - ToolRegistry: tool catalog with search
   - SearchToolset: two-phase discovery/execution
 
+:::{admonition} Why this matters
+:class: important
+The `T` module brings composable, type-safe tool management to adk-fluent. `T.fn()` wraps functions, `T.agent()` wraps agents as tools, and `T.search()` provides BM25-indexed dynamic tool loading for agents with large tool catalogs. The `|` operator composes tool sets: `T.fn(search) | T.fn(calc) | T.google_search()`. This is essential when an agent needs 50+ tools but the LLM performs best with 5-10 relevant ones per query.
+:::
+
+:::{warning} Without this
+Without dynamic tool loading, an agent with 50 tools sends all 50 tool schemas to the LLM on every call -- overwhelming the model's context window and degrading tool selection accuracy. Without composable tool sets, adding a new tool requires modifying the agent's constructor call. The T module solves both: `T.search()` dynamically loads only the relevant tools per query, and `|` composes tool sets declaratively.
+:::
+
 :::{tip} What you'll learn
-How to attach tools to an agent using the fluent API.
+How to compose, wrap, and dynamically load tools with the T module.
 :::
 
 _Source: `66_t_module_tools.py`_

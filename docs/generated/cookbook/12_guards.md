@@ -6,8 +6,17 @@ scenario: a medical information agent with safety guards that
 screen requests and responses for dangerous self-diagnosis or
 treatment recommendations.
 
+:::{admonition} Why this matters
+:class: important
+In medical, legal, and financial domains, both the input to and output from the model must be screened for safety. A medical chatbot must block dangerous self-diagnosis prompts (before_model) AND flag treatment recommendations in responses (after_model). The `.guard()` method registers a single function as both a before and after hook, ensuring symmetric safety coverage with one call instead of two.
+:::
+
+:::{warning} Without this
+Without guardrails, medical chatbots can recommend dosages, legal agents can give binding advice, and financial agents can make unauthorized trades. In native ADK, you must remember to set both `before_model_callback` AND `after_model_callback` separately -- forget one and your safety net has a hole. The `.guard()` method guarantees both sides are covered.
+:::
+
 :::{tip} What you'll learn
-How to register lifecycle callbacks with accumulation semantics.
+How to add safety guardrails with the unified .guard() method.
 :::
 
 _Source: `12_guards.py`_

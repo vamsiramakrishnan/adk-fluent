@@ -7,8 +7,17 @@ Pipeline topologies:
     RAG pipeline:
         query_rewriter >> ( vector_db // fulltext ) >> answer_generator
 
+:::{admonition} Why this matters
+:class: important
+Knowledge retrieval systems need graceful degradation. When the vector database is down, fall back to full-text search. When that fails too, fall back to an expert system reasoning from first principles. The `//` operator chains fallback strategies declaratively, and it composes with `>>` and `|` for use in larger pipelines. In production RAG systems, this is the difference between returning "service unavailable" and returning a slightly-less-optimal answer.
+:::
+
+:::{warning} Without this
+Without a fallback mechanism, a single source failure takes down the entire retrieval pipeline. Users get no answer instead of a slightly-less-optimal answer. In native ADK, building a fallback chain requires a custom `BaseAgent` subclass with try/except logic and manual re-delegation -- ~30 lines per fallback tier. The `//` operator expresses the same pattern in a single line.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to build graceful degradation chains with the // (fallback) operator.
 :::
 
 _Source: `32_fallback_operator.py`_

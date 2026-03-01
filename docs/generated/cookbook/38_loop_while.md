@@ -1,5 +1,14 @@
 # Retry If: API Integration Agent That Retries on Transient Failures
 
+:::{admonition} Why this matters
+:class: important
+Transient failures are a fact of life in production systems -- API rate limits, network timeouts, temporary service outages. `loop_while()` retries an agent when a condition indicates a transient failure, with bounded iteration to prevent infinite retry storms. This is the agent equivalent of an HTTP retry policy, built directly into the pipeline topology.
+:::
+
+:::{warning} Without this
+Without conditional retry, a transient API timeout crashes the entire pipeline. You end up wrapping every external call in try/except with manual retry loops, scattering resilience logic across the codebase. `loop_while()` keeps retry logic declarative and visible in the pipeline expression.
+:::
+
 :::{tip} What you'll learn
 How to use retry if: api integration agent that retries on transient failures with the fluent API.
 :::

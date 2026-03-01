@@ -1,7 +1,16 @@
 # ML Inference Monitoring: Performance Tap for Pure Observation
 
+:::{admonition} Why this matters
+:class: important
+Monitoring pipeline behavior without affecting it is critical for production observability. `tap()` lets you observe state at any point in the pipeline -- logging metrics, recording latencies, tracking token counts -- without mutating the state or altering the pipeline's behavior. This is the agent equivalent of a read-only database query: you see everything, you change nothing.
+:::
+
+:::{warning} Without this
+Without pure observation, monitoring requires either mutating state (adding log entries that downstream agents see and react to) or wrapping agents in custom BaseAgent subclasses. Both approaches couple monitoring to pipeline logic. When you remove the monitoring, the pipeline's behavior changes -- a sign that your observation was actually affecting the system.
+:::
+
 :::{tip} What you'll learn
-How to use ml inference monitoring: performance tap for pure observation with the fluent API.
+How to observe pipeline state without mutation using tap().
 :::
 
 _Source: `35_tap_observation.py`_

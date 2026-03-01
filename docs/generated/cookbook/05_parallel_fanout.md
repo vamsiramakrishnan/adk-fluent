@@ -17,8 +17,17 @@ declarative parallel execution.
 Pipeline topology:
     ( web_analyst | academic_analyst | social_analyst )
 
+:::{admonition} Why this matters
+:class: important
+Many real-world tasks are embarrassingly parallel -- gathering competitive intelligence from multiple sources, running security and style checks on the same code, or querying multiple databases simultaneously. Running these sequentially wastes time. The `|` operator expresses parallel execution declaratively, and the resulting pipeline automatically manages concurrency. Market research that takes days of sequential gathering completes in minutes with parallel fan-out.
+:::
+
+:::{warning} Without this
+Without parallel composition, independent tasks run sequentially, multiplying latency by the number of branches. A 3-source research pipeline that could complete in 5 seconds takes 15. In native ADK, you need a separate `ParallelAgent` wrapper class with manual `sub_agents` wiring. In adk-fluent, `agent_a | agent_b | agent_c` is a single expression.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to run agents concurrently using the | (parallel) operator.
 :::
 
 _Source: `05_parallel_fanout.py`_

@@ -12,8 +12,17 @@ Key concepts:
   - on_middleware_error: notification hook for other middleware
   - Custom middleware with typed MiddlewareSchema
 
+:::{admonition} Why this matters
+:class: important
+Production agent systems need three observability pillars: cost tracking (are we within budget?), latency monitoring (are we meeting SLAs?), and topology logging (what path did the request take?). The built-in `CostTracker`, `LatencyMiddleware`, and `TopologyLogMiddleware` provide these out of the box. The error boundary mechanism ensures that a middleware failure (e.g., a metrics endpoint being down) doesn't crash the pipeline it's monitoring.
+:::
+
+:::{warning} Without this
+Without built-in observability middleware, teams build their own cost trackers, latency monitors, and topology loggers from scratch -- duplicating effort across projects. Without error boundaries, a bug in your logging middleware crashes the production pipeline it was supposed to be monitoring. The built-in middleware handles these edge cases with battle-tested implementations.
+:::
+
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline.
+How to add production observability with built-in cost, latency, and topology middleware.
 :::
 
 _Source: `65_builtin_middleware.py`_

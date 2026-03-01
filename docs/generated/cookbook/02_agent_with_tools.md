@@ -4,6 +4,15 @@ Demonstrates attaching function tools to an agent.  The scenario:
 a travel planning assistant that can look up weather forecasts and
 search for flights to help users plan trips.
 
+:::{admonition} Why this matters
+:class: important
+Tools are what make agents useful beyond text generation -- they connect agents to real-world data and actions. A travel planner without tools can only guess at weather and flight information. With tools, it queries live APIs and returns actionable results. The fluent `.tool()` method adds tools additively with chaining, making it easy to compose tool sets from reusable functions.
+:::
+
+:::{warning} Without this
+Without tools, agents hallucinate factual data -- weather forecasts, flight prices, database records -- because they have no way to access real information. In native ADK, tools are passed as a flat list to the constructor, making it harder to compose tool sets from multiple sources or conditionally add tools based on configuration.
+:::
+
 :::{tip} What you'll learn
 How to attach tools to an agent using the fluent API.
 :::
