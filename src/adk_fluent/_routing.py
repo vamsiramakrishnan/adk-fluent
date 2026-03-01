@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-__all__ = ["Route"]
+__all__ = ["Route", "Fallback"]
 
 
 def _make_fallback_builder(children: list):
@@ -29,10 +29,10 @@ class Route:
 
     Usage:
         # Branch on a single key
-        classifier.outputs("intent") >> Route("intent").eq("booking", booker).eq("info", info_agent)
+        classifier.writes("intent") >> Route("intent").eq("booking", booker).eq("info", info_agent)
 
         # Pattern matching
-        analyzer.outputs("text") >> Route("text").contains("urgent", escalation).otherwise(standard)
+        analyzer.writes("text") >> Route("text").contains("urgent", escalation).otherwise(standard)
 
         # Threshold
         scorer.outputs("score") >> Route("score").gt(0.8, premium).otherwise(basic)
@@ -244,3 +244,44 @@ def _make_checkpoint_agent(name, predicate):
                 pass  # Predicate evaluation failed -- don't escalate
 
     return _CheckpointAgent(name=name)
+
+
+class Fallback:
+    """Fluent builder for fallback chains. Builder equivalent of the ``//`` operator.
+
+    Tries each agent in order. First success wins.
+
+    Usage::
+
+        from adk_fluent import Fallback
+
+        # These are equivalent:
+        pipeline_a = agent_a // agent_b // agent_c
+        pipeline_b = Fallback("recovery").attempt(agent_a).attempt(agent_b).attempt(agent_c)
+    """
+
+    def __init__(self, name: str = "fallback"):
+        self._name = name
+        self._children: list[Any] = []
+
+    def attempt(self, agent: Any) -> Fallback:
+        """Add an agent to try. Agents are tried in order; first success wins."""
+        self._children.append(agent)
+        return self
+
+    def build(self) -> Any:
+        """Build the fallback chain."""
+        fb = _make_fallback_builder(self._children)
+        fb._config["name"] = self._name
+        return fb.build()
+
+    def to_ir(self) -> Any:
+        """Convert to IR."""
+        fb = _make_fallback_builder(self._children)
+        fb._config["name"] = self._name
+        return fb.to_ir()
+
+    def __floordiv__(self, other: Any) -> Fallback:
+        """Support ``Fallback("f").attempt(a) // b`` syntax."""
+        self._children.append(other)
+        return self
