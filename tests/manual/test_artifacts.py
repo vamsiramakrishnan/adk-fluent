@@ -518,6 +518,57 @@ class TestContentTransformsPost:
         assert result["content"] == "café"
 
 
+class TestContentTransformsPre:
+    """A.from_json, A.from_csv, A.from_markdown — pre-publish transforms."""
+
+    def test_from_json_serializes(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.from_json("config")
+        assert isinstance(t, STransform)
+        result = t({"config": {"x": 1, "y": [2, 3]}})
+        import json
+
+        assert json.loads(result["config"]) == {"x": 1, "y": [2, 3]}
+
+    def test_from_json_indent(self):
+        from adk_fluent import A
+
+        t = A.from_json("config", indent=2)
+        result = t({"config": {"x": 1}})
+        assert "\n" in result["config"]  # indented output has newlines
+
+    def test_from_csv_serializes(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        rows = [{"name": "Alice", "score": "90"}, {"name": "Bob", "score": "85"}]
+        t = A.from_csv("rows")
+        assert isinstance(t, STransform)
+        result = t({"rows": rows})
+        assert "Alice" in result["rows"]
+        assert "Bob" in result["rows"]
+        assert "name,score" in result["rows"] or "score,name" in result["rows"]
+
+    def test_from_markdown_converts_to_html(self):
+        from adk_fluent import A
+        from adk_fluent._transforms import STransform
+
+        t = A.from_markdown("report")
+        assert isinstance(t, STransform)
+        result = t({"report": "# Hello\n\nWorld"})
+        assert "<h1>" in result["report"] or "<h1" in result["report"] or "<pre>" in result["report"]
+        assert "Hello" in result["report"]
+
+    def test_from_json_reads_writes_keys(self):
+        from adk_fluent import A
+
+        t = A.from_json("data")
+        assert t._reads_keys == frozenset({"data"})
+        assert t._writes_keys == frozenset({"data"})
+
+
 class TestBuilderMethod:
     def test_artifacts_builder_method(self):
         from adk_fluent import Agent

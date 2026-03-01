@@ -390,6 +390,75 @@ class A:
         )
 
     @staticmethod
+    def from_json(key: str, *, indent: int | None = None) -> STransform:
+        """Serialize state[key] dict/list to JSON string.
+
+        Usage: A.from_json("config") >> A.publish("config.json", from_key="config")
+        """
+        import json as _json
+
+        return STransform(
+            lambda state: {key: _json.dumps(state[key], indent=indent, default=str)},
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"from_json_{key}",
+        )
+
+    @staticmethod
+    def from_csv(key: str) -> STransform:
+        """Serialize state[key] list[dict] to CSV string.
+
+        Usage: A.from_csv("rows") >> A.publish("results.csv", from_key="rows")
+        """
+        import csv as _csv
+        import io as _io
+
+        def _to_csv(state: dict) -> dict:
+            rows = state[key]
+            if not rows:
+                return {key: ""}
+            buf = _io.StringIO()
+            fieldnames = list(rows[0].keys())
+            writer = _csv.DictWriter(buf, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+            return {key: buf.getvalue()}
+
+        return STransform(
+            _to_csv,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"from_csv_{key}",
+        )
+
+    @staticmethod
+    def from_markdown(key: str) -> STransform:
+        """Convert Markdown state[key] to HTML string.
+
+        Uses Python's built-in markdown if available, falls back to minimal conversion.
+        Usage: A.from_markdown("report") >> A.publish("report.html", from_key="report")
+        """
+
+        def _md_to_html(state: dict) -> dict:
+            text = state[key]
+            try:
+                import markdown
+
+                return {key: markdown.markdown(text)}
+            except ImportError:
+                # Minimal fallback: wrap in <pre> if markdown not installed
+                import html
+
+                return {key: f"<pre>{html.escape(text)}</pre>"}
+
+        return STransform(
+            _md_to_html,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"from_markdown_{key}",
+        )
+
+    @staticmethod
     def when(predicate: str | Callable, transform: ATransform) -> ATransform:
         """Conditional artifact operation. Uniform with S.when(), C.when(), etc."""
         if isinstance(predicate, str):
