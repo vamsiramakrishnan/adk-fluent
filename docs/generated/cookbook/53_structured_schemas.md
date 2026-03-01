@@ -13,15 +13,14 @@ In other frameworks: LangGraph uses Pydantic with output_parser on chain calls.
 CrewAI uses output_pydantic on Task objects. adk-fluent uses the @ operator for
 inline schema binding on any agent.
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `53_structured_schemas.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -64,10 +63,8 @@ summary_agent = (
 )
 pipeline = intake_fluent >> risk_fluent >> summary_agent
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from pydantic import BaseModel
 from google.adk.agents.llm_agent import LlmAgent
@@ -110,10 +107,8 @@ risk_native = LlmAgent(
     output_key="risk_report",
 )
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
@@ -123,7 +118,6 @@ graph TD
     n2 --> n3
     n3 --> n4
 ```
-
 :::
 ::::
 

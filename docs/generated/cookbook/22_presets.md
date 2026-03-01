@@ -1,14 +1,13 @@
 # Enterprise Agent with Shared Compliance Preset
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to define and apply reusable configuration presets.
 :::
 
 _Source: `22_presets.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 from adk_fluent.presets import Preset
@@ -40,10 +39,8 @@ hr_agent = (
     Agent("hr_agent").instruct("Answer employee questions about benefits, PTO, and company policies.").use(compliance)
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no preset mechanism. Reusing config requires:
 #   base_kwargs = dict(model="gemini-2.5-flash", before_model_callback=audit_log)
@@ -53,7 +50,6 @@ hr_agent = (
 # This breaks down when you need callbacks to accumulate or
 # when different builders have different alias mappings.
 ```
-
 :::
 ::::
 

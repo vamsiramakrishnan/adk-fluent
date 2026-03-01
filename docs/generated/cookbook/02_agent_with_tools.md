@@ -4,15 +4,14 @@ Demonstrates attaching function tools to an agent.  The scenario:
 a travel planning assistant that can look up weather forecasts and
 search for flights to help users plan trips.
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to attach tools to an agent using the fluent API.
 :::
 
 _Source: `02_agent_with_tools.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -29,10 +28,8 @@ agent_fluent = (
     .build()
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -58,7 +55,6 @@ agent_native = LlmAgent(
     tools=[check_weather, search_flights],
 )
 ```
-
 :::
 ::::
 
@@ -86,6 +82,6 @@ assert isinstance(ir_t.tools[0], FunctionTool)
 assert isinstance(ir_t.tools[1], FunctionTool)
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

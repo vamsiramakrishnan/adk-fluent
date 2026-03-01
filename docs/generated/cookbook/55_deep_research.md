@@ -14,26 +14,25 @@ In other frameworks: LangGraph requires StateGraph with conditional back-edges
 for the quality loop, fan-out nodes for parallel search, and Pydantic
 integration for typed output (~60 lines of graph wiring). adk-fluent expresses
 the entire topology -- parallel search, quality loop, typed output -- in one
-expression using >>, |, \*, and @.
+expression using >>, |, *, and @.
 
 Pipeline topology:
-query_analyzer
-\>> ( web_searcher | academic_searcher | news_searcher )
-\>> synthesizer
-\>> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
-\>> report_writer @ ResearchReport
+    query_analyzer
+        >> ( web_searcher | academic_searcher | news_searcher )
+        >> synthesizer
+        >> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
+        >> report_writer @ ResearchReport
 
-Uses: >>, |, *, @, S.*, C.\*, save_as, loop_until
+Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `55_deep_research.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -125,10 +124,8 @@ report_writer = (
 # Compose the full deep research pipeline
 deep_research = query_analyzer >> parallel_search >> synthesizer >> quality_loop >> report_writer
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # A native ADK deep research pipeline requires:
 #   - 7+ LlmAgent declarations with manual output_key wiring
@@ -139,10 +136,8 @@ deep_research = query_analyzer >> parallel_search >> synthesizer >> quality_loop
 #   - Pydantic schema wiring for the final report
 # Total: ~120 lines of boilerplate
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["query_analyzer_then_web_searcher_and_academic_searcher_and_news_searcher_then_synthesizer_then_quality_reviewer_then_revision_agent_x3_then_report_writer (sequence)"]]
@@ -166,7 +161,6 @@ graph TD
     n7 --> n8
     n8 --> n11
 ```
-
 :::
 ::::
 

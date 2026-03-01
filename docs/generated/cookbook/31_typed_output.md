@@ -1,14 +1,13 @@
 # Structured Invoice Parsing: Typed Output Contracts with @ Operator
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use operator syntax for composing agents.
 :::
 
 _Source: `31_typed_output.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -50,10 +49,8 @@ detailed_parser = (
     @ PurchaseOrder
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from pydantic import BaseModel
@@ -73,10 +70,8 @@ parser_native = LlmAgent(
     output_schema=Invoice,
 )
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["ocr_agent_then_invoice_parser_then_bookkeeper (sequence)"]]
@@ -86,7 +81,6 @@ graph TD
     n2 --> n3
     n3 --> n4
 ```
-
 :::
 ::::
 

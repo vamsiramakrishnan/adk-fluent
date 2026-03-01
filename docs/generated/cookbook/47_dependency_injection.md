@@ -1,14 +1,13 @@
 # Dependency Injection: Multi-Environment Deployment (Dev/Staging/Prod)
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use dependency injection: multi-environment deployment (dev/staging/prod) with the fluent API.
 :::
 
 _Source: `47_dependency_injection.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 import inspect
 
@@ -52,10 +51,8 @@ dev_agent = (
     .inject(db_connection="dev_mock_db")
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 import functools
 
@@ -77,7 +74,6 @@ agent_native = LlmAgent(
     tools=[functools.partial(query_patient_records_native, db_connection="prod_ehr_db")],
 )
 ```
-
 :::
 ::::
 

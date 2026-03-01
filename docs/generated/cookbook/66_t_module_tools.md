@@ -4,26 +4,24 @@ Demonstrates the T module for composing, wrapping, and dynamically
 loading tools using the fluent API.
 
 Key concepts:
+  - TComposite: composable tool chain with | operator
+  - T.fn(): wrap callable as FunctionTool
+  - T.agent(): wrap agent as AgentTool
+  - T.toolset(): wrap any ADK toolset
+  - T.google_search(): built-in Google Search
+  - T.schema(): attach ToolSchema for contract checking
+  - T.search(): BM25-indexed dynamic tool loading
+  - ToolRegistry: tool catalog with search
+  - SearchToolset: two-phase discovery/execution
 
-- TComposite: composable tool chain with | operator
-- T.fn(): wrap callable as FunctionTool
-- T.agent(): wrap agent as AgentTool
-- T.toolset(): wrap any ADK toolset
-- T.google_search(): built-in Google Search
-- T.schema(): attach ToolSchema for contract checking
-- T.search(): BM25-indexed dynamic tool loading
-- ToolRegistry: tool catalog with search
-- SearchToolset: two-phase discovery/execution
-
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to attach tools to an agent using the fluent API.
 :::
 
 _Source: `66_t_module_tools.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent._tools import T, TComposite
 
@@ -199,20 +197,17 @@ assert len(ir3.tools) >= 2
 
 print("All T module assertions passed!")
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     c["coordinator"]
     d0["specialist"]
     c -.->|delegates| d0
 ```
-
 :::
 ::::
 
-:::\{seealso}
+:::{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

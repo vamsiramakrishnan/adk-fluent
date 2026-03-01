@@ -1,30 +1,27 @@
 # Research Data Pipeline: State Transforms with S Factories
 
 Pipeline topology:
-data_extractor
-\>> S.pick("clinical_findings", "lab_results")
-\>> S.rename(clinical_findings="analysis_input")
-\>> S.default(confidence_interval=0.95)
-\>> statistical_analyzer
+    data_extractor
+        >> S.pick("clinical_findings", "lab_results")
+        >> S.rename(clinical_findings="analysis_input")
+        >> S.default(confidence_interval=0.95)
+        >> statistical_analyzer
 
-```
-Research pipeline:
-    ( literature_agent | trial_agent )
-        >> S.merge(into="combined_evidence")
-        >> S.default(...)
-        >> report_writer
-        >> S.compute(word_count=...)
-```
+    Research pipeline:
+        ( literature_agent | trial_agent )
+            >> S.merge(into="combined_evidence")
+            >> S.default(...)
+            >> report_writer
+            >> S.compute(word_count=...)
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `33_state_transforms.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S, Pipeline
 from adk_fluent._transforms import StateDelta, StateReplacement
@@ -118,10 +115,8 @@ research_pipeline = (
     )
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires custom BaseAgent subclasses for any state transform.
 # In a clinical research pipeline, each data cleaning step becomes a class:
@@ -144,7 +139,6 @@ class RenameForReport(NativeBaseAgent):
 
 # Each transform = a new class. No composability.
 ```
-
 :::
 ::::
 

@@ -2,13 +2,12 @@
 
 ## Builders in this module
 
-| Builder                        | Description                                         |
-| ------------------------------ | --------------------------------------------------- |
+| Builder | Description |
+|---------|-------------|
 | [BaseAgent](builder-BaseAgent) | Base class for all agents in Agent Development Kit. |
-| [Agent](builder-Agent)         | LLM-based Agent.                                    |
+| [Agent](builder-Agent) | LLM-based Agent. |
 
 (builder-BaseAgent)=
-
 ## BaseAgent
 
 > Fluent builder for `google.adk.agents.base_agent.BaseAgent`
@@ -33,9 +32,9 @@ result = (
 BaseAgent(name: str)
 ```
 
-| Argument | Type            |
-| -------- | --------------- |
-| `name`   | {py:class}`str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
@@ -66,7 +65,7 @@ agent = BaseAgent("agent").sub_agent("...")
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -90,7 +89,7 @@ agent = BaseAgent("agent").after_agent_if(condition, my_callback_fn)
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -126,14 +125,13 @@ agent = BaseAgent("agent").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                | Type              |
-| -------------------- | ----------------- |
+| Field | Type |
+|-------|------|
 | `.sub_agents(value)` | `list[BaseAgent]` |
 
-______________________________________________________________________
+---
 
 (builder-Agent)=
-
 ## Agent
 
 > Fluent builder for `google.adk.agents.llm_agent.LlmAgent`
@@ -158,9 +156,9 @@ result = (
 Agent(name: str)
 ```
 
-| Argument | Type            |
-| -------- | --------------- |
-| `name`   | {py:class}`str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
@@ -453,7 +451,7 @@ agent = Agent("agent").tools("...")
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -477,7 +475,7 @@ agent = Agent("agent").after_agent_if(condition, my_callback_fn)
 
 Append callback(s) to `after_model_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -501,7 +499,7 @@ agent = Agent("agent").after_model_if(condition, my_callback_fn)
 
 Append callback(s) to `after_tool_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -525,7 +523,7 @@ agent = Agent("agent").after_tool_if(condition, my_callback_fn)
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -549,7 +547,7 @@ agent = Agent("agent").before_agent_if(condition, my_callback_fn)
 
 Append callback(s) to `before_model_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -573,7 +571,7 @@ agent = Agent("agent").before_model_if(condition, my_callback_fn)
 
 Append callback(s) to `before_tool_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -597,7 +595,7 @@ agent = Agent("agent").before_tool_if(condition, my_callback_fn)
 
 Append callback(s) to `on_model_error_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -621,7 +619,7 @@ agent = Agent("agent").on_model_error_if(condition, my_callback_fn)
 
 Append callback(s) to `on_tool_error_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -762,16 +760,16 @@ agent = Agent("agent").test("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                 | Type                         |
-| ------------------------------------- | ---------------------------- |
-| `.sub_agents(value)`                  | `list[BaseAgent]`            |
-| `.model(value)`                       | \`str                        |
-| `.generate_content_config(value)`     | \`GenerateContentConfig      |
-| `.disallow_transfer_to_parent(value)` | {py:class}`bool`             |
-| `.disallow_transfer_to_peers(value)`  | {py:class}`bool`             |
-| `.include_contents(value)`            | `Literal['default', 'none']` |
-| `.input_schema(value)`                | \`type\[BaseModel\]          |
-| `.output_schema(value)`               | \`type\[BaseModel\]          |
-| `.output_key(value)`                  | \`str                        |
-| `.planner(value)`                     | \`BasePlanner                |
-| `.code_executor(value)`               | \`BaseCodeExecutor           |
+| Field | Type |
+|-------|------|
+| `.sub_agents(value)` | `list[BaseAgent]` |
+| `.model(value)` | `str | BaseLlm` |
+| `.generate_content_config(value)` | `GenerateContentConfig | None` |
+| `.disallow_transfer_to_parent(value)` | {py:class}`bool` |
+| `.disallow_transfer_to_peers(value)` | {py:class}`bool` |
+| `.include_contents(value)` | `Literal['default', 'none']` |
+| `.input_schema(value)` | `type[BaseModel] | None` |
+| `.output_schema(value)` | `type[BaseModel] | None` |
+| `.output_key(value)` | `str | None` |
+| `.planner(value)` | `BasePlanner | None` |
+| `.code_executor(value)` | `BaseCodeExecutor | None` |

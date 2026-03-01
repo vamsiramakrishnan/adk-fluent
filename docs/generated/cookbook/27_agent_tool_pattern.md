@@ -1,14 +1,13 @@
 # Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to delegate tasks between agents.
 :::
 
 _Source: `27_agent_tool_pattern.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -45,10 +44,8 @@ senior_architect = (
     .agent_tool(frontend_expert)
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
@@ -72,10 +69,8 @@ coordinator_native = LlmAgent(
     tools=[AgentTool(agent=database_specialist)],
 )
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     c["senior_architect"]
@@ -84,7 +79,6 @@ graph TD
     d1["frontend_specialist"]
     c -.->|delegates| d1
 ```
-
 :::
 ::::
 
@@ -114,6 +108,6 @@ assert len(ir_t.tools) == 2
 assert all(isinstance(t, AgentTool) for t in ir_t.tools)
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::

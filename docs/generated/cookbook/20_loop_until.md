@@ -1,17 +1,16 @@
 # Resume Refinement Loop with Conditional Exit
 
 Pipeline topology:
-( resume_writer >> resume_reviewer ) * until(quality_score == "excellent")
+    ( resume_writer >> resume_reviewer ) * until(quality_score == "excellent")
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `20_loop_until.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Loop
 
@@ -55,10 +54,8 @@ cover_letter_loop = (
     .max_iterations(10)
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in conditional loop exit. You'd need to:
 #   1. Create a custom BaseAgent that evaluates a predicate
@@ -66,10 +63,8 @@ cover_letter_loop = (
 #   3. Manually wire it into the LoopAgent's sub_agents
 # This is ~30 lines of boilerplate per loop condition.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1(("resume_writer_then_resume_reviewer_x5 (loop x5)"))
@@ -78,7 +73,6 @@ graph TD
     n1 --> n2
     n1 --> n3
 ```
-
 :::
 ::::
 
@@ -105,6 +99,6 @@ checkpoint = built.sub_agents[-1]
 assert checkpoint.name == "_until_check"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Loop](../api/workflow.md#builder-Loop)
 :::

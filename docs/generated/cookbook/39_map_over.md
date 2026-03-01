@@ -1,14 +1,13 @@
 # Map Over: Batch Processing Customer Feedback with Iteration
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use map over: batch processing customer feedback with iteration with the fluent API.
 :::
 
 _Source: `39_map_over.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, map_over
 
@@ -53,10 +52,8 @@ feedback_pipeline = (
     .instruct("Write an executive summary of the sentiment analysis results.")
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires a custom BaseAgent to iterate over list items:
 from google.adk.agents.base_agent import BaseAgent as NativeBaseAgent
@@ -84,10 +81,8 @@ sentiment_analyzer = LlmAgent(
 )
 native_mapper = MapOverAgent(name="feedback_mapper", sub_agents=[sentiment_analyzer])
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["feedback_collector_then_map_over_feedback_entries_3_then_summary_writer (sequence)"]]
@@ -99,7 +94,6 @@ graph TD
     n2 --> n3
     n3 --> n5
 ```
-
 :::
 ::::
 

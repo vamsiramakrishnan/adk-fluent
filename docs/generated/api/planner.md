@@ -2,14 +2,13 @@
 
 ## Builders in this module
 
-| Builder                                      | Description                                                                                            |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [BasePlanner](builder-BasePlanner)           | Abstract base class for all planners.                                                                  |
-| [BuiltInPlanner](builder-BuiltInPlanner)     | The built-in planner that uses model's built-in thinking features.                                     |
+| Builder | Description |
+|---------|-------------|
+| [BasePlanner](builder-BasePlanner) | Abstract base class for all planners. |
+| [BuiltInPlanner](builder-BuiltInPlanner) | The built-in planner that uses model's built-in thinking features. |
 | [PlanReActPlanner](builder-PlanReActPlanner) | Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. |
 
 (builder-BasePlanner)=
-
 ## BasePlanner
 
 > Fluent builder for `google.adk.planners.base_planner.BasePlanner`
@@ -33,9 +32,9 @@ result = (
 BasePlanner(args: Any, kwargs: Any)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `args`   | `Any` |
+| Argument | Type |
+|----------|------|
+| `args` | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution
@@ -50,10 +49,9 @@ Resolve into a native ADK BasePlanner.
 baseplanner = BasePlanner("baseplanner").build("...")
 ```
 
-______________________________________________________________________
+---
 
 (builder-BuiltInPlanner)=
-
 ## BuiltInPlanner
 
 > Fluent builder for `google.adk.planners.built_in_planner.BuiltInPlanner`
@@ -77,8 +75,8 @@ result = (
 BuiltInPlanner(thinking_config: types.ThinkingConfig)
 ```
 
-| Argument          | Type                   |
-| ----------------- | ---------------------- |
+| Argument | Type |
+|----------|------|
 | `thinking_config` | `types.ThinkingConfig` |
 
 ### Control Flow & Execution
@@ -93,10 +91,9 @@ Resolve into a native ADK BuiltInPlanner.
 builtinplanner = BuiltInPlanner("builtinplanner").build("...")
 ```
 
-______________________________________________________________________
+---
 
 (builder-PlanReActPlanner)=
-
 ## PlanReActPlanner
 
 > Fluent builder for `google.adk.planners.plan_re_act_planner.PlanReActPlanner`
@@ -120,9 +117,9 @@ result = (
 PlanReActPlanner(args: Any, kwargs: Any)
 ```
 
-| Argument | Type  |
-| -------- | ----- |
-| `args`   | `Any` |
+| Argument | Type |
+|----------|------|
+| `args` | `Any` |
 | `kwargs` | `Any` |
 
 ### Control Flow & Execution

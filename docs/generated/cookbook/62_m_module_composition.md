@@ -4,24 +4,22 @@ Demonstrates the M module -- a fluent composition surface for middleware,
 consistent with P (prompts), C (context), S (state transforms).
 
 Key concepts:
+  - M.retry(), M.log(), M.cost(), M.latency(): built-in factories
+  - M.topology_log(), M.dispatch_log(): topology and dispatch observability
+  - | operator: compose middleware chains (M.retry(3) | M.log())
+  - M.scope("agent", mw): restrict middleware to specific agents
+  - M.when(condition, mw): conditional middleware (string, callable, PredicateSchema)
+  - M.before_agent(fn): single-hook shortcut for quick observability
+  - MComposite: composable chain class with to_stack() for flattening
 
-- M.retry(), M.log(), M.cost(), M.latency(): built-in factories
-- M.topology_log(), M.dispatch_log(): topology and dispatch observability
-- | operator: compose middleware chains (M.retry(3) | M.log())
-- M.scope("agent", mw): restrict middleware to specific agents
-- M.when(condition, mw): conditional middleware (string, callable, PredicateSchema)
-- M.before_agent(fn): single-hook shortcut for quick observability
-- MComposite: composable chain class with to_stack() for flattening
-
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use operator syntax for composing agents.
 :::
 
 _Source: `62_m_module_composition.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._middleware import M, MComposite
@@ -150,10 +148,8 @@ assert callable(getattr(inner_mw, "after_model", None))  # guarded wrapper
 
 print("All M module composition assertions passed!")
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["writer_then_reviewer (sequence)"]]
@@ -161,6 +157,5 @@ graph TD
     n3["reviewer"]
     n2 --> n3
 ```
-
 :::
 ::::

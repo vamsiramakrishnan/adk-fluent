@@ -14,19 +14,18 @@ node (~45 lines). adk-fluent composes parallel reviewers with | and sequences
 with >> in a single expression.
 
 Pipeline topology:
-diff_parser
-\>> ( style_checker | security_scanner | logic_reviewer )
-\>> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
+    diff_parser
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `34_full_algebra.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from pydantic import BaseModel
 
@@ -78,10 +77,8 @@ review_pipeline = (
     )
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # A native ADK code review pipeline requires:
 #   - 5 LlmAgent declarations
@@ -91,10 +88,8 @@ review_pipeline = (
 # That's ~60 lines of boilerplate. The fluent algebra below
 # expresses the same architecture in a single readable expression.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_finding_aggregator_or_backup_aggregator (sequence)"]]
@@ -114,7 +109,6 @@ graph TD
     n2 --> n3
     n3 --> n7
 ```
-
 :::
 ::::
 

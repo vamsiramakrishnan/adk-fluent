@@ -1,14 +1,13 @@
 # ML Inference Monitoring: Performance Tap for Pure Observation
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use ml inference monitoring: performance tap for pure observation with the fluent API.
 :::
 
 _Source: `35_tap_observation.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, tap
 
@@ -51,10 +50,8 @@ pipeline_method = (
     .tap(lambda s: print(f"Anomaly detection complete, state keys: {list(s.keys())}"))
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires subclassing BaseAgent for a pure observation step.
 # In an ML inference pipeline, you need to log latency and prediction
@@ -80,10 +77,8 @@ postprocessor = LlmAgent(name="postprocessor", model="gemini-2.5-flash", instruc
 
 pipeline_native = SequentialAgent(name="pipeline", sub_agents=[preprocessor, logger, postprocessor])
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["feature_engineer_then_tap_1_then_inference_engine (sequence)"]]
@@ -93,7 +88,6 @@ graph TD
     n2 --> n3
     n3 --> n4
 ```
-
 :::
 ::::
 

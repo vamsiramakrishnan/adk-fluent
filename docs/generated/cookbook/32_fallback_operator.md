@@ -1,23 +1,20 @@
 # Knowledge Retrieval: Primary API + Fallback Search with // Operator
 
 Pipeline topologies:
-//  vector_db // fulltext_search          (two-way fallback)
-//  internal_kb // web_search // expert   (three-way cascade)
+    //  vector_db // fulltext_search          (two-way fallback)
+    //  internal_kb // web_search // expert   (three-way cascade)
 
-```
-RAG pipeline:
-    query_rewriter >> ( vector_db // fulltext ) >> answer_generator
-```
+    RAG pipeline:
+        query_rewriter >> ( vector_db // fulltext ) >> answer_generator
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `32_fallback_operator.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._base import _FallbackBuilder
@@ -74,10 +71,8 @@ fallback_with_default = Agent("primary_search").model("gemini-2.5-flash").instru
     lambda s: {"result": "No results found. Please contact support."}
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in fallback mechanism. You'd need:
 #   1. Custom BaseAgent subclass with try/except logic
@@ -85,10 +80,8 @@ fallback_with_default = Agent("primary_search").model("gemini-2.5-flash").instru
 #   3. Manual error handling and re-delegation
 # This is ~30 lines per fallback chain.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1{"case_law_db_or_statute_search_and_reg_db_or_federal_register (parallel)"}
@@ -105,7 +98,6 @@ graph TD
     n5 --> n7
     n1 --> n5
 ```
-
 :::
 ::::
 

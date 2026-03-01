@@ -1,14 +1,13 @@
 # Timeout: Real-Time Trading Agent with Strict Execution Deadline
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use timeout: real-time trading agent with strict execution deadline with the fluent API.
 :::
 
 _Source: `40_timeout.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -44,10 +43,8 @@ bounded_execution = (
     >> Agent("trade_executor").model("gemini-2.5-flash").instruct("Execute the trade orders against the exchange.")
 ).timeout(60)
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no built-in timeout mechanism. You'd need to:
 #   1. Subclass BaseAgent
@@ -57,10 +54,8 @@ bounded_execution = (
 # For trading systems, a missed deadline can mean significant losses.
 # This is ~40 lines of async boilerplate per timeout.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["data_ingest_then_strategy_engine_timeout_2_then_order_formatter (sequence)"]]
@@ -72,7 +67,6 @@ graph TD
     n2 --> n3
     n3 --> n5
 ```
-
 :::
 ::::
 

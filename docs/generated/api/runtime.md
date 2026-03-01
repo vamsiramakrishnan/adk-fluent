@@ -2,14 +2,13 @@
 
 ## Builders in this module
 
-| Builder                                  | Description                                      |
-| ---------------------------------------- | ------------------------------------------------ |
-| [App](builder-App)                       | Represents an LLM-backed agentic application.    |
+| Builder | Description |
+|---------|-------------|
+| [App](builder-App) | Represents an LLM-backed agentic application. |
 | [InMemoryRunner](builder-InMemoryRunner) | An in-memory Runner for testing and development. |
-| [Runner](builder-Runner)                 | The Runner class is used to run agents.          |
+| [Runner](builder-Runner) | The Runner class is used to run agents. |
 
 (builder-App)=
-
 ## App
 
 > Fluent builder for `google.adk.apps.app.App`
@@ -34,10 +33,10 @@ result = (
 App(name: str, root_agent: BaseAgent)
 ```
 
-| Argument     | Type            |
-| ------------ | --------------- |
-| `name`       | {py:class}`str` |
-| `root_agent` | `BaseAgent`     |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
+| `root_agent` | `BaseAgent` |
 
 ### Configuration
 
@@ -67,17 +66,16 @@ app = App("app").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                              | Type                     |
-| ---------------------------------- | ------------------------ |
-| `.plugins(value)`                  | `list[BasePlugin]`       |
-| `.events_compaction_config(value)` | \`EventsCompactionConfig |
-| `.context_cache_config(value)`     | \`ContextCacheConfig     |
-| `.resumability_config(value)`      | \`ResumabilityConfig     |
+| Field | Type |
+|-------|------|
+| `.plugins(value)` | `list[BasePlugin]` |
+| `.events_compaction_config(value)` | `EventsCompactionConfig | None` |
+| `.context_cache_config(value)` | `ContextCacheConfig | None` |
+| `.resumability_config(value)` | `ResumabilityConfig | None` |
 
-______________________________________________________________________
+---
 
 (builder-InMemoryRunner)=
-
 ## InMemoryRunner
 
 > Fluent builder for `google.adk.runners.InMemoryRunner`
@@ -111,18 +109,17 @@ inmemoryrunner = InMemoryRunner("inmemoryrunner").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                 |
-| ------------------------------ | -------------------- |
-| `.agent(value)`                | \`BaseAgent          |
-| `.app_name(value)`             | \`str                |
-| `.plugins(value)`              | \`list\[BasePlugin\] |
-| `.app(value)`                  | \`App                |
-| `.plugin_close_timeout(value)` | {py:class}`float`    |
+| Field | Type |
+|-------|------|
+| `.agent(value)` | `BaseAgent | None` |
+| `.app_name(value)` | `str | None` |
+| `.plugins(value)` | `list[BasePlugin] | None` |
+| `.app(value)` | `App | None` |
+| `.plugin_close_timeout(value)` | {py:class}`float` |
 
-______________________________________________________________________
+---
 
 (builder-Runner)=
-
 ## Runner
 
 > Fluent builder for `google.adk.runners.Runner`
@@ -146,8 +143,8 @@ result = (
 Runner(session_service: BaseSessionService)
 ```
 
-| Argument          | Type                 |
-| ----------------- | -------------------- |
+| Argument | Type |
+|----------|------|
 | `session_service` | `BaseSessionService` |
 
 ### Control Flow & Execution
@@ -166,14 +163,14 @@ runner = Runner("runner").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                          | Type                    |
-| ------------------------------ | ----------------------- |
-| `.app(value)`                  | \`App                   |
-| `.app_name(value)`             | \`str                   |
-| `.agent(value)`                | \`BaseAgent             |
-| `.plugins(value)`              | \`list\[BasePlugin\]    |
-| `.artifact_service(value)`     | \`BaseArtifactService   |
-| `.memory_service(value)`       | \`BaseMemoryService     |
-| `.credential_service(value)`   | \`BaseCredentialService |
-| `.plugin_close_timeout(value)` | {py:class}`float`       |
-| `.auto_create_session(value)`  | {py:class}`bool`        |
+| Field | Type |
+|-------|------|
+| `.app(value)` | `App | None` |
+| `.app_name(value)` | `str | None` |
+| `.agent(value)` | `BaseAgent | None` |
+| `.plugins(value)` | `list[BasePlugin] | None` |
+| `.artifact_service(value)` | `BaseArtifactService | None` |
+| `.memory_service(value)` | `BaseMemoryService | None` |
+| `.credential_service(value)` | `BaseCredentialService | None` |
+| `.plugin_close_timeout(value)` | {py:class}`float` |
+| `.auto_create_session(value)` | {py:class}`bool` |

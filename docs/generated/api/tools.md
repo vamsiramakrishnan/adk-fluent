@@ -64,7 +64,7 @@ discovery -> loading -> freezing lifecycle.
 **Parameters:**
 
 - `registry` (*Any*)
-- `always_loaded` (*list\[str\] | None*) — default: `None`
+- `always_loaded` (*list[str] | None*) — default: `None`
 - `max_tools` (*int*) — default: `20`
 
 ## Contract checking

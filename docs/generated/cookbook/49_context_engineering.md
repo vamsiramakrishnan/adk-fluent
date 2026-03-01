@@ -8,15 +8,14 @@ In other frameworks: LangGraph manages context through TypedDict state slicing,
 requiring manual state key management. adk-fluent uses the C module (C.none(),
 C.from_state(), C.user_only()) for declarative context control.
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `49_context_engineering.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S, C
 from adk_fluent._routing import Route
@@ -67,10 +66,8 @@ support_pipeline = (
 
 built = support_pipeline.build()
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # In native ADK, a 4-agent support pipeline where each agent sees all
 # conversation history — including internal classifier reasoning and
@@ -80,10 +77,8 @@ built = support_pipeline.build()
 # session.events and inject state keys. That's ~40 lines of boilerplate
 # per agent.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["capture_customer_message_then_classifier_routed (sequence)"]]
@@ -103,7 +98,6 @@ graph TD
     n2 -. "customer_message" .-> n5
     n2 -. "customer_message" .-> n6
 ```
-
 :::
 ::::
 

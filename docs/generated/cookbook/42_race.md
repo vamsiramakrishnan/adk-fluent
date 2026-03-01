@@ -1,22 +1,19 @@
 # Race: Fastest-Response Search Across Multiple Providers
 
 Pipeline topology:
-race( westlaw_search, lexis_search )    -- first to finish wins
+    race( westlaw_search, lexis_search )    -- first to finish wins
 
-```
-Research pipeline:
-    query_classifier >> race( federal_search, state_search ) >> citation_formatter
-```
+    Research pipeline:
+        query_classifier >> race( federal_search, state_search ) >> citation_formatter
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `42_race.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, race
 
@@ -69,10 +66,8 @@ research_pipeline = (
     .instruct("Format the search results with proper Bluebook citations.")
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK's ParallelAgent runs all branches and merges results.
 # There is no built-in "first to finish" mechanism. You'd need to:
@@ -82,10 +77,8 @@ research_pipeline = (
 #   4. Cancel remaining tasks
 # This is ~40 lines of async boilerplate.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["query_classifier_then_race_federal_search_state_search_then_citation_formatter (sequence)"]]
@@ -99,7 +92,6 @@ graph TD
     n2 --> n3
     n3 --> n6
 ```
-
 :::
 ::::
 

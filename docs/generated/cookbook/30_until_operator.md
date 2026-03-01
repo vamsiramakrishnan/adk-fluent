@@ -6,18 +6,16 @@ applications for guided data collection.
 
 In other frameworks: LangGraph requires conditional_edges with a custom routing
 function to implement loop-until semantics (~30 lines). adk-fluent uses
+* until(predicate) for declarative conditional loops.
 
-- until(predicate) for declarative conditional loops.
-
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to create looping agent workflows.
 :::
 
 _Source: `30_until_operator.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, until
 
@@ -62,10 +60,8 @@ full_onboarding = (
 # int * agent still works — fixed retry count for simple cases
 document_retry = Agent("doc_requester").model("gemini-2.5-flash").instruct("Request missing documents.") * 3
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no conditional loop exit built in. You'd need:
 #   1. A custom BaseAgent subclass evaluating the predicate
@@ -73,10 +69,8 @@ document_retry = Agent("doc_requester").model("gemini-2.5-flash").instruct("Requ
 #   3. Wire it into LoopAgent.sub_agents manually
 # This is ~25 lines of boilerplate per loop condition.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["intake_agent_then_document_validator_then_identity_verifier_x3_then_welcome_agent (sequence)"]]
@@ -90,7 +84,6 @@ graph TD
     n2 --> n3
     n3 --> n6
 ```
-
 :::
 ::::
 

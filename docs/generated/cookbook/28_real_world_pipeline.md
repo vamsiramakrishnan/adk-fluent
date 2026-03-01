@@ -10,23 +10,22 @@ for routing (~50 lines). adk-fluent uses Route() and >> to express the
 same topology declaratively.
 
 Pipeline topology:
-asset_classifier
-\>> Route("asset_class")
-├─ "equity"       -> equity_screener
-├─ "fixed_income" -> credit_analyst >> rate_modeler
-└─ "alternative"  -> ( quant_modeler | market_sentiment ) >> risk_aggregator
-\>> ( portfolio_reviewer >> analysis_refiner ) * until(approved)
-\>> report_generator  \[gated: only if approved\]
+    asset_classifier
+        >> Route("asset_class")
+            ├─ "equity"       -> equity_screener
+            ├─ "fixed_income" -> credit_analyst >> rate_modeler
+            └─ "alternative"  -> ( quant_modeler | market_sentiment ) >> risk_aggregator
+        >> ( portfolio_reviewer >> analysis_refiner ) * until(approved)
+        >> report_generator  [gated: only if approved]
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `28_real_world_pipeline.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._routing import Route
@@ -103,20 +102,16 @@ pipeline = (
     >> report_generator
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # A real-world investment analysis pipeline in native ADK would be 100+ lines
 # of explicit agent construction, manual routing, callback wiring, and
 # custom BaseAgent subclasses for state logic. See below for the fluent
 # equivalent that reads like a business process document.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["asset_classifier_routed_then_portfolio_reviewer_then_analysis_refiner_x3_then_report_generator (sequence)"]]
@@ -149,7 +144,6 @@ graph TD
     n13 --> n16
     n2 -. "asset_class" .-> n3
 ```
-
 :::
 ::::
 
@@ -171,6 +165,6 @@ assert isinstance(built, SequentialAgent)
 assert len(built.sub_agents) >= 3
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)
 :::

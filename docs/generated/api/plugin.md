@@ -2,23 +2,22 @@
 
 ## Builders in this module
 
-| Builder                                                              | Description                                                                                 |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| [RecordingsPlugin](builder-RecordingsPlugin)                         | Plugin for recording ADK agent interactions.                                                |
-| [ReplayPlugin](builder-ReplayPlugin)                                 | Plugin for replaying ADK agent interactions from recordings.                                |
-| [BasePlugin](builder-BasePlugin)                                     | Base class for creating plugins.                                                            |
-| [BigQueryAgentAnalyticsPlugin](builder-BigQueryAgentAnalyticsPlugin) | BigQuery Agent Analytics Plugin (v2.                                                        |
-| [ContextFilterPlugin](builder-ContextFilterPlugin)                   | A plugin that filters the LLM context to reduce its size.                                   |
-| [DebugLoggingPlugin](builder-DebugLoggingPlugin)                     | A plugin that captures complete debug information to a file.                                |
-| [GlobalInstructionPlugin](builder-GlobalInstructionPlugin)           | Plugin that provides global instructions functionality at the App level.                    |
-| [LoggingPlugin](builder-LoggingPlugin)                               | A plugin that logs important information at each callback point.                            |
-| [MultimodalToolResultsPlugin](builder-MultimodalToolResultsPlugin)   | A plugin that modifies function tool responses to support returning list of parts directly. |
-| [ReflectAndRetryToolPlugin](builder-ReflectAndRetryToolPlugin)       | Provides self-healing, concurrent-safe error recovery for tool failures.                    |
-| [SaveFilesAsArtifactsPlugin](builder-SaveFilesAsArtifactsPlugin)     | A plugin that saves files embedded in user messages as artifacts.                           |
-| [AgentSimulatorPlugin](builder-AgentSimulatorPlugin)                 | ADK Plugin for AgentSimulator.                                                              |
+| Builder | Description |
+|---------|-------------|
+| [RecordingsPlugin](builder-RecordingsPlugin) | Plugin for recording ADK agent interactions. |
+| [ReplayPlugin](builder-ReplayPlugin) | Plugin for replaying ADK agent interactions from recordings. |
+| [BasePlugin](builder-BasePlugin) | Base class for creating plugins. |
+| [BigQueryAgentAnalyticsPlugin](builder-BigQueryAgentAnalyticsPlugin) | BigQuery Agent Analytics Plugin (v2. |
+| [ContextFilterPlugin](builder-ContextFilterPlugin) | A plugin that filters the LLM context to reduce its size. |
+| [DebugLoggingPlugin](builder-DebugLoggingPlugin) | A plugin that captures complete debug information to a file. |
+| [GlobalInstructionPlugin](builder-GlobalInstructionPlugin) | Plugin that provides global instructions functionality at the App level. |
+| [LoggingPlugin](builder-LoggingPlugin) | A plugin that logs important information at each callback point. |
+| [MultimodalToolResultsPlugin](builder-MultimodalToolResultsPlugin) | A plugin that modifies function tool responses to support returning list of parts directly. |
+| [ReflectAndRetryToolPlugin](builder-ReflectAndRetryToolPlugin) | Provides self-healing, concurrent-safe error recovery for tool failures. |
+| [SaveFilesAsArtifactsPlugin](builder-SaveFilesAsArtifactsPlugin) | A plugin that saves files embedded in user messages as artifacts. |
+| [AgentSimulatorPlugin](builder-AgentSimulatorPlugin) | ADK Plugin for AgentSimulator. |
 
 (builder-RecordingsPlugin)=
-
 ## RecordingsPlugin
 
 > Fluent builder for `google.adk.cli.plugins.recordings_plugin.RecordingsPlugin`
@@ -52,14 +51,13 @@ recordingsplugin = RecordingsPlugin("recordingsplugin").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type            |
-| -------------- | --------------- |
+| Field | Type |
+|-------|------|
 | `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-ReplayPlugin)=
-
 ## ReplayPlugin
 
 > Fluent builder for `google.adk.cli.plugins.replay_plugin.ReplayPlugin`
@@ -93,14 +91,13 @@ replayplugin = ReplayPlugin("replayplugin").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type            |
-| -------------- | --------------- |
+| Field | Type |
+|-------|------|
 | `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-BasePlugin)=
-
 ## BasePlugin
 
 > Fluent builder for `google.adk.plugins.base_plugin.BasePlugin`
@@ -124,9 +121,9 @@ result = (
 BasePlugin(name: str)
 ```
 
-| Argument | Type            |
-| -------- | --------------- |
-| `name`   | {py:class}`str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Control Flow & Execution
 
@@ -140,10 +137,9 @@ Resolve into a native ADK BasePlugin.
 baseplugin = BasePlugin("baseplugin").build("...")
 ```
 
-______________________________________________________________________
+---
 
 (builder-BigQueryAgentAnalyticsPlugin)=
-
 ## BigQueryAgentAnalyticsPlugin
 
 > Fluent builder for `google.adk.plugins.bigquery_agent_analytics_plugin.BigQueryAgentAnalyticsPlugin`
@@ -167,11 +163,11 @@ result = (
 BigQueryAgentAnalyticsPlugin(project_id: str, dataset_id: str, kwargs: Any)
 ```
 
-| Argument     | Type            |
-| ------------ | --------------- |
+| Argument | Type |
+|----------|------|
 | `project_id` | {py:class}`str` |
 | `dataset_id` | {py:class}`str` |
-| `kwargs`     | `Any`           |
+| `kwargs` | `Any` |
 
 ### Control Flow & Execution
 
@@ -189,16 +185,15 @@ bigqueryagentanalyticsplugin = BigQueryAgentAnalyticsPlugin("bigqueryagentanalyt
 
 These fields are available via `__getattr__` forwarding.
 
-| Field              | Type                   |
-| ------------------ | ---------------------- |
-| `.table_id(value)` | \`str                  |
-| `.config(value)`   | \`BigQueryLoggerConfig |
-| `.location(value)` | {py:class}`str`        |
+| Field | Type |
+|-------|------|
+| `.table_id(value)` | `str | None` |
+| `.config(value)` | `BigQueryLoggerConfig | None` |
+| `.location(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-ContextFilterPlugin)=
-
 ## ContextFilterPlugin
 
 > Fluent builder for `google.adk.plugins.context_filter_plugin.ContextFilterPlugin`
@@ -232,16 +227,15 @@ contextfilterplugin = ContextFilterPlugin("contextfilterplugin").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                             | Type                                                           |
-| --------------------------------- | -------------------------------------------------------------- |
-| `.num_invocations_to_keep(value)` | \`int                                                          |
-| `.custom_filter(value)`           | \`Callable\[\[list\[types.Content\]\], list\[types.Content\]\] |
-| `.name(value)`                    | {py:class}`str`                                                |
+| Field | Type |
+|-------|------|
+| `.num_invocations_to_keep(value)` | `int | None` |
+| `.custom_filter(value)` | `Callable[[list[types.Content]], list[types.Content]] | None` |
+| `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-DebugLoggingPlugin)=
-
 ## DebugLoggingPlugin
 
 > Fluent builder for `google.adk.plugins.debug_logging_plugin.DebugLoggingPlugin`
@@ -275,17 +269,16 @@ debugloggingplugin = DebugLoggingPlugin("debugloggingplugin").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                | Type             |
-| ------------------------------------ | ---------------- |
-| `.name(value)`                       | {py:class}`str`  |
-| `.output_path(value)`                | {py:class}`str`  |
-| `.include_session_state(value)`      | {py:class}`bool` |
+| Field | Type |
+|-------|------|
+| `.name(value)` | {py:class}`str` |
+| `.output_path(value)` | {py:class}`str` |
+| `.include_session_state(value)` | {py:class}`bool` |
 | `.include_system_instruction(value)` | {py:class}`bool` |
 
-______________________________________________________________________
+---
 
 (builder-GlobalInstructionPlugin)=
-
 ## GlobalInstructionPlugin
 
 > Fluent builder for `google.adk.plugins.global_instruction_plugin.GlobalInstructionPlugin`
@@ -319,15 +312,14 @@ globalinstructionplugin = GlobalInstructionPlugin("globalinstructionplugin").bui
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                        | Type            |
-| ---------------------------- | --------------- |
-| `.global_instruction(value)` | \`str           |
-| `.name(value)`               | {py:class}`str` |
+| Field | Type |
+|-------|------|
+| `.global_instruction(value)` | `str | InstructionProvider` |
+| `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-LoggingPlugin)=
-
 ## LoggingPlugin
 
 > Fluent builder for `google.adk.plugins.logging_plugin.LoggingPlugin`
@@ -361,14 +353,13 @@ loggingplugin = LoggingPlugin("loggingplugin").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type            |
-| -------------- | --------------- |
+| Field | Type |
+|-------|------|
 | `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-MultimodalToolResultsPlugin)=
-
 ## MultimodalToolResultsPlugin
 
 > Fluent builder for `google.adk.plugins.multimodal_tool_results_plugin.MultimodalToolResultsPlugin`
@@ -402,14 +393,13 @@ multimodaltoolresultsplugin = MultimodalToolResultsPlugin("multimodaltoolresults
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type            |
-| -------------- | --------------- |
+| Field | Type |
+|-------|------|
 | `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-ReflectAndRetryToolPlugin)=
-
 ## ReflectAndRetryToolPlugin
 
 > Fluent builder for `google.adk.plugins.reflect_retry_tool_plugin.ReflectAndRetryToolPlugin`
@@ -443,17 +433,16 @@ reflectandretrytoolplugin = ReflectAndRetryToolPlugin("reflectandretrytoolplugin
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                                       | Type             |
-| ------------------------------------------- | ---------------- |
-| `.name(value)`                              | {py:class}`str`  |
-| `.max_retries(value)`                       | {py:class}`int`  |
+| Field | Type |
+|-------|------|
+| `.name(value)` | {py:class}`str` |
+| `.max_retries(value)` | {py:class}`int` |
 | `.throw_exception_if_retry_exceeded(value)` | {py:class}`bool` |
-| `.tracking_scope(value)`                    | `TrackingScope`  |
+| `.tracking_scope(value)` | `TrackingScope` |
 
-______________________________________________________________________
+---
 
 (builder-SaveFilesAsArtifactsPlugin)=
-
 ## SaveFilesAsArtifactsPlugin
 
 > Fluent builder for `google.adk.plugins.save_files_as_artifacts_plugin.SaveFilesAsArtifactsPlugin`
@@ -487,14 +476,13 @@ savefilesasartifactsplugin = SaveFilesAsArtifactsPlugin("savefilesasartifactsplu
 
 These fields are available via `__getattr__` forwarding.
 
-| Field          | Type            |
-| -------------- | --------------- |
+| Field | Type |
+|-------|------|
 | `.name(value)` | {py:class}`str` |
 
-______________________________________________________________________
+---
 
 (builder-AgentSimulatorPlugin)=
-
 ## AgentSimulatorPlugin
 
 > Fluent builder for `google.adk.tools.agent_simulator.agent_simulator_plugin.AgentSimulatorPlugin`
@@ -518,8 +506,8 @@ result = (
 AgentSimulatorPlugin(simulator_engine: AgentSimulatorEngine)
 ```
 
-| Argument           | Type                   |
-| ------------------ | ---------------------- |
+| Argument | Type |
+|----------|------|
 | `simulator_engine` | `AgentSimulatorEngine` |
 
 ### Control Flow & Execution

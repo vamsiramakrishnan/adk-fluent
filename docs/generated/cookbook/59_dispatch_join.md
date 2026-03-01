@@ -6,34 +6,30 @@ race (which takes first and cancels rest), dispatch fires agents as
 background tasks and lets the pipeline continue immediately.
 
 Pipeline topology:
-writer
-\>> dispatch(email_sender, seo_optimizer)   -- fire-and-continue
-\>> formatter                                -- runs immediately
-\>> join()                                   -- barrier: wait for all
-\>> publisher
+    writer
+        >> dispatch(email_sender, seo_optimizer)   -- fire-and-continue
+        >> formatter                                -- runs immediately
+        >> join()                                   -- barrier: wait for all
+        >> publisher
 
-```
-Selective join:
-    writer >> dispatch(email, seo) >> formatter >> join("seo") >> publisher >> join("email")
-```
+    Selective join:
+        writer >> dispatch(email, seo) >> formatter >> join("seo") >> publisher >> join("email")
 
 Key concepts:
+  - dispatch(*agents): launches agents as asyncio.Tasks, pipeline continues
+  - join(): barrier that waits for dispatched tasks to complete
+  - join("name"): selective join -- wait for specific tasks only
+  - .dispatch(name="x"): method form for any builder
+  - Named tasks, callbacks, timeout, progress streaming
 
-- dispatch(\*agents): launches agents as asyncio.Tasks, pipeline continues
-- join(): barrier that waits for dispatched tasks to complete
-- join("name"): selective join -- wait for specific tasks only
-- .dispatch(name="x"): method form for any builder
-- Named tasks, callbacks, timeout, progress streaming
-
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to register lifecycle callbacks with accumulation semantics.
 :::
 
 _Source: `59_dispatch_join.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, dispatch, join
 from adk_fluent._primitive_builders import BackgroundTask, _JoinBuilder
@@ -103,10 +99,8 @@ progress_pipeline = (
     >> join()
 )
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["content_writer_then_dispatch_2_then_formatter_then_join_2_then_publisher_then_join_3 (sequence)"]]
@@ -126,7 +120,6 @@ graph TD
     n7 --> n8
     n8 --> n9
 ```
-
 :::
 ::::
 

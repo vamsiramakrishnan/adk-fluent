@@ -1,14 +1,13 @@
 # Mock Testing: Customer Onboarding Pipeline with Deterministic Mocks
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `37_mock_testing.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -47,10 +46,8 @@ account_provisioner = (
 # Full onboarding pipeline with all agents mocked for integration testing
 onboarding_pipeline = kyc_verifier >> risk_assessor >> account_provisioner
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK uses before_model_callback to bypass the LLM during tests:
 #
@@ -74,10 +71,8 @@ onboarding_pipeline = kyc_verifier >> risk_assessor >> account_provisioner
 # For a multi-step onboarding pipeline, you'd need one callback per agent,
 # making test setup verbose and fragile.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["kyc_verifier_then_risk_assessor_then_account_provisioner (sequence)"]]
@@ -87,7 +82,6 @@ graph TD
     n2 --> n3
     n3 --> n4
 ```
-
 :::
 ::::
 

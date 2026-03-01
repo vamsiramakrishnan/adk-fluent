@@ -1,14 +1,13 @@
 # Primitives Showcase: E-Commerce Order Pipeline Using All Primitives
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `43_primitives_showcase.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, S, C, tap, expect, gate
 from adk_fluent._routing import Route
@@ -167,10 +166,8 @@ stateless_processor = (
 )
 assert stateless_processor._config["_context_spec"] is not None
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["order_parser_then_tap_5 (sequence)"]]
@@ -178,6 +175,5 @@ graph TD
     n3>"tap_5 tap"]
     n2 --> n3
 ```
-
 :::
 ::::

@@ -16,27 +16,26 @@ delegation, lacking deterministic control. adk-fluent uses Route() with
 explicit .eq() branches for deterministic, testable routing.
 
 Pipeline topology:
-S.capture("customer_message")
-\>> intent_classifier \[C.none, save_as: intent\]
-\>> Route("intent")
-├─ "billing"   -> billing_specialist
-├─ "technical" -> tech_support
-├─ "account"   -> account_manager
-└─ otherwise   -> general_support
-\>> satisfaction_monitor
-\>> gate(resolved == "no") -> escalate
+    S.capture("customer_message")
+        >> intent_classifier [C.none, save_as: intent]
+        >> Route("intent")
+            ├─ "billing"   -> billing_specialist
+            ├─ "technical" -> tech_support
+            ├─ "account"   -> account_manager
+            └─ otherwise   -> general_support
+        >> satisfaction_monitor
+        >> gate(resolved == "no") -> escalate
 
 Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `56_customer_support_triage.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, S, C, gate
 from adk_fluent._routing import Route
@@ -133,10 +132,8 @@ support_system = (
     >> escalation_gate
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK triage requires:
 #   - 5+ LlmAgent declarations
@@ -146,10 +143,8 @@ support_system = (
 #   - Custom escalation gate via BaseAgent + EventActions(escalate=True)
 # Total: ~100 lines plus custom agent classes
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["capture_customer_message_then_intent_classifier_routed_then_satisfaction_monitor_then_gate_9 (sequence)"]]
@@ -177,7 +172,6 @@ graph TD
     n2 -. "customer_message" .-> n8
     n3 -. "intent" .-> n4
 ```
-
 :::
 ::::
 

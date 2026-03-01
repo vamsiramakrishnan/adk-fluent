@@ -6,15 +6,14 @@ smoke-tested inline before deployment to ensure it handles common
 queries correctly.  No LLM calls are made here -- we verify that
 the builder exposes the test API with the right signature.
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to run inline smoke tests on agents.
 :::
 
 _Source: `11_inline_testing.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -39,15 +38,12 @@ builder = (
     )
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no inline testing. You must write separate test files
 # with full Runner/Session setup for each agent test case.
 ```
-
 :::
 ::::
 

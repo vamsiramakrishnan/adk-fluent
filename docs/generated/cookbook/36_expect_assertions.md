@@ -1,14 +1,13 @@
 # Analytics Data Quality: State Contract Assertions with expect()
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to work with state keys and state transforms.
 :::
 
 _Source: `36_expect_assertions.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, expect
 
@@ -40,10 +39,8 @@ validated_pipeline = (
     .instruct("Build the final analytics report with trend analysis and recommendations.")
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK requires a custom BaseAgent to assert state contracts.
 # In a data analytics pipeline, every quality gate is a full class:
@@ -67,7 +64,6 @@ dashboard = LlmAgent(name="dashboard", model="gemini-2.5-flash", instruction="Ge
 
 pipeline_native = SequentialAgent(name="pipeline", sub_agents=[collector, checker, dashboard])
 ```
-
 :::
 ::::
 

@@ -10,15 +10,14 @@ requires graph compilation and manual event filtering. adk-fluent exposes
 .stream() directly on any pipeline, making token-by-token output a single
 async for loop.
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `09_streaming.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -45,10 +44,8 @@ pipeline_fluent = transcriber >> translator
 built_native = pipeline_native
 built_fluent = pipeline_fluent.build()
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.sequential_agent import SequentialAgent
@@ -78,10 +75,8 @@ pipeline_native = SequentialAgent(
     sub_agents=[transcriber_native, translator_native],
 )
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["transcriber_then_translator (sequence)"]]
@@ -89,7 +84,6 @@ graph TD
     n3["translator"]
     n2 --> n3
 ```
-
 :::
 ::::
 

@@ -1270,9 +1270,16 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
     lines.append("equivalent. Each recipe demonstrates a specific pattern or feature.")
     lines.append("")
 
+    lines.append(":::{note}")
+    lines.append("Looking for a specific scenario? Check out the [Recipes by Use Case](recipes-by-use-case.md) guide.")
+    lines.append(":::")
+    lines.append("")
+
     # Group by category
     categories: dict[str, list[dict]] = defaultdict(list)
     for cb in cookbook_files:
+        if cb["filename"] == "conftest.md" or cb["filename"] == "recipes-by-use-case.md":
+            continue
         cat = _categorize_cookbook(cb["filename"])
         categories[cat].append(cb)
 
@@ -1300,15 +1307,19 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
 
         # List items
         lines.append("````{grid} 1 2 2 2")
-        lines.append(":gutter: 3")
-        lines.append("")
+        lines.append("---")
+        lines.append("gutter: 3")
+        lines.append("---")
         for item in items:
             stem = Path(item["filename"]).stem
-            lines.append(f"```{{grid-item-card}} {item['title']}")
+            # Strip numeric prefix from title for cleaner display
+            display_title = re.sub(r"^\d+_\s*", "", item["title"])
+
+            lines.append(f"```{{grid-item-card}} {display_title}")
             lines.append(f":link: {stem}")
             lines.append(":link-type: doc")
             lines.append("")
-            lines.append(f"*{_learn_summary(item['title'])}*")
+            lines.append(f"{_learn_summary(item['title'])}")
             lines.append("```")
         lines.append("````")
         lines.append("")
@@ -1322,6 +1333,13 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
             lines.append(stem)
         lines.append("```")
         lines.append("")
+
+    lines.append("```{toctree}")
+    lines.append(":hidden:")
+    lines.append("")
+    lines.append("recipes-by-use-case")
+    lines.append("```")
+    lines.append("")
 
     return "\n".join(lines)
 

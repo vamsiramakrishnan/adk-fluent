@@ -15,17 +15,16 @@ but lacks explicit fan-out composition. adk-fluent uses the | operator for
 declarative parallel execution.
 
 Pipeline topology:
-( web_analyst | academic_analyst | social_analyst )
+    ( web_analyst | academic_analyst | social_analyst )
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
 
 _Source: `05_parallel_fanout.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, FanOut
 
@@ -52,10 +51,8 @@ fanout_fluent = (
     .build()
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents.parallel_agent import ParallelAgent
@@ -88,10 +85,8 @@ fanout_native = ParallelAgent(
     ],
 )
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1{"market_research (parallel)"}
@@ -102,7 +97,6 @@ graph TD
     n1 --> n3
     n1 --> n4
 ```
-
 :::
 ::::
 
@@ -116,6 +110,6 @@ assert fanout_fluent.sub_agents[1].name == "academic_analyst"
 assert fanout_fluent.sub_agents[2].name == "social_analyst"
 ```
 
-:::\{seealso}
+:::{seealso}
 API reference: [FanOut](../api/workflow.md#builder-FanOut)
 :::

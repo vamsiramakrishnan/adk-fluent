@@ -2,14 +2,13 @@
 
 ## Builders in this module
 
-| Builder                      | Description                                                               |
-| ---------------------------- | ------------------------------------------------------------------------- |
-| [Loop](builder-Loop)         | A shell agent that run its sub-agents in a loop.                          |
-| [FanOut](builder-FanOut)     | A shell agent that runs its sub-agents in parallel in an isolated manner. |
-| [Pipeline](builder-Pipeline) | A shell agent that runs its sub-agents in sequence.                       |
+| Builder | Description |
+|---------|-------------|
+| [Loop](builder-Loop) | A shell agent that run its sub-agents in a loop. |
+| [FanOut](builder-FanOut) | A shell agent that runs its sub-agents in parallel in an isolated manner. |
+| [Pipeline](builder-Pipeline) | A shell agent that runs its sub-agents in sequence. |
 
 (builder-Loop)=
-
 ## Loop
 
 > Fluent builder for `google.adk.agents.loop_agent.LoopAgent`
@@ -34,9 +33,9 @@ result = (
 Loop(name: str)
 ```
 
-| Argument | Type            |
-| -------- | --------------- |
-| `name`   | {py:class}`str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
@@ -79,7 +78,7 @@ loop = Loop("loop").to_ir("...")
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -103,7 +102,7 @@ loop = Loop("loop").after_agent_if(condition, my_callback_fn)
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -149,15 +148,14 @@ loop = Loop("loop").step("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                    | Type              |
-| ------------------------ | ----------------- |
-| `.sub_agents(value)`     | `list[BaseAgent]` |
-| `.max_iterations(value)` | \`int             |
+| Field | Type |
+|-------|------|
+| `.sub_agents(value)` | `list[BaseAgent]` |
+| `.max_iterations(value)` | `int | None` |
 
-______________________________________________________________________
+---
 
 (builder-FanOut)=
-
 ## FanOut
 
 > Fluent builder for `google.adk.agents.parallel_agent.ParallelAgent`
@@ -182,9 +180,9 @@ result = (
 FanOut(name: str)
 ```
 
-| Argument | Type            |
-| -------- | --------------- |
-| `name`   | {py:class}`str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
@@ -227,7 +225,7 @@ fanout = FanOut("fanout").to_ir("...")
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -251,7 +249,7 @@ fanout = FanOut("fanout").after_agent_if(condition, my_callback_fn)
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -297,14 +295,13 @@ fanout = FanOut("fanout").build("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                | Type              |
-| -------------------- | ----------------- |
+| Field | Type |
+|-------|------|
 | `.sub_agents(value)` | `list[BaseAgent]` |
 
-______________________________________________________________________
+---
 
 (builder-Pipeline)=
-
 ## Pipeline
 
 > Fluent builder for `google.adk.agents.sequential_agent.SequentialAgent`
@@ -329,9 +326,9 @@ result = (
 Pipeline(name: str)
 ```
 
-| Argument | Type            |
-| -------- | --------------- |
-| `name`   | {py:class}`str` |
+| Argument | Type |
+|----------|------|
+| `name` | {py:class}`str` |
 
 ### Core Configuration
 
@@ -374,7 +371,7 @@ pipeline = Pipeline("pipeline").to_ir("...")
 
 Append callback(s) to `after_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -398,7 +395,7 @@ pipeline = Pipeline("pipeline").after_agent_if(condition, my_callback_fn)
 
 Append callback(s) to `before_agent_callback`.
 
-:::\{note}
+:::{note}
 Multiple calls accumulate. Each invocation appends to the callback list rather than replacing previous callbacks.
 :::
 
@@ -444,6 +441,6 @@ pipeline = Pipeline("pipeline").step("...")
 
 These fields are available via `__getattr__` forwarding.
 
-| Field                | Type              |
-| -------------------- | ----------------- |
+| Field | Type |
+|-------|------|
 | `.sub_agents(value)` | `list[BaseAgent]` |

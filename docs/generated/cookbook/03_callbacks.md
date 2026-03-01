@@ -4,15 +4,14 @@ Demonstrates before_model and after_model callbacks.  The scenario:
 a content moderation agent where we log every request before it
 reaches the model and audit every response after generation.
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to register lifecycle callbacks with accumulation semantics.
 :::
 
 _Source: `03_callbacks.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent
 
@@ -29,10 +28,8 @@ agent_fluent = (
     .build()
 )
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -59,7 +56,6 @@ agent_native = LlmAgent(
     after_model_callback=check_response_safety,
 )
 ```
-
 :::
 ::::
 

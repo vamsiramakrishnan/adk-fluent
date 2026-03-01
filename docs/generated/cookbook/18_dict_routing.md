@@ -1,14 +1,13 @@
 # Multi-Language Support Routing with Dict >> Shorthand
 
-:::\{tip} What you'll learn
+:::{tip} What you'll learn
 How to use dict-based routing.
 :::
 
 _Source: `18_dict_routing.py`_
 
-::::\{tab-set}
-:::\{tab-item} adk-fluent
-
+::::{tab-set}
+:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 
@@ -43,20 +42,16 @@ pipeline = detector >> {
     "french": french_support,
 }
 ```
-
 :::
-:::\{tab-item} Native ADK
-
+:::{tab-item} Native ADK
 ```python
 # Native ADK has no concise syntax for intent-based routing.
 # You'd wire up a coordinator LlmAgent with sub_agents,
 # which uses LLM calls to decide routing -- slow and expensive
 # for deterministic decisions like language detection.
 ```
-
 :::
-:::\{tab-item} Architecture
-
+:::{tab-item} Architecture
 ```mermaid
 graph TD
     n1[["language_detector_routed (sequence)"]]
@@ -71,7 +66,6 @@ graph TD
     n2 --> n3
     n2 -. "language" .-> n3
 ```
-
 :::
 ::::
 
