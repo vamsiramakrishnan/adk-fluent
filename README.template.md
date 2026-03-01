@@ -1095,11 +1095,11 @@ adk web race                  # race() first-to-finish
 
 ### Start Here
 
-| #   | Example          | What You'll Learn                            |
-| --- | ---------------- | -------------------------------------------- |
-| 01  | Simple Agent     | Create and build your first agent            |
-| 08  | One-Shot Ask     | Run an agent with `.ask()` -- no boilerplate |
-| 04  | Sequential Pipeline | Chain agents with `Pipeline` or `>>`      |
+| #   | Example             | What You'll Learn                            |
+| --- | ------------------- | -------------------------------------------- |
+| 01  | Simple Agent        | Create and build your first agent            |
+| 08  | One-Shot Ask        | Run an agent with `.ask()` -- no boilerplate |
+| 04  | Sequential Pipeline | Chain agents with `Pipeline` or `>>`         |
 
 ### Core Patterns
 

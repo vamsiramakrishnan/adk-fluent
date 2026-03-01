@@ -11,16 +11,23 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![Wiki](https://img.shields.io/badge/wiki-GitHub-green)](https://github.com/vamsiramakrishnan/adk-fluent/wiki)
 [![Typed](https://img.shields.io/badge/typing-typed-blue)](https://peps.python.org/pep-0561/)
 [![ADK](https://img.shields.io/badge/google--adk-%E2%89%A51.20-orange)](https://google.github.io/adk-docs/)
+[![Coverage](https://codecov.io/gh/vamsiramakrishnan/adk-fluent/branch/master/graph/badge.svg)](https://codecov.io/gh/vamsiramakrishnan/adk-fluent)
+[![Status](https://img.shields.io/badge/status-beta-yellow)](https://github.com/vamsiramakrishnan/adk-fluent)
 
 ## Table of Contents
 
 - [Install](#install)
 - [Quick Start](#quick-start)
+- [Zero to Running](#zero-to-running)
 - [Expression Language](#expression-language)
 - [Context Engineering (C Module)](#context-engineering-c-module)
+- [Common Errors](#common-errors)
 - [Fluent API Reference](#fluent-api-reference)
+- [When to Use adk-fluent](#when-to-use-adk-fluent)
 - [Run with adk web](#run-with-adk-web)
 - [Cookbook](#cookbook)
+- [Performance](#performance)
+- [ADK Compatibility](#adk-compatibility)
 - [How It Works](#how-it-works)
 - [Features](#features)
 - [Development](#development)
@@ -65,12 +72,25 @@ print(dir(agent))  # All methods including forwarded ADK fields
 ## Quick Start
 
 ```python
+from adk_fluent import Agent
+
+# Create an agent and get a response -- no Runner, no Session, no boilerplate
+agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.")
+print(agent.ask("What is the capital of France?"))
+# => The capital of France is Paris.
+```
+
+`.ask()` handles Runner, Session, and cleanup internally. One line to define, one line to run.
+
+For ADK integration, `.build()` returns the native ADK object:
+
+```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 
-# Simple agent — model as optional second arg or via .model()
+# Simple agent -- returns a native LlmAgent
 agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
 
-# Pipeline — build with .step() or >> operator
+# Pipeline -- sequential agents
 pipeline = (
     Pipeline("research")
     .step(Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
@@ -78,7 +98,7 @@ pipeline = (
     .build()
 )
 
-# Fan-out — build with .branch() or | operator
+# Fan-out -- parallel agents
 fanout = (
     FanOut("parallel_research")
     .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web."))
@@ -86,7 +106,7 @@ fanout = (
     .build()
 )
 
-# Loop — build with .step() + .max_iterations() or * operator
+# Loop -- iterative refinement
 loop = (
     Loop("refine")
     .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft."))
@@ -168,6 +188,32 @@ graph TD
     n2 -. "intent" .-> n3
 ```
 
+## Zero to Running
+
+### Fastest: Google AI Studio (free tier)
+
+```bash
+pip install adk-fluent
+export GOOGLE_API_KEY="your-key-from-aistudio.google.com"
+python quickstart.py
+```
+
+Get a free API key at [aistudio.google.com](https://aistudio.google.com/apikey).
+
+### Production: Vertex AI
+
+```bash
+pip install adk-fluent
+export GOOGLE_CLOUD_PROJECT="your-project-id"
+export GOOGLE_CLOUD_LOCATION="us-central1"
+export GOOGLE_GENAI_USE_VERTEXAI="TRUE"
+python quickstart.py
+```
+
+Requires a GCP project with the Vertex AI API enabled. See [Vertex AI setup](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform).
+
+Both paths produce the same result -- the [`quickstart.py`](quickstart.py) file works with either configuration.
+
 ## Expression Language
 
 Nine operators compose any agent topology:
@@ -204,6 +250,46 @@ All operators are **immutable** -- sub-expressions can be safely reused:
 review = agent_a >> agent_b
 pipeline_1 = review >> agent_c  # Independent
 pipeline_2 = review >> agent_d  # Independent
+```
+
+### How Operators Map to Agent Trees
+
+```
+Expression:   a >> (b | c) * 3
+
+Agent tree:
+  SequentialAgent
+  +-- a (LlmAgent)
+  +-- LoopAgent (max_iterations=3)
+      +-- ParallelAgent
+          +-- b (LlmAgent)
+          +-- c (LlmAgent)
+```
+
+```
+Expression:   a >> fn >> Route("key").eq("x", b).eq("y", c)
+
+Agent tree:
+  SequentialAgent
+  +-- a (LlmAgent)
+  +-- fn (FunctionAgent)
+  +-- RoutingAgent
+      +-- "x" -> b (LlmAgent)
+      +-- "y" -> c (LlmAgent)
+```
+
+```
+Expression:   (a | b) >> merge_fn >> writer @ Report // fallback_writer @ Report
+
+Agent tree:
+  SequentialAgent
+  +-- ParallelAgent
+  |   +-- a (LlmAgent)
+  |   +-- b (LlmAgent)
+  +-- merge_fn (FunctionAgent)
+  +-- FallbackAgent
+      +-- writer (LlmAgent, output_schema=Report)
+      +-- fallback_writer (LlmAgent, output_schema=Report)
 ```
 
 ### Function Steps
@@ -305,6 +391,48 @@ pipeline = (
 | `C.window(n=5)`           | Sliding window of last N turns      |
 | `C.from_agents("a", "b")` | Include user + named agent outputs  |
 | `C.capture("key")`        | Snapshot user message into state    |
+
+### Common Errors
+
+**Missing required field:**
+
+```python
+Agent("x").instruct("Hi").build()
+# BuilderError: Agent 'x' is missing required field 'model'
+#   model: required (not set)
+```
+
+Fix: add `.model("gemini-2.5-flash")` before `.build()`.
+
+**Typo in method name:**
+
+```python
+Agent("x").modle("gemini-2.5-flash")
+# AttributeError: 'modle' is not a recognized field. Did you mean: 'model'?
+```
+
+The typo detector suggests the closest valid field name.
+
+**Invalid operator operand:**
+
+```python
+Agent("a") | "not an agent"
+# TypeError: unsupported operand type(s) for |: 'AgentBuilder' and 'str'
+```
+
+Operators work with `Agent`, `Pipeline`, `FanOut`, `Loop` builders, callables, and built ADK agents.
+
+**Template variable at runtime:**
+
+```python
+# {topic} resolves from session state at runtime, not at definition time
+agent = Agent("writer", "gemini-2.5-flash").instruct("Write about {topic}.")
+agent.ask("hello")  # {topic} appears literally if not in state
+```
+
+Use `.outputs("topic")` on a prior agent, or pass initial state via `.session()`.
+
+Full error reference: [Error Reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/error-reference/)
 
 ### IR, Backends, and Middleware (v4)
 
@@ -912,6 +1040,25 @@ current = call_count.get(ctx)
 call_count.increment(ctx)
 ```
 
+## When to Use adk-fluent
+
+**Use adk-fluent when you want to:**
+
+- Define agents in 1-3 lines instead of 22+
+- Compose pipelines, fan-out, loops, and routing with operators (`>>`, `|`, `*`, `//`)
+- Get IDE autocomplete and type checking during development
+- Test agents deterministically with `.mock()` and `.test()` (no API calls)
+- Iterate quickly with `.ask()` and `.stream()` (no Runner/Session boilerplate)
+
+**Use raw ADK directly when you need to:**
+
+- Subclass `BaseAgent` with custom `_run_async_impl` logic
+- Access ADK internals not exposed through the builder API
+- Build framework-level tooling that wraps ADK itself
+- Manage Runner/Session lifecycle with fine-grained control beyond `.session()`
+
+adk-fluent produces native ADK objects. You can mix fluent-built agents with hand-built agents in the same pipeline -- they're the same types.
+
 ## Run with `adk web`
 
 ### Environment Setup
@@ -955,11 +1102,35 @@ adk web race                  # race() first-to-finish
 
 ## Cookbook
 
-43 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
+66 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test: `pytest examples/cookbook/ -v`
 
-```bash
-pytest examples/cookbook/ -v
-```
+### Start Here
+
+| #   | Example             | What You'll Learn                            |
+| --- | ------------------- | -------------------------------------------- |
+| 01  | Simple Agent        | Create and build your first agent            |
+| 08  | One-Shot Ask        | Run an agent with `.ask()` -- no boilerplate |
+| 04  | Sequential Pipeline | Chain agents with `Pipeline` or `>>`         |
+
+### Core Patterns
+
+| #   | Example              | What You'll Learn                            |
+| --- | -------------------- | -------------------------------------------- |
+| 02  | Agent with Tools     | Attach tool functions                        |
+| 03  | Callbacks            | `before_model`, `after_model` hooks          |
+| 05  | Parallel FanOut      | Run agents in parallel with `FanOut` or `\|` |
+| 07  | Team Coordinator     | LLM-driven delegation with `.delegate()`     |
+| 16  | Operator Composition | `>>` `\|` `*` operators together             |
+| 17  | Route Branching      | Deterministic routing with `Route`           |
+| 33  | State Transforms     | `S.pick`, `S.rename`, `S.merge`              |
+| 37  | Mock Testing         | Test without LLM calls using `.mock()`       |
+| 31  | Typed Output         | Pydantic schemas with `@ Schema`             |
+| 11  | Inline Testing       | Smoke tests with `.test()`                   |
+
+### All Examples
+
+<details>
+<summary>Full list (66 examples)</summary>
 
 | #   | Example              | Feature                              |
 | --- | -------------------- | ------------------------------------ |
@@ -1005,6 +1176,35 @@ pytest examples/cookbook/ -v
 | 40  | Timeout              | `.timeout()` time-bound execution    |
 | 41  | Gate Approval        | `gate()` human-in-the-loop           |
 | 42  | Race                 | `race()` first-to-finish wins        |
+| 43+ | Advanced             | Middleware, DI, schemas, contracts   |
+
+</details>
+
+Browse by use case on the [docs site](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/recipes-by-use-case/).
+
+## Performance
+
+adk-fluent is a **build-time layer**. Calling `.build()` produces a native ADK object -- the same `LlmAgent`, `SequentialAgent`, or `ParallelAgent` you'd construct manually. After `.build()`, adk-fluent is not in the execution path. There is no runtime wrapper, proxy, or middleware layer injected by the builder itself.
+
+**Build overhead:** Builder construction adds microseconds of Python dict manipulation per agent. For context, a single Gemini API call takes 500ms-30s.
+
+Verify yourself:
+
+```bash
+python scripts/benchmark.py
+```
+
+## ADK Compatibility
+
+| adk-fluent | google-adk | Tested in CI | Notes           |
+| ---------- | ---------- | ------------ | --------------- |
+| 0.11.x     | 1.25.0     | Yes          | Current release |
+| 0.9.x      | 1.25.0     | Yes          |                 |
+| 0.1-0.8    | 1.20.0+    | Yes          | Initial series  |
+
+CI pins `google-adk==1.25.0` for hermetic builds. The `>=1.20.0` floor in `pyproject.toml` means newer ADK versions should work, but only the pinned version is tested.
+
+A [weekly sync workflow](.github/workflows/sync-adk.yml) scans for new ADK releases every Monday, regenerates code, runs tests, and opens a PR automatically. If you hit an incompatibility, [open an issue](https://github.com/vamsiramakrishnan/adk-fluent/issues).
 
 ## How It Works
 
@@ -1052,6 +1252,7 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 - **Context control**: `.static()` for cacheable context, `.history("none")` for stateless agents, `.inject_context()` for dynamic preambles
 - **State transforms**: `S.pick`, `S.drop`, `S.rename`, `S.default`, `S.merge`, `S.transform`, `S.compute`, `S.guard`
 - **Full IDE autocomplete** via `.pyi` type stubs
+- **PEP 561 `py.typed`** marker included -- type checkers recognize the package natively
 - **Zero-maintenance** `__getattr__` forwarding for any ADK field
 - **Callback accumulation**: multiple `.before_model()` calls append, not replace
 - **Typo detection**: misspelled methods raise `AttributeError` with suggestions
@@ -1066,10 +1267,14 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 
 ## Development
 
+**Requires:** Python 3.11+, [just](https://github.com/casey/just#installation), [uv](https://docs.astral.sh/uv/)
+
+**Container:** Open in VS Code or GitHub Codespaces with the included Dev Container for a pre-configured environment.
+
 ```bash
 # Setup
 uv venv .venv && source .venv/bin/activate
-uv pip install google-adk pytest pyright
+uv pip install -e ".[dev]"
 
 # Full pipeline: scan -> seed -> generate -> docs
 just all
@@ -1077,15 +1282,23 @@ just all
 # Run tests (780+ tests)
 just test
 
-# Type check generated stubs
-just typecheck
+# Type check hand-written code
+just typecheck-core
 
-# Generate cookbook stubs for new builders
-just cookbook-gen
-
-# Convert cookbook to adk-web agent folders
-just agents
+# Local CI (lint + check-gen + test)
+just ci
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development guide.
+
+## Latest Changes
+
+See [CHANGELOG.md](CHANGELOG.md) for the full release history. Recent highlights:
+
+- **v0.9.6** -- `T` module for tool composition, `ToolRegistry` with BM25-indexed discovery
+- **v0.9.5** -- Middleware v2 (`TraceContext`, per-agent scoping, topology hooks), `M` module, `P` module, `MiddlewareSchema`
+- **v0.9.3** -- Error reference page, recipes-by-use-case index
+- **v0.9.1** -- Copy-on-write frozen builders, `.explain()` rich output, CLI (`adk-fluent visualize`)
 
 ## Publishing
 
