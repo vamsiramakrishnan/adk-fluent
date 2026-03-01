@@ -320,96 +320,37 @@ def _add_memory_auto_save(builder):
     return builder
 
 
-async def _run_single_attempt(builder, prompt: str, *, model_override: str | None = None) -> str:
-    """Core execution: build agent, send prompt, return raw text."""
+async def run_one_shot_async(builder, prompt: str) -> str:
+    """Execute a builder as a one-shot agent and return the text response.
+
+    Supports structured output and debug tracing.
+    """
     from google.adk.runners import InMemoryRunner
     from google.genai import types
 
     debug = builder._config.get("_debug", False)
     agent_name = builder._config.get("name", "?")
 
-    original_model: str | None = None
-    if model_override:
-        # Temporarily override model for fallback
-        original_model = builder._config.get("model")
-        builder._config["model"] = model_override
-        if debug:
-            _debug_log(agent_name, f"Trying fallback model: {model_override}")
+    agent = builder.build()
+    app_name = f"_ask_{agent.name}"
+    runner = InMemoryRunner(agent=agent, app_name=app_name)
+    session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
+    content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
-    try:
-        agent = builder.build()
-        app_name = f"_ask_{agent.name}"
-        runner = InMemoryRunner(agent=agent, app_name=app_name)
-        session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
-        content = types.Content(role="user", parts=[types.Part(text=prompt)])
+    t0 = time.monotonic()
+    if debug:
+        _debug_log(agent_name, f"Sending prompt ({len(prompt)} chars)")
 
-        t0 = time.monotonic()
-        if debug:
-            _debug_log(agent_name, f"Sending prompt ({len(prompt)} chars)")
-
-        last_text = ""
-        async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if part.text:
-                        last_text = part.text
-
-        if debug:
-            elapsed = time.monotonic() - t0
-            _debug_log(agent_name, f"Response received ({len(last_text)} chars, {elapsed:.2f}s)")
-
-        return last_text
-    finally:
-        if model_override:
-            # Restore original model
-            if original_model is not None:
-                builder._config["model"] = original_model
-            else:
-                builder._config.pop("model", None)
-
-
-async def run_one_shot_async(builder, prompt: str) -> str:
-    """Execute a builder as a one-shot agent and return the text response.
-
-    Supports retry, fallback, structured output, and debug tracing.
-    """
-    debug = builder._config.get("_debug", False)
-    agent_name = builder._config.get("name", "?")
-    retry_cfg = builder._config.get("_retry")
-    fallbacks = builder._config.get("_fallbacks", [])
-
-    max_attempts = retry_cfg["max_attempts"] if retry_cfg else 1
-    backoff = retry_cfg["backoff"] if retry_cfg else 1.0
-
-    last_exc = None
     last_text = ""
-    for attempt in range(1, max_attempts + 1):
-        try:
-            if debug and attempt > 1:
-                _debug_log(agent_name, f"Retry attempt {attempt}/{max_attempts}")
-            last_text = await _run_single_attempt(builder, prompt)
-            break
-        except Exception as exc:
-            last_exc = exc
-            if debug:
-                _debug_log(agent_name, f"Attempt {attempt} failed: {exc}")
-            if attempt < max_attempts:
-                await asyncio.sleep(backoff * (2 ** (attempt - 1)))
-    else:
-        # All retries exhausted, try fallbacks
-        for fb_model in fallbacks:
-            try:
-                if debug:
-                    _debug_log(agent_name, f"Trying fallback model: {fb_model}")
-                last_text = await _run_single_attempt(builder, prompt, model_override=fb_model)
-                last_exc = None
-                break
-            except Exception as exc:
-                last_exc = exc
-                if debug:
-                    _debug_log(agent_name, f"Fallback {fb_model} failed: {exc}")
-        if last_exc is not None:
-            raise last_exc
+    async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    last_text = part.text
+
+    if debug:
+        elapsed = time.monotonic() - t0
+        _debug_log(agent_name, f"Response received ({len(last_text)} chars, {elapsed:.2f}s)")
 
     # Structured output parsing
     schema = builder._config.get("_output_schema")
