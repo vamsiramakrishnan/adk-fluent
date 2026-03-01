@@ -55,3 +55,27 @@ broken_pipeline = Agent("preprocessor") >> Agent("diagnosis_agent").consumes(Ima
 broken_issues = check_contracts(broken_pipeline.to_ir())
 assert len(broken_issues) == 3  # modality, body_region, and finding_count are all missing
 assert any("modality" in str(issue) for issue in broken_issues)
+
+# E module evaluation composes with contract-checked pipelines
+from adk_fluent import E
+from adk_fluent._eval import EvalSuite
+
+eval_suite = (
+    E.suite(imaging_pipeline)
+    .case(
+        "Analyze chest CT scan showing 3 nodules",
+        expect="nodules",
+        tools=[("dicom_parser", {"modality": "CT", "body_region": "chest"})],
+    )
+    .criteria(
+        E.trajectory()
+        | E.response_match(0.7)
+        | E.hallucination()
+        | E.safety()
+    )
+    .rubric("Must recommend follow-up imaging for nodules > 6mm")
+)
+
+assert isinstance(eval_suite, EvalSuite)
+assert len(eval_suite._cases) == 1
+assert len(eval_suite._criteria) == 4

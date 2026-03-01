@@ -94,6 +94,34 @@ graph TD
 :::
 ::::
 
+## Combining with E module evaluation
+
+Mock backends give you deterministic testing. The E module adds
+structured evaluation with criteria scoring. Together, they form
+a complete testing strategy: mocks for fast CI, evals for quality gates.
+
+```python
+from adk_fluent import E
+
+# Use E.suite() to define structured evaluations alongside mock tests.
+# While .mock() bypasses the LLM for deterministic testing,
+# E.suite() evaluates real LLM responses against quality criteria.
+
+eval_suite = (
+    E.suite(kyc_verifier)
+    .case("Verify John Doe's passport", expect="KYC: approved")
+    .case("Verify expired document", expect="KYC: rejected")
+    .criteria(E.response_match(0.8) | E.safety())
+)
+
+# Serialize for CI:
+# eval_suite.to_file("kyc_verifier.test.json")
+
+# Run live evaluation (requires LLM):
+# report = await eval_suite.run()
+# assert report.ok
+```
+
 ## Equivalence
 
 ```python
@@ -123,4 +151,11 @@ assert result_fn.content.parts[0].text == "risk_level: low"
 # Chainable: .mock() returns self, preserving all builder state
 assert account_provisioner._config["instruction"] == "Provision a new bank account for the approved customer."
 assert account_provisioner._config["output_key"] == "account_id"
+
+# E module eval suite builds correctly
+from adk_fluent._eval import EvalSuite
+
+assert isinstance(eval_suite, EvalSuite)
+assert len(eval_suite._cases) == 2
+assert len(eval_suite._criteria) == 2
 ```

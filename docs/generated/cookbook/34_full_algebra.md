@@ -54,6 +54,12 @@ class ReviewVerdict(BaseModel):
 #   |   parallel fan-out (style + security + logic run concurrently)
 #   @   typed output (aggregator returns ReviewVerdict)
 #   //  fallback (primary model -> backup model)
+#
+# The E module adds evaluation — quality-gate the pipeline output:
+#   E.suite(review_pipeline)
+#       .case("Review a SQL injection bug", expect="critical")
+#       .criteria(E.trajectory() | E.response_match() | E.safety())
+# See cookbook #11 for inline eval, #46 for eval + contracts.
 
 review_pipeline = (
     # Step 1: Parse the diff into reviewable chunks

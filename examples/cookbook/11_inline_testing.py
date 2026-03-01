@@ -45,3 +45,16 @@ assert "prompt" in sig.parameters
 assert "contains" in sig.parameters
 assert "matches" in sig.parameters
 assert "equals" in sig.parameters
+
+# E module eval integration
+assert hasattr(builder, "eval")
+assert hasattr(builder, "eval_suite")
+
+from adk_fluent._eval import EvalSuite
+
+suite = builder.eval("What is your return policy?", expect="return")
+assert isinstance(suite, EvalSuite)
+assert len(suite._cases) == 1
+
+suite2 = builder.eval_suite()
+assert isinstance(suite2, EvalSuite)
