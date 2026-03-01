@@ -10,8 +10,9 @@ treatment recommendations.
 
 _Source: `12_guards.py`_
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 
@@ -39,8 +40,10 @@ agent_native = LlmAgent(
     after_model_callback=medical_safety_screen,
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -57,6 +60,7 @@ builder = (
     .guard(medical_safety_screen)
 )
 ```
+
 :::
 ::::
 

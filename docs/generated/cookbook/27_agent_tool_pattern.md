@@ -15,8 +15,9 @@ graph TD
     c -.->|delegates| d1
 ```
 
-::::{tab-set}
-:::{tab-item} Native ADK
+::::\{tab-set}
+:::\{tab-item} Native ADK
+
 ```python
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
@@ -40,8 +41,10 @@ coordinator_native = LlmAgent(
     tools=[AgentTool(agent=database_specialist)],
 )
 ```
+
 :::
-:::{tab-item} adk-fluent
+:::\{tab-item} adk-fluent
+
 ```python
 from adk_fluent import Agent
 
@@ -78,6 +81,7 @@ senior_architect = (
     .agent_tool(frontend_expert)
 )
 ```
+
 :::
 ::::
 
@@ -107,6 +111,6 @@ assert len(ir_t.tools) == 2
 assert all(isinstance(t, AgentTool) for t in ir_t.tools)
 ```
 
-:::{seealso}
+:::\{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)
 :::
