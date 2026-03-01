@@ -1,10 +1,14 @@
 """Live Translation Pipeline -- Streaming with .stream()
 
-Demonstrates the .stream() method for token-by-token output. The
-scenario: a real-time multilingual translation service that transcribes
-audio input and streams translated text as it generates -- critical
-for live conferences, court interpreting, and broadcast captioning.
-No LLM calls are made here -- we verify builder and pipeline mechanics.
+Real-world use case: Real-time translation pipeline for live event
+transcription. Transcribes audio, translates, and formats subtitles --
+all streaming. Critical for live conferences, court interpreting, and
+broadcast captioning where latency matters.
+
+In other frameworks: LangGraph supports streaming via astream_events but
+requires graph compilation and manual event filtering. adk-fluent exposes
+.stream() directly on any pipeline, making token-by-token output a single
+async for loop.
 """
 
 # --- NATIVE ---

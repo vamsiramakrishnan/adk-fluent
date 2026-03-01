@@ -19,6 +19,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 - [Install](#install)
 - [Quick Start](#quick-start)
 - [Zero to Running](#zero-to-running)
+- [Why adk-fluent](#why-adk-fluent)
 - [Expression Language](#expression-language)
 - [Context Engineering (C Module)](#context-engineering-c-module)
 - [Common Errors](#common-errors)
@@ -213,6 +214,168 @@ python quickstart.py
 Requires a GCP project with the Vertex AI API enabled. See [Vertex AI setup](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform).
 
 Both paths produce the same result -- the [`quickstart.py`](quickstart.py) file works with either configuration.
+
+## Why adk-fluent
+
+Real patterns. Real reduction. Every adk-fluent expression compiles to the same native ADK objects you'd build by hand.
+
+### Document Processing Pipeline
+
+A contract review system that extracts terms, analyzes risks, and summarizes.
+
+**LangGraph** (~35 lines):
+
+```python
+class State(TypedDict):
+    document: str
+    terms: str
+    risks: str
+    summary: str
+
+def extract(state): ...
+def analyze(state): ...
+def summarize(state): ...
+
+graph = StateGraph(State)
+graph.add_node("extract", extract)
+graph.add_node("analyze", analyze)
+graph.add_node("summarize", summarize)
+graph.add_edge("extract", "analyze")
+graph.add_edge("analyze", "summarize")
+graph.add_edge(START, "extract")
+graph.add_edge("summarize", END)
+app = graph.compile()
+```
+
+**adk-fluent** (1 expression):
+
+```python
+pipeline = extractor >> analyst >> summarizer
+```
+
+[Full example with native ADK comparison →](examples/cookbook/04_sequential_pipeline.py)
+
+### Multi-Source Research with Quality Loop
+
+Decompose a query, search 3 sources in parallel, synthesize, and review in a loop until quality threshold is met.
+
+**LangGraph** (~60 lines):
+
+```python
+class ResearchState(TypedDict):
+    query: str
+    web_results: str
+    academic_results: str
+    synthesis: str
+    quality_score: float
+
+def analyze_query(state): ...
+def search_web(state): ...
+def search_academic(state): ...
+def search_news(state): ...
+def synthesize(state): ...
+def review_quality(state): ...
+def revise(state): ...
+def should_continue(state):
+    return "revise" if state["quality_score"] < 0.85 else "report"
+
+graph = StateGraph(ResearchState)
+graph.add_node("analyze", analyze_query)
+graph.add_node("search_web", search_web)
+graph.add_node("search_academic", search_academic)
+graph.add_node("search_news", search_news)
+graph.add_node("synthesize", synthesize)
+graph.add_node("review", review_quality)
+graph.add_node("revise", revise)
+graph.add_node("report", write_report)
+graph.add_edge(START, "analyze")
+graph.add_edge("analyze", "search_web")
+graph.add_edge("analyze", "search_academic")
+graph.add_edge("analyze", "search_news")
+graph.add_edge("search_web", "synthesize")
+graph.add_edge("search_academic", "synthesize")
+graph.add_edge("search_news", "synthesize")
+graph.add_edge("synthesize", "review")
+graph.add_conditional_edges("review", should_continue)
+graph.add_edge("report", END)
+app = graph.compile()
+```
+
+**adk-fluent** (1 expression):
+
+```python
+research = (
+    analyzer
+    >> (web | papers | news)
+    >> synthesizer
+    >> (reviewer >> reviser) * until(lambda s: s["quality_score"] >= 0.85)
+    >> writer @ ResearchReport
+)
+```
+
+[Full example with typed output and state wiring →](examples/cookbook/55_deep_research.py)
+
+### Customer Support Triage
+
+Classify customer intent and route to the right specialist.
+
+**LangGraph** (~45 lines):
+
+```python
+class SupportState(TypedDict):
+    message: str
+    intent: str
+    response: str
+
+def classify(state): ...
+def handle_billing(state): ...
+def handle_technical(state): ...
+def handle_general(state): ...
+def route_intent(state):
+    return state["intent"]
+
+graph = StateGraph(SupportState)
+graph.add_node("classify", classify)
+graph.add_node("billing", handle_billing)
+graph.add_node("technical", handle_technical)
+graph.add_node("general", handle_general)
+graph.add_edge(START, "classify")
+graph.add_conditional_edges(
+    "classify", route_intent,
+    {"billing": "billing", "technical": "technical", "general": "general"},
+)
+graph.add_edge("billing", END)
+graph.add_edge("technical", END)
+graph.add_edge("general", END)
+app = graph.compile()
+```
+
+**adk-fluent** (1 expression):
+
+```python
+support = (
+    S.capture("message")
+    >> classifier
+    >> Route("intent")
+        .eq("billing", billing)
+        .eq("technical", technical)
+        .otherwise(general)
+)
+```
+
+[Full example with escalation gates →](examples/cookbook/56_customer_support_triage.py)
+
+### The Pattern
+
+| What                | LangGraph                    | Native ADK             | adk-fluent   |
+| ------------------- | ---------------------------- | ---------------------- | ------------ |
+| Sequential pipeline | ~35 lines                    | ~20 lines              | 1 expression |
+| Parallel + loop     | ~60 lines                    | ~45 lines              | 1 expression |
+| Routing             | ~45 lines                    | ~35 lines              | 1 expression |
+| Boilerplate         | StateGraph, TypedDict, edges | Agent, Runner, Session | None         |
+| Result type         | LangGraph graph              | ADK agent              | ADK agent    |
+
+For a detailed comparison including CrewAI and native ADK code, see the [Framework Comparison](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/comparison/) guide.
 
 ## Expression Language
 

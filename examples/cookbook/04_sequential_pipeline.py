@@ -1,9 +1,14 @@
 """Document Processing Pipeline -- Sequential Pipeline
 
-Demonstrates a SequentialAgent that chains steps in order.  The
-scenario: a document processing pipeline that extracts key data
-from a contract, analyzes legal risks, then produces an executive
-summary.
+Real-world use case: Contract review system used by legal teams to process
+vendor agreements at scale. Extracts key terms, identifies legal risks,
+and produces executive summaries -- replacing hours of manual review.
+
+In other frameworks: LangGraph requires a StateGraph with TypedDict state,
+3 node functions, and 5 edge declarations (~35 lines). CrewAI needs 3 Agent
+objects with role/goal/backstory plus 3 Task objects (~30 lines). Native ADK
+needs 3 LlmAgent + 1 SequentialAgent (~20 lines). adk-fluent composes the
+same pipeline in a single expression.
 
 Pipeline topology:
     extractor >> risk_analyst >> summarizer

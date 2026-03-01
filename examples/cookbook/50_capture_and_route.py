@@ -1,5 +1,13 @@
 """Capture and Route: IT Helpdesk Triage
 
+Real-world use case: IT helpdesk ticket capture and routing system. Captures
+incoming messages into state, classifies urgency, and routes to appropriate
+support tiers.
+
+In other frameworks: LangGraph requires custom state capture via TypedDict
+updates and conditional_edges for routing. adk-fluent uses S.capture() for
+state injection and Route() for declarative branching.
+
 Pipeline topology:
     S.capture("ticket")
         >> triage [save_as: priority]

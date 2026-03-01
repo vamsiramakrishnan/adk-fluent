@@ -1,5 +1,13 @@
 """E-Commerce Order Routing with Deterministic Branching
 
+Real-world use case: E-commerce order routing system that directs orders to
+different fulfillment handlers based on order type (standard, express,
+international).
+
+In other frameworks: LangGraph uses conditional_edges with a routing function
+that returns the target node name. adk-fluent uses Route("key").eq() for
+declarative, readable branching without routing functions.
+
 Pipeline topology:
     Route("category")
         ├─ "electronics" -> electronics

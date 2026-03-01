@@ -1,10 +1,14 @@
 """Production Deployment -- to_app() with Middleware Stack
 
-Demonstrates deploying a fluent builder to production using to_app(),
-which compiles through the IR to a native ADK App with middleware.
-The scenario: an e-commerce order processing agent deployed with
-retry logic for transient failures and structured logging for
-operational visibility.
+Real-world use case: E-commerce order processing with retry middleware
+for transient failures. Production systems need resilience -- this shows
+how middleware and pipelines compose to handle validation, payment, and
+fulfillment with automatic retries and structured logging.
+
+In other frameworks: LangGraph handles retries via custom node wrappers
+that must be applied to each node individually. adk-fluent uses middleware
+composition with the M module, applying cross-cutting concerns uniformly
+across the entire pipeline.
 """
 
 # --- NATIVE ---

@@ -1,5 +1,14 @@
 """Investment Analysis Pipeline: Full Expression Language in Production
 
+Real-world use case: Investment analysis pipeline for portfolio managers.
+Classifies assets, routes to specialized analysts, and performs quality
+review before delivery. Replaces manual triage and review cycles that
+typically span multiple teams and days of back-and-forth.
+
+In other frameworks: LangGraph requires StateGraph with conditional_edges
+for routing (~50 lines). adk-fluent uses Route() and >> to express the
+same topology declaratively.
+
 Pipeline topology:
     asset_classifier
         >> Route("asset_class")

@@ -4,6 +4,17 @@ Demonstrates building a customer support triage system inspired by
 real call center architectures and Google's ADK agent samples. Uses
 state capture, context engineering, routing, and escalation gates.
 
+Real-world use case: Multi-tier IT helpdesk triage system inspired by real
+call center architectures and Google's ADK agent samples. Classifies tickets
+by intent and routes to billing, technical, account, or general support
+specialists with satisfaction monitoring and escalation.
+
+In other frameworks: LangGraph requires a StateGraph with conditional_edges
+for intent routing, custom node functions per handler, and manual state
+management (~50 lines). CrewAI handles routing implicitly through LLM
+delegation, lacking deterministic control. adk-fluent uses Route() with
+explicit .eq() branches for deterministic, testable routing.
+
 Pipeline topology:
     S.capture("customer_message")
         >> intent_classifier [C.none, save_as: intent]

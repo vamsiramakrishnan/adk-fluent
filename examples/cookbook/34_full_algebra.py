@@ -5,6 +5,14 @@ in a real-world code review system. A diff parser extracts changes,
 parallel reviewers check style, security, and logic independently,
 then findings are aggregated into a structured verdict.
 
+Real-world use case: Automated code review pipeline that runs style, security,
+and logic reviewers in parallel, then merges findings. Used by engineering teams
+as a pre-merge quality gate.
+
+In other frameworks: LangGraph models this as a fan-out subgraph with merge
+node (~45 lines). adk-fluent composes parallel reviewers with | and sequences
+with >> in a single expression.
+
 Pipeline topology:
     diff_parser
         >> ( style_checker | security_scanner | logic_reviewer )

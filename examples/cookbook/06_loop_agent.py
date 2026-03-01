@@ -5,6 +5,14 @@ iteration count.  The scenario: an essay refinement workflow where
 a critic evaluates the draft and a reviser improves it, repeating
 up to 3 times until quality standards are met.
 
+Real-world use case: Essay refinement loop where a writer drafts and a critic
+provides feedback iteratively. Used by content teams to improve quality through
+structured iteration.
+
+In other frameworks: LangGraph models loops as conditional back-edges in a
+StateGraph, requiring a routing function to decide continue vs stop (~25 lines).
+adk-fluent uses * N for fixed iterations or * until() for conditional loops.
+
 Pipeline topology:
     ( critic >> reviser ) * 3
 """

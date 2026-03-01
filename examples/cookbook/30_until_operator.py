@@ -1,4 +1,13 @@
-"""Customer Onboarding: Conditional Loops with * until(pred) Operator"""
+"""Customer Onboarding: Conditional Loops with * until(pred) Operator
+
+Real-world use case: Customer onboarding flow that collects required information
+iteratively until all fields are complete. Used by fintech and insurance
+applications for guided data collection.
+
+In other frameworks: LangGraph requires conditional_edges with a custom routing
+function to implement loop-until semantics (~30 lines). adk-fluent uses
+* until(predicate) for declarative conditional loops.
+"""
 
 # --- NATIVE ---
 # Native ADK has no conditional loop exit built in. You'd need:

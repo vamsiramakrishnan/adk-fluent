@@ -5,6 +5,15 @@ scenario: a market research system that simultaneously gathers
 intelligence from web sources, academic papers, and social media
 to produce a comprehensive competitive analysis.
 
+Real-world use case: Competitive intelligence system that simultaneously
+gathers data from web, academic, and social media sources. Used by market
+research teams to produce comprehensive analysis in minutes instead of days.
+
+In other frameworks: LangGraph requires a StateGraph with fan-out nodes and
+edge wiring (~30 lines). CrewAI supports parallel via Crew(process="parallel")
+but lacks explicit fan-out composition. adk-fluent uses the | operator for
+declarative parallel execution.
+
 Pipeline topology:
     ( web_analyst | academic_analyst | social_analyst )
 """
