@@ -8,11 +8,12 @@
 
 **Tech Stack:** Python 3.11+, google-adk `BaseToolset`, optional `rank_bm25>=0.2.2`
 
----
+______________________________________________________________________
 
 ### Task 1: Create `_tools.py` — `TComposite` class
 
 **Files:**
+
 - Create: `src/adk_fluent/_tools.py`
 - Test: `tests/manual/test_tools_t.py`
 
@@ -183,11 +184,12 @@ git add src/adk_fluent/_tools.py tests/manual/test_tools_t.py
 git commit -m "feat(T): add TComposite composable tool chain"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Add `T` factory class — `T.fn()`, `T.agent()`, `T.toolset()`, `T.google_search()`, `T.schema()`
 
 **Files:**
+
 - Modify: `src/adk_fluent/_tools.py`
 - Modify: `tests/manual/test_tools_t.py`
 
@@ -388,11 +390,12 @@ git add src/adk_fluent/_tools.py tests/manual/test_tools_t.py
 git commit -m "feat(T): add T factory class with fn/agent/toolset/google_search/schema"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Builder integration — `.tools()` accepts `TComposite`
 
 **Files:**
+
 - Modify: `src/adk_fluent/_helpers.py` (add `_add_tools` helper)
 - Modify: `seeds/seed.manual.toml` (add `.tools()` extra override)
 - Modify: `tests/manual/test_tools_t.py`
@@ -529,11 +532,12 @@ git add src/adk_fluent/_helpers.py seeds/seed.manual.toml src/adk_fluent/agent.p
 git commit -m "feat(T): builder .tools() accepts TComposite with schema extraction"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Create `_tool_registry.py` — `ToolRegistry` with BM25
 
 **Files:**
+
 - Create: `src/adk_fluent/_tool_registry.py`
 - Test: `tests/manual/test_tool_registry.py`
 
@@ -796,11 +800,12 @@ git add src/adk_fluent/_tool_registry.py tests/manual/test_tool_registry.py
 git commit -m "feat(T): add ToolRegistry with BM25 search and substring fallback"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Create `SearchToolset` — two-phase dynamic loading
 
 **Files:**
+
 - Modify: `src/adk_fluent/_tool_registry.py`
 - Create: `tests/manual/test_search_toolset.py`
 
@@ -1063,11 +1068,12 @@ git add src/adk_fluent/_tool_registry.py tests/manual/test_search_toolset.py
 git commit -m "feat(T): add SearchToolset with two-phase dynamic loading"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Add `T.search()` factory and `search_aware_after_tool` callback
 
 **Files:**
+
 - Modify: `src/adk_fluent/_tools.py` (add `T.search()`)
 - Modify: `src/adk_fluent/_tool_registry.py` (add `search_aware_after_tool`, `compress_large_result`, `_ResultVariator`)
 - Modify: `tests/manual/test_tools_t.py`
@@ -1251,11 +1257,12 @@ git add src/adk_fluent/_tools.py src/adk_fluent/_tool_registry.py tests/manual/t
 git commit -m "feat(T): add T.search(), search_aware_after_tool, result compression"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Exports — prelude, `__init__.py`, pyproject.toml
 
 **Files:**
+
 - Modify: `src/adk_fluent/prelude.py`
 - Modify: `pyproject.toml`
 - Regenerate: `src/adk_fluent/__init__.py` (via `just generate`)
@@ -1303,6 +1310,7 @@ from adk_fluent._tools import T, TComposite
 ```
 
 And add to `__all__`:
+
 ```python
     "T",
     "TComposite",
@@ -1315,6 +1323,7 @@ from adk_fluent._tool_registry import ToolRegistry, SearchToolset
 ```
 
 And to `__all__`:
+
 ```python
     "ToolRegistry",
     "SearchToolset",
@@ -1357,11 +1366,12 @@ git add src/adk_fluent/prelude.py src/adk_fluent/__init__.py pyproject.toml
 git commit -m "feat(T): export T, TComposite, ToolRegistry, SearchToolset; add search extra"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Cookbook example
 
 **Files:**
+
 - Create: `examples/cookbook/66_t_module_tools.py`
 
 **Step 1: Write the cookbook**
@@ -1571,7 +1581,7 @@ git add examples/cookbook/66_t_module_tools.py
 git commit -m "docs: add cookbook 66 — T module tool composition and dynamic loading"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Full verification
 

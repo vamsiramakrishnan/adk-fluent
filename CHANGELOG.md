@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6] - 2026-03-01
+
+### Added
+
+- **`T` module**: Fluent tool composition surface, consistent with `P`/`C`/`S`/`M`
+  - **`TComposite`**: Composable tool chain with `|` pipe operator — `T.fn(search) | T.fn(email) | T.google_search()`
+  - **Factory methods**: `T.fn()` (wrap callable/BaseTool), `T.agent()` (wrap agent as AgentTool), `T.toolset()` (wrap MCPToolset etc.), `T.google_search()` (built-in), `T.schema()` (attach ToolSchema)
+  - **`T.fn(fn, confirm=True)`**: Convenience for `require_confirmation` on FunctionTool
+  - **`T.search(registry)`**: BM25-indexed dynamic tool loading with two-phase pattern
+- **`ToolRegistry`**: BM25-indexed catalog for tool discovery — `register()`, `search()`, `get_tool()`, `from_tools()` factory
+  - Optional `rank_bm25` dependency (`pip install adk-fluent[search]`); falls back to substring matching
+- **`SearchToolset`**: Two-phase dynamic tool loading lifecycle
+  - Phase 1 (Discovery): meta-tools (`search_tools`, `load_tool`, `finalize_tools`) for BM25-powered tool discovery
+  - Phase 2 (Execution): frozen tool list for stable KV-cache performance
+  - `always_loaded` and `max_tools` configuration
+- **`search_aware_after_tool`**: Pre-built `after_tool` callback for search-aware agents — handles large result compression and error preservation
+- **`compress_large_result`**: Helper to write large tool outputs to temp files, keeping context lean
+- **Builder `.tools()` override**: Accepts `TComposite` chains, plain lists, or single tools/toolsets; extracts `_SchemaMarker` for contract checking
+- New cookbook example: T module tools (#66) — 13 sections covering full T surface
+- Updated cookbooks: #02 (agent with tools), #27 (delegate pattern), #58 (multi-tool agent) with T module alternatives
+
+### Changed
+
+- `pyproject.toml` adds `search` optional dependency group: `rank-bm25>=0.2.2`
+- Prelude exports expanded with `T`, `TComposite`, `ToolRegistry`, `SearchToolset`, `search_aware_after_tool`
+
 ## [0.9.5] - 2026-03-01
 
 ### Added
@@ -325,3 +351,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2
 [0.9.3]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.2...v0.9.3
 [0.9.5]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.4...v0.9.5
+[0.9.6]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.5...v0.9.6
