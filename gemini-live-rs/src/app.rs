@@ -37,7 +37,7 @@ use crate::agent::FunctionRegistry;
 use crate::context::{ContextManager, ContextPolicy, InjectionTrigger};
 use crate::flow::{BargeInConfig, TurnDetectionConfig};
 use crate::prompt::SystemPrompt;
-use crate::protocol::{GeminiModel, Modality, SessionConfig, ToolConfig, Voice};
+use crate::protocol::{ApiEndpoint, GeminiModel, Modality, SessionConfig, ToolConfig, Voice};
 use crate::session::{
     SessionCommand, SessionError, SessionEvent, SessionHandle, SessionPhase, Turn,
 };
@@ -258,7 +258,7 @@ impl EventRouter {
 ///   to session events for automatic state management.
 pub struct GeminiAgentBuilder {
     // Session config
-    api_key: Option<String>,
+    endpoint: Option<ApiEndpoint>,
     model: GeminiModel,
     voice: Option<Voice>,
     system_instruction: Option<String>,
@@ -291,7 +291,7 @@ impl GeminiAgentBuilder {
     /// Create a new builder with defaults.
     pub fn new() -> Self {
         Self {
-            api_key: None,
+            endpoint: None,
             model: GeminiModel::default(),
             voice: None,
             system_instruction: None,
@@ -313,9 +313,36 @@ impl GeminiAgentBuilder {
 
     // --- Session configuration ---
 
-    /// Set the API key (required).
+    /// Set the API key for Google AI (the simplest auth method).
+    ///
+    /// Mutually exclusive with [`vertex()`](Self::vertex) — whichever is
+    /// called last wins.
     pub fn api_key(mut self, key: impl Into<String>) -> Self {
-        self.api_key = Some(key.into());
+        self.endpoint = Some(ApiEndpoint::google_ai(key));
+        self
+    }
+
+    /// Configure Vertex AI endpoint with project, location, and OAuth2 token.
+    ///
+    /// ```rust,no_run
+    /// # use gemini_live_rs::app::GeminiAgentBuilder;
+    /// let agent = GeminiAgentBuilder::new()
+    ///     .vertex("my-project-123", "us-central1", "ya29.ACCESS_TOKEN")
+    ///     .build();
+    /// ```
+    pub fn vertex(
+        mut self,
+        project: impl Into<String>,
+        location: impl Into<String>,
+        access_token: impl Into<String>,
+    ) -> Self {
+        self.endpoint = Some(ApiEndpoint::vertex(project, location, access_token));
+        self
+    }
+
+    /// Set an explicit [`ApiEndpoint`] for full control (custom hosts, etc.).
+    pub fn endpoint(mut self, endpoint: ApiEndpoint) -> Self {
+        self.endpoint = Some(endpoint);
         self
     }
 
@@ -647,12 +674,12 @@ impl GeminiAgentBuilder {
     ///
     /// Returns a fully-connected [`GeminiAgent`].
     pub async fn build(self) -> Result<GeminiAgent, SessionError> {
-        let api_key = self
-            .api_key
-            .ok_or(SessionError::SetupFailed("API key is required".into()))?;
+        let endpoint = self.endpoint.ok_or(SessionError::SetupFailed(
+            "API endpoint is required — call .api_key() or .vertex()".into(),
+        ))?;
 
         // Assemble SessionConfig
-        let mut session_config = SessionConfig::new(api_key);
+        let mut session_config = SessionConfig::from_endpoint(endpoint);
         session_config = session_config.model(self.model);
 
         if let Some(voice) = self.voice {
@@ -816,7 +843,7 @@ mod tests {
     #[test]
     fn builder_defaults() {
         let builder = GeminiAgentBuilder::new();
-        assert!(builder.api_key.is_none());
+        assert!(builder.endpoint.is_none());
         assert_eq!(builder.model, GeminiModel::default());
         assert!(builder.voice.is_none());
         assert!(builder.auto_tool_dispatch);
@@ -834,7 +861,7 @@ mod tests {
             .input_transcription()
             .output_transcription();
 
-        assert_eq!(builder.api_key, Some("test-key".to_string()));
+        assert!(builder.endpoint.is_some());
         assert_eq!(builder.model, GeminiModel::Gemini2_5FlashNativeAudio);
         assert_eq!(builder.voice, Some(Voice::Kore));
         assert_eq!(builder.system_instruction, Some("Be helpful.".to_string()));
@@ -871,11 +898,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn build_fails_without_api_key() {
+    async fn build_fails_without_endpoint() {
         let result = GeminiAgent::builder().build().await;
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert!(err.to_string().contains("API key"));
+        assert!(err.to_string().contains("API endpoint is required"));
     }
 
     #[test]
@@ -946,9 +973,34 @@ mod tests {
     }
 
     #[test]
+    fn builder_vertex_config() {
+        let builder = GeminiAgent::builder()
+            .vertex("my-project", "us-central1", "ya29.token")
+            .model(GeminiModel::Gemini2_5FlashNativeAudio)
+            .voice(Voice::Kore);
+
+        assert!(matches!(builder.endpoint, Some(ApiEndpoint::VertexAI(_))));
+    }
+
+    #[test]
+    fn builder_endpoint_last_wins() {
+        // vertex() overrides previous api_key()
+        let builder = GeminiAgent::builder()
+            .api_key("key")
+            .vertex("proj", "us-central1", "token");
+        assert!(matches!(builder.endpoint, Some(ApiEndpoint::VertexAI(_))));
+
+        // api_key() overrides previous vertex()
+        let builder2 = GeminiAgent::builder()
+            .vertex("proj", "us-central1", "token")
+            .api_key("key");
+        assert!(matches!(builder2.endpoint, Some(ApiEndpoint::GoogleAI { .. })));
+    }
+
+    #[test]
     fn builder_all_engineering_layers() {
         use crate::context::{ContextPolicy, MemoryStrategy};
-        use crate::prompt::{PromptStrategy, SystemPrompt};
+        use crate::prompt::PromptStrategy;
         use crate::state::{StatePolicy, StateTransform};
 
         let builder = GeminiAgent::builder()

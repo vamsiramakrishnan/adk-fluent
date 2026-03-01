@@ -108,3 +108,7 @@ path = "examples/call_lifecycle.rs"
 [[example]]
 name = "engineering_layers"
 path = "examples/engineering_layers.rs"
+
+[[example]]
+name = "vertex_agent"
+path = "examples/vertex_agent.rs"

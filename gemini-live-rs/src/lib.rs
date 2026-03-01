@@ -56,8 +56,9 @@ pub mod state;
 /// Convenient re-exports for common usage.
 pub mod prelude {
     pub use crate::protocol::{
-        AudioFormat, Blob, Content, FunctionCall, FunctionDeclaration, FunctionResponse,
-        GeminiModel, Modality, Part, SessionConfig, ToolConfig, ToolDeclaration, Voice,
+        ApiEndpoint, AudioFormat, Blob, Content, FunctionCall, FunctionDeclaration,
+        FunctionResponse, GeminiModel, Modality, Part, SessionConfig, ToolConfig,
+        ToolDeclaration, VertexConfig, Voice,
     };
     pub use crate::transport::{connect, TransportConfig};
     pub use crate::session::{

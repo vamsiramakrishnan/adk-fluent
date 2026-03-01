@@ -425,10 +425,94 @@ pub struct GenerationConfig {
     pub max_output_tokens: Option<u32>,
 }
 
+/// API endpoint selector — Google AI (direct) or Vertex AI.
+///
+/// # Google AI (default)
+///
+/// Uses an API key passed as a query parameter. The WebSocket URL is
+/// `wss://generativelanguage.googleapis.com/ws/...?key={api_key}` and model
+/// URIs are `models/{model}`.
+///
+/// # Vertex AI
+///
+/// Uses a regional endpoint with OAuth2 bearer-token authentication. The
+/// WebSocket URL is
+/// `wss://{location}-aiplatform.googleapis.com/ws/google.cloud.aiplatform.v1.LlmBidiService/BidiGenerateContent`
+/// and model URIs are
+/// `projects/{project}/locations/{location}/publishers/google/models/{model}`.
+///
+/// ```
+/// # use gemini_live_rs::protocol::types::{ApiEndpoint, VertexConfig};
+/// let google_ai = ApiEndpoint::google_ai("MY_API_KEY");
+/// let vertex = ApiEndpoint::vertex("my-project", "us-central1", "ACCESS_TOKEN");
+/// ```
+#[derive(Debug, Clone)]
+pub enum ApiEndpoint {
+    /// Google AI Studio — API-key authentication.
+    GoogleAI { api_key: String },
+    /// Vertex AI — project + location + OAuth2 bearer token.
+    VertexAI(VertexConfig),
+}
+
+/// Configuration for connecting through Vertex AI.
+#[derive(Debug, Clone)]
+pub struct VertexConfig {
+    /// Google Cloud project ID (e.g. `"my-project-123"`).
+    pub project: String,
+    /// Regional location (e.g. `"us-central1"`).
+    pub location: String,
+    /// OAuth2 access token obtained from `gcloud auth print-access-token`
+    /// or a service-account token exchange.
+    pub access_token: String,
+    /// Optional API host override. Defaults to
+    /// `{location}-aiplatform.googleapis.com`.
+    pub api_host: Option<String>,
+}
+
+impl ApiEndpoint {
+    /// Shorthand for Google AI endpoint.
+    pub fn google_ai(api_key: impl Into<String>) -> Self {
+        Self::GoogleAI {
+            api_key: api_key.into(),
+        }
+    }
+
+    /// Shorthand for Vertex AI endpoint.
+    pub fn vertex(
+        project: impl Into<String>,
+        location: impl Into<String>,
+        access_token: impl Into<String>,
+    ) -> Self {
+        Self::VertexAI(VertexConfig {
+            project: project.into(),
+            location: location.into(),
+            access_token: access_token.into(),
+            api_host: None,
+        })
+    }
+
+    /// Vertex AI endpoint with a custom API host (for private endpoints,
+    /// VPC-SC, or testing).
+    pub fn vertex_with_host(
+        project: impl Into<String>,
+        location: impl Into<String>,
+        access_token: impl Into<String>,
+        api_host: impl Into<String>,
+    ) -> Self {
+        Self::VertexAI(VertexConfig {
+            project: project.into(),
+            location: location.into(),
+            access_token: access_token.into(),
+            api_host: Some(api_host.into()),
+        })
+    }
+}
+
 /// Complete session configuration — the builder entrypoint.
 #[derive(Debug, Clone)]
 pub struct SessionConfig {
-    pub api_key: String,
+    /// API endpoint and credentials (Google AI key or Vertex AI project/token).
+    pub endpoint: ApiEndpoint,
     pub model: GeminiModel,
     pub generation_config: GenerationConfig,
     pub system_instruction: Option<Content>,
@@ -447,10 +531,36 @@ pub struct SessionConfig {
 }
 
 impl SessionConfig {
-    /// Create a new session configuration with the given API key.
+    /// Create a new session configuration with a Google AI API key.
+    ///
+    /// This is the simplest way to get started. For Vertex AI, use
+    /// [`SessionConfig::from_vertex`] or [`SessionConfig::from_endpoint`].
     pub fn new(api_key: impl Into<String>) -> Self {
+        Self::from_endpoint(ApiEndpoint::google_ai(api_key))
+    }
+
+    /// Create a session configuration for Vertex AI.
+    ///
+    /// ```rust
+    /// # use gemini_live_rs::protocol::types::SessionConfig;
+    /// let config = SessionConfig::from_vertex(
+    ///     "my-project-123",
+    ///     "us-central1",
+    ///     "ya29.ACCESS_TOKEN",
+    /// );
+    /// ```
+    pub fn from_vertex(
+        project: impl Into<String>,
+        location: impl Into<String>,
+        access_token: impl Into<String>,
+    ) -> Self {
+        Self::from_endpoint(ApiEndpoint::vertex(project, location, access_token))
+    }
+
+    /// Create a session configuration from an explicit [`ApiEndpoint`].
+    pub fn from_endpoint(endpoint: ApiEndpoint) -> Self {
         Self {
-            api_key: api_key.into(),
+            endpoint,
             model: GeminiModel::default(),
             generation_config: GenerationConfig {
                 response_modalities: Some(vec![Modality::Audio]),
@@ -601,16 +711,68 @@ impl SessionConfig {
     }
 
     /// Build the WebSocket URL for connecting to the Gemini Live API.
+    ///
+    /// - **Google AI**: `wss://generativelanguage.googleapis.com/ws/...?key={key}`
+    /// - **Vertex AI**: `wss://{location}-aiplatform.googleapis.com/ws/google.cloud.aiplatform.v1.LlmBidiService/BidiGenerateContent`
     pub fn ws_url(&self) -> String {
-        format!(
-            "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key={}",
-            self.api_key
-        )
+        match &self.endpoint {
+            ApiEndpoint::GoogleAI { api_key } => format!(
+                "wss://generativelanguage.googleapis.com/ws/\
+                 google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent\
+                 ?key={}",
+                api_key
+            ),
+            ApiEndpoint::VertexAI(v) => {
+                let host = v
+                    .api_host
+                    .as_deref()
+                    .unwrap_or("");
+                let host = if host.is_empty() {
+                    format!("{}-aiplatform.googleapis.com", v.location)
+                } else {
+                    host.to_string()
+                };
+                format!(
+                    "wss://{host}/ws/\
+                     google.cloud.aiplatform.v1.LlmBidiService/BidiGenerateContent"
+                )
+            }
+        }
     }
 
     /// Build the model URI used in the setup message.
+    ///
+    /// - **Google AI**: `models/{model}`
+    /// - **Vertex AI**: `projects/{project}/locations/{location}/publishers/google/models/{model}`
     pub fn model_uri(&self) -> String {
-        self.model.to_string()
+        match &self.endpoint {
+            ApiEndpoint::GoogleAI { .. } => self.model.to_string(),
+            ApiEndpoint::VertexAI(v) => {
+                // Strip the `models/` prefix from the Display representation
+                let model_name = self.model.to_string();
+                let bare = model_name.strip_prefix("models/").unwrap_or(&model_name);
+                format!(
+                    "projects/{}/locations/{}/publishers/google/models/{}",
+                    v.project, v.location, bare
+                )
+            }
+        }
+    }
+
+    /// Returns the bearer token when using Vertex AI, `None` for Google AI.
+    ///
+    /// Used by the transport layer to set the `Authorization` HTTP header
+    /// during the WebSocket upgrade handshake.
+    pub fn bearer_token(&self) -> Option<&str> {
+        match &self.endpoint {
+            ApiEndpoint::GoogleAI { .. } => None,
+            ApiEndpoint::VertexAI(v) => Some(&v.access_token),
+        }
+    }
+
+    /// Returns `true` if this config targets Vertex AI.
+    pub fn is_vertex(&self) -> bool {
+        matches!(self.endpoint, ApiEndpoint::VertexAI(_))
     }
 }
 
@@ -626,7 +788,7 @@ mod tests {
             .system_instruction("Be helpful.")
             .temperature(0.7);
 
-        assert_eq!(config.api_key, "test-key");
+        assert!(matches!(config.endpoint, ApiEndpoint::GoogleAI { ref api_key } if api_key == "test-key"));
         assert_eq!(config.model, GeminiModel::Gemini2_0FlashLive);
         assert!(config.system_instruction.is_some());
         assert_eq!(config.generation_config.temperature, Some(0.7));
@@ -701,5 +863,73 @@ mod tests {
         let url = config.ws_url();
         assert!(url.starts_with("wss://"));
         assert!(url.contains("key=my-secret-key"));
+    }
+
+    // --- Vertex AI tests ---
+
+    #[test]
+    fn vertex_session_config() {
+        let config = SessionConfig::from_vertex("my-project", "us-central1", "token123")
+            .model(GeminiModel::Gemini2_5FlashNativeAudio);
+        assert!(config.is_vertex());
+        assert!(config.bearer_token() == Some("token123"));
+    }
+
+    #[test]
+    fn vertex_ws_url() {
+        let config = SessionConfig::from_vertex("proj", "us-central1", "tok");
+        let url = config.ws_url();
+        assert_eq!(
+            url,
+            "wss://us-central1-aiplatform.googleapis.com/ws/\
+             google.cloud.aiplatform.v1.LlmBidiService/BidiGenerateContent"
+        );
+        // No API key in URL
+        assert!(!url.contains("key="));
+    }
+
+    #[test]
+    fn vertex_ws_url_custom_host() {
+        let config = SessionConfig::from_endpoint(ApiEndpoint::vertex_with_host(
+            "proj",
+            "europe-west4",
+            "tok",
+            "custom-endpoint.example.com",
+        ));
+        let url = config.ws_url();
+        assert!(url.starts_with("wss://custom-endpoint.example.com/ws/"));
+    }
+
+    #[test]
+    fn vertex_model_uri() {
+        let config = SessionConfig::from_vertex("my-proj", "us-central1", "tok")
+            .model(GeminiModel::Gemini2_0FlashLive);
+        assert_eq!(
+            config.model_uri(),
+            "projects/my-proj/locations/us-central1/publishers/google/models/gemini-2.0-flash-live-001"
+        );
+    }
+
+    #[test]
+    fn vertex_model_uri_custom_model() {
+        let config = SessionConfig::from_vertex("proj", "asia-southeast1", "tok")
+            .model(GeminiModel::Custom("gemini-live-2.5-flash-native-audio".to_string()));
+        assert_eq!(
+            config.model_uri(),
+            "projects/proj/locations/asia-southeast1/publishers/google/models/gemini-live-2.5-flash-native-audio"
+        );
+    }
+
+    #[test]
+    fn google_ai_is_not_vertex() {
+        let config = SessionConfig::new("key");
+        assert!(!config.is_vertex());
+        assert!(config.bearer_token().is_none());
+    }
+
+    #[test]
+    fn google_ai_model_uri_unchanged() {
+        let config = SessionConfig::new("key").model(GeminiModel::Gemini2_0FlashLive);
+        assert_eq!(config.model_uri(), "models/gemini-2.0-flash-live-001");
     }
 }

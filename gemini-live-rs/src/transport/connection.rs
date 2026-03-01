@@ -6,6 +6,7 @@ use std::time::Duration;
 use base64::Engine;
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::{broadcast, mpsc, watch};
+use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::protocol::messages::*;
@@ -157,10 +158,25 @@ async fn establish_connection(
 > {
     let url = config.ws_url();
 
+    // Build request — attach Authorization header for Vertex AI
+    let mut request = url
+        .into_client_request()
+        .map_err(|e| SessionError::WebSocket(e.to_string()))?;
+    if let Some(token) = config.bearer_token() {
+        request.headers_mut().insert(
+            "Authorization",
+            format!("Bearer {token}")
+                .parse()
+                .map_err(|e: tokio_tungstenite::tungstenite::http::header::InvalidHeaderValue| {
+                    SessionError::SetupFailed(format!("invalid bearer token header: {e}"))
+                })?,
+        );
+    }
+
     // Connect WebSocket
     let (ws_stream, _response) = tokio::time::timeout(
         Duration::from_secs(transport_config.connect_timeout_secs),
-        tokio_tungstenite::connect_async(&url),
+        tokio_tungstenite::connect_async(request),
     )
     .await
     .map_err(|_| SessionError::Timeout)?
