@@ -92,3 +92,15 @@ required-features = ["agent-adk"]
 name = "a2a_dispatch"
 path = "examples/a2a_dispatch.rs"
 required-features = ["agent-a2a"]
+
+[[example]]
+name = "sugar_conversation"
+path = "examples/sugar_conversation.rs"
+
+[[example]]
+name = "sugar_agent"
+path = "examples/sugar_agent.rs"
+
+[[example]]
+name = "call_lifecycle"
+path = "examples/call_lifecycle.rs"

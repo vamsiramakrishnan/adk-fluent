@@ -8,8 +8,10 @@ use serde::{Deserialize, Serialize};
 
 /// Gemini models that support the Multimodal Live API.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum GeminiModel {
     #[serde(rename = "models/gemini-2.0-flash-live-001")]
+    #[default]
     Gemini2_0FlashLive,
     #[serde(rename = "models/gemini-2.5-flash-preview-native-audio")]
     Gemini2_5FlashNativeAudio,
@@ -18,11 +20,6 @@ pub enum GeminiModel {
     Custom(String),
 }
 
-impl Default for GeminiModel {
-    fn default() -> Self {
-        Self::Gemini2_0FlashLive
-    }
-}
 
 impl std::fmt::Display for GeminiModel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -38,22 +35,19 @@ impl std::fmt::Display for GeminiModel {
 
 /// Available voice presets for Gemini Live audio output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Voice {
     Aoede,
     Charon,
     Fenrir,
     Kore,
+    #[default]
     Puck,
     /// Custom voice name for forward compatibility.
     #[serde(untagged)]
     Custom(String),
 }
 
-impl Default for Voice {
-    fn default() -> Self {
-        Self::Puck
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Audio format
@@ -62,18 +56,15 @@ impl Default for Voice {
 /// Audio encoding formats supported by the Gemini Live API.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum AudioFormat {
     /// Raw 16-bit little-endian PCM.
+    #[default]
     Pcm16,
     /// Opus-encoded audio.
     Opus,
 }
 
-impl Default for AudioFormat {
-    fn default() -> Self {
-        Self::Pcm16
-    }
-}
 
 impl AudioFormat {
     /// MIME type string for this format.
@@ -97,6 +88,7 @@ pub enum Modality {
 /// Voice activity detection sensitivity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum Sensitivity {
     /// Disabled — no automatic detection.
     Disabled,
@@ -107,20 +99,18 @@ pub enum Sensitivity {
     /// High sensitivity — catches everything, more false positives.
     SensitivityHigh,
     /// Automatic (server default).
+    #[default]
     Automatic,
 }
 
-impl Default for Sensitivity {
-    fn default() -> Self {
-        Self::Automatic
-    }
-}
 
 /// How the model should decide when to execute tool calls.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum FunctionCallingMode {
     /// Model decides when to call functions.
+    #[default]
     Auto,
     /// Model always calls one of the declared functions.
     Any,
@@ -128,27 +118,19 @@ pub enum FunctionCallingMode {
     None,
 }
 
-impl Default for FunctionCallingMode {
-    fn default() -> Self {
-        Self::Auto
-    }
-}
 
 /// Whether tool calls block model output or run concurrently.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum FunctionCallingBehavior {
     /// Model waits for tool response before continuing.
+    #[default]
     Blocking,
     /// Model continues generating while tool executes.
     NonBlocking,
 }
 
-impl Default for FunctionCallingBehavior {
-    fn default() -> Self {
-        Self::Blocking
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Content primitives
@@ -356,6 +338,75 @@ pub struct SessionResumptionConfig {
     pub handle: Option<String>,
 }
 
+/// Context window compression configuration for long sessions.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ContextWindowCompressionConfig {
+    /// Sliding window mechanism for context compression.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sliding_window: Option<SlidingWindow>,
+}
+
+/// Sliding window configuration for context compression.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SlidingWindow {
+    /// Target number of tokens for the sliding window.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_tokens: Option<u32>,
+}
+
+/// Proactivity configuration — controls whether the model can initiate responses.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProactivityConfig {
+    /// Whether proactive audio responses are enabled.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub proactive_audio: Option<bool>,
+}
+
+/// Usage metadata returned by the server on messages.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageMetadata {
+    /// Number of tokens in the prompt.
+    #[serde(default)]
+    pub prompt_token_count: Option<u32>,
+    /// Number of tokens in the response.
+    #[serde(default)]
+    pub response_token_count: Option<u32>,
+    /// Total token count.
+    #[serde(default)]
+    pub total_token_count: Option<u32>,
+}
+
+/// Grounding metadata for server content with search results.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroundingMetadata {
+    /// Grounding chunks with source information.
+    #[serde(default)]
+    pub grounding_chunks: Vec<serde_json::Value>,
+    /// Grounding supports linking content to sources.
+    #[serde(default)]
+    pub grounding_supports: Vec<serde_json::Value>,
+    /// Web search queries used for grounding.
+    #[serde(default)]
+    pub web_search_queries: Vec<String>,
+    /// Search entry point for rendering.
+    #[serde(default)]
+    pub search_entry_point: Option<serde_json::Value>,
+}
+
+/// URL context metadata for content sourced from URLs.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UrlContextMetadata {
+    /// URL-related metadata entries.
+    #[serde(default)]
+    pub url_metadata: Vec<serde_json::Value>,
+}
+
 /// Generation config sent in the setup message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -387,6 +438,8 @@ pub struct SessionConfig {
     pub output_audio_transcription: Option<OutputAudioTranscription>,
     pub realtime_input_config: Option<RealtimeInputConfig>,
     pub session_resumption: Option<SessionResumptionConfig>,
+    pub context_window_compression: Option<ContextWindowCompressionConfig>,
+    pub proactivity: Option<ProactivityConfig>,
     pub input_audio_format: AudioFormat,
     pub output_audio_format: AudioFormat,
     pub input_sample_rate: u32,
@@ -414,6 +467,8 @@ impl SessionConfig {
             output_audio_transcription: None,
             realtime_input_config: None,
             session_resumption: None,
+            context_window_compression: None,
+            proactivity: None,
             input_audio_format: AudioFormat::Pcm16,
             output_audio_format: AudioFormat::Pcm16,
             input_sample_rate: 16000,
@@ -510,6 +565,24 @@ impl SessionConfig {
     /// Enable session resumption.
     pub fn session_resumption(mut self, handle: Option<String>) -> Self {
         self.session_resumption = Some(SessionResumptionConfig { handle });
+        self
+    }
+
+    /// Configure context window compression for long sessions.
+    pub fn context_window_compression(mut self, target_tokens: u32) -> Self {
+        self.context_window_compression = Some(ContextWindowCompressionConfig {
+            sliding_window: Some(SlidingWindow {
+                target_tokens: Some(target_tokens),
+            }),
+        });
+        self
+    }
+
+    /// Enable proactive model responses.
+    pub fn proactive_audio(mut self, enabled: bool) -> Self {
+        self.proactivity = Some(ProactivityConfig {
+            proactive_audio: Some(enabled),
+        });
         self
     }
 

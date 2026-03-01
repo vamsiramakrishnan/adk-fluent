@@ -137,7 +137,9 @@ impl VoiceActivityDetector {
 
         let is_above_stop = energy_above_noise > self.config.stop_threshold_db;
 
-        let event = match self.state {
+        
+
+        match self.state {
             VadState::Silence => {
                 // Update noise floor during confirmed silence
                 self.update_noise_floor(energy_db);
@@ -205,9 +207,7 @@ impl VoiceActivityDetector {
                     }
                 }
             }
-        };
-
-        event
+        }
     }
 
     /// Update the adaptive noise floor using EWMA.

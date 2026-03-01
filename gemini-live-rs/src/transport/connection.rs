@@ -172,7 +172,7 @@ async fn establish_connection(
     let _ = state.transition_to(SessionPhase::SetupSent);
     let setup_json = config.to_setup_json();
     ws_write
-        .send(Message::Text(setup_json.into()))
+        .send(Message::Text(setup_json))
         .await
         .map_err(|e| SessionError::WebSocket(e.to_string()))?;
 
@@ -272,14 +272,18 @@ async fn run_session(
                         let encoded = base64::engine::general_purpose::STANDARD.encode(&data);
                         let msg = RealtimeInputMessage {
                             realtime_input: RealtimeInputPayload {
-                                media_chunks: vec![MediaChunk {
+                                media_chunks: Vec::new(),
+                                audio: Some(Blob {
                                     mime_type: mime_type.clone(),
                                     data: encoded,
-                                }],
+                                }),
+                                video: None,
+                                audio_stream_end: None,
+                                text: None,
                             },
                         };
                         if let Ok(json) = serde_json::to_string(&msg) {
-                            if ws_write.send(Message::Text(json.into())).await.is_err() {
+                            if ws_write.send(Message::Text(json)).await.is_err() {
                                 return DisconnectReason::Error("Failed to send audio".to_string());
                             }
                         }
@@ -295,7 +299,7 @@ async fn run_session(
                             },
                         };
                         if let Ok(json) = serde_json::to_string(&msg) {
-                            if ws_write.send(Message::Text(json.into())).await.is_err() {
+                            if ws_write.send(Message::Text(json)).await.is_err() {
                                 return DisconnectReason::Error("Failed to send text".to_string());
                             }
                         }
@@ -307,7 +311,7 @@ async fn run_session(
                             },
                         };
                         if let Ok(json) = serde_json::to_string(&msg) {
-                            if ws_write.send(Message::Text(json.into())).await.is_err() {
+                            if ws_write.send(Message::Text(json)).await.is_err() {
                                 return DisconnectReason::Error("Failed to send tool response".to_string());
                             }
                         }
@@ -320,7 +324,7 @@ async fn run_session(
                             },
                         };
                         if let Ok(json) = serde_json::to_string(&msg) {
-                            let _ = ws_write.send(Message::Text(json.into())).await;
+                            let _ = ws_write.send(Message::Text(json)).await;
                         }
                     }
                     Some(SessionCommand::ActivityEnd) => {
@@ -331,7 +335,7 @@ async fn run_session(
                             },
                         };
                         if let Ok(json) = serde_json::to_string(&msg) {
-                            let _ = ws_write.send(Message::Text(json.into())).await;
+                            let _ = ws_write.send(Message::Text(json)).await;
                         }
                     }
                     Some(SessionCommand::Disconnect) => {
@@ -452,6 +456,14 @@ fn handle_server_message(
 
         ServerMessage::SetupComplete(_) => {
             // Should not happen after initial setup, but handle gracefully
+        }
+
+        ServerMessage::SessionResumptionUpdate(sru) => {
+            let payload = sru.session_resumption_update;
+            if let Some(ref handle) = payload.new_handle {
+                *state.resume_handle.lock() = Some(handle.clone());
+                let _ = event_tx.send(SessionEvent::SessionResumeHandle(handle.clone()));
+            }
         }
 
         ServerMessage::Unknown(_) => {

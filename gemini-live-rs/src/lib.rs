@@ -45,6 +45,10 @@ pub mod session;
 pub mod agent;
 pub mod flow;
 pub mod telemetry;
+pub mod app;
+pub mod pipeline;
+pub mod call;
+pub mod client;
 
 /// Convenient re-exports for common usage.
 pub mod prelude {
@@ -62,4 +66,10 @@ pub mod prelude {
 
     #[cfg(feature = "vad")]
     pub use crate::vad::{VadConfig, VadEvent, VoiceActivityDetector};
+
+    // Sugar layer
+    pub use crate::app::{GeminiAgent, GeminiAgentBuilder, PipelineConfig};
+    pub use crate::pipeline::{AudioPipeline, AudioSink, AudioSource};
+    pub use crate::call::{CallMetrics, CallPhase, CallSession};
+    pub use crate::client::{AudioNegotiation, ClientEvent, ServerEvent};
 }

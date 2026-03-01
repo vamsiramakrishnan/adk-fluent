@@ -35,6 +35,10 @@ pub struct SetupPayload {
     pub realtime_input_config: Option<RealtimeInputConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub session_resumption: Option<SessionResumptionConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context_window_compression: Option<ContextWindowCompressionConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub proactivity: Option<ProactivityConfig>,
 }
 
 impl SessionConfig {
@@ -51,6 +55,8 @@ impl SessionConfig {
                 output_audio_transcription: self.output_audio_transcription.clone(),
                 realtime_input_config: self.realtime_input_config.clone(),
                 session_resumption: self.session_resumption.clone(),
+                context_window_compression: self.context_window_compression.clone(),
+                proactivity: self.proactivity.clone(),
             },
         }
     }
@@ -73,10 +79,24 @@ pub struct RealtimeInputMessage {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RealtimeInputPayload {
+    /// Deprecated: use `audio` instead. Kept for backward compatibility.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub media_chunks: Vec<MediaChunk>,
+    /// Audio input blob (preferred over media_chunks).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio: Option<Blob>,
+    /// Video input blob.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video: Option<Blob>,
+    /// Signal end of audio stream.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_stream_end: Option<bool>,
+    /// Realtime text input (streamed inline, distinct from clientContent).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
 }
 
-/// A single chunk of media data (audio).
+/// A single chunk of media data (audio). Deprecated — use Blob in `audio` field.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaChunk {
@@ -184,11 +204,17 @@ pub struct ServerContentPayload {
     #[serde(default)]
     pub turn_complete: Option<bool>,
     #[serde(default)]
+    pub generation_complete: Option<bool>,
+    #[serde(default)]
     pub interrupted: Option<bool>,
     #[serde(default)]
     pub input_transcription: Option<TranscriptionPayload>,
     #[serde(default)]
     pub output_transcription: Option<TranscriptionPayload>,
+    #[serde(default)]
+    pub grounding_metadata: Option<GroundingMetadata>,
+    #[serde(default)]
+    pub url_context_metadata: Option<UrlContextMetadata>,
 }
 
 /// Transcription text from server.
@@ -241,6 +267,34 @@ pub struct GoAwayPayload {
     pub time_left: Option<String>,
 }
 
+/// Session resumption update from server (sent during active session).
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionResumptionUpdateMessage {
+    pub session_resumption_update: SessionResumptionUpdatePayload,
+}
+
+/// Payload for session resumption update.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionResumptionUpdatePayload {
+    /// New opaque handle for session resumption.
+    #[serde(default)]
+    pub new_handle: Option<String>,
+    /// Whether the session is currently resumable.
+    #[serde(default)]
+    pub resumable: Option<bool>,
+}
+
+/// Server message wrapper — includes optional usage metadata alongside the message.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServerMessageWrapper {
+    /// Token usage metadata (present on most server messages).
+    #[serde(default)]
+    pub usage_metadata: Option<UsageMetadata>,
+}
+
 /// Unified server message enum — parsed from incoming WebSocket text frames.
 ///
 /// We use manual dispatch instead of `#[serde(untagged)]` for performance:
@@ -253,6 +307,7 @@ pub enum ServerMessage {
     ToolCall(ToolCallMessage),
     ToolCallCancellation(ToolCallCancellationMessage),
     GoAway(GoAwayMessage),
+    SessionResumptionUpdate(SessionResumptionUpdateMessage),
     Unknown(serde_json::Value),
 }
 
@@ -274,6 +329,9 @@ impl ServerMessage {
             serde_json::from_str::<ServerContentMessage>(text).map(ServerMessage::ServerContent)
         } else if text.contains("\"goAway\"") {
             serde_json::from_str::<GoAwayMessage>(text).map(ServerMessage::GoAway)
+        } else if text.contains("\"sessionResumptionUpdate\"") {
+            serde_json::from_str::<SessionResumptionUpdateMessage>(text)
+                .map(ServerMessage::SessionResumptionUpdate)
         } else {
             serde_json::from_str::<serde_json::Value>(text).map(ServerMessage::Unknown)
         }
@@ -423,19 +481,59 @@ mod tests {
     }
 
     #[test]
-    fn realtime_input_serialization() {
+    fn realtime_input_serialization_audio() {
+        let msg = RealtimeInputMessage {
+            realtime_input: RealtimeInputPayload {
+                media_chunks: Vec::new(),
+                audio: Some(Blob {
+                    mime_type: "audio/pcm".to_string(),
+                    data: "AQIDBA==".to_string(),
+                }),
+                video: None,
+                audio_stream_end: None,
+                text: None,
+            },
+        };
+        let json = serde_json::to_string(&msg).unwrap();
+        assert!(json.contains("\"realtimeInput\""));
+        assert!(json.contains("\"audio\""));
+        assert!(json.contains("\"mimeType\""));
+        // Deprecated field should not appear when empty
+        assert!(!json.contains("\"mediaChunks\""));
+    }
+
+    #[test]
+    fn realtime_input_serialization_legacy() {
         let msg = RealtimeInputMessage {
             realtime_input: RealtimeInputPayload {
                 media_chunks: vec![MediaChunk {
                     mime_type: "audio/pcm".to_string(),
                     data: "AQIDBA==".to_string(),
                 }],
+                audio: None,
+                video: None,
+                audio_stream_end: None,
+                text: None,
             },
         };
         let json = serde_json::to_string(&msg).unwrap();
-        assert!(json.contains("\"realtimeInput\""));
         assert!(json.contains("\"mediaChunks\""));
-        assert!(json.contains("\"mimeType\""));
+    }
+
+    #[test]
+    fn parse_session_resumption_update() {
+        let json = r#"{"sessionResumptionUpdate": {"newHandle": "handle-xyz", "resumable": true}}"#;
+        let msg = ServerMessage::parse(json).unwrap();
+        match msg {
+            ServerMessage::SessionResumptionUpdate(sru) => {
+                assert_eq!(
+                    sru.session_resumption_update.new_handle,
+                    Some("handle-xyz".to_string())
+                );
+                assert_eq!(sru.session_resumption_update.resumable, Some(true));
+            }
+            _ => panic!("Expected SessionResumptionUpdate"),
+        }
     }
 
     #[test]
