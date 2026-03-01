@@ -51,14 +51,24 @@ __all__ = ["S", "STransform", "StateDelta", "StateReplacement"]
 _SCOPE_PREFIXES = ("app:", "user:", "temp:")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class StateDelta:
     """Additive: merge these keys into state. Existing keys not mentioned are untouched."""
 
     updates: dict[str, Any]
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, StateDelta):
+            return self.updates == other.updates
+        if isinstance(other, dict):
+            return self.updates == other
+        return NotImplemented
 
-@dataclass(frozen=True, slots=True)
+    def __hash__(self) -> int:
+        return id(self)
+
+
+@dataclass(frozen=True, slots=True, eq=False)
 class StateReplacement:
     """Replace session-scoped keys. ONLY unprefixed keys are affected.
 
@@ -68,6 +78,16 @@ class StateReplacement:
     """
 
     new_state: dict[str, Any]
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, StateReplacement):
+            return self.new_state == other.new_state
+        if isinstance(other, dict):
+            return self.new_state == other
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return id(self)
 
 
 # ======================================================================

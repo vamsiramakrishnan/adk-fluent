@@ -143,9 +143,9 @@ class SearchToolset(BaseToolset):
 **Design principles baked in**:
 
 1. **KV-cache aware**: Tool list frozen after finalization — identical on every subsequent turn
-2. **Append-only**: Once loaded, tools never disappear
-3. **File-as-context**: `compress_large_result()` helper writes large outputs to temp files
-4. **Error preservation**: Failed tool calls kept in context, not silently retried
+1. **Append-only**: Once loaded, tools never disappear
+1. **File-as-context**: `compress_large_result()` helper writes large outputs to temp files
+1. **Error preservation**: Failed tool calls kept in context, not silently retried
 
 ### 4. Integration with Existing Systems
 
@@ -185,21 +185,21 @@ agent = (
 `search_aware_after_tool` handles:
 
 1. **Large result compression**: Results > threshold written to temp file, path kept in context
-2. **Error preservation**: Failed calls annotated but NOT silently retried
-3. **Result variation**: Subtle formatting variation per call index to prevent repetitive patterns
+1. **Error preservation**: Failed calls annotated but NOT silently retried
+1. **Result variation**: Subtle formatting variation per call index to prevent repetitive patterns
 
 These are opt-in — not baked into `SearchToolset`.
 
 #### Backward Compatibility
 
-| Existing API | Interaction with T |
-|---|---|
-| `.tool(fn)` | Unchanged. Appends individual tools. |
-| `.tool(fn, require_confirmation=True)` | Unchanged. `T.fn(fn, confirm=True)` is the T equivalent. |
-| `.delegate(agent)` | Unchanged. `T.agent(agent)` is the T equivalent. |
-| `.tools([list])` | Extended to also accept `TComposite`. |
-| `.tool_schema(MySchema)` | Unchanged. `T.schema(MySchema)` pipes the same value. |
-| `.after_tool(fn)` | Unchanged. `search_aware_after_tool` is just a pre-built function. |
+| Existing API                           | Interaction with T                                                 |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| `.tool(fn)`                            | Unchanged. Appends individual tools.                               |
+| `.tool(fn, require_confirmation=True)` | Unchanged. `T.fn(fn, confirm=True)` is the T equivalent.           |
+| `.delegate(agent)`                     | Unchanged. `T.agent(agent)` is the T equivalent.                   |
+| `.tools([list])`                       | Extended to also accept `TComposite`.                              |
+| `.tool_schema(MySchema)`               | Unchanged. `T.schema(MySchema)` pipes the same value.              |
+| `.after_tool(fn)`                      | Unchanged. `search_aware_after_tool` is just a pre-built function. |
 
 #### Builder Integration
 
@@ -219,24 +219,24 @@ def tools(self, t):
 
 ### 5. Files Modified
 
-| File | Changes |
-|---|---|
-| `src/adk_fluent/_tools.py` | **NEW** — `T`, `TComposite` |
+| File                               | Changes                                                                                                          |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `src/adk_fluent/_tools.py`         | **NEW** — `T`, `TComposite`                                                                                      |
 | `src/adk_fluent/_tool_registry.py` | **NEW** — `ToolRegistry`, `SearchToolset`, `search_aware_after_tool`, `compress_large_result`, `_ResultVariator` |
-| `src/adk_fluent/_helpers.py` | `_add_tools()` helper for `TComposite` support |
-| `seeds/seed.manual.toml` | `.tools()` extra updated for `TComposite` |
-| `src/adk_fluent/prelude.py` | Export `T`, `TComposite`, `ToolRegistry`, `SearchToolset`, `search_aware_after_tool` |
-| `src/adk_fluent/__init__.py` | Regenerated |
-| `pyproject.toml` | `[project.optional-dependencies] search = ["rank-bm25>=0.2.2"]` |
+| `src/adk_fluent/_helpers.py`       | `_add_tools()` helper for `TComposite` support                                                                   |
+| `seeds/seed.manual.toml`           | `.tools()` extra updated for `TComposite`                                                                        |
+| `src/adk_fluent/prelude.py`        | Export `T`, `TComposite`, `ToolRegistry`, `SearchToolset`, `search_aware_after_tool`                             |
+| `src/adk_fluent/__init__.py`       | Regenerated                                                                                                      |
+| `pyproject.toml`                   | `[project.optional-dependencies] search = ["rank-bm25>=0.2.2"]`                                                  |
 
 ### 6. Testing Strategy
 
 1. Unit: `TComposite` composition (`|` operator, `to_tools()` normalization)
-2. Unit: `T.fn()`, `T.agent()`, `T.toolset()`, `T.google_search()` factories
-3. Unit: `ToolRegistry` registration and search (with and without BM25)
-4. Unit: `SearchToolset.get_tools()` two-phase behavior (mock state)
-5. Unit: Meta-tools state transitions (search → load → finalize)
-6. Unit: `search_aware_after_tool` compression, error preservation, variation
-7. Integration: `Agent("x").tools(T.search(registry))` builds successfully
-8. Integration: `T.fn(fn) | T.google_search()` produces correct ADK types
-9. Cookbook: End-to-end dynamic loading example
+1. Unit: `T.fn()`, `T.agent()`, `T.toolset()`, `T.google_search()` factories
+1. Unit: `ToolRegistry` registration and search (with and without BM25)
+1. Unit: `SearchToolset.get_tools()` two-phase behavior (mock state)
+1. Unit: Meta-tools state transitions (search → load → finalize)
+1. Unit: `search_aware_after_tool` compression, error preservation, variation
+1. Integration: `Agent("x").tools(T.search(registry))` builds successfully
+1. Integration: `T.fn(fn) | T.google_search()` produces correct ADK types
+1. Cookbook: End-to-end dynamic loading example

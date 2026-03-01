@@ -38,6 +38,9 @@ yaml = [
 rich = [
     "rich>=13.0",
 ]
+search = [
+    "rank-bm25>=0.2.2",
+]
 examples = [
     "python-dotenv>=1.0",
 ]

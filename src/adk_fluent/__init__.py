@@ -340,6 +340,7 @@ __all__ = [
     "StateKey",
     "Artifact",
     "_add_tool",
+    "_add_tools",
     "_agent_to_ir",
     "_pipeline_to_ir",
     "_fanout_to_ir",
@@ -434,7 +435,13 @@ __all__ = [
     "CapturedBy",
     "Scoped",
     "check_state_schema_contracts",
+    "ToolRegistry",
+    "SearchToolset",
+    "search_aware_after_tool",
+    "compress_large_result",
     "ToolSchema",
+    "T",
+    "TComposite",
     "S",
     "STransform",
     "StateDelta",
@@ -561,6 +568,7 @@ from ._helpers import run_map_async
 from ._helpers import StateKey
 from ._helpers import Artifact
 from ._helpers import _add_tool
+from ._helpers import _add_tools
 from ._helpers import _agent_to_ir
 from ._helpers import _pipeline_to_ir
 from ._helpers import _fanout_to_ir
@@ -674,7 +682,13 @@ from ._state_schema import StateSchema
 from ._state_schema import CapturedBy
 from ._state_schema import Scoped
 from ._state_schema import check_state_schema_contracts
+from ._tool_registry import ToolRegistry
+from ._tool_registry import SearchToolset
+from ._tool_registry import search_aware_after_tool
+from ._tool_registry import compress_large_result
 from ._tool_schema import ToolSchema
+from ._tools import T
+from ._tools import TComposite
 from ._transforms import S
 from ._transforms import STransform
 from ._transforms import StateDelta
@@ -715,6 +729,8 @@ from .prelude import C
 from .prelude import P
 from .prelude import S
 from .prelude import M
+from .prelude import T
+from .prelude import TComposite
 from .prelude import Route
 from .prelude import until
 from .prelude import tap
@@ -740,6 +756,9 @@ from .prelude import get_execution_mode
 from .prelude import SessionStrategy
 from .prelude import ExecutionMode
 from .prelude import MiddlewareSchema
+from .prelude import ToolRegistry
+from .prelude import SearchToolset
+from .prelude import search_aware_after_tool
 from .presets import Preset
 from .source import Source
 from .source import Inbox

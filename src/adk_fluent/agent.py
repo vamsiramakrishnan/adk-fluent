@@ -19,8 +19,6 @@ if TYPE_CHECKING:
     from google.adk.code_executors.base_code_executor import BaseCodeExecutor
     from google.adk.models.base_llm import BaseLlm
     from google.adk.planners.base_planner import BasePlanner
-    from google.adk.tools.base_tool import BaseTool
-    from google.adk.tools.base_toolset import BaseToolset
     from google.genai.types import Content, File, GenerateContentConfig, Part
     from pydantic import BaseModel
 
@@ -338,12 +336,6 @@ class Agent(BuilderBase):
         self._config["model"] = value
         return self
 
-    def tools(self, value: list[Callable[..., Any] | BaseTool | BaseToolset]) -> Self:
-        """Set the ``tools`` field."""
-        self = self._maybe_fork_for_mutation()
-        self._config["tools"] = value
-        return self
-
     def generate_content_config(self, value: GenerateContentConfig | None) -> Self:
         """Set the ``generate_content_config`` field."""
         self = self._maybe_fork_for_mutation()
@@ -427,6 +419,12 @@ class Agent(BuilderBase):
         from adk_fluent._helpers import _add_tool
 
         return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
+
+    def tools(self, value: Any) -> Self:
+        """Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset."""
+        from adk_fluent._helpers import _add_tools
+
+        return _add_tools(self, value)
 
     def guardrail(self, fn: Callable[..., Any]) -> Self:
         """Attach a guardrail function as both before_model and after_model callback."""

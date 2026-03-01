@@ -67,3 +67,17 @@ assert len(senior_architect._lists["tools"]) == 2
 built = senior_architect.build()
 assert len(built.tools) == 2
 assert all(isinstance(t, AgentTool) for t in built.tools)
+
+# --- T Module equivalent ---
+# T.agent() wraps agents as AgentTool, composable with | operator
+from adk_fluent._tools import T
+
+coordinator_t = (
+    Agent("senior_architect_t")
+    .model("gemini-2.5-flash")
+    .instruct("Coordinate the team.")
+    .tools(T.agent(db_expert) | T.agent(frontend_expert))
+)
+ir_t = coordinator_t.to_ir()
+assert len(ir_t.tools) == 2
+assert all(isinstance(t, AgentTool) for t in ir_t.tools)

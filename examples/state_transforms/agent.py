@@ -27,7 +27,7 @@ assert renamed({"findings": "data", "other": 1}) == {"research": "data", "other"
 
 # S.default — fill missing keys without overwriting
 defaulted = S.default(confidence=0.5, language="en")
-assert defaulted({"confidence": 0.9}) == {"confidence": 0.9, "language": "en"}
+assert defaulted({"confidence": 0.9}) == {"language": "en"}  # only missing keys returned
 
 # S.merge — combine keys (default: newline join)
 merged = S.merge("web", "papers", into="research")

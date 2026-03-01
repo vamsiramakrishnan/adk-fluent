@@ -105,6 +105,13 @@ agent = Agent("helper").tool(search).build()
 see_also = ["FunctionTool", "Agent.guardrail"]
 
 [[builders.Agent.extras]]
+name = "tools"
+signature = "(self, value: Any) -> Self"
+doc = "Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset."
+behavior = "runtime_helper"
+helper_func = "_add_tools"
+
+[[builders.Agent.extras]]
 name = "guardrail"
 signature = "(self, fn: Callable[..., Any]) -> Self"
 doc = "Attach a guardrail function as both before_model and after_model callback."

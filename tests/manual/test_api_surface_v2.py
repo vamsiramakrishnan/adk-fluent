@@ -148,6 +148,8 @@ class TestPrelude:
             "P",
             "S",
             "M",
+            "T",
+            "TComposite",
             "Route",
             # Tier 3: Expression primitives
             "until",
@@ -179,13 +181,17 @@ class TestPrelude:
             "ExecutionMode",
             # Tier 8: Schemas
             "MiddlewareSchema",
+            # Tier 9: Tool registry
+            "ToolRegistry",
+            "SearchToolset",
+            "search_aware_after_tool",
         }
         assert set(prelude.__all__) == expected
 
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 33
+        assert len(prelude.__all__) == 38
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

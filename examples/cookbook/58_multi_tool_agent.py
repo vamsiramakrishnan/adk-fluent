@@ -133,3 +133,16 @@ built = verified_agent.build()
 assert len(built.sub_agents) == 2
 assert built.sub_agents[0].name == "task_agent"
 assert built.sub_agents[1].name == "verifier"
+
+# --- T Module equivalent ---
+# T module composes all tools in a single fluent expression
+from adk_fluent._tools import T
+
+multi_t = (
+    Agent("multi_tool_t")
+    .model("gemini-2.5-flash")
+    .instruct("Help with various tasks.")
+    .tools(T.fn(search_web) | T.fn(calculate) | T.fn(read_file))
+)
+ir_t = multi_t.to_ir()
+assert len(ir_t.tools) == 3

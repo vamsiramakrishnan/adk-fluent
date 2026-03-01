@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-02-28T17:00:14.517579+00:00"
+generated_at = "2026-03-01T03:24:03.862596+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -256,6 +256,13 @@ def search(query: str) -> str:
 agent = Agent("helper").tool(search).build()
 '''
 see_also = ["FunctionTool", "Agent.guardrail"]
+
+[[builders.Agent.extras]]
+name = "tools"
+signature = "(self, value: Any) -> Self"
+doc = "Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset."
+behavior = "runtime_helper"
+helper_func = "_add_tools"
 
 [[builders.Agent.extras]]
 name = "guardrail"

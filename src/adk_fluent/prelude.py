@@ -22,6 +22,8 @@ from adk_fluent._middleware import M
 from adk_fluent._middleware_schema import MiddlewareSchema
 from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
 from adk_fluent._primitives import get_execution_mode
+from adk_fluent._tool_registry import SearchToolset, ToolRegistry, search_aware_after_tool
+from adk_fluent._tools import T, TComposite
 from adk_fluent._transforms import STransform
 from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
@@ -47,6 +49,8 @@ __all__ = [
     "P",
     "S",
     "M",
+    "T",
+    "TComposite",
     "Route",
     # Tier 3: Expression primitives
     "until",
@@ -78,4 +82,8 @@ __all__ = [
     "ExecutionMode",
     # Tier 8: Schemas
     "MiddlewareSchema",
+    # Tier 9: Tool registry
+    "ToolRegistry",
+    "SearchToolset",
+    "search_aware_after_tool",
 ]

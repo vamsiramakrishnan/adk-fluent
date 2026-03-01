@@ -25,6 +25,7 @@ __all__ = [
     "StateKey",
     "Artifact",
     "_add_tool",
+    "_add_tools",
     "_agent_to_ir",
     "_pipeline_to_ir",
     "_fanout_to_ir",
@@ -54,6 +55,27 @@ def _add_tool(builder, fn_or_tool, *, require_confirmation: bool = False):
 
             fn_or_tool = FunctionTool(func=fn_or_tool, require_confirmation=True)
     builder._lists["tools"].append(fn_or_tool)
+    return builder
+
+
+def _add_tools(builder, tools_arg):
+    """Set tools on the builder, handling TComposite, lists, and single items.
+
+    If ``tools_arg`` is a ``TComposite``, flattens it and extracts any
+    ``_SchemaMarker`` entries to wire ``tool_schema`` on the IR node.
+    """
+    from adk_fluent._tools import TComposite, _SchemaMarker
+
+    if isinstance(tools_arg, TComposite):
+        for item in tools_arg.to_tools():
+            if isinstance(item, _SchemaMarker):
+                builder._config["_tool_schema"] = item._schema_cls
+            else:
+                builder._lists["tools"].append(item)
+    elif isinstance(tools_arg, list):
+        builder._config["tools"] = tools_arg
+    else:
+        builder._lists["tools"].append(tools_arg)
     return builder
 
 
