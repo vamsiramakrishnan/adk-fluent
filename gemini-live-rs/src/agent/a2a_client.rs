@@ -80,7 +80,7 @@ pub struct A2AClient {
 impl A2AClient {
     /// Create a new A2A client.
     pub fn new(config: A2AConfig) -> Self {
-        let mut builder = reqwest::Client::builder()
+        let builder = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(config.timeout_secs));
 
         // Auth header will be added per-request if configured

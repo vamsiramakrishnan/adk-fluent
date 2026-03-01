@@ -4,6 +4,9 @@
 //! - A builder that configures session, tools, and callbacks in one chain
 //! - Automatic tool dispatch (no manual `ToolCall` event handling)
 //! - Callback-based event routing (no manual `subscribe` + `match` loop)
+//! - **Context engineering** via [`ContextPolicy`](crate::context::ContextPolicy)
+//! - **Prompt engineering** via [`SystemPrompt`](crate::prompt::SystemPrompt)
+//! - **State engineering** via [`StatePolicy`](crate::state::StatePolicy)
 //!
 //! # Example
 //!
@@ -31,11 +34,14 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use crate::agent::FunctionRegistry;
+use crate::context::{ContextManager, ContextPolicy, InjectionTrigger};
 use crate::flow::{BargeInConfig, TurnDetectionConfig};
+use crate::prompt::SystemPrompt;
 use crate::protocol::{GeminiModel, Modality, SessionConfig, ToolConfig, Voice};
 use crate::session::{
     SessionCommand, SessionError, SessionEvent, SessionHandle, SessionPhase, Turn,
 };
+use crate::state::{StateManager, StatePolicy};
 use crate::transport::{connect, TransportConfig};
 
 #[cfg(feature = "vad")]
@@ -108,17 +114,29 @@ struct EventRouter {
 
 impl EventRouter {
     /// Spawn the router as a background task.
+    ///
+    /// When `state_mgr` is provided, events are automatically processed through
+    /// the state policy (transforms fire on matching events). When `context_mgr`
+    /// is provided, turn completions are recorded and context injections are
+    /// resolved at appropriate trigger points.
     fn spawn(
         self,
         handle: SessionHandle,
         registry: Option<Arc<FunctionRegistry>>,
+        mut state_mgr: Option<StateManager>,
+        mut context_mgr: Option<ContextManager>,
     ) -> tokio::task::JoinHandle<()> {
         let mut events = handle.subscribe();
         let cmd_tx = handle.command_tx.clone();
-        let state = handle.state.clone();
+        let session_state = handle.state.clone();
 
         tokio::spawn(async move {
             while let Ok(event) = events.recv().await {
+                // --- State engineering: apply event transforms ---
+                if let Some(ref mut mgr) = state_mgr {
+                    mgr.process_event(&event);
+                }
+
                 match event {
                     SessionEvent::TextDelta(t) => {
                         if let Some(ref cb) = self.on_text_delta {
@@ -147,12 +165,18 @@ impl EventRouter {
                     }
                     SessionEvent::TurnComplete => {
                         // Provide turn snapshot to callback
-                        let turn = state
+                        let turn = session_state
                             .turns
                             .lock()
                             .last()
                             .cloned()
                             .unwrap_or_default();
+
+                        // --- Context engineering: record turn ---
+                        if let Some(ref mut ctx) = context_mgr {
+                            ctx.record_turn(&turn, "model");
+                        }
+
                         if let Some(ref cb) = self.on_turn_complete {
                             cb(turn).await;
                         }
@@ -183,11 +207,25 @@ impl EventRouter {
                         }
                     }
                     SessionEvent::Connected => {
+                        // --- Context engineering: fire OnConnect injections ---
+                        if let Some(ref ctx) = context_mgr {
+                            let _injections = ctx
+                                .resolve_injections(&InjectionTrigger::OnConnect)
+                                .await;
+                            // Injected context could be sent as client_content here
+                            // in a future enhancement
+                        }
+
                         if let Some(ref cb) = self.on_connected {
                             cb(()).await;
                         }
                     }
                     SessionEvent::Disconnected(r) => {
+                        // --- State engineering: clear temp state on disconnect ---
+                        if let Some(ref mut mgr) = state_mgr {
+                            mgr.state_mut().clear_temp();
+                        }
+
                         if let Some(ref cb) = self.on_disconnected {
                             cb(r).await;
                         }
@@ -206,8 +244,18 @@ impl EventRouter {
 
 /// Builder for constructing a [`GeminiAgent`] with fluent configuration.
 ///
-/// Collects session config, tools, callbacks, and pipeline settings,
-/// then wires everything together in [`build()`](GeminiAgentBuilder::build).
+/// Collects session config, tools, callbacks, pipeline settings, and
+/// engineering policies (context, prompt, state), then wires everything
+/// together in [`build()`](GeminiAgentBuilder::build).
+///
+/// # Engineering layers
+///
+/// - **Prompt**: Use [`prompt()`](Self::prompt) to set a structured [`SystemPrompt`]
+///   instead of a raw string. Sections are ordered, conditional, and template-interpolated.
+/// - **Context**: Use [`context_policy()`](Self::context_policy) to configure compression,
+///   memory strategy, and dynamic context injection.
+/// - **State**: Use [`state_policy()`](Self::state_policy) to bind transforms and guards
+///   to session events for automatic state management.
 pub struct GeminiAgentBuilder {
     // Session config
     api_key: Option<String>,
@@ -230,6 +278,11 @@ pub struct GeminiAgentBuilder {
     // Pipeline config
     pipeline_config: PipelineConfig,
 
+    // Engineering layers
+    system_prompt: Option<SystemPrompt>,
+    context_policy: Option<ContextPolicy>,
+    state_policy: Option<StatePolicy>,
+
     // Callbacks
     router: EventRouter,
 }
@@ -251,6 +304,9 @@ impl GeminiAgentBuilder {
             tool_config: None,
             auto_tool_dispatch: true,
             pipeline_config: PipelineConfig::default(),
+            system_prompt: None,
+            context_policy: None,
+            state_policy: None,
             router: EventRouter::default(),
         }
     }
@@ -394,6 +450,85 @@ impl GeminiAgentBuilder {
         self
     }
 
+    // --- Engineering layers ---
+
+    /// Set a structured system prompt (replaces `system_instruction`).
+    ///
+    /// When a [`SystemPrompt`] is set, it takes precedence over any raw
+    /// string set via [`system_instruction()`](Self::system_instruction).
+    /// The prompt is rendered at build time and sent in the setup message.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use gemini_live_rs::app::GeminiAgentBuilder;
+    /// # use gemini_live_rs::prompt::*;
+    /// # let builder = GeminiAgentBuilder::new();
+    /// builder.prompt(
+    ///     SystemPrompt::builder()
+    ///         .role("You are a customer service agent.")
+    ///         .task("Help with billing inquiries.")
+    ///         .constraint("Never share internal pricing.")
+    ///         .format("Short, conversational sentences.")
+    ///         .build()
+    /// )
+    /// # ;
+    /// ```
+    pub fn prompt(mut self, prompt: SystemPrompt) -> Self {
+        self.system_prompt = Some(prompt);
+        self
+    }
+
+    /// Set the context engineering policy.
+    ///
+    /// Configures server-side compression, client-side memory management,
+    /// and dynamic context injection rules.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use gemini_live_rs::app::GeminiAgentBuilder;
+    /// # use gemini_live_rs::context::*;
+    /// # let builder = GeminiAgentBuilder::new();
+    /// builder.context_policy(
+    ///     ContextPolicy::builder()
+    ///         .compression_threshold(8000)
+    ///         .memory(MemoryStrategy::window(20))
+    ///         .inject_on_connect("tier", "premium")
+    ///         .build()
+    /// )
+    /// # ;
+    /// ```
+    pub fn context_policy(mut self, policy: ContextPolicy) -> Self {
+        self.context_policy = Some(policy);
+        self
+    }
+
+    /// Set the state engineering policy.
+    ///
+    /// Binds state transforms to session events and defines guards
+    /// for automatic state management during the conversation.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use gemini_live_rs::app::GeminiAgentBuilder;
+    /// # use gemini_live_rs::state::*;
+    /// # let builder = GeminiAgentBuilder::new();
+    /// builder.state_policy(
+    ///     StatePolicy::builder()
+    ///         .on_turn_complete(StateTransform::increment("turn_count", 1))
+    ///         .on_interrupted(StateTransform::increment("interruptions", 1))
+    ///         .initial("turn_count", serde_json::json!(0))
+    ///         .build()
+    /// )
+    /// # ;
+    /// ```
+    pub fn state_policy(mut self, policy: StatePolicy) -> Self {
+        self.state_policy = Some(policy);
+        self
+    }
+
     // --- Callbacks ---
 
     /// Called for each incremental text chunk from the model.
@@ -502,9 +637,13 @@ impl GeminiAgentBuilder {
     ///
     /// This:
     /// 1. Assembles [`SessionConfig`] from accumulated state
+    ///    - If a [`SystemPrompt`] is set, it renders and overrides `system_instruction`
+    ///    - If a [`ContextPolicy`] has compression, it sets `context_window_compression`
+    ///    - If a [`ContextPolicy`] enables resumption, it sets `session_resumption`
     /// 2. Connects to the Gemini Live API
     /// 3. Waits for the session to become active
-    /// 4. Spawns the event router with auto tool dispatch
+    /// 4. Spawns the event router with auto tool dispatch, state management,
+    ///    and context tracking
     ///
     /// Returns a fully-connected [`GeminiAgent`].
     pub async fn build(self) -> Result<GeminiAgent, SessionError> {
@@ -519,9 +658,14 @@ impl GeminiAgentBuilder {
         if let Some(voice) = self.voice {
             session_config = session_config.voice(voice);
         }
-        if let Some(instruction) = self.system_instruction {
+
+        // --- Prompt engineering: structured prompt takes precedence ---
+        if let Some(ref prompt) = self.system_prompt {
+            session_config.system_instruction = Some(prompt.to_content());
+        } else if let Some(instruction) = self.system_instruction {
             session_config = session_config.system_instruction(instruction);
         }
+
         if let Some(modalities) = self.modalities {
             session_config = session_config.response_modalities(modalities);
         }
@@ -535,6 +679,16 @@ impl GeminiAgentBuilder {
             session_config = session_config.enable_output_transcription();
         }
 
+        // --- Context engineering: apply policy to session config ---
+        if let Some(ref ctx_policy) = self.context_policy {
+            if let Some(threshold) = ctx_policy.compression_threshold {
+                session_config = session_config.context_window_compression(threshold);
+            }
+            if ctx_policy.enable_resumption {
+                session_config = session_config.session_resumption(None);
+            }
+        }
+
         // Add tool declarations from registry
         if !self.registry.is_empty() {
             session_config = session_config.add_tool(self.registry.to_tool_declaration());
@@ -546,13 +700,23 @@ impl GeminiAgentBuilder {
         let handle = connect(session_config, self.transport_config).await?;
         handle.wait_for_phase(SessionPhase::Active).await;
 
-        // Spawn event router with optional auto-dispatch
+        // --- State engineering: create state manager ---
+        let state_mgr = self.state_policy.map(StateManager::new);
+
+        // --- Context engineering: create context manager ---
+        let context_mgr = self.context_policy.map(|policy| {
+            ContextManager::new(policy, handle.session_id().to_string())
+        });
+
+        // Spawn event router with optional auto-dispatch, state, and context
         let registry = if self.auto_tool_dispatch && !self.registry.is_empty() {
             Some(Arc::new(self.registry))
         } else {
             None
         };
-        let router_handle = self.router.spawn(handle.clone(), registry);
+        let router_handle = self
+            .router
+            .spawn(handle.clone(), registry, state_mgr, context_mgr);
 
         Ok(GeminiAgent {
             handle,
@@ -721,5 +885,106 @@ mod tests {
         assert_eq!(config.output_sample_rate, 24_000);
         assert!(config.barge_in_config.enabled);
         assert!(config.turn_detection_config.enabled);
+    }
+
+    #[test]
+    fn builder_with_system_prompt() {
+        use crate::prompt::SystemPrompt;
+
+        let builder = GeminiAgent::builder()
+            .api_key("key")
+            .prompt(
+                SystemPrompt::builder()
+                    .role("You are an agent.")
+                    .task("Help users.")
+                    .constraint("Be nice.")
+                    .build(),
+            );
+
+        assert!(builder.system_prompt.is_some());
+        // system_instruction should be None (prompt takes precedence)
+        assert!(builder.system_instruction.is_none());
+    }
+
+    #[test]
+    fn builder_with_context_policy() {
+        use crate::context::{ContextPolicy, MemoryStrategy};
+
+        let builder = GeminiAgent::builder()
+            .api_key("key")
+            .context_policy(
+                ContextPolicy::builder()
+                    .compression_threshold(8000)
+                    .memory(MemoryStrategy::window(20))
+                    .inject_on_connect("tier", "gold")
+                    .enable_resumption()
+                    .build(),
+            );
+
+        let policy = builder.context_policy.as_ref().unwrap();
+        assert_eq!(policy.compression_threshold, Some(8000));
+        assert!(policy.enable_resumption);
+        assert_eq!(policy.injections.len(), 1);
+    }
+
+    #[test]
+    fn builder_with_state_policy() {
+        use crate::state::{StatePolicy, StateTransform};
+
+        let builder = GeminiAgent::builder()
+            .api_key("key")
+            .state_policy(
+                StatePolicy::builder()
+                    .on_turn_complete(StateTransform::increment("turns", 1))
+                    .initial("turns", serde_json::json!(0))
+                    .build(),
+            );
+
+        let policy = builder.state_policy.as_ref().unwrap();
+        assert_eq!(policy.event_transforms.len(), 1);
+        assert_eq!(policy.initial_state.len(), 1);
+    }
+
+    #[test]
+    fn builder_all_engineering_layers() {
+        use crate::context::{ContextPolicy, MemoryStrategy};
+        use crate::prompt::{PromptStrategy, SystemPrompt};
+        use crate::state::{StatePolicy, StateTransform};
+
+        let builder = GeminiAgent::builder()
+            .api_key("key")
+            .voice(Voice::Kore)
+            // Prompt engineering
+            .prompt(
+                PromptStrategy::customer_service("TechCorp", "Handle billing.")
+                    .example("What's my balance?", "Let me check that for you.")
+                    .build(),
+            )
+            // Context engineering
+            .context_policy(
+                ContextPolicy::builder()
+                    .compression_threshold(8000)
+                    .memory(MemoryStrategy::window(20))
+                    .enable_resumption()
+                    .build(),
+            )
+            // State engineering
+            .state_policy(
+                StatePolicy::builder()
+                    .on_turn_complete(StateTransform::increment("turn_count", 1))
+                    .on_interrupted(StateTransform::increment("interruptions", 1))
+                    .initial("turn_count", serde_json::json!(0))
+                    .initial("interruptions", serde_json::json!(0))
+                    .build(),
+            )
+            // Tools
+            .tool("get_balance", "Get account balance", None, |_| async {
+                Ok(serde_json::json!({"balance": 100.0}))
+            });
+
+        assert!(builder.system_prompt.is_some());
+        assert!(builder.context_policy.is_some());
+        assert!(builder.state_policy.is_some());
+        assert_eq!(builder.registry.len(), 1);
     }
 }

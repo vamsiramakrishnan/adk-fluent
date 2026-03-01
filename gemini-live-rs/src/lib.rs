@@ -49,6 +49,9 @@ pub mod app;
 pub mod pipeline;
 pub mod call;
 pub mod client;
+pub mod context;
+pub mod prompt;
+pub mod state;
 
 /// Convenient re-exports for common usage.
 pub mod prelude {
@@ -72,4 +75,17 @@ pub mod prelude {
     pub use crate::pipeline::{AudioPipeline, AudioSink, AudioSource};
     pub use crate::call::{CallMetrics, CallPhase, CallSession};
     pub use crate::client::{AudioNegotiation, ClientEvent, ServerEvent};
+
+    // Engineering layers
+    pub use crate::context::{
+        ContextBudget, ContextInjection, ContextManager, ContextPolicy, ContextSnapshot,
+        InjectionTrigger, MemoryStrategy, TurnSummary,
+    };
+    pub use crate::prompt::{
+        PromptStrategy, SectionKind, SystemPrompt, SystemPromptBuilder,
+    };
+    pub use crate::state::{
+        ConversationState, EventTrigger, GuardPoint, StateGuard, StateManager, StatePolicy,
+        StateScope, StateTransform,
+    };
 }

@@ -104,3 +104,7 @@ path = "examples/sugar_agent.rs"
 [[example]]
 name = "call_lifecycle"
 path = "examples/call_lifecycle.rs"
+
+[[example]]
+name = "engineering_layers"
+path = "examples/engineering_layers.rs"
