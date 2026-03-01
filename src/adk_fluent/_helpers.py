@@ -12,7 +12,7 @@ from typing import Any
 
 __all__ = [
     "deep_clone_builder",
-    "delegate_agent",
+    "add_agent_tool",
     "run_one_shot",
     "run_one_shot_async",
     "run_stream",
@@ -73,7 +73,7 @@ def _add_tools(builder, tools_arg):
             else:
                 builder._lists["tools"].append(item)
     elif isinstance(tools_arg, list):
-        builder._config["tools"] = tools_arg
+        builder._lists.setdefault("tools", []).extend(tools_arg)
     else:
         builder._lists["tools"].append(tools_arg)
     return builder
@@ -204,11 +204,11 @@ def _loop_to_ir(builder):
     )
 
 
-def delegate_agent(builder, agent):
-    """Wrap an agent (or builder) as an AgentTool and add it to the builder's tools list.
+def add_agent_tool(builder, agent):
+    """Wrap an agent (or builder) as an AgentTool and add it to this agent's tools.
 
-    This enables the coordinator pattern: the parent agent's LLM can decide
-    to delegate tasks to the wrapped agent via transfer_to_agent.
+    The LLM can invoke the wrapped agent by name. This enables the
+    coordinator pattern where a parent agent delegates to specialists.
     """
     from google.adk.tools.agent_tool import AgentTool
 

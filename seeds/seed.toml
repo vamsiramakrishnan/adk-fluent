@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-01T06:38:45.049528+00:00"
+generated_at = "2026-03-01T06:43:43.633522+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -418,7 +418,7 @@ name = "agent_tool"
 signature = "(self, agent: Any) -> Self"
 doc = "Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."
 behavior = "runtime_helper"
-helper_func = "delegate_agent"
+helper_func = "add_agent_tool"
 example = '''
 specialist = Agent("invoice_parser", "gemini-2.5-flash").instruct("Parse invoices.")
 coordinator = (
