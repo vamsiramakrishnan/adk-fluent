@@ -57,9 +57,9 @@ agent = (
 
 This is useful for toggling callbacks based on environment variables or feature flags without cluttering your code with if-else blocks.
 
-## Guardrails
+## Guards
 
-`.guardrail(fn)` is a shorthand that registers the function as both `before_model` and `after_model`:
+`.guard(fn)` is a shorthand that registers the function as both `before_model` and `after_model`:
 
 ```python
 def safety_check(ctx, data):
@@ -70,7 +70,7 @@ def safety_check(ctx, data):
 agent = (
     Agent("service", "gemini-2.5-flash")
     .instruct("Handle requests.")
-    .guardrail(safety_check)
+    .guard(safety_check)
     .build()
 )
 ```

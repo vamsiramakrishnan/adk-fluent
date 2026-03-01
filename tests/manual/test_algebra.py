@@ -474,7 +474,7 @@ class TestFullAlgebra:
             // Agent("writer_b").model("gemini-2.5-pro").instruct("Write.")
             @ Report
             >> (
-                Agent("critic").model("gemini-2.5-flash").instruct("Score.").save_as("confidence")
+                Agent("critic").model("gemini-2.5-flash").instruct("Score.").writes("confidence")
                 >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve.")
             )
             * confident

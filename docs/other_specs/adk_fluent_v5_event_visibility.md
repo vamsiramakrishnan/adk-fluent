@@ -514,7 +514,7 @@ ______________________________________________________________________
 ```python
 classifier = (Agent("classifier")
     .instruct("Output one word: booking, info, or complaint")
-    .output_key("intent"))
+    .writes("intent"))
 
 booker = Agent("booker").instruct("Help book a flight based on intent: {intent}")
 info = Agent("info").instruct("Provide information")
@@ -538,9 +538,9 @@ Session history has all 4 events. Client sees events 1 and 4.
 ### Scenario 2: Iterative Refinement Loop
 
 ```python
-drafter = Agent("drafter").instruct("Write a draft").output_key("draft")
-reviewer = Agent("reviewer").instruct("Review the draft: {draft}").output_key("feedback")
-refiner = Agent("refiner").instruct("Refine based on: {feedback}").output_key("draft")
+drafter = Agent("drafter").instruct("Write a draft").writes("draft")
+reviewer = Agent("reviewer").instruct("Review the draft: {draft}").writes("feedback")
+refiner = Agent("refiner").instruct("Refine based on: {feedback}").writes("draft")
 
 pipeline = drafter >> loop_until(
     lambda s: s.get("feedback", "").startswith("APPROVED"),

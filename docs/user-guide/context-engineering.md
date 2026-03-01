@@ -64,7 +64,7 @@ Context engineering solves three problems:
 | `C.exclude_agents(*names)` | Exclude named agent outputs         |
 | `C.window(n=)`             | Last N turn-pairs only              |
 | `C.template(str)`          | Render template from state          |
-| `C.capture(key)`           | Capture user message to state       |
+| `S.capture(key)`           | Capture user message to state       |
 | `C.budget(max_tokens=)`    | Token budget constraint             |
 | `C.priority(tier=)`        | Priority tier for ordering          |
 
@@ -157,9 +157,9 @@ agent = (
 )
 ```
 
-## `C.capture(key)`
+## `S.capture(key)`
 
-Capture the most recent user message into a state key. This delegates to `S.capture(key)` and is used as a pipeline step, not inside `.context()`:
+Capture the most recent user message into a state key. Used as a pipeline step, not inside `.context()`:
 
 ```python
 from adk_fluent import Agent, C, S
@@ -264,7 +264,7 @@ pipeline = (
         .model("gemini-2.5-flash")
         .instruct("Classify the user's intent.")
         .context(C.none())  # No history needed
-        .save_as("intent")
+        .writes("intent")
     >> Agent("handler")
         .model("gemini-2.5-flash")
         .instruct("Help the user.")

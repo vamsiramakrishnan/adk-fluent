@@ -43,7 +43,7 @@ analytics_pipeline = (
     Agent("metric_calculator")
     .model("gemini-2.5-flash")
     .instruct("Compute key business metrics: revenue, churn rate, and LTV from raw data.")
-    .save_as("metrics")
+    .writes("metrics")
     >> expect(lambda s: "metrics" in s, "Metrics must be computed before dashboard generation")
     >> Agent("dashboard_generator")
     .model("gemini-2.5-flash")

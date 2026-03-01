@@ -7,7 +7,7 @@ def test_s_rename_produces_new_key():
     from adk_fluent.testing.contracts import check_contracts
 
     pipeline = (
-        Agent("writer").instruct("Write.").outputs("draft")
+        Agent("writer").instruct("Write.").writes("draft")
         >> S.rename(draft="input")
         >> Agent("reviewer").instruct("Review the {input}.")
     )
@@ -31,8 +31,8 @@ def test_s_merge_produces_merged_key():
     from adk_fluent.testing.contracts import check_contracts
 
     pipeline = (
-        Agent("a").instruct("Write part A.").outputs("part_a")
-        >> Agent("b").instruct("Write part B.").outputs("part_b")
+        Agent("a").instruct("Write part A.").writes("part_a")
+        >> Agent("b").instruct("Write part B.").writes("part_b")
         >> S.merge("part_a", "part_b", into="combined")
         >> Agent("final").instruct("Review the {combined}.")
     )
@@ -74,7 +74,7 @@ def test_s_compute_produces_keys():
     from adk_fluent.testing.contracts import check_contracts
 
     pipeline = (
-        Agent("a").instruct("Write.").outputs("text")
+        Agent("a").instruct("Write.").writes("text")
         >> S.compute(summary=lambda s: s.get("text", "")[:50])
         >> Agent("b").instruct("Summary: {summary}")
     )
@@ -97,7 +97,7 @@ def test_s_transform_preserves_key():
     from adk_fluent.testing.contracts import check_contracts
 
     pipeline = (
-        Agent("a").instruct("Write.").outputs("text")
+        Agent("a").instruct("Write.").writes("text")
         >> S.transform("text", str.upper)
         >> Agent("b").instruct("Here: {text}")
     )
@@ -120,7 +120,7 @@ def test_transform_reads_validation():
     from adk_fluent.testing.contracts import check_contracts
 
     pipeline = (
-        Agent("a").instruct("Write.")  # no .outputs("draft")!
+        Agent("a").instruct("Write.")  # no .writes("draft")!
         >> S.rename(draft="input")
         >> Agent("b").instruct("Review the {input}.")
     )

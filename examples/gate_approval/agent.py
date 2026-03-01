@@ -16,7 +16,7 @@ load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 # gate(): pause pipeline when condition is met, wait for human approval
 # Uses ADK's escalate mechanism under the hood
 pipeline = (
-    Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze risk.").save_as("risk")
+    Agent("analyzer").model("gemini-2.5-flash").instruct("Analyze risk.").writes("risk")
     >> gate(lambda s: s.get("risk") == "high", message="Approve high-risk action?")
     >> Agent("executor").model("gemini-2.5-flash").instruct("Execute the action.")
 )

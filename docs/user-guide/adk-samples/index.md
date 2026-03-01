@@ -5,14 +5,14 @@ These examples port complex multi-agent samples from Google's
 repository to the adk-fluent API. Each page shows native ADK code alongside
 the fluent equivalent, highlighting structural improvements.
 
-| Sample                                    | Pattern                                            | Key Fluent Features                           |
-| ----------------------------------------- | -------------------------------------------------- | --------------------------------------------- |
-| [LLM Auditor](llm-auditor.md)             | Sequential pipeline + callbacks                    | `>>` operator, `.after_model()`               |
-| [Financial Advisor](financial-advisor.md) | Tool-based delegation + state passing              | `.delegate()`, `.save_as()`                   |
-| [Short Movie](short-movie.md)             | Director with 4 sub-agents + generative tools      | `.sub_agents()`, `.save_as()`, custom tools   |
-| [Deep Search](deep-search.md)             | Loop with evaluation + typed output + custom agent | `Loop`, `.output_schema()`, nested `Pipeline` |
-| [Brand Search](brand-search.md)           | Router with nested sub-agents + web tools          | `.sub_agents()`, nested agent hierarchies     |
-| [Travel Concierge](travel-concierge.md)   | 6-group orchestrator + callbacks + state           | `.delegate()`, massive boilerplate reduction  |
+| Sample                                    | Pattern                                            | Key Fluent Features                            |
+| ----------------------------------------- | -------------------------------------------------- | ---------------------------------------------- |
+| [LLM Auditor](llm-auditor.md)             | Sequential pipeline + callbacks                    | `>>` operator, `.after_model()`                |
+| [Financial Advisor](financial-advisor.md) | Tool-based delegation + state passing              | `.agent_tool()`, `.writes()`                   |
+| [Short Movie](short-movie.md)             | Director with 4 sub-agents + generative tools      | `.sub_agents()`, `.writes()`, custom tools     |
+| [Deep Search](deep-search.md)             | Loop with evaluation + typed output + custom agent | `Loop`, `.returns()`, nested `Pipeline`        |
+| [Brand Search](brand-search.md)           | Router with nested sub-agents + web tools          | `.sub_agents()`, nested agent hierarchies      |
+| [Travel Concierge](travel-concierge.md)   | 6-group orchestrator + callbacks + state           | `.agent_tool()`, massive boilerplate reduction |
 
 ## Aggregate Metrics
 

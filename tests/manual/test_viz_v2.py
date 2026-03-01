@@ -11,7 +11,7 @@ def test_data_flow_edges_appear():
     """Data flow edges show state key connections between agents."""
     from adk_fluent import Agent
 
-    pipeline = Agent("writer").instruct("Write.").outputs("draft") >> Agent("reviewer").instruct("Review the {draft}.")
+    pipeline = Agent("writer").instruct("Write.").writes("draft") >> Agent("reviewer").instruct("Review the {draft}.")
     result = pipeline.to_mermaid()
     # Should have a dotted edge showing 'draft' flows from writer to reviewer
     assert "draft" in result
@@ -22,7 +22,7 @@ def test_data_flow_edges_disabled():
     """Data flow edges can be disabled."""
     from adk_fluent import Agent
 
-    pipeline = Agent("writer").instruct("Write.").outputs("draft") >> Agent("reviewer").instruct("Review the {draft}.")
+    pipeline = Agent("writer").instruct("Write.").writes("draft") >> Agent("reviewer").instruct("Review the {draft}.")
     result = pipeline.to_mermaid(show_data_flow=False)
     # Normal topology edges still present
     assert "-->" in result

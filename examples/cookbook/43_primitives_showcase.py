@@ -14,7 +14,7 @@ MODEL = "gemini-2.5-flash"
 # --- 1. tap: observe state for monitoring without mutating ---
 
 order_events = []
-order_parser = Agent("order_parser", MODEL).instruct("Parse the incoming order JSON.").save_as("order_type")
+order_parser = Agent("order_parser", MODEL).instruct("Parse the incoming order JSON.").writes("order_type")
 pipeline_with_tap = order_parser >> tap(lambda s: order_events.append(s.get("order_type")))
 assert isinstance(pipeline_with_tap, Pipeline)
 
@@ -24,7 +24,7 @@ assert isinstance(pipeline_method, Pipeline)
 
 # --- 2. expect: assert data contracts between processing stages ---
 
-inventory_checker = Agent("inventory_checker", MODEL).instruct("Check stock availability.").save_as("in_stock")
+inventory_checker = Agent("inventory_checker", MODEL).instruct("Check stock availability.").writes("in_stock")
 payment_processor = Agent("payment_processor", MODEL).instruct("Process payment.")
 
 pipeline_with_expect = (
@@ -46,7 +46,7 @@ fraud_gate = gate(
 fulfillment_agent = Agent("fulfillment", MODEL).instruct("Ship the order to the customer.")
 
 pipeline_with_gate = (
-    Agent("fraud_detector", MODEL).instruct("Score fraud risk.").save_as("fraud_score")
+    Agent("fraud_detector", MODEL).instruct("Score fraud risk.").writes("fraud_score")
     >> fraud_gate
     >> fulfillment_agent
 )
@@ -123,12 +123,12 @@ ecommerce_pipeline = (
     # Set default values for the order
     S.default(currency="USD", shipping_method="standard")
     # Parse and classify the incoming order
-    >> Agent("order_classifier", MODEL).instruct("Classify the order type.").save_as("order_type")
+    >> Agent("order_classifier", MODEL).instruct("Classify the order type.").writes("order_type")
     # Route to the appropriate fulfillment handler
     >> Route("order_type")
-    .eq("digital", Agent("digital_delivery", MODEL).instruct("Deliver digital product.").save_as("delivery_status"))
-    .eq("physical", Agent("warehouse_pick", MODEL).instruct("Pick and pack from warehouse.").save_as("delivery_status"))
-    .otherwise(Agent("custom_handler", MODEL).instruct("Handle custom order.").save_as("delivery_status"))
+    .eq("digital", Agent("digital_delivery", MODEL).instruct("Deliver digital product.").writes("delivery_status"))
+    .eq("physical", Agent("warehouse_pick", MODEL).instruct("Pick and pack from warehouse.").writes("delivery_status"))
+    .otherwise(Agent("custom_handler", MODEL).instruct("Handle custom order.").writes("delivery_status"))
     # Observe the routing result for analytics
     >> tap(lambda s: None)  # no-op observation point
     # Assert contract: routing must produce a delivery status
@@ -136,7 +136,7 @@ ecommerce_pipeline = (
     # Compute estimated delivery date
     >> S.compute(eta_days=lambda s: 1 if s.get("order_type") == "digital" else 5)
     # Send confirmation to customer
-    >> Agent("notification_sender", MODEL).instruct("Send order confirmation email.").save_as("confirmation_id")
+    >> Agent("notification_sender", MODEL).instruct("Send order confirmation email.").writes("confirmation_id")
 )
 
 assert isinstance(ecommerce_pipeline, Pipeline)

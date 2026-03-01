@@ -19,7 +19,7 @@ class TestDeprecationWarnings:
         assert len(w) == 1
         assert issubclass(w[0].category, DeprecationWarning)
         assert ".outputs()" in str(w[0].message)
-        assert ".save_as()" in str(w[0].message)
+        assert ".writes()" in str(w[0].message)
 
     def test_history_emits_deprecation(self):
         with warnings.catch_warnings(record=True) as w:
@@ -50,31 +50,31 @@ class TestDeprecationWarnings:
 
 
 # ======================================================================
-# 2. New method tests: save_as, stay, no_peers, isolate
+# 2. New method tests: writes, stay, no_peers, isolate
 # ======================================================================
 
 
 class TestSaveAs:
-    """save_as() sets output_key without emitting any warning."""
+    """writes() sets output_key without emitting any warning."""
 
     def test_save_as_sets_output_key(self):
-        agent = Agent("test").save_as("key")
+        agent = Agent("test").writes("key")
         assert agent._config["output_key"] == "key"
 
     def test_save_as_no_warning(self):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            Agent("test").save_as("key")
+            Agent("test").writes("key")
         deprecations = [x for x in w if issubclass(x.category, DeprecationWarning)]
         assert len(deprecations) == 0
 
     def test_save_as_returns_self(self):
         agent = Agent("test")
-        result = agent.save_as("key")
+        result = agent.writes("key")
         assert result is agent
 
     def test_save_as_none_clears(self):
-        agent = Agent("test").save_as("key").save_as(None)
+        agent = Agent("test").writes("key").writes(None)
         assert agent._config["output_key"] is None
 
 
@@ -144,6 +144,8 @@ class TestPrelude:
             "FanOut",
             "Loop",
             # Tier 2: Composition namespaces
+            "A",
+            "ATransform",
             "C",
             "P",
             "S",
@@ -151,6 +153,8 @@ class TestPrelude:
             "T",
             "TComposite",
             "Route",
+            # Tier 2b: Expression builders
+            "Fallback",
             # Tier 3: Expression primitives
             "until",
             "tap",
@@ -191,7 +195,7 @@ class TestPrelude:
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 38
+        assert len(prelude.__all__) == 41
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

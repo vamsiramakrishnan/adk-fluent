@@ -48,7 +48,7 @@ def test_reads_multiple_calls_compose():
 
 
 # ======================================================================
-# .writes() — shorthand for .save_as()
+# .writes() — shorthand for .writes()
 # ======================================================================
 
 
@@ -59,9 +59,9 @@ def test_writes_sets_output_key():
 
 
 def test_writes_equivalent_to_save_as():
-    """Agent.writes() is equivalent to .save_as()."""
+    """Agent.writes() is equivalent to .writes()."""
     a1 = Agent("a", "gemini-2.0-flash").writes("out")
-    a2 = Agent("a", "gemini-2.0-flash").save_as("out")
+    a2 = Agent("a", "gemini-2.0-flash").writes("out")
     assert a1._config["output_key"] == a2._config["output_key"]
 
 

@@ -1,14 +1,16 @@
-"""Tests for new control loop primitives: tap, expect, mock, retry_if, map_over, timeout, gate, race."""
+"""Tests for new control loop primitives: tap, expect, mock, loop_while, map_over, timeout, gate, race."""
 
 import pytest
 
-from adk_fluent._base import (
-    BuilderBase,
+from adk_fluent._base import BuilderBase
+from adk_fluent._primitive_builders import (
+    TimedAgent as _TimeoutBuilder,
+)
+from adk_fluent._primitive_builders import (
     _GateBuilder,
     _MapOverBuilder,
     _RaceBuilder,
     _TapBuilder,
-    _TimeoutBuilder,
     expect,
     gate,
     map_over,
@@ -175,37 +177,37 @@ class TestMock:
 
 
 # ======================================================================
-# Primitive 4: retry_if
+# Primitive 4: loop_while
 # ======================================================================
 
 
 class TestRetryIf:
     def test_retry_if_creates_loop(self):
         agent = Agent("writer").model("gemini-2.5-flash")
-        result = agent.retry_if(lambda s: s.get("quality") != "good")
+        result = agent.loop_while(lambda s: s.get("quality") != "good")
         assert isinstance(result, Loop)
 
     def test_retry_if_sets_max_iterations(self):
         agent = Agent("writer").model("gemini-2.5-flash")
-        result = agent.retry_if(lambda s: True, max_retries=5)
+        result = agent.loop_while(lambda s: True, max_iterations=5)
         assert result._config["max_iterations"] == 5
 
     def test_retry_if_default_max_retries(self):
         agent = Agent("writer").model("gemini-2.5-flash")
-        result = agent.retry_if(lambda s: True)
+        result = agent.loop_while(lambda s: True)
         assert result._config["max_iterations"] == 3
 
     def test_retry_if_inverts_predicate(self):
-        """retry_if(p) should be equivalent to loop_until(not p)."""
+        """loop_while(p) should be equivalent to loop_until(not p)."""
         agent = Agent("writer").model("gemini-2.5-flash")
-        result = agent.retry_if(lambda s: s.get("quality") != "good")
+        result = agent.loop_while(lambda s: s.get("quality") != "good")
         until_pred = result._config["_until_predicate"]
         assert until_pred({"quality": "good"}) is True  # exit loop
         assert until_pred({"quality": "bad"}) is False  # keep retrying
 
     def test_retry_if_builds_with_checkpoint(self):
         agent = Agent("writer").model("gemini-2.5-flash").instruct("Write")
-        result = agent.retry_if(lambda s: True, max_retries=3)
+        result = agent.loop_while(lambda s: True, max_iterations=3)
         built = result.build()
         # Should have the agent + checkpoint sub-agents
         assert len(built.sub_agents) >= 2
@@ -213,7 +215,7 @@ class TestRetryIf:
     def test_retry_if_on_pipeline(self):
         writer = Agent("writer").model("gemini-2.5-flash")
         reviewer = Agent("reviewer").model("gemini-2.5-flash")
-        result = (writer >> reviewer).retry_if(lambda s: s.get("q") != "ok", max_retries=5)
+        result = (writer >> reviewer).loop_while(lambda s: s.get("q") != "ok", max_iterations=5)
         assert isinstance(result, Loop)
 
 

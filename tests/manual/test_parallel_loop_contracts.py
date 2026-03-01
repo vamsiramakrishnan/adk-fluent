@@ -8,7 +8,7 @@ def test_parallel_output_key_collision():
     from adk_fluent import Agent
     from adk_fluent.testing.contracts import check_contracts
 
-    fanout = Agent("a").outputs("result") | Agent("b").outputs("result")
+    fanout = Agent("a").writes("result") | Agent("b").writes("result")
     ir = fanout.to_ir()
     issues = check_contracts(ir)
     collision_errors = [
@@ -25,7 +25,7 @@ def test_parallel_no_collision_different_keys():
     from adk_fluent import Agent
     from adk_fluent.testing.contracts import check_contracts
 
-    fanout = Agent("a").outputs("result_a") | Agent("b").outputs("result_b")
+    fanout = Agent("a").writes("result_a") | Agent("b").writes("result_b")
     ir = fanout.to_ir()
     issues = check_contracts(ir)
     collision_errors = [
@@ -81,7 +81,7 @@ def test_loop_body_valid_no_errors():
     from adk_fluent import Agent
     from adk_fluent.testing.contracts import check_contracts
 
-    loop = (Agent("a").instruct("Write.").outputs("draft") >> Agent("b").instruct("Review {draft}.")) * 3
+    loop = (Agent("a").instruct("Write.").writes("draft") >> Agent("b").instruct("Review {draft}.")) * 3
     ir = loop.to_ir()
     issues = check_contracts(ir)
     template_errors = [
@@ -97,7 +97,7 @@ def test_check_contracts_dispatches_parallel():
     from adk_fluent import Agent
     from adk_fluent.testing.contracts import check_contracts
 
-    fanout = Agent("a").outputs("x") | Agent("b").outputs("x")
+    fanout = Agent("a").writes("x") | Agent("b").writes("x")
     ir = fanout.to_ir()
     # Should not crash — should dispatch to parallel checker
     issues = check_contracts(ir)

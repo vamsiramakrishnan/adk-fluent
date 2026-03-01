@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+, `seeds/seed.manual.toml` code generation pipeline, `just seed && just generate`, ruff, pyright, pytest.
 
----
+______________________________________________________________________
 
 ### Task 1: Update `seed.manual.toml` — Remove Aliases, Rename Extras
 
@@ -144,7 +144,7 @@ git add seeds/seed.manual.toml seeds/seed.toml
 git commit -m "refactor: update seed — rename guardrail→guard, delegate→agent_tool, remove save_as alias"
 ```
 
----
+______________________________________________________________________
 
 ### Task 2: Rename helper functions in `_helpers.py`
 
@@ -211,7 +211,7 @@ git add src/adk_fluent/_helpers.py seeds/seed.manual.toml
 git commit -m "refactor: rename delegate_agent→add_agent_tool, make .tools() always append"
 ```
 
----
+______________________________________________________________________
 
 ### Task 3: Core renames in `_base.py`
 
@@ -347,7 +347,7 @@ git add src/adk_fluent/_base.py src/adk_fluent/_helpers.py
 git commit -m "refactor: remove .retry()/.fallback(), rename retry_if→loop_while, inject_context→prepend"
 ```
 
----
+______________________________________________________________________
 
 ### Task 4: Rename internal builder types in `_primitive_builders.py`
 
@@ -380,7 +380,7 @@ git add src/adk_fluent/_primitive_builders.py src/adk_fluent/_base.py
 git commit -m "refactor: rename _TimeoutBuilder→TimedAgent, _DispatchBuilder→BackgroundTask"
 ```
 
----
+______________________________________________________________________
 
 ### Task 5: Cross-module cleanup — `_context.py` and `_routing.py`
 
@@ -455,7 +455,7 @@ git add src/adk_fluent/_context.py src/adk_fluent/_routing.py
 git commit -m "refactor: remove C.capture(), align C.template() param, add Route.gte/lte/ne"
 ```
 
----
+______________________________________________________________________
 
 ### Task 6: Add `Fallback` builder to `_routing.py`
 
@@ -518,7 +518,7 @@ git add src/adk_fluent/_routing.py
 git commit -m "feat: add Fallback builder — .attempt() method, // operator equivalence"
 ```
 
----
+______________________________________________________________________
 
 ### Task 7: Update exports — `prelude.py`
 
@@ -543,7 +543,7 @@ git add src/adk_fluent/prelude.py
 git commit -m "feat: export Fallback from prelude"
 ```
 
----
+______________________________________________________________________
 
 ### Task 8: Regenerate code, update `__init__.py`
 
@@ -588,7 +588,7 @@ git add src/adk_fluent/agent.py src/adk_fluent/agent.pyi src/adk_fluent/__init__
 git commit -m "chore: regenerate code with verb harmonization changes"
 ```
 
----
+______________________________________________________________________
 
 ### Task 9: Migrate all tests and examples
 
@@ -692,7 +692,7 @@ git add tests/ examples/
 git commit -m "refactor: migrate all tests and examples to harmonized verb names"
 ```
 
----
+______________________________________________________________________
 
 ### Task 10: Write tests for new features and full verification
 
@@ -872,19 +872,19 @@ git add tests/ src/
 git commit -m "test: add verb harmonization tests, verify clean API surface"
 ```
 
----
+______________________________________________________________________
 
 ### Task Summary
 
-| Task | What | Files | Risk |
-|---|---|---|---|
-| 1 | Update seed.manual.toml | seeds/ | Low |
-| 2 | Rename helpers | _helpers.py, seeds/ | Low |
-| 3 | Core renames in _base.py | _base.py, _helpers.py | Medium |
-| 4 | Rename internal types | _primitive_builders.py, _base.py | Low |
-| 5 | Cross-module cleanup | _context.py, _routing.py | Low |
-| 6 | Add Fallback builder | _routing.py | Low |
-| 7 | Update prelude exports | prelude.py | Low |
-| 8 | Regenerate code | agent.py, __init__.py | Medium |
-| 9 | Migrate tests/examples | tests/, examples/ | High (volume) |
-| 10 | New tests + verification | tests/, full suite | Medium |
+| Task | What                      | Files                              | Risk          |
+| ---- | ------------------------- | ---------------------------------- | ------------- |
+| 1    | Update seed.manual.toml   | seeds/                             | Low           |
+| 2    | Rename helpers            | \_helpers.py, seeds/               | Low           |
+| 3    | Core renames in \_base.py | \_base.py, \_helpers.py            | Medium        |
+| 4    | Rename internal types     | \_primitive_builders.py, \_base.py | Low           |
+| 5    | Cross-module cleanup      | \_context.py, \_routing.py         | Low           |
+| 6    | Add Fallback builder      | \_routing.py                       | Low           |
+| 7    | Update prelude exports    | prelude.py                         | Low           |
+| 8    | Regenerate code           | agent.py, __init__.py              | Medium        |
+| 9    | Migrate tests/examples    | tests/, examples/                  | High (volume) |
+| 10   | New tests + verification  | tests/, full suite                 | Medium        |

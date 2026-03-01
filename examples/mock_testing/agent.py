@@ -29,7 +29,7 @@ agent_chained = (
     .model("gemini-2.5-flash")
     .mock(["Analysis complete."])
     .instruct("Analyze the data.")
-    .save_as("analysis")
+    .writes("analysis")
 )
 
 root_agent = agent_chained.build()

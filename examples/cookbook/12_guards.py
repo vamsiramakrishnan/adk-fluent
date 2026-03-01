@@ -1,8 +1,8 @@
-"""Medical Advice Safety Guardrails -- Guardrails with .guardrail()
+"""Medical Advice Safety Guardrails -- Guardrails with .guard()
 
-Demonstrates the .guardrail() method that registers a function as
+Demonstrates the .guard() method that registers a function as
 both a before_model and after_model callback in one call.  The
-scenario: a medical information agent with safety guardrails that
+scenario: a medical information agent with safety guards that
 screen requests and responses for dangerous self-diagnosis or
 treatment recommendations.
 """
@@ -47,7 +47,7 @@ builder = (
         "Never prescribe medication or provide specific dosages. "
         "For emergencies, direct users to call emergency services."
     )
-    .guardrail(medical_safety_screen)
+    .guard(medical_safety_screen)
 )
 
 # --- ASSERT ---

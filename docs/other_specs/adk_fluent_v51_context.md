@@ -332,12 +332,12 @@ ______________________________________________________________________
 
 WRITE primitives answer: "What should the agent record for future consumption?" These are *proactive* — they create context before it's needed, not in response to overflow.
 
-### 4.1 `C.capture(key)` — Bridge Conversation to State
+### 4.1 `S.capture(key)` — Bridge Conversation to State
 
 Unchanged from v1. Captures the current user message or agent output to a state key for downstream consumption.
 
 ```python
-C.capture("user_message") >> Agent("classifier")
+S.capture("user_message") >> Agent("classifier")
 ```
 
 ### 4.2 `C.notes(key=, format=)` — Scratchpad / Structured Notes
@@ -374,7 +374,7 @@ The write companion to `C.notes()`. Compiles to a companion FnAgent that maintai
 pipeline = (
     Agent("researcher")
         .instruct("Research the topic. Record key findings.")
-        .outputs("findings")
+        .writes("findings")
         .context(C.write_notes(key="observations", strategy="append"))
     >> Agent("synthesizer")
         .instruct("Synthesize all observations into a report.")
@@ -689,10 +689,10 @@ ______________________________________________________________________
 ```python
 pipeline = (
     # Proactive: capture user message + extract structured requirements
-    C.capture("user_message")
+    S.capture("user_message")
     >> Agent("classifier", "gemini-2.5-flash")
         .instruct("Classify the customer's intent and urgency.")
-        .outputs("intent", "urgency", "category")
+        .writes("intent", "urgency", "category")
         .context(
             C.from_state("user_message") | C.priority(tier=1)
             + C.notes(key="customer_history") | C.priority(tier=2)
@@ -702,7 +702,7 @@ pipeline = (
         .eq("billing",
             Agent("billing_handler", "gemini-2.5-pro")
                 .instruct("Resolve the billing issue.")
-                .outputs("resolution", "actions_taken")
+                .writes("resolution", "actions_taken")
                 .context(
                     # Tier 1: Current intent + structured requirements
                     C.from_state("intent", "category") | C.priority(tier=1)
@@ -721,7 +721,7 @@ pipeline = (
         .eq("technical",
             Agent("tech_support", "gemini-2.5-pro")
                 .instruct("Diagnose and resolve the technical issue.")
-                .outputs("resolution", "steps_taken")
+                .writes("resolution", "steps_taken")
                 .context(
                     # Technical needs full conversation (debugging context matters)
                     C.window(n=15)
@@ -733,7 +733,7 @@ pipeline = (
         .eq("escalation",
             Agent("escalation_prep", "gemini-2.5-flash")
                 .instruct("Prepare escalation package for human reviewer.")
-                .outputs("escalation_package")
+                .writes("escalation_package")
                 .context(
                     # Fact-distilled conversation (individual retrievable facts)
                     C.distill(key="case_facts", model="gemini-2.5-flash")
@@ -952,7 +952,7 @@ ______________________________________________________________________
 
 ## 14. Migration Path (Updated)
 
-**Phase 5i.1** (Current v5.1): `C.capture()`, `C.none()`, `C.default()`, `C.user_only()`, `C.from_agents()`, `C.exclude_agents()`, `C.last_n_turns()`, `C.from_state()`, `C.template()`
+**Phase 5i.1** (Current v5.1): `S.capture()`, `C.none()`, `C.default()`, `C.user_only()`, `C.from_agents()`, `C.exclude_agents()`, `C.last_n_turns()`, `C.from_state()`, `C.template()`
 
 **Phase 5i.2** (Atoms — No LLM):
 

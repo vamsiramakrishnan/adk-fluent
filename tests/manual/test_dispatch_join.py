@@ -2,7 +2,7 @@
 
 from adk_fluent._base import BuilderBase
 from adk_fluent._primitive_builders import (
-    _DispatchBuilder,
+    BackgroundTask,
     _JoinBuilder,
     dispatch,
     join,
@@ -21,7 +21,7 @@ class TestDispatchFactory:
         a = Agent("worker").model("gemini-2.5-flash")
         result = dispatch(a)
         assert isinstance(result, BuilderBase)
-        assert isinstance(result, _DispatchBuilder)
+        assert isinstance(result, BackgroundTask)
 
     def test_dispatch_names_auto_derived(self):
         a = Agent("my_agent").model("gemini-2.5-flash")
@@ -57,7 +57,7 @@ class TestDispatchFactory:
 
 
 # ======================================================================
-# _DispatchBuilder
+# BackgroundTask
 # ======================================================================
 
 
@@ -119,16 +119,16 @@ class TestDispatchBuilder:
 
 
 # ======================================================================
-# _DispatchBuilder method form (.dispatch() on any builder)
+# BackgroundTask method form (.dispatch() on any builder)
 # ======================================================================
 
 
 class TestDispatchMethodForm:
     def test_dispatch_method_form(self):
-        """agent.dispatch(name='x') creates a _DispatchBuilder."""
+        """agent.dispatch(name='x') creates a BackgroundTask."""
         a = Agent("email_sender").model("gemini-2.5-flash")
         d = a.dispatch(name="email")
-        assert isinstance(d, _DispatchBuilder)
+        assert isinstance(d, BackgroundTask)
 
     def test_dispatch_method_form_builds(self):
         a = Agent("email_sender").model("gemini-2.5-flash")

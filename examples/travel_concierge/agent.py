@@ -419,8 +419,8 @@ place_agent = (
     .instruct(PLACE_AGENT_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(DestinationIdeas)
-    .save_as("place")
+    .returns(DestinationIdeas)
+    .writes("place")
     .generate_content_config(json_response_config)
 )
 
@@ -430,8 +430,8 @@ poi_agent = (
     .instruct(POI_AGENT_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(POISuggestions)
-    .save_as("poi")
+    .returns(POISuggestions)
+    .writes("poi")
     .generate_content_config(json_response_config)
 )
 
@@ -442,8 +442,8 @@ inspiration_agent = (
         "next vacations; Provides information about places, activities, interests"
     )
     .instruct(INSPIRATION_AGENT_PROMPT)
-    .delegate(place_agent)
-    .delegate(poi_agent)
+    .agent_tool(place_agent)
+    .agent_tool(poi_agent)
     .tool(map_tool)
 )
 
@@ -457,8 +457,8 @@ flight_search_agent = (
     .instruct(FLIGHT_SEARCH_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(FlightsSelection)
-    .save_as("flight")
+    .returns(FlightsSelection)
+    .writes("flight")
     .generate_content_config(json_response_config)
 )
 
@@ -468,8 +468,8 @@ flight_seat_selection_agent = (
     .instruct(FLIGHT_SEAT_SELECTION_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(SeatsSelection)
-    .save_as("seat")
+    .returns(SeatsSelection)
+    .writes("seat")
     .generate_content_config(json_response_config)
 )
 
@@ -479,8 +479,8 @@ hotel_search_agent = (
     .instruct(HOTEL_SEARCH_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(HotelsSelection)
-    .save_as("hotel")
+    .returns(HotelsSelection)
+    .writes("hotel")
     .generate_content_config(json_response_config)
 )
 
@@ -490,8 +490,8 @@ hotel_room_selection_agent = (
     .instruct(HOTEL_ROOM_SELECTION_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(RoomsSelection)
-    .save_as("room")
+    .returns(RoomsSelection)
+    .writes("room")
     .generate_content_config(json_response_config)
 )
 
@@ -501,8 +501,8 @@ itinerary_agent = (
     .instruct(ITINERARY_AGENT_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .output_schema(Itinerary)
-    .save_as("itinerary")
+    .returns(Itinerary)
+    .writes("itinerary")
     .generate_content_config(json_response_config)
 )
 
@@ -513,11 +513,11 @@ planning_agent = (
         "their vacation, finding best deals for flights and hotels."
     )
     .instruct(PLANNING_AGENT_PROMPT)
-    .delegate(flight_search_agent)
-    .delegate(flight_seat_selection_agent)
-    .delegate(hotel_search_agent)
-    .delegate(hotel_room_selection_agent)
-    .delegate(itinerary_agent)
+    .agent_tool(flight_search_agent)
+    .agent_tool(flight_seat_selection_agent)
+    .agent_tool(hotel_search_agent)
+    .agent_tool(hotel_room_selection_agent)
+    .agent_tool(itinerary_agent)
     .tool(memorize)
     .generate_content_config(GenerateContentConfig(temperature=0.1, top_p=0.5))
 )
@@ -546,9 +546,9 @@ booking_agent = (
     Agent("booking_agent", MODEL)
     .describe("Given an itinerary, complete the bookings of items by handling payment choices and processing.")
     .instruct(BOOKING_AGENT_PROMPT)
-    .delegate(create_reservation)
-    .delegate(payment_choice)
-    .delegate(process_payment)
+    .agent_tool(create_reservation)
+    .agent_tool(payment_choice)
+    .agent_tool(process_payment)
     .generate_content_config(GenerateContentConfig(temperature=0.0, top_p=0.5))
 )
 
@@ -569,8 +569,8 @@ what_to_pack_agent = (
     .instruct(WHATTOPACK_PROMPT)
     .disallow_transfer_to_parent(True)
     .disallow_transfer_to_peers(True)
-    .save_as("what_to_pack")
-    .output_schema(PackingList)
+    .writes("what_to_pack")
+    .returns(PackingList)
 )
 
 pre_trip_agent = (
@@ -581,7 +581,7 @@ pre_trip_agent = (
     )
     .instruct(PRETRIP_AGENT_PROMPT)
     .tool(AgentTool(agent=google_search_grounding.build()))
-    .delegate(what_to_pack_agent)
+    .agent_tool(what_to_pack_agent)
 )
 
 # ===================================================================
@@ -601,7 +601,7 @@ trip_monitor_agent = (
     .tool(flight_status_check)
     .tool(event_booking_check)
     .tool(weather_impact_check)
-    .save_as("daily_checks")
+    .writes("daily_checks")
 )
 
 in_trip_agent = (
@@ -609,7 +609,7 @@ in_trip_agent = (
     .describe("Provide information about what the users need as part of the tour.")
     .instruct(INTRIP_AGENT_PROMPT)
     .sub_agents([trip_monitor_agent.build()])
-    .delegate(day_of_agent)
+    .agent_tool(day_of_agent)
     .tool(memorize)
 )
 

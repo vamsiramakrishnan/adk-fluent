@@ -75,8 +75,8 @@ root_agent = code_pipeline_agent
 from adk_fluent import Agent
 
 root_agent = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write Python code.").outputs("generated_code")
-    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review: {generated_code}").outputs("review_comments")
+    Agent("writer").model("gemini-2.5-flash").instruct("Write Python code.").writes("generated_code")
+    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review: {generated_code}").writes("review_comments")
     >> Agent("refactorer").model("gemini-2.5-flash").instruct("Refactor: {generated_code} per {review_comments}")
 ).build()
 ```
@@ -213,8 +213,8 @@ The exit mechanism works, but it's an *implementation pattern* — you're encodi
 ```python
 # adk-fluent: Same topology, declarative exit condition
 
-writer = Agent("writer").instruct("Write a draft.").outputs("draft")
-critic = Agent("critic").instruct("Review {draft}. Rate quality.").outputs("quality")
+writer = Agent("writer").instruct("Write a draft.").writes("draft")
+critic = Agent("critic").instruct("Review {draft}. Rate quality.").writes("quality")
 
 # Deterministic exit: predicate on state, not LLM tool-calling behavior
 pipeline = (
@@ -231,10 +231,10 @@ For the full pattern — parallel fetch, then route, then conditional refinement
 from adk_fluent import Agent, S, Route
 
 pipeline = (
-    (Agent("api1").instruct("Fetch API 1.").outputs("api1_data")
-     | Agent("api2").instruct("Fetch API 2.").outputs("api2_data"))
+    (Agent("api1").instruct("Fetch API 1.").writes("api1_data")
+     | Agent("api2").instruct("Fetch API 2.").writes("api2_data"))
     >> S.merge("api1_data", "api2_data", into="combined")
-    >> Agent("classifier").instruct("Classify: {combined}").outputs("intent")
+    >> Agent("classifier").instruct("Classify: {combined}").writes("intent")
     >> Route("intent")
         .eq("billing", Agent("billing").instruct("Handle billing: {combined}"))
         .eq("technical", Agent("tech").instruct("Handle tech: {combined}"))
@@ -275,7 +275,7 @@ Both work. Neither is discoverable. Neither is composable with `>>`. Neither exp
 # adk-fluent: Zero-cost transforms compose naturally
 
 pipeline = (
-    Agent("researcher").instruct("Research.").outputs("findings")
+    Agent("researcher").instruct("Research.").writes("findings")
     >> S.pick("findings", "sources")                         # Drop everything else
     >> S.rename(findings="research_data")                    # Rename for downstream
     >> S.default(confidence=0.0, draft_count=0)              # Fill defaults
@@ -325,7 +325,7 @@ This is 15 lines of boilerplate for an `if/elif/else`. Every team writes this. E
 # adk-fluent: Deterministic routing as a first-class primitive
 
 pipeline = (
-    Agent("classifier").instruct("Classify intent.").outputs("intent")
+    Agent("classifier").instruct("Classify intent.").writes("intent")
     >> Route("intent")
         .eq("billing", billing_agent)
         .eq("technical", tech_agent)

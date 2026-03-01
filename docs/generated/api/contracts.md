@@ -20,7 +20,7 @@ Analyze an IR tree for contract violations. Returns a list of issues (strings or
 from adk_fluent.testing import check_contracts
 
 pipeline = (
-    Agent("classifier").outputs("intent")
+    Agent("classifier").writes("intent")
     >> Agent("handler").instruct("Handle: {intent}")
 )
 issues = check_contracts(pipeline.to_ir())
@@ -34,7 +34,7 @@ The checker runs 7 analysis passes:
 | Pass                    | What it checks                                |
 | ----------------------- | --------------------------------------------- |
 | 1. Reads/Writes         | State keys read and written by each agent     |
-| 2. Output keys          | Keys declared via `.outputs()`                |
+| 2. Output keys          | Keys declared via `.writes()`                 |
 | 3. Template variables   | `{key}` placeholders in instructions          |
 | 4. Channel duplication  | Same key used across multiple channels        |
 | 5. Route keys           | Route dispatch keys exist in upstream outputs |

@@ -22,7 +22,7 @@ resume_writer = (
         "Write or improve a professional resume based on the candidate's "
         "experience. Incorporate feedback from previous reviews."
     )
-    .save_as("quality_score")
+    .writes("quality_score")
 )
 resume_reviewer = (
     Agent("resume_reviewer")
@@ -48,7 +48,7 @@ cover_letter_loop = (
         Agent("tone_checker")
         .model("gemini-2.5-flash")
         .instruct("Check the cover letter tone. Set 'tone_approved' to 'yes' when professional.")
-        .save_as("tone_approved")
+        .writes("tone_approved")
     )
     .until(lambda s: s.get("tone_approved") == "yes")
     .max_iterations(10)

@@ -386,8 +386,7 @@ class BuilderBase:
             output_key = self._config.get("output_key")
             if not output_key:
                 raise ValueError(
-                    "Left side of >> dict must have .writes() set "
-                    "so the router knows which state key to check."
+                    "Left side of >> dict must have .writes() set so the router knows which state key to check."
                 )
             route = Route(output_key)
             for value, agent_builder in other.items():

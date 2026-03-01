@@ -2,9 +2,9 @@
 
 Agents that return free-form text are fine for chat, but production pipelines need predictable data. A classifier must emit a category string that a router can branch on. An extraction step must produce a JSON object that a downstream formatter can render. adk-fluent provides three complementary mechanisms for structured data flow: storing output in session state, enforcing typed output schemas, and declaring input schemas for tool-invoked agents.
 
-## Storing Output in State: `.save_as(key)`
+## Storing Output in State: `.writes(key)`
 
-`.save_as(key)` is an alias for ADK's `output_key`. When an agent finishes, its response text is written to session state under the given key. Other agents can then read that value through template variable substitution in their instructions.
+`.writes(key)` is an alias for ADK's `output_key`. When an agent finishes, its response text is written to session state under the given key. Other agents can then read that value through template variable substitution in their instructions.
 
 ### Basic usage
 
@@ -14,7 +14,7 @@ from adk_fluent import Agent
 classifier = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the customer inquiry as one of: billing, technical, account, general.")
-    .save_as("category")
+    .writes("category")
 )
 ```
 
@@ -41,13 +41,13 @@ from adk_fluent import Agent
 pipeline = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the support ticket as: billing, technical, or account.")
-    .save_as("category")
+    .writes("category")
     >> Agent("resolver", "gemini-2.5-flash")
     .instruct(
         "You handle {category} issues. "
         "Investigate the customer's problem and provide a resolution."
     )
-    .save_as("resolution")
+    .writes("resolution")
     >> Agent("summarizer", "gemini-2.5-flash")
     .instruct("Summarize the resolution for the customer: {resolution}")
 )
@@ -92,9 +92,9 @@ pipeline = SequentialAgent(
 )
 ```
 
-## Typed Output: `.output_schema()` and `@ Schema`
+## Typed Output: `.returns()` and `@ Schema`
 
-When you need the LLM to return structured JSON rather than free text, use `.output_schema()` with a Pydantic model. The LLM is constrained to respond **only** with JSON matching the schema -- no prose, no markdown, just data.
+When you need the LLM to return structured JSON rather than free text, use `.returns()` with a Pydantic model. The LLM is constrained to respond **only** with JSON matching the schema -- no prose, no markdown, just data.
 
 ```{important}
 When `output_schema` is set, the agent **cannot use tools**. ADK enforces this because structured output mode changes how the model generates responses. If you need both tool use and structured output, split them into separate agents in a pipeline.
@@ -114,14 +114,14 @@ class Invoice(BaseModel):
 
 Field descriptions are passed to the LLM as part of the schema, helping it fill fields accurately.
 
-### Builder style: `.output_schema()`
+### Builder style: `.returns()`
 
 ```python
 extractor = (
     Agent("invoice_extractor", "gemini-2.5-flash")
     .instruct("Extract invoice details from the provided document text.")
-    .output_schema(Invoice)
-    .save_as("invoice_data")
+    .returns(Invoice)
+    .writes("invoice_data")
 )
 ```
 
@@ -138,21 +138,21 @@ The agent will respond with a JSON object like:
 
 ### Expression style: `@ Schema`
 
-The `@` operator is shorthand for `.output_schema()`, designed for concise expression chains:
+The `@` operator is shorthand for `.returns()`, designed for concise expression chains:
 
 ```python
 extractor = (
     Agent("invoice_extractor", "gemini-2.5-flash")
     .instruct("Extract invoice details from the provided document text.")
-    .save_as("invoice_data")
+    .writes("invoice_data")
 ) @ Invoice
 ```
 
-Both forms produce identical results. Use `@` in operator expressions where brevity matters; use `.output_schema()` in explicit builder chains where readability is the priority.
+Both forms produce identical results. Use `@` in operator expressions where brevity matters; use `.returns()` in explicit builder chains where readability is the priority.
 
-### Combining with `.save_as(key)`
+### Combining with `.writes(key)`
 
-When both `.output_schema()` and `.save_as(key)` are set, the structured JSON response is stored in session state under the given key. This is the recommended pattern for structured pipelines:
+When both `.returns()` and `.writes(key)` are set, the structured JSON response is stored in session state under the given key. This is the recommended pattern for structured pipelines:
 
 ```python
 from pydantic import BaseModel, Field
@@ -166,8 +166,8 @@ class SentimentResult(BaseModel):
 analyzer = (
     Agent("sentiment_analyzer", "gemini-2.5-flash")
     .instruct("Analyze the sentiment of the provided customer review.")
-    .output_schema(SentimentResult)
-    .save_as("sentiment")
+    .returns(SentimentResult)
+    .writes("sentiment")
 )
 ```
 
@@ -187,9 +187,9 @@ extractor = LlmAgent(
 )
 ```
 
-## Input Schema: `.input_schema()`
+## Input Schema: `.accepts()`
 
-`.input_schema()` defines the expected input structure when an agent is invoked as a tool by another agent. This is less commonly used than `output_schema`, but it matters in coordinator/delegate patterns where one agent calls another as a tool.
+`.accepts()` defines the expected input structure when an agent is invoked as a tool by another agent. This is less commonly used than `returns`, but it matters in coordinator/agent_tool patterns where one agent calls another as a tool.
 
 ```python
 from pydantic import BaseModel, Field
@@ -208,12 +208,12 @@ class CompanyInfo(BaseModel):
 lookup_agent = (
     Agent("company_lookup", "gemini-2.5-flash")
     .instruct("Look up the requested company information and return structured data.")
-    .input_schema(LookupRequest)
-    .output_schema(CompanyInfo)
+    .accepts(LookupRequest)
+    .returns(CompanyInfo)
 )
 ```
 
-When a coordinator agent delegates to `lookup_agent`, it knows what arguments to provide (`LookupRequest`) and what structured response to expect (`CompanyInfo`).
+When a coordinator agent invokes `lookup_agent` as an agent_tool, it knows what arguments to provide (`LookupRequest`) and what structured response to expect (`CompanyInfo`).
 
 ## State Access Patterns
 
@@ -225,8 +225,8 @@ The simplest pattern is `{key}` substitution. The entire value stored at that ke
 pipeline = (
     Agent("extractor", "gemini-2.5-flash")
     .instruct("Extract the order details.")
-    .output_schema(OrderDetails)
-    .save_as("order")
+    .returns(OrderDetails)
+    .writes("order")
     >> Agent("fulfillment", "gemini-2.5-flash")
     .instruct("Process this order for fulfillment: {order}")
 )
@@ -278,7 +278,7 @@ fulfillment = (
 
 ### Pattern: classifier drives deterministic routing
 
-A common architecture pairs `.save_as()` with deterministic routing. The classifier stores its result, and a `Route` (or dict shorthand) branches without any additional LLM call:
+A common architecture pairs `.writes()` with deterministic routing. The classifier stores its result, and a `Route` (or dict shorthand) branches without any additional LLM call:
 
 ```python
 from adk_fluent import Agent
@@ -287,7 +287,7 @@ from adk_fluent._routing import Route
 classifier = (
     Agent("classifier", "gemini-2.5-flash")
     .instruct("Classify the request as: refund, exchange, or inquiry.")
-    .save_as("request_type")
+    .writes("request_type")
 )
 
 refund_agent = Agent("refund", "gemini-2.5-flash").instruct("Process the refund request.")
@@ -345,8 +345,8 @@ pipeline = (
         "Extract the key details from the provided contract document. "
         "Identify all parties, dates, financial terms, obligations, and jurisdiction."
     )
-    .output_schema(ContractDetails)
-    .save_as("contract")
+    .returns(ContractDetails)
+    .writes("contract")
 
     # Step 2: Assess risk based on extracted data
     >> Agent("risk_assessor", "gemini-2.5-flash")
@@ -356,8 +356,8 @@ pipeline = (
         "Consider: value concentration, termination clauses, jurisdiction risks, "
         "and obligation imbalances."
     )
-    .output_schema(RiskAssessment)
-    .save_as("risk")
+    .returns(RiskAssessment)
+    .writes("risk")
 
     # Step 3: Produce a human-readable summary
     >> Agent("summarizer", "gemini-2.5-flash")

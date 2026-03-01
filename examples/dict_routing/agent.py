@@ -18,7 +18,7 @@ classifier = (
     Agent("classify")
     .model("gemini-2.5-flash")
     .instruct("Classify the user request as 'booking', 'info', or 'complaint'.")
-    .save_as("intent")  # alias for .output_key("intent")
+    .writes("intent")  # alias for .writes("intent")
 )
 
 # Step 2: Dict >> creates deterministic routing (zero LLM calls for routing)

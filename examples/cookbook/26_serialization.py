@@ -19,7 +19,7 @@ ticket_router = (
         "Classify incoming support tickets by urgency (P0-P3) and "
         "route to the appropriate engineering team based on the product area."
     )
-    .output_key("routing_decision")
+    .writes("routing_decision")
 )
 
 # Serialize to dict — inspect config in deployment dashboards

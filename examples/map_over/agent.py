@@ -31,7 +31,7 @@ custom_mapper = map_over(
 
 # map_over in a pipeline
 pipeline = (
-    Agent("fetcher").model("gemini-2.5-flash").instruct("Fetch documents.").save_as("documents")
+    Agent("fetcher").model("gemini-2.5-flash").instruct("Fetch documents.").writes("documents")
     >> map_over("documents", Agent("summarizer").model("gemini-2.5-flash").instruct("Summarize."))
     >> Agent("compiler").model("gemini-2.5-flash").instruct("Compile summaries.")
 )

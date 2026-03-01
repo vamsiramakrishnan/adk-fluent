@@ -125,20 +125,20 @@ All four combinations of the two flags, the fluent shorthand that sets them, and
 
 Agents can be connected in several ways depending on the execution pattern you need. This table summarizes the builder methods for adding agents to different topologies:
 
-| Builder    | Method              | What it does                                       |
-| ---------- | ------------------- | -------------------------------------------------- |
-| `Pipeline` | `.step(agent)`      | Add a sequential step                              |
-| `FanOut`   | `.branch(agent)`    | Add a parallel branch                              |
-| `Loop`     | `.step(agent)`      | Add a repeating step                               |
-| `Agent`    | `.sub_agent(agent)` | Add a child agent (transfer-based, LLM decides)    |
-| `Agent`    | `.delegate(agent)`  | Add as a tool (wrapped in `AgentTool`, LLM-routed) |
+| Builder    | Method               | What it does                                       |
+| ---------- | -------------------- | -------------------------------------------------- |
+| `Pipeline` | `.step(agent)`       | Add a sequential step                              |
+| `FanOut`   | `.branch(agent)`     | Add a parallel branch                              |
+| `Loop`     | `.step(agent)`       | Add a repeating step                               |
+| `Agent`    | `.sub_agent(agent)`  | Add a child agent (transfer-based, LLM decides)    |
+| `Agent`    | `.agent_tool(agent)` | Add as a tool (wrapped in `AgentTool`, LLM-routed) |
 
-`.sub_agent()` and `.delegate()` both let a parent agent invoke a child, but they differ in mechanism:
+`.sub_agent()` and `.agent_tool()` both let a parent agent invoke a child, but they differ in mechanism:
 
 - **`.sub_agent(agent)`** registers the child as a transfer target. The LLM sees a `transfer_to_agent` tool with the child's name in the enum. Control fully transfers to the child agent.
-- **`.delegate(agent)`** wraps the child in an `AgentTool`. The parent LLM calls it like any other tool -- it sends input, gets a response, and stays in control. Use this when the parent needs to orchestrate multiple tool calls in a single turn.
+- **`.agent_tool(agent)`** wraps the child in an `AgentTool`. The parent LLM calls it like any other tool -- it sends input, gets a response, and stays in control. Use this when the parent needs to orchestrate multiple tool calls in a single turn.
 
-> **Note on `.save_as()`:** If your agents need to pass results through session state, use `.save_as("key")` to store an agent's response text under a state key. This replaces the older `.outputs("key")` method, which is now deprecated. The new name reads more clearly: `agent.save_as("summary")` means "save this agent's response as `summary` in session state."
+> **Note on `.writes()`:** If your agents need to pass results through session state, use `.writes("key")` to store an agent's response text under a state key. The name reads clearly: `agent.writes("summary")` means "this agent writes its response as `summary` in session state."
 
 ## Common Patterns
 

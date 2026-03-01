@@ -130,11 +130,11 @@ smoke-tested inline before deployment to ensure it handles common
 queries correctly. No LLM calls are made here -- we verify that
 the builder exposes the test API with the right signature.\](11_inline_testing.md)
 
-- \[Medical Advice Safety Guardrails -- Guardrails with .guardrail()
+- \[Medical Advice Safety Guards -- Guards with .guard()
 
-Demonstrates the .guardrail() method that registers a function as
+Demonstrates the .guard() method that registers a function as
 both a before_model and after_model callback in one call. The
-scenario: a medical information agent with safety guardrails that
+scenario: a medical information agent with safety guards that
 screen requests and responses for dangerous self-diagnosis or
 treatment recommendations.\](12_guardrails.md)
 
@@ -314,7 +314,7 @@ Gemini's Deep Research feature and Perplexity. A query is decomposed
 into sub-questions, searched in parallel across multiple sources,
 synthesized, quality-reviewed in a loop, and formatted as a report.
 
-Uses: >>, |, *, @, S.*, C.\*, save_as, loop_until\](55_deep_research.md)
+Uses: >>, |, *, @, S.*, C.\*, writes, loop_until\](55_deep_research.md)
 
 - \[Customer Support Triage -- ADK-Samples Inspired Multi-Tier Support
 
@@ -322,7 +322,7 @@ Demonstrates building a customer support triage system inspired by
 real call center architectures and Google's ADK agent samples. Uses
 state capture, context engineering, routing, and escalation gates.
 
-Uses: S.capture, C.none, C.from_state, Route, gate, save_as\](56_customer_support_triage.md)
+Uses: S.capture, C.none, C.from_state, Route, gate, writes\](56_customer_support_triage.md)
 
 - \[Code Review Agent -- Gemini CLI / GitHub Copilot Inspired
 
@@ -331,7 +331,7 @@ Gemini CLI's code review and GitHub Copilot's review features.
 Uses parallel fan-out for concurrent analysis, typed output for
 structured findings, and conditional gating.
 
-Uses: >>, |, @, proceed_if, save_as, tap\](57_code_review_agent.md)
+Uses: >>, |, @, proceed_if, writes, tap\](57_code_review_agent.md)
 
 - \[Multi-Tool Task Agent -- Manus / OpenAI Agents SDK Inspired
 
@@ -339,7 +339,7 @@ Demonstrates building a versatile task agent with multiple tools,
 safety guardrails, and dependency injection -- inspired by Manus AI's
 tool-using agent and the OpenAI Agents SDK patterns.
 
-Uses: .tool(), .guardrail(), .inject(), .sub_agent(), .context()\](58_multi_tool_agent.md)
+Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()\](58_multi_tool_agent.md)
 
 ```{toctree}
 ---

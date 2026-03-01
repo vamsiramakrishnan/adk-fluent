@@ -288,7 +288,7 @@ agent_with_extras = (
     Agent("dynamic")
     .model("gemini-2.5-flash")
     .instruct("test")
-    .output_key("result")  # forwarded via __getattr__
+    .writes("result")  # forwarded via __getattr__
     .include_contents("none")  # forwarded via __getattr__
     .build()
 )

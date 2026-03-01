@@ -614,16 +614,11 @@ class TestStaticAlias:
 
 class TestInjectContext:
     def test_inject_context_adds_before_model_callback(self):
-        builder = Agent("test").model("gemini-2.5-flash").inject_context(lambda ctx: "extra context")
+        builder = Agent("test").model("gemini-2.5-flash").prepend(lambda ctx: "extra context")
         assert len(builder._callbacks["before_model_callback"]) == 1
 
     def test_inject_context_chains(self):
-        builder = (
-            Agent("test")
-            .model("gemini-2.5-flash")
-            .inject_context(lambda ctx: "first")
-            .inject_context(lambda ctx: "second")
-        )
+        builder = Agent("test").model("gemini-2.5-flash").prepend(lambda ctx: "first").prepend(lambda ctx: "second")
         assert len(builder._callbacks["before_model_callback"]) == 2
 
     def test_inject_context_with_instruct(self):
@@ -631,7 +626,7 @@ class TestInjectContext:
             Agent("test")
             .model("gemini-2.5-flash")
             .instruct("Main instruction.")
-            .inject_context(lambda ctx: "Dynamic context.")
+            .prepend(lambda ctx: "Dynamic context.")
         )
         agent = builder.build()
         assert agent.instruction == "Main instruction."
@@ -641,6 +636,6 @@ class TestInjectContext:
         def my_guardrail(ctx, req):
             pass
 
-        builder = Agent("test").model("gemini-2.5-flash").guardrail(my_guardrail).inject_context(lambda ctx: "extra")
+        builder = Agent("test").model("gemini-2.5-flash").guard(my_guardrail).prepend(lambda ctx: "extra")
         assert len(builder._callbacks["before_model_callback"]) == 2
         assert len(builder._callbacks["after_model_callback"]) == 1

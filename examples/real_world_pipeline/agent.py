@@ -28,7 +28,7 @@ production = Preset(model="gemini-2.5-flash", after_model=audit_log)
 classifier = (
     Agent("classifier")
     .instruct("Classify user request as 'simple', 'complex', or 'creative'.")
-    .save_as("intent")
+    .writes("intent")
     .use(production)
 )
 
@@ -44,7 +44,7 @@ creative_handler = (
 
 # Step 3: Quality check loop
 quality_loop = (
-    Agent("reviewer").instruct("Review output quality.").save_as("quality").use(production)
+    Agent("reviewer").instruct("Review output quality.").writes("quality").use(production)
     >> Agent("improver").instruct("Improve if needed.").use(production)
 ).loop_until(lambda s: s.get("quality") == "good", max_iterations=3)
 

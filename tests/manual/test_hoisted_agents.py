@@ -97,11 +97,11 @@ def test_race_agent_same_type_across_builds():
 def test_timeout_agent_same_type_across_builds():
     """Two timeout builds should produce agents of the same type."""
     from adk_fluent import Agent
-    from adk_fluent._base import _TimeoutBuilder
+    from adk_fluent._primitive_builders import TimedAgent
 
     child = Agent("c")
-    a1 = _TimeoutBuilder("to1", _agent=child, _seconds=5.0).build()
-    a2 = _TimeoutBuilder("to2", _agent=child, _seconds=5.0).build()
+    a1 = TimedAgent("to1", _agent=child, _seconds=5.0).build()
+    a2 = TimedAgent("to2", _agent=child, _seconds=5.0).build()
     assert type(a1) is type(a2)
 
 

@@ -59,7 +59,7 @@ def test_context_spec_in_pipeline_children():
     """context_spec preserved on children within a pipeline."""
     from adk_fluent import Agent, C
 
-    pipeline = Agent("a").outputs("x") >> Agent("b").context(C.user_only())
+    pipeline = Agent("a").writes("x") >> Agent("b").context(C.user_only())
     ir = pipeline.to_ir()
     child_b = ir.children[1]
     assert child_b.context_spec is not None

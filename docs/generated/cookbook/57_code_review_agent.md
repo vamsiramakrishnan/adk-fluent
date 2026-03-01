@@ -64,7 +64,7 @@ diff_parser = (
         "For each file, extract the changed lines with surrounding context. "
         "Identify the programming language and framework."
     )
-    .save_as("parsed_changes")
+    .writes("parsed_changes")
 )
 
 # Stage 2: Three parallel review passes
@@ -78,7 +78,7 @@ style_review = (
         "- Missing docstrings and type hints\n"
         "- Dead code and unused imports"
     )
-    .save_as("style_findings")
+    .writes("style_findings")
 )
 
 security_review = (
@@ -91,7 +91,7 @@ security_review = (
         "- Missing input validation\n"
         "- Insecure deserialization"
     )
-    .save_as("security_findings")
+    .writes("security_findings")
 )
 
 logic_review = (
@@ -104,7 +104,7 @@ logic_review = (
         "- Race conditions in concurrent code\n"
         "- Off-by-one errors in loops"
     )
-    .save_as("logic_findings")
+    .writes("logic_findings")
 )
 
 # Stage 3: Aggregate findings into structured result

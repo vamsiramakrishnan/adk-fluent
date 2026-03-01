@@ -275,7 +275,7 @@ This composes naturally with the expression algebra:
 
 ```python
 pipeline = (
-    Agent("classifier").instruct("Classify.").save_as("topic")
+    Agent("classifier").instruct("Classify.").writes("topic")
     >> S.default(style="professional")
     >> Agent("writer").instruct("Write about {topic} in a {style} tone.")
 )
@@ -308,9 +308,9 @@ agent = (
     Agent("support")
     .model("gemini-2.5-flash")
     .instruct("Help the customer.")
-    .inject_context(lambda ctx: f"Customer: {ctx.state.get('customer_name', 'unknown')}")
-    .inject_context(lambda ctx: f"Plan: {ctx.state.get('plan', 'free')}")
+    .prepend(lambda ctx: f"Customer: {ctx.state.get('customer_name', 'unknown')}")
+    .prepend(lambda ctx: f"Plan: {ctx.state.get('plan', 'free')}")
 )
 ```
 
-Each `.inject_context()` call accumulates. The function receives the callback context and returns a string that gets prepended as content before the LLM processes the request.
+Each `.prepend()` call accumulates. The function receives the callback context and returns a string that gets prepended as content before the LLM processes the request.

@@ -25,7 +25,8 @@ Key concepts:
 
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline, dispatch, join
-from adk_fluent._base import _DispatchBuilder, _JoinBuilder, BuilderBase
+from adk_fluent._primitive_builders import BackgroundTask, _JoinBuilder
+from adk_fluent._base import BuilderBase
 
 # Scenario: A content publishing pipeline that fires off email notification
 # and SEO optimization in the background while the main pipeline continues
@@ -93,9 +94,9 @@ progress_pipeline = (
 
 # --- ASSERT ---
 
-# dispatch() creates a _DispatchBuilder
+# dispatch() creates a BackgroundTask
 d = dispatch(email_sender, seo_optimizer)
-assert isinstance(d, _DispatchBuilder)
+assert isinstance(d, BackgroundTask)
 assert isinstance(d, BuilderBase)
 
 # join() creates a _JoinBuilder
@@ -120,14 +121,14 @@ assert auto_d._task_names == ("email_sender", "seo_optimizer")
 
 # .dispatch() method works on any builder
 bg = email_sender.dispatch(name="bg_email")
-assert isinstance(bg, _DispatchBuilder)
+assert isinstance(bg, BackgroundTask)
 built_bg = bg.build()
 assert len(built_bg.sub_agents) == 1
 assert built_bg._task_names == ("bg_email",)
 
 # Pipeline .dispatch() works (dispatch a whole pipeline)
 pipeline_bg = (writer >> formatter).dispatch(name="content_pipeline")
-assert isinstance(pipeline_bg, _DispatchBuilder)
+assert isinstance(pipeline_bg, BackgroundTask)
 
 # join with timeout
 j_timeout = join(timeout=30)

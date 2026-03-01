@@ -85,7 +85,7 @@ def test_explain_shows_produces_consumes():
 
 
 def test_explain_shows_output_key():
-    result = Agent("a").outputs("result").explain()
+    result = Agent("a").writes("result").explain()
     assert "result" in result
 
 
@@ -129,7 +129,7 @@ def test_explain_shows_contract_issues_in_pipeline():
 
 
 def test_explain_pipeline_clean():
-    pipeline = Agent("a").instruct("Write.").outputs("draft") >> Agent("b").instruct("Review the {draft}.")
+    pipeline = Agent("a").instruct("Write.").writes("draft") >> Agent("b").instruct("Review the {draft}.")
     result = pipeline.explain()
     # draft is produced, so no error about it
     assert "ERROR" not in result or "draft" not in result.split("ERROR")[1] if "ERROR" in result else True

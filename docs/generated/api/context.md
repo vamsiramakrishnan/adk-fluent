@@ -60,9 +60,9 @@ Render a template string with `{key}` placeholders filled from session state. Se
 
 - `template` — Template string with `{key}` placeholders
 
-### `C.capture(key) -> Callable`
+### `S.capture(key) -> Callable`
 
-Capture the user's most recent message into session state under the given key. Delegates to `S.capture(key)`.
+Capture the user's most recent message into session state under the given key.
 
 **Parameters:**
 

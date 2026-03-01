@@ -368,10 +368,10 @@ LlmAgentConfig(name: str, instruction: str)
 - **Maps to:** `instruction`
 - Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content.
 
-#### `.outputs(value: Union[str, NoneType]) -> Self`
+#### `.writes(value: Union[str, NoneType]) -> Self`
 
 - **Maps to:** `output_key`
-- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key. Alias: `.outputs(key)`.
+- Session state key where the agent's response text is stored. Downstream agents and state transforms can read this key.
 
 #### `.static(value: Union[Content, str, File, Part, list[Union[str, File, Part]], NoneType]) -> Self`
 
@@ -442,8 +442,8 @@ These fields are available via `__getattr__` forwarding.
 | `.model_code(value)`                  | `Union[CodeConfig, NoneType]`            |
 | `.disallow_transfer_to_parent(value)` | `Union[bool, NoneType]`                  |
 | `.disallow_transfer_to_peers(value)`  | `Union[bool, NoneType]`                  |
-| `.input_schema(value)`                | `Union[CodeConfig, NoneType]`            |
-| `.output_schema(value)`               | `Union[CodeConfig, NoneType]`            |
+| `.accepts(value)`                     | `Union[CodeConfig, NoneType]`            |
+| `.returns(value)`                     | `Union[CodeConfig, NoneType]`            |
 | `.tools(value)`                       | `Union[list[ToolConfig], NoneType]`      |
 | `.before_model_callbacks(value)`      | `Union[list[CodeConfig], NoneType]`      |
 | `.after_model_callbacks(value)`       | `Union[list[CodeConfig], NoneType]`      |

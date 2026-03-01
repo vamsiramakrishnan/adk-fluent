@@ -18,7 +18,7 @@ coordinator_native = LlmAgent(
     name="tech_lead",
     model="gemini-2.5-flash",
     instruction=(
-        "You are a senior tech lead. Analyze architecture requests and delegate to the appropriate specialist."
+        "You are a senior tech lead. Analyze architecture requests and agent_tool to the appropriate specialist."
     ),
     tools=[AgentTool(agent=database_specialist)],
 )
@@ -45,22 +45,22 @@ frontend_expert = (
     )
 )
 
-# .delegate() wraps each agent as AgentTool — the senior architect's LLM
-# decides when to delegate (LLM-driven routing, unlike Route which is deterministic)
+# .agent_tool() wraps each agent as AgentTool — the senior architect's LLM
+# decides when to agent_tool (LLM-driven routing, unlike Route which is deterministic)
 senior_architect = (
     Agent("senior_architect")
     .model("gemini-2.5-flash")
     .instruct(
         "You are a senior software architect. Analyze incoming architecture "
-        "requests and delegate to the appropriate specialist based on the "
+        "requests and agent_tool to the appropriate specialist based on the "
         "technical domain involved."
     )
-    .delegate(db_expert)
-    .delegate(frontend_expert)
+    .agent_tool(db_expert)
+    .agent_tool(frontend_expert)
 )
 
 # --- ASSERT ---
-# delegate adds to tools list
+# agent_tool adds to tools list
 assert len(senior_architect._lists["tools"]) == 2
 
 # Each tool is an AgentTool wrapping the built specialist

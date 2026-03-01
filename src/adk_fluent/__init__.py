@@ -341,6 +341,7 @@ __all__ = [
     "run_map_async",
     "StateKey",
     "Artifact",
+    "_add_artifacts",
     "_add_tool",
     "_add_tools",
     "_agent_to_ir",
@@ -575,6 +576,7 @@ from ._helpers import run_map
 from ._helpers import run_map_async
 from ._helpers import StateKey
 from ._helpers import Artifact
+from ._helpers import _add_artifacts
 from ._helpers import _add_tool
 from ._helpers import _add_tools
 from ._helpers import _agent_to_ir

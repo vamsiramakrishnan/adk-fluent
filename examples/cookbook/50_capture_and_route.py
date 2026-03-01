@@ -41,7 +41,7 @@ helpdesk = (
         "Ticket: {ticket}\n"
         "Output the priority level: p1, p2, or p3."
     )
-    .save_as("priority")
+    .writes("priority")
     >> Route("priority")
     .eq(
         "p1",

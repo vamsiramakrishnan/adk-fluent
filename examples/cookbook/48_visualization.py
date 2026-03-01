@@ -21,7 +21,7 @@ triage = (
     Agent("alert_ingestor")
     .model("gemini-2.5-flash")
     .instruct("Ingest alert from PagerDuty/OpsGenie and extract severity, service, and description.")
-    .save_as("alert_data")
+    .writes("alert_data")
 )
 
 # Stage 2: Parallel diagnosis from multiple sources

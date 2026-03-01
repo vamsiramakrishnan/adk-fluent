@@ -47,7 +47,7 @@ pipeline = (
 
 # @ preserves all existing config
 detailed = (
-    Agent("analyst").model("gemini-2.5-flash").instruct("Analyze data thoroughly.").save_as("analysis") @ ReportSchema
+    Agent("analyst").model("gemini-2.5-flash").instruct("Analyze data thoroughly.").writes("analysis") @ ReportSchema
 )
 
 root_agent = detailed.build()

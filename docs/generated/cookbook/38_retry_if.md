@@ -26,35 +26,35 @@ from adk_fluent import Agent, Loop
 # Transient failures (timeouts, rate limits) should trigger automatic retries,
 # but permanent failures (invalid card) should stop immediately.
 
-# .retry_if(): keep retrying while the predicate returns True
+# .loop_while(): keep retrying while the predicate returns True
 payment_processor = (
     Agent("payment_processor")
     .model("gemini-2.5-flash")
     .instruct(
         "Process the payment through the gateway. Report status as 'success', 'transient_error', or 'permanent_error'."
     )
-    .save_as("payment_status")
-    .retry_if(lambda s: s.get("payment_status") == "transient_error", max_retries=3)
+    .writes("payment_status")
+    .loop_while(lambda s: s.get("payment_status") == "transient_error", max_iterations=3)
 )
 
-# retry_if on a pipeline -- retry the entire charge-then-verify flow
+# loop_while on a pipeline -- retry the entire charge-then-verify flow
 charge_and_verify = (
     Agent("charge_agent")
     .model("gemini-2.5-flash")
     .instruct("Submit charge to payment gateway.")
-    .save_as("charge_result")
+    .writes("charge_result")
     >> Agent("verification_agent")
     .model("gemini-2.5-flash")
     .instruct("Verify the charge was recorded by the bank.")
-    .save_as("verified")
-).retry_if(lambda s: s.get("verified") != "confirmed", max_retries=5)
+    .writes("verified")
+).loop_while(lambda s: s.get("verified") != "confirmed", max_iterations=5)
 
-# Equivalence: retry_if(p) == loop_until(not p)
+# Equivalence: loop_while(p) == loop_until(not p)
 # These produce identical behavior for an inventory sync agent:
 via_retry = (
     Agent("inventory_sync")
     .model("gemini-2.5-flash")
-    .retry_if(lambda s: s.get("sync_status") != "complete", max_retries=4)
+    .loop_while(lambda s: s.get("sync_status") != "complete", max_iterations=4)
 )
 via_loop = (
     Agent("inventory_sync")
@@ -71,7 +71,7 @@ via_loop = (
 ```python
 from adk_fluent.workflow import Loop as LoopBuilder
 
-# retry_if creates a Loop builder
+# loop_while creates a Loop builder
 assert isinstance(payment_processor, LoopBuilder)
 
 # max_retries maps to max_iterations
@@ -81,12 +81,12 @@ assert payment_processor._config["max_iterations"] == 3
 assert isinstance(charge_and_verify, LoopBuilder)
 assert charge_and_verify._config["max_iterations"] == 5
 
-# The predicate is inverted: retry_if(p) stores not-p as until_predicate
+# The predicate is inverted: loop_while(p) stores not-p as until_predicate
 until_pred = payment_processor._config["_until_predicate"]
 assert until_pred({"payment_status": "success"}) is True  # exit: stop retrying
 assert until_pred({"payment_status": "transient_error"}) is False  # continue retrying
 
-# Both retry_if and loop_until produce Loop builders with identical structure
+# Both loop_while and loop_until produce Loop builders with identical structure
 assert isinstance(via_retry, LoopBuilder)
 assert isinstance(via_loop, LoopBuilder)
 assert via_retry._config["max_iterations"] == via_loop._config["max_iterations"]
