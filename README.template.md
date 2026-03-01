@@ -241,6 +241,46 @@ pipeline_1 = review >> agent_c  # Independent
 pipeline_2 = review >> agent_d  # Independent
 ```
 
+### How Operators Map to Agent Trees
+
+```
+Expression:   a >> (b | c) * 3
+
+Agent tree:
+  SequentialAgent
+  +-- a (LlmAgent)
+  +-- LoopAgent (max_iterations=3)
+      +-- ParallelAgent
+          +-- b (LlmAgent)
+          +-- c (LlmAgent)
+```
+
+```
+Expression:   a >> fn >> Route("key").eq("x", b).eq("y", c)
+
+Agent tree:
+  SequentialAgent
+  +-- a (LlmAgent)
+  +-- fn (FunctionAgent)
+  +-- RoutingAgent
+      +-- "x" -> b (LlmAgent)
+      +-- "y" -> c (LlmAgent)
+```
+
+```
+Expression:   (a | b) >> merge_fn >> writer @ Report // fallback_writer @ Report
+
+Agent tree:
+  SequentialAgent
+  +-- ParallelAgent
+  |   +-- a (LlmAgent)
+  |   +-- b (LlmAgent)
+  +-- merge_fn (FunctionAgent)
+  +-- FallbackAgent
+      +-- writer (LlmAgent, output_schema=Report)
+      +-- fallback_writer (LlmAgent, output_schema=Report)
+```
+
 ### Function Steps
 
 Plain Python functions compose with `>>` as zero-cost workflow nodes (no LLM call):
@@ -340,6 +380,48 @@ pipeline = (
 | `C.window(n=5)`           | Sliding window of last N turns      |
 | `C.from_agents("a", "b")` | Include user + named agent outputs  |
 | `C.capture("key")`        | Snapshot user message into state    |
+
+### Common Errors
+
+**Missing required field:**
+
+```python
+Agent("x").instruct("Hi").build()
+# BuilderError: Agent 'x' is missing required field 'model'
+#   model: required (not set)
+```
+
+Fix: add `.model("gemini-2.5-flash")` before `.build()`.
+
+**Typo in method name:**
+
+```python
+Agent("x").modle("gemini-2.5-flash")
+# AttributeError: 'modle' is not a recognized field. Did you mean: 'model'?
+```
+
+The typo detector suggests the closest valid field name.
+
+**Invalid operator operand:**
+
+```python
+Agent("a") | "not an agent"
+# TypeError: unsupported operand type(s) for |: 'AgentBuilder' and 'str'
+```
+
+Operators work with `Agent`, `Pipeline`, `FanOut`, `Loop` builders, callables, and built ADK agents.
+
+**Template variable at runtime:**
+
+```python
+# {topic} resolves from session state at runtime, not at definition time
+agent = Agent("writer", "gemini-2.5-flash").instruct("Write about {topic}.")
+agent.ask("hello")  # {topic} appears literally if not in state
+```
+
+Use `.outputs("topic")` on a prior agent, or pass initial state via `.session()`.
+
+Full error reference: [Error Reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/error-reference/)
 
 ### IR, Backends, and Middleware (v4)
 
