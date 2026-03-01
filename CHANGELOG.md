@@ -5,23 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.9.4] - 2026-02-27
+## [0.9.5] - 2026-03-01
 
 ### Added
 
-- **Recipes quick-find tables**: "Quick find by primitive" (25 primitives with recipe links) and "Quick find by question" (13 common tasks) tables added to the recipes-by-use-case index page
-- **`.explain(format="json")`**: Returns a structured dict with builder name, config, data flow, tools, contract issues, and docs URL — suitable for tooling and programmatic consumption
-- **`.explain(docs_url=...)`**: Every `.explain()` call now appends a link to the relevant API reference docs page; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
-- **`.explain(open_browser=True)`**: Opens the API docs page for this builder in the default browser
-- **`--diff-markdown` flag on scanner**: `python scripts/scanner.py --diff old.json --diff-markdown docs/generated/api-diff.md` generates a publishable Markdown page showing new/removed classes, field changes, and breaking change warnings
-- **`just diff-md` command**: One-command API diff page generation for the docs site
-- **Copy-paste-run contract**: All examples now document a clear contract — interactive examples need only `.env` setup, cookbook examples need no API key at all. Prerequisites column added to all example tables
+- **Middleware v2**: Complete mechanism-level redesign of the middleware system
+  - **`TraceContext`**: Per-invocation state bag (`request_id`, `elapsed`, key-value store) created once per run, passed as first arg to all hooks, propagates via ContextVar
+  - **Per-agent scoping**: Middleware `agents` attribute filters hooks to specific agents — supports `str`, `tuple[str, ...]`, `re.Pattern`, and `Callable[[str], bool]`
+  - **Topology hooks**: 6 new lifecycle hooks — `on_loop_iteration`, `on_fanout_start`/`on_fanout_complete`, `on_route_selected`, `on_fallback_attempt`, `on_timeout`
+  - **Stream lifecycle hooks**: `on_stream_start`, `on_stream_end`, `on_backpressure`
+  - **Controllable dispatch**: `DispatchDirective(cancel=True)` to skip dispatches, `LoopDirective(break_loop=True)` to exit loops from middleware
+  - **Error boundary**: Middleware exceptions are caught and logged; `on_middleware_error` hook notifies other middleware
+  - **Conditional middleware**: `M.when("stream", mw)` / `M.when(callable, mw)` / `M.when(PredicateSchema, mw)` with deferred evaluation
+- **`M` module**: Fluent middleware composition surface, consistent with `P`/`C`/`S`
+  - Factory methods: `M.retry()`, `M.log()`, `M.cost()`, `M.latency()`, `M.topology_log()`, `M.dispatch_log()`
+  - Composition operators: `M.scope("agent", mw)`, `M.when(condition, mw)`, `|` pipe for chaining
+  - Single-hook shortcuts: `M.before_agent(fn)`, `M.after_agent(fn)`, `M.before_model(fn)`, `M.after_model(fn)`, `M.on_loop(fn)`, `M.on_timeout(fn)`, `M.on_route(fn)`, `M.on_fallback(fn)`
+  - `MComposite` composable chain class with `|` operator and `to_stack()` flattening
+- **Built-in middleware**: `TopologyLogMiddleware` (structured topology event logging), `LatencyMiddleware` (per-agent timing), `CostTracker` (token usage accumulation)
+- **`MiddlewareSchema`**: Typed middleware declarations using `Annotated[type, Reads(scope=...)]` and `Writes()` — declares state dependencies for contract checking
+- **Contract checker Pass 14**: Validates scoped middleware schemas against pipeline state flow — reads must be satisfied by prior writes, writes promoted downstream
+- **`M.when(PredicateSchema, mw)`**: Conditional middleware evaluated against session state at hook invocation time via `TraceContext.invocation_context`
+- **Dispatch/join/stream primitives**: `dispatch()`, `join()`, `StreamRunner`, `Source` factories (`from_iter`, `from_async`, `poll`, `callback`/`Inbox`), `StreamStats`, configurable `task_budget()`
+- **`P` namespace**: Structured prompt composition — `P.system()`, `P.user()`, `P.example()`, `P.constraint()`, `P.persona()`, with `|` composition
+- **`S` state transforms**: `S.pick()`, `S.drop()`, `S.rename()`, `S.merge()`, `S.default()`, `S.transform()`, `S.compute()`, `S.guard()`, `S.log()`, `S.capture()` — all with `_reads_keys`/`_writes_keys` traceability
+- **`DeclarativeMetaclass`**: Shared metaclass introspecting `Annotated` type hints into `DeclarativeField` objects — base for `ToolSchema`, `CallbackSchema`, `PredicateSchema`, `MiddlewareSchema`
+- **Recipes quick-find tables**: "Quick find by primitive" and "Quick find by question" tables in recipes-by-use-case index
+- **`.explain(format="json")`**: Structured dict output for programmatic consumption
+- **`.explain(docs_url=...)`**: Appends API reference link; customizable via parameter or `ADKFLUENT_DOCS_URL` env var
+- **`.explain(open_browser=True)`**: Opens API docs page in the default browser
+- **`--diff-markdown` flag on scanner**: Generates a publishable API diff Markdown page
+- **`just diff-md` command**: One-command API diff page generation
+- **Copy-paste-run contract**: All examples document prerequisites; cookbook examples need no API key
+- New cookbook examples: M module composition (#62), topology hooks (#63), MiddlewareSchema contracts (#64), built-in middleware (#65)
 
 ### Changed
 
+- `_ConditionalMiddleware` rewritten to return guarded async wrappers (deferred evaluation) instead of returning `None` from `__getattr__`
+- `SequenceNode` IR gains `middlewares` field for contract checker integration
+- `_pipeline_to_ir()` now wires middleware from builders through to IR
 - Recipes-by-use-case index reorganized with quick-find sections above the domain categories
-- Runnable examples page rewritten with full prerequisites section, `.env` setup guide, and per-example prerequisites column
-- Cookbook index now includes a "How to run these examples" section with copy-paste-ready commands
+- Runnable examples page rewritten with full prerequisites section
+- Cookbook index includes "How to run these examples" section
 
 ## [0.9.3] - 2026-02-27
 
@@ -299,4 +324,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.8.0...v0.9.1
 [0.9.2]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.1...v0.9.2
 [0.9.3]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.2...v0.9.3
+[0.9.5]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.3...v0.9.4
