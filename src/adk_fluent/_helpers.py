@@ -24,6 +24,7 @@ __all__ = [
     "run_map_async",
     "StateKey",
     "Artifact",
+    "_add_artifacts",
     "_add_tool",
     "_add_tools",
     "_agent_to_ir",
@@ -202,6 +203,12 @@ def _loop_to_ir(builder):
         children=_collect_children(builder),
         max_iterations=builder._config.get("max_iterations"),
     )
+
+
+def _add_artifacts(builder, transforms):
+    """Attach artifact transforms to the builder."""
+    builder._lists.setdefault("_artifact_transforms", []).extend(transforms)
+    return builder
 
 
 def add_agent_tool(builder, agent):

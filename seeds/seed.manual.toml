@@ -344,6 +344,15 @@ see_also = ["Agent.isolate", "Agent.stay"]
 # ---------------------------------------------------------------------------
 
 [[builders.Agent.extras]]
+name = "artifacts"
+signature = "(self, *transforms: Any) -> Self"
+doc = "Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes."
+behavior = "runtime_helper"
+helper_func = "_add_artifacts"
+example = '''Agent("writer").artifacts(A.publish("report.md", from_key="output"))'''
+see_also = ["A", "ATransform"]
+
+[[builders.Agent.extras]]
 name = "tool_schema"
 signature = "(self, schema: type) -> Self"
 doc = "Attach a ToolSchema declaring tool state dependencies."

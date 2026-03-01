@@ -600,6 +600,12 @@ class Agent(BuilderBase):
             self,
         )
 
+    def artifacts(self, *transforms: Any) -> Self:
+        """Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes."""
+        from adk_fluent._helpers import _add_artifacts
+
+        return _add_artifacts(self, transforms)
+
     def tool_schema(self, schema: type) -> Self:
         """Attach a ToolSchema declaring tool state dependencies."""
         self = self._maybe_fork_for_mutation()

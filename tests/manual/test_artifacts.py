@@ -453,6 +453,39 @@ class TestExports:
         assert hasattr(A, "publish")
 
 
+class TestBuilderMethod:
+    def test_artifacts_builder_method(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+
+        agent = (
+            Agent("writer")
+            .instruct("Write.")
+            .save_as("report")
+            .artifacts(
+                A.publish("report.md", from_key="report"),
+            )
+        )
+        # Should not raise
+        assert agent is not None
+
+    def test_artifacts_multiple_transforms(self):
+        from adk_fluent import Agent
+        from adk_fluent._artifacts import A
+
+        agent = (
+            Agent("writer")
+            .instruct("Write.")
+            .save_as("report")
+            .artifacts(
+                A.publish("report.md", from_key="report"),
+                A.save("backup.txt", content="static"),
+            )
+        )
+        assert agent is not None
+        assert len(agent._lists.get("_artifact_transforms", [])) == 2
+
+
 class TestContractChecking:
     def test_snapshot_without_upstream_publish_is_error(self):
         from adk_fluent import Agent

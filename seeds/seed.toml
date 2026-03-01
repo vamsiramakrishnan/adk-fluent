@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-01T07:01:09.721221+00:00"
+generated_at = "2026-03-01T07:19:41.501200+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -479,6 +479,17 @@ focused = (
 )
 '''
 see_also = ["Agent.isolate", "Agent.stay"]
+
+[[builders.Agent.extras]]
+name = "artifacts"
+signature = "(self, *transforms: Any) -> Self"
+doc = "Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes."
+behavior = "runtime_helper"
+helper_func = "_add_artifacts"
+example = '''
+Agent("writer").artifacts(A.publish("report.md", from_key="output"))
+'''
+see_also = ["A", "ATransform"]
 
 [[builders.Agent.extras]]
 name = "tool_schema"
