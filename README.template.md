@@ -1029,6 +1029,25 @@ current = call_count.get(ctx)
 call_count.increment(ctx)
 ```
 
+## When to Use adk-fluent
+
+**Use adk-fluent when you want to:**
+
+- Define agents in 1-3 lines instead of 22+
+- Compose pipelines, fan-out, loops, and routing with operators (`>>`, `|`, `*`, `//`)
+- Get IDE autocomplete and type checking during development
+- Test agents deterministically with `.mock()` and `.test()` (no API calls)
+- Iterate quickly with `.ask()` and `.stream()` (no Runner/Session boilerplate)
+
+**Use raw ADK directly when you need to:**
+
+- Subclass `BaseAgent` with custom `_run_async_impl` logic
+- Access ADK internals not exposed through the builder API
+- Build framework-level tooling that wraps ADK itself
+- Manage Runner/Session lifecycle with fine-grained control beyond `.session()`
+
+adk-fluent produces native ADK objects. You can mix fluent-built agents with hand-built agents in the same pipeline -- they're the same types.
+
 ## Run with `adk web`
 
 ### Environment Setup
@@ -1072,11 +1091,35 @@ adk web race                  # race() first-to-finish
 
 ## Cookbook
 
-43 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test:
+66 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test: `pytest examples/cookbook/ -v`
 
-```bash
-pytest examples/cookbook/ -v
-```
+### Start Here
+
+| #   | Example          | What You'll Learn                            |
+| --- | ---------------- | -------------------------------------------- |
+| 01  | Simple Agent     | Create and build your first agent            |
+| 08  | One-Shot Ask     | Run an agent with `.ask()` -- no boilerplate |
+| 04  | Sequential Pipeline | Chain agents with `Pipeline` or `>>`      |
+
+### Core Patterns
+
+| #   | Example              | What You'll Learn                            |
+| --- | -------------------- | -------------------------------------------- |
+| 02  | Agent with Tools     | Attach tool functions                        |
+| 03  | Callbacks            | `before_model`, `after_model` hooks          |
+| 05  | Parallel FanOut      | Run agents in parallel with `FanOut` or `\|` |
+| 07  | Team Coordinator     | LLM-driven delegation with `.delegate()`     |
+| 16  | Operator Composition | `>>` `\|` `*` operators together             |
+| 17  | Route Branching      | Deterministic routing with `Route`           |
+| 33  | State Transforms     | `S.pick`, `S.rename`, `S.merge`              |
+| 37  | Mock Testing         | Test without LLM calls using `.mock()`       |
+| 31  | Typed Output         | Pydantic schemas with `@ Schema`             |
+| 11  | Inline Testing       | Smoke tests with `.test()`                   |
+
+### All Examples
+
+<details>
+<summary>Full list (66 examples)</summary>
 
 | #   | Example              | Feature                              |
 | --- | -------------------- | ------------------------------------ |
@@ -1122,6 +1165,11 @@ pytest examples/cookbook/ -v
 | 40  | Timeout              | `.timeout()` time-bound execution    |
 | 41  | Gate Approval        | `gate()` human-in-the-loop           |
 | 42  | Race                 | `race()` first-to-finish wins        |
+| 43+ | Advanced             | Middleware, DI, schemas, contracts   |
+
+</details>
+
+Browse by use case on the [docs site](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/recipes-by-use-case/).
 
 ## How It Works
 
