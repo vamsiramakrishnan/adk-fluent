@@ -363,7 +363,7 @@ class ComparisonReport:
 def _get_persona_registry() -> Any:
     """Import the persona registry, handling version differences."""
     try:
-        from google.adk.evaluation.simulation.pre_built_personas import (
+        from google.adk.evaluation.simulation.pre_built_personas import (  # type: ignore[reportMissingImports]
             get_default_persona_registry,
         )
 
@@ -375,7 +375,7 @@ def _get_persona_registry() -> Any:
 def _get_user_persona_class() -> tuple[Any, Any] | None:
     """Import UserPersona and UserBehavior, handling version differences."""
     try:
-        from google.adk.evaluation.simulation.user_simulator_personas import (
+        from google.adk.evaluation.simulation.user_simulator_personas import (  # type: ignore[reportMissingImports]
             UserBehavior,
             UserPersona,
         )

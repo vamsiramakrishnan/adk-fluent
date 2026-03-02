@@ -38,6 +38,8 @@ __all__ = [
     "_isolate_agent",
     "_stay_agent",
     "_no_peers_agent",
+    "_eval_inline",
+    "_eval_suite",
 ]
 
 
@@ -687,6 +689,31 @@ class Artifact:
 # ======================================================================
 # run_events — raw event streaming
 # ======================================================================
+
+
+# ---------------------------------------------------------------------------
+# Eval helpers (used by generated .eval() / .eval_suite() methods)
+# ---------------------------------------------------------------------------
+
+
+def _eval_inline(builder, prompt: str, *, expect: str | None = None, criteria: Any = None) -> Any:
+    """Create an EvalSuite with a single case for inline evaluation."""
+    from adk_fluent._eval import E, EvalSuite
+
+    suite = EvalSuite(builder)
+    suite.case(prompt, expect=expect)
+    if criteria is not None:
+        suite.criteria(criteria)
+    elif expect is not None:
+        suite.criteria(E.response_match())
+    return suite
+
+
+def _eval_suite(builder) -> Any:
+    """Create an empty EvalSuite bound to this builder."""
+    from adk_fluent._eval import EvalSuite
+
+    return EvalSuite(builder)
 
 
 async def run_events(builder, prompt: str):

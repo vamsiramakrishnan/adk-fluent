@@ -653,15 +653,9 @@ class Agent(BuilderBase):
             report = await agent.eval("What is 2+2?", expect="4").run()
             assert report.ok
         """
-        from adk_fluent._eval import E, EvalSuite
+        from adk_fluent._helpers import _eval_inline
 
-        suite = EvalSuite(self)
-        suite.case(prompt, expect=expect)
-        if criteria is not None:
-            suite.criteria(criteria)
-        elif expect is not None:
-            suite.criteria(E.response_match())
-        return suite
+        return _eval_inline(self, prompt, expect=expect, criteria=criteria)
 
     def eval_suite(self) -> Any:
         """Create an evaluation suite builder for this agent.
@@ -679,9 +673,9 @@ class Agent(BuilderBase):
                 .run()
             )
         """
-        from adk_fluent._eval import EvalSuite
+        from adk_fluent._helpers import _eval_suite
 
-        return EvalSuite(self)
+        return _eval_suite(self)
 
     def to_ir(self) -> Any:
         """Convert this Agent builder to an AgentNode IR node."""
