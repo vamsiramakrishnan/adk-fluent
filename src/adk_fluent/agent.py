@@ -630,49 +630,14 @@ class Agent(BuilderBase):
         self._config["_artifact_schema"] = schema
         return self
 
-    def eval(
-        self,
-        prompt: str,
-        *,
-        expect: str | None = None,
-        criteria: Any | None = None,
-    ) -> Any:
-        """Inline evaluation. Run a single eval case against this agent.
-
-        Args:
-            prompt: The user prompt to evaluate.
-            expect: Expected response text (for response_match / semantic_match).
-            criteria: ``EComposite`` criteria (e.g., ``E.response_match()``).
-                      Defaults to ``E.response_match()`` if ``expect`` is provided.
-
-        Returns:
-            ``EvalSuite`` configured with a single case, ready to ``.run()``.
-
-        Usage::
-
-            report = await agent.eval("What is 2+2?", expect="4").run()
-            assert report.ok
-        """
+    def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
+        """Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run()."""
         from adk_fluent._helpers import _eval_inline
 
         return _eval_inline(self, prompt, expect=expect, criteria=criteria)
 
     def eval_suite(self) -> Any:
-        """Create an evaluation suite builder for this agent.
-
-        Returns:
-            ``EvalSuite`` bound to this agent, ready for ``.case()`` / ``.criteria()`` calls.
-
-        Usage::
-
-            report = await (
-                agent.eval_suite()
-                .case("What is 2+2?", expect="4")
-                .case("Search for news", tools=[("google_search", {"query": "news"})])
-                .criteria(E.trajectory() | E.response_match())
-                .run()
-            )
-        """
+        """Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent."""
         from adk_fluent._helpers import _eval_suite
 
         return _eval_suite(self)
