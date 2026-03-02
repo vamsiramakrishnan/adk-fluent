@@ -545,6 +545,7 @@ def join(
 class BackgroundTask(PrimitiveBuilderBase):
     """Builder for fire-and-continue dispatch."""
 
+    _REQUIRES_CONTRACT_CHECK = True
     _CUSTOM_ATTRS = ("_agents", "_task_names", "_on_complete", "_on_error", "_stream_to", "_max_tasks")
 
     def max_tasks(self, n: int) -> Self:

@@ -2060,7 +2060,7 @@ class BuilderBase:
 
         # ── IR contract checks (runs on compound builders only) ──
         ir_issues: list = []
-        if hasattr(self, "to_ir"):
+        if hasattr(self, "to_ir") and getattr(self, "_REQUIRES_CONTRACT_CHECK", False):
             try:
                 ir = self.to_ir()
                 from adk_fluent.testing.contracts import check_contracts
