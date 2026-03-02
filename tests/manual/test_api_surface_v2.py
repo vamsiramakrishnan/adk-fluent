@@ -147,6 +147,15 @@ class TestPrelude:
             "A",
             "ATransform",
             "C",
+            "E",
+            "EComposite",
+            "ECase",
+            "ECriterion",
+            "EvalSuite",
+            "EvalReport",
+            "ComparisonReport",
+            "ComparisonSuite",
+            "EPersona",
             "P",
             "S",
             "M",
@@ -198,7 +207,7 @@ class TestPrelude:
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 44
+        assert len(prelude.__all__) == 53
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

@@ -88,3 +88,18 @@ assert result_fn.content.parts[0].text == "risk_level: low"
 # Chainable: .mock() returns self, preserving all builder state
 assert account_provisioner._config["instruction"] == "Provision a new bank account for the approved customer."
 assert account_provisioner._config["output_key"] == "account_id"
+
+# E module eval suite builds correctly alongside mock testing
+from adk_fluent import E
+from adk_fluent._eval import EvalSuite
+
+eval_suite = (
+    E.suite(kyc_verifier)
+    .case("Verify John Doe's passport", expect="KYC: approved")
+    .case("Verify expired document", expect="KYC: rejected")
+    .criteria(E.response_match(0.8) | E.safety())
+)
+
+assert isinstance(eval_suite, EvalSuite)
+assert len(eval_suite._cases) == 2
+assert len(eval_suite._criteria) == 2

@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-01T08:53:46.192274+00:00"
+generated_at = "2026-03-02T01:10:45.191887+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -522,6 +522,41 @@ example = '''
 Agent("researcher").artifact_schema(ResearchArtifacts)
 '''
 see_also = ["ArtifactSchema", "Produces", "Consumes"]
+
+[[builders.Agent.extras]]
+name = "eval"
+signature = "(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any"
+doc = "Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run()."
+behavior = "runtime_helper"
+helper_func = "_eval_inline"
+example = '''
+from adk_fluent import E
+
+report = await agent.eval("What is 2+2?", expect="4").run()
+assert report.ok
+
+# With custom criteria
+report = await agent.eval("query", criteria=E.semantic_match()).run()
+'''
+see_also = ["E", "Agent.eval_suite", "Agent.test"]
+
+[[builders.Agent.extras]]
+name = "eval_suite"
+signature = "(self) -> Any"
+doc = "Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent."
+behavior = "runtime_helper_ctx"
+helper_func = "_eval_suite"
+example = '''
+from adk_fluent import E
+
+report = await (
+    agent.eval_suite()
+    .case("What is 2+2?", expect="4")
+    .criteria(E.trajectory() | E.response_match())
+    .run()
+)
+'''
+see_also = ["E", "Agent.eval", "EvalSuite"]
 
 [[builders.Agent.extras]]
 name = "to_ir"

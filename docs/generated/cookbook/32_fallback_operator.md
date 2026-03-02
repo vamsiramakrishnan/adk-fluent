@@ -110,6 +110,31 @@ graph TD
 :::
 ::::
 
+## Data-driven fallback ordering with E.compare()
+
+The `//` operator requires you to manually order fallback tiers.
+`E.compare()` evaluates multiple agents on the same test cases and
+ranks them by quality score -- so you can order your fallback chain
+based on measured performance, not guesswork.
+
+```python
+from adk_fluent import E
+
+# Compare vector search vs full-text on the same eval cases
+# report = await (
+#     E.compare(vector_search, fulltext_search)
+#     .case("Find GDPR compliance docs", expect="data protection regulation")
+#     .case("How does our auth system work?", expect="OAuth 2.0 flow")
+#     .criteria(E.semantic_match() | E.hallucination())
+#     .run()
+# )
+#
+# Rank by composite score:
+# print(report.summary())
+# Best-first fallback chain:
+# best_first_chain = cascade(*report.ranked_agents())
+```
+
 ## Equivalence
 
 ```python

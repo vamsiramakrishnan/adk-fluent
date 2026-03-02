@@ -207,17 +207,16 @@ support agents -- one using a formal tone and one using a casual tone
 
 How to create independent agent variants with .clone() for A/B testing.
 ```
-```{grid-item-card} Smoke-Testing a Customer Support Bot -- Inline Testing with .test()
+```{grid-item-card} Smoke-Testing and Evaluation -- Inline Testing with .test() and .eval()
 
-Demonstrates the .test() method for validating agent behavior during
-development.  The scenario: a customer support bot that is
-smoke-tested inline before deployment to ensure it handles common
-queries correctly.  No LLM calls are made here -- we verify that
-the builder exposes the test API with the right signature.
+Demonstrates `.test()` for inline smoke tests and `.eval()` / `.eval_suite()`
+for structured evaluation using the E module. Composable criteria
+(`E.trajectory()`, `E.response_match()`, `E.safety()`, etc.) let you define
+quality gates alongside your agent definition.
 :link: 11_inline_testing
 :link-type: doc
 
-How to run inline smoke tests on agents.
+How to run inline smoke tests and structured evaluations on agents.
 ```
 ```{grid-item-card} Medical Advice Safety Guardrails -- Guardrails with .guard()
 
