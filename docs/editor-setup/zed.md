@@ -66,6 +66,7 @@ Use a FanOut for parallel processing and write results to state.
 ```
 
 Zed should:
+
 - Import from `adk_fluent` (not internal modules)
 - Use the fluent builder pattern with method chaining
 - Call `.build()` to produce native ADK objects

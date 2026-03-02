@@ -67,12 +67,7 @@ eval_suite = (
         expect="nodules",
         tools=[("dicom_parser", {"modality": "CT", "body_region": "chest"})],
     )
-    .criteria(
-        E.trajectory()
-        | E.response_match(0.7)
-        | E.hallucination()
-        | E.safety()
-    )
+    .criteria(E.trajectory() | E.response_match(0.7) | E.hallucination() | E.safety())
     .rubric("Must recommend follow-up imaging for nodules > 6mm")
 )
 

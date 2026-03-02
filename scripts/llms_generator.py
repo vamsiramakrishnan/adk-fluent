@@ -30,7 +30,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from generator import BuilderSpec, parse_manifest, parse_seed, resolve_builder_specs
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -429,18 +428,21 @@ def _wrap_for_zed(content: str) -> str:
     """Generate .zed/settings.json with prompt instructions."""
     # Zed uses a JSON settings file with context_servers
     escaped = content.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-    return json.dumps(
-        {
-            "context_servers": {
-                "adk-fluent": {
-                    "settings": {
-                        "prompt_instructions": escaped[:8000],  # Zed has limits
+    return (
+        json.dumps(
+            {
+                "context_servers": {
+                    "adk-fluent": {
+                        "settings": {
+                            "prompt_instructions": escaped[:8000],  # Zed has limits
+                        }
                     }
                 }
-            }
-        },
-        indent=2,
-    ) + "\n"
+            },
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 # ---------------------------------------------------------------------------
