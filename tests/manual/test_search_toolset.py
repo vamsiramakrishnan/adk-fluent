@@ -4,6 +4,15 @@ from __future__ import annotations
 
 import pytest
 
+try:
+    import pytest_asyncio  # noqa: F401
+
+    _has_pytest_asyncio = True
+except ImportError:
+    _has_pytest_asyncio = False
+
+_needs_asyncio = pytest.mark.skipif(not _has_pytest_asyncio, reason="pytest-asyncio not installed")
+
 
 def _make_fn(name: str, doc: str):
     def fn(**kwargs):
@@ -14,6 +23,7 @@ def _make_fn(name: str, doc: str):
     return fn
 
 
+@_needs_asyncio
 class TestSearchToolsetPhases:
     @pytest.mark.asyncio
     async def test_discovery_phase_returns_meta_tools(self):

@@ -4,6 +4,15 @@ from __future__ import annotations
 
 import pytest
 
+try:
+    import pytest_asyncio  # noqa: F401
+
+    _has_pytest_asyncio = True
+except ImportError:
+    _has_pytest_asyncio = False
+
+_needs_asyncio = pytest.mark.skipif(not _has_pytest_asyncio, reason="pytest-asyncio not installed")
+
 
 class TestMimeConstants:
     def test_text_constants(self):
@@ -336,6 +345,7 @@ class TestWhen:
         assert at._filename == "report.md"
 
 
+@_needs_asyncio
 class TestArtifactAgent:
     def test_agent_creation(self):
         from adk_fluent._artifacts import A

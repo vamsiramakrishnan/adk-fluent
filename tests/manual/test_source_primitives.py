@@ -4,6 +4,8 @@ import asyncio
 
 import pytest
 
+pytest.importorskip("pytest_asyncio", reason="pytest-asyncio not installed")
+
 from adk_fluent.source import Inbox, Source
 
 # ======================================================================
