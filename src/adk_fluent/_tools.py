@@ -32,8 +32,36 @@ class TComposite:
         T.fn(search) | T.fn(email) | T.google_search()
     """
 
-    def __init__(self, items: list[Any] | None = None):
+    def __init__(self, items: list[Any] | None = None, *, kind: str = "tool_chain"):
         self._items: list[Any] = list(items or [])
+        self.__kind = kind
+
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol
+    # ------------------------------------------------------------------
+
+    @property
+    def _kind(self) -> str:
+        """Discriminator tag for IR serialization."""
+        return self.__kind
+
+    def _as_list(self) -> tuple[Any, ...]:
+        """Flatten for composite building."""
+        return tuple(self._items)
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """Tools are opaque to state — always returns ``None``."""
+        return None
+
+    @property
+    def _writes_keys(self) -> frozenset[str] | None:
+        """Tools are opaque to state — always returns ``None``."""
+        return None
+
+    # ------------------------------------------------------------------
+    # Composition: | (chain)
+    # ------------------------------------------------------------------
 
     def __or__(self, other: TComposite | Any) -> TComposite:
         """T.fn(search) | T.fn(email)"""
@@ -91,12 +119,12 @@ class T:
         from google.adk.tools.base_tool import BaseTool
 
         if isinstance(func_or_tool, BaseTool):
-            return TComposite([func_or_tool])
+            return TComposite([func_or_tool], kind="fn")
         from google.adk.tools.function_tool import FunctionTool
 
         if confirm:
-            return TComposite([FunctionTool(func=func_or_tool, require_confirmation=True)])
-        return TComposite([FunctionTool(func=func_or_tool)])
+            return TComposite([FunctionTool(func=func_or_tool, require_confirmation=True)], kind="fn")
+        return TComposite([FunctionTool(func=func_or_tool)], kind="fn")
 
     @staticmethod
     def agent(agent_or_builder: Any) -> TComposite:
@@ -108,12 +136,12 @@ class T:
             if hasattr(agent_or_builder, "build") and hasattr(agent_or_builder, "_config")
             else agent_or_builder
         )
-        return TComposite([AgentTool(agent=built)])
+        return TComposite([AgentTool(agent=built)], kind="agent")
 
     @staticmethod
     def toolset(ts: Any) -> TComposite:
         """Wrap any ADK toolset (MCPToolset, etc.)."""
-        return TComposite([ts])
+        return TComposite([ts], kind="toolset")
 
     # --- Built-in tool groups ---
 
@@ -122,7 +150,7 @@ class T:
         """Google Search tool."""
         from google.adk.tools.google_search_tool import google_search
 
-        return TComposite([google_search])
+        return TComposite([google_search], kind="google_search")
 
     # --- Dynamic loading ---
 
@@ -141,7 +169,7 @@ class T:
         from adk_fluent._tool_registry import SearchToolset
 
         toolset = SearchToolset(registry, always_loaded=always_loaded, max_tools=max_tools)
-        return TComposite([toolset])
+        return TComposite([toolset], kind="search")
 
     # --- Contract checking ---
 
@@ -152,4 +180,4 @@ class T:
         When piped into a tool chain, this marker is extracted during
         IR conversion and wired to ``AgentNode.tool_schema``.
         """
-        return TComposite([_SchemaMarker(schema_cls)])
+        return TComposite([_SchemaMarker(schema_cls)], kind="schema")

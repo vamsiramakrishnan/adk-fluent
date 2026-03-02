@@ -108,6 +108,20 @@ class CTransform:
         """Flatten for composite building. Overridden by CComposite."""
         return (self,)
 
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol: key metadata for contract tracing
+    # ------------------------------------------------------------------
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """State keys this context spec reads. Subclasses override."""
+        return None  # opaque by default
+
+    @property
+    def _writes_keys(self) -> frozenset[str] | None:
+        """Context transforms never write state."""
+        return frozenset()
+
 
 # ======================================================================
 # Composition types
@@ -189,6 +203,10 @@ class CFromState(CTransform):
             _make_from_state_provider(self.keys),
         )
 
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset(self.keys)
+
 
 @dataclass(frozen=True)
 class CWindow(CTransform):
@@ -267,6 +285,11 @@ class CTemplate(CTransform):
             "instruction_provider",
             _make_template_provider(self.template),
         )
+
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        # Extract {key} and {key?} placeholders from template
+        return frozenset(re.findall(r"\{(\w+)\??}", self.template))
 
 
 # ======================================================================
@@ -590,6 +613,10 @@ class CNotes(CTransform):
             _make_notes_provider(self.key, self.format),
         )
 
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset({f"_notes_{self.key}"})
+
 
 @dataclass(frozen=True)
 class CWriteNotes(CTransform):
@@ -614,6 +641,17 @@ class CWriteNotes(CTransform):
         # CWriteNotes doesn't have an instruction_provider — it compiles
         # to a companion FnAgent that mutates state after the target agent.
         pass
+
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        keys = {f"_notes_{self.key}"}
+        if self.source_key:
+            keys.add(self.source_key)
+        return frozenset(keys)
+
+    @property
+    def _writes_keys(self) -> frozenset[str]:
+        return frozenset({f"_notes_{self.key}"})
 
 
 # ======================================================================

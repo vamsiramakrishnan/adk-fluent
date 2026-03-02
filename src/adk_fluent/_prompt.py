@@ -118,6 +118,20 @@ class PTransform:
         """Flatten for composite building. Overridden by PComposite."""
         return (self,)
 
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol: key metadata for contract tracing
+    # ------------------------------------------------------------------
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """State keys this prompt spec reads. Subclasses override."""
+        return frozenset()  # static prompts read nothing
+
+    @property
+    def _writes_keys(self) -> frozenset[str] | None:
+        """Prompt transforms never write state."""
+        return frozenset()
+
     def build(self, state: dict[str, Any] | None = None) -> str:
         """Compile to instruction string, optionally resolving state variables."""
         return _compile_prompt_spec_static(self, state or {})
@@ -314,6 +328,10 @@ class PFromState(PTransform):
     keys: tuple[str, ...] = ()
     _kind: str = "from_state"
 
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset(self.keys)
+
     def __repr__(self) -> str:
         return f"PFromState({', '.join(self.keys)})"
 
@@ -329,6 +347,10 @@ class PTemplate(PTransform):
 
     template: str = ""
     _kind: str = "template"
+
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset(re.findall(r"\{(\w+)\??}", self.template))
 
     def __repr__(self) -> str:
         return f"PTemplate({self.template[:40]!r})"
