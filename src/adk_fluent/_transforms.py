@@ -158,6 +158,19 @@ class STransform:
         # __name__ used by _fn_step and debugging
         self.__name__ = name
 
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol
+    # ------------------------------------------------------------------
+
+    @property
+    def _kind(self) -> str:
+        """Discriminator tag for IR serialization."""
+        return self.__name__
+
+    def _as_list(self) -> tuple[STransform, ...]:
+        """Flatten for composite building. Leaf transforms return ``(self,)``."""
+        return (self,)
+
     def __call__(self, state: dict) -> StateDelta | StateReplacement:
         """Execute this transform on a state dict."""
         return self._fn(state)

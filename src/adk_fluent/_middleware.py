@@ -43,8 +43,36 @@ class MComposite:
         M.retry(3) | M.log() | MyMiddleware()
     """
 
-    def __init__(self, stack: list[Any] | None = None):
+    def __init__(self, stack: list[Any] | None = None, *, kind: str = "middleware_chain"):
         self._stack: list[Any] = list(stack or [])
+        self.__kind = kind
+
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol
+    # ------------------------------------------------------------------
+
+    @property
+    def _kind(self) -> str:
+        """Discriminator tag for IR serialization."""
+        return self.__kind
+
+    def _as_list(self) -> tuple[Any, ...]:
+        """Flatten for composite building."""
+        return tuple(self._stack)
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """Middleware is opaque to state — always returns ``None``."""
+        return None
+
+    @property
+    def _writes_keys(self) -> frozenset[str] | None:
+        """Middleware is opaque to state — always returns ``None``."""
+        return None
+
+    # ------------------------------------------------------------------
+    # Composition: | (chain)
+    # ------------------------------------------------------------------
 
     def __or__(self, other: MComposite | Any) -> MComposite:
         """M.retry(3) | M.log() | MyMiddleware()"""
@@ -83,42 +111,42 @@ class M:
         """Retry middleware with exponential backoff."""
         from adk_fluent.middleware import RetryMiddleware
 
-        return MComposite([RetryMiddleware(max_attempts=max_attempts, backoff_base=backoff)])
+        return MComposite([RetryMiddleware(max_attempts=max_attempts, backoff_base=backoff)], kind="retry")
 
     @staticmethod
     def log() -> MComposite:
         """Structured event logging middleware."""
         from adk_fluent.middleware import StructuredLogMiddleware
 
-        return MComposite([StructuredLogMiddleware()])
+        return MComposite([StructuredLogMiddleware()], kind="log")
 
     @staticmethod
     def cost() -> MComposite:
         """Token usage tracking middleware."""
         from adk_fluent.middleware import CostTracker
 
-        return MComposite([CostTracker()])
+        return MComposite([CostTracker()], kind="cost")
 
     @staticmethod
     def latency() -> MComposite:
         """Per-agent latency tracking middleware."""
         from adk_fluent.middleware import LatencyMiddleware
 
-        return MComposite([LatencyMiddleware()])
+        return MComposite([LatencyMiddleware()], kind="latency")
 
     @staticmethod
     def topology_log() -> MComposite:
         """Topology event logging (loops, fanout, routes, fallbacks, timeouts)."""
         from adk_fluent.middleware import TopologyLogMiddleware
 
-        return MComposite([TopologyLogMiddleware()])
+        return MComposite([TopologyLogMiddleware()], kind="topology_log")
 
     @staticmethod
     def dispatch_log() -> MComposite:
         """Dispatch/join lifecycle logging."""
         from adk_fluent.middleware import DispatchLogMiddleware
 
-        return MComposite([DispatchLogMiddleware()])
+        return MComposite([DispatchLogMiddleware()], kind="dispatch_log")
 
     # --- Composition operators ---
 
