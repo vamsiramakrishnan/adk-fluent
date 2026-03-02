@@ -81,9 +81,9 @@ def _hash_spec(h: Any, spec: Any) -> None:
     reads = getattr(spec, "_reads_keys", None)
     if reads is not None:
         for k in sorted(reads):
-            h.update(f"r:{k}".encode("utf-8"))
+            h.update(f"r:{k}".encode())
 
     writes = getattr(spec, "_writes_keys", None)
     if writes is not None:
         for k in sorted(writes):
-            h.update(f"w:{k}".encode("utf-8"))
+            h.update(f"w:{k}".encode())
