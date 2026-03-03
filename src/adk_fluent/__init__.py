@@ -267,6 +267,9 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "NamespaceSpec",
+    "merge_keysets",
+    "fingerprint_spec",
     "ArtifactSchema",
     "Consumes",
     "Produces",
@@ -516,6 +519,9 @@ __all__ = [
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
+from ._namespace_protocol import NamespaceSpec
+from ._namespace_protocol import merge_keysets
+from ._namespace_protocol import fingerprint_spec
 from ._artifact_schema import ArtifactSchema
 from ._artifact_schema import Consumes
 from ._artifact_schema import Produces

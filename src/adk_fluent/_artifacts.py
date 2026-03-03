@@ -113,6 +113,29 @@ class ATransform:
         """No-op marker. Real work happens in ArtifactAgent at runtime."""
         return None
 
+    # --- NamespaceSpec protocol conformance ---
+
+    @property
+    def _kind(self) -> str:
+        """Discriminator tag for IR serialization (NamespaceSpec protocol)."""
+        return self._op
+
+    def _as_list(self) -> tuple[ATransform, ...]:
+        """Flatten for composite building (NamespaceSpec protocol)."""
+        return (self,)
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """State keys this artifact op reads (NamespaceSpec protocol)."""
+        return self._consumes_state
+
+    @property
+    def _writes_keys(self) -> frozenset[str] | None:
+        """State keys this artifact op writes (NamespaceSpec protocol)."""
+        return self._produces_state
+
+    # --- Legacy / internal accessors ---
+
     @property
     def _artifact_op(self) -> str:
         """Signal for _fn_step() detection."""
