@@ -964,6 +964,11 @@ def _has_llm_transforms(spec: PTransform) -> bool:
     return False
 
 
+# Fingerprint-keyed cache for static prompt compilation.
+# Avoids recompiling identical specs across multiple agents that share prompts.
+_static_compile_cache: dict[str, str] = {}
+
+
 def _compile_prompt_spec(
     prompt_spec: PTransform,
     existing_instruction: str | Callable | None = None,
@@ -979,8 +984,14 @@ def _compile_prompt_spec(
     the provider chains them.
     """
     if not _has_dynamic_blocks(prompt_spec) and not _has_llm_transforms(prompt_spec):
-        # Static path: compile to string immediately
-        return _compile_prompt_spec_static(prompt_spec, {})
+        # Static path: check fingerprint cache before recompiling
+        fp = _fingerprint(prompt_spec)
+        cached = _static_compile_cache.get(fp)
+        if cached is not None:
+            return cached
+        result = _compile_prompt_spec_static(prompt_spec, {})
+        _static_compile_cache[fp] = result
+        return result
 
     # Dynamic path: return an async InstructionProvider
     spec = prompt_spec
