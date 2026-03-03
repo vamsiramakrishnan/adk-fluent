@@ -13,6 +13,8 @@ from __future__ import annotations
 import hashlib
 from typing import Any, Protocol, runtime_checkable
 
+__all__ = ["NamespaceSpec", "merge_keysets", "fingerprint_spec"]
+
 
 @runtime_checkable
 class NamespaceSpec(Protocol):

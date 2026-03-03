@@ -204,11 +204,18 @@ helper_func = "run_events"
 # ---------------------------------------------------------------------------
 
 [[builders.Agent.extras]]
+name = "instruct"
+signature = "(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self"
+doc = "Set the `instruction` field. Raises TypeError if passed a CTransform (use .context() instead)."
+behavior = "runtime_helper"
+helper_func = "_instruct_with_guard"
+
+[[builders.Agent.extras]]
 name = "context"
 signature = "(self, spec: Any) -> Self"
 doc = "Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."
-behavior = "field_set"
-target_field = "_context_spec"
+behavior = "runtime_helper"
+helper_func = "_context_with_guard"
 example = '''
 from adk_fluent import C
 

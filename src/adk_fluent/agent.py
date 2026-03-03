@@ -141,20 +141,6 @@ class Agent(BuilderBase):
         self._config["global_instruction"] = value
         return self
 
-    def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
-        """Set the `instruction` field."""
-        from adk_fluent._context import CTransform
-
-        if isinstance(value, CTransform):
-            raise TypeError(
-                f"instruct() received a CTransform ({type(value).__name__}). "
-                "Did you mean .context(...)? Use .instruct() for prompt text/PTransform, "
-                ".context() for CTransform."
-            )
-        self = self._maybe_fork_for_mutation()
-        self._config["instruction"] = value
-        return self
-
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Set the `static_instruction` field."""
         self = self._maybe_fork_for_mutation()
@@ -485,14 +471,6 @@ class Agent(BuilderBase):
 
     def tools(self, value: Any) -> Self:
         """Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset."""
-        from adk_fluent._middleware import MComposite
-
-        if isinstance(value, MComposite):
-            raise TypeError(
-                "tools() received an MComposite (middleware chain). "
-                "Did you mean .middleware(...)? Use .tools() for tool functions/TComposite, "
-                ".middleware() for MComposite."
-            )
         from adk_fluent._helpers import _add_tools
 
         return _add_tools(self, value)
@@ -556,19 +534,17 @@ class Agent(BuilderBase):
         async for chunk in run_events(self, prompt):
             yield chunk
 
+    def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
+        """Set the `instruction` field. Raises TypeError if passed a CTransform (use .context() instead)."""
+        from adk_fluent._helpers import _instruct_with_guard
+
+        return _instruct_with_guard(self, value)
+
     def context(self, spec: Any) -> Self:
         """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
-        from adk_fluent._prompt import PTransform
+        from adk_fluent._helpers import _context_with_guard
 
-        if isinstance(spec, PTransform):
-            raise TypeError(
-                f"context() received a PTransform ({type(spec).__name__}). "
-                "Did you mean .instruct(...)? Use .context() for CTransform, "
-                ".instruct() for prompt text/PTransform."
-            )
-        self = self._maybe_fork_for_mutation()
-        self._config["_context_spec"] = spec
-        return self
+        return _context_with_guard(self, spec)
 
     def show(self) -> Self:
         """Force this agent's events to be user-facing (override topology inference)."""
