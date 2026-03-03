@@ -33,6 +33,9 @@ Jump to recipes that demonstrate a specific adk-fluent primitive.
 | `.explain()`       | Builder introspection        | [#25](25_validate_explain.md)                                                                                                                                                                                             |
 | `.to_mermaid()`    | Architecture diagrams        | [#48](48_visualization.md)                                                                                                                                                                                                |
 | `mock_backend()`   | Deterministic testing        | [#37](37_mock_testing.md)                                                                                                                                                                                                 |
+| `E.*` eval         | Structured evaluation        | [#11](11_inline_testing.md), [#37](37_mock_testing.md), [#46](46_contracts_and_testing.md)                                                                                                                                |
+| `E.compare()`      | Model comparison             | [#32](32_fallback_operator.md)                                                                                                                                                                                            |
+| `E.gate()`         | Quality gate in pipeline     | [#46](46_contracts_and_testing.md)                                                                                                                                                                                        |
 | `@agent` decorator | Decorator syntax             | [#24](24_agent_decorator.md)                                                                                                                                                                                              |
 
 ## Quick find by question
@@ -47,6 +50,8 @@ Jump to recipes that demonstrate a specific adk-fluent primitive.
 | Route to different agents           | [#17](17_route_branching.md), [#18](18_dict_routing.md), [#27](27_delegate_pattern.md)             |
 | Add guardrails and safety           | [#12](12_guardrails.md), [#19](19_conditional_gating.md), [#46](46_contracts_and_testing.md)       |
 | Test my agents                      | [#11](11_inline_testing.md), [#36](36_expect_assertions.md), [#37](37_mock_testing.md)             |
+| Evaluate agent quality              | [#11](11_inline_testing.md), [#37](37_mock_testing.md), [#46](46_contracts_and_testing.md)         |
+| Compare models / agents             | [#32](32_fallback_operator.md)                                                                     |
 | Retry / handle failures             | [#38](38_retry_if.md), [#32](32_fallback_operator.md), [#40](40_timeout.md)                        |
 | Deploy to production                | [#15](15_production_runtime.md), [#45](45_middleware.md), [#47](47_dependency_injection.md)        |
 | Serialize / save agents             | [#26](26_serialization.md)                                                                         |

@@ -654,6 +654,18 @@ class Agent(BuilderBase):
         self._config["_artifact_schema"] = schema
         return self
 
+    def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
+        """Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run()."""
+        from adk_fluent._helpers import _eval_inline
+
+        return _eval_inline(self, prompt, expect=expect, criteria=criteria)
+
+    def eval_suite(self) -> Any:
+        """Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent."""
+        from adk_fluent._helpers import _eval_suite
+
+        return _eval_suite(self)
+
     def to_ir(self) -> Any:
         """Convert this Agent builder to an AgentNode IR node."""
         from adk_fluent._helpers import _agent_to_ir

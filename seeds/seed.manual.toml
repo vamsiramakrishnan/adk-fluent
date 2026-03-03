@@ -383,6 +383,45 @@ example = '''Agent("researcher").artifact_schema(ResearchArtifacts)'''
 see_also = ["ArtifactSchema", "Produces", "Consumes"]
 
 # ---------------------------------------------------------------------------
+# EVALUATION EXTRAS (E module)
+# ---------------------------------------------------------------------------
+
+[[builders.Agent.extras]]
+name = "eval"
+signature = "(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any"
+doc = "Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run()."
+behavior = "runtime_helper"
+helper_func = "_eval_inline"
+example = '''
+from adk_fluent import E
+
+report = await agent.eval("What is 2+2?", expect="4").run()
+assert report.ok
+
+# With custom criteria
+report = await agent.eval("query", criteria=E.semantic_match()).run()
+'''
+see_also = ["E", "Agent.eval_suite", "Agent.test"]
+
+[[builders.Agent.extras]]
+name = "eval_suite"
+signature = "(self) -> Any"
+doc = "Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent."
+behavior = "runtime_helper_ctx"
+helper_func = "_eval_suite"
+example = '''
+from adk_fluent import E
+
+report = await (
+    agent.eval_suite()
+    .case("What is 2+2?", expect="4")
+    .criteria(E.trajectory() | E.response_match())
+    .run()
+)
+'''
+see_also = ["E", "Agent.eval", "EvalSuite"]
+
+# ---------------------------------------------------------------------------
 # IR CONVERSION EXTRAS
 # ---------------------------------------------------------------------------
 # These wire to_ir() through the codegen so it survives regeneration.

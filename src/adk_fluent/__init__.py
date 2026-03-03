@@ -334,6 +334,14 @@ __all__ = [
     "_compile_context_spec",
     "SessionStrategy",
     "ExecutionMode",
+    "E",
+    "EComposite",
+    "ECriterion",
+    "ECase",
+    "EvalSuite",
+    "EvalReport",
+    "ComparisonReport",
+    "EPersona",
     "deep_clone_builder",
     "add_agent_tool",
     "run_one_shot",
@@ -361,6 +369,8 @@ __all__ = [
     "_isolate_agent",
     "_stay_agent",
     "_no_peers_agent",
+    "_eval_inline",
+    "_eval_suite",
     "TransformNode",
     "TapNode",
     "FallbackNode",
@@ -486,6 +496,7 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
+    "ComparisonSuite",
     "Source",
     "Inbox",
     "StreamRunner",
@@ -575,6 +586,14 @@ from ._context import CWhen
 from ._context import _compile_context_spec
 from ._enums import SessionStrategy
 from ._enums import ExecutionMode
+from ._eval import E
+from ._eval import EComposite
+from ._eval import ECriterion
+from ._eval import ECase
+from ._eval import EvalSuite
+from ._eval import EvalReport
+from ._eval import ComparisonReport
+from ._eval import EPersona
 from ._helpers import deep_clone_builder
 from ._helpers import add_agent_tool
 from ._helpers import run_one_shot
@@ -602,6 +621,8 @@ from ._helpers import _add_memory_auto_save
 from ._helpers import _isolate_agent
 from ._helpers import _stay_agent
 from ._helpers import _no_peers_agent
+from ._helpers import _eval_inline
+from ._helpers import _eval_suite
 from ._ir import TransformNode
 from ._ir import TapNode
 from ._ir import FallbackNode
@@ -755,6 +776,15 @@ from .prelude import Fallback
 from .prelude import A
 from .prelude import ATransform
 from .prelude import C
+from .prelude import E
+from .prelude import EComposite
+from .prelude import ECase
+from .prelude import ECriterion
+from .prelude import EvalSuite
+from .prelude import EvalReport
+from .prelude import ComparisonReport
+from .prelude import ComparisonSuite
+from .prelude import EPersona
 from .prelude import P
 from .prelude import S
 from .prelude import M
@@ -810,3 +840,12 @@ from .testing import Diagnosis
 from .testing import AgentSummary
 from .testing import KeyFlow
 from .testing import ContractIssue
+from .testing import E
+from .testing import EComposite
+from .testing import ECriterion
+from .testing import ECase
+from .testing import EvalSuite
+from .testing import EvalReport
+from .testing import ComparisonReport
+from .testing import ComparisonSuite
+from .testing import EPersona

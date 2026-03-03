@@ -11,8 +11,10 @@ import os
 import sys
 
 import pytest
-from hypothesis import HealthCheck, given, settings
-from hypothesis import strategies as st
+
+hypothesis = pytest.importorskip("hypothesis", reason="hypothesis not installed")
+from hypothesis import HealthCheck, given, settings  # noqa: E402
+from hypothesis import strategies as st  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

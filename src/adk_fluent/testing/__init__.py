@@ -1,5 +1,16 @@
 """Testing utilities for adk-fluent."""
 
+from adk_fluent._eval import (
+    ComparisonReport,
+    ComparisonSuite,
+    E,
+    ECase,
+    EComposite,
+    ECriterion,
+    EPersona,
+    EvalReport,
+    EvalSuite,
+)
 from adk_fluent.testing.contracts import check_contracts
 from adk_fluent.testing.diagnosis import (
     AgentSummary,
@@ -24,4 +35,13 @@ __all__ = [
     "AgentSummary",
     "KeyFlow",
     "ContractIssue",
+    "E",
+    "EComposite",
+    "ECriterion",
+    "ECase",
+    "EvalSuite",
+    "EvalReport",
+    "ComparisonReport",
+    "ComparisonSuite",
+    "EPersona",
 ]
