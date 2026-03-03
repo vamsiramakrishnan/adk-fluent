@@ -8,7 +8,7 @@
 #   just seed       → Generate seed.toml from manifest.json
 #   just generate   → Combine seed.toml + manifest.json → code + stubs + tests + lint
 #   just lint       → Run ruff check + format check (hand-written files only)
-#   just fmt        → Auto-format hand-written files (ruff + mdformat)
+#   just fmt        → Auto-format hand-written files (ruff)
 #   just fmt-changed → Auto-format only changed hand-written files (fast)
 #   just check-gen  → Verify generated files are up-to-date (idempotency)
 #   just docs       → Generate all documentation (includes llms.txt + editor rules)
@@ -112,14 +112,12 @@ lint:
     @echo "Running lint checks (hand-written files)..."
     @uv run ruff check --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} .
     @uv run ruff format --check --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} .
-    @uv run mdformat --check .
 
 # --- Format (hand-written files only — generated files are the generator's responsibility) ---
 format:
     @echo "Formatting hand-written files..."
     @uv run ruff check --fix --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} . || true
     @uv run ruff format --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} .
-    @uv run mdformat .
 
 # --- Format (alias) ---
 alias fmt := format
@@ -131,18 +129,12 @@ fmt-changed:
     # Generated files that formatters must never touch
     generated_re='(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|_ir_generated\.py$|^tests/generated/'
     py_files=$(git diff --name-only --diff-filter=d HEAD -- '*.py' | grep -Ev "$generated_re" || true)
-    md_files=$(git diff --name-only --diff-filter=d HEAD -- '*.md' || true)
     if [ -n "$py_files" ]; then
         echo "Formatting $(echo "$py_files" | wc -w) Python files..."
         echo "$py_files" | xargs uv run ruff check --fix || true
         echo "$py_files" | xargs uv run ruff format
-    fi
-    if [ -n "$md_files" ]; then
-        echo "Formatting $(echo "$md_files" | wc -w) Markdown files..."
-        echo "$md_files" | xargs uv run mdformat
-    fi
-    if [ -z "$py_files" ] && [ -z "$md_files" ]; then
-        echo "No changed hand-written .py or .md files to format."
+    else
+        echo "No changed hand-written .py files to format."
     fi
 
 # --- Verify generated files are up-to-date (idempotency gate) ---
@@ -357,7 +349,7 @@ help:
     @echo "  just generate       seed.toml + manifest.json -> code (self-formatting)"
     @echo "  just stubs          Regenerate .pyi stubs only"
     @echo "  just lint           Lint hand-written files (ruff check + format check)"
-    @echo "  just fmt            Auto-format hand-written files (ruff + mdformat)"
+    @echo "  just fmt            Auto-format hand-written files (ruff)"
     @echo "  just fmt-changed    Auto-format only changed hand-written files (fast)"
     @echo "  just check-gen      Verify generated files are up-to-date"
     @echo "  just preflight      Run pre-commit hooks (mirrors CI lint)"
