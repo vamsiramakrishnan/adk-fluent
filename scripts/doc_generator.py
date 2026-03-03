@@ -693,7 +693,7 @@ def _md_normalize(text: str) -> str:
     # 4. Trailing :: (rst literal block) -> :
     text = re.sub(r"::\s*$", ":", text, flags=re.MULTILINE)
 
-    # 5. Escape [ ] outside backtick spans so mdformat doesn't touch them
+    # 5. Escape [ ] outside backtick spans to prevent unintended link parsing
     parts = re.split(r"(`[^`]+`)", text)
     result: list[str] = []
     for part in parts:
@@ -708,7 +708,7 @@ def _md_normalize(text: str) -> str:
 
 
 def _md_table(header: tuple[str, ...], rows: list[tuple[str, ...]]) -> list[str]:
-    """Build a markdown table with mdformat-compatible column alignment."""
+    """Build a markdown table with aligned columns."""
     n_cols = len(header)
     # Compute column widths (min width from header and all rows)
     widths = [len(h) for h in header]
@@ -866,7 +866,7 @@ def gen_namespace_reference(ns: NamespaceSpec, methods: list[NamespaceMethod]) -
         lines.append(_md_normalize(first_para))
         lines.append("")
 
-    # --- Quick Reference Table (mdformat-aligned) ---
+    # --- Quick Reference Table ---
     lines.append("## Quick Reference")
     lines.append("")
     # Build rows first, then compute column widths for alignment
@@ -1556,28 +1556,13 @@ def generate_docs(
 
         # --- Namespace Module References (P, C, S, A, M, T) ---
         namespace_stems: set[str] = set()
-        ns_files: list[Path] = []
         for ns in NAMESPACE_MODULES:
             ns_methods = _introspect_namespace(ns)
             md = gen_namespace_reference(ns, ns_methods)
             filepath = api_dir / f"{ns.output_stem}.md"
             filepath.write_text(md)
             namespace_stems.add(ns.output_stem)
-            ns_files.append(filepath)
             print(f"  Generated: {filepath}")
-
-        # Post-process with mdformat for idempotency (table alignment,
-        # bracket escaping, etc.)
-        try:
-            import subprocess
-
-            subprocess.run(
-                ["mdformat", *[str(f) for f in ns_files]],
-                check=False,
-                capture_output=True,
-            )
-        except FileNotFoundError:
-            pass  # mdformat not installed; skip post-processing
 
         # Generate API index (includes namespace modules)
         index_md = gen_api_index(by_module, namespace_specs=NAMESPACE_MODULES)
