@@ -329,9 +329,9 @@ class TestGenMigrationGuide:
 
 
 class TestGenNamespaceReference:
-    def test_all_six_namespaces_in_registry(self):
+    def test_all_namespaces_in_registry(self):
         letters = {ns.letter for ns in NAMESPACE_MODULES}
-        assert letters == {"P", "C", "S", "A", "M", "T"}
+        assert letters == {"P", "C", "S", "A", "M", "T", "E"}
 
     def test_introspect_returns_public_methods(self):
         ns = next(n for n in NAMESPACE_MODULES if n.letter == "P")

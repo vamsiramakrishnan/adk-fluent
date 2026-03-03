@@ -132,6 +132,17 @@ NAMESPACE_MODULES: list[NamespaceSpec] = [
             ("|", "compose (TComposite)", "Combine tools into a collection"),
         ],
     ),
+    NamespaceSpec(
+        letter="E",
+        module_path="adk_fluent._eval",
+        class_name="E",
+        output_stem="eval",
+        display_name="Evaluation",
+        base_type="EComposite",
+        operators=[
+            ("|", "compose (EComposite)", "Combine evaluation criteria"),
+        ],
+    ),
 ]
 
 

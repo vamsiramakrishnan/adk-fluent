@@ -306,6 +306,43 @@ agent = (
 )
 ```
 
+#### `.eval(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` {bdg-info}`Configuration`
+
+Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run().
+
+**See also:** `E`, `Agent.eval_suite`, `Agent.test`
+
+**Example:**
+
+```python
+from adk_fluent import E
+
+report = await agent.eval("What is 2+2?", expect="4").run()
+assert report.ok
+
+# With custom criteria
+report = await agent.eval("query", criteria=E.semantic_match()).run()
+```
+
+#### `.eval_suite() -> Any` {bdg-info}`Configuration`
+
+Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent.
+
+**See also:** `E`, `Agent.eval`, `EvalSuite`
+
+**Example:**
+
+```python
+from adk_fluent import E
+
+report = await (
+    agent.eval_suite()
+    .case("What is 2+2?", expect="4")
+    .criteria(E.trajectory() | E.response_match())
+    .run()
+)
+```
+
 #### `.guard(fn: Callable[..., Any]) -> Self` {bdg-info}`Configuration`
 
 Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response.
