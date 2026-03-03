@@ -178,7 +178,7 @@ jobs:
 
       - name: Install ADK (${{ matrix.adk-version }})
         run: |
-          pip install google-adk pytest
+          pip install google-adk pytest pytest-asyncio hypothesis
           pip install -e .
 
       - name: Run tests
