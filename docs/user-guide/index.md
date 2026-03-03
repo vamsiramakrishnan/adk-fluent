@@ -23,6 +23,7 @@ transfer-control
 memory
 ir-and-backends
 middleware
+evaluation
 testing
 error-reference
 adk-samples/index
