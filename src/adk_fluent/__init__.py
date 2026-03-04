@@ -368,6 +368,8 @@ __all__ = [
     "_no_peers_agent",
     "_eval_inline",
     "_eval_suite",
+    "_instruct_with_guard",
+    "_context_with_guard",
     "TransformNode",
     "TapNode",
     "FallbackNode",
@@ -395,6 +397,9 @@ __all__ = [
     "M",
     "MComposite",
     "MiddlewareSchema",
+    "NamespaceSpec",
+    "merge_keysets",
+    "fingerprint_spec",
     "PredicateSchema",
     "evaluate_predicate",
     "_FnStepBuilder",
@@ -617,6 +622,8 @@ from ._helpers import _stay_agent
 from ._helpers import _no_peers_agent
 from ._helpers import _eval_inline
 from ._helpers import _eval_suite
+from ._helpers import _instruct_with_guard
+from ._helpers import _context_with_guard
 from ._ir import TransformNode
 from ._ir import TapNode
 from ._ir import FallbackNode
@@ -644,6 +651,9 @@ from ._ir_generated import FullNode
 from ._middleware import M
 from ._middleware import MComposite
 from ._middleware_schema import MiddlewareSchema
+from ._namespace_protocol import NamespaceSpec
+from ._namespace_protocol import merge_keysets
+from ._namespace_protocol import fingerprint_spec
 from ._predicate_schema import PredicateSchema
 from ._predicate_utils import evaluate_predicate
 from ._primitive_builders import PrimitiveBuilderBase

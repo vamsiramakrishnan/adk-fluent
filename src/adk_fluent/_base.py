@@ -1669,7 +1669,14 @@ class BuilderBase:
         from the builder chain is collected and compiled into a plugin.
         """
         from adk_fluent._middleware import MComposite
+        from adk_fluent._tools import TComposite
 
+        if isinstance(mw, TComposite):
+            raise TypeError(
+                "middleware() received a TComposite (tool chain). "
+                "Did you mean .tools(...)? Use .middleware() for middleware/MComposite, "
+                ".tools() for TComposite."
+            )
         if not hasattr(self, "_middlewares"):
             self._middlewares = []
         if isinstance(mw, MComposite):

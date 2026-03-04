@@ -47,13 +47,11 @@ examples = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "pytest-asyncio>=1.3.0",
     "hypothesis>=6.0",
     "pyright>=1.1",
     "ruff>=0.9",
     "pre-commit>=3.0",
-    "mdformat>=0.7.17",
-    "mdformat-gfm>=0.3.5",
-    "mdformat-myst>=0.1.5",
     "watchfiles>=0.21.0",
     "ipython>=8.0.0",
 ]

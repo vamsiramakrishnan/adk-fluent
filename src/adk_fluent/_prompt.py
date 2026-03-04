@@ -118,6 +118,20 @@ class PTransform:
         """Flatten for composite building. Overridden by PComposite."""
         return (self,)
 
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol: key metadata for contract tracing
+    # ------------------------------------------------------------------
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """State keys this prompt spec reads. Subclasses override."""
+        return frozenset()  # static prompts read nothing
+
+    @property
+    def _writes_keys(self) -> frozenset[str] | None:
+        """Prompt transforms never write state."""
+        return frozenset()
+
     def build(self, state: dict[str, Any] | None = None) -> str:
         """Compile to instruction string, optionally resolving state variables."""
         return _compile_prompt_spec_static(self, state or {})
@@ -314,6 +328,10 @@ class PFromState(PTransform):
     keys: tuple[str, ...] = ()
     _kind: str = "from_state"
 
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset(self.keys)
+
     def __repr__(self) -> str:
         return f"PFromState({', '.join(self.keys)})"
 
@@ -329,6 +347,10 @@ class PTemplate(PTransform):
 
     template: str = ""
     _kind: str = "template"
+
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset(re.findall(r"\{(\w+)\??}", self.template))
 
     def __repr__(self) -> str:
         return f"PTemplate({self.template[:40]!r})"
@@ -942,6 +964,11 @@ def _has_llm_transforms(spec: PTransform) -> bool:
     return False
 
 
+# Fingerprint-keyed cache for static prompt compilation.
+# Avoids recompiling identical specs across multiple agents that share prompts.
+_static_compile_cache: dict[str, str] = {}
+
+
 def _compile_prompt_spec(
     prompt_spec: PTransform,
     existing_instruction: str | Callable | None = None,
@@ -957,8 +984,14 @@ def _compile_prompt_spec(
     the provider chains them.
     """
     if not _has_dynamic_blocks(prompt_spec) and not _has_llm_transforms(prompt_spec):
-        # Static path: compile to string immediately
-        return _compile_prompt_spec_static(prompt_spec, {})
+        # Static path: check fingerprint cache before recompiling
+        fp = _fingerprint(prompt_spec)
+        cached = _static_compile_cache.get(fp)
+        if cached is not None:
+            return cached
+        result = _compile_prompt_spec_static(prompt_spec, {})
+        _static_compile_cache[fp] = result
+        return result
 
     # Dynamic path: return an async InstructionProvider
     spec = prompt_spec

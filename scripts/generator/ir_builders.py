@@ -113,9 +113,13 @@ def ir_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
     """Build MethodNodes for alias methods (.describe() → description, etc.)."""
     methods: list[MethodNode] = []
 
+    extra_names = {e["name"] for e in spec.extras} if spec.extras else set()
     for fluent_name, field_name in spec.aliases.items():
         # Skip aliases that are now deprecated (handled by ir_deprecated_alias_methods)
         if spec.deprecated_aliases and fluent_name in spec.deprecated_aliases:
+            continue
+        # Skip aliases that are overridden by extras (handled by ir_extra_methods)
+        if fluent_name in extra_names:
             continue
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
         type_hint = field_info["type_str"] if field_info else "Any"
@@ -333,11 +337,43 @@ def ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
 # ---------------------------------------------------------------------------
 
 
+def _split_params_bracket_aware(params_str: str) -> list[str]:
+    """Split a parameter string on commas, respecting bracket depth.
+
+    Handles nested types like ``Callable[[X], Y]`` and ``dict[str, str]``
+    without incorrectly splitting on commas inside brackets.
+    """
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in params_str:
+        if ch in ("(", "[", "{"):
+            depth += 1
+            current.append(ch)
+        elif ch in (")", "]", "}"):
+            depth -= 1
+            current.append(ch)
+        elif ch == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        remainder = "".join(current).strip()
+        if remainder:
+            parts.append(remainder)
+    return parts
+
+
 def _extract_forwarding_args(sig: str) -> str:
     """Extract parameter names from a signature and build a forwarding argument string.
 
     Handles keyword-only parameters (those after ``*``) by forwarding them
     as ``name=name`` so the target helper receives them correctly.
+
+    Uses bracket-depth-aware splitting so complex type annotations like
+    ``Callable[[ReadonlyContext], str | Awaitable[str]]`` are not
+    incorrectly treated as multiple parameters.
     """
     if "self, " in sig:
         params_str = sig.split("(self, ", 1)[1].rsplit(")", 1)[0]
@@ -347,7 +383,7 @@ def _extract_forwarding_args(sig: str) -> str:
         params_str = ""
     parts = []
     kw_only = False
-    for p in params_str.split(","):
+    for p in _split_params_bracket_aware(params_str):
         p = p.strip()
         if not p:
             continue

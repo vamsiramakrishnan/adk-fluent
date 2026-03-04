@@ -40,6 +40,8 @@ __all__ = [
     "_no_peers_agent",
     "_eval_inline",
     "_eval_suite",
+    "_instruct_with_guard",
+    "_context_with_guard",
 ]
 
 
@@ -61,14 +63,51 @@ def _add_tool(builder, fn_or_tool, *, require_confirmation: bool = False):
     return builder
 
 
+def _instruct_with_guard(builder, value):
+    """Set instruction with a guard against CTransform misuse."""
+    from adk_fluent._context import CTransform
+
+    if isinstance(value, CTransform):
+        raise TypeError(
+            f"instruct() received a CTransform ({type(value).__name__}). "
+            "Did you mean .context(...)? Use .instruct() for prompt text/PTransform, "
+            ".context() for CTransform."
+        )
+    builder = builder._maybe_fork_for_mutation()
+    builder._config["instruction"] = value
+    return builder
+
+
+def _context_with_guard(builder, spec):
+    """Set context spec with a guard against PTransform misuse."""
+    from adk_fluent._prompt import PTransform
+
+    if isinstance(spec, PTransform):
+        raise TypeError(
+            f"context() received a PTransform ({type(spec).__name__}). "
+            "Did you mean .instruct(...)? Use .context() for CTransform, "
+            ".instruct() for prompt text/PTransform."
+        )
+    builder = builder._maybe_fork_for_mutation()
+    builder._config["_context_spec"] = spec
+    return builder
+
+
 def _add_tools(builder, tools_arg):
     """Set tools on the builder, handling TComposite, lists, and single items.
 
     If ``tools_arg`` is a ``TComposite``, flattens it and extracts any
     ``_SchemaMarker`` entries to wire ``tool_schema`` on the IR node.
     """
+    from adk_fluent._middleware import MComposite
     from adk_fluent._tools import TComposite, _SchemaMarker
 
+    if isinstance(tools_arg, MComposite):
+        raise TypeError(
+            "tools() received an MComposite (middleware chain). "
+            "Did you mean .middleware(...)? Use .tools() for tool functions/TComposite, "
+            ".middleware() for MComposite."
+        )
     if isinstance(tools_arg, TComposite):
         for item in tools_arg.to_tools():
             if isinstance(item, _SchemaMarker):

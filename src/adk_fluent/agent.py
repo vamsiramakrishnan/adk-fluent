@@ -141,12 +141,6 @@ class Agent(BuilderBase):
         self._config["global_instruction"] = value
         return self
 
-    def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
-        """Set the `instruction` field."""
-        self = self._maybe_fork_for_mutation()
-        self._config["instruction"] = value
-        return self
-
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Set the `static_instruction` field."""
         self = self._maybe_fork_for_mutation()
@@ -540,11 +534,17 @@ class Agent(BuilderBase):
         async for chunk in run_events(self, prompt):
             yield chunk
 
+    def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
+        """Set the `instruction` field. Raises TypeError if passed a CTransform (use .context() instead)."""
+        from adk_fluent._helpers import _instruct_with_guard
+
+        return _instruct_with_guard(self, value)
+
     def context(self, spec: Any) -> Self:
         """Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.)."""
-        self = self._maybe_fork_for_mutation()
-        self._config["_context_spec"] = spec
-        return self
+        from adk_fluent._helpers import _context_with_guard
+
+        return _context_with_guard(self, spec)
 
     def show(self) -> Self:
         """Force this agent's events to be user-facing (override topology inference)."""
