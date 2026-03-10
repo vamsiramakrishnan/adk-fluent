@@ -1,6 +1,6 @@
 # Cookbook Index
 
-58 runnable examples demonstrating every adk-fluent feature — from single agents to production pipelines.
+59 runnable examples demonstrating every adk-fluent feature — from single agents to production pipelines.
 Each example includes native ADK code alongside the fluent equivalent so you can see exactly what the builder generates.
 
 Run all examples as tests: `uv run pytest examples/cookbook/ -q`
@@ -87,6 +87,7 @@ Production-grade architectures combining many features.
 | 55  | [Deep Research Agent](55_deep_research.py)             | Full pipeline: FanOut + Loop + typed output              |
 | 57  | [Code Review Agent](57_code_review_agent.py)           | FanOut + typed output + conditional gating               |
 | 58  | [Multi-Tool Task Agent](58_multi_tool_agent.py)        | Tools + guardrails + DI + context                        |
+| 67  | [G Module Guards](67_g_module_guards.py)               | `G.json()`, `G.pii()`, `G.budget()`, `\|` composition   |
 
 ______________________________________________________________________
 
@@ -139,10 +140,11 @@ ______________________________________________________________________
 
 | #   | Example           | Key Methods                         |
 | --- | ----------------- | ----------------------------------- |
-| 03  | Callbacks         | `.before_model()`, `.after_model()` |
-| 12  | Guardrails        | `.guardrail()`                      |
-| 35  | Tap Observation   | `tap()`                             |
-| 36  | Expect Assertions | `expect()`                          |
+| 03  | Callbacks         | `.before_model()`, `.after_model()`                   |
+| 12  | Guardrails        | `.guard()` with callables and G composites            |
+| 35  | Tap Observation   | `tap()`                                               |
+| 36  | Expect Assertions | `expect()`                                            |
+| 67  | G Module Guards   | `G.json()`, `G.pii()`, `G.budget()`, `\|` composition |
 
 ### Testing & Contracts
 
