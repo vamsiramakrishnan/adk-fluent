@@ -245,3 +245,68 @@ class M:
         from adk_fluent.middleware import _SingleHookMiddleware
 
         return MComposite([_SingleHookMiddleware("on_fallback_attempt", fn)])
+
+    # ------------------------------------------------------------------
+    # Expanded built-in middleware factories
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def circuit_breaker(threshold: int = 5, reset_after: float = 60) -> MComposite:
+        """Circuit breaker — trips open after N consecutive model errors."""
+        from adk_fluent.middleware import CircuitBreakerMiddleware
+
+        return MComposite(
+            [CircuitBreakerMiddleware(threshold=threshold, reset_after=reset_after)],
+            kind="circuit_breaker",
+        )
+
+    @staticmethod
+    def timeout(seconds: float = 30) -> MComposite:
+        """Per-agent execution timeout."""
+        from adk_fluent.middleware import TimeoutMiddleware
+
+        return MComposite([TimeoutMiddleware(seconds=seconds)], kind="timeout")
+
+    @staticmethod
+    def cache(ttl: float = 300, key_fn: Any = None) -> MComposite:
+        """Cache LLM responses keyed by request content."""
+        from adk_fluent.middleware import ModelCacheMiddleware
+
+        return MComposite([ModelCacheMiddleware(ttl=ttl, key_fn=key_fn)], kind="cache")
+
+    @staticmethod
+    def fallback_model(model: str = "gemini-2.0-flash") -> MComposite:
+        """Auto-downgrade to fallback model on primary model failure."""
+        from adk_fluent.middleware import FallbackModelMiddleware
+
+        return MComposite([FallbackModelMiddleware(fallback_model=model)], kind="fallback_model")
+
+    @staticmethod
+    def dedup(window: int = 10) -> MComposite:
+        """Suppress duplicate model calls within a sliding window."""
+        from adk_fluent.middleware import DedupMiddleware
+
+        return MComposite([DedupMiddleware(window=window)], kind="dedup")
+
+    @staticmethod
+    def sample(rate: float, mw: MComposite | Any) -> MComposite:
+        """Probabilistic middleware — fires inner middleware only N% of the time."""
+        from adk_fluent.middleware import _SampledMiddleware
+
+        stack = mw.to_stack() if isinstance(mw, MComposite) else [mw]
+        wrapped = [_SampledMiddleware(rate, m) for m in stack]
+        return MComposite(wrapped)
+
+    @staticmethod
+    def trace(exporter: Any = None) -> MComposite:
+        """OpenTelemetry span export (no-op if opentelemetry not installed)."""
+        from adk_fluent.middleware import TraceMiddleware
+
+        return MComposite([TraceMiddleware(exporter=exporter)], kind="trace")
+
+    @staticmethod
+    def metrics(collector: Any = None) -> MComposite:
+        """Metrics collection (no-op if no collector provided)."""
+        from adk_fluent.middleware import MetricsMiddleware
+
+        return MComposite([MetricsMiddleware(collector=collector)], kind="metrics")

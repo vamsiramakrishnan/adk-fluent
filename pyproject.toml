@@ -66,6 +66,13 @@ docs = [
     "sphinx-hoverxref>=1.4.2",
     "sphinxext-opengraph>=0.13.0",
 ]
+pii = [
+    "google-cloud-dlp>=3.12",
+]
+observability = [
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+]
 
 [project.urls]
 Homepage = "https://github.com/vamsiramakrishnan/adk-fluent"

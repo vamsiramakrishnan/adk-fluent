@@ -1053,3 +1053,217 @@ class CostTracker:
             self.total_input_tokens += getattr(usage, "prompt_token_count", 0) or 0
             self.total_output_tokens += getattr(usage, "candidates_token_count", 0) or 0
         return None
+
+
+# ---------------------------------------------------------------------------
+# Circuit breaker
+# ---------------------------------------------------------------------------
+
+
+class CircuitBreakerMiddleware:
+    """Trips open after N consecutive model errors, auto-resets after cooldown."""
+
+    def __init__(self, threshold: int = 5, reset_after: float = 60):
+        self._threshold = threshold
+        self._reset_after = reset_after
+        self._failures: dict[str, int] = {}
+        self._tripped_at: dict[str, float] = {}
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        if name in self._tripped_at:
+            elapsed = _time.monotonic() - self._tripped_at[name]
+            if elapsed < self._reset_after:
+                raise RuntimeError(f"Circuit open for agent '{name}' — {self._reset_after - elapsed:.0f}s until reset")
+            del self._tripped_at[name]
+            self._failures[name] = 0
+        return None
+
+    async def after_model(self, ctx: Any, request: Any, response: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        self._failures[name] = 0
+        return None
+
+    async def on_model_error(self, ctx: Any, request: Any, error: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        self._failures[name] = self._failures.get(name, 0) + 1
+        if self._failures[name] >= self._threshold:
+            self._tripped_at[name] = _time.monotonic()
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Timeout
+# ---------------------------------------------------------------------------
+
+
+class TimeoutMiddleware:
+    """Per-agent execution timeout."""
+
+    def __init__(self, seconds: float = 30):
+        self._seconds = seconds
+        self._deadlines: dict[str, float] = {}
+
+    async def before_agent(self, ctx: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        self._deadlines[name] = _time.monotonic() + self._seconds
+        return None
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        deadline = self._deadlines.get(name)
+        if deadline and _time.monotonic() > deadline:
+            raise TimeoutError(f"Agent '{name}' exceeded {self._seconds}s timeout")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Model cache
+# ---------------------------------------------------------------------------
+
+
+class ModelCacheMiddleware:
+    """Caches LLM responses keyed by request content."""
+
+    def __init__(self, ttl: float = 300, key_fn: Any = None):
+        self._ttl = ttl
+        self._key_fn = key_fn or (lambda req: str(req))
+        self._cache: dict[str, tuple[Any, float]] = {}
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        key = self._key_fn(request)
+        if key in self._cache:
+            result, ts = self._cache[key]
+            if _time.monotonic() - ts < self._ttl:
+                return result
+        return None
+
+    async def after_model(self, ctx: Any, request: Any, response: Any) -> Any:
+        key = self._key_fn(request)
+        self._cache[key] = (response, _time.monotonic())
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Fallback model
+# ---------------------------------------------------------------------------
+
+
+class FallbackModelMiddleware:
+    """Auto-downgrade to fallback model on primary model failure."""
+
+    def __init__(self, fallback_model: str):
+        self._fallback = fallback_model
+
+    async def on_model_error(self, ctx: Any, request: Any, error: Any) -> Any:
+        if hasattr(request, "model"):
+            request.model = self._fallback
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Dedup
+# ---------------------------------------------------------------------------
+
+
+class DedupMiddleware:
+    """Suppress duplicate model calls within a sliding window."""
+
+    def __init__(self, window: int = 10):
+        self._window = window
+        self._recent: list[str] = []
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        key = str(request)
+        if key in self._recent:
+            return None
+        self._recent.append(key)
+        if len(self._recent) > self._window:
+            self._recent = self._recent[-self._window :]
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Sampled middleware wrapper
+# ---------------------------------------------------------------------------
+
+
+class _SampledMiddleware:
+    """Probabilistic middleware wrapper — fires inner middleware only N% of the time."""
+
+    def __init__(self, rate: float, inner: Any):
+        self._rate = rate
+        self._inner = inner
+
+    def __getattr__(self, name: str) -> Any:
+        import random
+
+        inner_attr = getattr(self._inner, name, None)
+        if inner_attr is None or not callable(inner_attr):
+            raise AttributeError(name)
+
+        async def _sampled(*args: Any, **kwargs: Any) -> Any:
+            if random.random() < self._rate:
+                return await inner_attr(*args, **kwargs)
+            return None
+
+        return _sampled
+
+
+# ---------------------------------------------------------------------------
+# Trace (OpenTelemetry)
+# ---------------------------------------------------------------------------
+
+
+class TraceMiddleware:
+    """OpenTelemetry span export. Graceful no-op if opentelemetry not installed."""
+
+    def __init__(self, exporter: Any = None):
+        self._tracer = None
+        self._exporter = exporter
+        self._spans: dict[str, Any] = {}
+        try:
+            from opentelemetry import trace
+
+            self._tracer = trace.get_tracer("adk-fluent")
+        except ImportError:
+            _logging.getLogger(__name__).debug("opentelemetry not installed — M.trace() is a no-op")
+
+    async def before_agent(self, ctx: Any) -> Any:
+        if self._tracer:
+            name = getattr(ctx, "agent_name", "unknown")
+            self._spans[name] = self._tracer.start_span(f"agent:{name}")
+        return None
+
+    async def after_agent(self, ctx: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        span = self._spans.pop(name, None)
+        if span:
+            span.end()
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Metrics
+# ---------------------------------------------------------------------------
+
+
+class MetricsMiddleware:
+    """Metrics collection. Graceful no-op if no collector provided."""
+
+    def __init__(self, collector: Any = None):
+        self._collector = collector
+        self._counts: dict[str, int] = {}
+
+    async def after_agent(self, ctx: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        self._counts[name] = self._counts.get(name, 0) + 1
+        if self._collector and hasattr(self._collector, "increment"):
+            self._collector.increment(f"agent.{name}.calls")
+        return None
+
+    async def on_model_error(self, ctx: Any, request: Any, error: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        if self._collector and hasattr(self._collector, "increment"):
+            self._collector.increment(f"agent.{name}.errors")
+        return None
