@@ -607,3 +607,189 @@ class S:
             writes=all_writes,
             name=f"branch_{key}",
         )
+
+    # -- Task 1: accumulate / counter ------------------------------------
+
+    @staticmethod
+    def accumulate(key: str, *, into: str | None = None) -> STransform:
+        """Append ``state[key]`` to a running list at ``state[into]``.
+
+        Defaults *into* to ``f"{key}_all"``.
+        """
+        target = into or f"{key}_all"
+
+        def _accumulate(state: dict) -> StateDelta:
+            current_list = list(state.get(target, []))
+            new_item = state.get(key)
+            if new_item is not None:
+                current_list.append(new_item)
+            return StateDelta({target: current_list})
+
+        return STransform(
+            _accumulate,
+            reads=frozenset({key, target}),
+            writes=frozenset({target}),
+            name=f"accumulate_{key}_into_{target}",
+        )
+
+    @staticmethod
+    def counter(key: str, step: int = 1) -> STransform:
+        """Increment a numeric state value by *step* (default 1)."""
+
+        def _counter(state: dict) -> StateDelta:
+            return StateDelta({key: state.get(key, 0) + step})
+
+        return STransform(
+            _counter,
+            reads=frozenset({key}),
+            writes=frozenset({key}),
+            name=f"counter_{key}",
+        )
+
+    # -- Task 2: history --------------------------------------------------
+
+    @staticmethod
+    def history(key: str, max_size: int = 10) -> STransform:
+        """Keep a rolling window of past values at ``state[f"{key}_history"]``."""
+        hist_key = f"{key}_history"
+
+        def _history(state: dict) -> StateDelta:
+            past = list(state.get(hist_key, []))
+            current = state.get(key)
+            if current is not None:
+                past.append(current)
+                past = past[-max_size:]
+            return StateDelta({hist_key: past})
+
+        return STransform(
+            _history,
+            reads=frozenset({key, hist_key}),
+            writes=frozenset({hist_key}),
+            name=f"history_{key}",
+        )
+
+    # -- Task 3: validate / require ---------------------------------------
+
+    @staticmethod
+    def validate(schema_cls: type, *, strict: bool = False) -> STransform:
+        """Validate state against a Pydantic model or dataclass.
+
+        Raises ``ValueError`` on validation failure.
+        """
+
+        def _validate(state: dict) -> StateDelta:
+            try:
+                if hasattr(schema_cls, "model_validate"):
+                    schema_cls.model_validate(state, strict=strict)
+                else:
+                    schema_cls(**state)
+            except Exception as e:
+                raise ValueError(f"State validation failed against {schema_cls.__name__}: {e}") from e
+            return StateDelta({})
+
+        return STransform(
+            _validate,
+            reads=None,
+            writes=frozenset(),
+            name=f"validate_{schema_cls.__name__}",
+        )
+
+    @staticmethod
+    def require(*keys: str) -> STransform:
+        """Assert that *keys* exist in state and are truthy.
+
+        Unlike :meth:`guard`, this has precise ``_reads_keys``.
+        """
+
+        def _require(state: dict) -> StateDelta:
+            missing = [k for k in keys if not state.get(k)]
+            if missing:
+                raise ValueError(f"Required state keys missing or falsy: {missing}")
+            return StateDelta({})
+
+        return STransform(
+            _require,
+            reads=frozenset(keys),
+            writes=frozenset(),
+            name=f"require_{'_'.join(keys)}",
+        )
+
+    # -- Task 4: flatten / unflatten / zip / group_by ---------------------
+
+    @staticmethod
+    def flatten(key: str, separator: str = ".") -> STransform:
+        """Flatten nested dict at ``state[key]`` into dotted keys."""
+
+        def _flatten(state: dict) -> StateDelta:
+            nested = state.get(key, {})
+            flat: dict[str, Any] = {}
+
+            def _walk(obj: Any, prefix: str) -> None:
+                if isinstance(obj, dict):
+                    for k, v in obj.items():
+                        _walk(v, f"{prefix}{separator}{k}" if prefix else k)
+                else:
+                    flat[prefix] = obj
+
+            _walk(nested, "")
+            return StateDelta(flat)
+
+        return STransform(
+            _flatten,
+            reads=frozenset({key}),
+            writes=None,
+            name=f"flatten_{key}",
+        )
+
+    @staticmethod
+    def unflatten(separator: str = ".") -> STransform:
+        """Unflatten dotted keys back into nested dicts."""
+
+        def _unflatten(state: dict) -> StateReplacement:
+            result: dict[str, Any] = {}
+            for k, value in state.items():
+                if separator in k:
+                    parts = k.split(separator)
+                    d = result
+                    for part in parts[:-1]:
+                        d = d.setdefault(part, {})
+                    d[parts[-1]] = value
+                else:
+                    result[k] = value
+            return StateReplacement(result)
+
+        return STransform(_unflatten, reads=None, writes=None, name="unflatten")
+
+    @staticmethod
+    def zip(*keys: str, into: str = "zipped") -> STransform:
+        """Zip parallel lists into a list of tuples."""
+
+        def _zip(state: dict) -> StateDelta:
+            lists = [state.get(k, []) for k in keys]
+            return StateDelta({into: list(zip(*lists))})
+
+        return STransform(
+            _zip,
+            reads=frozenset(keys),
+            writes=frozenset({into}),
+            name=f"zip_{'_'.join(keys)}_into_{into}",
+        )
+
+    @staticmethod
+    def group_by(items_key: str, key_fn: Callable[[Any], Any], into: str) -> STransform:
+        """Group list items by a key function."""
+
+        def _group_by(state: dict) -> StateDelta:
+            items = state.get(items_key, [])
+            groups: dict[str, list] = {}
+            for item in items:
+                k = str(key_fn(item))
+                groups.setdefault(k, []).append(item)
+            return StateDelta({into: groups})
+
+        return STransform(
+            _group_by,
+            reads=frozenset({items_key}),
+            writes=frozenset({into}),
+            name=f"group_by_{items_key}_into_{into}",
+        )
