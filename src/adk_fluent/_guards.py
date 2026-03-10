@@ -1,0 +1,678 @@
+"""G module -- fluent guard composition surface.
+
+Consistent with P, C, S, M, T, A, E namespaces.
+G answers: 'What must this agent NEVER do?'
+
+Usage::
+
+    from adk_fluent import G
+
+    agent.guard(G.pii("redact") | G.budget(5000) | G.output(Schema))
+"""
+
+from __future__ import annotations
+
+import enum
+import re
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, Protocol, runtime_checkable
+
+__all__ = [
+    "G",
+    "GComposite",
+    "GGuard",
+    "GuardViolation",
+    "PIIDetector",
+    "PIIFinding",
+    "ContentJudge",
+    "JudgmentResult",
+]
+
+
+# ── Exceptions ────────────────────────────────────────────────────────
+
+
+class GuardViolation(Exception):
+    """Raised when a guard rejects input or output."""
+
+    def __init__(self, guard_kind: str, phase: str, detail: str, value: Any = None):
+        self.guard_kind = guard_kind
+        self.phase = phase
+        self.detail = detail
+        self.value = value
+        super().__init__(f"[{guard_kind}] {detail}")
+
+
+# ── Data types and protocols ──────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class PIIFinding:
+    """A single PII detection result."""
+
+    kind: str
+    start: int
+    end: int
+    confidence: float
+    text: str
+
+
+@runtime_checkable
+class PIIDetector(Protocol):
+    """Protocol for PII detection providers."""
+
+    async def detect(self, text: str) -> list[PIIFinding]: ...
+
+
+@dataclass(frozen=True)
+class JudgmentResult:
+    """Result from a content judgment provider."""
+
+    passed: bool
+    score: float
+    reason: str
+
+
+@runtime_checkable
+class ContentJudge(Protocol):
+    """Protocol for content judgment providers (toxicity, hallucination)."""
+
+    async def judge(self, text: str, context: dict | None = None) -> JudgmentResult: ...
+
+
+# ── Internal phase enum ───────────────────────────────────────────────
+
+
+class _Phase(enum.Enum):
+    PRE_AGENT = "pre_agent"
+    PRE_MODEL = "pre_model"
+    POST_MODEL = "post_model"
+    CONTEXT = "context"
+    MIDDLEWARE = "middleware"
+
+
+# ── GGuard spec ───────────────────────────────────────────────────────
+
+
+class GGuard:
+    """A single guard specification. Composable via ``|``."""
+
+    __slots__ = ("_kind", "_phase", "_reads_keys", "_writes_keys", "_compile")
+
+    def __init__(
+        self,
+        kind: str,
+        phase: _Phase,
+        reads: frozenset[str] | None,
+        compile_fn: Callable[[Any], None],
+    ):
+        self._kind = kind
+        self._phase = phase
+        self._reads_keys = reads
+        self._writes_keys: frozenset[str] = frozenset()
+        self._compile = compile_fn
+
+    def _as_list(self) -> tuple[GGuard, ...]:
+        return (self,)
+
+    def __or__(self, other: GGuard | GComposite | Any) -> GComposite:
+        if isinstance(other, GComposite):
+            return GComposite([self, *other._guards])
+        if isinstance(other, GGuard):
+            return GComposite([self, other])
+        return NotImplemented
+
+    def __repr__(self) -> str:
+        return f"GGuard({self._kind!r})"
+
+
+# ── GComposite chain ─────────────────────────────────────────────────
+
+
+class GComposite:
+    """Composable guard chain. The result of any ``G.xxx()`` call.
+
+    Supports ``|`` for composition::
+
+        G.json() | G.length(max=500) | G.pii("redact")
+    """
+
+    def __init__(self, guards: list[GGuard]):
+        self._guards = list(guards)
+
+    # ------------------------------------------------------------------
+    # Composition: | (chain)
+    # ------------------------------------------------------------------
+
+    def __or__(self, other: GGuard | GComposite | Any) -> GComposite:
+        if isinstance(other, GComposite):
+            return GComposite(self._guards + other._guards)
+        if isinstance(other, GGuard):
+            return GComposite(self._guards + [other])
+        return NotImplemented
+
+    # ------------------------------------------------------------------
+    # Builder integration
+    # ------------------------------------------------------------------
+
+    def _compile_into(self, builder: Any) -> None:
+        """Compile all guards into a builder's callback/config state."""
+        for guard in self._guards:
+            guard._compile(builder)
+        existing = builder._config.get("_guard_specs", ())
+        builder._config["_guard_specs"] = existing + tuple(self._guards)
+
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol
+    # ------------------------------------------------------------------
+
+    @property
+    def _kind(self) -> str:
+        """Discriminator tag for IR serialization."""
+        return "guard_chain"
+
+    def _as_list(self) -> tuple[GGuard, ...]:
+        """Flatten for composite building."""
+        return tuple(self._guards)
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """Union of all guard reads. ``None`` if any guard is opaque."""
+        result: frozenset[str] = frozenset()
+        for g in self._guards:
+            if g._reads_keys is None:
+                return None
+            result = result | g._reads_keys
+        return result
+
+    @property
+    def _writes_keys(self) -> frozenset[str]:
+        """Guards never write state."""
+        return frozenset()
+
+    def __len__(self) -> int:
+        return len(self._guards)
+
+    def __repr__(self) -> str:
+        kinds = [g._kind for g in self._guards]
+        return f"GComposite([{', '.join(kinds)}])"
+
+
+# ── Built-in provider implementations ────────────────────────────────
+
+
+class _RegexDetector:
+    """Default PII detector using regex patterns for SSN, email, CC, phone."""
+
+    _DEFAULT_PATTERNS: dict[str, re.Pattern[str]] = {
+        "SSN": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+        "EMAIL": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
+        "CREDIT_CARD": re.compile(r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b"),
+        "PHONE": re.compile(r"\b\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
+    }
+
+    def __init__(self, patterns: dict[str, re.Pattern[str]] | None = None):
+        self._patterns = patterns or self._DEFAULT_PATTERNS
+
+    async def detect(self, text: str) -> list[PIIFinding]:
+        findings: list[PIIFinding] = []
+        for kind, pattern in self._patterns.items():
+            for m in pattern.finditer(text):
+                findings.append(
+                    PIIFinding(
+                        kind=kind,
+                        start=m.start(),
+                        end=m.end(),
+                        confidence=0.9,
+                        text=m.group(),
+                    )
+                )
+        return findings
+
+
+class _DLPDetector:
+    """Google Cloud DLP-based PII detector.
+
+    Requires ``google-cloud-dlp`` to be installed.
+    """
+
+    def __init__(
+        self,
+        project: str,
+        info_types: list[str] | None = None,
+        location: str = "global",
+    ):
+        try:
+            import google.cloud.dlp_v2  # noqa: F401
+        except ImportError as exc:
+            msg = (
+                "google-cloud-dlp is required for DLP-based PII detection. "
+                "Install it with: pip install google-cloud-dlp"
+            )
+            raise ImportError(msg) from exc
+        self._project = project
+        self._info_types = info_types or [
+            "PERSON_NAME",
+            "EMAIL_ADDRESS",
+            "PHONE_NUMBER",
+            "US_SOCIAL_SECURITY_NUMBER",
+            "CREDIT_CARD_NUMBER",
+        ]
+        self._location = location
+
+    async def detect(self, text: str) -> list[PIIFinding]:
+        import google.cloud.dlp_v2 as dlp
+
+        client = dlp.DlpServiceClient()
+        inspect_config = {
+            "info_types": [{"name": t} for t in self._info_types],
+            "min_likelihood": dlp.Likelihood.POSSIBLE,
+        }
+        item = {"value": text}
+        parent = f"projects/{self._project}/locations/{self._location}"
+        response = client.inspect_content(request={"parent": parent, "inspect_config": inspect_config, "item": item})
+        findings: list[PIIFinding] = []
+        for finding in response.result.findings:
+            findings.append(
+                PIIFinding(
+                    kind=finding.info_type.name,
+                    start=0,
+                    end=len(finding.quote) if finding.quote else 0,
+                    confidence=finding.likelihood / 5.0,
+                    text=finding.quote or "",
+                )
+            )
+        return findings
+
+
+class _MultiDetector:
+    """Union of multiple PII detectors, deduplicating by span."""
+
+    def __init__(self, detectors: list[Any]):
+        self._detectors = detectors
+
+    async def detect(self, text: str) -> list[PIIFinding]:
+        all_findings: list[PIIFinding] = []
+        for detector in self._detectors:
+            results = await detector.detect(text)
+            all_findings.extend(results)
+        # Dedup by span (start, end)
+        seen: set[tuple[int, int]] = set()
+        deduped: list[PIIFinding] = []
+        for f in all_findings:
+            span = (f.start, f.end)
+            if span not in seen:
+                seen.add(span)
+                deduped.append(f)
+        return deduped
+
+
+class _CustomDetector:
+    """Wraps an async callable as a PIIDetector."""
+
+    def __init__(self, fn: Callable[..., Any]):
+        self._fn = fn
+
+    async def detect(self, text: str) -> list[PIIFinding]:
+        return await self._fn(text)
+
+
+class _LLMJudge:
+    """Placeholder LLM-based content judge.
+
+    Always passes in the current implementation. Real LLM call TBD.
+    """
+
+    def __init__(self, model: str = "gemini-2.5-flash"):
+        self._model = model
+
+    async def judge(self, text: str, context: dict | None = None) -> JudgmentResult:
+        # Placeholder — always passes
+        return JudgmentResult(passed=True, score=0.0, reason="LLM judge not yet wired")
+
+
+class _CustomJudge:
+    """Wraps an async callable as a ContentJudge."""
+
+    def __init__(self, fn: Callable[..., Any]):
+        self._fn = fn
+
+    async def judge(self, text: str, context: dict | None = None) -> JudgmentResult:
+        return await self._fn(text, context)
+
+
+# ── G factory class ───────────────────────────────────────────────────
+
+
+def _noop_compile(_builder: Any) -> None:
+    """No-op compile function for guards that only need spec tracking."""
+
+
+class G:
+    """Factory for composable guard specs.
+
+    Every method returns a ``GComposite`` that can be chained with ``|``
+    and compiled into a builder via ``.guard()``.
+    """
+
+    # ------------------------------------------------------------------
+    # Structural guards
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def json() -> GComposite:
+        """Validate that model output is valid JSON."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(("guard:json", "json_validate"))
+
+        return GComposite([GGuard("json", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def length(
+        *,
+        min: int = 0,
+        max: int = 100_000,  # noqa: A002
+    ) -> GComposite:
+        """Enforce output length bounds."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(("guard:length", {"min": min, "max": max}))
+
+        return GComposite([GGuard("length", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def regex(
+        pattern: str,
+        *,
+        action: str = "block",
+        replacement: str = "[REDACTED]",
+    ) -> GComposite:
+        """Block or redact text matching a regex pattern.
+
+        Args:
+            pattern: Regex pattern to match.
+            action: ``"block"`` to raise, ``"redact"`` to replace.
+            replacement: Replacement text when action is ``"redact"``.
+        """
+        compiled = re.compile(pattern)
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(
+                (
+                    "guard:regex",
+                    {
+                        "pattern": compiled,
+                        "action": action,
+                        "replacement": replacement,
+                    },
+                )
+            )
+
+        return GComposite([GGuard("regex", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def output(schema_cls: type) -> GComposite:
+        """Validate model output against a schema class."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(("guard:output", schema_cls))
+
+        return GComposite([GGuard("output", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def input(schema_cls: type) -> GComposite:  # noqa: A003
+        """Validate model input against a schema class."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("before_model_callback", [])
+            cbs.append(("guard:input", schema_cls))
+
+        return GComposite([GGuard("input", _Phase.PRE_MODEL, frozenset(), _compile)])
+
+    # ------------------------------------------------------------------
+    # Policy guards
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def budget(max_tokens: int) -> GComposite:
+        """Enforce a token budget."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(("guard:budget", {"max_tokens": max_tokens}))
+
+        return GComposite([GGuard("budget", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def rate_limit(rpm: int) -> GComposite:
+        """Enforce requests-per-minute limit."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("before_model_callback", [])
+            cbs.append(("guard:rate_limit", {"rpm": rpm}))
+
+        return GComposite([GGuard("rate_limit", _Phase.PRE_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def max_turns(n: int) -> GComposite:
+        """Enforce maximum conversation turns."""
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("before_model_callback", [])
+            cbs.append(("guard:max_turns", {"n": n}))
+
+        return GComposite([GGuard("max_turns", _Phase.PRE_MODEL, frozenset(), _compile)])
+
+    # ------------------------------------------------------------------
+    # Content safety guards
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def pii(
+        action: str = "redact",
+        *,
+        detector: PIIDetector | None = None,
+        threshold: float = 0.5,
+        replacement: str = "[PII]",
+    ) -> GComposite:
+        """Detect and handle PII in model output.
+
+        Args:
+            action: ``"redact"`` to replace, ``"block"`` to raise.
+            detector: Custom ``PIIDetector``; defaults to ``_RegexDetector``.
+            threshold: Confidence threshold for findings.
+            replacement: Replacement text for redaction.
+        """
+        effective_detector = detector or _RegexDetector()
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(
+                (
+                    "guard:pii",
+                    {
+                        "action": action,
+                        "detector": effective_detector,
+                        "threshold": threshold,
+                        "replacement": replacement,
+                    },
+                )
+            )
+
+        return GComposite([GGuard("pii", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def toxicity(threshold: float = 0.8, *, judge: ContentJudge | None = None) -> GComposite:
+        """Block toxic model output.
+
+        Args:
+            threshold: Score threshold above which content is blocked.
+            judge: Custom ``ContentJudge``; defaults to ``_LLMJudge``.
+        """
+        effective_judge = judge or _LLMJudge()
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(
+                (
+                    "guard:toxicity",
+                    {"threshold": threshold, "judge": effective_judge},
+                )
+            )
+
+        return GComposite([GGuard("toxicity", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def topic(deny: list[str]) -> GComposite:
+        """Block output that discusses denied topics.
+
+        Args:
+            deny: List of topic strings to block.
+        """
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(("guard:topic", {"deny": list(deny)}))
+
+        return GComposite([GGuard("topic", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    @staticmethod
+    def grounded(sources_key: str = "sources") -> GComposite:
+        """Require model output to be grounded in source material.
+
+        Args:
+            sources_key: State key containing source documents.
+        """
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(("guard:grounded", {"sources_key": sources_key}))
+
+        return GComposite(
+            [
+                GGuard(
+                    "grounded",
+                    _Phase.POST_MODEL,
+                    frozenset({sources_key}),
+                    _compile,
+                )
+            ]
+        )
+
+    @staticmethod
+    def hallucination(
+        threshold: float = 0.7,
+        *,
+        sources_key: str = "sources",
+        judge: ContentJudge | None = None,
+    ) -> GComposite:
+        """Detect hallucinated content not supported by sources.
+
+        Args:
+            threshold: Score threshold above which content is flagged.
+            sources_key: State key containing source documents.
+            judge: Custom ``ContentJudge``; defaults to ``_LLMJudge``.
+        """
+        effective_judge = judge or _LLMJudge()
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(
+                (
+                    "guard:hallucination",
+                    {
+                        "threshold": threshold,
+                        "sources_key": sources_key,
+                        "judge": effective_judge,
+                    },
+                )
+            )
+
+        return GComposite(
+            [
+                GGuard(
+                    "hallucination",
+                    _Phase.POST_MODEL,
+                    frozenset({sources_key}),
+                    _compile,
+                )
+            ]
+        )
+
+    # ------------------------------------------------------------------
+    # Conditional
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def when(predicate: Callable[[Any], bool], guard: GComposite | GGuard) -> GComposite:
+        """Conditionally apply a guard based on a state predicate.
+
+        Args:
+            predicate: Callable taking state dict, returning bool.
+            guard: Guard to apply when predicate is true.
+        """
+        inner_guards = guard._guards if isinstance(guard, GComposite) else [guard]
+
+        def _compile(builder: Any) -> None:
+            for g in inner_guards:
+                g._compile(builder)
+
+        reads = guard._reads_keys if isinstance(guard, GComposite) else guard._reads_keys
+        return GComposite([GGuard("when", _Phase.CONTEXT, reads, _compile)])
+
+    # ------------------------------------------------------------------
+    # Provider factories
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def dlp(
+        project: str,
+        *,
+        info_types: list[str] | None = None,
+        location: str = "global",
+    ) -> _DLPDetector:
+        """Create a Google Cloud DLP-based PII detector."""
+        return _DLPDetector(project, info_types=info_types, location=location)
+
+    @staticmethod
+    def regex_detector(
+        patterns: list[str] | dict[str, str] | None = None,
+    ) -> _RegexDetector:
+        """Create a regex-based PII detector.
+
+        Args:
+            patterns: List of regex strings (auto-named) or dict of
+                ``{kind: pattern}`` pairs. ``None`` uses built-in defaults.
+        """
+        if patterns is None:
+            return _RegexDetector()
+        if isinstance(patterns, list):
+            compiled = {f"PATTERN_{i}": re.compile(p) for i, p in enumerate(patterns)}
+            return _RegexDetector(compiled)
+        return _RegexDetector({k: re.compile(v) for k, v in patterns.items()})
+
+    @staticmethod
+    def multi(*detectors: Any) -> _MultiDetector:
+        """Combine multiple PII detectors, deduplicating by span."""
+        return _MultiDetector(list(detectors))
+
+    @staticmethod
+    def custom(fn: Callable[..., Any]) -> _CustomDetector:
+        """Wrap an async callable as a PII detector."""
+        return _CustomDetector(fn)
+
+    @staticmethod
+    def llm_judge(model: str = "gemini-2.5-flash") -> _LLMJudge:
+        """Create a placeholder LLM-based content judge."""
+        return _LLMJudge(model)
+
+    @staticmethod
+    def custom_judge(fn: Callable[..., Any]) -> _CustomJudge:
+        """Wrap an async callable as a content judge."""
+        return _CustomJudge(fn)
