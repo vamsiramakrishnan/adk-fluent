@@ -21,7 +21,14 @@ from __future__ import annotations
 
 from typing import Any
 
-__all__ = ["T", "TComposite"]
+__all__ = [
+    "T",
+    "TComposite",
+    "_ConfirmWrapper",
+    "_TimeoutWrapper",
+    "_CachedWrapper",
+    "_TransformWrapper",
+]
 
 
 class TComposite:
@@ -181,3 +188,223 @@ class T:
         IR conversion and wired to ``AgentNode.tool_schema``.
         """
         return TComposite([_SchemaMarker(schema_cls)], kind="schema")
+
+    # --- Mock ---
+
+    @staticmethod
+    def mock(name: str, *, returns: Any = None, side_effect: Any = None) -> TComposite:
+        """Create a mock tool that returns a fixed value or side-effect.
+
+        Args:
+            name: Name for the mock tool.
+            returns: Value to return (ignored if *side_effect* is set).
+            side_effect: Callable or static value used instead of *returns*.
+        """
+        return TComposite(
+            [_MockWrapper(name, returns=returns, side_effect=side_effect)],
+            kind="mock",
+        )
+
+    # --- Confirm ---
+
+    @staticmethod
+    def confirm(tool_or_composite: TComposite | Any, message: str | None = None) -> TComposite:
+        """Wrap tool(s) with a confirmation requirement.
+
+        Each tool in the composite is individually wrapped so that
+        ``require_confirmation`` is set.
+        """
+        items = tool_or_composite._items if isinstance(tool_or_composite, TComposite) else [tool_or_composite]
+        wrapped = [_ConfirmWrapper(item, message) for item in items]
+        return TComposite(wrapped, kind="confirm")
+
+    # --- Timeout ---
+
+    @staticmethod
+    def timeout(tool_or_composite: TComposite | Any, seconds: float = 30) -> TComposite:
+        """Wrap tool(s) with a per-invocation timeout."""
+        items = tool_or_composite._items if isinstance(tool_or_composite, TComposite) else [tool_or_composite]
+        wrapped = [_TimeoutWrapper(item, seconds) for item in items]
+        return TComposite(wrapped, kind="timeout")
+
+    # --- Cache ---
+
+    @staticmethod
+    def cache(
+        tool_or_composite: TComposite | Any,
+        ttl: float = 300,
+        key_fn: Any = None,
+    ) -> TComposite:
+        """Wrap tool(s) with a TTL-based result cache."""
+        items = tool_or_composite._items if isinstance(tool_or_composite, TComposite) else [tool_or_composite]
+        wrapped = [_CachedWrapper(item, ttl, key_fn) for item in items]
+        return TComposite(wrapped, kind="cache")
+
+    # --- MCP ---
+
+    @staticmethod
+    def mcp(
+        url_or_params: Any,
+        *,
+        tool_filter: Any = None,
+        prefix: str | None = None,
+    ) -> TComposite:
+        """Thin factory over :class:`McpToolset` builder."""
+        from adk_fluent.tool import McpToolset
+
+        builder = McpToolset().connection_params(url_or_params)
+        if tool_filter is not None:
+            builder = builder.tool_filter(tool_filter)
+        if prefix is not None:
+            builder = builder.tool_name_prefix(prefix)
+        return TComposite([builder.build()], kind="mcp")
+
+    # --- OpenAPI ---
+
+    @staticmethod
+    def openapi(
+        spec: Any,
+        *,
+        tool_filter: Any = None,
+        auth: Any = None,
+    ) -> TComposite:
+        """Thin factory over :class:`OpenAPIToolset` builder."""
+        from adk_fluent.tool import OpenAPIToolset
+
+        builder = OpenAPIToolset().spec_dict(spec)
+        if tool_filter is not None:
+            builder = builder.tool_filter(tool_filter)
+        if auth is not None:
+            builder = builder.auth_credential(auth)
+        return TComposite([builder.build()], kind="openapi")
+
+    # --- Transform ---
+
+    @staticmethod
+    def transform(
+        tool_or_composite: TComposite | Any,
+        *,
+        pre: Any = None,
+        post: Any = None,
+    ) -> TComposite:
+        """Wrap tool(s) with pre/post argument/result transforms."""
+        items = tool_or_composite._items if isinstance(tool_or_composite, TComposite) else [tool_or_composite]
+        wrapped = [_TransformWrapper(item, pre, post) for item in items]
+        return TComposite(wrapped, kind="transform")
+
+
+# ---------------------------------------------------------------------------
+# Wrapper classes (module-level, outside T)
+# ---------------------------------------------------------------------------
+
+
+class _MockWrapper:
+    """A mock tool that returns a fixed value or calls a side-effect."""
+
+    def __init__(self, name: str, *, returns: Any = None, side_effect: Any = None):
+        self.name = name
+        self.description = f"Mock tool: {name}"
+        self._returns = returns
+        self._side_effect = side_effect
+
+    async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
+        """Return configured value or invoke side-effect."""
+        if self._side_effect is not None:
+            return self._side_effect(**args) if callable(self._side_effect) else self._side_effect
+        return self._returns
+
+
+class _ConfirmWrapper:
+    """Wraps a tool to require user confirmation before execution."""
+
+    def __init__(self, inner: Any, message: str | None = None):
+        from google.adk.tools.base_tool import BaseTool
+
+        self._inner = inner
+        self._message = message
+        if isinstance(inner, BaseTool):
+            self.name = inner.name
+            self.description = inner.description
+        else:
+            self.name = getattr(inner, "__name__", "tool")
+            self.description = getattr(inner, "__doc__", "") or ""
+        self.require_confirmation = True
+
+    async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
+        """Delegate to inner tool."""
+        if hasattr(self._inner, "run_async"):
+            return await self._inner.run_async(args=args, tool_context=tool_context)
+        return self._inner(**args)
+
+
+class _TimeoutWrapper:
+    """Wraps a tool with an asyncio timeout."""
+
+    def __init__(self, inner: Any, seconds: float):
+        self._inner = inner
+        self._seconds = seconds
+        self.name = getattr(inner, "name", getattr(inner, "__name__", "tool"))
+        self.description = getattr(inner, "description", getattr(inner, "__doc__", "") or "")
+
+    async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
+        """Delegate with timeout."""
+        import asyncio
+
+        if hasattr(self._inner, "run_async"):
+            return await asyncio.wait_for(
+                self._inner.run_async(args=args, tool_context=tool_context),
+                timeout=self._seconds,
+            )
+        return self._inner(**args)
+
+
+class _CachedWrapper:
+    """Wraps a tool with a TTL-based in-memory cache."""
+
+    def __init__(self, inner: Any, ttl: float, key_fn: Any = None):
+        self._inner = inner
+        self._ttl = ttl
+        self._key_fn = key_fn or (lambda args: str(sorted(args.items())))
+        self._cache: dict[str, tuple[Any, float]] = {}
+        self.name = getattr(inner, "name", getattr(inner, "__name__", "tool"))
+        self.description = getattr(inner, "description", getattr(inner, "__doc__", "") or "")
+
+    async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
+        """Return cached result if fresh, otherwise invoke and cache."""
+        import time
+
+        key = self._key_fn(args)
+        now = time.monotonic()
+        if key in self._cache:
+            result, ts = self._cache[key]
+            if now - ts < self._ttl:
+                return result
+        if hasattr(self._inner, "run_async"):
+            result = await self._inner.run_async(args=args, tool_context=tool_context)
+        else:
+            result = self._inner(**args)
+        self._cache[key] = (result, now)
+        return result
+
+
+class _TransformWrapper:
+    """Wraps a tool with pre/post argument/result transforms."""
+
+    def __init__(self, inner: Any, pre: Any = None, post: Any = None):
+        self._inner = inner
+        self._pre = pre
+        self._post = post
+        self.name = getattr(inner, "name", getattr(inner, "__name__", "tool"))
+        self.description = getattr(inner, "description", getattr(inner, "__doc__", "") or "")
+
+    async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
+        """Apply pre-transform, invoke, apply post-transform."""
+        if self._pre is not None:
+            args = self._pre(args)
+        if hasattr(self._inner, "run_async"):
+            result = await self._inner.run_async(args=args, tool_context=tool_context)
+        else:
+            result = self._inner(**args)
+        if self._post is not None:
+            result = self._post(result)
+        return result
