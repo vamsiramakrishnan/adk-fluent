@@ -42,6 +42,7 @@ __all__ = [
     "_eval_suite",
     "_instruct_with_guard",
     "_context_with_guard",
+    "_guard_dispatch",
 ]
 
 
@@ -90,6 +91,26 @@ def _context_with_guard(builder, spec):
         )
     builder = builder._maybe_fork_for_mutation()
     builder._config["_context_spec"] = spec
+    return builder
+
+
+def _guard_dispatch(builder, value):
+    """Route .guard() calls — supports G composites and legacy callables."""
+    from adk_fluent._guards import GComposite, GGuard
+
+    if isinstance(value, GComposite):
+        value._compile_into(builder)
+    elif isinstance(value, GGuard):
+        GComposite([value])._compile_into(builder)
+    elif callable(value):
+        # Backwards compatible — existing dual-callback behavior
+        builder._callbacks.setdefault("before_model_callback", []).append(value)
+        builder._callbacks.setdefault("after_model_callback", []).append(value)
+    else:
+        raise TypeError(
+            f"guard() expects a callable or G composite, got {type(value).__name__}. "
+            f"Use G.json(), G.pii(), etc. to create guard composites."
+        )
     return builder
 
 
@@ -183,6 +204,7 @@ def _agent_to_ir(builder):
     # Note: NO writes_keys merging — prompts only read state
 
     artifact_schema_cls = builder._config.get("_artifact_schema")
+    guard_specs = builder._config.get("_guard_specs", ())
 
     return AgentNode(
         name=builder._config.get("name", ""),
@@ -213,6 +235,7 @@ def _agent_to_ir(builder):
         callback_schema=callback_schema,
         prompt_schema=prompt_schema_cls,
         artifact_schema=artifact_schema_cls,
+        guard_specs=guard_specs,
     )
 
 

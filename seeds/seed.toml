@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-03T22:58:43.661106+00:00"
+generated_at = "2026-03-10T18:18:30.899689+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -272,17 +272,18 @@ helper_func = "_add_tools"
 
 [[builders.Agent.extras]]
 name = "guard"
-signature = "(self, fn: Callable[..., Any]) -> Self"
-doc = "Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response."
-behavior = "dual_callback"
-target_fields = ["before_model_callback", "after_model_callback"]
+signature = "(self, value: Any) -> Self"
+doc = "Add a guard. Accepts a G composite (G.pii() | G.budget()) or a plain callable (legacy dual-callback)."
+behavior = "runtime_helper"
+helper_func = "_guard_dispatch"
 example = '''
-def safety_check(callback_context, llm_request, llm_response, agent):
-    if "unsafe" in str(llm_response):
-        return None  # Block response
-    return llm_response
+from adk_fluent import G
 
-agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
+# Declarative guards
+agent = Agent("safe", "gemini-2.5-flash").guard(G.pii("redact") | G.budget(5000))
+
+# Legacy callable guard (still works)
+agent = Agent("safe", "gemini-2.5-flash").guard(my_guard_fn)
 '''
 see_also = ["Agent.before_model", "Agent.after_model"]
 
@@ -2456,4 +2457,3 @@ extra_skip_fields = []
 name = "build"
 returns = "VertexAiSearchTool"
 doc = "Resolve into a native ADK VertexAiSearchTool."
-

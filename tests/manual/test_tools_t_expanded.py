@@ -20,7 +20,7 @@ class TestMock:
         assert isinstance(tc, TComposite)
         assert tc._kind == "mock"
         tool = tc.to_tools()[0]
-        result = asyncio.get_event_loop().run_until_complete(tool.run_async(args={}, tool_context=None))
+        result = asyncio.run(tool.run_async(args={}, tool_context=None))
         assert result == "hello"
 
     def test_mock_side_effect_callable(self):
@@ -28,7 +28,7 @@ class TestMock:
 
         tc = T.mock("add", side_effect=lambda x=0, y=0, **kw: x + y)
         tool = tc.to_tools()[0]
-        result = asyncio.get_event_loop().run_until_complete(tool.run_async(args={"x": 2, "y": 3}, tool_context=None))
+        result = asyncio.run(tool.run_async(args={"x": 2, "y": 3}, tool_context=None))
         assert result == 5
 
     def test_mock_side_effect_non_callable(self):
@@ -36,7 +36,7 @@ class TestMock:
 
         tc = T.mock("err", side_effect="error-value")
         tool = tc.to_tools()[0]
-        result = asyncio.get_event_loop().run_until_complete(tool.run_async(args={}, tool_context=None))
+        result = asyncio.run(tool.run_async(args={}, tool_context=None))
         assert result == "error-value"
 
     def test_mock_composes_with_pipe(self):
@@ -107,7 +107,7 @@ class TestConfirm:
 
         tc = T.confirm(T.fn(my_fn))
         wrapper = tc.to_tools()[0]
-        result = asyncio.get_event_loop().run_until_complete(wrapper.run_async(args={"x": 5}, tool_context=None))
+        result = asyncio.run(wrapper.run_async(args={"x": 5}, tool_context=None))
         assert result == 10
 
 
@@ -148,7 +148,7 @@ class TestTimeout:
 
         tc = T.timeout(T.fn(fast), seconds=5)
         wrapper = tc.to_tools()[0]
-        result = asyncio.get_event_loop().run_until_complete(wrapper.run_async(args={"x": 42}, tool_context=None))
+        result = asyncio.run(wrapper.run_async(args={"x": 42}, tool_context=None))
         assert result == 42
 
 
@@ -192,10 +192,13 @@ class TestCache:
 
         tc = T.cache(T.fn(counting), ttl=300)
         wrapper = tc.to_tools()[0]
-        loop = asyncio.get_event_loop()
 
-        r1 = loop.run_until_complete(wrapper.run_async(args={"x": 5}, tool_context=None))
-        r2 = loop.run_until_complete(wrapper.run_async(args={"x": 5}, tool_context=None))
+        async def _run():
+            r1 = await wrapper.run_async(args={"x": 5}, tool_context=None)
+            r2 = await wrapper.run_async(args={"x": 5}, tool_context=None)
+            return r1, r2
+
+        r1, r2 = asyncio.run(_run())
         assert r1 == 10
         assert r2 == 10
         assert call_count == 1  # second call was cached
@@ -282,7 +285,7 @@ class TestTransform:
             post=lambda r: r + 100,
         )
         wrapper = tc.to_tools()[0]
-        result = asyncio.get_event_loop().run_until_complete(wrapper.run_async(args={"x": 5}, tool_context=None))
+        result = asyncio.run(wrapper.run_async(args={"x": 5}, tool_context=None))
         assert result == 110  # pre: x=10, fn returns 10, post: 10+100
 
     def test_transform_wraps_composite(self):

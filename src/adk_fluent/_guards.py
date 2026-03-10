@@ -244,7 +244,7 @@ class _DLPDetector:
         location: str = "global",
     ):
         try:
-            import google.cloud.dlp_v2  # noqa: F401
+            import google.cloud.dlp_v2  # type: ignore[reportMissingImports]  # noqa: F401
         except ImportError as exc:
             msg = (
                 "google-cloud-dlp is required for DLP-based PII detection. "
@@ -262,7 +262,7 @@ class _DLPDetector:
         self._location = location
 
     async def detect(self, text: str) -> list[PIIFinding]:
-        import google.cloud.dlp_v2 as dlp
+        import google.cloud.dlp_v2 as dlp  # type: ignore[reportMissingImports]
 
         client = dlp.DlpServiceClient()
         inspect_config = {

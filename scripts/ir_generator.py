@@ -216,6 +216,7 @@ def gen_node_class(adk_name: str, ir_name: str, cls_data: dict) -> str:
         lines.append("    callback_schema: type | None = None  # CallbackSchema class, preserved for diagnostics")
         lines.append("    prompt_schema: type | None = None  # PromptSchema class, preserved for diagnostics")
         lines.append("    artifact_schema: type | None = None  # ArtifactSchema class, preserved for diagnostics")
+        lines.append("    guard_specs: tuple = ()  # GGuard specs, preserved for contract checking")
 
     lines.append("")
     return "\n".join(lines)

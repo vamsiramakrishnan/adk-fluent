@@ -475,12 +475,11 @@ class Agent(BuilderBase):
 
         return _add_tools(self, value)
 
-    def guard(self, fn: Callable[..., Any]) -> Self:
-        """Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response."""
-        self = self._maybe_fork_for_mutation()
-        self._callbacks["before_model_callback"].append(fn)
-        self._callbacks["after_model_callback"].append(fn)
-        return self
+    def guard(self, value: Any) -> Self:
+        """Add a guard. Accepts a G composite (G.pii() | G.budget()) or a plain callable (legacy dual-callback)."""
+        from adk_fluent._helpers import _guard_dispatch
+
+        return _guard_dispatch(self, value)
 
     def ask(self, prompt: str) -> str:
         """One-shot execution. Build agent, send prompt, return response text."""

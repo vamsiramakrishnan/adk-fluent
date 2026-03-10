@@ -339,6 +339,14 @@ __all__ = [
     "EvalReport",
     "ComparisonReport",
     "EPersona",
+    "G",
+    "GComposite",
+    "GGuard",
+    "GuardViolation",
+    "PIIDetector",
+    "PIIFinding",
+    "ContentJudge",
+    "JudgmentResult",
     "deep_clone_builder",
     "add_agent_tool",
     "run_one_shot",
@@ -370,6 +378,7 @@ __all__ = [
     "_eval_suite",
     "_instruct_with_guard",
     "_context_with_guard",
+    "_guard_dispatch",
     "TransformNode",
     "TapNode",
     "FallbackNode",
@@ -467,6 +476,10 @@ __all__ = [
     "ToolSchema",
     "T",
     "TComposite",
+    "_ConfirmWrapper",
+    "_TimeoutWrapper",
+    "_CachedWrapper",
+    "_TransformWrapper",
     "S",
     "STransform",
     "StateDelta",
@@ -593,6 +606,14 @@ from ._eval import EvalSuite
 from ._eval import EvalReport
 from ._eval import ComparisonReport
 from ._eval import EPersona
+from ._guards import G
+from ._guards import GComposite
+from ._guards import GGuard
+from ._guards import GuardViolation
+from ._guards import PIIDetector
+from ._guards import PIIFinding
+from ._guards import ContentJudge
+from ._guards import JudgmentResult
 from ._helpers import deep_clone_builder
 from ._helpers import add_agent_tool
 from ._helpers import run_one_shot
@@ -624,6 +645,7 @@ from ._helpers import _eval_inline
 from ._helpers import _eval_suite
 from ._helpers import _instruct_with_guard
 from ._helpers import _context_with_guard
+from ._helpers import _guard_dispatch
 from ._ir import TransformNode
 from ._ir import TapNode
 from ._ir import FallbackNode
@@ -740,6 +762,10 @@ from ._tool_registry import compress_large_result
 from ._tool_schema import ToolSchema
 from ._tools import T
 from ._tools import TComposite
+from ._tools import _ConfirmWrapper
+from ._tools import _TimeoutWrapper
+from ._tools import _CachedWrapper
+from ._tools import _TransformWrapper
 from ._transforms import S
 from ._transforms import STransform
 from ._transforms import StateDelta
@@ -778,6 +804,9 @@ from .prelude import FanOut
 from .prelude import Loop
 from .prelude import Fallback
 from .prelude import A
+from .prelude import G
+from .prelude import GComposite
+from .prelude import GuardViolation
 from .prelude import ATransform
 from .prelude import C
 from .prelude import E

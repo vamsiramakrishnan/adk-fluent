@@ -71,6 +71,7 @@ class AgentNode:
     callback_schema: type | None = None  # CallbackSchema class, preserved for diagnostics
     prompt_schema: type | None = None  # PromptSchema class, preserved for diagnostics
     artifact_schema: type | None = None  # ArtifactSchema class, preserved for diagnostics
+    guard_specs: tuple = ()  # GGuard specs, preserved for contract checking
 
 
 @dataclass(frozen=True)

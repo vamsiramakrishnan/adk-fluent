@@ -252,7 +252,7 @@ class T:
         """Thin factory over :class:`McpToolset` builder."""
         from adk_fluent.tool import McpToolset
 
-        builder = McpToolset().connection_params(url_or_params)
+        builder = McpToolset().connection_params(url_or_params)  # type: ignore[reportAttributeAccessIssue]
         if tool_filter is not None:
             builder = builder.tool_filter(tool_filter)
         if prefix is not None:

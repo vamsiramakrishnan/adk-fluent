@@ -1204,7 +1204,7 @@ class _SampledMiddleware:
 
         async def _sampled(*args: Any, **kwargs: Any) -> Any:
             if random.random() < self._rate:
-                return await inner_attr(*args, **kwargs)
+                return await inner_attr(*args, **kwargs)  # type: ignore[reportGeneralTypeIssues]
             return None
 
         return _sampled

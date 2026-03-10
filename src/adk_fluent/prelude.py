@@ -31,6 +31,7 @@ from adk_fluent._eval import (
     EvalReport,
     EvalSuite,
 )
+from adk_fluent._guards import G, GComposite, GuardViolation
 from adk_fluent._middleware import M
 from adk_fluent._middleware_schema import MiddlewareSchema
 from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
@@ -61,6 +62,9 @@ __all__ = [
     "Fallback",
     # Tier 2: Composition namespaces
     "A",
+    "G",
+    "GComposite",
+    "GuardViolation",
     "ATransform",
     "C",
     "E",
