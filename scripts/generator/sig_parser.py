@@ -9,6 +9,7 @@ Handles signatures like:
 from __future__ import annotations
 
 from code_ir import Param
+from code_ir.utils import split_at_commas
 
 
 def parse_signature(sig: str) -> tuple[list[Param], str | None]:
@@ -30,27 +31,7 @@ def parse_signature(sig: str) -> tuple[list[Param], str | None]:
     params: list[Param] = []
     kw_only = False
 
-    # Split on commas, but be careful about nested types like `dict[str, str]`
-    # Use a simple bracket-depth approach
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for ch in params_part:
-        if ch in ("(", "[", "{"):
-            depth += 1
-            current.append(ch)
-        elif ch in (")", "]", "}"):
-            depth -= 1
-            current.append(ch)
-        elif ch == "," and depth == 0:
-            parts.append("".join(current).strip())
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        remainder = "".join(current).strip()
-        if remainder:
-            parts.append(remainder)
+    parts = split_at_commas(params_part)
 
     for part in parts:
         part = part.strip()

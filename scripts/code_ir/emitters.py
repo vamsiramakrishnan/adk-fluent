@@ -8,7 +8,9 @@ import subprocess
 from .nodes import (
     AppendStmt,
     AssignStmt,
+    AsyncForYield,
     ClassNode,
+    DeprecationStmt,
     ForAppendStmt,
     ForkAndAssign,
     IfStmt,
@@ -229,6 +231,23 @@ def _emit_stmt(stmt: Stmt, indent: str = "        ") -> str:
         return "\n".join(f"{indent}{line}" for line in raw_lines)
     elif isinstance(stmt, ForkAndAssign):
         return f"{indent}self = self._maybe_fork_for_mutation()"
+    elif isinstance(stmt, DeprecationStmt):
+        lines = [
+            f"{indent}import warnings",
+            f"{indent}warnings.warn(",
+            f'{indent}    ".{stmt.old_name}() is deprecated, use .{stmt.new_name}() instead",',
+            f"{indent}    DeprecationWarning,",
+            f"{indent}    stacklevel=2,",
+            f"{indent})",
+        ]
+        return "\n".join(lines)
+    elif isinstance(stmt, AsyncForYield):
+        lines = [
+            f"{indent}from {stmt.module} import {stmt.func}",
+            f"{indent}async for {stmt.var} in {stmt.func}({stmt.args}):",
+            f"{indent}    yield {stmt.var}",
+        ]
+        return "\n".join(lines)
     else:
         raise TypeError(f"Unknown statement type: {type(stmt)}")
 

@@ -217,24 +217,32 @@ def _normalize_type_str(s: str) -> str:
 
 def _split_union_args(s: str) -> list[str]:
     """Split Union arguments at top-level commas, respecting bracket nesting."""
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for ch in s:
-        if ch in "([":
-            depth += 1
-            current.append(ch)
-        elif ch in ")]":
-            depth -= 1
-            current.append(ch)
-        elif ch == "," and depth == 0:
+    # Delegate to the shared bracket-depth splitter.
+    # Import here to avoid circular deps (scanner runs standalone).
+    try:
+        from code_ir.utils import split_at_commas
+
+        return split_at_commas(s)
+    except ImportError:
+        # Fallback for standalone scanner invocation without code_ir on path
+        parts: list[str] = []
+        depth = 0
+        current: list[str] = []
+        for ch in s:
+            if ch in "([":
+                depth += 1
+                current.append(ch)
+            elif ch in ")]":
+                depth -= 1
+                current.append(ch)
+            elif ch == "," and depth == 0:
+                parts.append("".join(current))
+                current = []
+            else:
+                current.append(ch)
+        if current:
             parts.append("".join(current))
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        parts.append("".join(current))
-    return parts
+        return parts
 
 
 def _type_to_str(annotation: Any) -> str:

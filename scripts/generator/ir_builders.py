@@ -17,8 +17,10 @@ from __future__ import annotations
 from code_ir import (
     AppendStmt,
     AssignStmt,
+    AsyncForYield,
     ClassAttr,
     ClassNode,
+    DeprecationStmt,
     ForAppendStmt,
     ForkAndAssign,
     IfStmt,
@@ -28,6 +30,7 @@ from code_ir import (
     RawStmt,
     ReturnStmt,
     SubscriptAssign,
+    split_at_commas,
 )
 
 from .imports import adk_import_name
@@ -165,7 +168,6 @@ def ir_deprecated_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
         field_info = next((f for f in spec.fields if f["name"] == field_name), None)
         type_hint = field_info["type_str"] if field_info else "Any"
 
-        msg = f".{fluent_name}() is deprecated, use .{use_instead}() instead"
         doc = f"Deprecated: use ``.{use_instead}()`` instead."
 
         methods.append(
@@ -176,9 +178,7 @@ def ir_deprecated_alias_methods(spec: BuilderSpec) -> list[MethodNode]:
                 doc=doc,
                 body=[
                     ForkAndAssign(),
-                    RawStmt(
-                        f'import warnings\nwarnings.warn(\n    "{msg}",\n    DeprecationWarning,\n    stacklevel=2,\n)'
-                    ),
+                    DeprecationStmt(old_name=fluent_name, new_name=use_instead),
                     SubscriptAssign("self._config", field_name, "value"),
                     ReturnStmt("self"),
                 ],
@@ -337,34 +337,6 @@ def ir_field_methods(spec: BuilderSpec) -> list[MethodNode]:
 # ---------------------------------------------------------------------------
 
 
-def _split_params_bracket_aware(params_str: str) -> list[str]:
-    """Split a parameter string on commas, respecting bracket depth.
-
-    Handles nested types like ``Callable[[X], Y]`` and ``dict[str, str]``
-    without incorrectly splitting on commas inside brackets.
-    """
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for ch in params_str:
-        if ch in ("(", "[", "{"):
-            depth += 1
-            current.append(ch)
-        elif ch in (")", "]", "}"):
-            depth -= 1
-            current.append(ch)
-        elif ch == "," and depth == 0:
-            parts.append("".join(current).strip())
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        remainder = "".join(current).strip()
-        if remainder:
-            parts.append(remainder)
-    return parts
-
-
 def _extract_forwarding_args(sig: str) -> str:
     """Extract parameter names from a signature and build a forwarding argument string.
 
@@ -383,7 +355,7 @@ def _extract_forwarding_args(sig: str) -> str:
         params_str = ""
     parts = []
     kw_only = False
-    for p in _split_params_bracket_aware(params_str):
+    for p in split_at_commas(params_str):
         p = p.strip()
         if not p:
             continue
@@ -415,47 +387,35 @@ def ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
         is_async = behavior in ("runtime_helper_async", "runtime_helper_async_gen")
         is_generator = behavior == "runtime_helper_async_gen"
 
+        # Derive the first non-self parameter name from the parsed params list
+        _value_params = [p for p in params if p.name != "self" and not p.name.startswith("*")]
+        _first_param = _value_params[0].name if _value_params else "value"
+
         body: list = []
 
         if behavior == "list_append":
-            # Determine which param name to use for append
-            if "fn_or_tool" in sig:
-                append_value = "fn_or_tool"
-            elif "agent" in sig:
-                append_value = "agent"
-            else:
-                append_value = "value"
             body.append(ForkAndAssign())
-            body.append(AppendStmt("self._lists", target, append_value))
+            body.append(AppendStmt("self._lists", target, _first_param))
             body.append(ReturnStmt("self"))
 
         elif behavior == "field_set":
-            param_name = sig.split("self, ")[1].split(":")[0].strip() if "self, " in sig else "value"
             body.append(ForkAndAssign())
-            body.append(SubscriptAssign("self._config", target, param_name))
+            body.append(SubscriptAssign("self._config", target, _first_param))
             body.append(ReturnStmt("self"))
 
         elif behavior == "dual_callback":
             target_fields = extra.get("target_fields", [])
-            if "self, " in sig:
-                param_name = sig.split("self, ")[1].split(":")[0].strip()
-            else:
-                param_name = "fn"
             body.append(ForkAndAssign())
             for tf in target_fields:
-                body.append(AppendStmt("self._callbacks", tf, param_name))
+                body.append(AppendStmt("self._callbacks", tf, _first_param))
             body.append(ReturnStmt("self"))
 
         elif behavior == "deep_copy":
-            if "self, " in sig:
-                param_name = sig.split("self, ")[1].split(":")[0].strip()
-            else:
-                param_name = "new_name"
             body.append(
                 ImportStmt(
                     module="adk_fluent._helpers",
                     name="deep_clone_builder",
-                    call=f"return deep_clone_builder(self, {param_name})",
+                    call=f"return deep_clone_builder(self, {_first_param})",
                 )
             )
 
@@ -485,10 +445,10 @@ def ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
             helper_func = extra.get("helper_func", name)
             args_fwd = _extract_forwarding_args(sig)
             body.append(
-                RawStmt(
-                    f"from adk_fluent._helpers import {helper_func}\n"
-                    f"async for chunk in {helper_func}(self, {args_fwd}):\n"
-                    f"    yield chunk"
+                AsyncForYield(
+                    module="adk_fluent._helpers",
+                    func=helper_func,
+                    args=f"self, {args_fwd}" if args_fwd else "self",
                 )
             )
 
@@ -504,17 +464,8 @@ def ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
 
         elif behavior == "deprecation_alias":
             target_method = extra.get("target_method", name)
-            body.append(
-                RawStmt(
-                    f"import warnings\n"
-                    f"warnings.warn(\n"
-                    f'    ".{name}() is deprecated, use .{target_method}() instead",\n'
-                    f"    DeprecationWarning,\n"
-                    f"    stacklevel=2,\n"
-                    f")\n"
-                    f"return self.{target_method}(agent)"
-                )
-            )
+            body.append(DeprecationStmt(old_name=name, new_name=target_method))
+            body.append(ReturnStmt(f"self.{target_method}({_first_param})"))
 
         else:
             # custom / unknown
