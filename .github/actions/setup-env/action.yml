@@ -21,7 +21,6 @@ runs:
         python-version: ${{ inputs.python-version || '' }}
 
     - uses: taiki-e/install-action@just
-      shell: bash
 
     - name: Install dependencies
       shell: bash
