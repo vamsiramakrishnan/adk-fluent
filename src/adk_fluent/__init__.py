@@ -328,7 +328,6 @@ __all__ = [
     "CUser",
     "CManusCascade",
     "CWhen",
-    "_compile_context_spec",
     "SessionStrategy",
     "ExecutionMode",
     "E",
@@ -360,25 +359,6 @@ __all__ = [
     "run_map_async",
     "StateKey",
     "Artifact",
-    "_add_artifacts",
-    "_add_tool",
-    "_add_tools",
-    "_agent_to_ir",
-    "_pipeline_to_ir",
-    "_fanout_to_ir",
-    "_loop_to_ir",
-    "_show_agent",
-    "_hide_agent",
-    "_add_memory",
-    "_add_memory_auto_save",
-    "_isolate_agent",
-    "_stay_agent",
-    "_no_peers_agent",
-    "_eval_inline",
-    "_eval_suite",
-    "_instruct_with_guard",
-    "_context_with_guard",
-    "_guard_dispatch",
     "TransformNode",
     "TapNode",
     "FallbackNode",
@@ -411,27 +391,9 @@ __all__ = [
     "fingerprint_spec",
     "PredicateSchema",
     "evaluate_predicate",
-    "_FnStepBuilder",
-    "_CaptureBuilder",
-    "_ArtifactBuilder",
-    "_FallbackBuilder",
-    "_TapBuilder",
-    "_MapOverBuilder",
     "TimedAgent",
-    "_GateBuilder",
-    "_RaceBuilder",
     "BackgroundTask",
-    "_JoinBuilder",
-    "_fn_step",
     "ArtifactAgent",
-    "_LoopHookAgent",
-    "_FanOutHookAgent",
-    "_dispatch_tasks",
-    "_global_task_budget",
-    "_middleware_dispatch_hooks",
-    "_topology_hooks",
-    "_execution_mode",
-    "_DEFAULT_MAX_TASKS",
     "P",
     "PTransform",
     "PComposite",
@@ -453,7 +415,6 @@ __all__ = [
     "PAdapt",
     "PScaffolded",
     "PVersioned",
-    "_compile_prompt_spec",
     "PromptSchema",
     "Route",
     "Fallback",
@@ -476,10 +437,6 @@ __all__ = [
     "ToolSchema",
     "T",
     "TComposite",
-    "_ConfirmWrapper",
-    "_TimeoutWrapper",
-    "_CachedWrapper",
-    "_TransformWrapper",
     "S",
     "STransform",
     "StateDelta",
@@ -492,18 +449,12 @@ __all__ = [
     "LoopDirective",
     "Middleware",
     "TopologyHooks",
-    "_MiddlewarePlugin",
     "RetryMiddleware",
     "StructuredLogMiddleware",
     "DispatchLogMiddleware",
     "TopologyLogMiddleware",
     "LatencyMiddleware",
     "CostTracker",
-    "_agent_matches",
-    "_ScopedMiddleware",
-    "_ConditionalMiddleware",
-    "_SingleHookMiddleware",
-    "_trace_context",
     "review_loop",
     "map_reduce",
     "cascade",
@@ -595,7 +546,6 @@ from ._context import CFromAgentsWindowed
 from ._context import CUser
 from ._context import CManusCascade
 from ._context import CWhen
-from ._context import _compile_context_spec
 from ._enums import SessionStrategy
 from ._enums import ExecutionMode
 from ._eval import E
@@ -627,25 +577,6 @@ from ._helpers import run_map
 from ._helpers import run_map_async
 from ._helpers import StateKey
 from ._helpers import Artifact
-from ._helpers import _add_artifacts
-from ._helpers import _add_tool
-from ._helpers import _add_tools
-from ._helpers import _agent_to_ir
-from ._helpers import _pipeline_to_ir
-from ._helpers import _fanout_to_ir
-from ._helpers import _loop_to_ir
-from ._helpers import _show_agent
-from ._helpers import _hide_agent
-from ._helpers import _add_memory
-from ._helpers import _add_memory_auto_save
-from ._helpers import _isolate_agent
-from ._helpers import _stay_agent
-from ._helpers import _no_peers_agent
-from ._helpers import _eval_inline
-from ._helpers import _eval_suite
-from ._helpers import _instruct_with_guard
-from ._helpers import _context_with_guard
-from ._helpers import _guard_dispatch
 from ._ir import TransformNode
 from ._ir import TapNode
 from ._ir import FallbackNode
@@ -679,17 +610,8 @@ from ._namespace_protocol import fingerprint_spec
 from ._predicate_schema import PredicateSchema
 from ._predicate_utils import evaluate_predicate
 from ._primitive_builders import PrimitiveBuilderBase
-from ._primitive_builders import _FnStepBuilder
-from ._primitive_builders import _CaptureBuilder
-from ._primitive_builders import _ArtifactBuilder
-from ._primitive_builders import _FallbackBuilder
-from ._primitive_builders import _TapBuilder
-from ._primitive_builders import _MapOverBuilder
 from ._primitive_builders import TimedAgent
-from ._primitive_builders import _GateBuilder
-from ._primitive_builders import _RaceBuilder
 from ._primitive_builders import BackgroundTask
-from ._primitive_builders import _JoinBuilder
 from ._primitive_builders import tap
 from ._primitive_builders import expect
 from ._primitive_builders import map_over
@@ -697,7 +619,6 @@ from ._primitive_builders import gate
 from ._primitive_builders import race
 from ._primitive_builders import dispatch
 from ._primitive_builders import join
-from ._primitive_builders import _fn_step
 from ._primitives import FnAgent
 from ._primitives import TapAgent
 from ._primitives import CaptureAgent
@@ -709,15 +630,7 @@ from ._primitives import GateAgent
 from ._primitives import RaceAgent
 from ._primitives import DispatchAgent
 from ._primitives import JoinAgent
-from ._primitives import _LoopHookAgent
-from ._primitives import _FanOutHookAgent
 from ._primitives import get_execution_mode
-from ._primitives import _dispatch_tasks
-from ._primitives import _global_task_budget
-from ._primitives import _middleware_dispatch_hooks
-from ._primitives import _topology_hooks
-from ._primitives import _execution_mode
-from ._primitives import _DEFAULT_MAX_TASKS
 from ._prompt import P
 from ._prompt import PTransform
 from ._prompt import PComposite
@@ -739,7 +652,6 @@ from ._prompt import PCompress
 from ._prompt import PAdapt
 from ._prompt import PScaffolded
 from ._prompt import PVersioned
-from ._prompt import _compile_prompt_spec
 from ._prompt_schema import PromptSchema
 from ._routing import Route
 from ._routing import Fallback
@@ -762,10 +674,6 @@ from ._tool_registry import compress_large_result
 from ._tool_schema import ToolSchema
 from ._tools import T
 from ._tools import TComposite
-from ._tools import _ConfirmWrapper
-from ._tools import _TimeoutWrapper
-from ._tools import _CachedWrapper
-from ._tools import _TransformWrapper
 from ._transforms import S
 from ._transforms import STransform
 from ._transforms import StateDelta
@@ -778,19 +686,12 @@ from .middleware import DispatchDirective
 from .middleware import LoopDirective
 from .middleware import Middleware
 from .middleware import TopologyHooks
-from .middleware import _MiddlewarePlugin
 from .middleware import RetryMiddleware
 from .middleware import StructuredLogMiddleware
 from .middleware import DispatchLogMiddleware
 from .middleware import TopologyLogMiddleware
 from .middleware import LatencyMiddleware
 from .middleware import CostTracker
-from .middleware import _agent_matches
-from .middleware import _ScopedMiddleware
-from .middleware import _ConditionalMiddleware
-from .middleware import _SingleHookMiddleware
-from .middleware import _trace_context
-from .middleware import _topology_hooks
 from .patterns import review_loop
 from .patterns import map_reduce
 from .patterns import cascade

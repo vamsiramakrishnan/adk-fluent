@@ -65,7 +65,7 @@ def review_loop(
     ``state[quality_key] == target`` or ``max_rounds`` is exhausted.
 
     Args:
-        worker: Agent builder that produces work (should write output via .writes()/.save_as()).
+        worker: Agent builder that produces work (should write output via .writes()).
         reviewer: Agent builder that evaluates work (must write to quality_key).
         quality_key: State key where the reviewer writes its quality assessment.
         target: Value of quality_key that signals the loop should exit.
@@ -163,13 +163,13 @@ def fan_out_merge(
 ) -> Any:
     """Run agents in parallel, then merge their outputs into one state key.
 
-    Each agent should write to a unique output key via ``.writes()`` /
-    ``.save_as()``. After all branches complete, their outputs are merged
-    into ``state[merge_key]``.
+    Each agent should write to a unique output key via ``.writes()``.
+    After all branches complete, their outputs are merged into
+    ``state[merge_key]``.
 
     Args:
         *agents: Two or more agent builders to run in parallel.
-            Each should have a unique output key set via .writes()/.save_as().
+            Each should have a unique output key set via .writes().
         merge_key: State key where the merged result is stored.
         merge_fn: Optional function to merge values. Receives positional
             args in agent order. Default: newline-joined concatenation.

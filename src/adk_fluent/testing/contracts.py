@@ -729,7 +729,7 @@ def _check_sequence_contracts(
                                 f"MiddlewareSchema reads key '{key}' but it is not produced by any upstream agent"
                             ),
                             "hint": (
-                                f"Add .save_as('{key}') to an upstream agent "
+                                f"Add .writes('{key}') to an upstream agent "
                                 f"or use S.set() / S.capture() to provide this key."
                             ),
                         }

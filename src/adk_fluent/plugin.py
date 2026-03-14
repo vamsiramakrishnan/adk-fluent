@@ -28,9 +28,6 @@ from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulat
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
-    from google.adk.agents.llm_agent import InstructionProvider
-    from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig
-    from google.adk.plugins.reflect_retry_tool_plugin import TrackingScope
     from google.genai.types import Content
 
 

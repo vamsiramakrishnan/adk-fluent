@@ -247,6 +247,10 @@ def generate_all(
             if stem in generated_modules:
                 continue
             for name in names:
+                # Skip private symbols — they're implementation internals
+                # that shouldn't be part of the public API
+                if name.startswith("_"):
+                    continue
                 manual_names.append(name)
                 manual_import_lines.append(f"from {module_name} import {name}")
 

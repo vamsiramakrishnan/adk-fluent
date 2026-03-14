@@ -12,7 +12,9 @@ manifest.previous.json
 .hypothesis/
 .worktrees/
 .gemini
+!.gemini/skills/
 .claude
+!.claude/skills/
 .issues/
 .wiki/
 .scratch/

@@ -83,6 +83,16 @@ print(agent.ask("What is the capital of France?"))
 
 `.ask()` handles Runner, Session, and cleanup internally. One line to define, one line to run.
 
+**Try without an API key** — verify the library works using `.mock()`:
+
+```python
+from adk_fluent import Agent
+
+agent = Agent("demo", "gemini-2.5-flash").instruct("You are helpful.").mock(["Hello! How can I help?"])
+print(agent.ask("Hi"))
+# => Hello! How can I help?
+```
+
 For ADK integration, `.build()` returns the native ADK object:
 
 ```python
