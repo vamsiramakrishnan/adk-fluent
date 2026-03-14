@@ -738,7 +738,7 @@ scripts/
 
 ### New Justfile Commands
 
-```just
+```text
 # Generate namespace stubs, IR, tests, docs
 namespace-gen:
     python -m scripts.namespace_generator seeds/namespace.toml
