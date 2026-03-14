@@ -390,28 +390,51 @@ agent = (
 
 ### Codegen Pipeline Documentation
 
-**Verdict: Well-documented for the happy path, but contributor edge cases need work.**
+**Verdict: A- overall. Excellent happy-path docs, but contributor edge cases and format references need work.**
 
 The codegen pipeline (`scanner.py` → `manifest.json` → `seed.toml` → `generator.py` → builders + stubs + tests) is documented in:
-- `docs/contributing/codegen-pipeline.md` — explains the full flow
-- `docs/contributing/adding-builders.md` — how to add new ADK features
+- `docs/contributing/codegen-pipeline.md` — explains the full 5-stage flow (A grade)
+- `docs/contributing/adding-builders.md` — how to add extras, renames, optional args (B+ grade)
+- `docs/contributing/upstream-impact-analysis.md` — **outstanding** 9-category impact analysis with upgrade runbook (A+ grade)
 - `CONTRIBUTING.md` — warns against editing generated files
-- `justfile` — `just scan`, `just seed`, `just generate`, `just all`
+- `justfile` — `just scan`, `just seed`, `just generate`, `just all`, `just archive`, `just diff`
 
 **What's well-covered:**
 - The scanner → seed → generator flow is explained with clear examples
 - `just all` runs the complete pipeline in one command
 - `just check-gen` verifies generated files are up-to-date (also runs in CI)
 - `.gitattributes` marks generated files with `linguist-generated=true`
+- `upstream-impact-analysis.md` covers 9 categories of ADK changes with explicit upgrade runbook
+- `sync-adk.yml` workflow auto-syncs weekly with auto-PR creation
 
 **What's missing or unclear:**
 
-| Gap | Impact |
-|---|---|
-| No documentation on what happens when `sync-adk.yml` detects a new ADK version | Contributors don't know if it auto-PRs, notifies, or just fails |
-| `seed.toml` override syntax underdocumented | Manual overrides in seed.toml are critical for customizing generated code, but the format isn't fully explained |
-| No "add a new namespace module" guide | Adding a new hand-written module (like how `G` was recently added) has no documented process |
-| Generator error messages not cataloged | When the generator fails (e.g., ADK class not found), the error messages aren't documented in error-reference.md |
+| Gap | Grade | Impact |
+|---|---|---|
+| **CONTRIBUTING.md doesn't mention sync-adk.yml** or the upgrade runbook | Critical | New contributors don't know about automatic weekly ADK sync or how to handle manual upgrades |
+| **Seed manifest format undocumented** — `[global]` field policy settings (`skip_fields`, `additive_fields`, `list_extend_fields`) have no reference doc | F | Contributors must reverse-engineer from `seed.toml` source |
+| **upstream-impact-analysis.md not linked from CONTRIBUTING.md** | High | Outstanding document buried in docs/ — contributors won't find it |
+| No "add a new namespace module" guide | Medium | Adding a hand-written module (like `G`) has no documented process |
+| Classifier rules undocumented | Medium | Why `VertexAiSearchTool` gets a builder but `EventLog` doesn't is tribal knowledge |
+| Generator error messages not cataloged | Low | When the generator fails, error messages aren't in error-reference.md |
+| No end-to-end example of adding a new ADK class | Low | Hypothetical walkthrough would help new contributors |
+
+**Recommended addition to CONTRIBUTING.md:**
+```markdown
+### When Google Releases a New ADK Version
+
+The adk-fluent pipeline automatically stays in sync via a weekly CI workflow (sync-adk.yml).
+For manual upgrades:
+
+1. Save current state: `just archive`
+2. Update: `pip install --upgrade google-adk`
+3. Scan: `just scan`
+4. Review: `just diff`
+5. Regenerate: `just all`
+6. Verify: `just test && just typecheck`
+
+See [Upstream ADK Impact Analysis](docs/contributing/upstream-impact-analysis.md) for details.
+```
 
 ---
 
@@ -472,6 +495,10 @@ These are valuable for error handling patterns but invisible to users.
 | P1 | Document `.on_model_error()` and `.on_tool_error()` callbacks | Low | Error handling patterns |
 | P1 | Document `sync-adk.yml` workflow for contributors | Low | Contributor onboarding |
 | P1 | Add `seed.toml` override format documentation | Medium | Codegen contributor experience |
+| P1 | Add "Handling New ADK Releases" section to CONTRIBUTING.md | Low | Contributors can't find upgrade runbook |
+| P1 | Link upstream-impact-analysis.md from CONTRIBUTING.md | Trivial | Outstanding doc is buried |
+| P1 | Create seed manifest format reference | Medium | Field policy rules completely undocumented (grade F) |
+| P2 | Document classifier rules (which classes get builders) | Medium | Tribal knowledge |
 | P2 | Catalog generator error messages in error-reference.md | Medium | Developer self-service |
 | P2 | Add "add a new namespace module" contributor guide | Medium | Scaling the project |
 
