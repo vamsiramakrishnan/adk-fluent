@@ -69,6 +69,7 @@ were combined this way.
 maxdepth: 1
 caption: Hero Workflows
 ---
+hero-workflows/index
 hero-workflows/deep-research
 hero-workflows/customer-support-triage
 hero-workflows/code-review-agent

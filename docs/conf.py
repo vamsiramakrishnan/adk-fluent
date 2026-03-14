@@ -112,6 +112,7 @@ exclude_patterns = [
     "plans",
     "other_specs",
     "generated/cookbook/conftest.md",
+    "cookbook/COOKBOOK_MASTER_PLAN.md",
 ]
 
 # Copy standalone HTML references and llms.txt into the build output as-is
