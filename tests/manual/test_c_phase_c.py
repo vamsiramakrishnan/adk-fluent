@@ -188,7 +188,7 @@ class TestSummarize:
         events = [_MockEvent("user", "hello"), _MockEvent("model", "hi there")]
         ctx = _MockCtx(events=events)
         t = C.summarize()
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm("Summary: greeting exchange")):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm("Summary: greeting exchange")):
             result = _run(t.instruction_provider(ctx))
         assert "Summary: greeting exchange" in result
 
@@ -204,7 +204,7 @@ class TestSummarize:
             call_count += 1
             return "cached summary"
 
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_counting_mock):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_counting_mock):
             result1 = _run(t.instruction_provider(ctx))
             result2 = _run(t.instruction_provider(ctx))  # Should use cache
 
@@ -220,7 +220,7 @@ class TestSummarize:
         ]
         ctx = _MockCtx(events=events)
         t = C.summarize(scope="tool_results")
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm("tool summary")):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm("tool summary")):
             result = _run(t.instruction_provider(ctx))
         # The provider should have selected only tool response events
         assert "tool summary" in result
@@ -280,7 +280,7 @@ class TestRelevant:
                 {"index": 3, "score": 0},
             ]
         )
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm(scores_json)):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm(scores_json)):
             result = _run(t.instruction_provider(ctx))
         assert "machine learning" in result
         assert "ML is a branch" in result
@@ -293,7 +293,7 @@ class TestRelevant:
         t = C.relevant(query_key="intent", top_k=1)
 
         scores_json = json.dumps([{"index": 0, "score": 8}, {"index": 1, "score": 7}])
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm(scores_json)):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm(scores_json)):
             result = _run(t.instruction_provider(ctx))
         assert "hello" in result
 
@@ -309,7 +309,7 @@ class TestRelevant:
             call_count += 1
             return json.dumps([{"index": 0, "score": 10}])
 
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_counting_mock):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_counting_mock):
             _run(t.instruction_provider(ctx))
             _run(t.instruction_provider(ctx))
 
@@ -364,7 +364,7 @@ class TestExtract:
         t = C.extract(schema={"budget": "float", "timeline": "str"}, key="requirements")
 
         mock_json = '{"budget": 5000, "timeline": "March"}'
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm(mock_json)):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm(mock_json)):
             result = _run(t.instruction_provider(ctx))
 
         assert "[requirements]:" in result
@@ -384,7 +384,7 @@ class TestExtract:
             call_count += 1
             return '{"result": "ok"}'
 
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_counting_mock):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_counting_mock):
             _run(t.instruction_provider(ctx))
             _run(t.instruction_provider(ctx))
 
@@ -434,7 +434,7 @@ class TestDistill:
         t = C.distill(key="findings")
 
         facts_json = json.dumps(["Budget is $5000", "Deadline is March 15"])
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm(facts_json)):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm(facts_json)):
             result = _run(t.instruction_provider(ctx))
 
         assert "Budget is $5000" in result
@@ -454,7 +454,7 @@ class TestDistill:
             call_count += 1
             return '["fact1"]'
 
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_counting_mock):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_counting_mock):
             _run(t.instruction_provider(ctx))
             _run(t.instruction_provider(ctx))
 
@@ -544,7 +544,7 @@ class TestValidate:
         t = C.validate("contradictions")
 
         with unittest.mock.patch(
-            "adk_fluent._context._call_llm",
+            "adk_fluent._context_providers._call_llm",
             new=_mock_llm("Budget contradiction: $5000 vs $3000"),
         ):
             result = _run(t.instruction_provider(ctx))
@@ -557,7 +557,7 @@ class TestValidate:
         ctx = _MockCtx(events=events)
         t = C.validate("contradictions")
 
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm("none")):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm("none")):
             result = _run(t.instruction_provider(ctx))
 
         assert "<warning>" not in result
@@ -596,7 +596,7 @@ class TestDedupSemantic:
         t = C.dedup(strategy="semantic")
 
         # LLM says keep indices 1 and 2 (drop 0 as semantic dup of 1)
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_mock_llm("[1, 2]")):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm("[1, 2]")):
             result = _run(t.instruction_provider(ctx))
 
         assert "five thousand" in result
@@ -614,7 +614,7 @@ class TestDedupSemantic:
             call_count += 1
             return "[0]"
 
-        with unittest.mock.patch("adk_fluent._context._call_llm", new=_counting_mock):
+        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_counting_mock):
             _run(t.instruction_provider(ctx))
             _run(t.instruction_provider(ctx))
 

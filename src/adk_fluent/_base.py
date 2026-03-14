@@ -10,6 +10,7 @@ from typing import Any, Self
 __all__ = [
     "BuilderBase",
     "BuilderError",
+    "ADKFluentError",
     "PrimitiveBuilderBase",
     "until",
     "tap",
@@ -143,21 +144,9 @@ def until(predicate: Callable, *, max: int = 10) -> _UntilSpec:
     return _UntilSpec(predicate, max=max)
 
 
-class BuilderError(Exception):
-    """Raised when a builder fails to construct a valid ADK object.
-
-    Provides a clear, concise error message instead of raw pydantic tracebacks.
-    """
-
-    def __init__(self, builder_name: str, builder_type: str, field_errors: list[str], original: Exception):
-        self.builder_name = builder_name
-        self.builder_type = builder_type
-        self.field_errors = field_errors
-        self.original = original
-        lines = [f"Failed to build {builder_type}('{builder_name}'):"]
-        for err in field_errors:
-            lines.append(f"  - {err}")
-        super().__init__("\n".join(lines))
+# Re-export from canonical location for backward compatibility
+from adk_fluent._exceptions import BuilderError as BuilderError  # noqa: E402
+from adk_fluent._exceptions import ADKFluentError as ADKFluentError  # noqa: E402
 
 
 class BuilderBase:
@@ -573,6 +562,45 @@ class BuilderBase:
         for hook in hooks:
             hook(obj)
         return obj
+
+    def with_raw_config(self, **kwargs: Any) -> Self:
+        """Set arbitrary fields on the native ADK object after build.
+
+        Use when the fluent builder doesn't expose a specific ADK parameter.
+        This is the recommended escape hatch for edge cases::
+
+            agent = (
+                Agent("x", "gemini-2.5-flash")
+                .instruct("You are helpful.")
+                .with_raw_config(
+                    disallow_transfer_to_parent=True,
+                    include_contents="none",
+                )
+                .build()
+            )
+
+        Warns at build time if the target ADK object doesn't have the
+        specified attribute, preventing silent misconfiguration.
+
+        See Also:
+            ``.native(fn)`` for full programmatic access to the ADK object.
+        """
+
+        def _apply(obj: Any) -> None:
+            for key, value in kwargs.items():
+                if not hasattr(obj, key):
+                    import warnings
+
+                    attrs = sorted(a for a in dir(obj) if not a.startswith("_"))
+                    warnings.warn(
+                        f"ADK object {type(obj).__name__} has no attribute '{key}'. "
+                        f"Did you mean one of: {', '.join(attrs[:10])}?",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                setattr(obj, key, value)
+
+        return self.native(_apply)
 
     def validate(self) -> Self:
         """Try to build; raise ValueError with clear message on failure. Returns self."""

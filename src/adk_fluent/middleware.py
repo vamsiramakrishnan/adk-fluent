@@ -1098,7 +1098,11 @@ class CircuitBreakerMiddleware:
 
 
 class TimeoutMiddleware:
-    """Per-agent execution timeout."""
+    """Per-agent execution timeout.
+
+    Deadlines are cleaned up after each agent invocation to prevent
+    memory growth in long-running applications.
+    """
 
     def __init__(self, seconds: float = 30):
         self._seconds = seconds
@@ -1107,6 +1111,11 @@ class TimeoutMiddleware:
     async def before_agent(self, ctx: Any) -> Any:
         name = getattr(ctx, "agent_name", "unknown")
         self._deadlines[name] = _time.monotonic() + self._seconds
+        return None
+
+    async def after_agent(self, ctx: Any) -> Any:
+        name = getattr(ctx, "agent_name", "unknown")
+        self._deadlines.pop(name, None)
         return None
 
     async def before_model(self, ctx: Any, request: Any) -> Any:

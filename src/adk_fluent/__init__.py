@@ -1,4 +1,19 @@
-"""adk-fluent: Fluent builder API for Google ADK."""
+"""adk-fluent: Fluent builder API for Google ADK.
+
+Quick start -- import only what you need 95% of the time::
+
+    from adk_fluent.prelude import *
+    # Gives you: Agent, Pipeline, FanOut, Loop, S, C, P, M, T, Route,
+    #            until, tap, gate, race, cascade, chain, and more.
+
+Or import specific builders::
+
+    from adk_fluent import Agent, Pipeline, FanOut, Loop
+    from adk_fluent import S, C, P, A, M, T, E, G
+
+Full API (347 symbols) available via ``from adk_fluent import ...``.
+For tools, configs, services, and plugins, import directly from this package.
+"""
 # Auto-generated for google-adk 1.25.0
 
 from .tool import ActiveStreamingTool
@@ -272,8 +287,10 @@ __all__ = [
     "Produces",
     "A",
     "ATransform",
+    "ADKFluentError",
     "BuilderBase",
     "BuilderError",
+    "PredicateError",
     "PrimitiveBuilderBase",
     "until",
     "tap",
@@ -492,6 +509,8 @@ from ._artifacts import A
 from ._artifacts import ATransform
 from ._base import BuilderBase
 from ._base import BuilderError
+from ._base import ADKFluentError
+from ._exceptions import PredicateError
 from ._base import PrimitiveBuilderBase
 from ._base import until
 from ._base import tap

@@ -15,14 +15,30 @@ __all__ = ["evaluate_predicate"]
 _log = logging.getLogger(__name__)
 
 
-def evaluate_predicate(predicate: Any, state: dict[str, Any]) -> bool:
+def evaluate_predicate(
+    predicate: Any,
+    state: dict[str, Any],
+    *,
+    strict: bool = False,
+) -> bool:
     """Evaluate a predicate against session state.
 
-    Accepts:
-        - ``None`` → ``False``
-        - ``str`` → state key check: ``bool(state.get(key))``
-        - ``callable`` → ``bool(predicate(state))``  (catches exceptions)
-        - anything else → ``bool(predicate)``
+    Args:
+        predicate: The predicate to evaluate. Accepts:
+            - ``None`` → ``False``
+            - ``str`` → state key check: ``bool(state.get(key))``
+            - ``callable`` → ``bool(predicate(state))``  (catches exceptions)
+            - anything else → ``bool(predicate)``
+        state: The current session state dictionary.
+        strict: If ``True``, raise :class:`~adk_fluent.PredicateError` on
+            exceptions instead of silently returning ``False``. Enable via
+            ``.debug()`` on builders.
+
+    Returns:
+        Boolean result of the predicate evaluation.
+
+    Raises:
+        PredicateError: If *strict* is ``True`` and the predicate raises.
 
     PredicateSchema classes work via the callable path since their
     metaclass defines ``__call__(cls, state) -> bool``.
@@ -34,7 +50,19 @@ def evaluate_predicate(predicate: Any, state: dict[str, Any]) -> bool:
     if callable(predicate):
         try:
             return bool(predicate(state))
-        except Exception:
-            _log.warning("Predicate raised an exception; treating as False")
+        except Exception as exc:
+            if strict:
+                from adk_fluent._exceptions import PredicateError
+
+                raise PredicateError(
+                    predicate_repr=getattr(predicate, "__name__", repr(predicate)),
+                    available_keys=sorted(state.keys()),
+                    original=exc,
+                ) from exc
+            _log.warning(
+                "Predicate %s raised %s; treating as False",
+                getattr(predicate, "__name__", "?"),
+                exc,
+            )
             return False
     return bool(predicate)
