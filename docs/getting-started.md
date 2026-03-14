@@ -1,5 +1,9 @@
 # Getting Started
 
+This page gets you from zero to a working agent in 5 minutes.
+By the end, you'll understand the builder pattern, the expression operators,
+and when to use each.
+
 ## Install
 
 ```bash
@@ -16,7 +20,13 @@ Autocomplete works immediately -- the package ships with `.pyi` type stubs for e
 
 **Neovim (LSP)** -- use [pyright](https://github.com/microsoft/pyright) as your language server. Stubs are picked up automatically.
 
+:::{tip} AI Coding Agents
+adk-fluent ships pre-configured rules for Claude Code, Cursor, Copilot, Windsurf, Cline, and Zed. See [Editor & AI Agent Setup](editor-setup/index.md) for details.
+:::
+
 ## Discover the API
+
+The builder pattern catches mistakes **at definition time**, not runtime:
 
 ```python
 from adk_fluent import Agent
@@ -24,7 +34,7 @@ from adk_fluent import Agent
 agent = Agent("demo")
 agent.  # <- autocomplete shows: .model(), .instruct(), .tool(), .build(), ...
 
-# Typos are caught at definition time, not runtime:
+# Typos are caught immediately:
 agent.instuction("oops")  # -> AttributeError: 'instuction' is not a recognized field.
                           #    Did you mean: 'instruction'?
 
@@ -37,15 +47,29 @@ print(agent.model("gemini-2.5-flash").instruct("Help.").explain())
 print(dir(agent))  # All methods including forwarded ADK fields
 ```
 
-## Quick Start
+:::{admonition} Why this matters
+:class: important
+In native ADK, `LlmAgent(instuction="...")` silently ignores the misspelled keyword. The agent runs with no instruction and you debug for an hour wondering why it produces garbage. adk-fluent raises immediately.
+:::
+
+## Your First Agent
 
 ```python
-from adk_fluent import Agent, Pipeline, FanOut, Loop
+from adk_fluent import Agent
 
-# Simple agent — model as optional second arg or via .model()
 agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
+```
 
-# Pipeline — build with .step() or >> operator
+That's it. `agent` is a real `google.adk.agents.llm_agent.LlmAgent` -- use it with `adk web`, `adk run`, or pass it to any ADK API.
+
+## Your First Pipeline
+
+Chain agents sequentially with `.step()` or the `>>` operator:
+
+```python
+from adk_fluent import Agent, Pipeline
+
+# Builder style -- explicit, great for complex configurations
 pipeline = (
     Pipeline("research")
     .step(Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
@@ -53,7 +77,22 @@ pipeline = (
     .build()
 )
 
-# Fan-out — build with .branch() or | operator
+# Operator style -- concise, great for composing reusable parts
+pipeline = (
+    Agent("searcher", "gemini-2.5-flash").instruct("Search for information.")
+    >> Agent("writer", "gemini-2.5-flash").instruct("Write a summary.")
+).build()
+```
+
+Both produce an identical `SequentialAgent`. The builder style shines when each step needs callbacks, tools, and context engineering. The operator style excels at composing reusable sub-expressions.
+
+## Parallel Execution
+
+Run agents concurrently with `.branch()` or the `|` operator:
+
+```python
+from adk_fluent import Agent, FanOut
+
 fanout = (
     FanOut("parallel_research")
     .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web."))
@@ -61,7 +100,20 @@ fanout = (
     .build()
 )
 
-# Loop — build with .step() + .max_iterations() or * operator
+# Or with operators:
+fanout = (
+    Agent("web", "gemini-2.5-flash").instruct("Search the web.")
+    | Agent("papers", "gemini-2.5-flash").instruct("Search papers.")
+).build()
+```
+
+## Loops
+
+Iterate until a condition is met:
+
+```python
+from adk_fluent import Agent, Loop
+
 loop = (
     Loop("refine")
     .step(Agent("writer", "gemini-2.5-flash").instruct("Write draft."))
@@ -69,17 +121,20 @@ loop = (
     .max_iterations(3)
     .build()
 )
-```
 
-Every `.build()` returns a real ADK object (`LlmAgent`, `SequentialAgent`, etc.). Fully compatible with `adk web`, `adk run`, and `adk deploy`.
+# Or with operators:
+loop = (
+    Agent("writer", "gemini-2.5-flash").instruct("Write draft.")
+    >> Agent("critic", "gemini-2.5-flash").instruct("Critique.")
+) * 3
+```
 
 ## Two Styles, Same Result
 
-Every workflow can be expressed two ways -- the explicit builder API or the expression operators. Both produce identical ADK objects:
+Every workflow can be expressed two ways. Both produce identical ADK objects:
 
-::::\{tab-set}
-:::\{tab-item} Builder Style
-
+::::{tab-set}
+:::{tab-item} Builder Style
 ```python
 pipeline = (
     Pipeline("research")
@@ -88,57 +143,83 @@ pipeline = (
     .build()
 )
 ```
-
 :::
-
-:::\{tab-item} Operator Style
-
+:::{tab-item} Operator Style
 ```python
 pipeline = (
     Agent("web", "gemini-2.5-flash").instruct("Search web.").writes("web_data")
     >> Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}.")
 ).build()
 ```
-
 :::
 ::::
 
 The builder style shines for complex multi-step workflows where each step is configured with callbacks, tools, and context. The operator style excels at composing reusable sub-expressions:
 
 ```python
-# Complex builder-style pipeline with tools and callbacks
-pipeline = (
-    Pipeline("customer_support")
-    .step(
-        Agent("classifier", "gemini-2.5-flash")
-        .instruct("Classify the customer's intent.")
-        .writes("intent")
-        .before_model(log_fn)
-    )
-    .step(
-        Agent("resolver", "gemini-2.5-flash")
-        .instruct("Resolve the {intent} issue.")
-        .tool(lookup_customer)
-        .tool(create_ticket)
-        .history("none")
-    )
-    .step(
-        Agent("responder", "gemini-2.5-flash")
-        .instruct("Draft a response to the customer.")
-        .after_model(audit_fn)
-    )
-    .build()
-)
-
-# Same complexity, composed from reusable parts with operators
+# Reusable sub-expressions with operators
 classify = Agent("classifier", "gemini-2.5-flash").instruct("Classify intent.").writes("intent")
 resolve = Agent("resolver", "gemini-2.5-flash").instruct("Resolve {intent}.").tool(lookup_customer)
 respond = Agent("responder", "gemini-2.5-flash").instruct("Draft response.")
 
 support_pipeline = classify >> resolve >> respond
-# Reuse sub-expressions in different pipelines
+# Reuse classify in a different pipeline
 escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct("Escalate.")
 ```
+
+## Putting It Together
+
+Here's a real-world pipeline combining sequential, parallel, state flow, and context isolation:
+
+```python
+from adk_fluent import Agent, S, C
+
+MODEL = "gemini-2.5-flash"
+
+# Capture the user's message into state
+# Classify with no history (C.none() = sees only the current message)
+# Route to specialist agents
+# Each agent writes to a named state key for explicit data contracts
+
+support = (
+    S.capture("customer_message")
+    >> Agent("classifier", MODEL)
+       .instruct("Classify intent: billing, technical, or general.")
+       .context(C.none())
+       .writes("intent")
+    >> Agent("resolver", MODEL)
+       .instruct("Resolve the {intent} issue for: {customer_message}")
+       .tool(lookup_customer)
+       .tool(create_ticket)
+       .writes("resolution")
+    >> Agent("responder", MODEL)
+       .instruct("Draft a response summarizing: {resolution}")
+)
+```
+
+This pipeline:
+- **Captures** the user message into state with `S.capture()` ([State Transforms](user-guide/state-transforms.md))
+- **Isolates context** with `C.none()` so the classifier sees only the current message ([Context Engineering](user-guide/context-engineering.md))
+- **Flows data** through named keys with `.writes()` ([Data Flow](user-guide/data-flow.md))
+- **Attaches tools** with `.tool()` ([Builders](user-guide/builders.md))
+
+## Validate and Debug
+
+```python
+# Catch config errors before runtime
+agent = Agent("x", "gemini-2.5-flash").instruct("Help.").validate()
+
+# See what the builder has configured
+agent.explain()
+
+# Generate a visual topology diagram
+pipeline.to_mermaid()
+
+# Full diagnostic report
+pipeline.doctor()
+```
+
+See [Error Reference](user-guide/error-reference.md) for every error type with fix-it examples.
 
 ## What's Next
 
@@ -146,31 +227,34 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 ---
 gutter: 3
 ---
-```{grid-item-card} 📘 Read the User Guide
+```{grid-item-card} User Guide
 :link: user-guide/index
 :link-type: doc
-
-Deep dive into builders, operators, callbacks, and more.
+Deep dive into builders, operators, callbacks, context engineering, and all 9 namespace modules.
 ```
 
-```{grid-item-card} 📚 API Reference
+```{grid-item-card} Cookbook
+:link: cookbook/index
+:link-type: doc
+67 recipes from simple agents to hero workflows like deep research and customer support triage.
+```
+
+```{grid-item-card} API Reference
 :link: generated/api/index
 :link-type: doc
-
-Complete method reference for all 130+ builders.
+Complete reference for all 132 builders with type signatures, ADK mappings, and examples.
 ```
 
-```{grid-item-card} 🍳 Explore the Cookbook
-:link: generated/cookbook/index
+```{grid-item-card} Framework Comparison
+:link: user-guide/comparison
 :link-type: doc
-
-Browse 34+ side-by-side examples with native ADK comparisons.
-```
-
-```{grid-item-card} 🔄 Migration Guide
-:link: generated/migration/from-native-adk
-:link-type: doc
-
-Migrate existing ADK code to adk-fluent effortlessly.
+Side-by-side with LangGraph, CrewAI, and native ADK -- see exactly where adk-fluent wins.
 ```
 ````
+
+:::{seealso}
+- [Expression Language](user-guide/expression-language.md) -- all 9 operators with composition rules
+- [Patterns](user-guide/patterns.md) -- higher-order constructors (review_loop, map_reduce, cascade, fan_out_merge)
+- [Testing](user-guide/testing.md) -- `.mock()`, `.test()`, and `check_contracts()` for testing without API calls
+- [Migration Guide](generated/migration/from-native-adk.md) -- migrate existing native ADK code incrementally
+:::
