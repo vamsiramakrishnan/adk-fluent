@@ -251,7 +251,7 @@ pipeline = (
     Pipeline("data_processing")
     .step(Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").writes("entities"))
     .step(Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}.").tool(lookup_db))
-    .step(Agent("formatter", "gemini-2.5-flash").instruct("Format output.").history("none"))
+    .step(Agent("formatter", "gemini-2.5-flash").instruct("Format output.").context(C.none()))
     .build()
 )
 ```
