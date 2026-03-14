@@ -220,7 +220,7 @@ jobs:
       - name: Verify tag matches _version.py
         run: |
           TAG="${GITHUB_REF#refs/tags/v}"
-          VERSION=$(python -c "exec(open('src/adk_fluent/_version.py').read()); print(__version__)")
+          VERSION=$(python3 -c "exec(open('src/adk_fluent/_version.py').read()); print(__version__)")
           if [ "$TAG" != "$VERSION" ]; then
             echo "::error::Tag v$TAG does not match _version.py ($VERSION)"
             exit 1
