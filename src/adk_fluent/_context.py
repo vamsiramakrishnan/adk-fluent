@@ -788,7 +788,6 @@ class CManusCascade(CTransform):
 # Provider factories are in _context_providers.py (imported at module top).
 
 
-
 # ======================================================================
 # C — public API namespace
 # ======================================================================

@@ -29,7 +29,7 @@ def agent(name: str, **kwargs: Any) -> Callable:
                 builder = builder.with_raw_config(**{k: v})
 
         # Capture the original .tool method before overriding
-        _original_tool = builder.tool.__func__ if hasattr(builder.tool, '__func__') else None
+        _original_tool = builder.tool.__func__ if hasattr(builder.tool, "__func__") else None
 
         # Override .tool to work as decorator (returns function, not self)
         def tool_decorator(tool_fn: Callable) -> Callable:

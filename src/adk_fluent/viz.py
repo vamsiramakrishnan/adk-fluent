@@ -272,12 +272,9 @@ def ir_to_sequence_diagram(
         Mermaid ``sequenceDiagram`` source text.
     """
     from adk_fluent._ir import (
-        ArtifactNode,
         CaptureNode,
-        DispatchNode,
         FallbackNode,
         GateNode,
-        JoinNode,
         MapOverNode,
         RaceNode,
         RouteNode,
@@ -304,13 +301,10 @@ def ir_to_sequence_diagram(
             return
         _declared.add(name)
         sid = _safe(name)
-        if isinstance(n, AgentNode):
-            lines.append(f"    participant {sid} as {_label(name)}")
-        elif isinstance(n, (TransformNode, CaptureNode, TapNode)):
-            lines.append(f"    participant {sid} as {_label(name)}")
-        elif isinstance(n, RouteNode):
-            lines.append(f"    participant {sid} as {_label(name)}")
-        elif isinstance(n, GateNode):
+        if isinstance(
+            n,
+            AgentNode | TransformNode | CaptureNode | TapNode | RouteNode | GateNode,
+        ):
             lines.append(f"    participant {sid} as {_label(name)}")
 
     def _context_note(n: Any) -> str | None:
@@ -321,6 +315,7 @@ def ir_to_sequence_diagram(
         if context_spec is not None:
             try:
                 from adk_fluent.testing.contracts import _context_description
+
                 return _context_description(context_spec)
             except (ImportError, Exception):
                 return str(context_spec)
@@ -345,13 +340,7 @@ def ir_to_sequence_diagram(
 
     def _collect_participants(n: Any) -> None:
         """Pre-scan tree to declare all participants in order."""
-        if isinstance(n, SequenceNode):
-            for child in getattr(n, "children", ()):
-                _collect_participants(child)
-        elif isinstance(n, ParallelNode):
-            for child in getattr(n, "children", ()):
-                _collect_participants(child)
-        elif isinstance(n, LoopNode):
+        if isinstance(n, SequenceNode | ParallelNode | LoopNode):
             for child in getattr(n, "children", ()):
                 _collect_participants(child)
         elif isinstance(n, RouteNode):
@@ -361,13 +350,10 @@ def ir_to_sequence_diagram(
             default = getattr(n, "default", None)
             if default is not None:
                 _collect_participants(default)
-        elif isinstance(n, FallbackNode):
+        elif isinstance(n, FallbackNode | RaceNode):
             for child in getattr(n, "children", ()):
                 _collect_participants(child)
-        elif isinstance(n, RaceNode):
-            for child in getattr(n, "children", ()):
-                _collect_participants(child)
-        elif isinstance(n, (TimeoutNode, MapOverNode)):
+        elif isinstance(n, TimeoutNode | MapOverNode):
             body = getattr(n, "body", None)
             if body:
                 _collect_participants(body)
@@ -477,14 +463,13 @@ def ir_to_sequence_diagram(
             default = getattr(n, "default", None)
             if rules or default:
                 for i, (_pred, agent_node) in enumerate(rules):
-                    branch_name = getattr(agent_node, "name", "?")
                     if i == 0:
                         lines.append(f"    alt {route_key} matches")
                     else:
-                        lines.append(f"    else")
+                        lines.append("    else")
                     _emit(agent_node, caller=sid)
                 if default:
-                    lines.append(f"    else otherwise")
+                    lines.append("    else otherwise")
                     _emit(default, caller=sid)
                 lines.append("    end")
             return sid
@@ -522,7 +507,7 @@ def ir_to_sequence_diagram(
                 lines.append("    end")
             return caller
 
-        elif isinstance(n, (TimeoutNode, MapOverNode)):
+        elif isinstance(n, TimeoutNode | MapOverNode):
             body = getattr(n, "body", None)
             if body:
                 if isinstance(n, TimeoutNode):

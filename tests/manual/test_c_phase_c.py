@@ -188,7 +188,9 @@ class TestSummarize:
         events = [_MockEvent("user", "hello"), _MockEvent("model", "hi there")]
         ctx = _MockCtx(events=events)
         t = C.summarize()
-        with unittest.mock.patch("adk_fluent._context_providers._call_llm", new=_mock_llm("Summary: greeting exchange")):
+        with unittest.mock.patch(
+            "adk_fluent._context_providers._call_llm", new=_mock_llm("Summary: greeting exchange")
+        ):
             result = _run(t.instruction_provider(ctx))
         assert "Summary: greeting exchange" in result
 
