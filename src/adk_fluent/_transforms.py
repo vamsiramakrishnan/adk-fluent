@@ -23,7 +23,7 @@ Usage::
 
     # Pipeline with >> operator (unchanged)
     pipeline = (
-        Agent("researcher").instruct("Find data.").save_as("findings")
+        Agent("researcher").instruct("Find data.").writes("findings")
         >> S.pick("findings", "sources")
         >> S.rename(findings="input")
         >> S.default(confidence=0.5)
@@ -32,7 +32,7 @@ Usage::
 
     # NEW: Compose transforms with + and >>
     cleanup = S.pick("findings") >> S.rename(findings="input") >> S.default(confidence=0.5)
-    pipeline = Agent("researcher").save_as("findings") >> cleanup >> Agent("writer")
+    pipeline = Agent("researcher").writes("findings") >> cleanup >> Agent("writer")
 
     # NEW: Combine transforms with +
     defaults = S.default(language="en") + S.default(confidence=0.5)
@@ -136,7 +136,7 @@ class STransform:
         defaults = S.default(a=1) + S.default(b=2)
 
         # Interop with Agent builders via >>
-        pipeline = Agent("a").save_as("out") >> S.pick("out") >> Agent("b")
+        pipeline = Agent("a").writes("out") >> S.pick("out") >> Agent("b")
 
         # Start a pipeline from an S transform
         pipeline = S.capture("input") >> Agent("writer")

@@ -90,6 +90,25 @@ Files in `src/adk_fluent/agent.py`, `workflow.py`, and other generated modules w
 1. Add a cookbook example
 1. Update the README expression language tables
 
+### When Google releases a new ADK version
+
+The adk-fluent pipeline automatically stays in sync with `google-adk` via a weekly CI workflow ([sync-adk.yml](.github/workflows/sync-adk.yml)). When new ADK classes are detected, it auto-generates a PR with updated builders.
+
+For manual upgrades or to prepare a PR yourself:
+
+```bash
+just archive                              # Save current manifest state
+pip install --upgrade google-adk          # Install new ADK version
+just scan                                 # Introspect new ADK → manifest.json
+just diff                                 # Review what changed (JSON diff)
+# Edit seeds/seed.manual.toml if needed   # e.g. new aliases, custom extras
+just all                                  # Regenerate code, stubs, tests, docs
+just test && just typecheck               # Verify everything passes
+git diff --stat                           # Review generated diff
+```
+
+For a detailed breakdown of what happens for each type of upstream change (new classes, renamed fields, removed APIs, etc.), see the [Upstream ADK Impact Analysis](docs/contributing/upstream-impact-analysis.md).
+
 ## Code Style
 
 - We use [ruff](https://docs.astral.sh/ruff/) for linting and formatting
