@@ -109,6 +109,19 @@ git diff --stat                           # Review generated diff
 
 For a detailed breakdown of what happens for each type of upstream change (new classes, renamed fields, removed APIs, etc.), see the [Upstream ADK Impact Analysis](docs/contributing/upstream-impact-analysis.md).
 
+### Version Support Policy (N-5 Guarantee)
+
+adk-fluent maintains backward compatibility with the **current and previous 5 releases** of `google-adk`. The CI pipeline enforces this via a compatibility matrix that runs the full test suite against each supported version.
+
+**When updating the N-5 window** (e.g., when a new ADK version is released):
+
+1. Add the new version to the top of the `compat` matrix in `.github/workflows/ci.yml`
+2. Remove the oldest version from the bottom of the matrix
+3. Update the compatibility table in `README.md`
+4. The `pyproject.toml` floor (`google-adk>=1.20.0`) should only change if an ADK version introduces breaking changes that fundamentally prevent the builders from functioning
+
+**Architecture note:** Code is *generated* against the latest ADK but must *execute* against older runtimes. The generated builders use `_safe_build()` which passes all config kwargs directly to ADK's Pydantic constructors. If a field doesn't exist in an older ADK, Pydantic rejects it with a clear error — there is no silent swallowing of unknown fields. This is by design: it's better to fail loudly than to silently ignore configuration.
+
 ## Code Style
 
 - We use [ruff](https://docs.astral.sh/ruff/) for linting and formatting

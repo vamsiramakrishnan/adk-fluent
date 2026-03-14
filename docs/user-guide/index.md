@@ -23,6 +23,7 @@ transfer-control
 memory
 ir-and-backends
 middleware
+guards
 evaluation
 testing
 error-reference

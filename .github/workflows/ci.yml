@@ -4,72 +4,67 @@ on:
   push:
     branches: [master]
     tags: ["v*"]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+      - ".github/workflows/docs.yml"
+      - ".github/workflows/release-drafter.yml"
+      - ".github/workflows/codeql.yml"
   pull_request:
     branches: [master]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+      - ".github/workflows/docs.yml"
+      - ".github/workflows/release-drafter.yml"
+      - ".github/workflows/codeql.yml"
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
-  # Pin the ADK version to match the committed manifest.json.
-  # This ensures CI is hermetic — `just scan` in CI installs the same ADK
-  # that generated the committed manifest.  Bump this when updating the manifest.
+  UV_VERSION: "0.8.17"
+  # The ADK version used for codegen (scanner/generator).
+  # Tests run against this AND older versions via the compat matrix.
   ADK_VERSION: "1.25.0"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # LINT — pre-commit on hand-written files only (generated files excluded)
+  # LINT — pre-commit on hand-written files only
   # ---------------------------------------------------------------------------
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: "0.8.17"
+          uv-version: ${{ env.UV_VERSION }}
 
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Run Pre-commit Hooks (hand-written files only)
+      - name: Run pre-commit hooks
         run: uv run pre-commit run --all-files --show-diff-on-failure
 
   # ---------------------------------------------------------------------------
   # CHECK-GEN — verify generated files match generator output (idempotency)
-  # Uses the COMMITTED manifest.json + seed.toml as inputs — does NOT re-scan ADK.
-  # Catches: hand-edited generated files, stale codegen, generator drift.
-  # To check for upstream ADK changes, run `just scan` locally and diff.
   # ---------------------------------------------------------------------------
   check-gen:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: "0.8.17"
+          uv-version: ${{ env.UV_VERSION }}
 
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Regenerate from committed manifest+seed and verify no diff
-        run: |
-          just generate
-          if ! git diff --quiet; then
-            echo "::error::Generated files don't match generator output. Run 'just generate' and commit."
-            git diff --stat
-            git diff
-            exit 1
-          fi
+      - name: Regenerate and verify no diff
+        run: just check-gen
 
   # ---------------------------------------------------------------------------
   # TYPECHECK — validates generated stubs and hand-written code
@@ -79,57 +74,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: "0.8.17"
+          uv-version: ${{ env.UV_VERSION }}
 
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Generate Code and Stubs
+      - name: Generate code and stubs
         run: just scan seed generate
 
-      - name: Run pyright Typecheck (stubs)
+      - name: Typecheck stubs
         run: just typecheck
 
-      - name: Run pyright Typecheck (hand-written code)
+      - name: Typecheck hand-written code
         run: just typecheck-core
 
   # ---------------------------------------------------------------------------
-  # TEST — runs on every push and PR, across Python versions
+  # TEST — primary test suite across Python versions
   # ---------------------------------------------------------------------------
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: "0.8.17"
+          uv-version: ${{ env.UV_VERSION }}
           python-version: ${{ matrix.python-version }}
 
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Generate Code
+      - name: Generate code
         run: just scan seed generate
 
-      - name: Run Tests with coverage
+      - name: Run tests with coverage
         run: uv run pytest tests/ -v --tb=short --cov=src/adk_fluent --cov-report=xml --cov-report=term-missing
 
-      - name: Run Cookbook Tests
+      - name: Run cookbook tests
         run: uv run pytest examples/cookbook/ -q --tb=short
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage
         if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v4
         with:
@@ -139,25 +123,62 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # ---------------------------------------------------------------------------
-  # BUILD — produces the wheel and sdist, then smoke-tests the wheel
+  # COMPAT — N-5 backward compatibility matrix against older ADK versions
+  #
+  # Architecture: Code is GENERATED against the latest ADK (pinned above),
+  # but EXECUTED against older runtimes. This catches kwargs that don't exist
+  # in older ADK versions. The generated builders use _safe_build() which
+  # passes kwargs directly to ADK Pydantic models — if a field was added in
+  # a newer ADK, the older runtime's Pydantic model will reject it.
+  #
+  # We test: latest (1.27.x), N-1 through N-5 (1.26.x down to 1.22.x).
+  # The pyproject.toml floor is google-adk>=1.20.0.
+  # ---------------------------------------------------------------------------
+  compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        adk-version:
+          - "1.27.1"   # latest
+          - "1.26.0"   # N-1
+          - "1.25.1"   # N-2
+          - "1.24.1"   # N-3
+          - "1.23.0"   # N-4
+          - "1.22.1"   # N-5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-env
+        with:
+          uv-version: ${{ env.UV_VERSION }}
+
+      - name: Generate code with latest ADK
+        run: just scan seed generate
+
+      - name: Downgrade to google-adk==${{ matrix.adk-version }}
+        run: uv pip install "google-adk==${{ matrix.adk-version }}"
+
+      - name: Run tests against ADK ${{ matrix.adk-version }}
+        run: uv run pytest tests/ -v --tb=short -x
+
+      - name: Run cookbook tests against ADK ${{ matrix.adk-version }}
+        run: uv run pytest examples/cookbook/ -q --tb=short
+
+  # ---------------------------------------------------------------------------
+  # BUILD — produce wheel/sdist + smoke test
   # ---------------------------------------------------------------------------
   build:
-    needs: [lint, check-gen, typecheck, test]
+    needs: [lint, check-gen, typecheck, test, compat]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: "0.8.17"
+          uv-version: ${{ env.UV_VERSION }}
 
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
-
-      - name: Generate Code
+      - name: Generate code
         run: just scan seed generate
 
       - name: Build package
@@ -165,9 +186,9 @@ jobs:
 
       - name: Smoke-test wheel install
         run: |
-          uv venv /tmp/smoke-venv
-          VIRTUAL_ENV=/tmp/smoke-venv uv pip install dist/*.whl
-          /tmp/smoke-venv/bin/python -c "
+          uv venv ${{ runner.temp }}/smoke-venv
+          VIRTUAL_ENV=${{ runner.temp }}/smoke-venv uv pip install dist/*.whl
+          ${{ runner.temp }}/smoke-venv/bin/python -c "
           from adk_fluent import Agent, Pipeline, FanOut, Loop
           from adk_fluent._version import __version__
           a = Agent('smoke-test').instruct('hello')
@@ -178,6 +199,7 @@ jobs:
         with:
           name: dist
           path: dist/
+          retention-days: 7
 
   # ---------------------------------------------------------------------------
   # VERSION CHECK — on tagged releases, assert tag matches _version.py
@@ -191,7 +213,7 @@ jobs:
       - name: Verify tag matches _version.py
         run: |
           TAG="${GITHUB_REF#refs/tags/v}"
-          VERSION=$(python -c "exec(open('src/adk_fluent/_version.py').read()); print(__version__)")
+          VERSION=$(python3 -c "exec(open('src/adk_fluent/_version.py').read()); print(__version__)")
           if [ "$TAG" != "$VERSION" ]; then
             echo "::error::Tag v$TAG does not match _version.py ($VERSION)"
             exit 1

@@ -34,14 +34,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
+          uv-version: "0.8.17"
 
       - name: Build Docs
         run: just scan seed docs docs-build

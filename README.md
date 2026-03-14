@@ -1369,16 +1369,29 @@ python scripts/benchmark.py
 
 ## ADK Compatibility
 
-| adk-fluent  | google-adk | Tested in CI | Notes          |
-| ----------- | ---------- | ------------ | -------------- |
-| 0.11.x      | 1.25.0     | Yes          | Current        |
-| 0.10.x      | 1.25.0     | Yes          |                |
-| 0.9.x       | 1.25.0     | Yes          |                |
-| 0.1.x-0.8.x | 1.20.0+    | Yes          | Initial series |
+### Version Support Policy (N-5 Guarantee)
 
-CI pins `google-adk==1.25.0` for hermetic builds. The `>=1.20.0` floor in `pyproject.toml` means newer ADK versions should work, but only the pinned version is tested.
+adk-fluent officially supports the **current and previous 5 minor/patch releases** of `google-adk`. Every CI run tests the generated fluent API against all 6 versions in the compatibility matrix.
 
-A [weekly sync workflow](.github/workflows/sync-adk.yml) scans for new ADK releases every Monday, regenerates code, runs tests, and opens a PR automatically. If you hit an incompatibility, [open an issue](https://github.com/vamsiramakrishnan/adk-fluent/issues).
+| google-adk | Status        | Tested in CI |
+| ---------- | ------------- | ------------ |
+| 1.27.x     | Current       | Yes          |
+| 1.26.x     | Supported     | Yes          |
+| 1.25.x     | Supported     | Yes          |
+| 1.24.x     | Supported     | Yes          |
+| 1.23.x     | Supported     | Yes          |
+| 1.22.x     | Supported     | Yes          |
+| < 1.22     | Best-effort   | No           |
+
+**How it works:** The fluent API surface is generated from the *latest* ADK (via `scanner.py`), but the generated builders pass configuration through `_safe_build()`, which delegates to ADK's own Pydantic models at runtime. When you run against an older ADK:
+
+- Builder methods for fields that exist in your ADK version work normally.
+- Builder methods for fields added in a *newer* ADK will raise a clear `BuilderError` at `.build()` time, not silently fail.
+- The `pyproject.toml` floor (`google-adk>=1.20.0`) is intentionally lower than the N-5 window to avoid hard-blocking users on older versions, but only versions within the N-5 window are actively tested.
+
+**Deprecation:** When a new ADK version is released, the oldest version in the window drops out. We update the CI matrix, but do not add code to intentionally break older versions. Users on deprecated versions may continue to work but are not covered by CI.
+
+A [weekly sync workflow](.github/workflows/sync-adk.yml) scans for new ADK releases every Monday, regenerates code, runs the full N-5 compatibility matrix, and opens a PR automatically. If you hit an incompatibility, [open an issue](https://github.com/vamsiramakrishnan/adk-fluent/issues).
 
 ## How It Works
 
