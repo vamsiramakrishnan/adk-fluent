@@ -75,6 +75,7 @@ if TYPE_CHECKING:
     from google.adk.auth.auth_credential import AuthCredential, ServiceAccount
     from google.adk.auth.auth_schemes import AuthScheme
     from google.adk.auth.auth_tool import AuthConfig
+    from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig
     from google.adk.tools.apihub_tool.clients.apihub_client import APIHubClient
     from google.adk.tools.base_toolset import ToolPredicate
     from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig
@@ -83,6 +84,7 @@ if TYPE_CHECKING:
     from google.adk.tools.bigtable.settings import BigtableToolSettings
     from google.adk.tools.data_agent.config import DataAgentToolConfig
     from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig
+    from google.adk.tools.mcp_tool.mcp_tool import ProgressCallbackFactory
     from google.adk.tools.pubsub.config import PubSubToolConfig
     from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig
     from google.adk.tools.spanner.settings import SpannerToolSettings
