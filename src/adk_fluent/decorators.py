@@ -19,28 +19,30 @@ def agent(name: str, **kwargs: Any) -> Callable:
 
         builder = Agent(name)
         if fn.__doc__:
-            builder.instruct(fn.__doc__.strip())
+            builder = builder.instruct(fn.__doc__.strip())
         for k, v in kwargs.items():
             method = getattr(builder, k, None)
             if method and callable(method):
-                method(v)
+                builder = method(v) or builder
             else:
-                builder._config[k] = v
+                # Fallback: use with_raw_config for unknown kwargs
+                builder = builder.with_raw_config(**{k: v})
+
+        # Capture the original .tool method before overriding
+        _original_tool = builder.tool.__func__ if hasattr(builder.tool, '__func__') else None
 
         # Override .tool to work as decorator (returns function, not self)
-        original_tool_append = builder._lists["tools"].append
-
         def tool_decorator(tool_fn: Callable) -> Callable:
-            original_tool_append(tool_fn)
+            # Append to the tools list via the internal list
+            builder._lists["tools"].append(tool_fn)
             return tool_fn
 
         builder.tool = tool_decorator  # type: ignore[reportAttributeAccessIssue]  # decorator override
 
         # Add .on(event_name) decorator factory
         def on(event_name: str) -> Callable:
-            cb_field = builder._CALLBACK_ALIASES.get(event_name, event_name)
-
             def event_decorator(callback_fn: Callable) -> Callable:
+                cb_field = builder._CALLBACK_ALIASES.get(event_name, event_name)
                 builder._callbacks[cb_field].append(callback_fn)
                 return callback_fn
 

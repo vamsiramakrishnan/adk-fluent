@@ -18,6 +18,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
+from adk_fluent._exceptions import GuardViolation as GuardViolation
+
 __all__ = [
     "G",
     "GComposite",
@@ -28,20 +30,6 @@ __all__ = [
     "ContentJudge",
     "JudgmentResult",
 ]
-
-
-# ── Exceptions ────────────────────────────────────────────────────────
-
-
-class GuardViolation(Exception):
-    """Raised when a guard rejects input or output."""
-
-    def __init__(self, guard_kind: str, phase: str, detail: str, value: Any = None):
-        self.guard_kind = guard_kind
-        self.phase = phase
-        self.detail = detail
-        self.value = value
-        super().__init__(f"[{guard_kind}] {detail}")
 
 
 # ── Data types and protocols ──────────────────────────────────────────
