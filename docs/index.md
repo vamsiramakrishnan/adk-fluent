@@ -41,10 +41,10 @@ Configure Claude Code, Cursor, Copilot, and other AI coding agents for adk-fluen
 Deep dive into builders, operators, prompts, and callbacks.
 ```
 
-```{grid-item-card} 🍳 Cookbook
-:link: generated/cookbook/index
+```{grid-item-card} 🍳 Cookbook — Zero to Symphony
+:link: cookbook/index
 :link-type: doc
-34+ copy-pasteable recipes and side-by-side native ADK comparisons.
+Hero workflows, learning path, and 67 copy-pasteable recipes.
 ```
 
 ```{grid-item-card} 📚 API Reference
@@ -82,7 +82,15 @@ generated/api/index
 ```{toctree}
 ---
 maxdepth: 2
-caption: Cookbook
+caption: Cookbook — Zero to Symphony
+---
+cookbook/index
+```
+
+```{toctree}
+---
+maxdepth: 2
+caption: All Recipes (Auto-Generated)
 ---
 generated/cookbook/index
 ```
