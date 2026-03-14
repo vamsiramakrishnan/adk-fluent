@@ -64,14 +64,7 @@ jobs:
           uv-version: ${{ env.UV_VERSION }}
 
       - name: Regenerate and verify no diff
-        run: |
-          just generate
-          if ! git diff --quiet; then
-            echo "::error::Generated files are stale. Run 'just generate' and commit."
-            git diff --stat
-            git diff
-            exit 1
-          fi
+        run: just check-gen
 
   # ---------------------------------------------------------------------------
   # TYPECHECK — validates generated stubs and hand-written code
