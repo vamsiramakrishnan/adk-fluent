@@ -459,7 +459,7 @@ def ir_to_sequence_diagram(
             if caller:
                 lines.append(f"    {caller}->>{sid}: route on {route_key}")
             lines.append(f"    Note right of {sid}: deterministic (no LLM)")
-            rules = getattr(n, "rules", ())
+            rules: tuple[Any, ...] = getattr(n, "rules", ())
             default = getattr(n, "default", None)
             if rules or default:
                 for i, (_pred, agent_node) in enumerate(rules):

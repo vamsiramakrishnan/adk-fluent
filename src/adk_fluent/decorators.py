@@ -17,19 +17,18 @@ def agent(name: str, **kwargs: Any) -> Callable:
     def decorator(fn: Callable) -> Any:
         from adk_fluent.agent import Agent
 
-        builder = Agent(name)
+        builder: Agent = Agent(name)
         if fn.__doc__:
             builder = builder.instruct(fn.__doc__.strip())
         for k, v in kwargs.items():
             method = getattr(builder, k, None)
             if method and callable(method):
-                builder = method(v) or builder
+                result = method(v)
+                if isinstance(result, Agent):
+                    builder = result
             else:
                 # Fallback: use with_raw_config for unknown kwargs
                 builder = builder.with_raw_config(**{k: v})
-
-        # Capture the original .tool method before overriding
-        _original_tool = builder.tool.__func__ if hasattr(builder.tool, "__func__") else None
 
         # Override .tool to work as decorator (returns function, not self)
         def tool_decorator(tool_fn: Callable) -> Callable:
