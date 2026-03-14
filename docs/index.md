@@ -194,6 +194,12 @@ Every error explained with fix-it examples.
 :link-type: doc
 "Which pattern should I use?" — flowchart for common decisions.
 ```
+
+```{grid-item-card} Agent Skills
+:link: editor-setup/agent-skills
+:link-type: doc
+8 portable skills for AI coding agents — develop, test, debug, and review adk-fluent projects.
+```
 ````
 
 ## Common Starting Points
@@ -207,6 +213,8 @@ Every error explained with fix-it examples.
 **"I want to understand what the LLM actually sees"** -- Read [Context Engineering](user-guide/context-engineering.md) and [Prompts](user-guide/prompts.md).
 
 **"I need to test my agents without API calls"** -- Read [Testing](user-guide/testing.md) for `.mock()`, `.test()`, and `check_contracts()`.
+
+**"I want my AI coding agent to know adk-fluent"** -- Set up [Editor & AI Agent Setup](editor-setup/index.md) for rules files and MCP servers, then install [Agent Skills](editor-setup/agent-skills.md) for step-by-step procedures.
 
 ```{toctree}
 ---

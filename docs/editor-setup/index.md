@@ -46,6 +46,12 @@ VS Code extension. Uses `.clinerules/` for project context and supports MCP serv
 :link-type: doc
 High-performance editor. Uses `llms.txt` via `#fetch` and supports MCP context servers.
 ```
+
+```{grid-item-card} Agent Skills
+:link: agent-skills
+:link-type: doc
+8 portable skills for developing, testing, debugging, and reviewing adk-fluent projects. Works with any Agent Skills-compatible platform.
+```
 ````
 
 ## How it works
@@ -74,4 +80,5 @@ vscode
 windsurf
 cline
 zed
+agent-skills
 ```
