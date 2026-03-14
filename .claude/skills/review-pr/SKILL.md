@@ -15,46 +15,42 @@ Review this pull request with adk-fluent-specific quality checks.
 - Changed files: !`git diff --name-only HEAD~1`
 - Diff stats: !`git diff --stat HEAD~1`
 
+## Automated checks
+
+Run these helper scripts for quick automated scanning:
+
+```bash
+# Check for deprecated method usage in changed files
+uv run .claude/skills/_shared/scripts/check-deprecated.py src/ tests/ examples/
+
+# Check for internal module imports
+uv run .claude/skills/_shared/scripts/validate-imports.py src/ tests/ examples/
+
+# Verify no generated files were hand-edited
+just check-gen
+```
+
 ## Checklist
 
 ### 1. Generated file protection
 
-Check if any auto-generated files were edited directly:
+Check if any auto-generated files were edited directly.
+Run `uv run .claude/skills/_shared/scripts/list-generated-files.py` to see the full list,
+or read [`../_shared/references/generated-files.md`](../_shared/references/generated-files.md).
 
-```
-agent.py, workflow.py, tool.py, config.py, runtime.py, service.py,
-plugin.py, executor.py, planner.py, _ir_generated.py, __init__.py,
-and their .pyi stubs
-```
-
-These files MUST NOT be edited directly. Changes should go through
-`seeds/seed.manual.toml` or the generator scripts.
-
-**How to verify**: Run `just check-gen` — if generated files differ after
-regeneration, someone hand-edited them.
+Changes to generated files should go through `seeds/seed.manual.toml` or the generator scripts.
 
 ### 2. Deprecated method usage
 
-Check for usage of deprecated methods in new/changed code:
-
-| Deprecated | Use instead |
-|-----------|-------------|
-| `.save_as()` | `.writes()` |
-| `.delegate()` | `.agent_tool()` |
-| `.guardrail()` | `.guard()` |
-| `.retry_if()` | `.loop_while()` |
-| `.inject_context()` | `.prepend()` |
-| `.output_schema()` | `.returns()` |
-| `.output_key()` / `.outputs()` | `.writes()` |
-| `.history()` / `.include_history()` | `.context()` |
+Run `uv run .claude/skills/_shared/scripts/check-deprecated.py` on changed files.
+For the complete mapping table, read
+[`../_shared/references/deprecated-methods.md`](../_shared/references/deprecated-methods.md).
 
 ### 3. Import hygiene
 
-Verify imports are from `adk_fluent` top-level, not internal modules:
-- Never: `from adk_fluent._base import ...`
-- Never: `from adk_fluent.agent import ...`
-- Never: `from adk_fluent._transforms import ...`
+Run `uv run .claude/skills/_shared/scripts/validate-imports.py` on changed files.
 - Always: `from adk_fluent import Agent, Pipeline, S, C, P, ...`
+- Never: `from adk_fluent._base import ...` or `from adk_fluent.agent import ...`
 
 Exception: Tests in `tests/` may import internals when specifically testing them.
 
@@ -63,12 +59,10 @@ Exception: Tests in `tests/` may import internals when specifically testing them
 - New features must have tests in `tests/manual/`
 - Cookbook examples must use `.mock()` (no real API keys in CI)
 - Tests must pass: `uv run pytest tests/ -x -q --tb=short`
-- Look for edge cases: empty state, missing keys, None values
 
 ### 5. Tooling consistency
 
 - All bash commands must use `uv run` (never bare `python` or `pip`)
-- All dependency installs must use `uv pip install` or `uv sync` (never bare `pip install`)
 - Scripts must be run via `uv run python scripts/...`
 
 ### 6. N-5 backward compatibility
@@ -77,10 +71,6 @@ If the PR changes any of these, verify the N-5 compat matrix is updated:
 - `.github/workflows/ci.yml` — `compat` job `adk-version` matrix
 - `.github/workflows/sync-adk.yml` — `test` job `adk-version` matrix
 - `README.md` — ADK Compatibility table
-
-If the PR adds new builder methods that use kwargs only available in newer
-ADK versions, note that these will raise `BuilderError` on older runtimes
-(which is the expected behavior, not a bug).
 
 ### 7. CHANGELOG
 
@@ -95,41 +85,31 @@ ADK versions, note that these will raise `BuilderError` on older runtimes
 
 ### 9. API design consistency
 
-Check that new builder methods follow established patterns:
-- **Naming**: verb-based (`.instruct()`, `.writes()`, `.guard()`), not noun-based
+- **Naming**: verb-based (`.instruct()`, `.writes()`), not noun-based
 - **Chaining**: Every config method returns `Self`
-- **Immutability**: Operators (`>>`, `|`, `*`, `//`, `@`) create new instances
-- **Overloading**: Methods accept both simple values and namespace objects (e.g., `.instruct(str | PTransform)`)
+- **Immutability**: Operators create new instances (copy-on-write)
 - **No side effects**: Config methods only store state; `.build()` does the work
 
-### 10. Anti-patterns in application code
+### 10. Anti-patterns
 
-Flag these patterns in new code:
-- **LLM routing when `Route()` works** — if the routing decision is deterministic, use `Route(key).eq()`
-- **Retry logic in tool functions** — use `M.retry()` middleware instead
-- **Manual state management** — use `.writes()` / `.reads()` / `S.*` transforms
-- **Bare `BaseAgent` subclass** — use builder API or `tap()` for function steps
-- **`.build()` on sub-builders** — inside Pipeline/FanOut/Loop, sub-builders auto-build
-- **Exposing infra in tool schemas** — use `.inject()` for DB clients, API keys, etc.
+- **LLM routing when `Route()` works** — deterministic routing preferred
+- **Retry logic in tools** — use `M.retry()` middleware
+- **`.build()` on sub-builders** — auto-built inside Pipeline/FanOut/Loop
+- **Exposing infra in tool schemas** — use `.inject()` for DB clients, API keys
 
-### 11. Security considerations
+### 11. Security
 
 - No API keys, tokens, or secrets in code or test fixtures
-- `.inject()` used for infrastructure dependencies (not tool schemas)
 - No `eval()` or `exec()` on user-provided strings
-- File paths properly sanitized if used in tools
 
-### 12. Performance patterns
+### 12. Performance
 
-- `C.window(n=)` or `C.budget(max_tokens=)` used for agents with long conversations
-- `C.none()` used for background/utility agents that don't need history
-- `.timeout()` used for agents that might hang
-- `M.cache()` considered for expensive, repeated queries
+- `C.window(n=)` or `C.none()` for context management
+- `.timeout()` for agents that might hang
 
 ## Output format
 
-Provide findings as:
 - **Blockers**: Must fix before merge
 - **Suggestions**: Nice to have but not blocking
-- **Questions**: Things that need clarification from the author
+- **Questions**: Need clarification from the author
 - **Praise**: What the PR does well

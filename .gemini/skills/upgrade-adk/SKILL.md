@@ -163,7 +163,9 @@ just generate
 uv run pytest tests/ -x -q --tb=short
 ```
 
-## Reference
+## References
 
-For the full 9-category impact analysis, see:
-`docs/contributing/upstream-impact-analysis.md`
+- `docs/contributing/upstream-impact-analysis.md` — Full 9-category impact analysis
+- [`../_shared/references/builder-inventory.md`](../_shared/references/builder-inventory.md) — Current builder inventory
+- [`../_shared/references/development-commands.md`](../_shared/references/development-commands.md) — All justfile commands
+- [`../_shared/references/generated-files.md`](../_shared/references/generated-files.md) — Generated vs hand-written files
