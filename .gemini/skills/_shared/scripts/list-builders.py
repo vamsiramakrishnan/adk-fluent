@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import sys
-from collections import defaultdict
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parent
@@ -23,15 +22,18 @@ for _ in range(10):
 def main():
     manifest_path = project_root / "manifest.json"
     if not manifest_path.exists():
-        print(f"ERROR: {manifest_path} not found. Run `just scan` first.", file=sys.stderr)
+        print(
+            f"ERROR: {manifest_path} not found. Run `just scan` first.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     with open(manifest_path) as f:
         manifest = json.load(f)
 
-    filter_module = None
+    module_filter = None
     if len(sys.argv) > 2 and sys.argv[1] == "--module":
-        filter_module = sys.argv[2]
+        module_filter = sys.argv[2]
 
     print(f"ADK version: {manifest.get('adk_version', '?')}")
     print(f"Total classes: {manifest.get('total_classes', '?')}")
@@ -42,6 +44,8 @@ def main():
         name = cls["name"]
         qualname = cls.get("qualname", "?")
         field_count = len(cls.get("fields", []))
+        if module_filter and module_filter not in qualname:
+            continue
         print(f"  {name:30s}  {qualname:60s}  ({field_count} fields)")
 
 

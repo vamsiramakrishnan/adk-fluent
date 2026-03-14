@@ -22,10 +22,10 @@ for _ in range(10):
 
 # Internal modules that should not be imported from directly
 INTERNAL_PATTERNS = [
-    r"from\s+adk_fluent\._",         # from adk_fluent._base import ...
-    r"from\s+adk_fluent\.agent\s",   # from adk_fluent.agent import ...
-    r"from\s+adk_fluent\.workflow\s", # from adk_fluent.workflow import ...
-    r"from\s+adk_fluent\.tool\s",    # from adk_fluent.tool import ...
+    r"from\s+adk_fluent\._",  # from adk_fluent._base import ...
+    r"from\s+adk_fluent\.agent\s",  # from adk_fluent.agent import ...
+    r"from\s+adk_fluent\.workflow\s",  # from adk_fluent.workflow import ...
+    r"from\s+adk_fluent\.tool\s",  # from adk_fluent.tool import ...
     r"from\s+adk_fluent\.config\s",  # from adk_fluent.config import ...
     r"from\s+adk_fluent\.runtime\s",
     r"from\s+adk_fluent\.service\s",
@@ -52,9 +52,13 @@ def scan_file(path: Path) -> list[tuple[int, str]]:
 
 
 def main():
-    paths = [Path(p) for p in sys.argv[1:]] if len(sys.argv) > 1 else [
-        project_root / "examples",
-    ]
+    paths = (
+        [Path(p) for p in sys.argv[1:]]
+        if len(sys.argv) > 1
+        else [
+            project_root / "examples",
+        ]
+    )
 
     total = 0
     for root_path in paths:
@@ -65,7 +69,7 @@ def main():
                 rel = path.relative_to(project_root) if path.is_relative_to(project_root) else path
                 print(f"{rel}:{line_no}: internal import detected")
                 print(f"  {line_text}")
-                print(f"  → Use: from adk_fluent import ...")
+                print("  → Use: from adk_fluent import ...")
                 print()
                 total += 1
 

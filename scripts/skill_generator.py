@@ -191,9 +191,18 @@ def generate_api_surface(specs: list[BuilderSpec]) -> str:
     # Deduplicate (same method on multiple builders)
     seen: set[str] = set()
     concern_order = [
-        "Configuration", "Data flow", "Tools", "Callbacks",
-        "Flow control", "Transfer control", "Memory", "Visibility",
-        "Schemas", "Execution", "Introspection", "Other",
+        "Configuration",
+        "Data flow",
+        "Tools",
+        "Callbacks",
+        "Flow control",
+        "Transfer control",
+        "Memory",
+        "Visibility",
+        "Schemas",
+        "Execution",
+        "Introspection",
+        "Other",
     ]
 
     for concern in concern_order:
@@ -246,11 +255,26 @@ def generate_generated_files() -> str:
     lines.append("")
 
     hand_written = [
-        "_base.py", "_context.py", "_context_providers.py", "_prompt.py",
-        "_transforms.py", "_routing.py", "_primitives.py", "_middleware.py",
-        "_tools.py", "_guards.py", "_artifacts.py", "_eval.py", "_visibility.py",
-        "patterns.py", "middleware.py", "decorators.py", "viz.py", "di.py",
-        "prelude.py", "cli.py",
+        "_base.py",
+        "_context.py",
+        "_context_providers.py",
+        "_prompt.py",
+        "_transforms.py",
+        "_routing.py",
+        "_primitives.py",
+        "_middleware.py",
+        "_tools.py",
+        "_guards.py",
+        "_artifacts.py",
+        "_eval.py",
+        "_visibility.py",
+        "patterns.py",
+        "middleware.py",
+        "decorators.py",
+        "viz.py",
+        "di.py",
+        "prelude.py",
+        "cli.py",
     ]
     for f in hand_written:
         lines.append(f"- `src/adk_fluent/{f}`")
@@ -401,7 +425,7 @@ def generate_namespace_methods() -> str:
             lines.append(f"## {letter} — {description}")
             lines.append("")
             if methods:
-                lines.append(f"Compose with: `+` (union/merge) or `|` (pipe/chain)")
+                lines.append("Compose with: `+` (union/merge) or `|` (pipe/chain)")
                 lines.append("")
                 lines.append("| Method | Signature | Description |")
                 lines.append("|---|---|---|")
@@ -591,7 +615,6 @@ from __future__ import annotations
 
 import json
 import sys
-from collections import defaultdict
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parent
@@ -604,15 +627,18 @@ for _ in range(10):
 def main():
     manifest_path = project_root / "manifest.json"
     if not manifest_path.exists():
-        print(f"ERROR: {manifest_path} not found. Run `just scan` first.", file=sys.stderr)
+        print(
+            f"ERROR: {manifest_path} not found. Run `just scan` first.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     with open(manifest_path) as f:
         manifest = json.load(f)
 
-    filter_module = None
+    module_filter = None
     if len(sys.argv) > 2 and sys.argv[1] == "--module":
-        filter_module = sys.argv[2]
+        module_filter = sys.argv[2]
 
     print(f"ADK version: {manifest.get('adk_version', '?')}")
     print(f"Total classes: {manifest.get('total_classes', '?')}")
@@ -623,6 +649,8 @@ def main():
         name = cls["name"]
         qualname = cls.get("qualname", "?")
         field_count = len(cls.get("fields", []))
+        if module_filter and module_filter not in qualname:
+            continue
         print(f"  {name:30s}  {qualname:60s}  ({field_count} fields)")
 
 
@@ -715,10 +743,10 @@ for _ in range(10):
 
 # Internal modules that should not be imported from directly
 INTERNAL_PATTERNS = [
-    r"from\\s+adk_fluent\\._",         # from adk_fluent._base import ...
-    r"from\\s+adk_fluent\\.agent\\s",   # from adk_fluent.agent import ...
-    r"from\\s+adk_fluent\\.workflow\\s", # from adk_fluent.workflow import ...
-    r"from\\s+adk_fluent\\.tool\\s",    # from adk_fluent.tool import ...
+    r"from\\s+adk_fluent\\._",  # from adk_fluent._base import ...
+    r"from\\s+adk_fluent\\.agent\\s",  # from adk_fluent.agent import ...
+    r"from\\s+adk_fluent\\.workflow\\s",  # from adk_fluent.workflow import ...
+    r"from\\s+adk_fluent\\.tool\\s",  # from adk_fluent.tool import ...
     r"from\\s+adk_fluent\\.config\\s",  # from adk_fluent.config import ...
     r"from\\s+adk_fluent\\.runtime\\s",
     r"from\\s+adk_fluent\\.service\\s",
@@ -745,9 +773,13 @@ def scan_file(path: Path) -> list[tuple[int, str]]:
 
 
 def main():
-    paths = [Path(p) for p in sys.argv[1:]] if len(sys.argv) > 1 else [
-        project_root / "examples",
-    ]
+    paths = (
+        [Path(p) for p in sys.argv[1:]]
+        if len(sys.argv) > 1
+        else [
+            project_root / "examples",
+        ]
+    )
 
     total = 0
     for root_path in paths:
@@ -758,7 +790,7 @@ def main():
                 rel = path.relative_to(project_root) if path.is_relative_to(project_root) else path
                 print(f"{rel}:{line_no}: internal import detected")
                 print(f"  {line_text}")
-                print(f"  → Use: from adk_fluent import ...")
+                print("  → Use: from adk_fluent import ...")
                 print()
                 total += 1
 
@@ -798,6 +830,9 @@ def sync_to_gemini():
 def write_file(path: Path, content: str) -> None:
     """Write file, creating parent dirs as needed."""
     path.parent.mkdir(parents=True, exist_ok=True)
+    # Ensure trailing newline for POSIX compliance (end-of-file-fixer)
+    if not content.endswith("\n"):
+        content += "\n"
     path.write_text(content)
 
 
@@ -807,9 +842,7 @@ def write_file(path: Path, content: str) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate agent skill reference files from manifest + seed"
-    )
+    parser = argparse.ArgumentParser(description="Generate agent skill reference files from manifest + seed")
     parser.add_argument("manifest", help="Path to manifest.json")
     parser.add_argument("seed", help="Path to seed.toml")
     parser.add_argument(
@@ -856,7 +889,7 @@ def main():
 
     # Sync to .gemini
     sync_to_gemini()
-    print(f"\n  Synced _shared/ to .gemini/skills/")
+    print("\n  Synced _shared/ to .gemini/skills/")
 
     print(f"\nGenerated {len(references)} references + {len(scripts)} scripts from {len(specs)} builder specs.")
 
