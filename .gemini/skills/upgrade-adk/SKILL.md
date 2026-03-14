@@ -9,10 +9,20 @@ allowed-tools: Bash, Read, Glob, Grep, Edit, Write
 
 Follow these steps exactly in order. Do not skip steps.
 
+## Pre-flight check
+
+Before starting, ensure you're on a clean branch:
+
+```bash
+git status
+git stash  # if needed
+```
+
 ## Step 1: Archive current state
 
 ```bash
 cp manifest.json manifest.json.bak
+cp seeds/seed.toml seeds/seed.toml.bak
 ```
 
 ## Step 2: Install the new ADK version
@@ -22,7 +32,11 @@ uv pip install --upgrade google-adk
 uv run python -c "from importlib.metadata import version; print(version('google-adk'))"
 ```
 
-Record the new version number.
+Record the new version number. If upgrading to a specific version:
+
+```bash
+uv pip install google-adk==X.Y.Z
+```
 
 ## Step 3: Scan the new ADK
 
@@ -37,22 +51,32 @@ This produces an updated `manifest.json`.
 Compare the old and new manifests:
 
 ```bash
-diff <(python -m json.tool manifest.json.bak) <(python -m json.tool manifest.json) | head -100
+diff <(python -m json.tool manifest.json.bak) <(python -m json.tool manifest.json) | head -200
 ```
 
 Classify changes into categories:
-- **New classes**: Automatic — scanner discovers them
-- **New fields on existing classes**: Automatic — `__getattr__` fallback handles them
-- **Removed fields**: May need `seed.manual.toml` cleanup
-- **Renamed fields**: Need `seed.manual.toml` alias updates
-- **Changed inheritance**: Usually automatic
-- **Breaking API changes**: Significant manual work
+
+| Category | Impact | Action needed |
+|----------|--------|---------------|
+| New classes | Low | Automatic — scanner discovers them |
+| New fields on existing classes | Low | Automatic — `__getattr__` fallback handles them |
+| Removed fields | Medium | May need `seed.manual.toml` cleanup |
+| Renamed fields | Medium | Need `seed.manual.toml` alias updates |
+| Changed inheritance | Low | Usually automatic |
+| Changed field types | Medium | May need type mapping updates |
+| Removed classes | High | Remove from seed.manual.toml, update tests |
+| Breaking API changes | High | Manual work required |
+| New callback signatures | Medium | Check callback builders in `_base.py` |
 
 For detailed impact analysis, read `docs/contributing/upstream-impact-analysis.md`.
 
 ## Step 5: Update manual overrides (if needed)
 
-If the diff shows renamed or removed classes/fields, update `seeds/seed.manual.toml`.
+If the diff shows renamed or removed classes/fields:
+
+1. Edit `seeds/seed.manual.toml`
+2. Update/remove affected entries
+3. Add new aliases for renamed fields
 
 ## Step 6: Regenerate everything
 
@@ -78,6 +102,15 @@ uv run pyright src/adk_fluent/
 
 Fix any failures before proceeding.
 
+### Common verification failures
+
+| Failure | Cause | Fix |
+|---------|-------|-----|
+| ImportError in generated code | ADK renamed/moved a class | Update import mapping in `scripts/scanner.py` |
+| Test assertion failure | Builder produces different output | Update test expectations or `seed.manual.toml` |
+| Pyright type error | Field type changed | Update type stubs or `seed.manual.toml` field_docs |
+| Pydantic ValidationError | New required field without default | Add default in `seed.manual.toml` or `_base.py` |
+
 ## Step 8: Update the N-5 compatibility matrix
 
 After upgrading, update the backward compatibility matrix:
@@ -89,14 +122,45 @@ After upgrading, update the backward compatibility matrix:
 
 ## Step 9: Update metadata
 
-- Update `pyproject.toml` if the minimum ADK version changed
+- Update `pyproject.toml` if the minimum ADK version changed (the `>=` lower bound)
 - Update the ADK badge in `README.md` and `README.template.md`
-- Add a CHANGELOG entry under `[Unreleased]`
+- Add a CHANGELOG entry under `[Unreleased]`:
+  ```
+  ### Changed
+  - Upgraded google-adk from X.Y.Z to A.B.C
+  ```
 
-## Step 10: Cleanup
+## Step 10: Run full CI locally
 
 ```bash
-rm manifest.json.bak
+just ci    # preflight + check-gen + test
+```
+
+This verifies everything passes before pushing.
+
+## Step 11: Cleanup
+
+```bash
+rm manifest.json.bak seeds/seed.toml.bak
+```
+
+## Rollback procedure
+
+If the upgrade introduces too many issues:
+
+```bash
+# Restore archived state
+cp manifest.json.bak manifest.json
+cp seeds/seed.toml.bak seeds/seed.toml
+
+# Downgrade ADK
+uv pip install google-adk==PREVIOUS_VERSION
+
+# Regenerate from old manifest
+just generate
+
+# Verify
+uv run pytest tests/ -x -q --tb=short
 ```
 
 ## Reference
