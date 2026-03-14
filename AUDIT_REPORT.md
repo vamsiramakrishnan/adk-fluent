@@ -357,4 +357,124 @@ The project's infrastructure and code quality are A-tier. The gap to "world-clas
 
 ---
 
+## Addendum: SDK-Specific Deep Audit
+
+### Type Stubs & IDE Autocomplete (`.pyi` files)
+
+**Verdict: Production-ready. No IDE-breaking issues found.**
+
+| Aspect | Status | Details |
+|---|---|---|
+| PEP 561 compliance | PASS | `py.typed` marker present, `"Typing :: Typed"` classifier set |
+| Stub coverage | PASS | 9 generated modules fully stubbed (agent, workflow, tool, config, runtime, service, plugin, executor, planner) |
+| Fluent chaining | PASS | 515/792 methods (65%) return `Self` — remaining 35% are constructors, `.build()`, and terminal methods |
+| `Any` returns | PASS | Only 7 methods return `Any` — all are intentional terminal methods (`.session()`, `.eval()`, `.to_ir()`) that exit the builder chain |
+| Package distribution | PASS | Hatchling config includes `.pyi` files in both wheel and sdist |
+| Hand-written modules | PASS | Type-checked at source level via Pyright in strict mode (no stubs needed) |
+
+**Method chaining works correctly in IDEs:**
+```python
+# Full autocomplete preserved through the chain:
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are helpful.")        # returns Self ✓
+    .tool(search_fn)                      # returns Self ✓
+    .memory("preload")                    # returns Self ✓
+    .build()                              # returns LlmAgent (chain terminates) ✓
+)
+```
+
+**One improvement opportunity:** The `.pyi` stubs are generated from the manifest and accurately reflect generated code, but they don't cover hand-written `BuilderBase` methods (since those are type-checked at source level). This means IDE hover-docs for inherited methods like `.validate()`, `.explain()`, `.diagnose()` show source-level docstrings — which is correct behavior, not a bug.
+
+---
+
+### Codegen Pipeline Documentation
+
+**Verdict: Well-documented for the happy path, but contributor edge cases need work.**
+
+The codegen pipeline (`scanner.py` → `manifest.json` → `seed.toml` → `generator.py` → builders + stubs + tests) is documented in:
+- `docs/contributing/codegen-pipeline.md` — explains the full flow
+- `docs/contributing/adding-builders.md` — how to add new ADK features
+- `CONTRIBUTING.md` — warns against editing generated files
+- `justfile` — `just scan`, `just seed`, `just generate`, `just all`
+
+**What's well-covered:**
+- The scanner → seed → generator flow is explained with clear examples
+- `just all` runs the complete pipeline in one command
+- `just check-gen` verifies generated files are up-to-date (also runs in CI)
+- `.gitattributes` marks generated files with `linguist-generated=true`
+
+**What's missing or unclear:**
+
+| Gap | Impact |
+|---|---|
+| No documentation on what happens when `sync-adk.yml` detects a new ADK version | Contributors don't know if it auto-PRs, notifies, or just fails |
+| `seed.toml` override syntax underdocumented | Manual overrides in seed.toml are critical for customizing generated code, but the format isn't fully explained |
+| No "add a new namespace module" guide | Adding a new hand-written module (like how `G` was recently added) has no documented process |
+| Generator error messages not cataloged | When the generator fails (e.g., ADK class not found), the error messages aren't documented in error-reference.md |
+
+---
+
+### Deprecated Method Handling
+
+**Verdict: Excellent. All 10 deprecated methods issue `DeprecationWarning` and redirect correctly.**
+
+Verified deprecated methods with proper warnings:
+- `.delegate()` → `.agent_tool()`
+- `.guardrail()` → `.guard()`
+- `.history()` / `.include_history()` → `.context()`
+- `.inject_context()` → `.prepend()`
+- `.input_schema()` → `.accepts()`
+- `.output_key()` / `.outputs()` → `.writes()`
+- `.output_schema()` → `.returns()`
+- `.retry_if()` → `.loop_while()`
+- `.save_as()` → `.writes()` (but see Critical Drift #5 — CHANGELOG contradiction)
+- `.static_instruct()` → `.static()`
+
+---
+
+### Namespace Module Verification
+
+**All 6 documented namespace modules verified against source code:**
+
+| Module | Documented methods | Actual methods | Status |
+|---|---|---|---|
+| **S** (State) | 11 | 26+ | Underdocumented — missing `S.capture()`, `S.identity()`, `S.accumulate()`, `S.counter()`, `S.history()`, `S.validate()`, `S.require()`, `S.flatten()`, `S.unflatten()`, `S.zip()`, `S.group_by()`, `S.log()` |
+| **C** (Context) | 12 | 28+ | Underdocumented — missing `C.default()`, `C.select()`, `C.recent()`, `C.compact()`, `C.dedup()`, `C.project()`, `C.priority()`, `C.fit()`, `C.fresh()`, `C.redact()`, `C.extract()`, `C.distill()`, `C.validate()`, `C.notes()`, `C.write_notes()`, `C.manus_cascade()` |
+| **P** (Prompt) | 10 | 17+ | Underdocumented — missing `P.reorder()`, `P.only()`, `P.without()`, `P.compress()`, `P.adapt()`, `P.scaffolded()`, `P.versioned()` |
+| **A** (Artifacts) | 4 | 17+ | Severely underdocumented — missing batch ops, content transforms, `A.for_llm()`, `A.list()`, `A.version()`, `A.delete()`, `A.when()` |
+| **M** (Middleware) | 6 | 22+ | Severely underdocumented — missing `M.circuit_breaker()`, `M.timeout()`, `M.cache()`, `M.fallback_model()`, `M.dedup()`, `M.sample()`, `M.trace()`, `M.metrics()`, `M.before_agent()`, `M.after_agent()`, `M.on_loop()`, `M.on_timeout()`, `M.on_route()`, `M.on_fallback()` |
+| **T** (Tools) | 3 | 13+ | Severely underdocumented — missing `T.mock()`, `T.confirm()`, `T.timeout()`, `T.cache()`, `T.mcp()`, `T.openapi()`, `T.transform()`, `T.toolset()`, `T.schema()` |
+
+**Aggregate: CLAUDE.md documents 46 namespace methods out of 123+ actual methods (37% coverage).**
+
+This is the single biggest documentation gap in the repository.
+
+---
+
+### Undocumented Callback Methods
+
+Two callback methods exist in `agent.py` but appear in no documentation:
+- `.on_model_error(fn)` — agent.py line ~390
+- `.on_tool_error(fn)` — agent.py line ~404
+
+These are valuable for error handling patterns but invisible to users.
+
+---
+
+### Revised Priority Action Items (SDK-Specific)
+
+| Priority | Action | Effort | Impact |
+|---|---|---|---|
+| P0 | Update CLAUDE.md namespace sections — 37% coverage is unacceptable for LLM context | High | Unlocks 77 undocumented namespace methods |
+| P0 | Document `E` and `G` namespaces in CLAUDE.md | Medium | Two entire feature areas invisible |
+| P0 | Resolve `.save_as()` canonical status contradiction | Low | Developer confusion |
+| P1 | Document `.on_model_error()` and `.on_tool_error()` callbacks | Low | Error handling patterns |
+| P1 | Document `sync-adk.yml` workflow for contributors | Low | Contributor onboarding |
+| P1 | Add `seed.toml` override format documentation | Medium | Codegen contributor experience |
+| P2 | Catalog generator error messages in error-reference.md | Medium | Developer self-service |
+| P2 | Add "add a new namespace module" contributor guide | Medium | Scaling the project |
+
+---
+
 *Report generated by Claude Code audit — session `llAD5`*
