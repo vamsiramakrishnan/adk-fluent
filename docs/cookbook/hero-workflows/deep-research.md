@@ -144,6 +144,67 @@ query_analyzer ──► ┌─ web_searcher ────┐
                                                              ──► report_writer @ ResearchReport
 ```
 
+## Execution Sequence
+
+This is what actually happens at runtime — the order of LLM calls, data flow between agents, and where parallel execution occurs. Auto-generated with `.to_sequence_diagram()`.
+
+```mermaid
+sequenceDiagram
+    participant QA as query_analyzer
+    participant WS as web_searcher
+    participant AS as academic_searcher
+    participant NS as news_searcher
+    participant SY as synthesizer
+    participant QR as quality_reviewer
+    participant RA as revision_agent
+    participant RW as report_writer
+
+    QA->>QA: LLM call
+    Note right of QA: writes research_plan
+
+    par Parallel execution
+        QA-->>WS: state[research_plan]
+        Note right of WS: C.from_state("research_plan")
+        WS->>WS: LLM call
+        Note right of WS: writes web_results
+    and
+        QA-->>AS: state[research_plan]
+        Note right of AS: C.from_state("research_plan")
+        AS->>AS: LLM call
+        Note right of AS: writes academic_results
+    and
+        QA-->>NS: state[research_plan]
+        Note right of NS: C.from_state("research_plan")
+        NS->>NS: LLM call
+        Note right of NS: writes news_results
+    end
+
+    WS-->>SY: state[web_results, academic_results, news_results]
+    Note right of SY: C.from_state("web_results", "academic_results", "news_results")
+    SY->>SY: LLM call
+    Note right of SY: writes synthesis
+
+    loop max 3 iterations (until quality_score >= 0.85)
+        SY-->>QR: state[synthesis]
+        Note right of QR: C.from_state("synthesis")
+        QR->>QR: LLM call
+        Note right of QR: writes quality_score
+        alt score < 0.85
+            QR-->>RA: state[synthesis, quality_score]
+            Note right of RA: C.from_state("synthesis", "quality_score")
+            RA->>RA: LLM call
+            Note right of RA: overwrites synthesis
+        else score >= 0.85
+            Note over QR,RA: Loop exits
+        end
+    end
+
+    RA-->>RW: state[synthesis]
+    Note right of RW: C.from_state("synthesis")
+    RW->>RW: LLM call
+    Note right of RW: @ ResearchReport (typed output)
+```
+
 ## Framework Comparison
 
 | Framework    | Lines | Notes                                              |

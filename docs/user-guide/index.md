@@ -96,5 +96,6 @@ adk-samples/index
 
 Standalone HTML pages -- open in browser for the full interactive experience:
 
+- [Module Lifecycle Reference](/module-lifecycle-reference.html) -- Where each module (S, C, P, A, M, T, E, G) fires during execution. Swim-lane timeline, interaction grid, step-through walkthrough, and auto-generated sequence diagrams
 - [P*C*S Visual Reference](/pcs-visual-reference.html) -- Pipeline, Context, and State module reference
 - [Operator Algebra Reference](/operator-algebra-reference.html) -- All 9 operators with SVG diagrams and composition rules

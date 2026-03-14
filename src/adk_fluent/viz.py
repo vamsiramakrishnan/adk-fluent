@@ -248,3 +248,298 @@ def ir_to_mermaid(
         result_parts.extend(context_notes)
 
     return "\n".join(result_parts)
+
+
+def ir_to_sequence_diagram(
+    node: Any,
+    *,
+    show_data_flow: bool = True,
+    show_context: bool = True,
+) -> str:
+    """Convert an IR node tree to a Mermaid sequence diagram.
+
+    Unlike ``ir_to_mermaid`` which shows topology (what connects to what),
+    this shows *execution order* — what calls what, in what sequence, and
+    what data moves where.  Parallel branches are shown with ``par`` blocks.
+    Loops are shown with ``loop`` blocks.  Route/Fallback uses ``alt``.
+
+    Args:
+        node: Root IR node.
+        show_data_flow: Annotate state key writes as messages.
+        show_context: Add notes showing each agent's context strategy.
+
+    Returns:
+        Mermaid ``sequenceDiagram`` source text.
+    """
+    from adk_fluent._ir import (
+        ArtifactNode,
+        CaptureNode,
+        DispatchNode,
+        FallbackNode,
+        GateNode,
+        JoinNode,
+        MapOverNode,
+        RaceNode,
+        RouteNode,
+        TapNode,
+        TimeoutNode,
+        TransformNode,
+    )
+    from adk_fluent._ir_generated import AgentNode, LoopNode, ParallelNode, SequenceNode
+
+    lines: list[str] = ["sequenceDiagram"]
+    _declared: set[str] = set()
+
+    def _safe(name: str) -> str:
+        """Make a name safe for Mermaid participant IDs."""
+        return name.replace(" ", "_").replace("-", "_").replace(".", "_")
+
+    def _label(name: str) -> str:
+        return name.replace('"', "'")
+
+    def _declare(n: Any) -> None:
+        """Declare a participant if not already declared."""
+        name = getattr(n, "name", None)
+        if not name or name in _declared:
+            return
+        _declared.add(name)
+        sid = _safe(name)
+        if isinstance(n, AgentNode):
+            lines.append(f"    participant {sid} as {_label(name)}")
+        elif isinstance(n, (TransformNode, CaptureNode, TapNode)):
+            lines.append(f"    participant {sid} as {_label(name)}")
+        elif isinstance(n, RouteNode):
+            lines.append(f"    participant {sid} as {_label(name)}")
+        elif isinstance(n, GateNode):
+            lines.append(f"    participant {sid} as {_label(name)}")
+
+    def _context_note(n: Any) -> str | None:
+        """Get a context description for an agent node."""
+        if not show_context or not isinstance(n, AgentNode):
+            return None
+        context_spec = getattr(n, "context_spec", None)
+        if context_spec is not None:
+            try:
+                from adk_fluent.testing.contracts import _context_description
+                return _context_description(context_spec)
+            except (ImportError, Exception):
+                return str(context_spec)
+        include = getattr(n, "include_contents", "default")
+        if include != "default":
+            return f"history: {include}"
+        return None
+
+    def _writes_label(n: Any) -> str | None:
+        """Get a state-write description for an agent node."""
+        if not show_data_flow:
+            return None
+        output_key = getattr(n, "output_key", None)
+        writes = getattr(n, "writes_keys", frozenset())
+        keys = set()
+        if output_key:
+            keys.add(output_key)
+        keys.update(writes)
+        if keys:
+            return ", ".join(sorted(keys))
+        return None
+
+    def _collect_participants(n: Any) -> None:
+        """Pre-scan tree to declare all participants in order."""
+        if isinstance(n, SequenceNode):
+            for child in getattr(n, "children", ()):
+                _collect_participants(child)
+        elif isinstance(n, ParallelNode):
+            for child in getattr(n, "children", ()):
+                _collect_participants(child)
+        elif isinstance(n, LoopNode):
+            for child in getattr(n, "children", ()):
+                _collect_participants(child)
+        elif isinstance(n, RouteNode):
+            _declare(n)
+            for _pred, agent_node in getattr(n, "rules", ()):
+                _collect_participants(agent_node)
+            default = getattr(n, "default", None)
+            if default is not None:
+                _collect_participants(default)
+        elif isinstance(n, FallbackNode):
+            for child in getattr(n, "children", ()):
+                _collect_participants(child)
+        elif isinstance(n, RaceNode):
+            for child in getattr(n, "children", ()):
+                _collect_participants(child)
+        elif isinstance(n, (TimeoutNode, MapOverNode)):
+            body = getattr(n, "body", None)
+            if body:
+                _collect_participants(body)
+        else:
+            _declare(n)
+
+    def _emit(n: Any, caller: str | None = None) -> str | None:
+        """Emit sequence diagram lines for a node. Returns the node's safe ID."""
+        name = getattr(n, "name", None)
+        sid = _safe(name) if name else None
+
+        if isinstance(n, SequenceNode):
+            children = getattr(n, "children", ())
+            prev_sid = caller
+            for child in children:
+                child_sid = _emit(child, caller=prev_sid)
+                if child_sid:
+                    prev_sid = child_sid
+            return prev_sid
+
+        elif isinstance(n, ParallelNode):
+            children = getattr(n, "children", ())
+            if len(children) > 1:
+                for i, child in enumerate(children):
+                    if i == 0:
+                        lines.append("    par Parallel execution")
+                    else:
+                        lines.append("    and")
+                    _emit(child, caller=caller)
+                lines.append("    end")
+            elif children:
+                _emit(children[0], caller=caller)
+            return caller
+
+        elif isinstance(n, LoopNode):
+            max_iter = getattr(n, "max_iterations", None)
+            label = f"max {max_iter} iterations" if max_iter else "loop"
+            # Check for a loop predicate description
+            lines.append(f"    loop {label}")
+            children = getattr(n, "children", ())
+            prev = caller
+            for child in children:
+                child_sid = _emit(child, caller=prev)
+                if child_sid:
+                    prev = child_sid
+            lines.append("    end")
+            return prev
+
+        elif isinstance(n, AgentNode):
+            if not sid:
+                return caller
+            # Incoming call
+            if caller and caller != sid:
+                writes = _writes_label(n)
+                if writes:
+                    lines.append(f"    {caller}->>{sid}: state[{writes}]")
+                else:
+                    lines.append(f"    {caller}->>{sid}: ")
+            # Context note
+            ctx = _context_note(n)
+            if ctx:
+                lines.append(f"    Note right of {sid}: {_label(ctx)}")
+            # LLM call (self-call)
+            lines.append(f"    {sid}->>{sid}: LLM call")
+            # Output
+            writes = _writes_label(n)
+            if writes:
+                lines.append(f"    Note right of {sid}: writes {writes}")
+            return sid
+
+        elif isinstance(n, CaptureNode):
+            if not sid:
+                return caller
+            key = getattr(n, "key", "?")
+            if caller:
+                lines.append(f"    {caller}->>{sid}: capture")
+            lines.append(f"    Note right of {sid}: state[{key}] = user input")
+            return sid
+
+        elif isinstance(n, TransformNode):
+            if not sid:
+                return caller
+            affected = getattr(n, "affected_keys", None)
+            label = f"transform({', '.join(sorted(affected))})" if affected else "transform"
+            if caller:
+                lines.append(f"    {caller}->>{sid}: {label}")
+            else:
+                lines.append(f"    Note right of {sid}: {label}")
+            return sid
+
+        elif isinstance(n, TapNode):
+            if not sid:
+                return caller
+            if caller:
+                lines.append(f"    {caller}->>{sid}: observe")
+            lines.append(f"    Note right of {sid}: tap (no mutation)")
+            return sid
+
+        elif isinstance(n, RouteNode):
+            if not sid:
+                return caller
+            route_key = getattr(n, "key", "?")
+            if caller:
+                lines.append(f"    {caller}->>{sid}: route on {route_key}")
+            lines.append(f"    Note right of {sid}: deterministic (no LLM)")
+            rules = getattr(n, "rules", ())
+            default = getattr(n, "default", None)
+            if rules or default:
+                for i, (_pred, agent_node) in enumerate(rules):
+                    branch_name = getattr(agent_node, "name", "?")
+                    if i == 0:
+                        lines.append(f"    alt {route_key} matches")
+                    else:
+                        lines.append(f"    else")
+                    _emit(agent_node, caller=sid)
+                if default:
+                    lines.append(f"    else otherwise")
+                    _emit(default, caller=sid)
+                lines.append("    end")
+            return sid
+
+        elif isinstance(n, FallbackNode):
+            children = getattr(n, "children", ())
+            if children:
+                for i, child in enumerate(children):
+                    child_name = getattr(child, "name", "?")
+                    if i == 0:
+                        lines.append(f"    alt try {child_name}")
+                    else:
+                        lines.append(f"    else fallback to {child_name}")
+                    _emit(child, caller=caller)
+                lines.append("    end")
+            return caller
+
+        elif isinstance(n, GateNode):
+            if not sid:
+                return caller
+            msg = getattr(n, "message", "Approval required")
+            if caller:
+                lines.append(f"    {caller}->>{sid}: gate check")
+            lines.append(f"    Note right of {sid}: {_label(msg)}")
+            return sid
+
+        elif isinstance(n, RaceNode):
+            children = getattr(n, "children", ())
+            if children:
+                lines.append("    par Race (first to finish wins)")
+                for i, child in enumerate(children):
+                    if i > 0:
+                        lines.append("    and")
+                    _emit(child, caller=caller)
+                lines.append("    end")
+            return caller
+
+        elif isinstance(n, (TimeoutNode, MapOverNode)):
+            body = getattr(n, "body", None)
+            if body:
+                if isinstance(n, TimeoutNode):
+                    secs = getattr(n, "seconds", "?")
+                    lines.append(f"    Note over {caller or sid}: timeout {secs}s")
+                return _emit(body, caller=caller)
+            return caller
+
+        # Unknown node type — emit as generic
+        if sid and caller:
+            lines.append(f"    {caller}->>{sid}: ")
+        return sid or caller
+
+    # 1. Collect and declare all participants in order
+    _collect_participants(node)
+
+    # 2. Emit the sequence
+    _emit(node)
+
+    return "\n".join(lines)

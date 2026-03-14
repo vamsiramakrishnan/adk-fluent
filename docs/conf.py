@@ -119,6 +119,7 @@ exclude_patterns = [
 html_extra_path = [
     "user-guide/pcs-visual-reference.html",
     "user-guide/operator-algebra-reference.html",
+    "user-guide/module-lifecycle-reference.html",
     "llms.txt",
 ]
 
