@@ -19,8 +19,10 @@ from .emitters import emit_python, emit_stub
 from .nodes import (
     AppendStmt,
     AssignStmt,
+    AsyncForYield,
     ClassAttr,
     ClassNode,
+    DeprecationStmt,
     ForAppendStmt,
     ForkAndAssign,
     IfStmt,
@@ -33,12 +35,15 @@ from .nodes import (
     Stmt,
     SubscriptAssign,
 )
+from .utils import split_at_commas
 
 __all__ = [
     "AppendStmt",
     "AssignStmt",
+    "AsyncForYield",
     "ClassAttr",
     "ClassNode",
+    "DeprecationStmt",
     "ForAppendStmt",
     "ForkAndAssign",
     "IfStmt",
@@ -52,4 +57,5 @@ __all__ = [
     "SubscriptAssign",
     "emit_python",
     "emit_stub",
+    "split_at_commas",
 ]

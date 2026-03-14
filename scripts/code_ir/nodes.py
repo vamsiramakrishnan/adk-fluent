@@ -85,6 +85,41 @@ class ForkAndAssign:
     """self = self._maybe_fork_for_mutation() — copy-on-write guard."""
 
 
+@dataclass(frozen=True)
+class DeprecationStmt:
+    """Emit a DeprecationWarning for a renamed method.
+
+    Generates::
+
+        import warnings
+        warnings.warn(
+            ".{old_name}() is deprecated, use .{new_name}() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    """
+
+    old_name: str
+    new_name: str
+
+
+@dataclass(frozen=True)
+class AsyncForYield:
+    """Async generator delegation: import helper, async-for-yield.
+
+    Generates::
+
+        from {module} import {func}
+        async for {var} in {func}({args}):
+            yield {var}
+    """
+
+    module: str
+    func: str
+    args: str
+    var: str = "chunk"
+
+
 Stmt = (
     ReturnStmt
     | AssignStmt
@@ -95,6 +130,8 @@ Stmt = (
     | ImportStmt
     | RawStmt
     | ForkAndAssign
+    | DeprecationStmt
+    | AsyncForYield
 )
 
 
