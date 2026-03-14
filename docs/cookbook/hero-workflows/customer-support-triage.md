@@ -134,6 +134,56 @@ S.capture("customer_message")
             ──► gate(resolved == "no") → [HUMAN ESCALATION]
 ```
 
+## Execution Sequence
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant SC as S.capture
+    participant IC as intent_classifier
+    participant R as Route("intent")
+    participant BS as billing_specialist
+    participant TS as tech_support
+    participant GS as general_support
+    participant SM as satisfaction_monitor
+    participant GT as gate
+
+    U->>SC: "My bill is wrong"
+    Note right of SC: state["customer_message"] = input
+
+    SC->>IC: state[customer_message]
+    Note right of IC: C.none() — sees ONLY this message
+    IC->>IC: LLM call
+    Note right of IC: writes intent = "billing"
+
+    IC->>R: state[intent]
+    Note right of R: deterministic (no LLM call)
+
+    alt intent == "billing"
+        R->>BS: route
+        Note right of BS: C.from_state("customer_message")
+        BS->>BS: LLM call
+        Note right of BS: writes resolution
+    else intent == "technical"
+        R->>TS: route
+        TS->>TS: LLM call
+    else otherwise
+        R->>GS: route
+        GS->>GS: LLM call
+    end
+
+    BS->>SM: state[resolution]
+    SM->>SM: LLM call
+    Note right of SM: writes resolved = "yes" | "no"
+
+    alt resolved == "no"
+        SM->>GT: gate check
+        Note right of GT: Pipeline PAUSES — human escalation
+    else resolved == "yes"
+        Note over SM: Pipeline completes
+    end
+```
+
 ## Framework Comparison
 
 | Framework    | Lines | Deterministic routing? | Context isolation? | Escalation gate? |

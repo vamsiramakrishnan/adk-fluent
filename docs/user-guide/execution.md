@@ -179,3 +179,97 @@ Unlike `.build()` which returns a raw ADK agent, `.to_app()` returns a full `App
 | `.session()`                                  | Create an interactive `async with` session context manager                                |
 | `.test(prompt, contains=, matches=, equals=)` | Smoke test: calls `.ask()` and asserts output                                             |
 | `.to_app(config=None)`                        | Compile through IR to native ADK `App` with config (resumability, compaction, middleware) |
+
+## Choosing an Execution Method
+
+| Situation | Use | Why |
+|---|---|---|
+| Quick prototyping / REPL | `.ask()` | Synchronous, zero boilerplate |
+| Async application | `.ask_async()` | Non-blocking, integrates with asyncio |
+| Real-time UI | `.stream()` | Chunks arrive as they're generated |
+| Low-level debugging | `.events()` | Full ADK Event access including state deltas |
+| Multi-turn chatbot | `.session()` | Maintains conversation history |
+| Batch processing | `.map()` / `.map_async()` | Bounded concurrency, processes multiple prompts |
+| Inline testing | `.test()` | Assert output during development |
+| Production deployment | `.to_app()` | Full App with middleware, resumability, compaction |
+
+## Interplay with Other Modules
+
+### Execution + Middleware
+
+`.ask()`, `.stream()`, and `.session()` don't support middleware -- they create lightweight runners internally. For middleware support, use `.to_app()`:
+
+```python
+from adk_fluent import Agent
+from adk_fluent._middleware import M
+
+# No middleware: fine for prototyping
+response = Agent("helper").instruct("Help.").ask("Hi")
+
+# With middleware: use .to_app()
+pipeline = (Agent("a") >> Agent("b")).middleware(M.retry(3) | M.log())
+app = pipeline.to_app()
+```
+
+### Execution + Visibility
+
+`.stream()` respects visibility settings. Hidden agents' chunks don't appear in the stream:
+
+```python
+pipeline = (
+    Agent("analyzer").instruct("Analyze.").hide()
+    >> Agent("writer").instruct("Write.")
+)
+async for chunk in pipeline.stream("Explain"):
+    print(chunk, end="")  # Only writer's output
+```
+
+See [Visibility](visibility.md).
+
+### Execution + Context Engineering
+
+`.session()` maintains conversation history across turns. Context engineering (`C.*`) controls how much of that history each agent sees:
+
+```python
+from adk_fluent import Agent, C
+
+agent = Agent("advisor").instruct("Advise.").context(C.window(n=5))
+async with agent.session() as chat:
+    r1 = await chat.send("Question 1")
+    # ... many turns later ...
+    r10 = await chat.send("Question 10")
+    # Agent sees turns 6-10 (window of 5)
+```
+
+See [Context Engineering](context-engineering.md).
+
+### Execution + Testing
+
+`.test()` is the bridge between execution and testing. It calls `.ask()` internally and asserts the output:
+
+```python
+# Development: inline smoke test
+agent = Agent("math", "gemini-2.5-flash").instruct("You are a math tutor.")
+agent.test("What is 2+2?", contains="4")
+
+# CI: use mock_backend for deterministic tests
+from adk_fluent.testing import AgentHarness, mock_backend
+harness = AgentHarness(agent, backend=mock_backend({"math": "4"}))
+```
+
+See [Testing](testing.md).
+
+## Best Practices
+
+1. **Use `.ask()` for prototyping, `.to_app()` for production.** `.ask()` is convenient but doesn't support middleware, resumability, or compaction
+2. **Use `.stream()` for user-facing output.** Streaming provides better UX than waiting for the full response
+3. **Use `.map()` with bounded concurrency for batch jobs.** Don't fire 1000 concurrent requests -- use `concurrency=` to control
+4. **Use `.session()` for multi-turn interactions.** Don't manually manage conversation history
+5. **Use `.test()` during development, `AgentHarness` in CI.** `.test()` hits the real LLM; `AgentHarness` with `mock_backend` is deterministic
+
+:::{seealso}
+- [Testing](testing.md) -- `.mock()`, `.test()`, `AgentHarness`, and `check_contracts()`
+- [Middleware](middleware.md) -- pipeline-wide retry, logging, and tracing via `.to_app()`
+- [Visibility](visibility.md) -- controlling which agents' output appears in streams
+- [Context Engineering](context-engineering.md) -- controlling history in `.session()` interactions
+:::

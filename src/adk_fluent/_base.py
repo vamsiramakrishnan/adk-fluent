@@ -1970,6 +1970,31 @@ class BuilderBase:
             show_context=show_context,
         )
 
+    def to_sequence_diagram(
+        self,
+        *,
+        show_data_flow: bool = True,
+        show_context: bool = True,
+    ) -> str:
+        """Generate a Mermaid sequence diagram of this builder's execution flow.
+
+        Unlike ``to_mermaid()`` which shows topology (what connects to what),
+        this shows *execution order* — what calls what, when, and what data
+        moves where.  Parallel branches use ``par`` blocks, loops use ``loop``
+        blocks, and routing uses ``alt`` blocks.
+
+        Args:
+            show_data_flow: Annotate state key writes as messages.
+            show_context: Add notes showing each agent's context strategy.
+        """
+        from adk_fluent.viz import ir_to_sequence_diagram
+
+        return ir_to_sequence_diagram(
+            self.to_ir(),
+            show_data_flow=show_data_flow,
+            show_context=show_context,
+        )
+
     def diagnose(self):
         """Return a structured Diagnosis of this builder's IR.
 

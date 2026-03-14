@@ -172,3 +172,78 @@ pipeline = (Agent("a") >> Agent("b")).middleware(RetryMiddleware())
 ```
 
 See [Middleware](middleware.md) for the full middleware guide.
+
+## Interplay with Other Modules
+
+### Callbacks + Guards
+
+`.guard(fn)` registers a function as both `before_model` and `after_model`. The G module provides structured guards that compile to callbacks automatically. Prefer G for safety/validation, raw callbacks for custom logic:
+
+```python
+from adk_fluent import Agent, G
+
+# G module: declarative, composable, phase-aware
+agent = Agent("safe").guard(G.pii("redact") | G.length(max=500))
+
+# Raw callback: custom logic that doesn't fit G
+agent = Agent("custom").before_model(my_custom_check)
+```
+
+See [Guards](guards.md).
+
+### Callbacks + Presets
+
+Bundle callbacks into reusable Presets to avoid repetition across agents:
+
+```python
+from adk_fluent.presets import Preset
+
+observability = Preset(before_model=log_fn, after_model=metrics_fn)
+agent_a = Agent("a").use(observability)
+agent_b = Agent("b").use(observability)
+```
+
+See [Presets](presets.md).
+
+### Callbacks + Context Engineering
+
+Callbacks run *after* context engineering. The LLM request that `before_model` receives already has context filtering applied:
+
+```python
+from adk_fluent import Agent, C
+
+agent = (
+    Agent("classifier")
+    .context(C.none())            # Context filtered first
+    .before_model(log_request)    # Sees the filtered request
+)
+```
+
+See [Context Engineering](context-engineering.md).
+
+### Callbacks + Testing
+
+Test that callbacks are attached correctly by inspecting the IR:
+
+```python
+ir = agent.to_ir()
+assert ir.before_model_callbacks  # Callbacks preserved in IR
+```
+
+See [Testing](testing.md).
+
+## Best Practices
+
+1. **Use callbacks for agent-specific behavior.** Logging one agent's requests? Callback. Logging all agents? Middleware
+2. **Use additive semantics intentionally.** Multiple `.before_model()` calls accumulate. If you want to replace, build a new agent
+3. **Use `.guard()` for safety, not `.before_model()`.** Guards are semantically clearer and compose with the G module
+4. **Use Presets for shared callbacks.** Don't repeat the same `.before_model().after_model()` chain on 10 agents
+5. **Keep callbacks pure.** Side effects (DB writes, API calls) in callbacks make testing hard. Log, validate, or transform -- don't orchestrate
+
+:::{seealso}
+- [Middleware](middleware.md) -- pipeline-wide cross-cutting concerns
+- [Presets](presets.md) -- reusable callback bundles
+- [Guards](guards.md) -- structured safety with the G module
+- [Testing](testing.md) -- verifying callbacks are attached correctly
+- [Best Practices](best-practices.md) -- the "Callbacks vs. Middleware" decision tree
+:::

@@ -271,3 +271,133 @@ agent = (
 
 :::
 ::::
+
+## 7. Testing: Contracts Before Behavior Before Smoke
+
+Testing agents is different from testing regular code. You're testing topology, data flow, and contracts -- not just input/output. Layer your tests from cheapest to most expensive:
+
+::::{tab-set}
+:::{tab-item} ❌ Anti-Pattern: Only Smoke Tests
+
+```python
+# Expensive, flaky, non-deterministic. Every test hits the real LLM.
+def test_pipeline():
+    pipeline = build_pipeline()
+    result = pipeline.ask("Test input")
+    assert "expected" in result  # Might fail randomly due to LLM variance
+```
+
+:::
+:::{tab-item} ✅ Best Practice: Layered Testing
+
+```python
+from adk_fluent.testing import check_contracts, mock_backend, AgentHarness
+
+# Layer 1: Contracts (free, fast, deterministic)
+def test_contracts():
+    pipeline = build_pipeline()
+    issues = check_contracts(pipeline.to_ir())
+    assert not issues
+
+# Layer 2: Behavior with mocks (fast, deterministic)
+async def test_behavior():
+    harness = AgentHarness(
+        build_pipeline(),
+        backend=mock_backend({"classifier": {"intent": "billing"}, "resolver": "Done."})
+    )
+    response = await harness.send("test")
+    assert response.final_text == "Done."
+
+# Layer 3: Smoke test (slow, non-deterministic -- gate behind env var)
+@pytest.mark.skipif(not os.getenv("LLM_API_KEY"), reason="No API key")
+def test_smoke():
+    build_pipeline().test("Test input", contains="expected")
+```
+
+:::
+::::
+
+See [Testing](testing.md) for the full testing guide.
+
+## 8. Visibility: Hide Internal Reasoning
+
+In production, users should only see the final agent's output. Internal agents (classifiers, validators, transformers) produce reasoning noise that confuses users and leaks implementation details.
+
+::::{tab-set}
+:::{tab-item} ❌ Anti-Pattern: Everything Visible
+
+```python
+# User sees all 5 agents' output, including internal reasoning
+pipeline = Agent("classifier") >> Agent("router") >> Agent("specialist") >> Agent("responder") >> Agent("auditor")
+```
+
+:::
+:::{tab-item} ✅ Best Practice: Filtered Visibility
+
+```python
+# User sees only the responder's output
+pipeline = (
+    Agent("classifier").hide()
+    >> Agent("router").hide()
+    >> Agent("specialist").hide()
+    >> Agent("responder").show()
+    >> Agent("auditor").hide()
+)
+# Or use topology-inferred defaults:
+pipeline.filtered()  # Terminal agent = visible, rest = hidden
+```
+
+:::
+::::
+
+See [Visibility](visibility.md) for policies and per-agent overrides.
+
+## 9. Memory: Be Selective
+
+Not every agent needs long-term memory. Intermediate pipeline agents (classifiers, transformers, validators) should be stateless and fast. Only user-facing agents that benefit from cross-session context should use memory.
+
+::::{tab-set}
+:::{tab-item} ❌ Anti-Pattern: Memory Everywhere
+
+```python
+# Every agent loads memories -- expensive, slow, unnecessary for most pipeline stages
+pipeline = (
+    Agent("classifier").memory("preload")
+    >> Agent("resolver").memory("preload")
+    >> Agent("responder").memory("preload")
+)
+```
+
+:::
+:::{tab-item} ✅ Best Practice: Selective Memory
+
+```python
+# Only the user-facing agent needs memory
+pipeline = (
+    Agent("classifier").context(C.none())  # Stateless, fast
+    >> Agent("resolver")                    # Receives input from classifier
+    >> Agent("responder")
+       .memory("preload")                  # Remembers past conversations
+       .memory_auto_save()
+)
+```
+
+:::
+::::
+
+See [Memory](memory.md) for modes, auto-save, and context engineering interaction.
+
+## Summary: The Decision Matrix
+
+| Concern | Wrong tool | Right tool | Why |
+|---|---|---|---|
+| Deterministic routing | LLM agent | `Route()` | Zero tokens, zero latency, 100% reliable |
+| Infrastructure deps | Tool arguments | `.inject()` | Hides from LLM schema |
+| Data transforms | Custom `BaseAgent` | `S.transform()` / function | No LLM call, pure function |
+| Context isolation | Default (full history) | `C.none()` / `C.from_state()` | Reduces tokens, prevents hallucination |
+| Cross-cutting logging | Per-agent callbacks | `M.log()` middleware | One declaration, all agents |
+| Shared config | Repeated `.model().before_model()` | `Preset` | DRY, composable |
+| Safety checks | Raw callbacks | `G.pii()` / `G.length()` | Declarative, composable, phase-aware |
+| Testing | Only smoke tests | Contract → Mock → Smoke layers | Cheap tests first, expensive last |
+| User output | All agents visible | `.filtered()` / `.hide()` | Clean UX, no internal noise |
+| Long-term memory | Every agent | User-facing agents only | Selective, efficient |

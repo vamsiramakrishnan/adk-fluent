@@ -1,2 +1,548 @@
-:root { --mermaid-font-family: var(--font-stack); }
+/* ==========================================================================
+   adk-fluent — Custom Documentation Styles
+   Visual polish, typography, and interaction design for world-class devex.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+  --mermaid-font-family: var(--font-stack);
+  --adk-accent: #4f46e5;
+  --adk-accent-light: #6366f1;
+  --adk-accent-lighter: #818cf8;
+  --adk-accent-bg: #eef2ff;
+  --adk-success: #059669;
+  --adk-success-bg: #ecfdf5;
+  --adk-warning: #d97706;
+  --adk-warning-bg: #fffbeb;
+  --adk-danger: #dc2626;
+  --adk-danger-bg: #fef2f2;
+  --adk-surface: #f8fafc;
+  --adk-border: #e2e8f0;
+  --adk-text-muted: #64748b;
+  --adk-gradient-start: #4f46e5;
+  --adk-gradient-end: #7c3aed;
+  --adk-hero-bg: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #f0fdf4 100%);
+  --adk-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --adk-card-shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+  --adk-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --adk-accent: #818cf8;
+  --adk-accent-light: #a5b4fc;
+  --adk-accent-lighter: #c7d2fe;
+  --adk-accent-bg: rgba(99, 102, 241, 0.12);
+  --adk-success: #34d399;
+  --adk-success-bg: rgba(5, 150, 105, 0.12);
+  --adk-warning: #fbbf24;
+  --adk-warning-bg: rgba(217, 119, 6, 0.12);
+  --adk-danger: #f87171;
+  --adk-danger-bg: rgba(220, 38, 38, 0.12);
+  --adk-surface: #1e293b;
+  --adk-border: #334155;
+  --adk-text-muted: #94a3b8;
+  --adk-hero-bg: linear-gradient(135deg, rgba(49, 46, 129, 0.2) 0%, rgba(88, 28, 135, 0.15) 50%, rgba(6, 78, 59, 0.1) 100%);
+  --adk-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --adk-card-shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
 [data-theme="dark"] .mermaid { filter: invert(1) hue-rotate(180deg); }
+
+/* --------------------------------------------------------------------------
+   Typography Enhancements
+   -------------------------------------------------------------------------- */
+
+/* Headings: tighter tracking, subtle weight hierarchy */
+.content h1 {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-top: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--adk-accent);
+}
+
+.content h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 2.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--adk-border);
+}
+
+.content h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--adk-accent);
+}
+
+/* Smoother paragraph flow */
+.content p {
+  line-height: 1.75;
+}
+
+/* Inline code: subtle pill styling */
+.content code:not(pre code) {
+  background: var(--adk-accent-bg);
+  color: var(--adk-accent);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.88em;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .content code:not(pre code) {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--adk-accent-lighter);
+}
+
+/* --------------------------------------------------------------------------
+   Code Block Polish
+   -------------------------------------------------------------------------- */
+
+/* Code blocks: refined container with accent border */
+.content pre {
+  border: 1px solid var(--adk-border);
+  border-left: 3px solid var(--adk-accent);
+  border-radius: 8px;
+  box-shadow: var(--adk-card-shadow);
+  margin: 1.5rem 0;
+  transition: box-shadow var(--adk-transition);
+}
+
+.content pre:hover {
+  box-shadow: var(--adk-card-shadow-hover);
+}
+
+/* Copy button: more visible on hover */
+.content pre .copybtn {
+  opacity: 0;
+  transition: opacity var(--adk-transition);
+}
+
+.content pre:hover .copybtn {
+  opacity: 0.7;
+}
+
+.content pre .copybtn:hover {
+  opacity: 1;
+  background: var(--adk-accent);
+  color: white;
+}
+
+/* --------------------------------------------------------------------------
+   Grid Cards — Homepage & Navigation
+   -------------------------------------------------------------------------- */
+
+/* Card container: lift on hover with smooth transition */
+.sd-card {
+  border: 1px solid var(--adk-border) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--adk-card-shadow) !important;
+  transition: all var(--adk-transition) !important;
+  overflow: hidden;
+}
+
+.sd-card:hover {
+  box-shadow: var(--adk-card-shadow-hover) !important;
+  transform: translateY(-2px);
+  border-color: var(--adk-accent-light) !important;
+}
+
+.sd-card .sd-card-header {
+  background: var(--adk-accent-bg);
+  border-bottom: 1px solid var(--adk-border);
+  font-weight: 600;
+}
+
+.sd-card .sd-card-body {
+  padding: 1.2rem !important;
+}
+
+/* --------------------------------------------------------------------------
+   Admonitions — Contextual Callouts
+   -------------------------------------------------------------------------- */
+
+/* Unified admonition styling with left accent border */
+.admonition {
+  border-radius: 8px !important;
+  border: 1px solid var(--adk-border) !important;
+  border-left: 4px solid !important;
+  box-shadow: var(--adk-card-shadow);
+  margin: 1.5rem 0 !important;
+  overflow: hidden;
+}
+
+.admonition.important,
+.admonition.note {
+  border-left-color: var(--adk-accent) !important;
+  background: var(--adk-accent-bg) !important;
+}
+
+.admonition.tip,
+.admonition.hint {
+  border-left-color: var(--adk-success) !important;
+  background: var(--adk-success-bg) !important;
+}
+
+.admonition.warning,
+.admonition.caution {
+  border-left-color: var(--adk-warning) !important;
+  background: var(--adk-warning-bg) !important;
+}
+
+.admonition.danger,
+.admonition.error {
+  border-left-color: var(--adk-danger) !important;
+  background: var(--adk-danger-bg) !important;
+}
+
+.admonition .admonition-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --------------------------------------------------------------------------
+   Tab Sets — Before/After Comparisons
+   -------------------------------------------------------------------------- */
+
+/* Tab container: tighter, more polished */
+.sd-tab-set {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--adk-border);
+  box-shadow: var(--adk-card-shadow);
+  margin: 1.5rem 0;
+}
+
+.sd-tab-set > label {
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.02em;
+  padding: 0.6rem 1.2rem !important;
+  transition: all var(--adk-transition);
+}
+
+.sd-tab-set > label:hover {
+  background: var(--adk-accent-bg);
+}
+
+.sd-tab-set > input:checked + label {
+  border-bottom-color: var(--adk-accent) !important;
+  color: var(--adk-accent) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Tables — Data-dense Reference
+   -------------------------------------------------------------------------- */
+
+.content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--adk-border);
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+  margin: 1.5rem 0;
+  box-shadow: var(--adk-card-shadow);
+}
+
+.content table thead th {
+  background: var(--adk-accent-bg);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--adk-accent);
+}
+
+.content table tbody td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--adk-border);
+}
+
+.content table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.content table tbody tr:hover {
+  background: var(--adk-accent-bg);
+}
+
+[data-theme="dark"] .content table thead th {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Badges — Method Categories in API Docs
+   -------------------------------------------------------------------------- */
+
+.sd-badge {
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  padding: 0.2em 0.6em !important;
+  border-radius: 12px !important;
+  vertical-align: middle;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar & Navigation
+   -------------------------------------------------------------------------- */
+
+/* Active nav item: accent indicator */
+.sidebar-tree .current-page > .reference {
+  font-weight: 700;
+  color: var(--adk-accent) !important;
+  border-right: 3px solid var(--adk-accent);
+}
+
+/* Sidebar section labels */
+.sidebar-tree .caption {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--adk-text-muted);
+  font-weight: 700;
+  margin-top: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Blockquotes — Module-in-play Headers
+   -------------------------------------------------------------------------- */
+
+.content blockquote {
+  border-left: 3px solid var(--adk-accent);
+  background: var(--adk-accent-bg);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1.5rem 0;
+  font-size: 0.92rem;
+}
+
+.content blockquote p {
+  margin: 0.25rem 0;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Section — Homepage
+   -------------------------------------------------------------------------- */
+
+.hero-section {
+  background: var(--adk-hero-bg);
+  border-radius: 12px;
+  padding: 2.5rem;
+  margin: -1rem -0.5rem 2rem -0.5rem;
+  text-align: center;
+}
+
+.hero-section h1 {
+  border: none !important;
+  font-size: 2.2rem;
+  background: linear-gradient(135deg, var(--adk-gradient-start), var(--adk-gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.hero-section .hero-tagline {
+  font-size: 1.15rem;
+  color: var(--adk-text-muted);
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+
+.hero-section .hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.hero-section .hero-stat {
+  text-align: center;
+}
+
+.hero-section .hero-stat .stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--adk-accent);
+  display: block;
+  line-height: 1;
+}
+
+.hero-section .hero-stat .stat-label {
+  font-size: 0.8rem;
+  color: var(--adk-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   Journey Cards — Learning Path Visualization
+   -------------------------------------------------------------------------- */
+
+.journey-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  margin: 0.75rem 0;
+  border: 1px solid var(--adk-border);
+  border-radius: 10px;
+  transition: all var(--adk-transition);
+  position: relative;
+}
+
+.journey-step:hover {
+  border-color: var(--adk-accent-light);
+  box-shadow: var(--adk-card-shadow-hover);
+  transform: translateX(4px);
+}
+
+.journey-step::before {
+  content: attr(data-step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--adk-accent);
+  color: white;
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.journey-step .journey-content h4 {
+  margin: 0 0 0.25rem 0;
+  font-weight: 700;
+  color: var(--color-foreground-primary);
+}
+
+.journey-step .journey-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--adk-text-muted);
+  line-height: 1.5;
+}
+
+/* Connector line between journey steps */
+.journey-step + .journey-step::after {
+  content: "";
+  position: absolute;
+  left: 1.85rem;
+  top: -0.75rem;
+  width: 2px;
+  height: 0.75rem;
+  background: var(--adk-accent-lighter);
+}
+
+/* --------------------------------------------------------------------------
+   Comparison Highlights — Framework Matchups
+   -------------------------------------------------------------------------- */
+
+.comparison-winner {
+  background: var(--adk-success-bg);
+  font-weight: 700;
+}
+
+/* Line count badges */
+.lines-badge {
+  display: inline-block;
+  background: var(--adk-accent);
+  color: white;
+  font-weight: 700;
+  padding: 0.15em 0.6em;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   "See Also" and Cross-reference Links
+   -------------------------------------------------------------------------- */
+
+.seealso {
+  border-left: 3px solid var(--adk-accent-light) !important;
+  border: 1px solid var(--adk-border) !important;
+  border-left: 3px solid var(--adk-accent-light) !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1rem !important;
+  background: var(--adk-surface) !important;
+}
+
+.seealso .admonition-title {
+  font-size: 0.8rem !important;
+}
+
+/* --------------------------------------------------------------------------
+   Scroll-to-top & Reading Progress
+   -------------------------------------------------------------------------- */
+
+/* Smooth scrolling site-wide */
+html {
+  scroll-behavior: smooth;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Refinements
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 1.5rem;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .hero-section h1 {
+    font-size: 1.6rem;
+  }
+
+  .hero-section .hero-stats {
+    gap: 1rem;
+  }
+
+  .hero-section .hero-stat .stat-number {
+    font-size: 1.4rem;
+  }
+
+  .journey-step {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .journey-step + .journey-step::after {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Print Styles
+   -------------------------------------------------------------------------- */
+
+@media print {
+  .hero-section {
+    background: none !important;
+    border: 1px solid #ccc;
+  }
+
+  .sd-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+
+  .content pre {
+    box-shadow: none;
+  }
+}

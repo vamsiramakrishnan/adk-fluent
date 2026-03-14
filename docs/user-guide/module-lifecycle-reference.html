@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adk-fluent · Module Lifecycle Reference</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a28;
+    --surface-3: #22223a;
+    --border: #2a2a3a;
+    --border-accent: #3a3a5a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+
+    /* Module colors — each module has a unique hue */
+    --s-color: #10b981; --s-bg: #10b98118; --s-border: #10b98140;
+    --c-color: #0ea5e9; --c-bg: #0ea5e918; --c-border: #0ea5e940;
+    --p-color: #e94560; --p-bg: #e9456018; --p-border: #e9456040;
+    --t-color: #f59e0b; --t-bg: #f59e0b18; --t-border: #f59e0b40;
+    --m-color: #a78bfa; --m-bg: #a78bfa18; --m-border: #a78bfa40;
+    --g-color: #f472b6; --g-bg: #f472b618; --g-border: #f472b640;
+    --a-color: #34d399; --a-bg: #34d39918; --a-border: #34d39940;
+    --e-color: #fb923c; --e-bg: #fb923c18; --e-border: #fb923c40;
+
+    /* Lifecycle phase colors */
+    --phase-build: #6366f1;
+    --phase-pre: #0ea5e9;
+    --phase-llm: #f59e0b;
+    --phase-post: #10b981;
+    --phase-tool: #e94560;
+
+    --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 2rem 0;
+  }
+
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 300;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .header .subtitle {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .module-letter { font-weight: 700; font-family: var(--mono); }
+  .ml-s { color: var(--s-color); }
+  .ml-c { color: var(--c-color); }
+  .ml-p { color: var(--p-color); }
+  .ml-t { color: var(--t-color); }
+  .ml-m { color: var(--m-color); }
+  .ml-g { color: var(--g-color); }
+  .ml-a { color: var(--a-color); }
+  .ml-e { color: var(--e-color); }
+
+  /* ===================================================================
+     SECTION 1: The Lifecycle Swim-Lane Diagram
+     =================================================================== */
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin: 3rem 0 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    max-width: 800px;
+  }
+
+  /* Swim-lane container */
+  .lifecycle {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .lane-label {
+    padding: 0.8rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    background: var(--surface-2);
+  }
+
+  .lane-content {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    min-height: 52px;
+  }
+
+  .lane-content:last-child, .lane-label:last-child {
+    border-bottom: none;
+  }
+
+  /* Phase markers */
+  .phase-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: default;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .phase-marker:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
+  }
+
+  .phase-marker .mod {
+    font-family: var(--mono);
+    font-weight: 800;
+    font-size: 0.82rem;
+  }
+
+  .pm-s { background: var(--s-bg); border: 1px solid var(--s-border); color: var(--s-color); }
+  .pm-c { background: var(--c-bg); border: 1px solid var(--c-border); color: var(--c-color); }
+  .pm-p { background: var(--p-bg); border: 1px solid var(--p-border); color: var(--p-color); }
+  .pm-t { background: var(--t-bg); border: 1px solid var(--t-border); color: var(--t-color); }
+  .pm-m { background: var(--m-bg); border: 1px solid var(--m-border); color: var(--m-color); }
+  .pm-g { background: var(--g-bg); border: 1px solid var(--g-border); color: var(--g-color); }
+  .pm-a { background: var(--a-bg); border: 1px solid var(--a-border); color: var(--a-color); }
+  .pm-e { background: var(--e-bg); border: 1px solid var(--e-border); color: var(--e-color); }
+
+  /* Flow arrows between phases */
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin: 0 0.15rem;
+    user-select: none;
+  }
+
+  /* Phase row highlighting */
+  .phase-row { transition: background 0.15s ease; }
+  .phase-row:hover .lane-content { background: var(--surface-2); }
+  .phase-row:hover .lane-label { background: var(--surface-3); }
+
+  /* Phase header rows */
+  .phase-header .lane-label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+  }
+  .phase-header .lane-content {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 0.5rem 1rem;
+    min-height: 38px;
+  }
+
+  .ph-build .lane-label { color: var(--phase-build); border-left: 3px solid var(--phase-build); }
+  .ph-pre .lane-label { color: var(--phase-pre); border-left: 3px solid var(--phase-pre); }
+  .ph-llm .lane-label { color: var(--phase-llm); border-left: 3px solid var(--phase-llm); }
+  .ph-post .lane-label { color: var(--phase-post); border-left: 3px solid var(--phase-post); }
+  .ph-tool .lane-label { color: var(--phase-tool); border-left: 3px solid var(--phase-tool); }
+
+  /* ===================================================================
+     SECTION 2: Module Interaction Grid
+     =================================================================== */
+
+  .interaction-grid {
+    display: grid;
+    grid-template-columns: 80px repeat(8, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.75rem;
+    background: var(--surface);
+  }
+
+  .ig-header {
+    padding: 0.6rem 0.4rem;
+    font-weight: 800;
+    text-align: center;
+    font-family: var(--mono);
+    background: var(--surface-2);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .ig-row-label {
+    padding: 0.6rem;
+    font-weight: 800;
+    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ig-cell {
+    padding: 0.5rem 0.4rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: background 0.15s;
+    font-size: 0.85rem;
+  }
+
+  .ig-cell:hover { background: var(--surface-2); }
+
+  .ig-cell.self {
+    background: var(--surface-3);
+    color: var(--text-dim);
+  }
+
+  .ig-cell .rel-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  /* Tooltip */
+  .ig-cell[data-tip] { position: relative; }
+  .ig-cell[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-3);
+    border: 1px solid var(--border-accent);
+    color: var(--text);
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-family: var(--sans);
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* ===================================================================
+     SECTION 3: The Pipeline Walkthrough (animated)
+     =================================================================== */
+
+  .walkthrough {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .wt-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 1.5rem;
+    overflow-x: auto;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wt-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 90px;
+    text-align: center;
+  }
+
+  .wt-node:hover { border-color: var(--border-accent); }
+
+  .wt-node.active {
+    border-color: var(--phase-llm);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+    background: var(--surface-2);
+  }
+
+  .wt-node .node-name {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--text-bright);
+  }
+
+  .wt-node .node-type {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .wt-arrow {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    padding: 0 0.4rem;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .wt-parallel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    border: 1px dashed var(--c-border);
+    border-radius: 8px;
+    background: var(--c-bg);
+    position: relative;
+  }
+
+  .wt-parallel-group::before {
+    content: 'parallel';
+    position: absolute;
+    top: -0.6rem;
+    left: 0.6rem;
+    font-size: 0.6rem;
+    color: var(--c-color);
+    background: var(--surface-2);
+    padding: 0 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+
+  .wt-detail {
+    padding: 1.5rem;
+    min-height: 200px;
+  }
+
+  .wt-step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.75rem;
+  }
+
+  .wt-modules-active {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .wt-what {
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .wt-what .highlight {
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.8em;
+    font-weight: 600;
+  }
+
+  .hl-s { background: var(--s-bg); color: var(--s-color); border: 1px solid var(--s-border); }
+  .hl-c { background: var(--c-bg); color: var(--c-color); border: 1px solid var(--c-border); }
+  .hl-p { background: var(--p-bg); color: var(--p-color); border: 1px solid var(--p-border); }
+  .hl-m { background: var(--m-bg); color: var(--m-color); border: 1px solid var(--m-border); }
+  .hl-g { background: var(--g-bg); color: var(--g-color); border: 1px solid var(--g-border); }
+  .hl-t { background: var(--t-bg); color: var(--t-color); border: 1px solid var(--t-border); }
+
+  .wt-code {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.6;
+  }
+
+  .wt-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .wt-btn {
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .wt-btn:hover { border-color: var(--phase-llm); color: var(--text-bright); }
+  .wt-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .wt-counter {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+  }
+
+  /* ===================================================================
+     SECTION 4: Sequence Diagram Embed
+     =================================================================== */
+
+  .seq-container {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    padding: 1.5rem;
+  }
+
+  .seq-example-select {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .seq-tab {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .seq-tab:hover { border-color: var(--border-accent); color: var(--text); }
+  .seq-tab.active { border-color: var(--phase-llm); color: var(--phase-llm); background: rgba(245,158,11,0.08); }
+
+  .mermaid-wrapper {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .footer a { color: var(--phase-build); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .interaction-grid { grid-template-columns: 50px repeat(8, 1fr); font-size: 0.65rem; }
+    .wt-pipeline { padding: 1rem; }
+    .wt-node { min-width: 70px; padding: 0.4rem 0.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ================================================================
+       HEADER
+       ================================================================ -->
+  <div class="header">
+    <h1>
+      <span class="module-letter ml-s">S</span>
+      <span class="module-letter ml-c">C</span>
+      <span class="module-letter ml-p">P</span>
+      <span class="module-letter ml-a">A</span>
+      <span class="module-letter ml-m">M</span>
+      <span class="module-letter ml-t">T</span>
+      <span class="module-letter ml-e">E</span>
+      <span class="module-letter ml-g">G</span>
+      &nbsp;Module Lifecycle
+    </h1>
+    <p class="subtitle">
+      Where each namespace module fires during pipeline execution.
+      Not what the modules <em>are</em> — where they <em>act</em>.
+    </p>
+  </div>
+
+  <!-- ================================================================
+       SECTION 1: LIFECYCLE SWIM-LANE
+       ================================================================ -->
+  <h2 class="section-title">1. The Execution Timeline</h2>
+  <p class="section-desc">
+    When a pipeline runs, modules fire at specific phases. This diagram shows
+    every phase in order, and which modules are active. Read top to bottom —
+    that's the execution order.
+  </p>
+
+  <div class="lifecycle">
+    <!-- BUILD TIME -->
+    <div class="phase-header ph-build"><div class="lane-label">Build Time</div></div>
+    <div class="phase-header ph-build"><div class="lane-content">.build() or .to_app() — before any LLM call</div></div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-build);">IR compile</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-p"><span class="mod">P</span> prompt assembled</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-c"><span class="mod">C</span> context strategy set</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-g"><span class="mod">G</span> guards → callbacks</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-t"><span class="mod">T</span> tools resolved</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-build);">Contracts</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-e"><span class="mod">E</span> check_contracts()</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-s"><span class="mod">S</span> .produces() / .consumes() verified</span>
+      </div>
+    </div>
+
+    <!-- PER-TURN: PRE-MODEL -->
+    <div class="phase-header ph-pre"><div class="lane-label">Per Turn</div></div>
+    <div class="phase-header ph-pre"><div class="lane-content">For each user message or pipeline step</div></div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-pre);">State in</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-s"><span class="mod">S</span> S.capture() / S.transform()</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-a"><span class="mod">A</span> A.snapshot() → state</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-pre);">before_agent</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.retry() wraps</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.log() records</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.latency() starts timer</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-pre);">Context filter</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-c"><span class="mod">C</span> C.none() / C.from_state() / C.window()</span>
+        <span style="color: var(--text-dim); font-size: 0.78rem; margin-left: 0.5rem;">→ filters history before LLM sees it</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-pre);">before_model</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-g"><span class="mod">G</span> G.input() validates</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-g"><span class="mod">G</span> G.rate_limit() checks</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.cache() checks hit</span>
+      </div>
+    </div>
+
+    <!-- LLM CALL -->
+    <div class="phase-header ph-llm"><div class="lane-label">LLM Call</div></div>
+    <div class="phase-header ph-llm"><div class="lane-content">The actual model inference — prompt goes in, response comes out</div></div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-llm);">Prompt</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-p"><span class="mod">P</span> P.role() + P.task() + P.constraint()</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-c"><span class="mod">C</span> filtered history injected</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-t"><span class="mod">T</span> tool schemas attached</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-llm);">Model out</div>
+      <div class="lane-content">
+        <span style="color: var(--phase-llm); font-size: 0.82rem; font-weight: 600;">LLM response (text or tool call)</span>
+      </div>
+    </div>
+
+    <!-- POST-MODEL -->
+    <div class="phase-header ph-post"><div class="lane-label">Post-Model</div></div>
+    <div class="phase-header ph-post"><div class="lane-content">After the LLM responds, before the user sees it</div></div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-post);">after_model</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-g"><span class="mod">G</span> G.json() validates</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-g"><span class="mod">G</span> G.pii() redacts</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-g"><span class="mod">G</span> G.length() checks</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.cost() records tokens</span>
+      </div>
+    </div>
+
+    <!-- TOOL CALL -->
+    <div class="phase-header ph-tool"><div class="lane-label">Tool Call</div></div>
+    <div class="phase-header ph-tool"><div class="lane-content">If the LLM decides to call a tool</div></div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-tool);">before_tool</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-t"><span class="mod">T</span> T.confirm() prompts user</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-t"><span class="mod">T</span> T.cache() checks hit</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.log() records call</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-tool);">tool exec</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-t"><span class="mod">T</span> T.fn() / T.agent() / T.mcp()</span>
+        <span style="color: var(--text-dim); font-size: 0.78rem; margin-left: 0.5rem;">→ .inject() provides deps</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-tool);">after_tool</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-t"><span class="mod">T</span> T.transform() reshapes output</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.log() records result</span>
+      </div>
+    </div>
+
+    <!-- STATE OUT -->
+    <div class="phase-header ph-post"><div class="lane-label">State Out</div></div>
+    <div class="phase-header ph-post"><div class="lane-content">Agent response flows to state and next agent</div></div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-post);">State out</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-s"><span class="mod">S</span> .writes("key") → state</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-a"><span class="mod">A</span> A.publish() → artifact</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.latency() stops timer</span>
+      </div>
+    </div>
+
+    <div class="phase-row">
+      <div class="lane-label" style="border-left: 3px solid var(--phase-post);">after_agent</div>
+      <div class="lane-content">
+        <span class="phase-marker pm-m"><span class="mod">M</span> M.log() records completion</span>
+        <span class="flow-arrow">→</span>
+        <span class="phase-marker pm-e"><span class="mod">E</span> .eval() scores quality</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       SECTION 2: MODULE INTERACTION GRID
+       ================================================================ -->
+  <h2 class="section-title">2. How Modules Relate</h2>
+  <p class="section-desc">
+    Not all modules interact. This grid shows which modules compose with which,
+    and what the relationship means. Hover for details.
+  </p>
+
+  <div class="interaction-grid">
+    <!-- Header row -->
+    <div class="ig-header" style="background: var(--surface-3);"></div>
+    <div class="ig-header" style="color: var(--s-color);">S</div>
+    <div class="ig-header" style="color: var(--c-color);">C</div>
+    <div class="ig-header" style="color: var(--p-color);">P</div>
+    <div class="ig-header" style="color: var(--a-color);">A</div>
+    <div class="ig-header" style="color: var(--m-color);">M</div>
+    <div class="ig-header" style="color: var(--t-color);">T</div>
+    <div class="ig-header" style="color: var(--e-color);">E</div>
+    <div class="ig-header" style="color: var(--g-color);">G</div>
+
+    <!-- S row -->
+    <div class="ig-row-label" style="color: var(--s-color);">S</div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="S feeds data into C.from_state()"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="S provides {key} values for P.template()"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="S reads artifacts via A.snapshot(); A reads state via S"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="Independent — different lifecycle phases"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="S.capture() provides tool input via state"><span class="rel-icon">→</span></div>
+    <div class="ig-cell" data-tip="check_contracts() verifies S data flow"><span class="rel-icon">←</span></div>
+    <div class="ig-cell" data-tip="Independent — different concerns"><span class="rel-icon" style="opacity:0.3">·</span></div>
+
+    <!-- C row -->
+    <div class="ig-row-label" style="color: var(--c-color);">C</div>
+    <div class="ig-cell" data-tip="C.from_state() reads keys produced by S"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="C filters history, P shapes the prompt — complementary"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="Independent — A is storage, C is context"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent — different lifecycle phases"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent — G validates content, C filters history"><span class="rel-icon" style="opacity:0.3">·</span></div>
+
+    <!-- P row -->
+    <div class="ig-row-label" style="color: var(--p-color);">P</div>
+    <div class="ig-cell" data-tip="P.from_state() reads keys from S"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="P shapes prompt content, C filters conversation context"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="P describes tools in prompt; T provides tool schemas"><span class="rel-icon">→</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+
+    <!-- A row -->
+    <div class="ig-row-label" style="color: var(--a-color);">A</div>
+    <div class="ig-cell" data-tip="A.snapshot() writes to state; A.publish() reads state"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+
+    <!-- M row -->
+    <div class="ig-row-label" style="color: var(--m-color);">M</div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="M.retry() retries tool failures from T"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="M.log() captures data for E.eval()"><span class="rel-icon">→</span></div>
+    <div class="ig-cell" data-tip="M wraps pipeline; G wraps agent — complementary scopes"><span class="rel-icon">⇄</span></div>
+
+    <!-- T row -->
+    <div class="ig-row-label" style="color: var(--t-color);">T</div>
+    <div class="ig-cell" data-tip="Tools read/write state via .inject()"><span class="rel-icon">←</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Tool schemas inform prompt construction"><span class="rel-icon">←</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="M.retry() handles tool errors"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+
+    <!-- E row -->
+    <div class="ig-row-label" style="color: var(--e-color);">E</div>
+    <div class="ig-cell" data-tip="E verifies S data contracts"><span class="rel-icon">←</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="E uses M.log() output for eval"><span class="rel-icon">←</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell self">—</div>
+    <div class="ig-cell" data-tip="E tests guard effectiveness"><span class="rel-icon">⇄</span></div>
+
+    <!-- G row -->
+    <div class="ig-row-label" style="color: var(--g-color);">G</div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="G is per-agent safety; M is pipeline-wide infra"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell" data-tip="Independent"><span class="rel-icon" style="opacity:0.3">·</span></div>
+    <div class="ig-cell" data-tip="E tests guard effectiveness"><span class="rel-icon">⇄</span></div>
+    <div class="ig-cell self">—</div>
+  </div>
+
+  <p style="color: var(--text-dim); font-size: 0.75rem; margin-top: 0.75rem;">
+    <span style="font-size:0.9rem;">⇄</span> bidirectional &nbsp;
+    <span style="font-size:0.9rem;">→</span> feeds into &nbsp;
+    <span style="font-size:0.9rem;">←</span> reads from &nbsp;
+    <span style="opacity:0.4;">·</span> independent (different lifecycle phases or concerns)
+  </p>
+
+  <!-- ================================================================
+       SECTION 3: PIPELINE WALKTHROUGH
+       ================================================================ -->
+  <h2 class="section-title">3. Step Through a Real Pipeline</h2>
+  <p class="section-desc">
+    Click each node to see exactly which modules fire, what they do, and the
+    code that triggers them. This is the Deep Research hero workflow.
+  </p>
+
+  <div class="walkthrough" id="walkthrough">
+    <div class="wt-pipeline" id="wt-pipeline">
+      <!-- Populated by JS -->
+    </div>
+    <div class="wt-detail" id="wt-detail">
+      <div class="wt-step-title" id="wt-title">Click a node above to begin</div>
+      <div class="wt-modules-active" id="wt-modules"></div>
+      <div class="wt-what" id="wt-what">
+        Each node shows which modules are active and why. The modules don't exist
+        in isolation — they fire at specific points in the execution lifecycle
+        to solve specific problems.
+      </div>
+    </div>
+    <div class="wt-nav">
+      <button class="wt-btn" id="wt-prev" disabled>← Previous</button>
+      <span class="wt-counter" id="wt-counter"></span>
+      <button class="wt-btn" id="wt-next">Next →</button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       SECTION 4: GENERATED SEQUENCE DIAGRAMS
+       ================================================================ -->
+  <h2 class="section-title">4. Execution Sequence Diagrams</h2>
+  <p class="section-desc">
+    These are auto-generated from pipeline definitions using <code>.to_sequence_diagram()</code>.
+    They show the actual message flow — what calls what, in what order, and what data moves where.
+  </p>
+
+  <div class="seq-container">
+    <div class="seq-example-select">
+      <button class="seq-tab active" onclick="showSeq('simple')">Simple Pipeline</button>
+      <button class="seq-tab" onclick="showSeq('parallel')">Parallel Search</button>
+      <button class="seq-tab" onclick="showSeq('loop')">Quality Loop</button>
+      <button class="seq-tab" onclick="showSeq('route')">Route + Classify</button>
+    </div>
+    <div class="mermaid-wrapper" id="seq-diagram">
+      <pre class="mermaid" id="seq-mermaid"></pre>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="index.html">← Back to User Guide</a> · Part of the <a href="../index.html">adk-fluent</a> documentation
+  </div>
+</div>
+
+<!-- Mermaid -->
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1a1a28',
+      primaryTextColor: '#e0e0e8',
+      primaryBorderColor: '#3a3a5a',
+      lineColor: '#6366f1',
+      secondaryColor: '#12121a',
+      tertiaryColor: '#0a0a0f',
+      noteBkgColor: '#1a1a28',
+      noteTextColor: '#e0e0e8',
+      noteBorderColor: '#3a3a5a',
+      actorBkg: '#1a1a28',
+      actorBorder: '#6366f1',
+      actorTextColor: '#e0e0e8',
+      actorLineColor: '#3a3a5a',
+      signalColor: '#e0e0e8',
+      signalTextColor: '#e0e0e8',
+      sequenceNumberColor: '#0a0a0f',
+    },
+    sequence: { mirrorActors: false, messageAlign: 'left' },
+    fontFamily: "'Inter', -apple-system, sans-serif",
+  });
+  window._mermaid = mermaid;
+</script>
+
+<script>
+// =====================================================================
+// WALKTHROUGH DATA — Deep Research Pipeline
+// =====================================================================
+const steps = [
+  {
+    name: "S.capture", type: "transform", parallel: false,
+    title: "State: Capture User Input",
+    modules: [
+      { mod: "S", cls: "pm-s", label: "S.capture('user_query')" },
+    ],
+    what: `<span class="highlight hl-s">S.capture("user_query")</span> extracts the user's message from the conversation and writes it to <code>state["user_query"]</code>. This is a zero-cost function step — no LLM call. It exists because downstream agents need the raw query in state, not buried in conversation history.`,
+    code: `S.capture("user_query")  # state["user_query"] = "What are the latest advances in quantum computing?"`,
+  },
+  {
+    name: "analyzer", type: "agent",
+    title: "Agent: Query Analyzer",
+    modules: [
+      { mod: "P", cls: "pm-p", label: "instruction compiled" },
+      { mod: "C", cls: "pm-c", label: "C.from_state('user_query')" },
+      { mod: "S", cls: "pm-s", label: ".writes('research_plan')" },
+    ],
+    what: `The analyzer sees <em>only</em> the captured query via <span class="highlight hl-c">C.from_state("user_query")</span> — not the full conversation. Its <span class="highlight hl-p">instruction</span> tells it to decompose the query into sub-questions. The response goes to <span class="highlight hl-s">state["research_plan"]</span>.`,
+    code: `Agent("query_analyzer", MODEL)\n  .instruct("Analyze the research query. Decompose into 3-5 sub-questions.")\n  .context(C.from_state("user_query"))\n  .writes("research_plan")`,
+  },
+  {
+    name: "web / academic / news", type: "parallel",
+    title: "Parallel: Three Source Search",
+    modules: [
+      { mod: "C", cls: "pm-c", label: "C.from_state('research_plan')" },
+      { mod: "S", cls: "pm-s", label: ".writes('web_results') | .writes('academic_results') | .writes('news_results')" },
+      { mod: "M", cls: "pm-m", label: "M.retry(3) wraps all three" },
+    ],
+    what: `Three agents run <em>simultaneously</em> via the <code>|</code> operator. Each sees <em>only</em> the research plan via <span class="highlight hl-c">C.from_state("research_plan")</span> — not each other's results, not the original query. <span class="highlight hl-m">M.retry(3)</span> catches transient API failures on any branch. Each writes to a separate state key.`,
+    code: `Agent("web_searcher", MODEL).context(C.from_state("research_plan")).writes("web_results")\n| Agent("academic_searcher", MODEL).context(C.from_state("research_plan")).writes("academic_results")\n| Agent("news_searcher", MODEL).context(C.from_state("research_plan")).writes("news_results")`,
+  },
+  {
+    name: "synthesizer", type: "agent",
+    title: "Agent: Synthesizer",
+    modules: [
+      { mod: "C", cls: "pm-c", label: "C.from_state('web_results', 'academic_results', 'news_results')" },
+      { mod: "S", cls: "pm-s", label: ".writes('synthesis')" },
+    ],
+    what: `The synthesizer sees <em>exactly three keys</em> via <span class="highlight hl-c">C.from_state()</span> — the outputs of all three parallel searches. Not the original query, not the research plan, not the conversation. This is context engineering: the LLM sees only what it needs, nothing more.`,
+    code: `Agent("synthesizer", MODEL)\n  .instruct("Synthesize findings. Identify consensus, contradictions, gaps. Rate confidence 0-1.")\n  .context(C.from_state("web_results", "academic_results", "news_results"))\n  .writes("synthesis")`,
+  },
+  {
+    name: "reviewer ↔ reviser", type: "loop",
+    title: "Loop: Quality Review",
+    modules: [
+      { mod: "C", cls: "pm-c", label: "C.from_state('synthesis')" },
+      { mod: "S", cls: "pm-s", label: ".writes('quality_score') / .writes('synthesis')" },
+      { mod: "G", cls: "pm-g", label: "G.json() on reviewer output" },
+    ],
+    what: `A reviewer scores the synthesis, then a reviser improves it — looping until <span class="highlight hl-s">quality_score ≥ 0.85</span> or 3 iterations. <span class="highlight hl-g">G.json()</span> ensures the reviewer outputs valid JSON (not free text that breaks the float parse). The reviser overwrites <code>state["synthesis"]</code>, so each iteration refines the same key.`,
+    code: `(Agent("quality_reviewer", MODEL).context(C.from_state("synthesis")).writes("quality_score")\n  >> Agent("revision_agent", MODEL).context(C.from_state("synthesis", "quality_score")).writes("synthesis")\n).loop_until(lambda s: float(s.get("quality_score", 0)) >= 0.85, max_iterations=3)`,
+  },
+  {
+    name: "report_writer", type: "agent",
+    title: "Agent: Report Writer (Typed Output)",
+    modules: [
+      { mod: "C", cls: "pm-c", label: "C.from_state('synthesis')" },
+      { mod: "S", cls: "pm-s", label: "@ ResearchReport → typed output" },
+      { mod: "G", cls: "pm-g", label: "output_schema enforces structure" },
+    ],
+    what: `The final agent uses <span class="highlight hl-s">@ ResearchReport</span> to force structured JSON output conforming to a Pydantic schema. If the LLM generates non-conforming output, ADK raises immediately — no silent corruption. The report contains <code>title</code>, <code>executive_summary</code>, <code>key_findings</code>, and <code>confidence_score</code>.`,
+    code: `Agent("report_writer", MODEL)\n  .instruct("Write the final report with executive summary and key findings.")\n  .context(C.from_state("synthesis"))\n  @ ResearchReport`,
+  },
+];
+
+// =====================================================================
+// WALKTHROUGH RENDERER
+// =====================================================================
+let currentStep = -1;
+
+function renderPipeline() {
+  const el = document.getElementById('wt-pipeline');
+  el.innerHTML = '';
+
+  steps.forEach((step, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('span');
+      arrow.className = 'wt-arrow';
+      arrow.textContent = step.type === 'parallel' ? '→ ‖' : '→';
+      el.appendChild(arrow);
+    }
+
+    if (step.type === 'parallel') {
+      const group = document.createElement('div');
+      group.className = 'wt-parallel-group';
+      step.name.split(' / ').forEach(n => {
+        const node = document.createElement('div');
+        node.className = 'wt-node';
+        node.dataset.idx = i;
+        node.innerHTML = `<span class="node-name">${n}</span><span class="node-type">agent</span>`;
+        node.onclick = () => goToStep(i);
+        group.appendChild(node);
+      });
+      group.onclick = () => goToStep(i);
+      el.appendChild(group);
+    } else {
+      const node = document.createElement('div');
+      node.className = 'wt-node';
+      node.dataset.idx = i;
+      node.innerHTML = `<span class="node-name">${step.name}</span><span class="node-type">${step.type}</span>`;
+      node.onclick = () => goToStep(i);
+      el.appendChild(node);
+    }
+  });
+}
+
+function goToStep(idx) {
+  currentStep = idx;
+  const step = steps[idx];
+
+  // Highlight active node
+  document.querySelectorAll('.wt-node, .wt-parallel-group').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll(`.wt-node[data-idx="${idx}"]`).forEach(n => n.classList.add('active'));
+  const groups = document.querySelectorAll('.wt-parallel-group');
+  if (step.type === 'parallel') {
+    groups.forEach(g => {
+      if (g.querySelector(`[data-idx="${idx}"]`)) g.classList.add('active');
+    });
+  }
+
+  // Update detail panel
+  document.getElementById('wt-title').textContent = step.title;
+
+  const modsEl = document.getElementById('wt-modules');
+  modsEl.innerHTML = step.modules.map(m =>
+    `<span class="phase-marker ${m.cls}"><span class="mod">${m.mod}</span> ${m.label}</span>`
+  ).join('');
+
+  document.getElementById('wt-what').innerHTML = step.what +
+    `<div class="wt-code">${step.code}</div>`;
+
+  // Nav
+  document.getElementById('wt-prev').disabled = idx === 0;
+  document.getElementById('wt-next').disabled = idx === steps.length - 1;
+  document.getElementById('wt-counter').textContent = `${idx + 1} / ${steps.length}`;
+}
+
+document.getElementById('wt-prev').onclick = () => { if (currentStep > 0) goToStep(currentStep - 1); };
+document.getElementById('wt-next').onclick = () => { if (currentStep < steps.length - 1) goToStep(currentStep + 1); };
+
+renderPipeline();
+
+// =====================================================================
+// SEQUENCE DIAGRAMS
+// =====================================================================
+const seqDiagrams = {
+  simple: `sequenceDiagram
+    participant U as User
+    participant A as analyzer
+    participant W as writer
+
+    U->>A: "Explain quantum computing"
+    Note right of A: C.from_state("query")
+    A->>A: LLM call
+    A-->>W: state["plan"] = "..."
+    Note right of W: reads {plan} in prompt
+    W->>W: LLM call
+    W-->>U: Final response`,
+
+  parallel: `sequenceDiagram
+    participant U as User
+    participant A as analyzer
+    participant W as web_searcher
+    participant Ac as academic_searcher
+    participant N as news_searcher
+    participant Sy as synthesizer
+
+    U->>A: "Research quantum computing"
+    A->>A: LLM call
+    A-->>W: state["plan"]
+    A-->>Ac: state["plan"]
+    A-->>N: state["plan"]
+
+    par Parallel execution
+      Note right of W: C.from_state("plan")
+      W->>W: LLM call
+      W-->>Sy: state["web_results"]
+    and
+      Note right of Ac: C.from_state("plan")
+      Ac->>Ac: LLM call
+      Ac-->>Sy: state["academic_results"]
+    and
+      Note right of N: C.from_state("plan")
+      N->>N: LLM call
+      N-->>Sy: state["news_results"]
+    end
+
+    Note right of Sy: C.from_state("web_results",<br/>"academic_results", "news_results")
+    Sy->>Sy: LLM call
+    Sy-->>U: state["synthesis"]`,
+
+  loop: `sequenceDiagram
+    participant W as writer
+    participant R as reviewer
+    participant V as reviser
+
+    W->>W: LLM call → draft
+    W-->>R: state["draft"]
+
+    loop until quality_score >= 0.85 (max 3)
+      Note right of R: C.from_state("draft")
+      R->>R: LLM call → score
+      R-->>V: state["quality_score"]
+      alt score < 0.85
+        Note right of V: C.from_state("draft", "quality_score")
+        V->>V: LLM call → revised draft
+        V-->>R: state["draft"] (overwritten)
+      else score >= 0.85
+        Note over R,V: Loop exits — quality met
+      end
+    end`,
+
+  route: `sequenceDiagram
+    participant U as User
+    participant C as classifier
+    participant R as Route("intent")
+    participant B as billing_agent
+    participant T as tech_agent
+    participant G as general_agent
+
+    U->>C: "My bill is wrong"
+    Note right of C: C.none() — no history
+    C->>C: LLM call
+    C-->>R: state["intent"] = "billing"
+    Note right of R: Deterministic — no LLM
+
+    alt intent == "billing"
+      R->>B: route to billing
+      B->>B: LLM call
+      B-->>U: "I've credited your account..."
+    else intent == "technical"
+      R->>T: route to technical
+      T->>T: LLM call
+      T-->>U: "Let me diagnose..."
+    else otherwise
+      R->>G: route to general
+      G->>G: LLM call
+      G-->>U: "How can I help?"
+    end`,
+};
+
+async function showSeq(key) {
+  document.querySelectorAll('.seq-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const el = document.getElementById('seq-mermaid');
+  el.textContent = seqDiagrams[key];
+  el.removeAttribute('data-processed');
+
+  // Re-render mermaid
+  if (window._mermaid) {
+    const { svg } = await window._mermaid.render('seq-render-' + Date.now(), seqDiagrams[key]);
+    document.getElementById('seq-diagram').innerHTML = svg;
+  }
+}
+
+// Initial render
+window.addEventListener('load', async () => {
+  // Small delay for Mermaid to initialize
+  setTimeout(async () => {
+    if (window._mermaid) {
+      try {
+        const { svg } = await window._mermaid.render('seq-init', seqDiagrams.simple);
+        document.getElementById('seq-diagram').innerHTML = svg;
+      } catch(e) {
+        document.getElementById('seq-mermaid').textContent = seqDiagrams.simple;
+      }
+    }
+  }, 500);
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    if (currentStep < steps.length - 1) goToStep(currentStep + 1);
+    e.preventDefault();
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    if (currentStep > 0) goToStep(currentStep - 1);
+    e.preventDefault();
+  }
+});
+</script>
+</body>
+</html>
