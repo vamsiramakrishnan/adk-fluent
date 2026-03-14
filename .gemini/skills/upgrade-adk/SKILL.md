@@ -18,8 +18,8 @@ cp manifest.json manifest.json.bak
 ## Step 2: Install the new ADK version
 
 ```bash
-pip install --upgrade google-adk
-python -c "import google.adk; print(google.adk.__version__)"
+uv pip install --upgrade google-adk
+uv run python -c "from importlib.metadata import version; print(version('google-adk'))"
 ```
 
 Record the new version number.
@@ -27,7 +27,7 @@ Record the new version number.
 ## Step 3: Scan the new ADK
 
 ```bash
-python scripts/scanner.py
+uv run python scripts/scanner.py -o manifest.json
 ```
 
 This produces an updated `manifest.json`.
@@ -57,12 +57,17 @@ If the diff shows renamed or removed classes/fields, update `seeds/seed.manual.t
 ## Step 6: Regenerate everything
 
 ```bash
-python scripts/seed_generator.py manifest.json
-python scripts/generator.py seeds/seed.toml manifest.json
-python scripts/llms_generator.py manifest.json seeds/seed.toml
+just all    # scan -> seed -> generate -> docs -> docs-build
 ```
 
-Or if `just` is available: `just all`
+Or manually:
+
+```bash
+uv run python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
+uv run python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
+uv run python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
+uv run python scripts/llms_generator.py manifest.json seeds/seed.toml
+```
 
 ## Step 7: Verify
 
@@ -73,13 +78,22 @@ uv run pyright src/adk_fluent/
 
 Fix any failures before proceeding.
 
-## Step 8: Update metadata
+## Step 8: Update the N-5 compatibility matrix
+
+After upgrading, update the backward compatibility matrix:
+
+1. Update `adk-version` lists in `.github/workflows/ci.yml` (the `compat` job) and `.github/workflows/sync-adk.yml` (the `test` job)
+2. Add the new version at the top, drop the oldest version from the bottom (maintain 6 entries: latest + N-5)
+3. Update the compatibility table in `README.md` under "ADK Compatibility"
+4. Update `ADK_VERSION` env var in `.github/workflows/ci.yml` if the codegen pin changed
+
+## Step 9: Update metadata
 
 - Update `pyproject.toml` if the minimum ADK version changed
 - Update the ADK badge in `README.md` and `README.template.md`
 - Add a CHANGELOG entry under `[Unreleased]`
 
-## Step 9: Cleanup
+## Step 10: Cleanup
 
 ```bash
 rm manifest.json.bak

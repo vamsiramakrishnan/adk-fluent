@@ -16,7 +16,7 @@ Run stages in order. Each stage depends on the previous one.
 ### 1. Scan (ADK introspection)
 
 ```bash
-python scripts/scanner.py
+uv run python scripts/scanner.py -o manifest.json
 ```
 
 Produces `manifest.json` — a machine-truth snapshot of every ADK class, field, type,
@@ -25,7 +25,7 @@ default, callback, and inheritance chain.
 ### 2. Seed (builder specification)
 
 ```bash
-python scripts/seed_generator.py manifest.json
+uv run python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
 ```
 
 Produces `seeds/seed.toml` by:
@@ -37,7 +37,8 @@ Produces `seeds/seed.toml` by:
 ### 3. Generate (code emission)
 
 ```bash
-python scripts/generator.py seeds/seed.toml manifest.json
+uv run python scripts/generator.py seeds/seed.toml manifest.json --output-dir src/adk_fluent --test-dir tests/generated
+uv run python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
 ```
 
 Produces in `src/adk_fluent/`:
@@ -48,15 +49,15 @@ Produces in `src/adk_fluent/`:
 ### 4. Docs & LLM context
 
 ```bash
-python scripts/llms_generator.py manifest.json seeds/seed.toml
-python scripts/doc_generator.py manifest.json seeds/seed.toml
+uv run python scripts/llms_generator.py manifest.json seeds/seed.toml
+uv run python scripts/doc_generator.py seeds/seed.toml manifest.json --output-dir docs/generated --cookbook-dir examples/cookbook
 ```
 
 Regenerates CLAUDE.md, .cursorrules, API docs, and cookbook pages.
 
 ## One-command pipeline
 
-If `just` is available:
+If `just` is available (preferred):
 
 ```bash
 just all    # scan -> seed -> generate -> docs -> docs-build

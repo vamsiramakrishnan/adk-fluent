@@ -53,12 +53,26 @@ Verify imports are from `adk_fluent` top-level, not internal modules:
 - Cookbook examples must use `.mock()` (no real API keys in CI)
 - Run: `uv run pytest tests/ -x -q --tb=short`
 
-### 5. CHANGELOG
+### 5. Tooling consistency
+
+- All bash commands must use `uv run` (never bare `python` or `pip`)
+- All dependency installs must use `uv pip install` or `uv sync` (never bare `pip install`)
+
+### 6. N-5 backward compatibility
+
+If the PR changes any of these, verify the N-5 compat matrix is updated:
+- `.github/workflows/ci.yml` — `compat` job `adk-version` matrix
+- `.github/workflows/sync-adk.yml` — `test` job `adk-version` matrix
+- `README.md` — ADK Compatibility table
+
+If the PR adds new builder methods that use kwargs only available in newer ADK versions, note that these will raise `BuilderError` on older runtimes (which is the expected behavior, not a bug).
+
+### 7. CHANGELOG
 
 - Changes should be documented under `[Unreleased]` in `CHANGELOG.md`
 - Follow Conventional Commits format
 
-### 6. Type safety
+### 8. Type safety
 
 - New public methods should have type annotations
 - Fluent methods must return `Self` for chaining

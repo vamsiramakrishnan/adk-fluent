@@ -44,15 +44,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
+          uv-version: ${{ env.UV_VERSION }}
 
       - name: Run pre-commit hooks
         run: uv run pre-commit run --all-files --show-diff-on-failure
@@ -65,15 +59,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
+          uv-version: ${{ env.UV_VERSION }}
 
       - name: Regenerate and verify no diff
         run: |
@@ -93,15 +81,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
+          uv-version: ${{ env.UV_VERSION }}
 
       - name: Generate code and stubs
         run: just scan seed generate
@@ -118,21 +100,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
+          uv-version: ${{ env.UV_VERSION }}
           python-version: ${{ matrix.python-version }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
 
       - name: Generate code
         run: just scan seed generate
@@ -179,15 +156,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies (latest ADK for codegen)
-        run: uv sync --all-extras
+          uv-version: ${{ env.UV_VERSION }}
 
       - name: Generate code with latest ADK
         run: just scan seed generate
@@ -210,15 +181,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
+          uv-version: ${{ env.UV_VERSION }}
 
       - name: Generate code
         run: just scan seed generate
@@ -228,9 +193,9 @@ jobs:
 
       - name: Smoke-test wheel install
         run: |
-          uv venv /tmp/smoke-venv
-          VIRTUAL_ENV=/tmp/smoke-venv uv pip install dist/*.whl
-          /tmp/smoke-venv/bin/python -c "
+          uv venv ${{ runner.temp }}/smoke-venv
+          VIRTUAL_ENV=${{ runner.temp }}/smoke-venv uv pip install dist/*.whl
+          ${{ runner.temp }}/smoke-venv/bin/python -c "
           from adk_fluent import Agent, Pipeline, FanOut, Loop
           from adk_fluent._version import __version__
           a = Agent('smoke-test').instruct('hello')
@@ -241,6 +206,7 @@ jobs:
         with:
           name: dist
           path: dist/
+          retention-days: 7
 
   # ---------------------------------------------------------------------------
   # VERSION CHECK — on tagged releases, assert tag matches _version.py

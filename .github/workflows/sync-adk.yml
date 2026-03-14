@@ -3,7 +3,7 @@
 # ============================================================================
 #
 # Runs weekly and on-demand to detect upstream ADK changes.
-# Pipeline: install latest ADK → scan → diff → generate → test → auto-PR
+# Pipeline: install latest ADK -> scan -> diff -> generate -> test -> auto-PR
 #
 
 name: Sync with ADK Upstream
@@ -43,15 +43,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
-
-      - uses: taiki-e/install-action@just
-
-      - name: Install dependencies
-        run: uv sync --all-extras
+          uv-version: ${{ env.UV_VERSION }}
 
       - name: Install target ADK version
         run: |
@@ -110,6 +104,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: generated-code
+          retention-days: 14
           path: |
             src/adk_fluent/
             tests/generated/
@@ -131,19 +126,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
+          uv-version: ${{ env.UV_VERSION }}
 
       - uses: actions/download-artifact@v4
         with:
           name: generated-code
 
-      - name: Install and type-check
-        run: |
-          uv sync --all-extras
-          uv run pyright src/adk_fluent/ --pythonversion 3.12
+      - name: Type-check
+        run: uv run pyright src/adk_fluent/ --pythonversion 3.12
 
   # =========================================================================
   # N-5 compatibility tests against older ADK versions
@@ -164,17 +156,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: ./.github/actions/setup-env
         with:
-          enable-cache: true
-          version: ${{ env.UV_VERSION }}
+          uv-version: ${{ env.UV_VERSION }}
 
       - uses: actions/download-artifact@v4
         with:
           name: generated-code
-
-      - name: Install dependencies
-        run: uv sync --all-extras
 
       - name: Pin ADK version (${{ matrix.adk-version }})
         if: matrix.adk-version != 'latest'
