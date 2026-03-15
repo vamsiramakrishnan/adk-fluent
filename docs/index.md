@@ -10,7 +10,7 @@
 
   <!-- Architecture flow diagram -->
   <div class="hero-diagram">
-    <svg viewBox="0 0 720 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-flow-svg" aria-label="adk-fluent builder flow: Builder → IR → Native ADK">
+    <svg viewBox="0 0 720 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-flow-svg" aria-label="adk-fluent builder flow: Builder → IR → Native ADK → Deploy">
       <defs>
         <linearGradient id="hero-grad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stop-color="#4f46e5"/>
@@ -18,7 +18,7 @@
           <stop offset="100%" stop-color="#a855f7"/>
         </linearGradient>
         <filter id="hero-glow">
-          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feGaussianBlur stdDeviation="4" result="blur"/>
           <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
         <marker id="arrow-hero" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
@@ -28,7 +28,7 @@
 
       <!-- Builder node -->
       <g class="hero-node" style="--delay: 0s">
-        <rect x="16" y="24" width="140" height="72" rx="12" fill="#4f46e510" stroke="#4f46e5" stroke-width="1.5"/>
+        <rect x="16" y="24" width="140" height="72" rx="14" fill="#4f46e508" stroke="#4f46e5" stroke-width="1.5"/>
         <text x="86" y="53" text-anchor="middle" fill="#818cf8" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">FLUENT BUILDER</text>
         <text x="86" y="72" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="10">Agent("name")</text>
         <text x="86" y="85" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="9">.instruct().tool()</text>
@@ -40,7 +40,7 @@
 
       <!-- IR node -->
       <g class="hero-node" style="--delay: 0.5s">
-        <rect x="228" y="30" width="110" height="60" rx="12" fill="#7c3aed10" stroke="#7c3aed" stroke-width="1.5"/>
+        <rect x="228" y="30" width="110" height="60" rx="14" fill="#7c3aed08" stroke="#7c3aed" stroke-width="1.5"/>
         <text x="283" y="55" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">IR TREE</text>
         <text x="283" y="72" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="9">Validated &amp; Typed</text>
       </g>
@@ -51,7 +51,7 @@
 
       <!-- Native ADK node -->
       <g class="hero-node" style="--delay: 1s">
-        <rect x="410" y="24" width="140" height="72" rx="12" fill="#10b98110" stroke="#10b981" stroke-width="1.5"/>
+        <rect x="410" y="24" width="140" height="72" rx="14" fill="#10b98108" stroke="#10b981" stroke-width="1.5"/>
         <text x="480" y="53" text-anchor="middle" fill="#34d399" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">NATIVE ADK</text>
         <text x="480" y="72" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="10">LlmAgent</text>
         <text x="480" y="85" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="9">SequentialAgent</text>
@@ -62,7 +62,7 @@
 
       <!-- Deploy node -->
       <g class="hero-node" style="--delay: 1.5s">
-        <rect x="622" y="30" width="82" height="60" rx="12" fill="#f59e0b08" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <rect x="622" y="30" width="82" height="60" rx="14" fill="#f59e0b06" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
         <text x="663" y="56" text-anchor="middle" fill="#fbbf24" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="0.05em">DEPLOY</text>
         <text x="663" y="72" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="8">web · run · cloud</text>
       </g>
@@ -75,7 +75,7 @@
   </div>
   <div class="hero-stats">
     <div class="hero-stat">
-      <span class="stat-number">132</span>
+      <span class="stat-number">135</span>
       <span class="stat-label">Builders</span>
     </div>
     <div class="hero-stat">

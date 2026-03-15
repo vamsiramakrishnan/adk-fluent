@@ -121,16 +121,19 @@ html_theme_options = {
         "font-size--normal": "15px",
         "font-size--small": "13px",
         "font-size--small--2": "12px",
-        "content-padding": "3em",
+        "content-padding": "3.5em",
         "sidebar-width": "17rem",
         "sidebar-width--mobile": "80vw",
+        "color-background-primary": "#ffffff",
+        "color-background-secondary": "#f8fafc",
+        "color-background-border": "#e2e8f0",
     },
     "dark_css_variables": {
         "color-brand-primary": "#818cf8",
         "color-brand-content": "#6366f1",
-        "color-background-primary": "#0b1120",
-        "color-background-secondary": "#131c31",
-        "color-background-border": "#1e2d4a",
+        "color-background-primary": "#0c1222",
+        "color-background-secondary": "#151f35",
+        "color-background-border": "#1c2b47",
         "color-foreground-secondary": "#94a3b8",
         "color-foreground-muted": "#64748b",
     },
@@ -142,7 +145,7 @@ html_logo = "_static/logo.svg"
 html_baseurl = "https://vamsiramakrishnan.github.io/adk-fluent/"
 
 pygments_style = "github-light"
-pygments_dark_style = "github-dark"
+pygments_dark_style = "one-dark"
 
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d+\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
