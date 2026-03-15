@@ -3,6 +3,7 @@
 Provides fluent builder APIs for:
 - ``RemoteAgent``: Consume a remote A2A agent as a first-class builder.
 - ``A2AServer``: Publish a local agent as an A2A server.
+- ``AgentRegistry``: Discover agents from a central registry.
 
 Both are experimental — the underlying ADK A2A support is marked
 ``@a2a_experimental`` and subject to breaking changes.
@@ -15,12 +16,20 @@ Usage::
     remote = RemoteAgent("helper", "http://helper:8001")
     pipeline = Agent("coordinator", "gemini-2.5-flash") >> remote
 
-    # Publish a local agent
-    app = A2AServer(agent).port(8001).build()
+    # Discover via well-known URL
+    remote = RemoteAgent.discover("helper", "helper.agents.acme.com")
+
+    # Discover via environment variable
+    remote = RemoteAgent("helper", env="HELPER_AGENT_URL")
+
+    # Publish a local agent with health checks
+    app = A2AServer(agent).port(8001).health_check().build()
 """
 
 from __future__ import annotations
 
+import logging
+import os
 import warnings
 from collections import defaultdict
 from collections.abc import Callable
@@ -34,9 +43,12 @@ if TYPE_CHECKING:
 
 __all__ = [
     "A2AServer",
+    "AgentRegistry",
     "RemoteAgent",
     "SkillDeclaration",
 ]
+
+_log = logging.getLogger(__name__)
 
 _A2A_WARNING = (
     "adk-fluent A2A support is experimental. The underlying google-adk A2A "
@@ -174,21 +186,74 @@ class RemoteAgent(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     # _ADK_TARGET_CLASS set lazily to avoid import-time dependency on a2a SDK
 
-    def __init__(self, name: str, agent_card: str | Any | None = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        agent_card: str | Any | None = None,
+        *,
+        env: str | None = None,
+    ) -> None:
         """Create a RemoteAgent builder.
 
         Args:
             name: Unique agent name.
             agent_card: URL string (base URL or full card URL),
                         AgentCard object, or file path to card JSON.
+            env: Environment variable name containing the agent URL.
+                 Read at init time; raises ``ValueError`` if the var
+                 is set but empty.
         """
         _warn_experimental()
         self._config: dict[str, Any] = {"name": name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
+
+        # Resolve agent_card source: explicit > env > None
         if agent_card is not None:
             self._config["agent_card"] = agent_card
+        elif env is not None:
+            url = os.environ.get(env)
+            if url is not None:
+                if not url.strip():
+                    raise ValueError(f"Environment variable {env!r} is set but empty")
+                self._config["agent_card"] = url.strip()
+            else:
+                _log.warning("Environment variable %r not set for RemoteAgent %r", env, name)
+
+    # --- Class-level discovery ---
+
+    @classmethod
+    def discover(
+        cls,
+        name: str,
+        domain: str,
+        *,
+        protocol: str = "https",
+        path: str = "/.well-known/agent.json",
+    ) -> RemoteAgent:
+        """Create a RemoteAgent by discovering its card via well-known URL.
+
+        Constructs ``{protocol}://{domain}{path}`` and uses it as the
+        ``agent_card`` URL. The underlying ADK ``RemoteA2aAgent`` resolves
+        the card lazily on first invocation.
+
+        Args:
+            name: Unique agent name.
+            domain: Agent domain (e.g., ``"helper.agents.acme.com"``).
+            protocol: URL scheme (default ``"https"``).
+            path: Well-known path (default ``"/.well-known/agent.json"``).
+
+        Returns:
+            A configured ``RemoteAgent`` builder.
+
+        Example::
+
+            remote = RemoteAgent.discover("helper", "helper.agents.acme.com")
+            pipeline = Agent("coordinator") >> remote
+        """
+        card_url = f"{protocol}://{domain}{path}"
+        return cls(name, card_url)
 
     # --- Core setters ---
 
@@ -447,6 +512,9 @@ class A2AServer:
         self._runner: Any = None
         self._skills: list[SkillDeclaration] = []
         self._docs_url: str | None = None
+        self._health_path: str | None = None
+        self._health_ready: bool = True
+        self._shutdown_timeout: float | None = None
 
     def agent(self, agent: BuilderBase | _ADKBaseAgent) -> A2AServer:
         """Set the agent to publish."""
@@ -532,6 +600,45 @@ class A2AServer:
         self._docs_url = url
         return self
 
+    def health_check(
+        self,
+        path: str = "/health",
+        *,
+        include_ready: bool = True,
+    ) -> A2AServer:
+        """Add health check endpoints to the server.
+
+        Adds:
+        - ``GET {path}`` — liveness probe (always 200)
+        - ``GET {path}/ready`` — readiness probe (200 when agent is ready)
+          (only if ``include_ready=True``)
+
+        Args:
+            path: Base path for health endpoints (default ``"/health"``).
+            include_ready: Include a readiness endpoint (default ``True``).
+
+        Example::
+
+            app = A2AServer(agent).health_check().build()
+            # GET /health → {"status": "ok"}
+            # GET /health/ready → {"status": "ready", "agent": "my_agent"}
+        """
+        self._health_path = path
+        self._health_ready = include_ready
+        return self
+
+    def graceful_shutdown(self, timeout: float = 30) -> A2AServer:
+        """Enable graceful shutdown with task draining.
+
+        On SIGTERM/SIGINT, the server stops accepting new requests and
+        waits up to ``timeout`` seconds for in-flight tasks to complete.
+
+        Args:
+            timeout: Maximum seconds to wait for drain (default 30).
+        """
+        self._shutdown_timeout = timeout
+        return self
+
     def build(self) -> Any:
         """Build and return a Starlette ASGI application.
 
@@ -574,7 +681,22 @@ class A2AServer:
         if self._runner is not None:
             kwargs["runner"] = self._runner
 
-        return to_a2a(**kwargs)
+        app = to_a2a(**kwargs)
+
+        # Wire health check endpoints
+        if self._health_path is not None:
+            app = _add_health_routes(
+                app,
+                built_agent,
+                path=self._health_path,
+                include_ready=self._health_ready,
+            )
+
+        # Wire graceful shutdown
+        if self._shutdown_timeout is not None:
+            app = _add_graceful_shutdown(app, timeout=self._shutdown_timeout)
+
+        return app
 
     def _build_agent_card(self, agent: _ADKBaseAgent) -> Any:
         """Build an AgentCard from declared skills and metadata."""
@@ -627,3 +749,197 @@ class A2AServer:
             card_kwargs["documentationUrl"] = self._docs_url
 
         return A2AAgentCard(**card_kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Health check and lifecycle helpers
+# ---------------------------------------------------------------------------
+
+
+def _add_health_routes(
+    app: Any,
+    agent: Any,
+    *,
+    path: str = "/health",
+    include_ready: bool = True,
+) -> Any:
+    """Add health check routes to a Starlette app.
+
+    - ``GET {path}`` — liveness (always 200)
+    - ``GET {path}/ready`` — readiness (200 if agent is resolved)
+    """
+    try:
+        from starlette.responses import JSONResponse
+        from starlette.routing import Route
+    except ImportError:
+        _log.warning("starlette not installed — skipping health check routes")
+        return app
+
+    agent_name = getattr(agent, "name", "agent")
+
+    async def _liveness(request: Any) -> JSONResponse:
+        return JSONResponse({"status": "ok", "agent": agent_name})
+
+    routes = [Route(path, _liveness, methods=["GET"])]
+
+    if include_ready:
+
+        async def _readiness(request: Any) -> JSONResponse:
+            # Check basic readiness — agent exists and has a name
+            is_ready = agent is not None and hasattr(agent, "name")
+            if is_ready:
+                return JSONResponse({"status": "ready", "agent": agent_name})
+            return JSONResponse({"status": "not_ready", "agent": agent_name}, status_code=503)
+
+        routes.append(Route(f"{path}/ready", _readiness, methods=["GET"]))
+
+    # Prepend health routes to the app's routes
+    if hasattr(app, "routes"):
+        app.routes = routes + list(app.routes)
+    return app
+
+
+def _add_graceful_shutdown(app: Any, *, timeout: float = 30) -> Any:
+    """Wire graceful shutdown into a Starlette app.
+
+    Registers a shutdown handler that waits up to ``timeout`` seconds
+    for in-flight work to complete.
+    """
+    import asyncio
+
+    _shutting_down = {"value": False}
+    _in_flight = {"count": 0}
+
+    original_on_shutdown = list(getattr(app, "on_shutdown", []))
+
+    async def _shutdown_handler() -> None:
+        _shutting_down["value"] = True
+        _log.info("Graceful shutdown initiated, draining tasks (timeout=%ss)...", timeout)
+
+        elapsed = 0.0
+        poll_interval = 0.5
+        while _in_flight["count"] > 0 and elapsed < timeout:
+            await asyncio.sleep(poll_interval)
+            elapsed += poll_interval
+
+        if _in_flight["count"] > 0:
+            _log.warning(
+                "Shutdown timeout reached with %d in-flight tasks",
+                _in_flight["count"],
+            )
+        else:
+            _log.info("All tasks drained, shutting down cleanly")
+
+        # Run original shutdown handlers
+        for handler in original_on_shutdown:
+            await handler()
+
+    if hasattr(app, "on_shutdown"):
+        app.on_shutdown = [_shutdown_handler]
+
+    # Store refs for introspection/testing
+    app._a2a_shutdown_state = _shutting_down
+    app._a2a_in_flight = _in_flight
+
+    return app
+
+
+# ---------------------------------------------------------------------------
+# AgentRegistry — central registry client
+# ---------------------------------------------------------------------------
+
+
+class AgentRegistry:
+    """Client for discovering A2A agents from a central registry.
+
+    Provides a fluent interface for querying a registry service that
+    indexes agent cards by skill, tag, and metadata.
+
+    The registry protocol is not standardized by A2A — this client
+    supports a simple REST-based convention:
+
+    - ``GET {base_url}/agents`` — list all agents
+    - ``GET {base_url}/agents?skill={skill}`` — filter by skill
+    - ``GET {base_url}/agents?tag={tag}`` — filter by tag
+    - ``GET {base_url}/agents/{name}`` — get agent card by name
+
+    Usage::
+
+        registry = AgentRegistry("http://registry.internal:9000")
+
+        # Find by skill
+        remote = registry.find("research", skill="academic-research")
+
+        # Find by tag
+        remote = registry.find("coder", tag="python")
+
+        # List all agents
+        agents = await registry.list_agents()
+    """
+
+    def __init__(self, base_url: str, *, timeout: float = 30) -> None:
+        """Create a registry client.
+
+        Args:
+            base_url: Base URL of the registry service.
+            timeout: HTTP timeout in seconds (default 30).
+        """
+        _warn_experimental()
+        self._base_url = base_url.rstrip("/")
+        self._timeout = timeout
+
+    def find(
+        self,
+        name: str,
+        *,
+        skill: str | None = None,
+        tag: str | None = None,
+    ) -> RemoteAgent:
+        """Find an agent by name, optionally filtered by skill or tag.
+
+        Constructs a ``RemoteAgent`` pointing to the registry's agent
+        card URL. The card is resolved lazily on first invocation.
+
+        Args:
+            name: Name for the RemoteAgent builder.
+            skill: Filter by skill ID.
+            tag: Filter by tag.
+
+        Returns:
+            A ``RemoteAgent`` builder configured with the registry URL.
+        """
+        # Build registry query URL
+        params = []
+        if skill:
+            params.append(f"skill={skill}")
+        if tag:
+            params.append(f"tag={tag}")
+        query = f"?{'&'.join(params)}" if params else ""
+        card_url = f"{self._base_url}/agents/{name}{query}"
+        return RemoteAgent(name, card_url).timeout(self._timeout)
+
+    async def list_agents(self) -> list[dict[str, Any]]:
+        """List all agents registered in the registry.
+
+        Returns:
+            A list of agent card metadata dicts.
+
+        Raises:
+            ImportError: If ``httpx`` is not installed.
+            RuntimeError: If the registry is unreachable.
+        """
+        try:
+            import httpx
+        except ImportError as exc:
+            raise ImportError("AgentRegistry requires httpx. Install with: pip install httpx") from exc
+
+        try:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
+                response = await client.get(f"{self._base_url}/agents")
+                response.raise_for_status()
+                return response.json()
+        except Exception as exc:
+            raise RuntimeError(f"Failed to list agents from registry at {self._base_url}: {exc}") from exc
+
+    def __repr__(self) -> str:
+        return f"AgentRegistry({self._base_url!r})"

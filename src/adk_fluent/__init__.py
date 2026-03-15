@@ -17,6 +17,7 @@ For tools, configs, services, and plugins, import directly from this package.
 # Auto-generated for google-adk 1.25.0
 
 from .a2a import A2AServer
+from .a2a import AgentRegistry
 from .a2a import RemoteAgent
 from .a2a import SkillDeclaration
 from .tool import ActiveStreamingTool
@@ -154,6 +155,7 @@ from .tool import VertexAiSearchTool
 
 __all__ = [
     "A2AServer",
+    "AgentRegistry",
     "RemoteAgent",
     "SkillDeclaration",
     "ActiveStreamingTool",
