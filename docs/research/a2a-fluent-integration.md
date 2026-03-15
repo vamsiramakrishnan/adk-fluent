@@ -17,10 +17,10 @@ Linux Foundation) for inter-agent communication. It complements MCP:
 | **Purpose** | Tool invocation | Agent collaboration |
 | **Paradigm** | Structured I/O | Opaque autonomous tasks |
 | **Transport** | stdio / HTTP | HTTP + JSON-RPC 2.0 / gRPC |
-| **Discovery** | Tool schemas | `/.well-known/agent-card.json` |
+| **Discovery** | Tool schemas | `/.well-known/agent.json` |
 
 **Core concepts:**
-- **AgentCard** — discovery document at `/.well-known/agent-card.json`
+- **AgentCard** — discovery document at `/.well-known/agent.json`
 - **AgentSkill** — capability declaration (id, name, description, tags, examples)
 - **Task** — unit of work with lifecycle states (WORKING → COMPLETED/FAILED/CANCELED)
 - **Message / Part** — content exchange (TextPart, FilePart, DataPart)
@@ -81,7 +81,7 @@ app = to_a2a(
 2. Wraps agent in `A2aAgentExecutor` (creates Runner with in-memory services)
 3. Passes executor to `DefaultRequestHandler` (JSON-RPC dispatch)
 4. Uses `AgentCardBuilder` to auto-generate `AgentCard` from agent metadata
-5. Creates `A2AStarletteApplication` with `/.well-known/agent-card.json` endpoint
+5. Creates `A2AStarletteApplication` with `/.well-known/agent.json` endpoint
 6. Returns Starlette ASGI app
 
 **AgentCardBuilder** auto-extracts:
@@ -98,7 +98,7 @@ from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 remote = RemoteA2aAgent(
     name="helper",
     description="Does specialized work.",
-    agent_card="http://remote:8001/.well-known/agent-card.json",
+    agent_card="http://remote:8001/.well-known/agent.json",
     # Also accepts: AgentCard object or file path
     timeout=600.0,
 )
@@ -234,8 +234,8 @@ remote = (
 
 **Under the hood:** Wraps `google.adk.agents.remote_a2a_agent.RemoteA2aAgent`.
 The URL can be:
-- Full card URL: `http://host:port/.well-known/agent-card.json`
-- Base URL: `http://host:port` (auto-appends `/.well-known/agent-card.json`)
+- Full card URL: `http://host:port/.well-known/agent.json`
+- Base URL: `http://host:port` (auto-appends `/.well-known/agent.json`)
 
 ### 4.2 Publishing Agents via A2A (Server Side)
 
@@ -374,7 +374,7 @@ app = (
     .build()
 )
 # Serves:
-#   /.well-known/agent-card.json (combined or per-path)
+#   /.well-known/agent.json (combined or per-path)
 #   /research/a2a
 #   /writing/a2a
 #   /analysis/a2a
@@ -610,7 +610,7 @@ from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
 remote = RemoteA2aAgent(
     name="helper",
     description="Specialized research agent",
-    agent_card="http://remote:8001/.well-known/agent-card.json",
+    agent_card="http://remote:8001/.well-known/agent.json",
     timeout=300.0,
 )
 
