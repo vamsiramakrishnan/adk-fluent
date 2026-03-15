@@ -854,19 +854,21 @@ def _generate_distributable_skill(
     lines = [
         "---",
         f"name: {name}",
-        f"description: >",
+        "description: >",
     ]
     # Wrap description at ~80 chars
     for desc_line in description.strip().splitlines():
         lines.append(f"  {desc_line.strip()}")
-    lines.extend([
-        "metadata:",
-        "  license: Apache-2.0",
-        "  author: vamsiramakrishnan",
-        f'  version: "{version}"',
-        "---",
-        "",
-    ])
+    lines.extend(
+        [
+            "metadata:",
+            "  license: Apache-2.0",
+            "  author: vamsiramakrishnan",
+            f'  version: "{version}"',
+            "---",
+            "",
+        ]
+    )
     lines.append(body)
     return "\n".join(lines)
 
@@ -875,12 +877,12 @@ def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) ->
     """Generate the adk-fluent-cheatsheet distributable skill."""
     # Import canonical content from llms_generator
     from llms_generator import (
-        _CORE_PATTERNS,
         _AGENT_METHODS,
-        _NAMESPACE_MODULES,
-        _EXPRESSION_PRIMITIVES,
-        _COMPOSITION_PATTERNS,
         _BEST_PRACTICES,
+        _COMPOSITION_PATTERNS,
+        _CORE_PATTERNS,
+        _EXPRESSION_PRIMITIVES,
+        _NAMESPACE_MODULES,
     )
 
     body_parts = [
@@ -908,14 +910,14 @@ def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) ->
         "",
         "| Native ADK | adk-fluent equivalent |",
         "|------------|----------------------|",
-        "| `LlmAgent(name=, model=, instruction=)` | `Agent(\"name\", \"model\").instruct(\"...\")` |",
-        "| `SequentialAgent(name=, sub_agents=[a, b])` | `Pipeline(\"name\").step(a).step(b)` or `a >> b` |",
-        "| `ParallelAgent(name=, sub_agents=[a, b])` | `FanOut(\"name\").branch(a).branch(b)` or `a \\| b` |",
-        "| `LoopAgent(name=, sub_agents=, max_iterations=3)` | `Loop(\"name\").step(a).max_iterations(3)` or `(a >> b) * 3` |",
+        '| `LlmAgent(name=, model=, instruction=)` | `Agent("name", "model").instruct("...")` |',
+        '| `SequentialAgent(name=, sub_agents=[a, b])` | `Pipeline("name").step(a).step(b)` or `a >> b` |',
+        '| `ParallelAgent(name=, sub_agents=[a, b])` | `FanOut("name").branch(a).branch(b)` or `a \\| b` |',
+        '| `LoopAgent(name=, sub_agents=, max_iterations=3)` | `Loop("name").step(a).max_iterations(3)` or `(a >> b) * 3` |',
         "| `AgentTool(agent=child)` | `.agent_tool(child)` |",
         "| `sub_agents=[child]` | `.sub_agent(child)` |",
-        "| `output_key=\"key\"` | `.writes(\"key\")` |",
-        "| `include_contents=\"none\"` | `.reads(\"key\")` or `.context(C.none())` |",
+        '| `output_key="key"` | `.writes("key")` |',
+        '| `include_contents="none"` | `.reads("key")` or `.context(C.none())` |',
         "| `before_agent_callback=fn` | `.before_agent(fn)` |",
         "| `after_model_callback=fn` | `.after_model(fn)` |",
         "",
@@ -961,7 +963,9 @@ def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) ->
     body_parts.append("|---------|-----|")
     body_parts.append("| `.build()` on sub-builders inside Pipeline/FanOut/Loop | Sub-builders auto-build |")
     body_parts.append("| `.ask()` in async context | Use `.ask_async()` |")
-    body_parts.append("| Missing `.writes()` upstream of `.reads()` | Every `.reads(\"key\")` needs `.writes(\"key\")` upstream |")
+    body_parts.append(
+        '| Missing `.writes()` upstream of `.reads()` | Every `.reads("key")` needs `.writes("key")` upstream |'
+    )
     body_parts.append("| `.instruct()` for metadata | Use `.describe()` for metadata |")
     body_parts.append("| LLM routing when rules suffice | Use `Route()` |")
     body_parts.append("| Retry logic in tools | Use `M.retry()` |")
@@ -1032,7 +1036,9 @@ def generate_distributable_skills(specs: list[BuilderSpec], version: str) -> dic
                 fm_count += 1
                 in_frontmatter = fm_count == 1
                 if fm_count == 2 and not metadata_added:
-                    result.append(f"metadata:\n  license: Apache-2.0\n  author: vamsiramakrishnan\n  version: \"{version}\"\n")
+                    result.append(
+                        f'metadata:\n  license: Apache-2.0\n  author: vamsiramakrishnan\n  version: "{version}"\n'
+                    )
                     metadata_added = True
                 result.append(line)
                 continue
@@ -1069,7 +1075,7 @@ def generate_distributable_skills(specs: list[BuilderSpec], version: str) -> dic
 def generate_distributable_readme(skills: dict[str, str]) -> str:
     """Generate README.md for the distributable skills/ directory."""
     lines = [
-        f"Development skills for building agents with adk-fluent. Install into any coding agent via `npx skills`.",
+        "Development skills for building agents with adk-fluent. Install into any coding agent via `npx skills`.",
         "",
         "## Install",
         "",
@@ -1115,14 +1121,16 @@ def generate_distributable_readme(skills: dict[str, str]) -> str:
         short = desc.split(".")[0].strip() + "." if "." in desc else desc[:80]
         lines.append(f"| `{name}` | {short} |")
 
-    lines.extend([
-        "",
-        "## Compatibility",
-        "",
-        "These skills work with any [Agent Skills](https://agentskills.io)-compatible tool:",
-        "Gemini CLI, Claude Code, Cursor, GitHub Copilot, Amp, and more.",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Compatibility",
+            "",
+            "These skills work with any [Agent Skills](https://agentskills.io)-compatible tool:",
+            "Gemini CLI, Claude Code, Cursor, GitHub Copilot, Amp, and more.",
+            "",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -1274,9 +1282,11 @@ def main():
     # Generate README for distributable skills
     readme_content = generate_distributable_readme(dist_skills)
     write_file(DISTRIBUTABLE_SKILLS / "README.md", readme_content)
-    print(f"  Generated skills/README.md")
+    print("  Generated skills/README.md")
 
-    print(f"\nGenerated {len(references)} references + {len(scripts)} scripts + {len(dist_skills)} distributable skills from {len(specs)} builder specs.")
+    print(
+        f"\nGenerated {len(references)} references + {len(scripts)} scripts + {len(dist_skills)} distributable skills from {len(specs)} builder specs."
+    )
 
 
 if __name__ == "__main__":
