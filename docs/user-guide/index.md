@@ -1,7 +1,29 @@
 # User Guide
 
-This guide covers every aspect of adk-fluent in depth. Read sequentially for
-a complete understanding, or jump to the topic you need.
+Write agents in 1-3 lines. Get native ADK objects. Keep full control.
+
+This guide takes you from "I know how to build a simple agent" to "I can design production multi-agent systems with data contracts, context engineering, middleware, and evaluation." Read sequentially for the full journey, or jump to the topic you need.
+
+:::{admonition} Quick taste — every concept in 8 lines
+:class: tip
+
+```python
+from adk_fluent import Agent, S, C
+
+support = (
+    S.capture("message")                                    # S: State transforms
+    >> Agent("classify", "gemini-2.5-flash")
+       .instruct("Classify intent.")                        # P: Prompt (via .instruct)
+       .context(C.none())                                   # C: Context engineering
+       .writes("intent")                                    # Data flow: named state keys
+    >> Agent("resolve", "gemini-2.5-flash")
+       .instruct("Resolve the {intent} issue.")             # {key} = reads from state
+       .tool(lookup_customer)                                # Tools: plain functions
+       .writes("resolution")
+)
+```
+Each line maps to a concept you'll learn below. Hover over any builder method in your IDE to see its type signature.
+:::
 
 ## Foundations
 

@@ -276,6 +276,56 @@ This pipeline:
 - **Flows data** through named keys with `.writes()` ([Data Flow](user-guide/data-flow.md))
 - **Attaches tools** with `.tool()` ([Builders](user-guide/builders.md))
 
+## Test Without an API Key
+
+You don't need a Gemini API key to verify your agent logic works. `.mock()` replaces the LLM with canned responses:
+
+```python
+from adk_fluent import Agent
+
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are a helpful assistant.")
+    .mock(["Hello! I'm here to help."])
+)
+
+# Runs instantly, no API call, no cost
+print(agent.ask("Hi there"))
+# => Hello! I'm here to help.
+```
+
+This is how all 68 cookbook examples run in CI — every example uses `.mock()` so tests pass without credentials. Use `.mock()` during development, remove it when you're ready for real LLM calls.
+
+:::{tip} `.test()` — inline smoke tests
+For quick validation, chain `.test()` directly:
+```python
+agent.test("What's 2+2?", contains="4")  # passes silently or raises AssertionError
+```
+:::
+
+## See What the LLM Sees
+
+One of the most powerful debugging tools: `.llm_anatomy()` shows the exact prompt, context, and tools the LLM receives.
+
+```python
+from adk_fluent import Agent, C
+
+agent = (
+    Agent("classifier", "gemini-2.5-flash")
+    .instruct("Classify the customer's intent.")
+    .context(C.none())
+    .writes("intent")
+)
+
+agent.llm_anatomy()
+# System prompt:  Classify the customer's intent.
+# Context:        none (C.none() — current turn only)
+# Output key:     intent
+# Tools:          (none)
+```
+
+This prevents the #1 debugging nightmare: "why is my agent producing garbage?" The answer is always in what the LLM sees.
+
 ## Validate and Debug
 
 ```python
@@ -294,6 +344,27 @@ pipeline.doctor()
 
 See [Error Reference](user-guide/error-reference.md) for every error type with fix-it examples.
 
+## Async Environments (Jupyter, FastAPI)
+
+:::{warning}
+`.ask()` and `.map()` are **sync** methods. They will raise `RuntimeError` if called inside an async event loop (Jupyter notebooks, FastAPI endpoints, etc.).
+
+Use the async variants instead:
+```python
+# In Jupyter or FastAPI:
+result = await agent.ask_async("What is the capital of France?")
+
+# Streaming:
+async for chunk in agent.stream("Tell me a story"):
+    print(chunk, end="")
+
+# Multi-turn conversation:
+async with agent.session() as chat:
+    print(await chat.send("Hi"))
+    print(await chat.send("Tell me more"))
+```
+:::
+
 ## What's Next
 
 ````{grid} 1 2 2 2
@@ -309,13 +380,13 @@ Deep dive into builders, operators, callbacks, context engineering, and all 9 na
 ```{grid-item-card} Cookbook
 :link: cookbook/index
 :link-type: doc
-67 recipes from simple agents to hero workflows like deep research and customer support triage.
+68 recipes from simple agents to hero workflows like deep research and customer support triage.
 ```
 
 ```{grid-item-card} API Reference
 :link: generated/api/index
 :link-type: doc
-Complete reference for all 132 builders with type signatures, ADK mappings, and examples.
+Complete reference for all 135 builders with type signatures, ADK mappings, and examples.
 ```
 
 ```{grid-item-card} Framework Comparison

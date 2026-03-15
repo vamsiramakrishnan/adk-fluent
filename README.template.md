@@ -1261,11 +1261,11 @@ adk web mock_testing          # .mock() for testing
 adk web race                  # race() first-to-finish
 ```
 
-43 runnable examples covering all features. See [`examples/`](examples/) for the full list.
+68 runnable examples covering all features. See [`examples/`](examples/) for the full list.
 
 ## Cookbook
 
-66 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test: `pytest examples/cookbook/ -v`
+68 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test: `pytest examples/cookbook/ -v`
 
 ### Start Here
 

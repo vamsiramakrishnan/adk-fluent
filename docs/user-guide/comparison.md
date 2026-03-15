@@ -1,6 +1,13 @@
 # Framework Comparison
 
-How adk-fluent compares to LangGraph, CrewAI, and native ADK for common agent patterns.
+adk-fluent produces **native ADK objects** — not a wrapper, not a new runtime, not a competing framework. Every `.build()` returns the same `LlmAgent`, `SequentialAgent`, or `ParallelAgent` you'd create by hand. The difference is how you get there.
+
+:::{admonition} The key differentiator
+:class: important
+LangGraph, CrewAI, and AutoGen all create **their own runtime objects**. adk-fluent creates **Google ADK objects**. This means adk-fluent agents work with `adk web`, `adk run`, `adk deploy`, Agent Engine, and every ADK integration — with zero adaptation layer.
+:::
+
+Below, three real patterns are implemented in all four frameworks. Count the lines, but more importantly, count the concepts you need to learn.
 
 ## Feature Matrix
 
