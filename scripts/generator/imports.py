@@ -34,7 +34,7 @@ def adk_import_name(spec: BuilderSpec) -> str:
 # Module prefixes that require optional dependencies at import time.
 # These imports are wrapped in try/except with a None fallback.
 _OPTIONAL_IMPORT_PREFIXES = (
-    "google.adk.a2a.",                     # requires: pip install 'google-adk[a2a]'
+    "google.adk.a2a.",  # requires: pip install 'google-adk[a2a]'
     "google.adk.agents.remote_a2a_agent",  # imports a2a SDK internally
 )
 

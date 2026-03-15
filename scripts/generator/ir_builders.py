@@ -515,11 +515,13 @@ def ir_build_method(spec: BuilderSpec) -> MethodNode | None:
             )
         )
 
-    body.extend([
-        AssignStmt("config", "self._prepare_build_config()"),
-        AssignStmt("result", f"self._safe_build({class_short}, config)"),
-        ReturnStmt("self._apply_native_hooks(result)"),
-    ])
+    body.extend(
+        [
+            AssignStmt("config", "self._prepare_build_config()"),
+            AssignStmt("result", f"self._safe_build({class_short}, config)"),
+            ReturnStmt("self._apply_native_hooks(result)"),
+        ]
+    )
 
     return MethodNode(
         name="build",

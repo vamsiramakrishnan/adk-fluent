@@ -330,13 +330,20 @@ def _emit_module_python(mod: ModuleNode) -> str:
         grouped = _sort_and_group_imports(mod.imports)
         lines.extend(grouped)
 
-    # Emit optional imports wrapped in try/except
+    # Emit optional imports wrapped in try/except or contextlib.suppress
     if mod.optional_imports:
+        needs_suppress = any(fallback == "pass" for _, fallback in mod.optional_imports)
+        if needs_suppress:
+            lines.append("import contextlib")
         for import_line, fallback in mod.optional_imports:
-            lines.append("try:")
-            lines.append(f"    {import_line}")
-            lines.append("except (ImportError, ModuleNotFoundError):")
-            lines.append(f"    {fallback}")
+            if fallback == "pass":
+                lines.append("with contextlib.suppress(ImportError, ModuleNotFoundError):")
+                lines.append(f"    {import_line}")
+            else:
+                lines.append("try:")
+                lines.append(f"    {import_line}")
+                lines.append("except (ImportError, ModuleNotFoundError):")
+                lines.append(f"    {fallback}")
 
     # Emit TYPE_CHECKING-guarded imports (for type annotations only)
     if mod.type_checking_imports:

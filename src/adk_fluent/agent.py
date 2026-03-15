@@ -32,10 +32,7 @@ class BaseAgent(BuilderBase):
     """Base class for all agents in Agent Development Kit."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {
-        "after_agent": "after_agent_callback",
-        "before_agent": "before_agent_callback",
-    }
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_BaseAgent
 
@@ -143,17 +140,13 @@ class Agent(BuilderBase):
         self._config["description"] = value
         return self
 
-    def global_instruct(
-        self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]
-    ) -> Self:
+    def global_instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set instruction shared by ALL agents in a workflow. Only meaningful on the root agent. Prepended to every agent's system prompt."""
         self = self._maybe_fork_for_mutation()
         self._config["global_instruction"] = value
         return self
 
-    def static(
-        self, value: Content | str | File | Part | list[str | File | Part] | None
-    ) -> Self:
+    def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
@@ -302,9 +295,7 @@ class Agent(BuilderBase):
         self._config["output_key"] = value
         return self
 
-    def static_instruct(
-        self, value: Content | str | File | Part | list[str | File | Part] | None
-    ) -> Self:
+    def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
         """Deprecated: use ``.static()`` instead."""
         self = self._maybe_fork_for_mutation()
         import warnings
@@ -515,19 +506,12 @@ class Agent(BuilderBase):
             yield chunk
 
     def test(
-        self,
-        prompt: str,
-        *,
-        contains: str | None = None,
-        matches: str | None = None,
-        equals: str | None = None,
+        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
     ) -> Self:
         """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
         from adk_fluent._helpers import run_inline_test
 
-        return run_inline_test(
-            self, prompt, contains=contains, matches=matches, equals=equals
-        )
+        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
 
     def session(self) -> Any:
         """Create an interactive multi-turn chat session. Returns an async context manager — use with ``async with agent.session() as chat:``. The agent is auto-built."""
@@ -554,9 +538,7 @@ class Agent(BuilderBase):
         async for chunk in run_events(self, prompt):
             yield chunk
 
-    def instruct(
-        self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]
-    ) -> Self:
+    def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
         """Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead)."""
         from adk_fluent._helpers import _instruct_with_guard
 
@@ -652,9 +634,7 @@ class Agent(BuilderBase):
         self._config["_artifact_schema"] = schema
         return self
 
-    def eval(
-        self, prompt: str, *, expect: str | None = None, criteria: Any | None = None
-    ) -> Any:
+    def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
         """Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run()."""
         from adk_fluent._helpers import _eval_inline
 
@@ -714,10 +694,7 @@ class RemoteA2aAgent(BuilderBase):
     """Agent that communicates with a remote A2A agent via A2A client."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {
-        "after_agent": "after_agent_callback",
-        "before_agent": "before_agent_callback",
-    }
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = _ADK_RemoteA2aAgent
 
@@ -776,9 +753,7 @@ class RemoteA2aAgent(BuilderBase):
     def build(self) -> _ADK_RemoteA2aAgent:
         """Agent that communicates with a remote A2A agent via A2A client. Resolve into a native ADK _ADK_RemoteA2aAgent."""
         if _ADK_RemoteA2aAgent is None:
-            raise ImportError(
-                "A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'"
-            )
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'")
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RemoteA2aAgent, config)
         return self._apply_native_hooks(result)

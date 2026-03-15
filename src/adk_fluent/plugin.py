@@ -6,40 +6,31 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.cli.plugins.recordings_plugin import (
-    RecordingsPlugin as _ADK_RecordingsPlugin,
-)
+from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
 from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
 from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
 from google.adk.plugins.bigquery_agent_analytics_plugin import (
     BigQueryAgentAnalyticsPlugin as _ADK_BigQueryAgentAnalyticsPlugin,
 )
-from google.adk.plugins.context_filter_plugin import (
-    ContextFilterPlugin as _ADK_ContextFilterPlugin,
-)
-from google.adk.plugins.debug_logging_plugin import (
-    DebugLoggingPlugin as _ADK_DebugLoggingPlugin,
-)
-from google.adk.plugins.global_instruction_plugin import (
-    GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin,
-)
+from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
+from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
+from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
 from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
 from google.adk.plugins.multimodal_tool_results_plugin import (
     MultimodalToolResultsPlugin as _ADK_MultimodalToolResultsPlugin,
 )
-from google.adk.plugins.reflect_retry_tool_plugin import (
-    ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin,
-)
+from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin
 from google.adk.plugins.save_files_as_artifacts_plugin import (
     SaveFilesAsArtifactsPlugin as _ADK_SaveFilesAsArtifactsPlugin,
 )
-from google.adk.tools.agent_simulator.agent_simulator_plugin import (
-    AgentSimulatorPlugin as _ADK_AgentSimulatorPlugin,
-)
+from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulatorPlugin as _ADK_AgentSimulatorPlugin
 
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
+    from google.adk.agents.llm_agent import InstructionProvider
+    from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig
+    from google.adk.plugins.reflect_retry_tool_plugin import TrackingScope
     from google.genai.types import Content
 
 
@@ -124,20 +115,10 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "config",
-        "dataset_id",
-        "location",
-        "project_id",
-        "table_id",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"config", "dataset_id", "location", "project_id", "table_id"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {
-            "project_id": project_id,
-            "dataset_id": dataset_id,
-            "kwargs": kwargs,
-        }
+        self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
@@ -173,11 +154,7 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "custom_filter",
-        "name",
-        "num_invocations_to_keep",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"custom_filter", "name", "num_invocations_to_keep"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -191,9 +168,7 @@ class ContextFilterPlugin(BuilderBase):
         self._config["num_invocations_to_keep"] = value
         return self
 
-    def custom_filter(
-        self, value: Callable[[list[Content]], list[Content]] | None
-    ) -> Self:
+    def custom_filter(self, value: Callable[[list[Content]], list[Content]] | None) -> Self:
         """Set the ``custom_filter`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["custom_filter"] = value
@@ -218,12 +193,7 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "include_session_state",
-        "include_system_instruction",
-        "name",
-        "output_path",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"include_session_state", "include_system_instruction", "name", "output_path"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -355,12 +325,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "max_retries",
-        "name",
-        "throw_exception_if_retry_exceeded",
-        "tracking_scope",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"max_retries", "name", "throw_exception_if_retry_exceeded", "tracking_scope"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

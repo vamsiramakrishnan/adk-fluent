@@ -2,132 +2,72 @@
 
 from __future__ import annotations
 
+import ssl
 from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents.active_streaming_tool import (
-    ActiveStreamingTool as _ADK_ActiveStreamingTool,
-)
+from google.adk.agents.active_streaming_tool import ActiveStreamingTool as _ADK_ActiveStreamingTool
 from google.adk.tools.agent_tool import AgentTool as _ADK_AgentTool
-from google.adk.tools.apihub_tool.apihub_toolset import (
-    APIHubToolset as _ADK_APIHubToolset,
-)
+from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset as _ADK_APIHubToolset
 from google.adk.tools.application_integration_tool.application_integration_toolset import (
     ApplicationIntegrationToolset as _ADK_ApplicationIntegrationToolset,
 )
 from google.adk.tools.application_integration_tool.integration_connector_tool import (
     IntegrationConnectorTool as _ADK_IntegrationConnectorTool,
 )
-from google.adk.tools.base_authenticated_tool import (
-    BaseAuthenticatedTool as _ADK_BaseAuthenticatedTool,
-)
+from google.adk.tools.base_authenticated_tool import BaseAuthenticatedTool as _ADK_BaseAuthenticatedTool
 from google.adk.tools.base_tool import BaseTool as _ADK_BaseTool
 from google.adk.tools.base_toolset import BaseToolset as _ADK_BaseToolset
-from google.adk.tools.bigquery.bigquery_toolset import (
-    BigQueryToolset as _ADK_BigQueryToolset,
-)
-from google.adk.tools.bigtable.bigtable_toolset import (
-    BigtableToolset as _ADK_BigtableToolset,
-)
-from google.adk.tools.computer_use.computer_use_tool import (
-    ComputerUseTool as _ADK_ComputerUseTool,
-)
-from google.adk.tools.computer_use.computer_use_toolset import (
-    ComputerUseToolset as _ADK_ComputerUseToolset,
-)
-from google.adk.tools.data_agent.data_agent_toolset import (
-    DataAgentToolset as _ADK_DataAgentToolset,
-)
-from google.adk.tools.discovery_engine_search_tool import (
-    DiscoveryEngineSearchTool as _ADK_DiscoveryEngineSearchTool,
-)
-from google.adk.tools.enterprise_search_tool import (
-    EnterpriseWebSearchTool as _ADK_EnterpriseWebSearchTool,
-)
+from google.adk.tools.bigquery.bigquery_toolset import BigQueryToolset as _ADK_BigQueryToolset
+from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset as _ADK_BigtableToolset
+from google.adk.tools.computer_use.computer_use_tool import ComputerUseTool as _ADK_ComputerUseTool
+from google.adk.tools.computer_use.computer_use_toolset import ComputerUseToolset as _ADK_ComputerUseToolset
+from google.adk.tools.data_agent.data_agent_toolset import DataAgentToolset as _ADK_DataAgentToolset
+from google.adk.tools.discovery_engine_search_tool import DiscoveryEngineSearchTool as _ADK_DiscoveryEngineSearchTool
+from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool as _ADK_EnterpriseWebSearchTool
 from google.adk.tools.example_tool import ExampleTool as _ADK_ExampleTool
 from google.adk.tools.function_tool import FunctionTool as _ADK_FunctionTool
-from google.adk.tools.google_api_tool.google_api_tool import (
-    GoogleApiTool as _ADK_GoogleApiTool,
-)
-from google.adk.tools.google_api_tool.google_api_toolset import (
-    GoogleApiToolset as _ADK_GoogleApiToolset,
-)
-from google.adk.tools.google_api_tool.google_api_toolsets import (
-    CalendarToolset as _ADK_CalendarToolset,
-    DocsToolset as _ADK_DocsToolset,
-    GmailToolset as _ADK_GmailToolset,
-    SheetsToolset as _ADK_SheetsToolset,
-    SlidesToolset as _ADK_SlidesToolset,
-    YoutubeToolset as _ADK_YoutubeToolset,
-)
-from google.adk.tools.google_maps_grounding_tool import (
-    GoogleMapsGroundingTool as _ADK_GoogleMapsGroundingTool,
-)
-from google.adk.tools.google_search_agent_tool import (
-    GoogleSearchAgentTool as _ADK_GoogleSearchAgentTool,
-)
-from google.adk.tools.google_search_tool import (
-    GoogleSearchTool as _ADK_GoogleSearchTool,
-)
+from google.adk.tools.google_api_tool.google_api_tool import GoogleApiTool as _ADK_GoogleApiTool
+from google.adk.tools.google_api_tool.google_api_toolset import GoogleApiToolset as _ADK_GoogleApiToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import CalendarToolset as _ADK_CalendarToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import DocsToolset as _ADK_DocsToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import GmailToolset as _ADK_GmailToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import SheetsToolset as _ADK_SheetsToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import SlidesToolset as _ADK_SlidesToolset
+from google.adk.tools.google_api_tool.google_api_toolsets import YoutubeToolset as _ADK_YoutubeToolset
+from google.adk.tools.google_maps_grounding_tool import GoogleMapsGroundingTool as _ADK_GoogleMapsGroundingTool
+from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool as _ADK_GoogleSearchAgentTool
+from google.adk.tools.google_search_tool import GoogleSearchTool as _ADK_GoogleSearchTool
 from google.adk.tools.google_tool import GoogleTool as _ADK_GoogleTool
-from google.adk.tools.load_artifacts_tool import (
-    LoadArtifactsTool as _ADK_LoadArtifactsTool,
-)
-from google.adk.tools.load_mcp_resource_tool import (
-    LoadMcpResourceTool as _ADK_LoadMcpResourceTool,
-)
+from google.adk.tools.load_artifacts_tool import LoadArtifactsTool as _ADK_LoadArtifactsTool
+from google.adk.tools.load_mcp_resource_tool import LoadMcpResourceTool as _ADK_LoadMcpResourceTool
 from google.adk.tools.load_memory_tool import LoadMemoryTool as _ADK_LoadMemoryTool
-from google.adk.tools.long_running_tool import (
-    LongRunningFunctionTool as _ADK_LongRunningFunctionTool,
-)
-from google.adk.tools.mcp_tool.mcp_tool import (
-    MCPTool as _ADK_MCPTool,
-    McpTool as _ADK_McpTool,
-)
-from google.adk.tools.mcp_tool.mcp_toolset import (
-    MCPToolset as _ADK_MCPToolset,
-    McpToolset as _ADK_McpToolset,
-)
-from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import (
-    OpenAPIToolset as _ADK_OpenAPIToolset,
-)
-from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import (
-    RestApiTool as _ADK_RestApiTool,
-)
-from google.adk.tools.preload_memory_tool import (
-    PreloadMemoryTool as _ADK_PreloadMemoryTool,
-)
+from google.adk.tools.long_running_tool import LongRunningFunctionTool as _ADK_LongRunningFunctionTool
+from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _ADK_MCPTool
+from google.adk.tools.mcp_tool.mcp_tool import McpTool as _ADK_McpTool
+from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset as _ADK_MCPToolset
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
+from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import OpenAPIToolset as _ADK_OpenAPIToolset
+from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import RestApiTool as _ADK_RestApiTool
+from google.adk.tools.preload_memory_tool import PreloadMemoryTool as _ADK_PreloadMemoryTool
 from google.adk.tools.pubsub.pubsub_toolset import PubSubToolset as _ADK_PubSubToolset
-from google.adk.tools.retrieval.base_retrieval_tool import (
-    BaseRetrievalTool as _ADK_BaseRetrievalTool,
-)
-from google.adk.tools.set_model_response_tool import (
-    SetModelResponseTool as _ADK_SetModelResponseTool,
-)
-from google.adk.tools.skill_toolset import (
-    LoadSkillResourceTool as _ADK_LoadSkillResourceTool,
-    LoadSkillTool as _ADK_LoadSkillTool,
-    SkillToolset as _ADK_SkillToolset,
-)
-from google.adk.tools.spanner.spanner_toolset import (
-    SpannerToolset as _ADK_SpannerToolset,
-)
+from google.adk.tools.retrieval.base_retrieval_tool import BaseRetrievalTool as _ADK_BaseRetrievalTool
+from google.adk.tools.set_model_response_tool import SetModelResponseTool as _ADK_SetModelResponseTool
+from google.adk.tools.skill_toolset import LoadSkillResourceTool as _ADK_LoadSkillResourceTool
+from google.adk.tools.skill_toolset import LoadSkillTool as _ADK_LoadSkillTool
+from google.adk.tools.skill_toolset import SkillToolset as _ADK_SkillToolset
+from google.adk.tools.spanner.spanner_toolset import SpannerToolset as _ADK_SpannerToolset
 from google.adk.tools.toolbox_toolset import ToolboxToolset as _ADK_ToolboxToolset
-from google.adk.tools.transfer_to_agent_tool import (
-    TransferToAgentTool as _ADK_TransferToAgentTool,
-)
+from google.adk.tools.transfer_to_agent_tool import TransferToAgentTool as _ADK_TransferToAgentTool
 from google.adk.tools.url_context_tool import UrlContextTool as _ADK_UrlContextTool
-from google.adk.tools.vertex_ai_search_tool import (
-    VertexAiSearchTool as _ADK_VertexAiSearchTool,
-)
-import ssl
+from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool as _ADK_VertexAiSearchTool
 
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-    from typing import Literal, TextIO, Union
+    from typing import Literal, TextIO
 
     from fastapi.openapi.models import Operation
     from google.adk.agents.live_request_queue import LiveRequestQueue
@@ -135,6 +75,7 @@ if TYPE_CHECKING:
     from google.adk.auth.auth_credential import AuthCredential, ServiceAccount
     from google.adk.auth.auth_schemes import AuthScheme
     from google.adk.auth.auth_tool import AuthConfig
+    from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig
     from google.adk.tools.apihub_tool.clients.apihub_client import APIHubClient
     from google.adk.tools.base_toolset import ToolPredicate
     from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig
@@ -143,6 +84,7 @@ if TYPE_CHECKING:
     from google.adk.tools.bigtable.settings import BigtableToolSettings
     from google.adk.tools.data_agent.config import DataAgentToolConfig
     from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig
+    from google.adk.tools.mcp_tool.mcp_tool import ProgressCallbackFactory
     from google.adk.tools.pubsub.config import PubSubToolConfig
     from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig
     from google.adk.tools.spanner.settings import SpannerToolSettings
@@ -433,11 +375,7 @@ class IntegrationConnectorTool(BuilderBase):
     }
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
-        self._config: dict[str, Any] = {
-            "name": name,
-            "description": description,
-            "connection_name": connection_name,
-        }
+        self._config: dict[str, Any] = {"name": name, "description": description, "connection_name": connection_name}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
@@ -503,12 +441,7 @@ class BaseAuthenticatedTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "auth_config",
-        "description",
-        "name",
-        "response_for_auth_required",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"auth_config", "description", "name", "response_for_auth_required"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
@@ -541,12 +474,7 @@ class BaseTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "custom_metadata",
-        "description",
-        "is_long_running",
-        "name",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"custom_metadata", "description", "is_long_running", "name"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
@@ -612,11 +540,7 @@ class BigQueryToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "bigquery_tool_config",
-        "credentials_config",
-        "tool_filter",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"bigquery_tool_config", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -655,11 +579,7 @@ class BigtableToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "bigtable_tool_settings",
-        "credentials_config",
-        "tool_filter",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"bigtable_tool_settings", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -746,11 +666,7 @@ class DataAgentToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "credentials_config",
-        "data_agent_tool_config",
-        "tool_filter",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"credentials_config", "data_agent_tool_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -789,13 +705,7 @@ class DiscoveryEngineSearchTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "data_store_id",
-        "data_store_specs",
-        "filter",
-        "max_results",
-        "search_engine_id",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"data_store_id", "data_store_specs", "filter", "max_results", "search_engine_id"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -978,10 +888,7 @@ class GoogleApiToolset(BuilderBase):
     }
 
     def __init__(self, api_name: str, api_version: str) -> None:
-        self._config: dict[str, Any] = {
-            "api_name": api_name,
-            "api_version": api_version,
-        }
+        self._config: dict[str, Any] = {"api_name": api_name, "api_version": api_version}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
@@ -1601,10 +1508,7 @@ class McpTool(BuilderBase):
     }
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
-        self._config: dict[str, Any] = {
-            "mcp_tool": mcp_tool,
-            "mcp_session_manager": mcp_session_manager,
-        }
+        self._config: dict[str, Any] = {"mcp_tool": mcp_tool, "mcp_session_manager": mcp_session_manager}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
@@ -1627,17 +1531,13 @@ class McpTool(BuilderBase):
         self._config["require_confirmation"] = value
         return self
 
-    def header_provider(
-        self, value: Callable[[ReadonlyContext], dict[str, str]] | None
-    ) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
         return self
 
-    def progress_callback(
-        self, value: ProgressFnT | ProgressCallbackFactory | None
-    ) -> Self:
+    def progress_callback(self, value: ProgressFnT | ProgressCallbackFactory | None) -> Self:
         """Set the ``progress_callback`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["progress_callback"] = value
@@ -1732,17 +1632,13 @@ class McpToolset(BuilderBase):
         self._config["require_confirmation"] = value
         return self
 
-    def header_provider(
-        self, value: Callable[[ReadonlyContext], dict[str, str]] | None
-    ) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
         return self
 
-    def progress_callback(
-        self, value: ProgressFnT | ProgressCallbackFactory | None
-    ) -> Self:
+    def progress_callback(self, value: ProgressFnT | ProgressCallbackFactory | None) -> Self:
         """Set the ``progress_callback`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["progress_callback"] = value
@@ -1840,9 +1736,7 @@ class OpenAPIToolset(BuilderBase):
         self._config["ssl_verify"] = value
         return self
 
-    def header_provider(
-        self, value: Callable[[ReadonlyContext], dict[str, str]] | None
-    ) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
@@ -1875,11 +1769,7 @@ class RestApiTool(BuilderBase):
     }
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
-        self._config: dict[str, Any] = {
-            "name": name,
-            "description": description,
-            "endpoint": endpoint,
-        }
+        self._config: dict[str, Any] = {"name": name, "description": description, "endpoint": endpoint}
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
@@ -1914,9 +1804,7 @@ class RestApiTool(BuilderBase):
         self._config["ssl_verify"] = value
         return self
 
-    def header_provider(
-        self, value: Callable[[ReadonlyContext], dict[str, str]] | None
-    ) -> Self:
+    def header_provider(self, value: Callable[[ReadonlyContext], dict[str, str]] | None) -> Self:
         """Set the ``header_provider`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["header_provider"] = value
@@ -1962,11 +1850,7 @@ class PubSubToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "credentials_config",
-        "pubsub_tool_config",
-        "tool_filter",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"credentials_config", "pubsub_tool_config", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2005,12 +1889,7 @@ class BaseRetrievalTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "custom_metadata",
-        "description",
-        "is_long_running",
-        "name",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"custom_metadata", "description", "is_long_running", "name"}
 
     def __init__(self, name: str, description: str) -> None:
         self._config: dict[str, Any] = {"name": name, "description": description}
@@ -2127,11 +2006,7 @@ class SpannerToolset(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "credentials_config",
-        "spanner_tool_settings",
-        "tool_filter",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"credentials_config", "spanner_tool_settings", "tool_filter"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2204,9 +2079,7 @@ class ToolboxToolset(BuilderBase):
         self._config["auth_token_getters"] = value
         return self
 
-    def bound_params(
-        self, value: Mapping[str, Union[Callable[[], Any], Any]] | None
-    ) -> Self:
+    def bound_params(self, value: Mapping[str, Callable[[], Any] | Any] | None) -> Self:
         """Set the ``bound_params`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["bound_params"] = value

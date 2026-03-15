@@ -7,10 +7,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.apps.app import App as _ADK_App
-from google.adk.runners import (
-    InMemoryRunner as _ADK_InMemoryRunner,
-    Runner as _ADK_Runner,
-)
+from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
+from google.adk.runners import Runner as _ADK_Runner
 
 from adk_fluent._base import BuilderBase
 
@@ -19,9 +17,7 @@ if TYPE_CHECKING:
     from google.adk.agents.context_cache_config import ContextCacheConfig
     from google.adk.apps.app import EventsCompactionConfig, ResumabilityConfig
     from google.adk.artifacts.base_artifact_service import BaseArtifactService
-    from google.adk.auth.credential_service.base_credential_service import (
-        BaseCredentialService,
-    )
+    from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
     from google.adk.memory.base_memory_service import BaseMemoryService
     from google.adk.plugins.base_plugin import BasePlugin
 
@@ -83,13 +79,7 @@ class InMemoryRunner(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {
-        "agent",
-        "app",
-        "app_name",
-        "plugin_close_timeout",
-        "plugins",
-    }
+    _KNOWN_PARAMS: set[str] | None = {"agent", "app", "app_name", "plugin_close_timeout", "plugins"}
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
