@@ -34,3 +34,4 @@ tests/generated/**          linguist-generated=true
 # Generated skill references (from scripts/skill_generator.py)
 .claude/skills/_shared/**   linguist-generated=true
 .gemini/skills/_shared/**   linguist-generated=true
+skills/**                   linguist-generated=true
