@@ -1,6 +1,8 @@
 """adk-fluent: Fluent builder API for Google ADK."""
 # Auto-generated for google-adk 1.25.0
 
+from .executor import A2aAgentExecutor
+from .config import A2aAgentExecutorConfig
 from .tool import ActiveStreamingTool
 from .config import AgentConfig
 from .agent import BaseAgent
@@ -15,6 +17,7 @@ from .workflow import Loop
 from .config import LoopAgentConfig
 from .workflow import FanOut
 from .config import ParallelAgentConfig
+from .agent import RemoteA2aAgent
 from .config import RunConfig
 from .config import ToolThreadPoolConfig
 from .workflow import Pipeline
@@ -135,6 +138,8 @@ from .tool import UrlContextTool
 from .tool import VertexAiSearchTool
 
 __all__ = [
+    "A2aAgentExecutor",
+    "A2aAgentExecutorConfig",
     "ActiveStreamingTool",
     "AgentConfig",
     "BaseAgent",
@@ -149,6 +154,7 @@ __all__ = [
     "LoopAgentConfig",
     "FanOut",
     "ParallelAgentConfig",
+    "RemoteA2aAgent",
     "RunConfig",
     "ToolThreadPoolConfig",
     "Pipeline",
@@ -472,6 +478,9 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
+    "a2a_cascade",
+    "a2a_fanout",
+    "a2a_delegate",
     "ComparisonSuite",
     "Source",
     "Inbox",
@@ -722,6 +731,9 @@ from .patterns import fan_out_merge
 from .patterns import chain
 from .patterns import conditional
 from .patterns import supervised
+from .patterns import a2a_cascade
+from .patterns import a2a_fanout
+from .patterns import a2a_delegate
 from .prelude import RemoteAgent
 from .prelude import A2AServer
 from .prelude import AgentRegistry
@@ -767,6 +779,9 @@ from .prelude import fan_out_merge
 from .prelude import map_reduce
 from .prelude import conditional
 from .prelude import supervised
+from .prelude import a2a_cascade
+from .prelude import a2a_fanout
+from .prelude import a2a_delegate
 from .prelude import Source
 from .prelude import Inbox
 from .prelude import StreamRunner

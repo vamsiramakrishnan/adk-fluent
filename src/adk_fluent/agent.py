@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
 
 from adk_fluent._base import BuilderBase
 
@@ -682,4 +683,71 @@ class Agent(BuilderBase):
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
         config = self._prepare_build_config()
         result = self._safe_build(LlmAgent, config)
+        return self._apply_native_hooks(result)
+
+
+class RemoteA2aAgent(BuilderBase):
+    """Agent that communicates with a remote A2A agent via A2A client."""
+
+    _ALIASES: dict[str, str] = {"describe": "description"}
+    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
+    _ADK_TARGET_CLASS = _ADK_RemoteA2aAgent
+
+    def __init__(self, name: str) -> None:
+        self._config: dict[str, Any] = {"name": name}
+        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
+        self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
+
+    def describe(self, value: str) -> Self:
+        """Set the `description` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["description"] = value
+        return self
+
+    def after_agent(self, *fns: Callable[..., Any]) -> Self:
+        """Append callback(s) to `after_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
+        for fn in fns:
+            self._callbacks["after_agent_callback"].append(fn)
+        return self
+
+    def after_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
+        """Append callback to `after_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
+        if condition:
+            self._callbacks["after_agent_callback"].append(fn)
+        return self
+
+    def before_agent(self, *fns: Callable[..., Any]) -> Self:
+        """Append callback(s) to `before_agent_callback`. Multiple calls accumulate."""
+        self = self._maybe_fork_for_mutation()
+        for fn in fns:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+    def before_agent_if(self, condition: bool, fn: Callable[..., Any]) -> Self:
+        """Append callback to `before_agent_callback` only if condition is True."""
+        self = self._maybe_fork_for_mutation()
+        if condition:
+            self._callbacks["before_agent_callback"].append(fn)
+        return self
+
+    def sub_agents(self, value: list[BaseAgent]) -> Self:
+        """Set the ``sub_agents`` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["sub_agents"] = value
+        return self
+
+    def sub_agent(self, value: BaseAgent) -> Self:
+        """Append to ``sub_agents`` (lazy — built at .build() time)."""
+        self = self._maybe_fork_for_mutation()
+        self._lists["sub_agents"].append(value)
+        return self
+
+    def build(self) -> _ADK_RemoteA2aAgent:
+        """Agent that communicates with a remote A2A agent via A2A client. Resolve into a native ADK _ADK_RemoteA2aAgent."""
+        config = self._prepare_build_config()
+        result = self._safe_build(_ADK_RemoteA2aAgent, config)
         return self._apply_native_hooks(result)

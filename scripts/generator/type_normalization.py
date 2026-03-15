@@ -22,24 +22,34 @@ def normalize_stub_classes(classes: list[ClassNode]) -> list[str]:
 
     Mutates *classes* in place and returns extra import lines.
     """
-    extra_imports: list[str] = []
-    needs_ssl = False
+    needed_module_imports: set[str] = set()
 
     def _normalize_type(type_str: str | None) -> str | None:
-        nonlocal needs_ssl
         if type_str is None:
             return None
         result = type_str
+        # Check for module refs that need imports BEFORE stripping prefixes,
+        # so "a2a.types." is detected before "types." strips it.
+        for prefix, _import_line in STDLIB_MODULE_REFS.items():
+            if prefix in result:
+                needed_module_imports.add(_import_line)
+        # Protect module refs (e.g. "a2a.types.") from being partially
+        # stripped by MODULE_PREFIX_REWRITES (which would turn "a2a.types.X"
+        # into "a2a.X" via the "types." → "" rewrite).
+        _placeholders: dict[str, str] = {}
+        for i, prefix in enumerate(STDLIB_MODULE_REFS):
+            ph = f"\x00MODREF{i}\x00"
+            _placeholders[ph] = prefix
+            result = result.replace(prefix, ph)
         # Resolve module-qualified types (types.Content → Content)
         for prefix, replacement in MODULE_PREFIX_REWRITES.items():
             result = result.replace(prefix, replacement)
-        # Check for stdlib module refs (ssl.SSLContext → keep, add import)
-        for prefix, _import_line in STDLIB_MODULE_REFS.items():
-            if prefix in result:
-                needs_ssl = True
-        # Replace unresolvable types with Any
+        # Restore protected prefixes
+        for ph, original in _placeholders.items():
+            result = result.replace(ph, original)
+        # Replace unresolvable types with Any (only bare names, not module-qualified)
         for utype in UNRESOLVABLE_TYPES:
-            result = re.sub(rf"\b{re.escape(utype)}\b", "Any", result)
+            result = re.sub(rf"(?<![.\w]){re.escape(utype)}\b", "Any", result)
         # Ensure bare Callable has type args (pyright requires them)
         result = re.sub(r"\bCallable\b(?!\[)", "Callable[..., Any]", result)
         # Ensure bare AsyncIterator has type args
@@ -60,10 +70,7 @@ def normalize_stub_classes(classes: list[ClassNode]) -> list[str]:
             method.params = new_params
             method.returns = _normalize_type(method.returns)
 
-    if needs_ssl:
-        extra_imports.append("import ssl")
-
-    return extra_imports
+    return sorted(needed_module_imports)
 
 
 def resolve_stub_name_conflicts(classes: list[ClassNode], already_imported: set[str]) -> None:

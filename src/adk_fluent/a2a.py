@@ -715,8 +715,8 @@ class A2AServer:
                     description=s.description,
                     tags=s.tags,
                     examples=s.examples,
-                    inputModes=s.input_modes,
-                    outputModes=s.output_modes,
+                    input_modes=s.input_modes,
+                    output_modes=s.output_modes,
                 )
             )
 
@@ -728,11 +728,11 @@ class A2AServer:
             "url": rpc_url,
             "version": self._version,
             "skills": skills,
-            "defaultInputModes": ["text/plain"],
-            "defaultOutputModes": ["text/plain"],
+            "default_input_modes": ["text/plain"],
+            "default_output_modes": ["text/plain"],
             "capabilities": AgentCapabilities(
                 streaming=self._streaming_enabled,
-                pushNotifications=self._push_notifications,
+                push_notifications=self._push_notifications,
             ),
         }
 
@@ -743,7 +743,7 @@ class A2AServer:
             )
 
         if self._docs_url:
-            card_kwargs["documentationUrl"] = self._docs_url
+            card_kwargs["documentation_url"] = self._docs_url
 
         return A2AAgentCard(**card_kwargs)
 

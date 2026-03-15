@@ -6,6 +6,8 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
+import a2a.types
+from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
 from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
 from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
 from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
@@ -52,11 +54,15 @@ from adk_fluent._base import BuilderBase
 if TYPE_CHECKING:
     from typing import Literal
 
+    from a2a.server.agent_execution.context import RequestContext
     from fastapi.openapi.models import APIKey, HTTPBase, HTTPBearer, OAuth2, OpenIdConnect
+    from google.adk.a2a.converters.request_converter import AgentRunRequest
+    from google.adk.agents.invocation_context import InvocationContext
     from google.adk.agents.run_config import StreamingMode
     from google.adk.apps.base_events_summarizer import BaseEventsSummarizer
     from google.adk.auth.auth_credential import AuthCredential
     from google.adk.auth.auth_schemes import OpenIdConnectWithConfig
+    from google.adk.events.event import Event
     from google.adk.tools.agent_simulator.agent_simulator_config import InjectedError, MockStrategy
     from google.adk.tools.bigquery.config import WriteMode
     from google.adk.tools.mcp_tool.mcp_session_manager import (
@@ -78,6 +84,61 @@ if TYPE_CHECKING:
         SpeechConfig,
     )
     from mcp.client.stdio import StdioServerParameters
+
+
+class A2aAgentExecutorConfig(BuilderBase):
+    """Configuration for the A2aAgentExecutor."""
+
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _ADK_TARGET_CLASS = _ADK_A2aAgentExecutorConfig
+
+    def __init__(self) -> None:
+        self._config: dict[str, Any] = {}
+        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
+        self._lists: dict[str, list] = defaultdict(list)
+        self._frozen = False
+
+    def a2a_part_converter(self, value: Callable[[Part], Part | None | list[Part]]) -> Self:
+        """Set the ``a2a_part_converter`` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["a2a_part_converter"] = value
+        return self
+
+    def gen_ai_part_converter(self, value: Callable[[Part], Part | None | list[Part]]) -> Self:
+        """Set the ``gen_ai_part_converter`` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["gen_ai_part_converter"] = value
+        return self
+
+    def request_converter(
+        self, value: Callable[[RequestContext, Callable[[Part], Part | None | list[Part]]], AgentRunRequest]
+    ) -> Self:
+        """Set the ``request_converter`` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["request_converter"] = value
+        return self
+
+    def event_converter(
+        self,
+        value: Callable[
+            [Event, InvocationContext, str | None, str | None, Callable[[Part], Part | None | list[Part]]],
+            list[
+                a2a.types.Message | a2a.types.Task | a2a.types.TaskStatusUpdateEvent | a2a.types.TaskArtifactUpdateEvent
+            ],
+        ],
+    ) -> Self:
+        """Set the ``event_converter`` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["event_converter"] = value
+        return self
+
+    def build(self) -> _ADK_A2aAgentExecutorConfig:
+        """Configuration for the A2aAgentExecutor. Resolve into a native ADK _ADK_A2aAgentExecutorConfig."""
+        config = self._prepare_build_config()
+        result = self._safe_build(_ADK_A2aAgentExecutorConfig, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentConfig(BuilderBase):

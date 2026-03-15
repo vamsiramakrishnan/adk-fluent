@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-15T05:01:09.904964+00:00"
+generated_at = "2026-03-15T06:27:56.389115+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -47,6 +47,32 @@ is active.
    - ``.writes(key)`` → stores text in state (no format constraint)
    - ``.produces(Model)`` → contract annotation (no runtime effect)
 """
+
+[builders.A2aAgentExecutor]
+source_class = "google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutor"
+output_module = "executor"
+doc = "An AgentExecutor that runs an ADK Agent against an A2A request and."
+auto_tag = "data"
+constructor_args = ["runner"]
+extra_skip_fields = []
+
+[[builders.A2aAgentExecutor.terminals]]
+name = "build"
+returns = "A2aAgentExecutor"
+doc = "Resolve into a native ADK A2aAgentExecutor."
+
+[builders.A2aAgentExecutorConfig]
+source_class = "google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutorConfig"
+output_module = "config"
+doc = "Configuration for the A2aAgentExecutor."
+auto_tag = "data"
+constructor_args = []
+extra_skip_fields = []
+
+[[builders.A2aAgentExecutorConfig.terminals]]
+name = "build"
+returns = "A2aAgentExecutorConfig"
+doc = "Resolve into a native ADK A2aAgentExecutorConfig."
 
 [builders.ActiveStreamingTool]
 source_class = "google.adk.agents.active_streaming_tool.ActiveStreamingTool"
@@ -820,6 +846,33 @@ signature = "(self, value: CodeConfig) -> Self"
 doc = "Append to ``after_agent_callbacks`` (lazy — built at .build() time)."
 behavior = "list_append"
 target_field = "after_agent_callbacks"
+
+[builders.RemoteA2aAgent]
+source_class = "google.adk.agents.remote_a2a_agent.RemoteA2aAgent"
+output_module = "agent"
+doc = "Agent that communicates with a remote A2A agent via A2A client."
+auto_tag = "data"
+constructor_args = ["name"]
+extra_skip_fields = []
+
+[builders.RemoteA2aAgent.aliases]
+describe = "description"
+
+[builders.RemoteA2aAgent.callback_aliases]
+after_agent = "after_agent_callback"
+before_agent = "before_agent_callback"
+
+[[builders.RemoteA2aAgent.terminals]]
+name = "build"
+returns = "RemoteA2aAgent"
+doc = "Resolve into a native ADK RemoteA2aAgent."
+
+[[builders.RemoteA2aAgent.extras]]
+name = "sub_agent"
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
+behavior = "list_append"
+target_field = "sub_agents"
 
 [builders.RunConfig]
 source_class = "google.adk.agents.run_config.RunConfig"

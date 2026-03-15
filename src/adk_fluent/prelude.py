@@ -43,6 +43,9 @@ from adk_fluent._transforms import STransform
 from adk_fluent.a2a import A2AServer, AgentRegistry, RemoteAgent
 from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
+    a2a_cascade,
+    a2a_delegate,
+    a2a_fanout,
     cascade,
     chain,
     conditional,
@@ -105,6 +108,9 @@ __all__ = [
     "map_reduce",
     "conditional",
     "supervised",
+    "a2a_cascade",
+    "a2a_fanout",
+    "a2a_delegate",
     # Tier 5: Stream execution
     "Source",
     "Inbox",

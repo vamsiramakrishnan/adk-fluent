@@ -91,6 +91,9 @@ IMPORT_OVERRIDES: dict[str, str] = {
     # google.genai.types that appear without module prefix after normalization
     "VertexAISearchDataStoreSpec": "from google.genai.types import VertexAISearchDataStoreSpec",
     "ThinkingConfig": "from google.genai.types import ThinkingConfig",
+    # A2A SDK types (a2a package, not google.adk.a2a)
+    "RequestContext": "from a2a.server.agent_execution.context import RequestContext",
+    "AgentRunRequest": "from google.adk.a2a.converters.request_converter import AgentRunRequest",
 }
 
 # Types that cannot be resolved at stub-generation time (optional deps,
@@ -108,9 +111,10 @@ MODULE_PREFIX_REWRITES: dict[str, str] = {
     "genai_types.": "",
 }
 
-# Module-qualified prefixes that need stdlib imports (kept in type string).
+# Module-qualified prefixes that need their own imports (kept in type string).
 STDLIB_MODULE_REFS: dict[str, str] = {
     "ssl.": "import ssl",
+    "a2a.types.": "import a2a.types",
 }
 
 # Stdlib typing names that need explicit imports when referenced in stubs.
