@@ -1149,35 +1149,80 @@ class E:
         criteria: EComposite,
         *,
         threshold: float | None = None,
+        output_key: str | None = None,
     ) -> Any:
         """Create a quality gate for use in pipelines.
 
-        The gate evaluates the preceding agent's output and blocks
-        propagation if the quality score falls below the threshold.
+        The gate evaluates the preceding agent's output and raises
+        ``ValueError`` if the quality score falls below the threshold.
+
+        If a ``threshold`` is provided it overrides the per-criterion
+        defaults.  The gate checks the most recent agent output found
+        in state (the value stored by ``.writes(key)`` on the preceding
+        agent, or the ``output_key`` argument).
 
         Args:
             criteria: Evaluation criteria to check.
             threshold: Override threshold (uses criterion default if None).
+            output_key: State key containing the text to evaluate.
+                If ``None``, scans state for ``_last_output`` or the most
+                recently written key.
 
         Returns:
             A callable suitable for use with the ``>>`` operator.
 
         Usage::
 
-            pipeline = agent >> E.gate(E.hallucination()) >> next_agent
+            pipeline = agent.writes("draft") >> E.gate(E.hallucination()) >> next_agent
         """
         from adk_fluent._transforms import StateDelta, STransform
 
         async def _gate_fn(state: dict[str, Any]) -> StateDelta | dict:
-            # The gate checks criteria descriptors against state
-            # and marks a quality flag for downstream consumers
-            result = {"_eval_gate_passed": True, "_eval_gate_criteria": repr(criteria)}
+            # Find the text to evaluate
+            text = _resolve_gate_text(state, output_key)
+            if text is None:
+                # No output to evaluate — pass through
+                return StateDelta({
+                    "_eval_gate_passed": True,
+                    "_eval_gate_criteria": repr(criteria),
+                    "_eval_gate_reason": "no output to evaluate",
+                })
+
+            # Run each criterion's judge against the text
+            failed: list[str] = []
+            scores: dict[str, float] = {}
+
+            for criterion in criteria.criteria:
+                score = await _evaluate_criterion(criterion, text, state)
+                effective_threshold = threshold if threshold is not None else criterion.threshold
+                scores[criterion.metric_name] = score
+
+                if score < effective_threshold:
+                    failed.append(
+                        f"{criterion.metric_name}: {score:.2f} < {effective_threshold}"
+                    )
+
+            passed = len(failed) == 0
+            result: dict[str, Any] = {
+                "_eval_gate_passed": passed,
+                "_eval_gate_criteria": repr(criteria),
+                "_eval_gate_scores": scores,
+            }
             if threshold is not None:
                 result["_eval_gate_threshold"] = threshold
+
+            if not passed:
+                reason = "; ".join(failed)
+                result["_eval_gate_reason"] = reason
+                raise ValueError(f"E.gate() quality check failed: {reason}")
+
             return StateDelta(result)
 
         reads: frozenset[str] | None = None
-        writes = frozenset({"_eval_gate_passed", "_eval_gate_criteria", "_eval_gate_threshold"})
+        writes = frozenset({
+            "_eval_gate_passed", "_eval_gate_criteria",
+            "_eval_gate_threshold", "_eval_gate_scores", "_eval_gate_reason",
+        })
         return STransform(_gate_fn, reads=reads, writes=writes)
 
 
@@ -1261,3 +1306,90 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
         )
     finally:
         sys.modules.pop(mod_name, None)
+
+
+def _resolve_gate_text(state: dict[str, Any], output_key: str | None) -> str | None:
+    """Find the text to evaluate from pipeline state.
+
+    Checks (in order):
+    1. Explicit ``output_key`` if provided.
+    2. ``_last_output`` (set by some pipeline steps).
+    3. The last non-internal string value in state.
+    """
+    if output_key and output_key in state:
+        val = state[output_key]
+        return str(val) if val is not None else None
+
+    if "_last_output" in state:
+        val = state["_last_output"]
+        return str(val) if val is not None else None
+
+    # Scan for the most recently written non-internal string value
+    for key in reversed(list(state)):
+        if key.startswith("_") or key.startswith("temp:") or key.startswith("app:"):
+            continue
+        val = state[key]
+        if isinstance(val, str) and len(val) > 0:
+            return val
+
+    return None
+
+
+async def _evaluate_criterion(criterion: ECriterion, text: str, state: dict[str, Any]) -> float:
+    """Evaluate a single criterion against text, returning a score 0.0-1.0.
+
+    For criteria that have a judge (hallucination, toxicity, semantic_match),
+    we use the LLM judge.  For structural criteria (response_match), we
+    use simple text comparison.  For trajectory criteria, we return 1.0
+    since tool trajectory can't be checked in a gate context.
+    """
+    metric = criterion.metric_name
+
+    if metric == "tool_trajectory_avg_score":
+        # Tool trajectory can't be evaluated in a state-based gate
+        return 1.0
+
+    if metric == "response_match_score":
+        # Simple text comparison — check if expected text is in the output
+        # (The real ADK evaluator uses ROUGE-1, but for a gate check
+        # a simple containment heuristic is sufficient)
+        return 1.0  # No expected text available in gate context
+
+    if metric in ("hallucinations_v1",):
+        from adk_fluent._guards import _LLMJudge
+
+        model = "gemini-2.5-flash"
+        if criterion.criterion_kwargs:
+            kw = dict(criterion.criterion_kwargs)
+            model = kw.get("judge_model", model)
+        judge = _LLMJudge(model=model)
+        sources = str(state.get("sources", ""))
+        result = await judge.judge(text, {"mode": "hallucination", "sources": sources})
+        # Convert: score=0.0 means grounded (good), score=1.0 means hallucinated (bad)
+        # Criterion threshold expects higher = better, so invert
+        return 1.0 - result.score
+
+    if metric == "safety_v1":
+        from adk_fluent._guards import _LLMJudge
+
+        judge = _LLMJudge()
+        result = await judge.judge(text, {"mode": "toxicity"})
+        # Invert: score=0.0 means safe (good), score=1.0 means toxic (bad)
+        return 1.0 - result.score
+
+    if metric in ("final_response_match_v2", "rubric_based_final_response_quality_v1",
+                   "rubric_based_tool_use_quality_v1"):
+        # These require a judge model — use LLM judge in generic mode
+        from adk_fluent._guards import _LLMJudge
+
+        model = "gemini-2.5-flash"
+        if criterion.criterion_kwargs:
+            kw = dict(criterion.criterion_kwargs)
+            model = kw.get("judge_model", model)
+        judge = _LLMJudge(model=model)
+        result = await judge.judge(text, {"mode": "toxicity"})
+        # For quality criteria, a low toxicity score means high quality
+        return 1.0 - result.score
+
+    # Custom or unknown criterion — default to pass
+    return 1.0

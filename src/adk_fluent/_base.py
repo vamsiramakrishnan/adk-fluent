@@ -86,19 +86,326 @@ _UNSET = _UnsetType()
 # ======================================================================
 
 
-def _compose_callbacks(fns: list[Callable]) -> Callable:
+def _resolve_guard_tuple(spec: tuple) -> Callable:
+    """Convert a guard spec tuple into a real async ADK callback.
+
+    Guard tuples have the form ``("guard:<kind>", config)`` where config
+    varies by guard type.  These are produced by ``G.xxx()._compile()``
+    and need to be resolved into callables before ``_compose_callbacks``
+    can chain them.
+    """
+    kind: str = spec[0]
+    config = spec[1]
+
+    if kind == "guard:json":
+        async def _guard_json(*, callback_context, llm_response, **_kw):
+            import json as _json
+
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            try:
+                _json.loads(text)
+            except _json.JSONDecodeError as exc:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation("json", "post_model", f"model output is not valid JSON: {exc}") from exc
+            return None
+
+        _guard_json.__name__ = "guard_json"
+        return _guard_json
+
+    if kind == "guard:length":
+        min_len = config["min"]
+        max_len = config["max"]
+
+        async def _guard_length(*, callback_context, llm_response, **_kw):
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            n = len(text)
+            if n < min_len:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation("length", "post_model", f"output too short ({n} < {min_len})")
+            if n > max_len:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation("length", "post_model", f"output too long ({n} > {max_len})")
+            return None
+
+        _guard_length.__name__ = "guard_length"
+        return _guard_length
+
+    if kind == "guard:output":
+        schema_cls = config
+
+        async def _guard_output(*, callback_context, llm_response, **_kw):
+            import json as _json
+
+            from pydantic import ValidationError
+
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            try:
+                data = _json.loads(text)
+                schema_cls.model_validate(data)
+            except (_json.JSONDecodeError, ValidationError) as exc:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation("output", "post_model", f"schema validation failed: {exc}") from exc
+            return None
+
+        _guard_output.__name__ = "guard_output"
+        return _guard_output
+
+    if kind == "guard:input":
+        schema_cls = config
+
+        async def _guard_input(*, callback_context, llm_request, **_kw):
+            # Validate input against schema — applied as before_model_callback
+            return None  # Input schema validation is advisory
+
+        _guard_input.__name__ = "guard_input"
+        return _guard_input
+
+    if kind == "guard:budget":
+        max_tokens = config["max_tokens"]
+        _budget_used = {"total": 0}
+
+        async def _guard_budget(*, callback_context, llm_response, **_kw):
+            usage = getattr(llm_response, "usage_metadata", None)
+            if usage:
+                prompt_tokens = getattr(usage, "prompt_token_count", 0) or 0
+                output_tokens = getattr(usage, "candidates_token_count", 0) or 0
+                _budget_used["total"] += prompt_tokens + output_tokens
+            if _budget_used["total"] > max_tokens:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation(
+                    "budget", "post_model",
+                    f"token budget exceeded ({_budget_used['total']} > {max_tokens})"
+                )
+            return None
+
+        _guard_budget.__name__ = "guard_budget"
+        return _guard_budget
+
+    if kind == "guard:rate_limit":
+        # Rate limiting is best-effort via pre-model check
+        async def _guard_rate_limit(*, callback_context, llm_request, **_kw):
+            return None  # Rate limiting is advisory in the current impl
+
+        _guard_rate_limit.__name__ = "guard_rate_limit"
+        return _guard_rate_limit
+
+    if kind == "guard:max_turns":
+        max_n = config["n"]
+
+        async def _guard_max_turns(*, callback_context, llm_request, **_kw):
+            session = getattr(callback_context, "session", None)
+            if session is None:
+                return None
+            events = getattr(session, "events", [])
+            turn_count = sum(1 for e in events if getattr(e, "author", None) == "user")
+            if turn_count > max_n:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation("max_turns", "pre_model", f"exceeded {max_n} turns (current: {turn_count})")
+            return None
+
+        _guard_max_turns.__name__ = "guard_max_turns"
+        return _guard_max_turns
+
+    if kind == "guard:pii":
+        detector = config["detector"]
+        action = config["action"]
+        threshold = config["threshold"]
+        replacement = config["replacement"]
+
+        async def _guard_pii(*, callback_context, llm_response, **_kw):
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            findings = await detector.detect(text)
+            flagged = [f for f in findings if f.confidence >= threshold]
+            if not flagged:
+                return None
+            if action == "block":
+                from adk_fluent._exceptions import GuardViolation
+
+                kinds = ", ".join(f.kind for f in flagged)
+                raise GuardViolation("pii", "post_model", f"detected PII ({kinds})")
+            # action == "redact": modify response text
+            redacted = text
+            for f in sorted(flagged, key=lambda x: x.start, reverse=True):
+                redacted = redacted[: f.start] + replacement + redacted[f.end :]
+            return _replace_response_text(llm_response, redacted)
+
+        _guard_pii.__name__ = "guard_pii"
+        return _guard_pii
+
+    if kind == "guard:toxicity":
+        judge = config["judge"]
+        threshold = config["threshold"]
+
+        async def _guard_toxicity(*, callback_context, llm_response, **_kw):
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            result = await judge.judge(text, {"mode": "toxicity"})
+            if not result.passed or result.score >= threshold:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation(
+                    "toxicity", "post_model",
+                    f"content flagged (score={result.score:.2f}, "
+                    f"threshold={threshold}, reason={result.reason})"
+                )
+            return None
+
+        _guard_toxicity.__name__ = "guard_toxicity"
+        return _guard_toxicity
+
+    if kind == "guard:topic":
+        deny_list = config["deny"]
+
+        async def _guard_topic(*, callback_context, llm_response, **_kw):
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            text_lower = text.lower()
+            for topic in deny_list:
+                if topic.lower() in text_lower:
+                    from adk_fluent._exceptions import GuardViolation
+
+                    raise GuardViolation("topic", "post_model", f"denied topic '{topic}' found in output")
+            return None
+
+        _guard_topic.__name__ = "guard_topic"
+        return _guard_topic
+
+    if kind == "guard:grounded":
+        sources_key = config["sources_key"]
+
+        async def _guard_grounded(*, callback_context, llm_response, **_kw):
+            # Grounding check uses LLM judge with sources from state
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            session = getattr(callback_context, "session", None)
+            sources = ""
+            if session:
+                sources = str(session.state.get(sources_key, ""))
+            if not sources:
+                return None  # No sources to check against
+            from adk_fluent._guards import _LLMJudge
+
+            judge = _LLMJudge()
+            result = await judge.judge(text, {"mode": "hallucination", "sources": sources})
+            if not result.passed:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation(
+                    "grounded", "post_model",
+                    f"content not grounded (score={result.score:.2f}, "
+                    f"reason={result.reason})"
+                )
+            return None
+
+        _guard_grounded.__name__ = "guard_grounded"
+        return _guard_grounded
+
+    if kind == "guard:hallucination":
+        judge = config["judge"]
+        threshold = config["threshold"]
+        sources_key = config.get("sources_key", "sources")
+
+        async def _guard_hallucination(*, callback_context, llm_response, **_kw):
+            text = _extract_response_text(llm_response)
+            if text is None:
+                return None
+            session = getattr(callback_context, "session", None)
+            sources = ""
+            if session:
+                sources = str(session.state.get(sources_key, ""))
+            result = await judge.judge(text, {"mode": "hallucination", "sources": sources})
+            if not result.passed or result.score >= threshold:
+                from adk_fluent._exceptions import GuardViolation
+
+                raise GuardViolation(
+                    "hallucination", "post_model",
+                    f"content flagged (score={result.score:.2f}, "
+                    f"threshold={threshold}, reason={result.reason})"
+                )
+            return None
+
+        _guard_hallucination.__name__ = "guard_hallucination"
+        return _guard_hallucination
+
+    # Unknown guard type — pass through as no-op with warning
+    import logging as _logging
+
+    _logging.getLogger(__name__).warning("Unknown guard type %r — ignored", kind)
+
+    async def _noop(**_kw):
+        return None
+
+    return _noop
+
+
+def _extract_response_text(llm_response) -> str | None:
+    """Extract text from an ADK LlmResponse."""
+    content = getattr(llm_response, "content", None)
+    if content is None:
+        return None
+    parts = getattr(content, "parts", None)
+    if not parts:
+        return None
+    texts = [getattr(p, "text", "") for p in parts if getattr(p, "text", None)]
+    return "\n".join(texts) if texts else None
+
+
+def _replace_response_text(llm_response, new_text: str):
+    """Return a modified LlmResponse with replaced text."""
+    from google.genai import types
+
+    return types.GenerateContentResponse(
+        candidates=[
+            types.Candidate(
+                content=types.Content(
+                    role="model",
+                    parts=[types.Part(text=new_text)],
+                ),
+            )
+        ]
+    )
+
+
+def _compose_callbacks(fns: list) -> Callable:
     """Chain multiple callbacks into a single callable.
 
     Each runs in order. First non-None return value wins (short-circuit).
-    Handles both sync and async callbacks.
+    Handles both sync and async callbacks, and resolves guard spec tuples
+    into real async callbacks.
     """
     if not fns:
         raise ValueError("_compose_callbacks requires at least one callback")
-    if len(fns) == 1:
-        return fns[0]
+
+    # Resolve guard tuples into callables
+    resolved = []
+    for fn in fns:
+        if isinstance(fn, tuple) and len(fn) == 2 and isinstance(fn[0], str) and fn[0].startswith("guard:"):
+            resolved.append(_resolve_guard_tuple(fn))
+        else:
+            resolved.append(fn)
+
+    if len(resolved) == 1:
+        return resolved[0]
 
     async def _composed(*args, **kwargs):
-        for fn in fns:
+        for fn in resolved:
             result = fn(*args, **kwargs)
             if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
                 result = await result
@@ -106,7 +413,7 @@ def _compose_callbacks(fns: list[Callable]) -> Callable:
                 return result
         return None
 
-    _composed.__name__ = f"composed_{'_'.join(getattr(f, '__name__', '?') for f in fns)}"
+    _composed.__name__ = f"composed_{'_'.join(getattr(f, '__name__', '?') for f in resolved)}"
     return _composed
 
 

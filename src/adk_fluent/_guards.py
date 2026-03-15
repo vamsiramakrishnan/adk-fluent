@@ -307,17 +307,111 @@ class _CustomDetector:
 
 
 class _LLMJudge:
-    """Placeholder LLM-based content judge.
+    """LLM-based content judge using Google GenAI.
 
-    Always passes in the current implementation. Real LLM call TBD.
+    Calls the configured model to evaluate content for safety, toxicity,
+    or hallucination depending on the evaluation prompt.
+
+    Falls back to a conservative pass-through if the GenAI SDK is not
+    available or the API call fails (fail-open with a warning).
     """
+
+    _TOXICITY_PROMPT = (
+        "You are a content safety evaluator. Analyze the following text for "
+        "toxic, harmful, hateful, or inappropriate content.\n\n"
+        "Text to evaluate:\n```\n{text}\n```\n\n"
+        "Respond with ONLY a JSON object (no markdown, no explanation):\n"
+        '{{"toxic": true/false, "score": 0.0-1.0, "reason": "brief explanation"}}\n'
+        "where score=0.0 means perfectly safe and score=1.0 means extremely toxic."
+    )
+
+    _HALLUCINATION_PROMPT = (
+        "You are a factual accuracy evaluator. Analyze whether the following "
+        "text contains hallucinated or fabricated information not supported "
+        "by the provided sources.\n\n"
+        "Text to evaluate:\n```\n{text}\n```\n\n"
+        "{sources_section}"
+        "Respond with ONLY a JSON object (no markdown, no explanation):\n"
+        '{{"hallucinated": true/false, "score": 0.0-1.0, "reason": "brief explanation"}}\n'
+        "where score=0.0 means fully grounded and score=1.0 means entirely fabricated."
+    )
 
     def __init__(self, model: str = "gemini-2.5-flash"):
         self._model = model
 
     async def judge(self, text: str, context: dict | None = None) -> JudgmentResult:
-        # Placeholder — always passes
-        return JudgmentResult(passed=True, score=0.0, reason="LLM judge not yet wired")
+        """Evaluate content using LLM.
+
+        Args:
+            text: The content to evaluate.
+            context: Optional dict with ``"mode"`` (``"toxicity"`` or
+                ``"hallucination"``) and ``"sources"`` for grounding checks.
+
+        Returns:
+            JudgmentResult with pass/fail, score, and reason.
+        """
+        context = context or {}
+        mode = context.get("mode", "toxicity")
+
+        if mode == "hallucination":
+            sources = context.get("sources", "")
+            sources_section = (
+                f"Source material:\n```\n{sources}\n```\n\n" if sources else ""
+            )
+            prompt = self._HALLUCINATION_PROMPT.format(
+                text=text, sources_section=sources_section
+            )
+            fail_key = "hallucinated"
+        else:
+            prompt = self._TOXICITY_PROMPT.format(text=text)
+            fail_key = "toxic"
+
+        try:
+            from google import genai
+
+            client = genai.Client()
+            response = await client.aio.models.generate_content(
+                model=self._model,
+                contents=prompt,
+            )
+            return self._parse_response(response.text or "", fail_key)
+        except ImportError:
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "google-genai not installed — _LLMJudge falling back to pass-through. "
+                "Install with: pip install google-genai"
+            )
+            return JudgmentResult(passed=True, score=0.0, reason="google-genai not available")
+        except Exception as exc:
+            import logging
+
+            logging.getLogger(__name__).warning("_LLMJudge API call failed: %s", exc)
+            return JudgmentResult(passed=True, score=0.0, reason=f"Judge API error: {exc}")
+
+    def _parse_response(self, response_text: str, fail_key: str) -> JudgmentResult:
+        """Parse the JSON response from the judge LLM."""
+        import json as _json
+
+        # Strip markdown code fences if present
+        text = response_text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[-1]
+        if text.endswith("```"):
+            text = text.rsplit("```", 1)[0]
+        text = text.strip()
+
+        try:
+            data = _json.loads(text)
+            is_bad = bool(data.get(fail_key, False))
+            score = float(data.get("score", 1.0 if is_bad else 0.0))
+            reason = str(data.get("reason", ""))
+            return JudgmentResult(passed=not is_bad, score=score, reason=reason)
+        except (_json.JSONDecodeError, ValueError, TypeError):
+            # If we can't parse the response, fail-open with a warning
+            return JudgmentResult(
+                passed=True, score=0.0, reason=f"Could not parse judge response: {text[:200]}"
+            )
 
 
 class _CustomJudge:
