@@ -718,7 +718,7 @@ def main():
     output = json.dumps(data, indent=2, default=str)
 
     if args.output:
-        Path(args.output).write_text(output)
+        Path(args.output).write_text(output + "\n")
         print(f"Manifest written to {args.output}", file=sys.stderr)
         print(f"  ADK version:     {manifest.adk_version}", file=sys.stderr)
         print(f"  Classes scanned: {manifest.total_classes}", file=sys.stderr)
