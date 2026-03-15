@@ -310,3 +310,103 @@ class M:
         from adk_fluent.middleware import MetricsMiddleware
 
         return MComposite([MetricsMiddleware(collector=collector)], kind="metrics")
+
+    # --- A2A-specific middleware ---
+
+    @staticmethod
+    def a2a_retry(
+        max_attempts: int = 3,
+        backoff: float = 2.0,
+        *,
+        agents: str | tuple[str, ...] | None = None,
+        on_retry: Callable | None = None,
+    ) -> MComposite:
+        """A2A-specific retry middleware for remote agent failures.
+
+        Handles HTTP transport errors, A2A task FAILED/REJECTED states,
+        and network-level transient failures. Uses exponential backoff.
+
+        Args:
+            max_attempts: Maximum number of retry attempts (default 3).
+            backoff: Base delay in seconds for exponential backoff (default 2.0).
+            agents: Scope to specific agent names (default: all agents).
+            on_retry: Optional callback ``(ctx, agent_name, attempt, error)``
+                      called before each retry.
+
+        Usage::
+
+            pipeline.middleware(M.a2a_retry(max_attempts=3, backoff=2.0))
+            pipeline.middleware(M.scope("remote_*", M.a2a_retry()))
+        """
+        from adk_fluent.middleware import A2ARetryMiddleware
+
+        return MComposite(
+            [A2ARetryMiddleware(max_attempts=max_attempts, backoff_base=backoff, agents=agents, on_retry=on_retry)],
+            kind="a2a_retry",
+        )
+
+    @staticmethod
+    def a2a_circuit_breaker(
+        threshold: int = 5,
+        reset_after: float = 60,
+        *,
+        agents: str | tuple[str, ...] | None = None,
+        on_open: Callable | None = None,
+        on_close: Callable | None = None,
+    ) -> MComposite:
+        """Circuit breaker for A2A remote agents.
+
+        Opens after ``threshold`` consecutive failures. Stays open for
+        ``reset_after`` seconds, then allows a single probe call.
+
+        Args:
+            threshold: Number of failures before opening (default 5).
+            reset_after: Seconds to stay open before half-open probe (default 60).
+            agents: Scope to specific agent names (default: all agents).
+            on_open: Callback ``(ctx, agent_name)`` when circuit opens.
+            on_close: Callback ``(ctx, agent_name)`` when circuit closes.
+
+        Usage::
+
+            pipeline.middleware(M.a2a_circuit_breaker(threshold=5, reset_after=60))
+        """
+        from adk_fluent.middleware import A2ACircuitBreakerMiddleware
+
+        return MComposite(
+            [
+                A2ACircuitBreakerMiddleware(
+                    threshold=threshold, reset_after=reset_after, agents=agents, on_open=on_open, on_close=on_close
+                )
+            ],
+            kind="a2a_circuit_breaker",
+        )
+
+    @staticmethod
+    def a2a_timeout(
+        seconds: float = 30,
+        *,
+        agents: str | tuple[str, ...] | None = None,
+        on_timeout: Callable | None = None,
+    ) -> MComposite:
+        """Per-delegation timeout for A2A remote agent calls.
+
+        Enforces wall-clock time limits on entire agent invocations.
+        Critical for remote A2A calls with network latency + remote LLM
+        processing.
+
+        Args:
+            seconds: Maximum seconds for the agent invocation (default 30).
+            agents: Scope to specific agent names (default: all agents).
+            on_timeout: Callback ``(ctx, agent_name, seconds)`` on timeout.
+
+        Usage::
+
+            pipeline.middleware(M.a2a_timeout(seconds=30))
+            pipeline.middleware(M.scope("slow_agent", M.a2a_timeout(120)))
+        """
+        from adk_fluent.middleware import A2ATimeoutMiddleware
+
+        return MComposite(
+            [A2ATimeoutMiddleware(seconds=seconds, agents=agents, on_timeout=on_timeout)],
+            kind="a2a_timeout",
+        )

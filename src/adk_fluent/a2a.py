@@ -67,6 +67,79 @@ class SkillDeclaration:
 
 
 # ---------------------------------------------------------------------------
+# State bridging callbacks
+# ---------------------------------------------------------------------------
+
+
+def _build_state_bridge_callbacks(
+    *,
+    sends_keys: list[str],
+    receives_keys: list[str],
+    persistent_context: bool,
+    context_state_key: str,
+) -> dict[str, Callable | None]:
+    """Build before/after agent callbacks for A2A state bridging.
+
+    Returns a dict with ``"before"`` and ``"after"`` callbacks (or None).
+    """
+    before_cb: Callable | None = None
+    after_cb: Callable | None = None
+
+    if sends_keys or persistent_context:
+
+        async def _before_agent(ctx: Any) -> None:
+            """Inject state keys into the agent context before A2A call."""
+            session = getattr(ctx, "session", None)
+            if session is None:
+                return
+            state = getattr(session, "state", {})
+
+            # Serialize sends_keys into the context for the remote agent
+            if sends_keys:
+                bridged = {}
+                for key in sends_keys:
+                    if key in state:
+                        bridged[key] = state[key]
+                if bridged:
+                    state["_a2a_bridged_sends"] = bridged
+
+            # Restore persistent contextId
+            if persistent_context:
+                stored_ctx_id = state.get(context_state_key)
+                if stored_ctx_id:
+                    state["_a2a_reuse_context_id"] = stored_ctx_id
+
+        before_cb = _before_agent
+
+    if receives_keys or persistent_context:
+
+        async def _after_agent(ctx: Any) -> None:
+            """Extract state keys from the A2A response after call."""
+            session = getattr(ctx, "session", None)
+            if session is None:
+                return
+            state = getattr(session, "state", {})
+
+            # Deserialize receives_keys from response
+            if receives_keys:
+                bridged = state.get("_a2a_bridged_receives", {})
+                for key in receives_keys:
+                    if key in bridged:
+                        state[key] = bridged[key]
+                state.pop("_a2a_bridged_receives", None)
+
+            # Store persistent contextId
+            if persistent_context:
+                ctx_id = state.get("_a2a_last_context_id")
+                if ctx_id:
+                    state[context_state_key] = ctx_id
+
+        after_cb = _after_agent
+
+    return {"before": before_cb, "after": after_cb}
+
+
+# ---------------------------------------------------------------------------
 # RemoteAgent — client-side A2A consumer
 # ---------------------------------------------------------------------------
 
@@ -161,6 +234,74 @@ class RemoteAgent(BuilderBase):
         self._config["full_history_when_stateless"] = enabled
         return self
 
+    # --- State bridging ---
+
+    def sends(self, *keys: str) -> Self:
+        """Declare state keys to serialize into outbound A2A messages.
+
+        When this remote agent is invoked, the named state keys are
+        extracted from the local session state and injected as structured
+        ``Part`` objects in the A2A ``Message`` sent to the remote agent.
+
+        This bridges the local ``session.state`` → A2A ``Message`` gap.
+
+        Example::
+
+            remote = (
+                RemoteAgent("reviewer", "http://reviewer:8001")
+                .sends("draft", "context")
+            )
+        """
+        self = self._maybe_fork_for_mutation()
+        existing = list(self._config.get("_sends_keys", []))
+        existing.extend(keys)
+        self._config["_sends_keys"] = existing
+        return self
+
+    def receives(self, *keys: str) -> Self:
+        """Declare state keys to deserialize from inbound A2A responses.
+
+        When the remote agent responds, named keys are extracted from
+        the A2A response artifacts/parts and written back into the local
+        ``session.state``.
+
+        This bridges the A2A ``Message`` → local ``session.state`` gap.
+
+        Example::
+
+            remote = (
+                RemoteAgent("reviewer", "http://reviewer:8001")
+                .receives("feedback", "score")
+            )
+        """
+        self = self._maybe_fork_for_mutation()
+        existing = list(self._config.get("_receives_keys", []))
+        existing.extend(keys)
+        self._config["_receives_keys"] = existing
+        return self
+
+    def persistent_context(self, enabled: bool = True) -> Self:
+        """Maintain A2A ``contextId`` across calls within the same session.
+
+        When enabled, the builder stores the remote agent's ``contextId``
+        in session state and reuses it for subsequent calls, enabling
+        multi-turn conversations across A2A boundaries.
+
+        The contextId is stored under ``_a2a_context_{agent_name}``.
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["_persistent_context"] = enabled
+        return self
+
+    def context_key(self, key: str) -> Self:
+        """Override the state key used to store the A2A contextId.
+
+        Default: ``_a2a_context_{agent_name}``.
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["_context_key"] = key
+        return self
+
     # --- Callbacks ---
 
     def after_agent(self, *fns: Callable[..., Any]) -> Self:
@@ -209,6 +350,12 @@ class RemoteAgent(BuilderBase):
 
         config = dict(self._config)
 
+        # Extract state bridging config before stripping internal keys
+        sends_keys = config.pop("_sends_keys", [])
+        receives_keys = config.pop("_receives_keys", [])
+        persistent_ctx = config.pop("_persistent_context", False)
+        context_key = config.pop("_context_key", None)
+
         # Strip internal keys
         config.pop("_streaming", None)
 
@@ -216,6 +363,21 @@ class RemoteAgent(BuilderBase):
         internal_keys = [k for k in config if k.startswith("_")]
         for k in internal_keys:
             config.pop(k)
+
+        # Inject state-bridging callbacks if configured
+        if sends_keys or receives_keys or persistent_ctx:
+            agent_name = config["name"]
+            ctx_state_key = context_key or f"_a2a_context_{agent_name}"
+            bridging_cbs = _build_state_bridge_callbacks(
+                sends_keys=sends_keys,
+                receives_keys=receives_keys,
+                persistent_context=persistent_ctx,
+                context_state_key=ctx_state_key,
+            )
+            if bridging_cbs.get("before"):
+                self._callbacks["before_agent_callback"].insert(0, bridging_cbs["before"])
+            if bridging_cbs.get("after"):
+                self._callbacks["after_agent_callback"].append(bridging_cbs["after"])
 
         # Handle callbacks
         for _cb_alias, cb_field in self._CALLBACK_ALIASES.items():
