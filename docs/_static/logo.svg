@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Mark: two interlocking flow arrows forming "f" -->
+  <rect x="2" y="4" width="32" height="32" rx="8" fill="url(#g)"/>
+  <path d="M12 12 h8 a4 4 0 0 1 4 4 v4 h-8 a4 4 0 0 1-4-4z" fill="rgba(255,255,255,0.9)"/>
+  <path d="M14 20 h8 a4 4 0 0 1 4 4 v4 h-8 a4 4 0 0 1-4-4z" fill="rgba(255,255,255,0.5)"/>
+  <!-- Wordmark -->
+  <text x="44" y="28" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="700" fill="currentColor" letter-spacing="-0.02em">
+    <tspan fill="currentColor">adk-</tspan><tspan fill="#4f46e5">fluent</tspan>
+  </text>
+</svg>
