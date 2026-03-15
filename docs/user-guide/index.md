@@ -92,10 +92,95 @@ error-reference
 adk-samples/index
 ```
 
-## Interactive References
+## Interactive Visual References
 
-Standalone HTML pages -- open in browser for the full interactive experience:
+Rich interactive diagrams — open in a new tab for the full experience, or explore the embedded previews below.
 
-- [Module Lifecycle Reference](/module-lifecycle-reference.html) -- Where each module (S, C, P, A, M, T, E, G) fires during execution. Swim-lane timeline, interaction grid, step-through walkthrough, and auto-generated sequence diagrams
-- [P*C*S Visual Reference](/pcs-visual-reference.html) -- Pipeline, Context, and State module reference
-- [Operator Algebra Reference](/operator-algebra-reference.html) -- All 9 operators with SVG diagrams and composition rules
+```{raw} html
+<div class="visual-ref-grid">
+
+  <div class="visual-ref-card" data-accent="var(--adk-accent)">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="8" width="40" height="32" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+        <line x1="4" y1="16" x2="44" y2="16" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+        <line x1="4" y1="24" x2="44" y2="24" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+        <line x1="4" y1="32" x2="44" y2="32" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+        <circle cx="12" cy="20" r="3" fill="#6366f1"/>
+        <rect x="18" y="18" width="16" height="4" rx="2" fill="#6366f1" opacity="0.3"/>
+        <circle cx="12" cy="28" r="3" fill="#0ea5e9"/>
+        <rect x="18" y="26" width="12" height="4" rx="2" fill="#0ea5e9" opacity="0.3"/>
+        <circle cx="12" cy="36" r="3" fill="#10b981"/>
+        <rect x="18" y="34" width="20" height="4" rx="2" fill="#10b981" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../module-lifecycle-reference.html" target="_blank" rel="noopener">Module Lifecycle Reference ↗</a></h4>
+      <p>Where each module (S, C, P, A, M, T, E, G) fires during execution. Swim-lane timeline, interaction grid, and step-through walkthrough.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #6366f1">BUILD</span>
+        <span class="vr-tag" style="--tag-color: #0ea5e9">PRE</span>
+        <span class="vr-tag" style="--tag-color: #f59e0b">LLM</span>
+        <span class="vr-tag" style="--tag-color: #10b981">POST</span>
+        <span class="vr-tag" style="--tag-color: #e94560">TOOL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="visual-ref-card" data-accent="#e94560">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="6" width="12" height="12" rx="3" stroke="#e94560" stroke-width="2" fill="none"/>
+        <text x="10" y="15" text-anchor="middle" fill="#e94560" font-size="9" font-weight="700" font-family="sans-serif">P</text>
+        <rect x="18" y="6" width="12" height="12" rx="3" stroke="#0ea5e9" stroke-width="2" fill="none"/>
+        <text x="24" y="15" text-anchor="middle" fill="#0ea5e9" font-size="9" font-weight="700" font-family="sans-serif">C</text>
+        <rect x="32" y="6" width="12" height="12" rx="3" stroke="#10b981" stroke-width="2" fill="none"/>
+        <text x="38" y="15" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700" font-family="sans-serif">S</text>
+        <path d="M10 22 L10 30 Q10 34 14 34 L34 34 Q38 34 38 30 L38 22" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+        <rect x="8" y="34" width="32" height="10" rx="3" stroke="#a78bfa" stroke-width="2" fill="none"/>
+        <text x="24" y="42" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="600" font-family="sans-serif">LLM Assembly</text>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../pcs-visual-reference.html" target="_blank" rel="noopener">P·C·S Visual Reference ↗</a></h4>
+      <p>How Prompt, Context, and State modules compose to assemble what the LLM sees. Factory catalogs, composition rules, and assembly order.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #e94560">Prompt</span>
+        <span class="vr-tag" style="--tag-color: #0ea5e9">Context</span>
+        <span class="vr-tag" style="--tag-color: #10b981">State</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="visual-ref-card" data-accent="#f59e0b">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="10" cy="24" r="6" stroke="#e94560" stroke-width="2" fill="none"/>
+        <text x="10" y="27" text-anchor="middle" fill="#e94560" font-size="7" font-weight="700" font-family="sans-serif">A</text>
+        <circle cx="38" cy="24" r="6" stroke="#0ea5e9" stroke-width="2" fill="none"/>
+        <text x="38" y="27" text-anchor="middle" fill="#0ea5e9" font-size="7" font-weight="700" font-family="sans-serif">B</text>
+        <line x1="16" y1="24" x2="30" y2="24" stroke="#f59e0b" stroke-width="2"/>
+        <polygon points="30,21 34,24 30,27" fill="#f59e0b"/>
+        <text x="24" y="20" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="700" font-family="monospace">&gt;&gt;</text>
+        <circle cx="24" cy="38" r="5" stroke="#10b981" stroke-width="1.5" fill="none"/>
+        <text x="24" y="41" text-anchor="middle" fill="#10b981" font-size="7" font-weight="700" font-family="sans-serif">C</text>
+        <line x1="10" y1="30" x2="24" y2="33" stroke="#a78bfa" stroke-width="1.5"/>
+        <line x1="38" y1="30" x2="24" y2="33" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="7" y="38" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700" font-family="monospace">|</text>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../operator-algebra-reference.html" target="_blank" rel="noopener">Operator Algebra Reference ↗</a></h4>
+      <p>All 9 operators with SVG flow diagrams, code examples, and composition rules. <code>>></code>, <code>|</code>, <code>*</code>, <code>@</code>, <code>//</code>, <code>Route</code>, and more.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #e94560">Sequential</span>
+        <span class="vr-tag" style="--tag-color: #0ea5e9">Parallel</span>
+        <span class="vr-tag" style="--tag-color: #10b981">Loop</span>
+        <span class="vr-tag" style="--tag-color: #f59e0b">Schema</span>
+        <span class="vr-tag" style="--tag-color: #a78bfa">Fallback</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+```

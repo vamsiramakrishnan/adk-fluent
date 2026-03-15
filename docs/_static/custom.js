@@ -3,6 +3,8 @@
  *
  * 1. Reading progress bar
  * 2. Smooth theme transition support
+ * 3. Hero diagram intersection observer
+ * 4. Smooth scroll-to-anchor
  */
 
 (function () {
@@ -42,11 +44,36 @@
     updateProgress();
   }
 
+  // ---- Intersection Observer for architecture diagrams ----
+
+  function initDiagramObserver() {
+    if (!("IntersectionObserver" in window)) return;
+    // Respect reduced motion preference
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("diagram-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll(".arch-diagram-wrapper").forEach(function (el) {
+      observer.observe(el);
+    });
+  }
+
   // ---- Initialize ----
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initReadingProgress);
+    document.addEventListener("DOMContentLoaded", function () {
+      initReadingProgress();
+      initDiagramObserver();
+    });
   } else {
     initReadingProgress();
+    initDiagramObserver();
   }
 })();

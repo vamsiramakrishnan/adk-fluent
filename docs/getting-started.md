@@ -171,6 +171,79 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 
 Here's a real-world pipeline combining sequential, parallel, state flow, and context isolation:
 
+```{raw} html
+<div class="arch-diagram-wrapper">
+  <svg viewBox="0 0 680 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="arch-diagram" aria-label="Support pipeline architecture: capture → classify → resolve → respond">
+    <defs>
+      <linearGradient id="gs-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#4f46e5"/>
+        <stop offset="100%" stop-color="#7c3aed"/>
+      </linearGradient>
+      <marker id="gs-arrow" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+        <path d="M0 0 L10 4 L0 8Z" fill="#64748b"/>
+      </marker>
+      <marker id="gs-arrow-accent" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+        <path d="M0 0 L10 4 L0 8Z" fill="#7c3aed"/>
+      </marker>
+    </defs>
+
+    <!-- S.capture node -->
+    <g>
+      <rect x="10" y="60" width="100" height="56" rx="10" fill="#10b98112" stroke="#10b981" stroke-width="1.5"/>
+      <text x="60" y="82" text-anchor="middle" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700">S.capture</text>
+      <text x="60" y="102" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="8">→ state</text>
+    </g>
+
+    <!-- Arrow -->
+    <line x1="118" y1="88" x2="158" y2="88" stroke="#64748b" stroke-width="1.2" marker-end="url(#gs-arrow)"/>
+
+    <!-- Classifier node -->
+    <g>
+      <rect x="166" y="52" width="110" height="72" rx="10" fill="#e9456012" stroke="#e94560" stroke-width="1.5"/>
+      <text x="221" y="74" text-anchor="middle" fill="#e94560" font-family="Inter, sans-serif" font-size="10" font-weight="700">Classifier</text>
+      <text x="221" y="90" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="8">C.none()</text>
+      <text x="221" y="108" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">.writes("intent")</text>
+    </g>
+
+    <!-- Arrow -->
+    <line x1="284" y1="88" x2="324" y2="88" stroke="#64748b" stroke-width="1.2" marker-end="url(#gs-arrow)"/>
+
+    <!-- Resolver node -->
+    <g>
+      <rect x="332" y="44" width="130" height="88" rx="10" fill="#0ea5e912" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="397" y="68" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="10" font-weight="700">Resolver</text>
+      <text x="397" y="86" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">.tool(lookup)</text>
+      <text x="397" y="100" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">.tool(create_ticket)</text>
+      <text x="397" y="118" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="8">.writes("resolution")</text>
+    </g>
+
+    <!-- Arrow -->
+    <line x1="470" y1="88" x2="510" y2="88" stroke="#64748b" stroke-width="1.2" marker-end="url(#gs-arrow)"/>
+
+    <!-- Responder node -->
+    <g>
+      <rect x="518" y="56" width="110" height="64" rx="10" fill="#a78bfa12" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="573" y="82" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="10" font-weight="700">Responder</text>
+      <text x="573" y="100" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="8">{resolution}</text>
+    </g>
+
+    <!-- State flow annotations (curved lines below) -->
+    <path d="M60 124 Q60 160 130 160 Q221 160 221 132" stroke="#10b981" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.5"/>
+    <text x="140" y="172" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="7" opacity="0.6">customer_message</text>
+
+    <path d="M221 132 Q221 148 310 148 Q397 148 397 140" stroke="#e94560" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.5"/>
+    <text x="310" y="158" fill="#e94560" font-family="'JetBrains Mono', monospace" font-size="7" opacity="0.6">intent</text>
+
+    <path d="M397 140 Q397 152 485 152 Q573 152 573 128" stroke="#0ea5e9" stroke-width="1" fill="none" stroke-dasharray="3,3" opacity="0.5"/>
+    <text x="485" y="162" fill="#0ea5e9" font-family="'JetBrains Mono', monospace" font-size="7" opacity="0.6">resolution</text>
+
+    <!-- Pipeline label -->
+    <text x="340" y="24" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="9" font-weight="600" letter-spacing="0.1em">PIPELINE FLOW WITH STATE DATA CONTRACTS</text>
+    <line x1="100" y1="32" x2="580" y2="32" stroke="#1e2d4a" stroke-width="0.5"/>
+  </svg>
+</div>
+```
+
 ```python
 from adk_fluent import Agent, S, C
 

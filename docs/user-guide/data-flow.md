@@ -4,36 +4,74 @@ Every data-flow method in adk-fluent maps to exactly one of **five orthogonal co
 
 ## The Five Concerns
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         FIVE ORTHOGONAL CONCERNS                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌───────────┐   ┌───────────┐   ┌───────────┐   ┌───────────┐           │
-│   │  CONTEXT  │   │   INPUT   │   │  OUTPUT   │   │  STORAGE  │           │
-│   │           │   │           │   │           │   │           │           │
-│   │ What the  │   │ What the  │   │ What      │   │ Where the │           │
-│   │ agent     │   │ agent     │   │ shape the │   │ response  │           │
-│   │ SEES      │   │ ACCEPTS   │   │ response  │   │ is STORED │           │
-│   │           │   │ as a tool │   │ takes     │   │           │           │
-│   ├───────────┤   ├───────────┤   ├───────────┤   ├───────────┤           │
-│   │.reads()   │   │.accepts() │   │.returns() │   │.writes()  │           │
-│   │.context() │   │           │   │ @ Model   │   │           │           │
-│   ├───────────┤   ├───────────┤   ├───────────┤   ├───────────┤           │
-│   │include_   │   │input_     │   │output_    │   │output_key │           │
-│   │contents + │   │schema     │   │schema     │   │           │           │
-│   │instruction│   │           │   │           │   │           │           │
-│   └─────┬─────┘   └─────┬─────┘   └─────┬─────┘   └─────┬─────┘           │
-│         │               │               │               │                  │
-│         │  ┌────────────────────────────────────────┐    │                  │
-│         │  │           CONTRACT                     │    │                  │
-│         │  │  .produces() / .consumes()             │    │                  │
-│         │  │  Static annotations — NO runtime effect│    │                  │
-│         │  └────────────────────────────────────────┘    │                  │
-│         │                                                │                  │
-│         ▼────── BEFORE LLM call ──────────────────── AFTER LLM call ──▼    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+```{raw} html
+<div class="arch-diagram-wrapper">
+  <svg viewBox="0 0 720 240" fill="none" xmlns="http://www.w3.org/2000/svg" class="arch-diagram" aria-label="Five orthogonal data flow concerns: Context, Input, Output, Storage, and Contract">
+    <defs>
+      <marker id="df-arr" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="5" orient="auto">
+        <path d="M0 0 L10 4 L0 8Z" fill="#64748b"/>
+      </marker>
+    </defs>
+
+    <!-- Title -->
+    <text x="360" y="18" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="0.12em">FIVE ORTHOGONAL CONCERNS</text>
+    <line x1="60" y1="26" x2="660" y2="26" stroke="#1e2d4a" stroke-width="0.5"/>
+
+    <!-- Context box -->
+    <g transform="translate(30, 40)">
+      <rect width="130" height="100" rx="10" fill="#0ea5e90a" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="65" y="22" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="11" font-weight="700">CONTEXT</text>
+      <text x="65" y="40" text-anchor="middle" fill="#94a3b8" font-family="Inter, sans-serif" font-size="8">What the agent</text>
+      <text x="65" y="52" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="9" font-weight="700">SEES</text>
+      <line x1="15" y1="62" x2="115" y2="62" stroke="#0ea5e930" stroke-width="0.5"/>
+      <text x="65" y="78" text-anchor="middle" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="8">.reads()</text>
+      <text x="65" y="92" text-anchor="middle" fill="#38bdf8" font-family="'JetBrains Mono', monospace" font-size="8">.context()</text>
+    </g>
+
+    <!-- Input box -->
+    <g transform="translate(180, 40)">
+      <rect width="130" height="100" rx="10" fill="#f59e0b0a" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="65" y="22" text-anchor="middle" fill="#f59e0b" font-family="Inter, sans-serif" font-size="11" font-weight="700">INPUT</text>
+      <text x="65" y="40" text-anchor="middle" fill="#94a3b8" font-family="Inter, sans-serif" font-size="8">What the agent</text>
+      <text x="65" y="52" text-anchor="middle" fill="#f59e0b" font-family="Inter, sans-serif" font-size="9" font-weight="700">ACCEPTS</text>
+      <line x1="15" y1="62" x2="115" y2="62" stroke="#f59e0b30" stroke-width="0.5"/>
+      <text x="65" y="78" text-anchor="middle" fill="#fbbf24" font-family="'JetBrains Mono', monospace" font-size="8">.accepts()</text>
+    </g>
+
+    <!-- Output box -->
+    <g transform="translate(410, 40)">
+      <rect width="130" height="100" rx="10" fill="#a78bfa0a" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="65" y="22" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="11" font-weight="700">OUTPUT</text>
+      <text x="65" y="40" text-anchor="middle" fill="#94a3b8" font-family="Inter, sans-serif" font-size="8">Response</text>
+      <text x="65" y="52" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="9" font-weight="700">SHAPE</text>
+      <line x1="15" y1="62" x2="115" y2="62" stroke="#a78bfa30" stroke-width="0.5"/>
+      <text x="65" y="78" text-anchor="middle" fill="#c4b5fd" font-family="'JetBrains Mono', monospace" font-size="8">.returns()</text>
+      <text x="65" y="92" text-anchor="middle" fill="#c4b5fd" font-family="'JetBrains Mono', monospace" font-size="8">@ Model</text>
+    </g>
+
+    <!-- Storage box -->
+    <g transform="translate(560, 40)">
+      <rect width="130" height="100" rx="10" fill="#10b9810a" stroke="#10b981" stroke-width="1.5"/>
+      <text x="65" y="22" text-anchor="middle" fill="#10b981" font-family="Inter, sans-serif" font-size="11" font-weight="700">STORAGE</text>
+      <text x="65" y="40" text-anchor="middle" fill="#94a3b8" font-family="Inter, sans-serif" font-size="8">Where response</text>
+      <text x="65" y="52" text-anchor="middle" fill="#10b981" font-family="Inter, sans-serif" font-size="9" font-weight="700">is STORED</text>
+      <line x1="15" y1="62" x2="115" y2="62" stroke="#10b98130" stroke-width="0.5"/>
+      <text x="65" y="78" text-anchor="middle" fill="#34d399" font-family="'JetBrains Mono', monospace" font-size="8">.writes()</text>
+    </g>
+
+    <!-- Arrows showing flow direction -->
+    <text x="170" y="170" fill="#64748b" font-family="Inter, sans-serif" font-size="8" font-weight="600">◀── BEFORE LLM call</text>
+    <text x="490" y="170" fill="#64748b" font-family="Inter, sans-serif" font-size="8" font-weight="600">AFTER LLM call ──▶</text>
+    <line x1="155" y1="165" x2="555" y2="165" stroke="#1e2d4a" stroke-width="0.5" stroke-dasharray="4,3"/>
+
+    <!-- Contract box (spanning center) -->
+    <g transform="translate(200, 186)">
+      <rect width="320" height="40" rx="8" fill="#64748b08" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="160" y="18" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="9" font-weight="700">CONTRACT</text>
+      <text x="160" y="32" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="8">.produces() / .consumes() — static annotations, no runtime effect</text>
+    </g>
+  </svg>
+</div>
 ```
 
 | Concern      | Method                        | What it controls                        | ADK field                            |
