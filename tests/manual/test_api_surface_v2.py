@@ -208,13 +208,17 @@ class TestPrelude:
             "RemoteAgent",
             "A2AServer",
             "AgentRegistry",
+            # A2A patterns
+            "a2a_cascade",
+            "a2a_fanout",
+            "a2a_delegate",
         }
         assert set(prelude.__all__) == expected
 
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 59
+        assert len(prelude.__all__) == 62
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

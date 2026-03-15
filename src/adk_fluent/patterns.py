@@ -47,6 +47,9 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
+    "a2a_cascade",
+    "a2a_fanout",
+    "a2a_delegate",
 ]
 
 
@@ -326,3 +329,136 @@ def supervised(
         return bool(val)
 
     return (worker >> supervisor) * until(_is_approved, max=max_revisions)
+
+
+# ---------------------------------------------------------------------------
+# A2A composition patterns
+# ---------------------------------------------------------------------------
+
+
+def a2a_cascade(
+    *endpoints: str,
+    names: list[str] | None = None,
+    timeout: float = 300.0,
+) -> Any:
+    """Fallback chain across remote A2A agents.
+
+    Tries each remote agent in order. First success wins.
+    Uses the ``//`` (fallback) operator internally.
+
+    Requires ``pip install adk-fluent[a2a]``.
+
+    Args:
+        *endpoints: Two or more A2A server URLs to try in order.
+        names: Optional agent names (default: ``remote_0``, ``remote_1``, ...).
+        timeout: Per-agent HTTP timeout in seconds.
+
+    Returns:
+        A fallback builder ready for ``.build()`` or further composition.
+
+    Raises:
+        ValueError: If fewer than 2 endpoints are provided.
+
+    Usage::
+
+        pipeline = a2a_cascade(
+            "http://fast-model:8001",
+            "http://accurate-model:8002",
+            "http://fallback-model:8003",
+        )
+    """
+    from adk_fluent.a2a import RemoteAgent
+
+    if len(endpoints) < 2:
+        raise ValueError("a2a_cascade() requires at least 2 endpoints")
+
+    agents = []
+    for i, ep in enumerate(endpoints):
+        name = names[i] if names and i < len(names) else f"remote_{i}"
+        agents.append(RemoteAgent(name, ep).timeout(timeout))
+
+    return cascade(*agents)
+
+
+def a2a_fanout(
+    *endpoints: str,
+    names: list[str] | None = None,
+    timeout: float = 300.0,
+) -> Any:
+    """Fan-out across remote A2A agents in parallel.
+
+    All remote agents run concurrently via the ``|`` (parallel) operator.
+
+    Requires ``pip install adk-fluent[a2a]``.
+
+    Args:
+        *endpoints: Two or more A2A server URLs to query in parallel.
+        names: Optional agent names (default: ``remote_0``, ``remote_1``, ...).
+        timeout: Per-agent HTTP timeout in seconds.
+
+    Returns:
+        A FanOut builder ready for ``.build()`` or further composition.
+
+    Raises:
+        ValueError: If fewer than 2 endpoints are provided.
+
+    Usage::
+
+        pipeline = a2a_fanout(
+            "http://web-search:8001",
+            "http://paper-search:8002",
+            "http://patent-search:8003",
+        )
+    """
+    from adk_fluent.a2a import RemoteAgent
+
+    if len(endpoints) < 2:
+        raise ValueError("a2a_fanout() requires at least 2 endpoints")
+
+    agents = []
+    for i, ep in enumerate(endpoints):
+        name = names[i] if names and i < len(names) else f"remote_{i}"
+        agents.append(RemoteAgent(name, ep).timeout(timeout))
+
+    result = agents[0]
+    for a in agents[1:]:
+        result = result | a
+    return result
+
+
+def a2a_delegate(
+    coordinator: Any,
+    **remotes: str,
+) -> Any:
+    """Coordinator agent with named remote specialists as sub-agents.
+
+    The coordinator LLM decides which remote agent to delegate to based
+    on its instruction and the remote agents' descriptions. Uses ADK's
+    native sub-agent delegation (the parent LLM sees each remote agent's
+    name and description).
+
+    Requires ``pip install adk-fluent[a2a]``.
+
+    Args:
+        coordinator: Local agent builder (the orchestrator).
+        **remotes: ``name=endpoint`` pairs for remote specialists.
+
+    Returns:
+        The coordinator builder with remote sub-agents attached,
+        ready for ``.build()`` or further composition.
+
+    Usage::
+
+        pipeline = a2a_delegate(
+            Agent("coordinator", "gemini-2.5-flash")
+            .instruct("Route tasks to the right specialist."),
+            research="http://research:8001",
+            writing="http://writing:8002",
+            analysis="http://analysis:8003",
+        )
+    """
+    from adk_fluent.a2a import RemoteAgent
+
+    for name, endpoint in remotes.items():
+        coordinator = coordinator.sub_agent(RemoteAgent(name, endpoint))
+    return coordinator

@@ -472,6 +472,9 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
+    "a2a_cascade",
+    "a2a_fanout",
+    "a2a_delegate",
     "ComparisonSuite",
     "Source",
     "Inbox",
@@ -722,6 +725,9 @@ from .patterns import fan_out_merge
 from .patterns import chain
 from .patterns import conditional
 from .patterns import supervised
+from .patterns import a2a_cascade
+from .patterns import a2a_fanout
+from .patterns import a2a_delegate
 from .prelude import RemoteAgent
 from .prelude import A2AServer
 from .prelude import AgentRegistry
