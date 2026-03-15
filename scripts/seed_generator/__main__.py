@@ -52,7 +52,7 @@ def main():
 
     # Write output
     if args.output:
-        Path(args.output).write_text(toml_str)
+        Path(args.output).write_text(toml_str.rstrip("\n") + "\n")
         print(f"Seed written to {args.output}", file=sys.stderr)
         top_level = [
             line

@@ -149,7 +149,7 @@ There is **no `A2aTool`** in ADK — client consumption is agent-based, not tool
     "organization": "Acme Corp",
     "url": "https://acme.com"
   },
-  "securitySchemes": { ... },
+  "securitySchemes": {},
   "supportedInterfaces": [
     { "transport": "JSONRPC", "url": "http://localhost:8001/a2a" }
   ]

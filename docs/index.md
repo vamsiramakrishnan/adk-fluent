@@ -351,6 +351,15 @@ contributing/index
 ```{toctree}
 ---
 maxdepth: 1
+caption: Research
+---
+research/a2a-fluent-integration
+research/a2a-spec-audit
+```
+
+```{toctree}
+---
+maxdepth: 1
 caption: Project
 ---
 changelog
