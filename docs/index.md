@@ -190,13 +190,13 @@ Autocomplete works immediately -- the package ships `.pyi` stubs for every build
 <div class="journey-step" data-step="3">
   <div class="journey-content">
     <h4><a href="cookbook/index.html">Cookbook &mdash; Zero to Symphony</a></h4>
-    <p>67 copy-pasteable recipes progressing from fundamentals through hero workflows. Every recipe shows adk-fluent and native ADK side by side.</p>
+    <p>68 copy-pasteable recipes progressing from fundamentals through hero workflows. Every recipe shows adk-fluent and native ADK side by side.</p>
   </div>
 </div>
 <div class="journey-step" data-step="4">
   <div class="journey-content">
     <h4><a href="generated/api/index.html">API Reference</a></h4>
-    <p>Complete method reference for all 132 builders across 9 modules. Every method includes type signature, ADK mapping, and code example.</p>
+    <p>Complete method reference for all 135 builders across 9 modules. Every method includes type signature, ADK mapping, and code example.</p>
   </div>
 </div>
 ```
@@ -228,13 +228,13 @@ Builders, operators, context engineering, prompts, callbacks, middleware.
 ```{grid-item-card} Cookbook
 :link: cookbook/index
 :link-type: doc
-67 recipes from fundamentals to hero workflows.
+68 recipes from fundamentals to hero workflows.
 ```
 
 ```{grid-item-card} API Reference
 :link: generated/api/index
 :link-type: doc
-Complete reference for all 132 builders.
+Complete reference for all 135 builders.
 ```
 
 ```{grid-item-card} Framework Comparison
@@ -264,7 +264,7 @@ Every error explained with fix-it examples.
 ```{grid-item-card} Agent Skills
 :link: editor-setup/agent-skills
 :link-type: doc
-8 portable skills for AI coding agents — develop, test, debug, and review adk-fluent projects.
+14 portable skills for AI coding agents — develop, test, deploy, evaluate, debug, and review adk-fluent projects.
 ```
 ````
 

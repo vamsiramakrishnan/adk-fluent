@@ -95,7 +95,7 @@ hero-workflows/dispatch-join-pipeline
 
 ## All Recipes
 
-For the complete flat listing of all 67 recipes with side-by-side native ADK
+For the complete flat listing of all 68 recipes with side-by-side native ADK
 comparisons, see the [auto-generated cookbook](../generated/cookbook/index.md).
 
 For recipes organized by use case (support, e-commerce, research, etc.), see

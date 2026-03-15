@@ -1,6 +1,40 @@
 # Builders
 
-The builder pattern is the foundation of adk-fluent. Every builder wraps a native ADK class and exposes a fluent, chainable API that resolves to a real ADK object at `.build()` time.
+Every adk-fluent builder does one thing: it turns a chain of readable method calls into a native ADK object. No subclassing. No boilerplate. No silent misconfiguration.
+
+::::{tab-set}
+:::{tab-item} Native ADK (22 lines)
+```python
+from google.adk.agents import LlmAgent
+from google.adk.tools import FunctionTool
+
+agent = LlmAgent(
+    name="helper",
+    model="gemini-2.5-flash",
+    instruction="You are a helpful assistant.",
+    description="A general-purpose helper",
+    output_key="response",
+    tools=[FunctionTool(search_fn)],
+)
+```
+:::
+:::{tab-item} adk-fluent (6 lines)
+```python
+from adk_fluent import Agent
+
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are a helpful assistant.")
+    .describe("A general-purpose helper")
+    .writes("response")
+    .tool(search_fn)
+    .build()
+)
+```
+:::
+::::
+
+Both produce the **exact same `LlmAgent`**. The difference: the builder catches typos at definition time, provides IDE autocomplete for every field, and chains naturally.
 
 ## Constructor Arguments
 

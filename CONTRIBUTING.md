@@ -8,18 +8,23 @@ Thanks for your interest in contributing! This guide covers everything you need 
 # Clone and install
 git clone https://github.com/vamsiramakrishnan/adk-fluent.git
 cd adk-fluent
-uv venv .venv && source .venv/bin/activate
-uv pip install -e ".[dev,docs,yaml,examples]"
 
-# Install pre-commit hooks
-pip install pre-commit
-pre-commit install
+# One-command setup: installs all deps + pre-commit hooks
+just setup
 
 # Run the full codegen pipeline
 just all
 
 # Run tests
 just test
+```
+
+**Expected output** from `just setup`:
+```
+Installing dependencies...
+Installing pre-commit hooks...
+Setup complete. Pre-commit hooks will auto-format on every commit.
+Run 'just all' to generate code, or 'just fmt' to format existing files.
 ```
 
 ### Prerequisites
@@ -49,7 +54,7 @@ scanner.py --> manifest.json --> seed_generator.py --> seed.toml --> generator.p
 | `scripts/`                      | Codegen pipeline                  | Hand-written                      |
 | `seeds/seed.toml`               | Generator configuration           | Auto-generated + manual overrides |
 | `seeds/seed.manual.toml`        | Manual overrides merged into seed | Hand-written                      |
-| `examples/cookbook/`            | 43 runnable examples              | Hand-written                      |
+| `examples/cookbook/`            | 68 runnable examples              | Hand-written                      |
 | `tests/generated/`              | Auto-generated tests              | Auto-generated                    |
 | `tests/manual/`                 | Hand-written tests                | Hand-written                      |
 
@@ -98,7 +103,7 @@ For manual upgrades or to prepare a PR yourself:
 
 ```bash
 just archive                              # Save current manifest state
-pip install --upgrade google-adk          # Install new ADK version
+uv pip install --upgrade google-adk       # Install new ADK version
 just scan                                 # Introspect new ADK → manifest.json
 just diff                                 # Review what changed (JSON diff)
 # Edit seeds/seed.manual.toml if needed   # e.g. new aliases, custom extras
@@ -122,10 +127,26 @@ adk-fluent maintains backward compatibility with the **current and previous 5 re
 
 **Architecture note:** Code is *generated* against the latest ADK but must *execute* against older runtimes. The generated builders use `_safe_build()` which passes all config kwargs directly to ADK's Pydantic constructors. If a field doesn't exist in an older ADK, Pydantic rejects it with a clear error — there is no silent swallowing of unknown fields. This is by design: it's better to fail loudly than to silently ignore configuration.
 
+## Agent Skills for Contributors
+
+If you use an AI coding agent (Claude Code, Gemini CLI, Cursor, etc.), adk-fluent ships 14 agent skills that automate common contributor workflows. Skills activate automatically based on context:
+
+| Task | Skill | What it does for you |
+|------|-------|---------------------|
+| Implement a new feature | `/develop-feature` | Classifies change type, provides implementation path, file locations |
+| Write tests | `/write-tests` | Patterns for mock-based testing, contract checking, namespace verification |
+| Add a cookbook example | `/add-cookbook` | Scaffolds runnable example with `.mock()` for CI compatibility |
+| Debug a builder | `/debug-builder` | Systematic inspect → diagnose → fix workflow |
+| Review a PR | `/review-pr` | 12-point automated checklist with helper scripts |
+| Regenerate code | `/codegen-pipeline` | Step-by-step pipeline guidance |
+| Upgrade ADK | `/upgrade-adk` | Impact analysis, regeneration, and rollback procedures |
+
+Skills are already installed in `.claude/skills/` and `.gemini/skills/`. See [Agent Skills documentation](docs/editor-setup/agent-skills.md) for details.
+
 ## Code Style
 
 - We use [ruff](https://docs.astral.sh/ruff/) for linting and formatting
-- Run `ruff check .` and `ruff format .` before committing
+- Run `uv run ruff check .` and `uv run ruff format .` before committing
 - Pre-commit hooks handle this automatically
 
 ## Testing
@@ -135,13 +156,16 @@ adk-fluent maintains backward compatibility with the **current and previous 5 re
 just test
 
 # Specific test file
-pytest tests/manual/test_operators.py -v
+uv run pytest tests/manual/test_operators.py -v
 
 # Cookbook examples (each is a runnable test)
-pytest examples/cookbook/ -v
+uv run pytest examples/cookbook/ -v
 
 # Type checking
 just typecheck
+
+# Full local CI (mirrors GitHub Actions exactly)
+just ci
 ```
 
 ## Commit Messages

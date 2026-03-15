@@ -1,6 +1,11 @@
 # Best Practices & Anti-Patterns
 
-When building complex agentic systems, it's easy to fall into patterns that work for a prototype but fail in production. This guide outlines the "adk-fluent way"—showing you how to leverage the framework's primitives for maximum reliability, security, and maintainability.
+Nine rules that separate production agents from prototypes. Each rule is shown as an anti-pattern / best-practice pair — copy the green tab, avoid the red one.
+
+:::{admonition} The one-sentence version
+:class: tip
+Use `Route` for deterministic decisions, `.inject()` for infrastructure, `S.*` for data transforms, `C.none()` for utility agents, and `M.retry()` for resilience. Everything else is in the details below.
+:::
 
 ## 1. Routing: Deterministic vs. LLM-Driven
 
