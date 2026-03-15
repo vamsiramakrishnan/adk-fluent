@@ -5,14 +5,21 @@ from typing import Self
 
 from google.adk.agents.base_agent import BaseAgent
 from google.adk.agents.context_cache_config import ContextCacheConfig
-from google.adk.apps.app import App as _ADK_App
-from google.adk.apps.app import EventsCompactionConfig, ResumabilityConfig
+from google.adk.apps.app import (
+    App as _ADK_App,
+    EventsCompactionConfig,
+    ResumabilityConfig,
+)
 from google.adk.artifacts.base_artifact_service import BaseArtifactService
-from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
+from google.adk.auth.credential_service.base_credential_service import (
+    BaseCredentialService,
+)
 from google.adk.memory.base_memory_service import BaseMemoryService
 from google.adk.plugins.base_plugin import BasePlugin
-from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
-from google.adk.runners import Runner as _ADK_Runner
+from google.adk.runners import (
+    InMemoryRunner as _ADK_InMemoryRunner,
+    Runner as _ADK_Runner,
+)
 
 from adk_fluent._base import BuilderBase
 
@@ -20,7 +27,9 @@ class App(BuilderBase):
     """Represents an LLM-backed agentic application."""
     def __init__(self, name: str, root_agent: str) -> None: ...
     def plugins(self, value: list[BasePlugin]) -> Self: ...
-    def events_compaction_config(self, value: EventsCompactionConfig | None) -> Self: ...
+    def events_compaction_config(
+        self, value: EventsCompactionConfig | None
+    ) -> Self: ...
     def context_cache_config(self, value: ContextCacheConfig | None) -> Self: ...
     def resumability_config(self, value: ResumabilityConfig | None) -> Self: ...
     def plugin(self, value: BasePlugin) -> Self: ...

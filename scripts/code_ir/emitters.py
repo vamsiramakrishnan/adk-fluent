@@ -330,6 +330,14 @@ def _emit_module_python(mod: ModuleNode) -> str:
         grouped = _sort_and_group_imports(mod.imports)
         lines.extend(grouped)
 
+    # Emit optional imports wrapped in try/except
+    if mod.optional_imports:
+        for import_line, fallback in mod.optional_imports:
+            lines.append("try:")
+            lines.append(f"    {import_line}")
+            lines.append("except (ImportError, ModuleNotFoundError):")
+            lines.append(f"    {fallback}")
+
     # Emit TYPE_CHECKING-guarded imports (for type annotations only)
     if mod.type_checking_imports:
         lines.append("")

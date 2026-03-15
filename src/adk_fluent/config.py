@@ -6,65 +6,118 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-import a2a.types
-from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
 from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
 from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
-from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
-from google.adk.agents.common_configs import ArgumentConfig as _ADK_ArgumentConfig
-from google.adk.agents.common_configs import CodeConfig as _ADK_CodeConfig
-from google.adk.agents.context_cache_config import ContextCacheConfig as _ADK_ContextCacheConfig
+from google.adk.agents.common_configs import (
+    AgentRefConfig as _ADK_AgentRefConfig,
+    ArgumentConfig as _ADK_ArgumentConfig,
+    CodeConfig as _ADK_CodeConfig,
+)
+from google.adk.agents.context_cache_config import (
+    ContextCacheConfig as _ADK_ContextCacheConfig,
+)
 from google.adk.agents.llm_agent_config import LlmAgentConfig as _ADK_LlmAgentConfig
 from google.adk.agents.loop_agent_config import LoopAgentConfig as _ADK_LoopAgentConfig
-from google.adk.agents.parallel_agent_config import ParallelAgentConfig as _ADK_ParallelAgentConfig
-from google.adk.agents.run_config import RunConfig as _ADK_RunConfig
-from google.adk.agents.run_config import ToolThreadPoolConfig as _ADK_ToolThreadPoolConfig
-from google.adk.agents.sequential_agent_config import SequentialAgentConfig as _ADK_SequentialAgentConfig
-from google.adk.apps.app import EventsCompactionConfig as _ADK_EventsCompactionConfig
-from google.adk.apps.app import ResumabilityConfig as _ADK_ResumabilityConfig
+from google.adk.agents.parallel_agent_config import (
+    ParallelAgentConfig as _ADK_ParallelAgentConfig,
+)
+from google.adk.agents.run_config import (
+    RunConfig as _ADK_RunConfig,
+    ToolThreadPoolConfig as _ADK_ToolThreadPoolConfig,
+)
+from google.adk.agents.sequential_agent_config import (
+    SequentialAgentConfig as _ADK_SequentialAgentConfig,
+)
+from google.adk.apps.app import (
+    EventsCompactionConfig as _ADK_EventsCompactionConfig,
+    ResumabilityConfig as _ADK_ResumabilityConfig,
+)
 from google.adk.features._feature_registry import FeatureConfig as _ADK_FeatureConfig
-from google.adk.flows.llm_flows.audio_cache_manager import AudioCacheConfig as _ADK_AudioCacheConfig
+from google.adk.flows.llm_flows.audio_cache_manager import (
+    AudioCacheConfig as _ADK_AudioCacheConfig,
+)
 from google.adk.optimization.simple_prompt_optimizer import (
     SimplePromptOptimizerConfig as _ADK_SimplePromptOptimizerConfig,
 )
-from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig as _ADK_BigQueryLoggerConfig
-from google.adk.plugins.bigquery_agent_analytics_plugin import RetryConfig as _ADK_RetryConfig
-from google.adk.sessions.base_session_service import GetSessionConfig as _ADK_GetSessionConfig
-from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig as _ADK_BaseGoogleCredentialsConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import AgentSimulatorConfig as _ADK_AgentSimulatorConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import InjectionConfig as _ADK_InjectionConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import ToolSimulationConfig as _ADK_ToolSimulationConfig
+from google.adk.plugins.bigquery_agent_analytics_plugin import (
+    BigQueryLoggerConfig as _ADK_BigQueryLoggerConfig,
+    RetryConfig as _ADK_RetryConfig,
+)
+from google.adk.sessions.base_session_service import (
+    GetSessionConfig as _ADK_GetSessionConfig,
+)
+from google.adk.tools._google_credentials import (
+    BaseGoogleCredentialsConfig as _ADK_BaseGoogleCredentialsConfig,
+)
+from google.adk.tools.agent_simulator.agent_simulator_config import (
+    AgentSimulatorConfig as _ADK_AgentSimulatorConfig,
+    InjectionConfig as _ADK_InjectionConfig,
+    ToolSimulationConfig as _ADK_ToolSimulationConfig,
+)
 from google.adk.tools.agent_tool import AgentToolConfig as _ADK_AgentToolConfig
-from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig as _ADK_BigQueryCredentialsConfig
-from google.adk.tools.bigquery.config import BigQueryToolConfig as _ADK_BigQueryToolConfig
-from google.adk.tools.bigtable.bigtable_credentials import BigtableCredentialsConfig as _ADK_BigtableCredentialsConfig
-from google.adk.tools.data_agent.config import DataAgentToolConfig as _ADK_DataAgentToolConfig
-from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig as _ADK_DataAgentCredentialsConfig
+from google.adk.tools.bigquery.bigquery_credentials import (
+    BigQueryCredentialsConfig as _ADK_BigQueryCredentialsConfig,
+)
+from google.adk.tools.bigquery.config import (
+    BigQueryToolConfig as _ADK_BigQueryToolConfig,
+)
+from google.adk.tools.bigtable.bigtable_credentials import (
+    BigtableCredentialsConfig as _ADK_BigtableCredentialsConfig,
+)
+from google.adk.tools.data_agent.config import (
+    DataAgentToolConfig as _ADK_DataAgentToolConfig,
+)
+from google.adk.tools.data_agent.credentials import (
+    DataAgentCredentialsConfig as _ADK_DataAgentCredentialsConfig,
+)
 from google.adk.tools.example_tool import ExampleToolConfig as _ADK_ExampleToolConfig
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolsetConfig as _ADK_McpToolsetConfig
+from google.adk.tools.mcp_tool.mcp_toolset import (
+    McpToolsetConfig as _ADK_McpToolsetConfig,
+)
 from google.adk.tools.pubsub.config import PubSubToolConfig as _ADK_PubSubToolConfig
-from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig as _ADK_PubSubCredentialsConfig
-from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig as _ADK_SpannerCredentialsConfig
-from google.adk.tools.tool_configs import BaseToolConfig as _ADK_BaseToolConfig
-from google.adk.tools.tool_configs import ToolArgsConfig as _ADK_ToolArgsConfig
-from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
+from google.adk.tools.pubsub.pubsub_credentials import (
+    PubSubCredentialsConfig as _ADK_PubSubCredentialsConfig,
+)
+from google.adk.tools.spanner.spanner_credentials import (
+    SpannerCredentialsConfig as _ADK_SpannerCredentialsConfig,
+)
+from google.adk.tools.tool_configs import (
+    BaseToolConfig as _ADK_BaseToolConfig,
+    ToolArgsConfig as _ADK_ToolArgsConfig,
+    ToolConfig as _ADK_ToolConfig,
+)
 
 from adk_fluent._base import BuilderBase
+
+try:
+    from google.adk.a2a.executor.a2a_agent_executor import (
+        A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig,
+    )
+except (ImportError, ModuleNotFoundError):
+    _ADK_A2aAgentExecutorConfig = None  # type: ignore[assignment,misc]
+try:
+    import a2a.types
+except (ImportError, ModuleNotFoundError):
+    pass
 
 if TYPE_CHECKING:
     from typing import Literal
 
     from a2a.server.agent_execution.context import RequestContext
-    from fastapi.openapi.models import APIKey, HTTPBase, HTTPBearer, OAuth2, OpenIdConnect
+    from fastapi.openapi.models import (
+        APIKey,
+        HTTPBase,
+        HTTPBearer,
+        OAuth2,
+        OpenIdConnect,
+    )
     from google.adk.a2a.converters.request_converter import AgentRunRequest
     from google.adk.agents.invocation_context import InvocationContext
-    from google.adk.agents.run_config import StreamingMode
     from google.adk.apps.base_events_summarizer import BaseEventsSummarizer
     from google.adk.auth.auth_credential import AuthCredential
     from google.adk.auth.auth_schemes import OpenIdConnectWithConfig
     from google.adk.events.event import Event
-    from google.adk.tools.agent_simulator.agent_simulator_config import InjectedError, MockStrategy
-    from google.adk.tools.bigquery.config import WriteMode
+    from google.adk.tools.agent_simulator.agent_simulator_config import InjectedError
     from google.adk.tools.mcp_tool.mcp_session_manager import (
         SseConnectionParams,
         StdioConnectionParams,
@@ -100,20 +153,28 @@ class A2aAgentExecutorConfig(BuilderBase):
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
 
-    def a2a_part_converter(self, value: Callable[[Part], Part | None | list[Part]]) -> Self:
+    def a2a_part_converter(
+        self, value: Callable[[Part], Part | None | list[Part]]
+    ) -> Self:
         """Set the ``a2a_part_converter`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["a2a_part_converter"] = value
         return self
 
-    def gen_ai_part_converter(self, value: Callable[[Part], Part | None | list[Part]]) -> Self:
+    def gen_ai_part_converter(
+        self, value: Callable[[Part], Part | None | list[Part]]
+    ) -> Self:
         """Set the ``gen_ai_part_converter`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["gen_ai_part_converter"] = value
         return self
 
     def request_converter(
-        self, value: Callable[[RequestContext, Callable[[Part], Part | None | list[Part]]], AgentRunRequest]
+        self,
+        value: Callable[
+            [RequestContext, Callable[[Part], Part | None | list[Part]]],
+            AgentRunRequest,
+        ],
     ) -> Self:
         """Set the ``request_converter`` field."""
         self = self._maybe_fork_for_mutation()
@@ -123,9 +184,18 @@ class A2aAgentExecutorConfig(BuilderBase):
     def event_converter(
         self,
         value: Callable[
-            [Event, InvocationContext, str | None, str | None, Callable[[Part], Part | None | list[Part]]],
+            [
+                Event,
+                InvocationContext,
+                str | None,
+                str | None,
+                Callable[[Part], Part | None | list[Part]],
+            ],
             list[
-                a2a.types.Message | a2a.types.Task | a2a.types.TaskStatusUpdateEvent | a2a.types.TaskArtifactUpdateEvent
+                a2a.types.Message
+                | a2a.types.Task
+                | a2a.types.TaskStatusUpdateEvent
+                | a2a.types.TaskArtifactUpdateEvent
             ],
         ],
     ) -> Self:
@@ -136,6 +206,10 @@ class A2aAgentExecutorConfig(BuilderBase):
 
     def build(self) -> _ADK_A2aAgentExecutorConfig:
         """Configuration for the A2aAgentExecutor. Resolve into a native ADK _ADK_A2aAgentExecutorConfig."""
+        if _ADK_A2aAgentExecutorConfig is None:
+            raise ImportError(
+                "A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'"
+            )
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_A2aAgentExecutorConfig, config)
         return self._apply_native_hooks(result)
@@ -422,13 +496,17 @@ class LlmAgentConfig(BuilderBase):
         self._config["output_key"] = value
         return self
 
-    def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
+    def static(
+        self, value: Content | str | File | Part | list[str | File | Part] | None
+    ) -> Self:
         """Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
 
-    def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
+    def static_instruct(
+        self, value: Content | str | File | Part | list[str | File | Part] | None
+    ) -> Self:
         """Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
@@ -921,7 +999,9 @@ class RunConfig(BuilderBase):
         self._config["session_resumption"] = value
         return self
 
-    def context_window_compression(self, value: ContextWindowCompressionConfig | None) -> Self:
+    def context_window_compression(
+        self, value: ContextWindowCompressionConfig | None
+    ) -> Self:
         """Set the ``context_window_compression`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["context_window_compression"] = value
@@ -1076,7 +1156,10 @@ class EventsCompactionConfig(BuilderBase):
     _ADK_TARGET_CLASS = _ADK_EventsCompactionConfig
 
     def __init__(self, compaction_interval: str, overlap_size: str) -> None:
-        self._config: dict[str, Any] = {"compaction_interval": compaction_interval, "overlap_size": overlap_size}
+        self._config: dict[str, Any] = {
+            "compaction_interval": compaction_interval,
+            "overlap_size": overlap_size,
+        }
         self._callbacks: dict[str, list[Callable]] = defaultdict(list)
         self._lists: dict[str, list] = defaultdict(list)
         self._frozen = False
@@ -1166,7 +1249,11 @@ class AudioCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"auto_flush_threshold", "max_cache_duration_seconds", "max_cache_size_bytes"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "auto_flush_threshold",
+        "max_cache_duration_seconds",
+        "max_cache_size_bytes",
+    }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1391,7 +1478,12 @@ class RetryConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"initial_delay", "max_delay", "max_retries", "multiplier"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "initial_delay",
+        "max_delay",
+        "max_retries",
+        "multiplier",
+    }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1517,7 +1609,9 @@ class BaseGoogleCredentialsConfig(BuilderBase):
 class AgentSimulatorConfig(BuilderBase):
     """Configuration for AgentSimulator."""
 
-    _ALIASES: dict[str, str] = {"simulation_model_configure": "simulation_model_configuration"}
+    _ALIASES: dict[str, str] = {
+        "simulation_model_configure": "simulation_model_configuration"
+    }
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
     _ADK_TARGET_CLASS = _ADK_AgentSimulatorConfig
@@ -1996,7 +2090,9 @@ class McpToolsetConfig(BuilderBase):
         self._config["sse_connection_params"] = value
         return self
 
-    def streamable_http_connection_params(self, value: StreamableHTTPConnectionParams | None) -> Self:
+    def streamable_http_connection_params(
+        self, value: StreamableHTTPConnectionParams | None
+    ) -> Self:
         """Set the ``streamable_http_connection_params`` field."""
         self = self._maybe_fork_for_mutation()
         self._config["streamable_http_connection_params"] = value
@@ -2015,7 +2111,14 @@ class McpToolsetConfig(BuilderBase):
         return self
 
     def auth_scheme(
-        self, value: APIKey | HTTPBase | OAuth2 | OpenIdConnect | HTTPBearer | OpenIdConnectWithConfig | None
+        self,
+        value: APIKey
+        | HTTPBase
+        | OAuth2
+        | OpenIdConnect
+        | HTTPBearer
+        | OpenIdConnectWithConfig
+        | None,
     ) -> Self:
         """Set the ``auth_scheme`` field."""
         self = self._maybe_fork_for_mutation()

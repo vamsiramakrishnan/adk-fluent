@@ -6,21 +6,51 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
-from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
-from google.adk.artifacts.gcs_artifact_service import GcsArtifactService as _ADK_GcsArtifactService
-from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService as _ADK_InMemoryArtifactService
-from google.adk.cli.utils.local_storage import PerAgentDatabaseSessionService as _ADK_PerAgentDatabaseSessionService
-from google.adk.memory.base_memory_service import BaseMemoryService as _ADK_BaseMemoryService
-from google.adk.memory.in_memory_memory_service import InMemoryMemoryService as _ADK_InMemoryMemoryService
-from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService as _ADK_VertexAiMemoryBankService
-from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService as _ADK_VertexAiRagMemoryService
-from google.adk.sessions.base_session_service import BaseSessionService as _ADK_BaseSessionService
-from google.adk.sessions.database_session_service import DatabaseSessionService as _ADK_DatabaseSessionService
-from google.adk.sessions.in_memory_session_service import InMemorySessionService as _ADK_InMemorySessionService
-from google.adk.sessions.sqlite_session_service import SqliteSessionService as _ADK_SqliteSessionService
-from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService as _ADK_VertexAiSessionService
-from google.adk.tools._forwarding_artifact_service import ForwardingArtifactService as _ADK_ForwardingArtifactService
+from google.adk.artifacts.base_artifact_service import (
+    BaseArtifactService as _ADK_BaseArtifactService,
+)
+from google.adk.artifacts.file_artifact_service import (
+    FileArtifactService as _ADK_FileArtifactService,
+)
+from google.adk.artifacts.gcs_artifact_service import (
+    GcsArtifactService as _ADK_GcsArtifactService,
+)
+from google.adk.artifacts.in_memory_artifact_service import (
+    InMemoryArtifactService as _ADK_InMemoryArtifactService,
+)
+from google.adk.cli.utils.local_storage import (
+    PerAgentDatabaseSessionService as _ADK_PerAgentDatabaseSessionService,
+)
+from google.adk.memory.base_memory_service import (
+    BaseMemoryService as _ADK_BaseMemoryService,
+)
+from google.adk.memory.in_memory_memory_service import (
+    InMemoryMemoryService as _ADK_InMemoryMemoryService,
+)
+from google.adk.memory.vertex_ai_memory_bank_service import (
+    VertexAiMemoryBankService as _ADK_VertexAiMemoryBankService,
+)
+from google.adk.memory.vertex_ai_rag_memory_service import (
+    VertexAiRagMemoryService as _ADK_VertexAiRagMemoryService,
+)
+from google.adk.sessions.base_session_service import (
+    BaseSessionService as _ADK_BaseSessionService,
+)
+from google.adk.sessions.database_session_service import (
+    DatabaseSessionService as _ADK_DatabaseSessionService,
+)
+from google.adk.sessions.in_memory_session_service import (
+    InMemorySessionService as _ADK_InMemorySessionService,
+)
+from google.adk.sessions.sqlite_session_service import (
+    SqliteSessionService as _ADK_SqliteSessionService,
+)
+from google.adk.sessions.vertex_ai_session_service import (
+    VertexAiSessionService as _ADK_VertexAiSessionService,
+)
+from google.adk.tools._forwarding_artifact_service import (
+    ForwardingArtifactService as _ADK_ForwardingArtifactService,
+)
 
 from adk_fluent._base import BuilderBase
 
@@ -193,7 +223,12 @@ class VertexAiMemoryBankService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "location", "project"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "agent_engine_id",
+        "express_mode_api_key",
+        "location",
+        "project",
+    }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -238,7 +273,11 @@ class VertexAiRagMemoryService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"rag_corpus", "similarity_top_k", "vector_distance_threshold"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "rag_corpus",
+        "similarity_top_k",
+        "vector_distance_threshold",
+    }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -361,7 +400,12 @@ class VertexAiSessionService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "location", "project"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "agent_engine_id",
+        "express_mode_api_key",
+        "location",
+        "project",
+    }
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}

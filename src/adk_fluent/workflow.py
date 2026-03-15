@@ -20,7 +20,10 @@ class Loop(BuilderBase):
     """A shell agent that run its sub-agents in a loop."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "before_agent": "before_agent_callback",
+    }
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = LoopAgent
 
@@ -105,7 +108,10 @@ class FanOut(BuilderBase):
     """A shell agent that runs its sub-agents in parallel in an isolated manner."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "before_agent": "before_agent_callback",
+    }
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = ParallelAgent
 
@@ -184,7 +190,10 @@ class Pipeline(BuilderBase):
     """A shell agent that runs its sub-agents in sequence."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "before_agent": "before_agent_callback",
+    }
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
     _ADK_TARGET_CLASS = SequentialAgent
 

@@ -8,7 +8,9 @@ from typing import Any
 
 from google.adk.planners.base_planner import BasePlanner as _ADK_BasePlanner
 from google.adk.planners.built_in_planner import BuiltInPlanner as _ADK_BuiltInPlanner
-from google.adk.planners.plan_re_act_planner import PlanReActPlanner as _ADK_PlanReActPlanner
+from google.adk.planners.plan_re_act_planner import (
+    PlanReActPlanner as _ADK_PlanReActPlanner,
+)
 
 from adk_fluent._base import BuilderBase
 

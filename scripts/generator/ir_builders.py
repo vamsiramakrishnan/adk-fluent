@@ -33,7 +33,7 @@ from code_ir import (
     split_at_commas,
 )
 
-from .imports import adk_import_name
+from .imports import _is_optional_source, adk_import_name
 from .sig_parser import parse_signature
 from .spec import BuilderSpec
 
@@ -498,16 +498,35 @@ def ir_build_method(spec: BuilderSpec) -> MethodNode | None:
 
     class_short = adk_import_name(spec)
 
+    body: list = []
+
+    # Guard against missing optional dependency at build time
+    if _is_optional_source(spec.source_class):
+        body.append(
+            IfStmt(
+                condition=f"{class_short} is None",
+                body=(
+                    RawStmt(
+                        "raise ImportError("
+                        '"A2A support requires the a2a SDK. '
+                        "Install with: pip install 'google-adk[a2a]'\")"
+                    ),
+                ),
+            )
+        )
+
+    body.extend([
+        AssignStmt("config", "self._prepare_build_config()"),
+        AssignStmt("result", f"self._safe_build({class_short}, config)"),
+        ReturnStmt("self._apply_native_hooks(result)"),
+    ])
+
     return MethodNode(
         name="build",
         params=[Param("self")],
         returns=class_short,
         doc=f"{spec.doc} Resolve into a native ADK {class_short}.",
-        body=[
-            AssignStmt("config", "self._prepare_build_config()"),
-            AssignStmt("result", f"self._safe_build({class_short}, config)"),
-            ReturnStmt("self._apply_native_hooks(result)"),
-        ],
+        body=body,
     )
 
 

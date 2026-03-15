@@ -31,8 +31,24 @@ def adk_import_name(spec: BuilderSpec) -> str:
     return class_name
 
 
+# Module prefixes that require optional dependencies at import time.
+# These imports are wrapped in try/except with a None fallback.
+_OPTIONAL_IMPORT_PREFIXES = (
+    "google.adk.a2a.",                     # requires: pip install 'google-adk[a2a]'
+    "google.adk.agents.remote_a2a_agent",  # imports a2a SDK internally
+)
+
+
+def _is_optional_source(source_class: str) -> bool:
+    """Check if a source class requires an optional dependency."""
+    return any(source_class.startswith(prefix) for prefix in _OPTIONAL_IMPORT_PREFIXES)
+
+
 def gen_runtime_imports(spec: BuilderSpec) -> list[str]:
-    """Return raw import lines for a single builder spec (no header/grouping)."""
+    """Return raw import lines for a single builder spec (no header/grouping).
+
+    Does NOT include optional imports — call ``gen_optional_import`` separately.
+    """
     lines = [
         "from collections import defaultdict",
         "from collections.abc import Callable",
@@ -41,6 +57,8 @@ def gen_runtime_imports(spec: BuilderSpec) -> list[str]:
     ]
 
     if not spec.is_composite and not spec.is_standalone:
+        if _is_optional_source(spec.source_class):
+            return lines  # handled by gen_optional_import
         module_path = ".".join(spec.source_class.split(".")[:-1])
         class_name = spec.source_class.split(".")[-1]
         import_name = adk_import_name(spec)
@@ -50,6 +68,27 @@ def gen_runtime_imports(spec: BuilderSpec) -> list[str]:
             lines.append(f"from {module_path} import {class_name}")
 
     return lines
+
+
+def gen_optional_import(spec: BuilderSpec) -> tuple[str, str] | None:
+    """Return an optional import tuple ``(import_line, fallback)`` if needed.
+
+    Returns ``None`` if the spec does not require an optional import.
+    """
+    if spec.is_composite or spec.is_standalone:
+        return None
+    if not _is_optional_source(spec.source_class):
+        return None
+
+    module_path = ".".join(spec.source_class.split(".")[:-1])
+    class_name = spec.source_class.split(".")[-1]
+    import_name = adk_import_name(spec)
+    if import_name != class_name:
+        import_line = f"from {module_path} import {class_name} as {import_name}"
+    else:
+        import_line = f"from {module_path} import {class_name}"
+    fallback = f"{import_name} = None  # type: ignore[assignment,misc]"
+    return import_line, fallback
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +154,12 @@ MODULE_PREFIX_REWRITES: dict[str, str] = {
 STDLIB_MODULE_REFS: dict[str, str] = {
     "ssl.": "import ssl",
     "a2a.types.": "import a2a.types",
+}
+
+# Module imports from STDLIB_MODULE_REFS that require optional dependencies.
+# These are emitted as try/except with a pass fallback instead of bare imports.
+OPTIONAL_MODULE_IMPORTS: set[str] = {
+    "import a2a.types",
 }
 
 # Stdlib typing names that need explicit imports when referenced in stubs.

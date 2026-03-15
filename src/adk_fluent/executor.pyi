@@ -3,14 +3,24 @@ Generated from google-adk 1.25.0 (manifest 60502a2e8cdb)"""
 
 from typing import Any, Self
 
-from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
+from google.adk.a2a.executor.a2a_agent_executor import (
+    A2aAgentExecutor as _ADK_A2aAgentExecutor,
+)
 from google.adk.code_executors.agent_engine_sandbox_code_executor import (
     AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
 )
-from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
-from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
-from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor
-from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
+from google.adk.code_executors.base_code_executor import (
+    BaseCodeExecutor as _ADK_BaseCodeExecutor,
+)
+from google.adk.code_executors.built_in_code_executor import (
+    BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor,
+)
+from google.adk.code_executors.unsafe_local_code_executor import (
+    UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor,
+)
+from google.adk.code_executors.vertex_ai_code_executor import (
+    VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor,
+)
 
 from adk_fluent._base import BuilderBase
 

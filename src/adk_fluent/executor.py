@@ -6,16 +6,30 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import Any, Self
 
-from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
 from google.adk.code_executors.agent_engine_sandbox_code_executor import (
     AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
 )
-from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
-from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
-from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor
-from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
+from google.adk.code_executors.base_code_executor import (
+    BaseCodeExecutor as _ADK_BaseCodeExecutor,
+)
+from google.adk.code_executors.built_in_code_executor import (
+    BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor,
+)
+from google.adk.code_executors.unsafe_local_code_executor import (
+    UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor,
+)
+from google.adk.code_executors.vertex_ai_code_executor import (
+    VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor,
+)
 
 from adk_fluent._base import BuilderBase
+
+try:
+    from google.adk.a2a.executor.a2a_agent_executor import (
+        A2aAgentExecutor as _ADK_A2aAgentExecutor,
+    )
+except (ImportError, ModuleNotFoundError):
+    _ADK_A2aAgentExecutor = None  # type: ignore[assignment,misc]
 
 
 class A2aAgentExecutor(BuilderBase):
@@ -40,6 +54,10 @@ class A2aAgentExecutor(BuilderBase):
 
     def build(self) -> _ADK_A2aAgentExecutor:
         """An AgentExecutor that runs an ADK Agent against an A2A request and. Resolve into a native ADK _ADK_A2aAgentExecutor."""
+        if _ADK_A2aAgentExecutor is None:
+            raise ImportError(
+                "A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'"
+            )
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_A2aAgentExecutor, config)
         return self._apply_native_hooks(result)
