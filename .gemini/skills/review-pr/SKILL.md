@@ -8,6 +8,11 @@ allowed-tools: Bash, Read, Glob, Grep
 
 Review this pull request with adk-fluent-specific quality checks.
 
+## PR context
+
+- Changed files: !`git diff --name-only HEAD~1`
+- Diff stats: !`git diff --stat HEAD~1`
+
 ## Automated checks
 
 Run these helper scripts for quick automated scanning:

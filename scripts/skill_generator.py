@@ -811,8 +811,37 @@ if __name__ == "__main__":
 # ---------------------------------------------------------------------------
 
 
+def _transform_skill_md_for_gemini(content: str) -> str:
+    """Transform a Claude SKILL.md for Gemini: strip Claude-only keys, fix paths."""
+    lines = content.splitlines(keepends=True)
+    result: list[str] = []
+    in_frontmatter = False
+    frontmatter_count = 0
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped == "---":
+            frontmatter_count += 1
+            in_frontmatter = frontmatter_count == 1
+            result.append(line)
+            continue
+
+        if in_frontmatter:
+            # Strip Claude-specific frontmatter keys
+            key = stripped.split(":")[0].strip() if ":" in stripped else ""
+            if key in CLAUDE_ONLY_KEYS:
+                continue
+
+        # Replace .claude/ paths with .gemini/
+        line = line.replace(".claude/skills/", ".gemini/skills/")
+        result.append(line)
+
+    return "".join(result)
+
+
 def sync_to_gemini():
-    """Sync _shared directory from .claude to .gemini."""
+    """Sync _shared directory and SKILL.md files from .claude to .gemini."""
+    # 1. Sync _shared/ (references + scripts)
     claude_shared = CLAUDE_SKILLS / SHARED_DIR
     gemini_shared = GEMINI_SKILLS / SHARED_DIR
 
@@ -820,6 +849,28 @@ def sync_to_gemini():
         shutil.rmtree(gemini_shared)
 
     shutil.copytree(claude_shared, gemini_shared)
+
+    # 2. Sync individual SKILL.md files with transformations
+    skill_count = 0
+    for skill_dir in sorted(CLAUDE_SKILLS.iterdir()):
+        if not skill_dir.is_dir() or skill_dir.name == SHARED_DIR:
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.exists():
+            continue
+
+        content = skill_md.read_text()
+        transformed = _transform_skill_md_for_gemini(content)
+
+        gemini_skill_dir = GEMINI_SKILLS / skill_dir.name
+        gemini_skill_dir.mkdir(parents=True, exist_ok=True)
+        gemini_md = gemini_skill_dir / "SKILL.md"
+        if not transformed.endswith("\n"):
+            transformed += "\n"
+        gemini_md.write_text(transformed)
+        skill_count += 1
+
+    return skill_count
 
 
 # ---------------------------------------------------------------------------
@@ -887,9 +938,9 @@ def main():
         (scripts_dir / filename).chmod(0o755)
         print(f"  Generated scripts/{filename}")
 
-    # Sync to .gemini
-    sync_to_gemini()
-    print("\n  Synced _shared/ to .gemini/skills/")
+    # Sync to .gemini (shared refs + individual SKILL.md files)
+    skill_count = sync_to_gemini()
+    print(f"\n  Synced _shared/ + {skill_count} SKILL.md files to .gemini/skills/")
 
     print(f"\nGenerated {len(references)} references + {len(scripts)} scripts from {len(specs)} builder specs.")
 

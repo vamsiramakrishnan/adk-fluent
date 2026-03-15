@@ -13,6 +13,18 @@ Special type indicating an unconstrained type.
 
 ### `Callable()`
 
+### `a2a_cascade(*endpoints: 'str', names: 'list[str] | None' = None, timeout: 'float' = 300.0) -> 'Any'`
+
+Fallback chain across remote A2A agents.
+
+### `a2a_delegate(coordinator: 'Any', **remotes: 'str') -> 'Any'`
+
+Coordinator agent with named remote specialists as sub-agents.
+
+### `a2a_fanout(*endpoints: 'str', names: 'list[str] | None' = None, timeout: 'float' = 300.0) -> 'Any'`
+
+Fan-out across remote A2A agents in parallel.
+
 ### `cascade(*agents: 'Any') -> 'Any'`
 
 Try agents in order. First success wins (fallback chain).
