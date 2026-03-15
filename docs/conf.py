@@ -43,8 +43,22 @@ ogp_custom_meta_tags = [
     '<meta name="twitter:card" content="summary_large_image">',
 ]
 
-# Mermaid settings - use CDN for GitHub Pages (no server-side rendering needed)
+# Mermaid settings — CDN for GitHub Pages, theme-aware dark mode
 mermaid_version = "11"
+mermaid_init_config = {
+    "startOnLoad": False,
+    "theme": "base",
+    "themeVariables": {
+        "primaryColor": "#eef2ff",
+        "primaryTextColor": "#1e293b",
+        "primaryBorderColor": "#4f46e5",
+        "lineColor": "#64748b",
+        "secondaryColor": "#f0f9ff",
+        "tertiaryColor": "#ecfdf5",
+        "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+        "fontSize": "14px",
+    },
+}
 
 # MyST settings — full Markdown feature set
 myst_enable_extensions = [
@@ -70,6 +84,12 @@ html_theme_options = {
     "source_repository": "https://github.com/vamsiramakrishnan/adk-fluent",
     "source_branch": "master",
     "source_directory": "docs/",
+    "announcement": (
+        "adk-fluent is in active development &mdash; "
+        '<a href="https://pypi.org/project/adk-fluent/">Install from PyPI</a> '
+        "or <a href=\"https://github.com/vamsiramakrishnan/adk-fluent\">star on GitHub</a>"
+    ),
+    "sidebar_hide_name": True,
     "navigation_with_keys": True,
     "footer_icons": [
         {
@@ -101,12 +121,18 @@ html_theme_options = {
     "dark_css_variables": {
         "color-brand-primary": "#818cf8",
         "color-brand-content": "#6366f1",
-        "color-background-primary": "#0f172a",
-        "color-background-secondary": "#1e293b",
-        "color-background-border": "#334155",
+        "color-background-primary": "#0b1120",
+        "color-background-secondary": "#131c31",
+        "color-background-border": "#1e2d4a",
+        "color-foreground-secondary": "#94a3b8",
+        "color-foreground-muted": "#64748b",
     },
     "top_of_page_buttons": ["view", "edit"],
 }
+
+html_favicon = "_static/favicon.svg"
+html_logo = "_static/logo.svg"
+html_baseurl = "https://vamsiramakrishnan.github.io/adk-fluent/"
 
 pygments_style = "github-light"
 pygments_dark_style = "github-dark"

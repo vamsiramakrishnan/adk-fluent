@@ -103,10 +103,10 @@
   --adk-info: #38bdf8;
   --adk-info-bg: rgba(2, 132, 199, 0.1);
 
-  --adk-surface: #1e293b;
-  --adk-surface-raised: #1e293b;
-  --adk-border: #334155;
-  --adk-border-hover: #475569;
+  --adk-surface: #131c31;
+  --adk-surface-raised: #1a2540;
+  --adk-border: #1e2d4a;
+  --adk-border-hover: #2d3f5e;
   --adk-text-muted: #94a3b8;
   --adk-text-faint: #64748b;
 
@@ -204,8 +204,9 @@ html {
 }
 
 /* ---- Inline code: refined pill ---- */
+/* Exclude code inside headings (API method signatures get their own treatment) */
 
-.content code:not(pre code) {
+.content code:not(pre code):not(h1 code):not(h2 code):not(h3 code):not(h4 code) {
   background: var(--adk-accent-bg);
   color: var(--adk-accent);
   padding: 0.15em 0.4em;
@@ -216,13 +217,26 @@ html {
   transition: background var(--adk-transition), border-color var(--adk-transition);
 }
 
-.content code:not(pre code):hover {
+.content code:not(pre code):not(h1 code):not(h2 code):not(h3 code):not(h4 code):hover {
   border-color: var(--adk-accent-light);
 }
 
-[data-theme="dark"] .content code:not(pre code) {
+[data-theme="dark"] .content code:not(pre code):not(h1 code):not(h2 code):not(h3 code):not(h4 code) {
   background: rgba(99, 102, 241, 0.12);
   color: var(--adk-accent-lighter);
+}
+
+/* Code inside headings: clean monospace, no pill background */
+.content h1 code,
+.content h2 code,
+.content h3 code,
+.content h4 code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: 0.9em;
+  font-weight: 600;
 }
 
 /* ---- Links ---- */
@@ -235,6 +249,31 @@ html {
 
 .content a:not(.sd-card):not(.headerlink):hover {
   text-decoration-thickness: 2px;
+}
+
+/* ---- Header anchor links (pilcrow ¶) ---- */
+
+.headerlink {
+  opacity: 0;
+  font-size: 0.7em;
+  padding-left: 0.3em;
+  color: var(--adk-text-faint);
+  text-decoration: none;
+  transition: opacity var(--adk-transition), color var(--adk-transition);
+  vertical-align: middle;
+}
+
+h1:hover .headerlink,
+h2:hover .headerlink,
+h3:hover .headerlink,
+h4:hover .headerlink,
+.headerlink:focus-visible {
+  opacity: 1;
+}
+
+.headerlink:hover {
+  color: var(--adk-accent);
+  opacity: 1;
 }
 
 
@@ -276,6 +315,14 @@ html {
   opacity: 1;
   background: var(--adk-accent);
   color: white;
+}
+
+/* Copy success state — brief green flash */
+.content pre .copybtn.success {
+  opacity: 1;
+  background: var(--adk-success);
+  color: white;
+  transition: background 0.15s var(--adk-ease);
 }
 
 /* ---- Language labels via highlight class ---- */
@@ -807,46 +854,81 @@ html {
    9. API REFERENCE POLISH
    ========================================================================== */
 
+/* ---- Method signatures in h4 ---- */
+/* API pages render: <h4><code>.method(args) -> Self</code> <badge>Category</badge></h4> */
+
+.content h4 code.docutils {
+  font-family: var(--font-stack--monospace);
+  font-size: 0.88em;
+  font-weight: 600;
+  color: var(--color-foreground-primary);
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+/* Method name highlight — the leading dot+name */
+.content h4 code.docutils .pre:first-child {
+  color: var(--adk-accent);
+  font-weight: 700;
+}
+
+/* Return type arrow and type */
+.content h4 code.docutils .pre:last-child {
+  color: var(--adk-text-muted);
+  font-weight: 400;
+}
+
+/* Method group section headers (h3 like "Callbacks", "Configuration") */
+.content h3 + h4 {
+  margin-top: 1.25rem;
+}
+
 /* ---- Badges — method categories ---- */
 
 .sd-badge {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 0.2em 0.65em;
+  padding: 0.15em 0.55em;
   border-radius: var(--adk-radius-pill);
   vertical-align: middle;
   text-transform: uppercase;
 }
 
-/* Category-specific badge colors */
-.sd-badge.sd-bg-success {
-  background: var(--adk-success-bg);
-  color: var(--adk-success);
+/* Category-specific badge colors — override sphinx-design defaults */
+.sd-badge.sd-bg-success,
+.sd-badge.sd-bg-success.sd-bg-text-success {
+  background: var(--adk-success-bg) !important;
+  color: var(--adk-success) !important;
   border: 1px solid currentColor;
 }
 
-.sd-badge.sd-bg-info {
-  background: var(--adk-info-bg);
-  color: var(--adk-info);
+.sd-badge.sd-bg-info,
+.sd-badge.sd-bg-info.sd-bg-text-info {
+  background: var(--adk-info-bg) !important;
+  color: var(--adk-info) !important;
   border: 1px solid currentColor;
 }
 
-.sd-badge.sd-bg-primary {
-  background: var(--adk-accent-bg);
-  color: var(--adk-accent);
+.sd-badge.sd-bg-primary,
+.sd-badge.sd-bg-primary.sd-bg-text-primary {
+  background: var(--adk-accent-bg) !important;
+  color: var(--adk-accent) !important;
   border: 1px solid currentColor;
 }
 
-.sd-badge.sd-bg-warning {
-  background: var(--adk-warning-bg);
-  color: var(--adk-warning);
+.sd-badge.sd-bg-warning,
+.sd-badge.sd-bg-warning.sd-bg-text-warning {
+  background: var(--adk-warning-bg) !important;
+  color: var(--adk-warning) !important;
   border: 1px solid currentColor;
 }
 
-.sd-badge.sd-bg-danger {
-  background: var(--adk-danger-bg);
-  color: var(--adk-danger);
+.sd-badge.sd-bg-danger,
+.sd-badge.sd-bg-danger.sd-bg-text-danger {
+  background: var(--adk-danger-bg) !important;
+  color: var(--adk-danger) !important;
   border: 1px solid currentColor;
 }
 
@@ -872,32 +954,154 @@ html {
 
 
 /* ==========================================================================
-   10. ANNOUNCEMENT BAR
+   10. PREV/NEXT PAGE NAVIGATION
    ========================================================================== */
 
-.announcement-bar {
-  background: linear-gradient(90deg, var(--adk-gradient-start), var(--adk-gradient-mid));
-  color: white;
-  text-align: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.82rem;
-  font-weight: 500;
+.related-pages {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--adk-border);
+  display: flex;
+  gap: 1rem;
 }
 
-.announcement-bar a {
-  color: white;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  font-weight: 700;
+.related-pages a {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-lg);
+  text-decoration: none;
+  transition: all var(--adk-transition);
+  background: var(--adk-surface-raised);
 }
 
-.announcement-bar a:hover {
-  opacity: 0.9;
+.related-pages a:hover {
+  border-color: var(--adk-accent-light);
+  box-shadow: var(--adk-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.related-pages a .page-info .context {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--adk-text-faint);
+}
+
+.related-pages a .page-info .title {
+  font-weight: 600;
+  color: var(--color-foreground-primary);
+  font-size: 0.92rem;
+  margin-top: 0.15rem;
+}
+
+.related-pages a:hover .page-info .title {
+  color: var(--adk-accent);
+}
+
+.related-pages .furo-related-icon {
+  color: var(--adk-text-faint);
+  transition: color var(--adk-transition);
+  flex-shrink: 0;
+}
+
+.related-pages a:hover .furo-related-icon {
+  color: var(--adk-accent);
+}
+
+/* Previous link: right-align text */
+.related-pages .prev-page .page-info {
+  text-align: right;
 }
 
 
 /* ==========================================================================
-   11. RESPONSIVE
+   11. ANNOUNCEMENT BAR (Furo built-in)
+   ========================================================================== */
+
+/* Furo's announcement uses .announcement class on the banner div */
+.announcement {
+  background: linear-gradient(90deg, var(--adk-gradient-start), var(--adk-gradient-mid));
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+}
+
+.announcement a {
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+
+.announcement a:hover {
+  opacity: 0.85;
+}
+
+
+/* ==========================================================================
+   12. SEARCH & HIGHLIGHTING
+   ========================================================================== */
+
+/* Search result highlight */
+.highlighted {
+  background: rgba(251, 191, 36, 0.25);
+  padding: 0.1em 0.2em;
+  border-radius: 3px;
+  border-bottom: 2px solid var(--adk-warning);
+}
+
+[data-theme="dark"] .highlighted {
+  background: rgba(251, 191, 36, 0.15);
+}
+
+/* Sphinx search results page */
+.search .context {
+  font-size: 0.9rem;
+  color: var(--adk-text-muted);
+  line-height: 1.6;
+}
+
+
+/* ==========================================================================
+   13. TABLE RESPONSIVENESS
+   ========================================================================== */
+
+/* Horizontal scroll wrapper for wide tables on mobile */
+.content .table-wrapper,
+.content table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tabular numbers for numeric table cells */
+.content table tbody td {
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ==========================================================================
+   14. SIDEBAR LOGO
+   ========================================================================== */
+
+/* Scale the logo SVG nicely in the sidebar */
+.sidebar-brand {
+  padding: 1rem;
+}
+
+.sidebar-logo {
+  max-height: 2.2rem;
+  width: auto;
+}
+
+/* Hide the project name when logo is present (Furo setting) */
+
+
+/* ==========================================================================
+   15. RESPONSIVE
    ========================================================================== */
 
 @media (max-width: 768px) {
@@ -936,6 +1140,15 @@ html {
   .content table tbody td {
     padding: 0.5rem 0.6rem;
   }
+
+  /* Stack prev/next on mobile */
+  .related-pages {
+    flex-direction: column;
+  }
+
+  .related-pages .prev-page .page-info {
+    text-align: left;
+  }
 }
 
 @media (max-width: 480px) {
@@ -947,18 +1160,22 @@ html {
 
 
 /* ==========================================================================
-   12. PRINT
+   16. PRINT
    ========================================================================== */
 
 @media print {
   .reading-progress,
-  .announcement-bar {
+  .announcement {
     display: none;
   }
 
   .hero-section {
     background: none;
     border: 1px solid #ccc;
+  }
+
+  .hero-section::before {
+    display: none;
   }
 
   .hero-section h1 {
@@ -976,11 +1193,20 @@ html {
     box-shadow: none;
     border-left-color: #999;
   }
+
+  .content pre .copybtn {
+    display: none;
+  }
+
+  .related-pages a {
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
 }
 
 
 /* ==========================================================================
-   13. ACCESSIBILITY
+   17. ACCESSIBILITY
    ========================================================================== */
 
 /* Focus ring for keyboard navigation */
@@ -1006,4 +1232,63 @@ input:focus-visible,
   color: white;
   padding: 0.5rem 1rem;
   z-index: 10000;
+}
+
+
+/* ==========================================================================
+   18. DARK MODE REFINEMENTS
+   ========================================================================== */
+
+/* Deeper dark surfaces — match the standalone visual references */
+[data-theme="dark"] {
+  --adk-surface: #131c31;
+  --adk-surface-raised: #1a2540;
+  --adk-border: #1e2d4a;
+  --adk-border-hover: #2d3f5e;
+}
+
+/* Mermaid: remove old invert hack, rely on theme config */
+[data-theme="dark"] .mermaid {
+  filter: none;
+  background: transparent;
+}
+
+/* Dark mode announcement bar legibility */
+[data-theme="dark"] .announcement {
+  background: linear-gradient(90deg, #312e81, #4c1d95);
+}
+
+/* Dark mode cards get a subtle border glow on hover */
+[data-theme="dark"] .sd-card:hover {
+  border-color: rgba(129, 140, 248, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(129, 140, 248, 0.1);
+}
+
+/* Dark mode code blocks get deeper surfaces */
+[data-theme="dark"] .content pre {
+  border-color: var(--adk-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode tab sets */
+[data-theme="dark"] .sd-tab-set {
+  border-color: var(--adk-border);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode journey steps */
+[data-theme="dark"] .journey-step {
+  background: var(--adk-surface-raised);
+  border-color: var(--adk-border);
+}
+
+/* Dark mode prev/next */
+[data-theme="dark"] .related-pages a {
+  background: var(--adk-surface-raised);
+  border-color: var(--adk-border);
+}
+
+[data-theme="dark"] .related-pages a:hover {
+  border-color: rgba(129, 140, 248, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(129, 140, 248, 0.1);
 }
