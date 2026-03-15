@@ -43,7 +43,7 @@ hoverxref_intersphinx = [
 
 # OpenGraph settings — social sharing previews
 ogp_site_url = "https://vamsiramakrishnan.github.io/adk-fluent/"
-ogp_image = "https://vamsiramakrishnan.github.io/adk-fluent/_static/logo.png"
+ogp_image = "https://vamsiramakrishnan.github.io/adk-fluent/_static/og-card.svg"
 ogp_description_length = 200
 ogp_type = "website"
 ogp_custom_meta_tags = [

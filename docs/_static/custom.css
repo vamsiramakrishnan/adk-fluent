@@ -1292,3 +1292,446 @@ input:focus-visible,
   border-color: rgba(129, 140, 248, 0.3);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(129, 140, 248, 0.1);
 }
+
+
+/* ==========================================================================
+   19. HERO ARCHITECTURE DIAGRAM
+   ========================================================================== */
+
+.hero-diagram {
+  max-width: 640px;
+  margin: 1.5rem auto 0.5rem;
+  position: relative;
+}
+
+.hero-flow-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Entrance animation for hero diagram nodes */
+.hero-node {
+  opacity: 0;
+  animation: heroFadeSlide 0.6s var(--adk-ease) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.hero-arrow {
+  opacity: 0;
+  animation: heroFadeIn 0.4s var(--adk-ease) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.hero-label {
+  opacity: 0;
+  animation: heroFadeIn 0.4s var(--adk-ease) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes heroFadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-node,
+  .hero-arrow,
+  .hero-label {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-diagram {
+    max-width: 100%;
+    margin: 1rem auto 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hero-flow-svg {
+    min-width: 480px;
+  }
+}
+
+
+/* ==========================================================================
+   20. VISUAL REFERENCE CARDS (User Guide)
+   ========================================================================== */
+
+.visual-ref-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 1rem 0 0;
+}
+
+.visual-ref-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-lg);
+  background: var(--adk-surface-raised);
+  transition: all 0.25s var(--adk-ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.visual-ref-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(124, 58, 237, 0.02) 100%);
+  transition: opacity 0.25s var(--adk-ease);
+}
+
+.visual-ref-card:hover {
+  border-color: var(--adk-accent-light);
+  box-shadow: var(--adk-shadow-lg), 0 0 0 1px rgba(99, 102, 241, 0.05);
+  transform: translateX(4px);
+}
+
+.visual-ref-card:hover::before {
+  opacity: 1;
+}
+
+[data-theme="dark"] .visual-ref-card:hover {
+  border-color: rgba(129, 140, 248, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(99, 102, 241, 0.05);
+}
+
+.visual-ref-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  color: var(--adk-accent);
+  position: relative;
+}
+
+.visual-ref-content {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.visual-ref-content h4 {
+  margin: 0 0 0.35rem 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.visual-ref-content h4 a {
+  color: var(--color-foreground-primary);
+  text-decoration: none;
+  transition: color var(--adk-transition);
+}
+
+.visual-ref-card:hover h4 a {
+  color: var(--adk-accent);
+}
+
+.visual-ref-content p {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.85rem;
+  color: var(--adk-text-muted);
+  line-height: 1.5;
+}
+
+.visual-ref-content p code {
+  font-size: 0.82em;
+}
+
+.visual-ref-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.vr-tag {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15em 0.55em;
+  border-radius: var(--adk-radius-pill);
+  color: var(--tag-color);
+  background: color-mix(in srgb, var(--tag-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tag-color) 25%, transparent);
+}
+
+@media (max-width: 768px) {
+  .visual-ref-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .visual-ref-tags {
+    justify-content: center;
+  }
+}
+
+
+/* ==========================================================================
+   21. ARCHITECTURE DIAGRAMS (inline SVGs in content)
+   ========================================================================== */
+
+.arch-diagram-wrapper {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-lg);
+  background: var(--adk-surface);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.arch-diagram {
+  width: 100%;
+  height: auto;
+  min-width: 500px;
+}
+
+[data-theme="dark"] .arch-diagram-wrapper {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: var(--adk-border);
+}
+
+/* Diagram hover polish */
+.arch-diagram-wrapper:hover {
+  border-color: var(--adk-border-hover);
+  box-shadow: var(--adk-shadow-md);
+}
+
+/* Diagram entrance animation (triggered by IntersectionObserver) */
+.arch-diagram-wrapper {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s var(--adk-ease), transform 0.5s var(--adk-ease), border-color 0.2s var(--adk-ease), box-shadow 0.2s var(--adk-ease);
+}
+
+.arch-diagram-wrapper.diagram-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arch-diagram-wrapper {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+/* ==========================================================================
+   22. PREMIUM MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Smooth gradient border on hero h1 */
+.hero-section h1 {
+  position: relative;
+  animation: heroTitleIn 0.8s var(--adk-ease) both;
+}
+
+@keyframes heroTitleIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-section .hero-tagline {
+  animation: heroSubIn 0.8s var(--adk-ease) 0.15s both;
+}
+
+@keyframes heroSubIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-install {
+  animation: heroSubIn 0.8s var(--adk-ease) 0.3s both;
+}
+
+.hero-stats {
+  animation: heroSubIn 0.8s var(--adk-ease) 0.45s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section h1,
+  .hero-section .hero-tagline,
+  .hero-install,
+  .hero-stats {
+    animation: none;
+  }
+}
+
+/* Stat counter hover glow */
+.hero-stat .stat-number {
+  transition: text-shadow 0.3s var(--adk-ease), transform 0.3s var(--adk-ease);
+}
+
+.hero-stat:hover .stat-number {
+  text-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+  transform: scale(1.05);
+}
+
+[data-theme="dark"] .hero-stat:hover .stat-number {
+  text-shadow: 0 0 24px rgba(129, 140, 248, 0.5);
+}
+
+/* Card shimmer on hover (subtle moving gradient) */
+.sd-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.sd-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(79, 70, 229, 0.03) 45%,
+    rgba(79, 70, 229, 0.06) 50%,
+    rgba(79, 70, 229, 0.03) 55%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s var(--adk-ease);
+  pointer-events: none;
+}
+
+.sd-card:hover::after {
+  transform: translateX(100%);
+}
+
+[data-theme="dark"] .sd-card::after {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(129, 140, 248, 0.04) 45%,
+    rgba(129, 140, 248, 0.08) 50%,
+    rgba(129, 140, 248, 0.04) 55%,
+    transparent 60%
+  );
+}
+
+/* Journey step hover — accent line left */
+.journey-step {
+  border-left: 3px solid transparent;
+  transition: all 0.25s var(--adk-ease), border-left-color 0.25s var(--adk-ease);
+}
+
+.journey-step:hover {
+  border-left-color: var(--adk-accent);
+}
+
+/* Inline code subtle pulse on hover */
+.content code:not(pre code):not(h1 code):not(h2 code):not(h3 code):not(h4 code):hover {
+  background: var(--adk-accent-bg-hover);
+}
+
+/* Table row hover — subtle left accent */
+.content table tbody tr {
+  border-left: 3px solid transparent;
+}
+
+.content table tbody tr:hover {
+  border-left-color: var(--adk-accent);
+}
+
+/* Admonition entrance — subtle slide in */
+.admonition {
+  animation: admonitionIn 0.4s var(--adk-ease) both;
+}
+
+@keyframes admonitionIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admonition {
+    animation: none;
+  }
+}
+
+
+/* ==========================================================================
+   23. TYPOGRAPHY REFINEMENTS
+   ========================================================================== */
+
+/* First paragraph after h2 — slightly larger for lead-in feel */
+.content h2 + p {
+  font-size: 1.02em;
+  color: var(--color-foreground-secondary, inherit);
+}
+
+/* Section dividers — subtle gradient instead of flat line */
+.content h2 {
+  border-image: linear-gradient(90deg, var(--adk-border), transparent) 1;
+}
+
+/* Heading hover reveal — accent underline */
+.content h2:hover {
+  border-image: linear-gradient(90deg, var(--adk-accent), var(--adk-accent-light), transparent) 1;
+}
+
+/* Content links — subtle gradient underline on hover */
+.content a:not(.sd-card):not(.headerlink):hover {
+  text-decoration-color: var(--adk-accent);
+}
+
+
+/* ==========================================================================
+   24. FOOTER POLISH
+   ========================================================================== */
+
+/* Footer icons — hover glow */
+.bottom-of-page a svg {
+  transition: color 0.2s var(--adk-ease), filter 0.2s var(--adk-ease);
+}
+
+.bottom-of-page a:hover svg {
+  filter: drop-shadow(0 0 6px rgba(79, 70, 229, 0.4));
+  color: var(--adk-accent);
+}
+
+[data-theme="dark"] .bottom-of-page a:hover svg {
+  filter: drop-shadow(0 0 8px rgba(129, 140, 248, 0.5));
+}
+
+
+/* ==========================================================================
+   25. DECISION GUIDE & FLOWCHART STYLING
+   ========================================================================== */
+
+/* ASCII flowcharts get monospace treatment with accent background */
+.content pre:has(code:not([class])) {
+  background: var(--adk-surface);
+  border-left-color: var(--adk-accent-light);
+}
+
+
+/* ==========================================================================
+   26. COOKBOOK GRID POLISH
+   ========================================================================== */
+
+/* Make the grid cards feel more intentional */
+.sd-row > .sd-col {
+  transition: transform 0.2s var(--adk-ease);
+}
+
+/* Grid item cards — staggered hover */
+.sd-card .sd-card-body p {
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
