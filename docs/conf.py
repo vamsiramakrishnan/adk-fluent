@@ -4,6 +4,12 @@ project = "adk-fluent"
 copyright = "2025, adk-fluent contributors"
 author = "adk-fluent contributors"
 
+# Current year for display purposes
+import datetime
+_year = datetime.datetime.now().year
+if _year > 2025:
+    copyright = f"2025–{_year}, adk-fluent contributors"
+
 extensions = [
     "myst_parser",
     "sphinx_design",
@@ -82,13 +88,22 @@ html_theme_options = {
     "light_css_variables": {
         "color-brand-primary": "#4f46e5",
         "color-brand-content": "#4338ca",
-        "font-stack": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        "font-stack--monospace": "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+        "font-stack": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+        "font-stack--monospace": "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace",
+        "font-stack--headings": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+        "font-size--normal": "15px",
+        "font-size--small": "13px",
+        "font-size--small--2": "12px",
         "content-padding": "3em",
+        "sidebar-width": "17rem",
+        "sidebar-width--mobile": "80vw",
     },
     "dark_css_variables": {
         "color-brand-primary": "#818cf8",
         "color-brand-content": "#6366f1",
+        "color-background-primary": "#0f172a",
+        "color-background-secondary": "#1e293b",
+        "color-background-border": "#334155",
     },
     "top_of_page_buttons": ["view", "edit"],
 }
@@ -100,7 +115,17 @@ copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d+\]: | {2,5}\.\.\.: | {5,8}: 
 copybutton_prompt_is_regexp = True
 
 html_static_path = ["_static"]
-html_css_files = ["custom.css"]
+html_css_files = [
+    # Load Inter and JetBrains Mono from Google Fonts CDN
+    (
+        "https://fonts.googleapis.com/css2?"
+        "family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900"
+        "&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800"
+        "&display=swap"
+    ),
+    "custom.css",
+]
+html_js_files = ["custom.js"]
 
 # Source settings
 source_suffix = {

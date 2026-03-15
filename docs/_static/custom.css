@@ -1,65 +1,175 @@
 /* ==========================================================================
-   adk-fluent — Custom Documentation Styles
-   Visual polish, typography, and interaction design for world-class devex.
+   adk-fluent — Documentation Design System
+   A cohesive visual language for world-class developer documentation.
+
+   Architecture:
+     1. Design tokens (CSS custom properties)
+     2. Theme transitions & dark mode
+     3. Typography system
+     4. Code presentation
+     5. Navigation & wayfinding
+     6. Content containers (cards, admonitions, tabs, tables)
+     7. Hero & landing page
+     8. API reference polish
+     9. Reading progress & UX
+    10. Responsive & print
+    11. Accessibility
    ========================================================================== */
 
-/* --------------------------------------------------------------------------
-   CSS Custom Properties
-   -------------------------------------------------------------------------- */
+
+/* ==========================================================================
+   1. DESIGN TOKENS
+   ========================================================================== */
+
 :root {
-  --mermaid-font-family: var(--font-stack);
+  /* ---- Brand ---- */
   --adk-accent: #4f46e5;
+  --adk-accent-hover: #4338ca;
   --adk-accent-light: #6366f1;
   --adk-accent-lighter: #818cf8;
   --adk-accent-bg: #eef2ff;
+  --adk-accent-bg-hover: #e0e7ff;
+
+  /* ---- Semantic palette ---- */
   --adk-success: #059669;
   --adk-success-bg: #ecfdf5;
   --adk-warning: #d97706;
   --adk-warning-bg: #fffbeb;
   --adk-danger: #dc2626;
   --adk-danger-bg: #fef2f2;
+  --adk-info: #0284c7;
+  --adk-info-bg: #f0f9ff;
+
+  /* ---- Surfaces ---- */
   --adk-surface: #f8fafc;
+  --adk-surface-raised: #ffffff;
   --adk-border: #e2e8f0;
+  --adk-border-hover: #cbd5e1;
   --adk-text-muted: #64748b;
+  --adk-text-faint: #94a3b8;
+
+  /* ---- Gradients ---- */
   --adk-gradient-start: #4f46e5;
-  --adk-gradient-end: #7c3aed;
+  --adk-gradient-mid: #7c3aed;
+  --adk-gradient-end: #a855f7;
   --adk-hero-bg: linear-gradient(135deg, #eef2ff 0%, #faf5ff 50%, #f0fdf4 100%);
-  --adk-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --adk-card-shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
-  --adk-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---- Elevation ---- */
+  --adk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --adk-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --adk-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 10px rgba(0, 0, 0, 0.04);
+  --adk-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04);
+
+  /* ---- Motion ---- */
+  --adk-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --adk-duration: 0.2s;
+  --adk-transition: var(--adk-duration) var(--adk-ease);
+
+  /* ---- Radii ---- */
+  --adk-radius-sm: 6px;
+  --adk-radius-md: 8px;
+  --adk-radius-lg: 12px;
+  --adk-radius-pill: 100px;
+
+  /* ---- Spacing ---- */
+  --adk-content-gap: 1.5rem;
+
+  /* ---- Mermaid ---- */
+  --mermaid-font-family: var(--font-stack);
+
+  /* ---- Reading progress ---- */
+  --adk-progress: 0%;
 }
+
+
+/* --------------------------------------------------------------------------
+   Dark mode tokens
+   -------------------------------------------------------------------------- */
 
 [data-theme="dark"] {
   --adk-accent: #818cf8;
+  --adk-accent-hover: #a5b4fc;
   --adk-accent-light: #a5b4fc;
   --adk-accent-lighter: #c7d2fe;
-  --adk-accent-bg: rgba(99, 102, 241, 0.12);
+  --adk-accent-bg: rgba(99, 102, 241, 0.1);
+  --adk-accent-bg-hover: rgba(99, 102, 241, 0.18);
+
   --adk-success: #34d399;
-  --adk-success-bg: rgba(5, 150, 105, 0.12);
+  --adk-success-bg: rgba(5, 150, 105, 0.1);
   --adk-warning: #fbbf24;
-  --adk-warning-bg: rgba(217, 119, 6, 0.12);
+  --adk-warning-bg: rgba(217, 119, 6, 0.1);
   --adk-danger: #f87171;
-  --adk-danger-bg: rgba(220, 38, 38, 0.12);
+  --adk-danger-bg: rgba(220, 38, 38, 0.1);
+  --adk-info: #38bdf8;
+  --adk-info-bg: rgba(2, 132, 199, 0.1);
+
   --adk-surface: #1e293b;
+  --adk-surface-raised: #1e293b;
   --adk-border: #334155;
+  --adk-border-hover: #475569;
   --adk-text-muted: #94a3b8;
-  --adk-hero-bg: linear-gradient(135deg, rgba(49, 46, 129, 0.2) 0%, rgba(88, 28, 135, 0.15) 50%, rgba(6, 78, 59, 0.1) 100%);
-  --adk-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --adk-card-shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.3);
+  --adk-text-faint: #64748b;
+
+  --adk-hero-bg: linear-gradient(
+    135deg,
+    rgba(49, 46, 129, 0.2) 0%,
+    rgba(88, 28, 135, 0.15) 50%,
+    rgba(6, 78, 59, 0.08) 100%
+  );
+
+  --adk-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15);
+  --adk-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --adk-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.25);
+  --adk-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .mermaid { filter: invert(1) hue-rotate(180deg); }
 
-/* --------------------------------------------------------------------------
-   Typography Enhancements
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   2. THEME TRANSITIONS & DARK MODE
+   ========================================================================== */
 
-/* Headings: tighter tracking, subtle weight hierarchy */
+/* Smooth color transitions when toggling theme */
+body,
+.sidebar-drawer,
+.page,
+.content,
+.toc-drawer {
+  transition:
+    background-color 0.3s var(--adk-ease),
+    color 0.3s var(--adk-ease),
+    border-color 0.3s var(--adk-ease);
+}
+
+/* Mermaid diagrams: use Furo's built-in dark awareness instead of invert hack */
+[data-theme="dark"] .mermaid {
+  filter: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+
+/* ==========================================================================
+   3. TYPOGRAPHY SYSTEM
+   ========================================================================== */
+
+/* ---- Headings ---- */
+
 .content h1 {
   font-weight: 800;
   letter-spacing: -0.025em;
   margin-top: 0;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.6rem;
   border-bottom: 2px solid var(--adk-accent);
 }
 
@@ -67,62 +177,99 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   margin-top: 2.5rem;
-  padding-bottom: 0.3rem;
+  padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--adk-border);
 }
 
 .content h3 {
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--adk-accent);
+  margin-top: 2rem;
+  color: var(--color-foreground-primary);
 }
 
-/* Smoother paragraph flow */
+.content h4 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+
+/* ---- Body text ---- */
+
 .content p {
   line-height: 1.75;
 }
 
-/* Inline code: subtle pill styling */
+.content li {
+  line-height: 1.7;
+}
+
+/* ---- Inline code: refined pill ---- */
+
 .content code:not(pre code) {
   background: var(--adk-accent-bg);
   color: var(--adk-accent);
   padding: 0.15em 0.4em;
   border-radius: 4px;
-  font-size: 0.88em;
+  font-size: 0.875em;
   font-weight: 500;
+  border: 1px solid transparent;
+  transition: background var(--adk-transition), border-color var(--adk-transition);
+}
+
+.content code:not(pre code):hover {
+  border-color: var(--adk-accent-light);
 }
 
 [data-theme="dark"] .content code:not(pre code) {
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(99, 102, 241, 0.12);
   color: var(--adk-accent-lighter);
 }
 
-/* --------------------------------------------------------------------------
-   Code Block Polish
-   -------------------------------------------------------------------------- */
+/* ---- Links ---- */
 
-/* Code blocks: refined container with accent border */
+.content a:not(.sd-card):not(.headerlink) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color var(--adk-transition), text-decoration-color var(--adk-transition);
+}
+
+.content a:not(.sd-card):not(.headerlink):hover {
+  text-decoration-thickness: 2px;
+}
+
+
+/* ==========================================================================
+   4. CODE PRESENTATION
+   ========================================================================== */
+
+/* ---- Code blocks ---- */
+
 .content pre {
   border: 1px solid var(--adk-border);
   border-left: 3px solid var(--adk-accent);
-  border-radius: 8px;
-  box-shadow: var(--adk-card-shadow);
-  margin: 1.5rem 0;
-  transition: box-shadow var(--adk-transition);
+  border-radius: var(--adk-radius-md);
+  box-shadow: var(--adk-shadow-md);
+  margin: var(--adk-content-gap) 0;
+  transition: box-shadow var(--adk-transition), border-color var(--adk-transition);
+  position: relative;
 }
 
 .content pre:hover {
-  box-shadow: var(--adk-card-shadow-hover);
+  box-shadow: var(--adk-shadow-lg);
+  border-color: var(--adk-border-hover);
+  border-left-color: var(--adk-accent);
 }
 
-/* Copy button: more visible on hover */
+/* ---- Copy button ---- */
+
 .content pre .copybtn {
   opacity: 0;
-  transition: opacity var(--adk-transition);
+  transition: opacity var(--adk-transition), background var(--adk-transition);
+  border-radius: var(--adk-radius-sm);
 }
 
 .content pre:hover .copybtn {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .content pre .copybtn:hover {
@@ -131,23 +278,148 @@
   color: white;
 }
 
-/* --------------------------------------------------------------------------
-   Grid Cards — Homepage & Navigation
-   -------------------------------------------------------------------------- */
+/* ---- Language labels via highlight class ---- */
 
-/* Card container: lift on hover with smooth transition */
+.content .highlight[class*="highlight-"] {
+  position: relative;
+}
+
+.content .highlight[class*="highlight-"]::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: var(--font-stack--monospace);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--adk-text-faint);
+  background: var(--adk-surface);
+  border-bottom-left-radius: var(--adk-radius-sm);
+  border-left: 1px solid var(--adk-border);
+  border-bottom: 1px solid var(--adk-border);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.content .highlight-python::before { content: "python"; }
+.content .highlight-bash::before,
+.content .highlight-shell::before,
+.content .highlight-console::before { content: "shell"; }
+.content .highlight-yaml::before { content: "yaml"; }
+.content .highlight-json::before { content: "json"; }
+.content .highlight-toml::before { content: "toml"; }
+.content .highlight-javascript::before,
+.content .highlight-js::before { content: "js"; }
+.content .highlight-typescript::before,
+.content .highlight-ts::before { content: "ts"; }
+.content .highlight-text::before { content: "text"; }
+.content .highlight-markdown::before,
+.content .highlight-md::before { content: "md"; }
+.content .highlight-ini::before { content: "ini"; }
+.content .highlight-diff::before { content: "diff"; }
+
+
+/* ==========================================================================
+   5. NAVIGATION & WAYFINDING
+   ========================================================================== */
+
+/* ---- Active sidebar item ---- */
+
+.sidebar-tree .current-page > .reference {
+  font-weight: 700;
+  color: var(--adk-accent);
+  border-right: 3px solid var(--adk-accent);
+  padding-right: 0.5rem;
+}
+
+/* ---- Sidebar section captions ---- */
+
+.sidebar-tree .caption {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--adk-text-muted);
+  font-weight: 700;
+  margin-top: 1.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--adk-border);
+}
+
+/* ---- "On this page" (TOC sidebar) ---- */
+
+.toc-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--adk-text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--adk-border);
+  margin-bottom: 0.5rem;
+}
+
+.toc-tree a {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 0.2rem 0;
+  color: var(--adk-text-muted);
+  transition: color var(--adk-transition), border-color var(--adk-transition);
+  border-left: 2px solid transparent;
+  padding-left: 0.75rem;
+  display: block;
+}
+
+.toc-tree a:hover {
+  color: var(--adk-accent);
+  border-left-color: var(--adk-accent-lighter);
+}
+
+.toc-tree a.active {
+  color: var(--adk-accent);
+  font-weight: 600;
+  border-left-color: var(--adk-accent);
+}
+
+/* ---- Reading progress bar ---- */
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--adk-progress);
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--adk-gradient-start),
+    var(--adk-gradient-mid),
+    var(--adk-gradient-end)
+  );
+  z-index: 9999;
+  transition: width 0.1s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+
+/* ==========================================================================
+   6. CONTENT CONTAINERS
+   ========================================================================== */
+
+/* ---- Cards ---- */
+
 .sd-card {
-  border: 1px solid var(--adk-border) !important;
-  border-radius: 10px !important;
-  box-shadow: var(--adk-card-shadow) !important;
-  transition: all var(--adk-transition) !important;
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-lg);
+  box-shadow: var(--adk-shadow-md);
+  transition: all var(--adk-transition);
   overflow: hidden;
 }
 
 .sd-card:hover {
-  box-shadow: var(--adk-card-shadow-hover) !important;
+  box-shadow: var(--adk-shadow-lg);
   transform: translateY(-2px);
-  border-color: var(--adk-accent-light) !important;
+  border-color: var(--adk-accent-light);
 }
 
 .sd-card .sd-card-header {
@@ -157,73 +429,81 @@
 }
 
 .sd-card .sd-card-body {
-  padding: 1.2rem !important;
+  padding: 1.2rem;
 }
 
-/* --------------------------------------------------------------------------
-   Admonitions — Contextual Callouts
-   -------------------------------------------------------------------------- */
+/* Card title links */
+.sd-card .sd-card-title a {
+  color: var(--color-foreground-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
 
-/* Unified admonition styling with left accent border */
+.sd-card:hover .sd-card-title a {
+  color: var(--adk-accent);
+}
+
+
+/* ---- Admonitions ---- */
+
 .admonition {
-  border-radius: 8px !important;
-  border: 1px solid var(--adk-border) !important;
-  border-left: 4px solid !important;
-  box-shadow: var(--adk-card-shadow);
-  margin: 1.5rem 0 !important;
+  border-radius: var(--adk-radius-md);
+  border: 1px solid var(--adk-border);
+  border-left: 4px solid;
+  box-shadow: var(--adk-shadow-sm);
+  margin: var(--adk-content-gap) 0;
   overflow: hidden;
 }
 
 .admonition.important,
 .admonition.note {
-  border-left-color: var(--adk-accent) !important;
-  background: var(--adk-accent-bg) !important;
+  border-left-color: var(--adk-accent);
+  background: var(--adk-accent-bg);
 }
 
 .admonition.tip,
 .admonition.hint {
-  border-left-color: var(--adk-success) !important;
-  background: var(--adk-success-bg) !important;
+  border-left-color: var(--adk-success);
+  background: var(--adk-success-bg);
 }
 
 .admonition.warning,
 .admonition.caution {
-  border-left-color: var(--adk-warning) !important;
-  background: var(--adk-warning-bg) !important;
+  border-left-color: var(--adk-warning);
+  background: var(--adk-warning-bg);
 }
 
 .admonition.danger,
 .admonition.error {
-  border-left-color: var(--adk-danger) !important;
-  background: var(--adk-danger-bg) !important;
+  border-left-color: var(--adk-danger);
+  background: var(--adk-danger-bg);
 }
 
 .admonition .admonition-title {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-/* --------------------------------------------------------------------------
-   Tab Sets — Before/After Comparisons
-   -------------------------------------------------------------------------- */
 
-/* Tab container: tighter, more polished */
+/* ---- Tab sets ---- */
+
 .sd-tab-set {
-  border-radius: 8px;
+  border-radius: var(--adk-radius-md);
   overflow: hidden;
   border: 1px solid var(--adk-border);
-  box-shadow: var(--adk-card-shadow);
-  margin: 1.5rem 0;
+  box-shadow: var(--adk-shadow-md);
+  margin: var(--adk-content-gap) 0;
 }
 
 .sd-tab-set > label {
-  font-weight: 600 !important;
-  font-size: 0.85rem !important;
+  font-weight: 600;
+  font-size: 0.82rem;
   letter-spacing: 0.02em;
-  padding: 0.6rem 1.2rem !important;
+  padding: 0.6rem 1.2rem;
   transition: all var(--adk-transition);
+  border-bottom: 2px solid transparent;
 }
 
 .sd-tab-set > label:hover {
@@ -231,42 +511,47 @@
 }
 
 .sd-tab-set > input:checked + label {
-  border-bottom-color: var(--adk-accent) !important;
-  color: var(--adk-accent) !important;
+  border-bottom-color: var(--adk-accent);
+  color: var(--adk-accent);
 }
 
-/* --------------------------------------------------------------------------
-   Tables — Data-dense Reference
-   -------------------------------------------------------------------------- */
+
+/* ---- Tables ---- */
 
 .content table {
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid var(--adk-border);
-  border-radius: 8px;
+  border-radius: var(--adk-radius-md);
   overflow: hidden;
   width: 100%;
-  margin: 1.5rem 0;
-  box-shadow: var(--adk-card-shadow);
+  margin: var(--adk-content-gap) 0;
+  box-shadow: var(--adk-shadow-sm);
 }
 
 .content table thead th {
   background: var(--adk-accent-bg);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   border-bottom: 2px solid var(--adk-accent);
+  text-align: left;
 }
 
 .content table tbody td {
-  padding: 0.65rem 1rem;
+  padding: 0.6rem 1rem;
   border-bottom: 1px solid var(--adk-border);
+  font-size: 0.92rem;
 }
 
 .content table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.content table tbody tr {
+  transition: background var(--adk-transition);
 }
 
 .content table tbody tr:hover {
@@ -274,53 +559,18 @@
 }
 
 [data-theme="dark"] .content table thead th {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(99, 102, 241, 0.08);
 }
 
-/* --------------------------------------------------------------------------
-   Badges — Method Categories in API Docs
-   -------------------------------------------------------------------------- */
 
-.sd-badge {
-  font-size: 0.7rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em;
-  padding: 0.2em 0.6em !important;
-  border-radius: 12px !important;
-  vertical-align: middle;
-}
-
-/* --------------------------------------------------------------------------
-   Sidebar & Navigation
-   -------------------------------------------------------------------------- */
-
-/* Active nav item: accent indicator */
-.sidebar-tree .current-page > .reference {
-  font-weight: 700;
-  color: var(--adk-accent) !important;
-  border-right: 3px solid var(--adk-accent);
-}
-
-/* Sidebar section labels */
-.sidebar-tree .caption {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--adk-text-muted);
-  font-weight: 700;
-  margin-top: 1.5rem;
-}
-
-/* --------------------------------------------------------------------------
-   Blockquotes — Module-in-play Headers
-   -------------------------------------------------------------------------- */
+/* ---- Blockquotes ---- */
 
 .content blockquote {
   border-left: 3px solid var(--adk-accent);
   background: var(--adk-accent-bg);
   padding: 0.75rem 1.25rem;
-  border-radius: 0 8px 8px 0;
-  margin: 1.5rem 0;
+  border-radius: 0 var(--adk-radius-md) var(--adk-radius-md) 0;
+  margin: var(--adk-content-gap) 0;
   font-size: 0.92rem;
 }
 
@@ -328,26 +578,83 @@
   margin: 0.25rem 0;
 }
 
-/* --------------------------------------------------------------------------
-   Hero Section — Homepage
-   -------------------------------------------------------------------------- */
+
+/* ---- Definition lists (API docs) ---- */
+
+.content dl dt {
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.content dl dd {
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--adk-border);
+}
+
+
+/* ---- "See also" admonition ---- */
+
+.seealso {
+  border: 1px solid var(--adk-border);
+  border-left: 3px solid var(--adk-accent-light);
+  border-radius: var(--adk-radius-md);
+  padding: 0.75rem 1rem;
+  background: var(--adk-surface);
+}
+
+.seealso .admonition-title {
+  font-size: 0.75rem;
+}
+
+
+/* ==========================================================================
+   7. HERO & LANDING PAGE
+   ========================================================================== */
 
 .hero-section {
   background: var(--adk-hero-bg);
-  border-radius: 12px;
-  padding: 2.5rem;
-  margin: -1rem -0.5rem 2rem -0.5rem;
+  border-radius: var(--adk-radius-lg);
+  padding: 3rem 2.5rem;
+  margin: -1rem -0.5rem 2.5rem -0.5rem;
   text-align: center;
+  border: 1px solid var(--adk-border);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid pattern overlay */
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79, 70, 229, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 70, 229, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .hero-section::before {
+  background-image:
+    linear-gradient(rgba(129, 140, 248, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(129, 140, 248, 0.04) 1px, transparent 1px);
 }
 
 .hero-section h1 {
-  border: none !important;
-  font-size: 2.2rem;
-  background: linear-gradient(135deg, var(--adk-gradient-start), var(--adk-gradient-end));
+  border: none;
+  font-size: 2.4rem;
+  background: linear-gradient(
+    135deg,
+    var(--adk-gradient-start),
+    var(--adk-gradient-mid),
+    var(--adk-gradient-end)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 0.5rem;
+  position: relative;
 }
 
 .hero-section .hero-tagline {
@@ -356,14 +663,18 @@
   max-width: 600px;
   margin: 0 auto 1.5rem;
   line-height: 1.6;
+  position: relative;
 }
+
+/* ---- Hero stats ---- */
 
 .hero-section .hero-stats {
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 2.5rem;
   flex-wrap: wrap;
   margin-top: 1.5rem;
+  position: relative;
 }
 
 .hero-section .hero-stat {
@@ -376,19 +687,48 @@
   color: var(--adk-accent);
   display: block;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .hero-section .hero-stat .stat-label {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--adk-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
+  font-weight: 600;
 }
 
-/* --------------------------------------------------------------------------
-   Journey Cards — Learning Path Visualization
-   -------------------------------------------------------------------------- */
+/* ---- Install snippet on hero ---- */
+
+.hero-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--adk-surface-raised);
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-pill);
+  padding: 0.5rem 1.25rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-stack--monospace);
+  font-size: 0.85rem;
+  color: var(--adk-text-muted);
+  position: relative;
+  box-shadow: var(--adk-shadow-sm);
+}
+
+.hero-install code {
+  background: none;
+  color: var(--adk-accent);
+  padding: 0;
+  border: none;
+  font-weight: 600;
+}
+
+
+/* ==========================================================================
+   8. JOURNEY CARDS — Learning Path
+   ========================================================================== */
 
 .journey-step {
   display: flex;
@@ -397,14 +737,15 @@
   padding: 1.25rem;
   margin: 0.75rem 0;
   border: 1px solid var(--adk-border);
-  border-radius: 10px;
+  border-radius: var(--adk-radius-lg);
   transition: all var(--adk-transition);
   position: relative;
+  background: var(--adk-surface-raised);
 }
 
 .journey-step:hover {
   border-color: var(--adk-accent-light);
-  box-shadow: var(--adk-card-shadow-hover);
+  box-shadow: var(--adk-shadow-lg);
   transform: translateX(4px);
 }
 
@@ -416,11 +757,16 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: var(--adk-accent);
+  background: linear-gradient(135deg, var(--adk-gradient-start), var(--adk-gradient-mid));
   color: white;
   font-weight: 800;
   font-size: 0.9rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+[data-theme="dark"] .journey-step::before {
+  box-shadow: 0 2px 8px rgba(129, 140, 248, 0.2);
 }
 
 .journey-step .journey-content h4 {
@@ -429,11 +775,20 @@
   color: var(--color-foreground-primary);
 }
 
+.journey-step .journey-content h4 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.journey-step:hover .journey-content h4 a {
+  color: var(--adk-accent);
+}
+
 .journey-step .journey-content p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--adk-text-muted);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* Connector line between journey steps */
@@ -444,71 +799,119 @@
   top: -0.75rem;
   width: 2px;
   height: 0.75rem;
-  background: var(--adk-accent-lighter);
+  background: linear-gradient(to bottom, var(--adk-accent-lighter), var(--adk-accent));
 }
 
-/* --------------------------------------------------------------------------
-   Comparison Highlights — Framework Matchups
-   -------------------------------------------------------------------------- */
+
+/* ==========================================================================
+   9. API REFERENCE POLISH
+   ========================================================================== */
+
+/* ---- Badges — method categories ---- */
+
+.sd-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.2em 0.65em;
+  border-radius: var(--adk-radius-pill);
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+/* Category-specific badge colors */
+.sd-badge.sd-bg-success {
+  background: var(--adk-success-bg);
+  color: var(--adk-success);
+  border: 1px solid currentColor;
+}
+
+.sd-badge.sd-bg-info {
+  background: var(--adk-info-bg);
+  color: var(--adk-info);
+  border: 1px solid currentColor;
+}
+
+.sd-badge.sd-bg-primary {
+  background: var(--adk-accent-bg);
+  color: var(--adk-accent);
+  border: 1px solid currentColor;
+}
+
+.sd-badge.sd-bg-warning {
+  background: var(--adk-warning-bg);
+  color: var(--adk-warning);
+  border: 1px solid currentColor;
+}
+
+.sd-badge.sd-bg-danger {
+  background: var(--adk-danger-bg);
+  color: var(--adk-danger);
+  border: 1px solid currentColor;
+}
+
+/* ---- Comparison table highlights ---- */
 
 .comparison-winner {
   background: var(--adk-success-bg);
   font-weight: 700;
 }
 
-/* Line count badges */
+/* ---- Line count badges ---- */
+
 .lines-badge {
   display: inline-block;
-  background: var(--adk-accent);
+  background: linear-gradient(135deg, var(--adk-gradient-start), var(--adk-gradient-mid));
   color: white;
   font-weight: 700;
-  padding: 0.15em 0.6em;
-  border-radius: 12px;
-  font-size: 0.8rem;
+  padding: 0.15em 0.65em;
+  border-radius: var(--adk-radius-pill);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
 }
 
-/* --------------------------------------------------------------------------
-   "See Also" and Cross-reference Links
-   -------------------------------------------------------------------------- */
 
-.seealso {
-  border-left: 3px solid var(--adk-accent-light) !important;
-  border: 1px solid var(--adk-border) !important;
-  border-left: 3px solid var(--adk-accent-light) !important;
-  border-radius: 8px !important;
-  padding: 0.75rem 1rem !important;
-  background: var(--adk-surface) !important;
+/* ==========================================================================
+   10. ANNOUNCEMENT BAR
+   ========================================================================== */
+
+.announcement-bar {
+  background: linear-gradient(90deg, var(--adk-gradient-start), var(--adk-gradient-mid));
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
 }
 
-.seealso .admonition-title {
-  font-size: 0.8rem !important;
+.announcement-bar a {
+  color: white;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 700;
 }
 
-/* --------------------------------------------------------------------------
-   Scroll-to-top & Reading Progress
-   -------------------------------------------------------------------------- */
-
-/* Smooth scrolling site-wide */
-html {
-  scroll-behavior: smooth;
+.announcement-bar a:hover {
+  opacity: 0.9;
 }
 
-/* --------------------------------------------------------------------------
-   Responsive Refinements
-   -------------------------------------------------------------------------- */
+
+/* ==========================================================================
+   11. RESPONSIVE
+   ========================================================================== */
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 1.5rem;
+    padding: 2rem 1.25rem;
     margin: 0 0 1.5rem 0;
   }
 
   .hero-section h1 {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
   }
 
   .hero-section .hero-stats {
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .hero-section .hero-stat .stat-number {
@@ -524,25 +927,83 @@ html {
   .journey-step + .journey-step::after {
     display: none;
   }
+
+  .content table {
+    font-size: 0.85rem;
+  }
+
+  .content table thead th,
+  .content table tbody td {
+    padding: 0.5rem 0.6rem;
+  }
 }
 
-/* --------------------------------------------------------------------------
-   Print Styles
-   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .hero-section .hero-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+
+/* ==========================================================================
+   12. PRINT
+   ========================================================================== */
 
 @media print {
+  .reading-progress,
+  .announcement-bar {
+    display: none;
+  }
+
   .hero-section {
-    background: none !important;
+    background: none;
     border: 1px solid #ccc;
+  }
+
+  .hero-section h1 {
+    -webkit-text-fill-color: initial;
+    color: #333;
   }
 
   .sd-card {
     break-inside: avoid;
-    box-shadow: none !important;
-    border: 1px solid #ccc !important;
+    box-shadow: none;
+    border: 1px solid #ccc;
   }
 
   .content pre {
     box-shadow: none;
+    border-left-color: #999;
   }
+}
+
+
+/* ==========================================================================
+   13. ACCESSIBILITY
+   ========================================================================== */
+
+/* Focus ring for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+.sd-tab-set > label:focus-visible,
+.sd-card:focus-visible {
+  outline: 2px solid var(--adk-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Ensure sufficient contrast for muted text */
+[data-theme="dark"] .content blockquote p,
+[data-theme="dark"] .journey-step .journey-content p {
+  color: var(--adk-text-muted);
+}
+
+/* Skip link (injected by Furo, styled here) */
+.skip-link:focus {
+  background: var(--adk-accent);
+  color: white;
+  padding: 0.5rem 1rem;
+  z-index: 10000;
 }
