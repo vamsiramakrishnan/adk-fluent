@@ -31,6 +31,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 - [ADK Compatibility](#adk-compatibility)
 - [How It Works](#how-it-works)
 - [Features](#features)
+- [AI Coding Skills](#ai-coding-skills)
 - [Development](#development)
 
 ## Install
@@ -198,6 +199,7 @@ graph TD
     n3 --> n4
     n2 -. "intent" .-> n3
 ```
+
 
 ## Zero to Running
 
@@ -1451,6 +1453,25 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 - **Serialization**: `to_dict()`, `to_yaml()`, `from_dict()`, `from_yaml()`
 - **@agent decorator**: FastAPI-style agent definition
 - **Typed state**: `StateKey` with scope, type, and default
+
+## AI Coding Skills
+
+adk-fluent ships with [Agent Skills](https://agentskills.io) that teach AI coding assistants how to use the library. Install them into any compatible tool:
+
+```bash
+npx skills add vamsiramakrishnan/adk-fluent -y -g
+```
+
+| Skill | Description |
+|-------|-------------|
+| `adk-fluent-cheatsheet` | API quick reference — builder methods, operators, namespaces, ADK→fluent mapping |
+| `adk-fluent-dev-guide` | Development lifecycle — spec-driven workflow, phase-based development, troubleshooting |
+| `adk-fluent-eval-guide` | Evaluation methodology — E namespace, eval suites, criteria, LLM-as-judge |
+| `adk-fluent-deploy-guide` | Deployment — Agent Engine, Cloud Run, production middleware, guards |
+| `adk-fluent-observe-guide` | Observability — M namespace middleware, introspection, Cloud Trace |
+| `adk-fluent-scaffold` | Project scaffolding — directory structure, templates, ADK CLI integration |
+
+Works with Gemini CLI, Claude Code, Cursor, GitHub Copilot, Amp, and more.
 
 ## Development
 

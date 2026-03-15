@@ -9,7 +9,7 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 
 | Method | Signature | Description |
 |---|---|---|
-| `.instruct()` | `(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` | Set the `instruction` field. Raises TypeError if passed a CTransform (use .conte |
+| `.instruct()` | `(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` | Set the main instruction / system prompt — what the LLM is told to do. Accepts p |
 
 ## Data flow
 
@@ -21,7 +21,7 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 
 | Method | Signature | Description |
 |---|---|---|
-| `.agent_tool()` | `(agent: Any) -> Self` | Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. T |
+| `.agent_tool()` | `(agent: Any) -> Self` | Wrap another agent as a callable AgentTool and add it to this agent's tools. The |
 | `.tool()` | `(fn_or_tool: Any, *, require_confirmation: bool = False) -> Self` | Add a single tool (appends). Wraps plain callables in FunctionTool when require_ |
 | `.tools()` | `(value: Any) -> Self` | Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single t |
 
@@ -29,7 +29,7 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 
 | Method | Signature | Description |
 |---|---|---|
-| `.guard()` | `(value: Any) -> Self` | Add a guard. Accepts a G composite (G.pii() | G.budget()) or a plain callable (l |
+| `.guard()` | `(value: Any) -> Self` | Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=50 |
 
 ## Transfer control
 
@@ -37,7 +37,7 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 |---|---|---|
 | `.isolate()` | `() -> Self` | Prevent this agent from transferring to parent or peers. Sets both disallow_tran |
 | `.no_peers()` | `() -> Self` | Prevent this agent from transferring to sibling agents. The agent can still retu |
-| `.stay()` | `() -> Self` | Prevent this agent from transferring back to its parent. Use for agents that sho |
+| `.stay()` | `() -> Self` | Prevent transfer to parent only (can still transfer to sibling peers). Equivalen |
 
 ## Memory
 
@@ -67,15 +67,15 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 
 | Method | Signature | Description |
 |---|---|---|
-| `.ask()` | `(prompt: str) -> str` | One-shot execution. Build agent, send prompt, return response text. |
-| `.ask_async()` | `(prompt: str) -> str` | Async one-shot execution. |
+| `.ask()` | `(prompt: str) -> str` | One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response |
+| `.ask_async()` | `(prompt: str) -> str` | One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAP |
 | `.eval()` | `(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` | Inline evaluation. Run a single eval case against this agent. Returns an EvalSui |
 | `.eval_suite()` | `() -> Any` | Create an evaluation suite builder for this agent. Returns an EvalSuite bound to |
 | `.events()` | `(prompt: str) -> AsyncIterator[Any]` | Stream raw ADK Event objects. Yields every event including state deltas and func |
-| `.map()` | `(prompts: list[str], *, concurrency: int = 5) -> list[str]` | Run agent against multiple prompts with bounded concurrency. |
-| `.map_async()` | `(prompts: list[str], *, concurrency: int = 5) -> list[str]` | Async batch execution against multiple prompts. |
-| `.session()` | `() -> Any` | Create an interactive session context manager. Use with 'async with'. |
-| `.stream()` | `(prompt: str) -> AsyncIterator[str]` | Streaming execution. Yields response text chunks. |
+| `.map()` | `(prompts: list[str], *, concurrency: int = 5) -> list[str]` | Batch SYNC execution (blocking). Run agent against multiple prompts with bounded |
+| `.map_async()` | `(prompts: list[str], *, concurrency: int = 5) -> list[str]` | Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI,  |
+| `.session()` | `() -> Any` | Create an interactive multi-turn chat session. Returns an async context manager  |
+| `.stream()` | `(prompt: str) -> AsyncIterator[str]` | ASYNC streaming execution. Yields response text chunks as they arrive. Use with  |
 | `.test()` | `(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` | Run a smoke test. Calls .ask() internally, asserts output matches condition. |
 
 ## Introspection
@@ -99,6 +99,8 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 | `.code_block_delimiter()` | `(value: tuple[str, str]) -> Self` | Append to ``code_block_delimiters`` (lazy — built at .build() time). |
 | `.injection_config()` | `(value: InjectionConfig) -> Self` | Append to ``injection_configs`` (lazy — built at .build() time). |
 | `.plugin()` | `(value: BasePlugin) -> Self` | Append to ``plugins`` (lazy — built at .build() time). |
+| `.publish()` | `(*, port: int = 8000, host: str = '0.0.0.0') -> Any` | Publish this agent as an A2A server (returns Starlette app). Shorthand for ``A2A |
+| `.skill()` | `(skill_id: str, name: str, *, description: str = '', tags: list[str] | None = None, examples: list[str] | None = None, input_modes: list[str] | None = None, output_modes: list[str] | None = None) -> Self` | Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by |
 | `.step()` | `(value: BaseAgent) -> Self` | Append to ``sub_agents`` (lazy — built at .build() time). |
 | `.sub_agent()` | `(value: BaseAgent) -> Self` | Append to ``sub_agents`` (lazy — built at .build() time). |
 | `.tool_simulation_config()` | `(value: ToolSimulationConfig) -> Self` | Append to ``tool_simulation_configs`` (lazy — built at .build() time). |

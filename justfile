@@ -375,7 +375,7 @@ help:
     @echo "  just docs-build     Build Sphinx HTML documentation"
     @echo "  just docs-serve     Build and serve docs with live reload"
     @echo "  just llms           Generate llms.txt + editor rules (CLAUDE.md, .cursorrules, etc.)"
-    @echo "  just skills         Generate agent skill references (.claude/skills/ + .gemini/skills/)"
+    @echo "  just skills         Generate agent skill references (.claude/skills/ + .gemini/skills/ + skills/)"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"

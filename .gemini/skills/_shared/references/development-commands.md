@@ -34,7 +34,7 @@ Extracted from `justfile`. Always use `uv run` for Python commands.
 | `just docs-build` | Build Sphinx HTML documentation |
 | `just docs-serve` | Build and serve docs with live reload |
 | `just llms` | Generate llms.txt + editor rules (CLAUDE.md, .cursorrules, etc.) |
-| `just skills` | Generate agent skill references (.claude/skills/ + .gemini/skills/) |
+| `just skills` | Generate agent skill references (.claude/skills/ + .gemini/skills/ + skills/) |
 | `just cookbook-gen` | Generate cookbook example stubs |
 | `just cookbook-gen-dry` | Preview cookbook stubs (dry-run) |
 | `just agents` | Convert cookbook -> adk web folders |

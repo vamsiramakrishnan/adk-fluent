@@ -20,7 +20,7 @@ seeds/seed.toml (builder specifications)
   ↓ generator.py + code_ir/
 src/adk_fluent/ (generated builders, stubs, tests)
   ↓ llms_generator.py + doc_generator.py + skill_generator.py
-CLAUDE.md, docs/, .claude/skills/_shared/ (context + documentation)
+CLAUDE.md, docs/, .gemini/skills/_shared/ (context + documentation)
 ```
 
 ## Pipeline stages
@@ -89,7 +89,7 @@ just check-gen    # Verify generated files are canonical
 
 For the complete list of generated vs hand-written files, read
 [`../_shared/references/generated-files.md`](../_shared/references/generated-files.md)
-or run `uv run .claude/skills/_shared/scripts/list-generated-files.py`.
+or run `uv run .gemini/skills/_shared/scripts/list-generated-files.py`.
 
 ## Troubleshooting
 

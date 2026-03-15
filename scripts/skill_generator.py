@@ -42,10 +42,17 @@ HEADER = """\
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CLAUDE_SKILLS = PROJECT_ROOT / ".claude" / "skills"
 GEMINI_SKILLS = PROJECT_ROOT / ".gemini" / "skills"
+DISTRIBUTABLE_SKILLS = PROJECT_ROOT / "skills"
 SHARED_DIR = "_shared"
 
 # Claude-specific frontmatter keys to strip for .gemini copies
 CLAUDE_ONLY_KEYS = {"context", "agent"}
+
+# GitHub owner/repo for install instructions
+GITHUB_REPO = "vamsiramakrishnan/adk-fluent"
+
+# Project-internal frontmatter keys to strip for distributable skills
+PROJECT_ONLY_KEYS = {"context", "agent", "disable-model-invocation", "allowed-tools"}
 
 
 # ---------------------------------------------------------------------------
@@ -811,8 +818,354 @@ if __name__ == "__main__":
 # ---------------------------------------------------------------------------
 
 
+def _get_version() -> str:
+    """Read project version from _version.py or pyproject.toml."""
+    # Try _version.py first (single source of truth for hatch dynamic versioning)
+    version_py = PROJECT_ROOT / "src" / "adk_fluent" / "_version.py"
+    if version_py.exists():
+        text = version_py.read_text()
+        match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', text)
+        if match:
+            return match.group(1)
+
+    # Fallback to pyproject.toml
+    pyproject = PROJECT_ROOT / "pyproject.toml"
+    if pyproject.exists():
+        text = pyproject.read_text()
+        for line in text.splitlines():
+            if line.strip().startswith("version"):
+                return line.split("=")[1].strip().strip('"').strip("'")
+    return "0.1"
+
+
+# ---------------------------------------------------------------------------
+# Distributable skills generators
+# ---------------------------------------------------------------------------
+
+
+def _generate_distributable_skill(
+    name: str,
+    description: str,
+    body: str,
+    *,
+    version: str = "0.1",
+) -> str:
+    """Generate a self-contained distributable SKILL.md."""
+    lines = [
+        "---",
+        f"name: {name}",
+        "description: >",
+    ]
+    # Wrap description at ~80 chars
+    for desc_line in description.strip().splitlines():
+        lines.append(f"  {desc_line.strip()}")
+    lines.extend(
+        [
+            "metadata:",
+            "  license: Apache-2.0",
+            "  author: vamsiramakrishnan",
+            f'  version: "{version}"',
+            "---",
+            "",
+        ]
+    )
+    lines.append(body)
+    return "\n".join(lines)
+
+
+def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) -> str:
+    """Generate the adk-fluent-cheatsheet distributable skill."""
+    # Import canonical content from llms_generator
+    from llms_generator import (
+        _AGENT_METHODS,
+        _BEST_PRACTICES,
+        _COMPOSITION_PATTERNS,
+        _CORE_PATTERNS,
+        _EXPRESSION_PRIMITIVES,
+        _NAMESPACE_MODULES,
+    )
+
+    body_parts = [
+        "# adk-fluent Cheatsheet",
+        "",
+        "> Quick reference for writing agents with adk-fluent.",
+        "> For creating a new project, use `/adk-fluent-scaffold`.",
+        "",
+        "## Install & Import",
+        "",
+        "```bash",
+        "pip install adk-fluent",
+        "```",
+        "",
+        "```python",
+        "from adk_fluent import Agent, Pipeline, FanOut, Loop, Route",
+        "from adk_fluent import S, C, P, A, M, T, E, G",
+        "```",
+        "",
+        "Never import from internal modules (`adk_fluent._base`, `adk_fluent.agent`).",
+        "",
+        "---",
+        "",
+        "## Native ADK → adk-fluent Mapping",
+        "",
+        "| Native ADK | adk-fluent equivalent |",
+        "|------------|----------------------|",
+        '| `LlmAgent(name=, model=, instruction=)` | `Agent("name", "model").instruct("...")` |',
+        '| `SequentialAgent(name=, sub_agents=[a, b])` | `Pipeline("name").step(a).step(b)` or `a >> b` |',
+        '| `ParallelAgent(name=, sub_agents=[a, b])` | `FanOut("name").branch(a).branch(b)` or `a \\| b` |',
+        '| `LoopAgent(name=, sub_agents=, max_iterations=3)` | `Loop("name").step(a).max_iterations(3)` or `(a >> b) * 3` |',
+        "| `AgentTool(agent=child)` | `.agent_tool(child)` |",
+        "| `sub_agents=[child]` | `.sub_agent(child)` |",
+        '| `output_key="key"` | `.writes("key")` |',
+        '| `include_contents="none"` | `.reads("key")` or `.context(C.none())` |',
+        "| `before_agent_callback=fn` | `.before_agent(fn)` |",
+        "| `after_model_callback=fn` | `.after_model(fn)` |",
+        "",
+    ]
+
+    body_parts.append(_CORE_PATTERNS.strip())
+    body_parts.append("")
+    body_parts.append(_AGENT_METHODS.strip())
+    body_parts.append("")
+    body_parts.append(_NAMESPACE_MODULES.strip())
+    body_parts.append("")
+    body_parts.append(_EXPRESSION_PRIMITIVES.strip())
+    body_parts.append("")
+    body_parts.append(_COMPOSITION_PATTERNS.strip())
+    body_parts.append("")
+    body_parts.append("## Execution")
+    body_parts.append("")
+    body_parts.append("```python")
+    body_parts.append("# One-shot (sync)")
+    body_parts.append('result = agent.ask("What is 2+2?")')
+    body_parts.append("")
+    body_parts.append("# One-shot (async — use in Jupyter/FastAPI)")
+    body_parts.append('result = await agent.ask_async("What is 2+2?")')
+    body_parts.append("")
+    body_parts.append("# Streaming")
+    body_parts.append('async for chunk in agent.stream("Tell me a story"):')
+    body_parts.append('    print(chunk, end="")')
+    body_parts.append("")
+    body_parts.append("# Multi-turn session")
+    body_parts.append("async with agent.session() as chat:")
+    body_parts.append('    r1 = await chat.send("Hello")')
+    body_parts.append("")
+    body_parts.append("# Batch")
+    body_parts.append('results = agent.map(["prompt1", "prompt2"], concurrency=5)')
+    body_parts.append("")
+    body_parts.append("# Testing (no API key needed)")
+    body_parts.append('agent.mock(["canned response"]).test("input", contains="canned")')
+    body_parts.append("```")
+    body_parts.append("")
+    body_parts.append("## Common Gotchas")
+    body_parts.append("")
+    body_parts.append("| Mistake | Fix |")
+    body_parts.append("|---------|-----|")
+    body_parts.append("| `.build()` on sub-builders inside Pipeline/FanOut/Loop | Sub-builders auto-build |")
+    body_parts.append("| `.ask()` in async context | Use `.ask_async()` |")
+    body_parts.append(
+        '| Missing `.writes()` upstream of `.reads()` | Every `.reads("key")` needs `.writes("key")` upstream |'
+    )
+    body_parts.append("| `.instruct()` for metadata | Use `.describe()` for metadata |")
+    body_parts.append("| LLM routing when rules suffice | Use `Route()` |")
+    body_parts.append("| Retry logic in tools | Use `M.retry()` |")
+    body_parts.append("| DB clients in tool schemas | Use `.inject(db=client)` |")
+    body_parts.append("")
+    body_parts.append("## Introspection & Debugging")
+    body_parts.append("")
+    body_parts.append("```python")
+    body_parts.append("agent.explain()          # Quick text summary")
+    body_parts.append("agent.llm_anatomy()      # What the LLM sees")
+    body_parts.append("agent.data_flow()        # Five-concern view")
+    body_parts.append("agent.doctor()           # Formatted diagnostic")
+    body_parts.append("agent.validate()         # Catch config errors early")
+    body_parts.append("agent.to_mermaid()       # Mermaid diagram")
+    body_parts.append("```")
+    body_parts.append("")
+    body_parts.append(_BEST_PRACTICES.strip())
+
+    body = "\n".join(body_parts)
+
+    return _generate_distributable_skill(
+        "adk-fluent-cheatsheet",
+        "MUST READ before writing or modifying adk-fluent agent code.\n"
+        "adk-fluent API quick reference — builder methods, operators, namespaces,\n"
+        "patterns, and common idioms. Includes mappings from native ADK to fluent API.\n"
+        "Use when writing agents with adk-fluent, looking up builder methods,\n"
+        "or translating native ADK code to fluent style.\n"
+        "Do NOT use for creating new projects (use adk-fluent-scaffold).",
+        body,
+        version=version,
+    )
+
+
+def generate_distributable_skills(specs: list[BuilderSpec], version: str) -> dict[str, str]:
+    """Generate all distributable skills. Returns {dir_name: content}."""
+    skills: dict[str, str] = {}
+
+    # 1. Cheatsheet — generated from canonical llms content
+    skills["adk-fluent-cheatsheet"] = generate_distributable_cheatsheet(specs, version)
+
+    # 2-6. Copy from .claude/skills/ with project-specific refs stripped
+    # These are hand-authored but auto-packaged for distribution
+    mapping = {
+        "dev-guide": "adk-fluent-dev-guide",
+        "eval-agent": "adk-fluent-eval-guide",
+        "deploy-agent": "adk-fluent-deploy-guide",
+        "observe-agent": "adk-fluent-observe-guide",
+        "scaffold-project": "adk-fluent-scaffold",
+    }
+
+    for internal_name, dist_name in mapping.items():
+        skill_md = CLAUDE_SKILLS / internal_name / "SKILL.md"
+        if not skill_md.exists():
+            continue
+        content = skill_md.read_text()
+
+        # Transform: strip project-internal keys, fix name, add metadata
+        lines = content.splitlines(keepends=True)
+        result: list[str] = []
+        in_frontmatter = False
+        fm_count = 0
+        name_replaced = False
+        metadata_added = False
+
+        for line in lines:
+            stripped = line.strip()
+            if stripped == "---":
+                fm_count += 1
+                in_frontmatter = fm_count == 1
+                if fm_count == 2 and not metadata_added:
+                    result.append(
+                        f'metadata:\n  license: Apache-2.0\n  author: vamsiramakrishnan\n  version: "{version}"\n'
+                    )
+                    metadata_added = True
+                result.append(line)
+                continue
+
+            if in_frontmatter:
+                key = stripped.split(":")[0].strip() if ":" in stripped else ""
+                # Strip project-only keys
+                if key in PROJECT_ONLY_KEYS:
+                    continue
+                # Replace name
+                if key == "name" and not name_replaced:
+                    result.append(f"name: {dist_name}\n")
+                    name_replaced = True
+                    continue
+                # Skip existing metadata (we add our own)
+                if key == "metadata":
+                    # skip metadata block
+                    metadata_added = True
+                    continue
+                if stripped.startswith("license:") or stripped.startswith("author:") or stripped.startswith("version:"):
+                    # Part of metadata block
+                    continue
+
+            # Strip _shared/ references (won't exist in distributable)
+            line = line.replace("[`../_shared/references/", "[`")
+            line = line.replace("](../_shared/references/", "](")
+            result.append(line)
+
+        skills[dist_name] = "".join(result)
+
+    return skills
+
+
+def generate_distributable_readme(skills: dict[str, str]) -> str:
+    """Generate README.md for the distributable skills/ directory."""
+    lines = [
+        "Development skills for building agents with adk-fluent. Install into any coding agent via `npx skills`.",
+        "",
+        "## Install",
+        "",
+        "```bash",
+        f"npx skills add {GITHUB_REPO} -y -g",
+        "```",
+        "",
+        "## Update",
+        "",
+        "```bash",
+        "npx skills check -g",
+        "npx skills update -g",
+        "```",
+        "",
+        "## Skills",
+        "",
+        "| Skill | Description |",
+        "|-------|-------------|",
+    ]
+
+    for name in sorted(skills):
+        # Extract description from frontmatter
+        content = skills[name]
+        desc = ""
+        in_fm = False
+        in_desc = False
+        for line in content.splitlines():
+            if line.strip() == "---":
+                if in_fm:
+                    break
+                in_fm = True
+                continue
+            if in_fm:
+                if line.strip().startswith("description:"):
+                    desc = line.split(":", 1)[1].strip().lstrip(">").strip()
+                    in_desc = True
+                elif in_desc and line.startswith("  "):
+                    desc += " " + line.strip()
+                elif in_desc:
+                    in_desc = False
+
+        # Truncate to first sentence for table
+        short = desc.split(".")[0].strip() + "." if "." in desc else desc[:80]
+        lines.append(f"| `{name}` | {short} |")
+
+    lines.extend(
+        [
+            "",
+            "## Compatibility",
+            "",
+            "These skills work with any [Agent Skills](https://agentskills.io)-compatible tool:",
+            "Gemini CLI, Claude Code, Cursor, GitHub Copilot, Amp, and more.",
+            "",
+        ]
+    )
+
+    return "\n".join(lines)
+
+
+def _transform_skill_md_for_gemini(content: str) -> str:
+    """Transform a Claude SKILL.md for Gemini: strip Claude-only keys, fix paths."""
+    lines = content.splitlines(keepends=True)
+    result: list[str] = []
+    in_frontmatter = False
+    frontmatter_count = 0
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped == "---":
+            frontmatter_count += 1
+            in_frontmatter = frontmatter_count == 1
+            result.append(line)
+            continue
+
+        if in_frontmatter:
+            # Strip Claude-specific frontmatter keys
+            key = stripped.split(":")[0].strip() if ":" in stripped else ""
+            if key in CLAUDE_ONLY_KEYS:
+                continue
+
+        # Replace .claude/ paths with .gemini/
+        line = line.replace(".claude/skills/", ".gemini/skills/")
+        result.append(line)
+
+    return "".join(result)
+
+
 def sync_to_gemini():
-    """Sync _shared directory from .claude to .gemini."""
+    """Sync _shared directory and SKILL.md files from .claude to .gemini."""
+    # 1. Sync _shared/ (references + scripts)
     claude_shared = CLAUDE_SKILLS / SHARED_DIR
     gemini_shared = GEMINI_SKILLS / SHARED_DIR
 
@@ -820,6 +1173,28 @@ def sync_to_gemini():
         shutil.rmtree(gemini_shared)
 
     shutil.copytree(claude_shared, gemini_shared)
+
+    # 2. Sync individual SKILL.md files with transformations
+    skill_count = 0
+    for skill_dir in sorted(CLAUDE_SKILLS.iterdir()):
+        if not skill_dir.is_dir() or skill_dir.name == SHARED_DIR:
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.exists():
+            continue
+
+        content = skill_md.read_text()
+        transformed = _transform_skill_md_for_gemini(content)
+
+        gemini_skill_dir = GEMINI_SKILLS / skill_dir.name
+        gemini_skill_dir.mkdir(parents=True, exist_ok=True)
+        gemini_md = gemini_skill_dir / "SKILL.md"
+        if not transformed.endswith("\n"):
+            transformed += "\n"
+        gemini_md.write_text(transformed)
+        skill_count += 1
+
+    return skill_count
 
 
 # ---------------------------------------------------------------------------
@@ -887,11 +1262,31 @@ def main():
         (scripts_dir / filename).chmod(0o755)
         print(f"  Generated scripts/{filename}")
 
-    # Sync to .gemini
-    sync_to_gemini()
-    print("\n  Synced _shared/ to .gemini/skills/")
+    # Sync to .gemini (shared refs + individual SKILL.md files)
+    skill_count = sync_to_gemini()
+    print(f"\n  Synced _shared/ + {skill_count} SKILL.md files to .gemini/skills/")
 
-    print(f"\nGenerated {len(references)} references + {len(scripts)} scripts from {len(specs)} builder specs.")
+    # Generate distributable skills (skills/ directory for npx skills add)
+    version = _get_version()
+    dist_skills = generate_distributable_skills(specs, version)
+
+    # Clean and recreate distributable skills directory
+    if DISTRIBUTABLE_SKILLS.exists():
+        shutil.rmtree(DISTRIBUTABLE_SKILLS)
+    DISTRIBUTABLE_SKILLS.mkdir(parents=True, exist_ok=True)
+
+    for dir_name, content in dist_skills.items():
+        write_file(DISTRIBUTABLE_SKILLS / dir_name / "SKILL.md", content)
+        print(f"  Generated skills/{dir_name}/SKILL.md")
+
+    # Generate README for distributable skills
+    readme_content = generate_distributable_readme(dist_skills)
+    write_file(DISTRIBUTABLE_SKILLS / "README.md", readme_content)
+    print("  Generated skills/README.md")
+
+    print(
+        f"\nGenerated {len(references)} references + {len(scripts)} scripts + {len(dist_skills)} distributable skills from {len(specs)} builder specs."
+    )
 
 
 if __name__ == "__main__":

@@ -128,6 +128,9 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 
 | Method | Signature | Description |
 |---|---|---|
+| `M.a2a_circuit_breaker()` | `(threshold: 'int' = 5, reset_after: 'float' = 60, *, agents: 'str | tuple[str, ...] | None' = None, on_open: 'Callable | None' = None, on_close: 'Callable | None' = None) -> 'MComposite'` | Circuit breaker for A2A remote agents. |
+| `M.a2a_retry()` | `(max_attempts: 'int' = 3, backoff: 'float' = 2.0, *, agents: 'str | tuple[str, ...] | None' = None, on_retry: 'Callable | None' = None) -> 'MComposite'` | A2A-specific retry middleware for remote agent failures. |
+| `M.a2a_timeout()` | `(seconds: 'float' = 30, *, agents: 'str | tuple[str, ...] | None' = None, on_timeout: 'Callable | None' = None) -> 'MComposite'` | Per-delegation timeout for A2A remote agent calls. |
 | `M.after_agent()` | `(fn: 'Callable') -> 'MComposite'` | Single-hook middleware: fires after each agent. |
 | `M.after_model()` | `(fn: 'Callable') -> 'MComposite'` | Single-hook middleware: fires after each LLM response. |
 | `M.before_agent()` | `(fn: 'Callable') -> 'MComposite'` | Single-hook middleware: fires before each agent. |
@@ -159,6 +162,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 
 | Method | Signature | Description |
 |---|---|---|
+| `T.a2a()` | `(agent_card_url: 'str', *, name: 'str | None' = None, description: 'str | None' = None, timeout: 'float' = 600.0) -> 'TComposite'` | Wrap a remote A2A agent as an AgentTool. |
 | `T.agent()` | `(agent_or_builder: 'Any') -> 'TComposite'` | Wrap an agent (or builder) as an AgentTool. |
 | `T.cache()` | `(tool_or_composite: 'TComposite | Any', ttl: 'float' = 300, key_fn: 'Any' = None) -> 'TComposite'` | Wrap tool(s) with a TTL-based result cache. |
 | `T.confirm()` | `(tool_or_composite: 'TComposite | Any', message: 'str | None' = None) -> 'TComposite'` | Wrap tool(s) with a confirmation requirement. |
@@ -184,7 +188,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `E.custom()` | `(name: 'str', fn: 'Callable[..., float]', *, threshold: 'float' = 0.5) -> 'EComposite'` | User-defined custom metric. |
 | `E.from_dir()` | `(path: 'str') -> 'list[Any]'` | Load all eval sets from a directory. |
 | `E.from_file()` | `(path: 'str') -> 'Any'` | Load an eval set from a JSON file. |
-| `E.gate()` | `(criteria: 'EComposite', *, threshold: 'float | None' = None) -> 'Any'` | Create a quality gate for use in pipelines. |
+| `E.gate()` | `(criteria: 'EComposite', *, threshold: 'float | None' = None, output_key: 'str | None' = None) -> 'Any'` | Create a quality gate for use in pipelines. |
 | `E.hallucination()` | `(threshold: 'float' = 0.8, *, judge_model: 'str' = 'gemini-2.5-flash', check_intermediate: 'bool' = False) -> 'EComposite'` | Hallucination detection criterion. |
 | `E.persona()` | `()` | Namespace for prebuilt user simulation personas. |
 | `E.response_match()` | `(threshold: 'float' = 0.8) -> 'EComposite'` | ROUGE-1 response match criterion. |

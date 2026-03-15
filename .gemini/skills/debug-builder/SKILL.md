@@ -88,7 +88,7 @@ For the deprecated methods mapping table, read
 
 For the builder inventory (what builders exist and their fields), read
 [`../_shared/references/builder-inventory.md`](../_shared/references/builder-inventory.md)
-or run `uv run .claude/skills/_shared/scripts/list-builders.py`.
+or run `uv run .gemini/skills/_shared/scripts/list-builders.py`.
 
 For the architecture reference (generated vs hand-written files), read
 [`../_shared/references/generated-files.md`](../_shared/references/generated-files.md).
