@@ -98,6 +98,7 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
     config = spec[1]
 
     if kind == "guard:json":
+
         async def _guard_json(*, callback_context, llm_response, **_kw):
             import json as _json
 
@@ -184,8 +185,7 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
                 from adk_fluent._exceptions import GuardViolation
 
                 raise GuardViolation(
-                    "budget", "post_model",
-                    f"token budget exceeded ({_budget_used['total']} > {max_tokens})"
+                    "budget", "post_model", f"token budget exceeded ({_budget_used['total']} > {max_tokens})"
                 )
             return None
 
@@ -259,9 +259,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
                 from adk_fluent._exceptions import GuardViolation
 
                 raise GuardViolation(
-                    "toxicity", "post_model",
-                    f"content flagged (score={result.score:.2f}, "
-                    f"threshold={threshold}, reason={result.reason})"
+                    "toxicity",
+                    "post_model",
+                    f"content flagged (score={result.score:.2f}, threshold={threshold}, reason={result.reason})",
                 )
             return None
 
@@ -308,9 +308,7 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
                 from adk_fluent._exceptions import GuardViolation
 
                 raise GuardViolation(
-                    "grounded", "post_model",
-                    f"content not grounded (score={result.score:.2f}, "
-                    f"reason={result.reason})"
+                    "grounded", "post_model", f"content not grounded (score={result.score:.2f}, reason={result.reason})"
                 )
             return None
 
@@ -335,9 +333,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
                 from adk_fluent._exceptions import GuardViolation
 
                 raise GuardViolation(
-                    "hallucination", "post_model",
-                    f"content flagged (score={result.score:.2f}, "
-                    f"threshold={threshold}, reason={result.reason})"
+                    "hallucination",
+                    "post_model",
+                    f"content flagged (score={result.score:.2f}, threshold={threshold}, reason={result.reason})",
                 )
             return None
 

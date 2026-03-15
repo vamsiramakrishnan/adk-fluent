@@ -355,12 +355,8 @@ class _LLMJudge:
 
         if mode == "hallucination":
             sources = context.get("sources", "")
-            sources_section = (
-                f"Source material:\n```\n{sources}\n```\n\n" if sources else ""
-            )
-            prompt = self._HALLUCINATION_PROMPT.format(
-                text=text, sources_section=sources_section
-            )
+            sources_section = f"Source material:\n```\n{sources}\n```\n\n" if sources else ""
+            prompt = self._HALLUCINATION_PROMPT.format(text=text, sources_section=sources_section)
             fail_key = "hallucinated"
         else:
             prompt = self._TOXICITY_PROMPT.format(text=text)
@@ -409,9 +405,7 @@ class _LLMJudge:
             return JudgmentResult(passed=not is_bad, score=score, reason=reason)
         except (_json.JSONDecodeError, ValueError, TypeError):
             # If we can't parse the response, fail-open with a warning
-            return JudgmentResult(
-                passed=True, score=0.0, reason=f"Could not parse judge response: {text[:200]}"
-            )
+            return JudgmentResult(passed=True, score=0.0, reason=f"Could not parse judge response: {text[:200]}")
 
 
 class _CustomJudge:

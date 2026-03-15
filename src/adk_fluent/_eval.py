@@ -1182,11 +1182,13 @@ class E:
             text = _resolve_gate_text(state, output_key)
             if text is None:
                 # No output to evaluate — pass through
-                return StateDelta({
-                    "_eval_gate_passed": True,
-                    "_eval_gate_criteria": repr(criteria),
-                    "_eval_gate_reason": "no output to evaluate",
-                })
+                return StateDelta(
+                    {
+                        "_eval_gate_passed": True,
+                        "_eval_gate_criteria": repr(criteria),
+                        "_eval_gate_reason": "no output to evaluate",
+                    }
+                )
 
             # Run each criterion's judge against the text
             failed: list[str] = []
@@ -1198,9 +1200,7 @@ class E:
                 scores[criterion.metric_name] = score
 
                 if score < effective_threshold:
-                    failed.append(
-                        f"{criterion.metric_name}: {score:.2f} < {effective_threshold}"
-                    )
+                    failed.append(f"{criterion.metric_name}: {score:.2f} < {effective_threshold}")
 
             passed = len(failed) == 0
             result: dict[str, Any] = {
@@ -1219,10 +1219,15 @@ class E:
             return StateDelta(result)
 
         reads: frozenset[str] | None = None
-        writes = frozenset({
-            "_eval_gate_passed", "_eval_gate_criteria",
-            "_eval_gate_threshold", "_eval_gate_scores", "_eval_gate_reason",
-        })
+        writes = frozenset(
+            {
+                "_eval_gate_passed",
+                "_eval_gate_criteria",
+                "_eval_gate_threshold",
+                "_eval_gate_scores",
+                "_eval_gate_reason",
+            }
+        )
         return STransform(_gate_fn, reads=reads, writes=writes)
 
 
@@ -1377,8 +1382,11 @@ async def _evaluate_criterion(criterion: ECriterion, text: str, state: dict[str,
         # Invert: score=0.0 means safe (good), score=1.0 means toxic (bad)
         return 1.0 - result.score
 
-    if metric in ("final_response_match_v2", "rubric_based_final_response_quality_v1",
-                   "rubric_based_tool_use_quality_v1"):
+    if metric in (
+        "final_response_match_v2",
+        "rubric_based_final_response_quality_v1",
+        "rubric_based_tool_use_quality_v1",
+    ):
         # These require a judge model — use LLM judge in generic mode
         from adk_fluent._guards import _LLMJudge
 

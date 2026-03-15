@@ -195,12 +195,17 @@ class TestResolveGuardTuplePii:
         from adk_fluent._base import _resolve_guard_tuple
         from adk_fluent._guards import _RegexDetector
 
-        fn = _resolve_guard_tuple(("guard:pii", {
-            "action": "block",
-            "detector": _RegexDetector(),
-            "threshold": 0.5,
-            "replacement": "[PII]",
-        }))
+        fn = _resolve_guard_tuple(
+            (
+                "guard:pii",
+                {
+                    "action": "block",
+                    "detector": _RegexDetector(),
+                    "threshold": 0.5,
+                    "replacement": "[PII]",
+                },
+            )
+        )
         result = await fn(
             callback_context=_make_callback_context(),
             llm_response=_make_llm_response("nothing sensitive here"),
@@ -213,12 +218,17 @@ class TestResolveGuardTuplePii:
         from adk_fluent._exceptions import GuardViolation
         from adk_fluent._guards import _RegexDetector
 
-        fn = _resolve_guard_tuple(("guard:pii", {
-            "action": "block",
-            "detector": _RegexDetector(),
-            "threshold": 0.5,
-            "replacement": "[PII]",
-        }))
+        fn = _resolve_guard_tuple(
+            (
+                "guard:pii",
+                {
+                    "action": "block",
+                    "detector": _RegexDetector(),
+                    "threshold": 0.5,
+                    "replacement": "[PII]",
+                },
+            )
+        )
         with pytest.raises(GuardViolation, match="pii"):
             await fn(
                 callback_context=_make_callback_context(),
@@ -230,12 +240,17 @@ class TestResolveGuardTuplePii:
         from adk_fluent._base import _resolve_guard_tuple
         from adk_fluent._guards import _RegexDetector
 
-        fn = _resolve_guard_tuple(("guard:pii", {
-            "action": "redact",
-            "detector": _RegexDetector(),
-            "threshold": 0.5,
-            "replacement": "[PII]",
-        }))
+        fn = _resolve_guard_tuple(
+            (
+                "guard:pii",
+                {
+                    "action": "redact",
+                    "detector": _RegexDetector(),
+                    "threshold": 0.5,
+                    "replacement": "[PII]",
+                },
+            )
+        )
         result = await fn(
             callback_context=_make_callback_context(),
             llm_response=_make_llm_response("My SSN is 123-45-6789"),
@@ -252,10 +267,15 @@ class TestResolveGuardTupleToxicity:
         async def safe_judge(text, context=None):
             return JudgmentResult(passed=True, score=0.1, reason="safe")
 
-        fn = _resolve_guard_tuple(("guard:toxicity", {
-            "threshold": 0.8,
-            "judge": _CustomJudge(safe_judge),
-        }))
+        fn = _resolve_guard_tuple(
+            (
+                "guard:toxicity",
+                {
+                    "threshold": 0.8,
+                    "judge": _CustomJudge(safe_judge),
+                },
+            )
+        )
         result = await fn(
             callback_context=_make_callback_context(),
             llm_response=_make_llm_response("Hello!"),
@@ -271,10 +291,15 @@ class TestResolveGuardTupleToxicity:
         async def toxic_judge(text, context=None):
             return JudgmentResult(passed=False, score=0.95, reason="toxic")
 
-        fn = _resolve_guard_tuple(("guard:toxicity", {
-            "threshold": 0.8,
-            "judge": _CustomJudge(toxic_judge),
-        }))
+        fn = _resolve_guard_tuple(
+            (
+                "guard:toxicity",
+                {
+                    "threshold": 0.8,
+                    "judge": _CustomJudge(toxic_judge),
+                },
+            )
+        )
         with pytest.raises(GuardViolation, match="toxicity"):
             await fn(
                 callback_context=_make_callback_context(),
@@ -327,11 +352,16 @@ class TestResolveGuardTupleRegex:
 
         from adk_fluent._base import _resolve_guard_tuple
 
-        fn = _resolve_guard_tuple(("guard:regex", {
-            "pattern": re.compile(r"ignore previous"),
-            "action": "block",
-            "replacement": "[REDACTED]",
-        }))
+        fn = _resolve_guard_tuple(
+            (
+                "guard:regex",
+                {
+                    "pattern": re.compile(r"ignore previous"),
+                    "action": "block",
+                    "replacement": "[REDACTED]",
+                },
+            )
+        )
         result = await fn(
             callback_context=_make_callback_context(),
             llm_response=_make_llm_response("Normal output"),
@@ -363,10 +393,12 @@ class TestComposeCallbacksWithGuards:
         async def plain_cb(**_kw):
             return None
 
-        composed = _compose_callbacks([
-            plain_cb,
-            ("guard:json", "json_validate"),
-        ])
+        composed = _compose_callbacks(
+            [
+                plain_cb,
+                ("guard:json", "json_validate"),
+            ]
+        )
         assert callable(composed)
 
 
@@ -410,6 +442,7 @@ class TestEGate:
 
         gate = E.gate(E.safety())
         from adk_fluent._transforms import STransform
+
         assert isinstance(gate, STransform)
 
     @pytest.mark.asyncio
@@ -420,7 +453,8 @@ class TestEGate:
         # The gate function is the first arg to STransform
         result = await gate._fn({})
         from adk_fluent._transforms import StateDelta
-        assert isinstance(result, (dict, StateDelta))
+
+        assert isinstance(result, dict | StateDelta)
 
     @pytest.mark.asyncio
     async def test_gate_with_output_key(self):
