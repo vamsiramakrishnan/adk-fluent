@@ -1,6 +1,12 @@
 """Sphinx configuration for adk-fluent documentation."""
 
 import datetime
+import warnings
+
+# sphinx-hoverxref 1.4.x uses deprecated Sphinx _Opt tuple interface;
+# suppress until upstream ships a fix.
+warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=PendingDeprecationWarning)
 
 project = "adk-fluent"
 copyright = "2025, adk-fluent contributors"
@@ -163,6 +169,7 @@ exclude_patterns = [
     "_build",
     "plans",
     "other_specs",
+    "architecture",
     "generated/cookbook/conftest.md",
     "cookbook/COOKBOOK_MASTER_PLAN.md",
 ]
