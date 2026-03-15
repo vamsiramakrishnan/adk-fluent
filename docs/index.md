@@ -7,6 +7,10 @@
     The fluent builder API for Google's Agent Development Kit.<br>
     Go from idea to production agent in lines, not pages.
   </p>
+  <div class="hero-install">
+    <span style="color: var(--adk-text-faint)">$</span>
+    <code>pip install adk-fluent</code>
+  </div>
   <div class="hero-stats">
     <div class="hero-stat">
       <span class="stat-number">132</span>
@@ -14,11 +18,11 @@
     </div>
     <div class="hero-stat">
       <span class="stat-number">9</span>
-      <span class="stat-label">Namespace Modules</span>
+      <span class="stat-label">Modules</span>
     </div>
     <div class="hero-stat">
       <span class="stat-number">67</span>
-      <span class="stat-label">Cookbook Recipes</span>
+      <span class="stat-label">Recipes</span>
     </div>
     <div class="hero-stat">
       <span class="stat-number">100%</span>
