@@ -12,6 +12,7 @@ These are owned by the codegen pipeline (`just generate`). Changes go through
 
 - `.claude/skills/_shared/**`
 - `.gemini/skills/_shared/**`
+- `skills/**`
 - `src/adk_fluent/_ir_generated.py`
 - `src/adk_fluent/agent.py`
 - `src/adk_fluent/agent.pyi`
