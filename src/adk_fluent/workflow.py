@@ -31,7 +31,7 @@ class Loop(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Set the `description` field."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -116,7 +116,7 @@ class FanOut(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Set the `description` field."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -195,7 +195,7 @@ class Pipeline(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Set the `description` field."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self

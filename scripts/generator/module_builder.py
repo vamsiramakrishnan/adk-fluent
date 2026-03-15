@@ -8,7 +8,14 @@ from __future__ import annotations
 
 from code_ir import ModuleNode
 
-from .imports import TYPING_NAMES, adk_import_name, build_type_import_map, gen_runtime_imports
+from .imports import (
+    OPTIONAL_MODULE_IMPORTS,
+    TYPING_NAMES,
+    adk_import_name,
+    build_type_import_map,
+    gen_optional_import,
+    gen_runtime_imports,
+)
 from .ir_builders import spec_to_ir
 from .spec import BuilderSpec
 from .type_normalization import collect_stub_type_refs, normalize_stub_classes
@@ -23,14 +30,22 @@ def specs_to_ir_module(specs: list[BuilderSpec], *, manifest: dict | None = None
     all_import_lines: list[str] = [
         "from __future__ import annotations",
     ]
+    optional_import_tuples: list[tuple[str, str]] = []
     for spec in specs:
         all_import_lines.extend(gen_runtime_imports(spec))
+        opt = gen_optional_import(spec)
+        if opt is not None:
+            optional_import_tuples.append(opt)
 
     classes = [spec_to_ir(spec) for spec in specs]
 
     # Normalize type annotations (same as stubs: types.X → X, unresolvable → Any)
     extra_imports = normalize_stub_classes(classes)
-    all_import_lines.extend(extra_imports)
+    for imp in extra_imports:
+        if imp in OPTIONAL_MODULE_IMPORTS:
+            optional_import_tuples.append((imp, "pass"))
+        else:
+            all_import_lines.append(imp)
 
     # Collect all type names referenced in method signatures
     refs = collect_stub_type_refs(classes)
@@ -69,6 +84,12 @@ def specs_to_ir_module(specs: list[BuilderSpec], *, manifest: dict | None = None
                 tc_import_lines.append(type_map[name])
                 already_imported.add(name)
 
+    # Add optional imports to TYPE_CHECKING as well, so pyright resolves the
+    # real type for return annotations (the runtime try/except fallback sets
+    # the name to None which pyright rejects in type expressions).
+    for import_line, _fallback in optional_import_tuples:
+        tc_import_lines.append(import_line)
+
     if tc_import_lines:
         all_import_lines.append("from typing import TYPE_CHECKING")
 
@@ -77,4 +98,5 @@ def specs_to_ir_module(specs: list[BuilderSpec], *, manifest: dict | None = None
         imports=all_import_lines,
         classes=classes,
         type_checking_imports=tc_import_lines,
+        optional_imports=optional_import_tuples,
     )

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import contextlib
 from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-import a2a.types
-from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
 from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
 from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
 from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
@@ -51,12 +50,22 @@ from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
 
 from adk_fluent._base import BuilderBase
 
+with contextlib.suppress(ImportError, ModuleNotFoundError):
+    import a2a.types
+if not TYPE_CHECKING:
+    try:
+        from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
+    except (ImportError, ModuleNotFoundError):
+        _ADK_A2aAgentExecutorConfig = None  # type: ignore[assignment,misc]
+
 if TYPE_CHECKING:
     from typing import Literal
 
+    import a2a.types
     from a2a.server.agent_execution.context import RequestContext
     from fastapi.openapi.models import APIKey, HTTPBase, HTTPBearer, OAuth2, OpenIdConnect
     from google.adk.a2a.converters.request_converter import AgentRunRequest
+    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
     from google.adk.agents.invocation_context import InvocationContext
     from google.adk.agents.run_config import StreamingMode
     from google.adk.apps.base_events_summarizer import BaseEventsSummarizer
@@ -136,6 +145,8 @@ class A2aAgentExecutorConfig(BuilderBase):
 
     def build(self) -> _ADK_A2aAgentExecutorConfig:
         """Configuration for the A2aAgentExecutor. Resolve into a native ADK _ADK_A2aAgentExecutorConfig."""
+        if _ADK_A2aAgentExecutorConfig is None:
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'")
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_A2aAgentExecutorConfig, config)
         return self._apply_native_hooks(result)
@@ -177,7 +188,7 @@ class BaseAgentConfig(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Optional. The description of the agent."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -393,7 +404,7 @@ class LlmAgentConfig(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Optional. The description of the agent."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -423,13 +434,13 @@ class LlmAgentConfig(BuilderBase):
         return self
 
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
-        """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
+        """Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
 
     def static_instruct(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
-        """Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list[PartUnion])."""
+        """Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
@@ -478,13 +489,13 @@ class LlmAgentConfig(BuilderBase):
         return self
 
     def disallow_transfer_to_parent(self, value: bool | None) -> Self:
-        """Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."""
+        """Prevent this agent from transferring control back to its parent. Also forces an auto-handoff back to parent on the next turn. Equivalent to ``.stay()``. See also ``.isolate()``."""
         self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_parent"] = value
         return self
 
     def disallow_transfer_to_peers(self, value: bool | None) -> Self:
-        """Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."""
+        """Prevent this agent from transferring control to sibling agents. Equivalent to ``.no_peers()``. See also ``.isolate()``."""
         self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_peers"] = value
         return self
@@ -501,8 +512,8 @@ class LlmAgentConfig(BuilderBase):
            Prefer ``.accepts(Model)`` over this method for clarity.
            ``.accepts()`` is the recommended alias on BuilderBase.
 
-           - ``.accepts(Model)`` → tool-mode input validation (same as this)
-           - ``.consumes(Model)`` → contract annotation (no runtime effect)
+           - ``.accepts(Model)`` → tool-mode input validation (same as this, HAS runtime effect)
+           - ``.consumes(Model)`` → contract annotation (NO runtime effect)
         """
         self = self._maybe_fork_for_mutation()
         self._config["input_schema"] = value
@@ -522,10 +533,10 @@ class LlmAgentConfig(BuilderBase):
            parses the response in ``.ask()`` calls. This method sets the
            raw ADK field without automatic parsing.
 
-           - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
+           - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing (HAS runtime effect)
            - ``.output_schema(Model)`` → LLM constraint only (raw field)
            - ``.writes(key)`` → stores text in state (no format constraint)
-           - ``.produces(Model)`` → contract annotation (no runtime effect)
+           - ``.produces(Model)`` → contract annotation (NO runtime effect)
         """
         self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
@@ -695,7 +706,7 @@ class LoopAgentConfig(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Optional. The description of the agent."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -777,7 +788,7 @@ class ParallelAgentConfig(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Optional. The description of the agent."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -1006,7 +1017,7 @@ class SequentialAgentConfig(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Optional. The description of the agent."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self

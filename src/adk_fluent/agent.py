@@ -8,15 +8,21 @@ from typing import TYPE_CHECKING, Any, Self
 
 from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
 from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
 
 from adk_fluent._base import BuilderBase
+
+if not TYPE_CHECKING:
+    try:
+        from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
+    except (ImportError, ModuleNotFoundError):
+        _ADK_RemoteA2aAgent = None  # type: ignore[assignment,misc]
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable
     from typing import Literal
 
     from google.adk.agents.readonly_context import ReadonlyContext
+    from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
     from google.adk.code_executors.base_code_executor import BaseCodeExecutor
     from google.adk.models.base_llm import BaseLlm
     from google.adk.planners.base_planner import BasePlanner
@@ -39,7 +45,7 @@ class BaseAgent(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Set the `description` field."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -131,19 +137,19 @@ class Agent(BuilderBase):
             self._config["model"] = model
 
     def describe(self, value: str) -> Self:
-        """Set the `description` field."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
 
     def global_instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
-        """Set the `global_instruction` field."""
+        """Set instruction shared by ALL agents in a workflow. Only meaningful on the root agent. Prepended to every agent's system prompt."""
         self = self._maybe_fork_for_mutation()
         self._config["global_instruction"] = value
         return self
 
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
-        """Set the `static_instruction` field."""
+        """Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."""
         self = self._maybe_fork_for_mutation()
         self._config["static_instruction"] = value
         return self
@@ -435,13 +441,13 @@ class Agent(BuilderBase):
         return self
 
     def disallow_transfer_to_parent(self, value: bool) -> Self:
-        """Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."""
+        """Prevent this agent from transferring control back to its parent. Also forces an auto-handoff back to parent on the next turn. Equivalent to ``.stay()``. See also ``.isolate()``."""
         self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_parent"] = value
         return self
 
     def disallow_transfer_to_peers(self, value: bool) -> Self:
-        """Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."""
+        """Prevent this agent from transferring control to sibling agents. Equivalent to ``.no_peers()``. See also ``.isolate()``."""
         self = self._maybe_fork_for_mutation()
         self._config["disallow_transfer_to_peers"] = value
         return self
@@ -477,25 +483,25 @@ class Agent(BuilderBase):
         return _add_tools(self, value)
 
     def guard(self, value: Any) -> Self:
-        """Add a guard. Accepts a G composite (G.pii() | G.budget()) or a plain callable (legacy dual-callback)."""
+        """Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned."""
         from adk_fluent._helpers import _guard_dispatch
 
         return _guard_dispatch(self, value)
 
     def ask(self, prompt: str) -> str:
-        """One-shot execution. Build agent, send prompt, return response text."""
+        """One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response text. Raises RuntimeError inside async event loops (Jupyter, FastAPI) — use .ask_async() instead."""
         from adk_fluent._helpers import run_one_shot
 
         return run_one_shot(self, prompt)
 
     async def ask_async(self, prompt: str) -> str:
-        """Async one-shot execution."""
+        """One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts."""
         from adk_fluent._helpers import run_one_shot_async
 
         return await run_one_shot_async(self, prompt)
 
     async def stream(self, prompt: str) -> AsyncIterator[str]:
-        """Streaming execution. Yields response text chunks."""
+        """ASYNC streaming execution. Yields response text chunks as they arrive. Use with ``async for chunk in agent.stream(prompt):``."""
         from adk_fluent._helpers import run_stream
 
         async for chunk in run_stream(self, prompt):
@@ -510,19 +516,19 @@ class Agent(BuilderBase):
         return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
 
     def session(self) -> Any:
-        """Create an interactive session context manager. Use with 'async with'."""
+        """Create an interactive multi-turn chat session. Returns an async context manager — use with ``async with agent.session() as chat:``. The agent is auto-built."""
         from adk_fluent._helpers import create_session
 
         return create_session(self)
 
     def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Run agent against multiple prompts with bounded concurrency."""
+        """Batch SYNC execution (blocking). Run agent against multiple prompts with bounded concurrency. Raises RuntimeError inside async event loops — use .map_async() instead."""
         from adk_fluent._helpers import run_map
 
         return run_map(self, prompts, concurrency=concurrency)
 
     async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
-        """Async batch execution against multiple prompts."""
+        """Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts."""
         from adk_fluent._helpers import run_map_async
 
         return await run_map_async(self, prompts, concurrency=concurrency)
@@ -535,7 +541,7 @@ class Agent(BuilderBase):
             yield chunk
 
     def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
-        """Set the `instruction` field. Raises TypeError if passed a CTransform (use .context() instead)."""
+        """Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead)."""
         from adk_fluent._helpers import _instruct_with_guard
 
         return _instruct_with_guard(self, value)
@@ -571,7 +577,7 @@ class Agent(BuilderBase):
         return _add_memory_auto_save(self)
 
     def agent_tool(self, agent: Any) -> Self:
-        """Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."""
+        """Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child."""
         from adk_fluent._helpers import add_agent_tool
 
         return add_agent_tool(self, agent)
@@ -585,7 +591,7 @@ class Agent(BuilderBase):
         )
 
     def stay(self) -> Self:
-        """Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning."""
+        """Prevent transfer to parent only (can still transfer to sibling peers). Equivalent to .disallow_transfer_to_parent(True). Use for agents in peer-to-peer handoff chains where the coordinator should not regain control mid-sequence."""
         from adk_fluent._helpers import _stay_agent
 
         return _stay_agent(
@@ -701,7 +707,7 @@ class RemoteA2aAgent(BuilderBase):
         self._frozen = False
 
     def describe(self, value: str) -> Self:
-        """Set the `description` field."""
+        """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
         self = self._maybe_fork_for_mutation()
         self._config["description"] = value
         return self
@@ -748,6 +754,8 @@ class RemoteA2aAgent(BuilderBase):
 
     def build(self) -> _ADK_RemoteA2aAgent:
         """Agent that communicates with a remote A2A agent via A2A client. Resolve into a native ADK _ADK_RemoteA2aAgent."""
+        if _ADK_RemoteA2aAgent is None:
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'")
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RemoteA2aAgent, config)
         return self._apply_native_hooks(result)

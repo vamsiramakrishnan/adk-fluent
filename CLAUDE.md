@@ -98,95 +98,149 @@ All operators are immutable (copy-on-write). Sub-expressions can be reused.
     router = Route("tier").eq("VIP", vip_agent).otherwise(standard_agent)
 ## Agent builder methods
 
-Core configuration:
+### Core configuration
+
   .model(str)                  — set LLM model
-  .instruct(str | PTransform)  — set instruction/system prompt
-  .describe(str)               — set agent description
-  .static(str)                 — set static instruction
-  .global_instruct()           — set global instruction
-  .generate_content_config()   — model-level config
+  .instruct(str | PTransform)  — set the main instruction / system prompt. This is what
+                                 the LLM is told to do. Accepts plain text, a callable,
+                                 or a P module composition (P.role() + P.task() + ...).
+  .describe(str)               — set agent description (metadata for transfer routing
+                                 and topology — NOT sent to the LLM as instruction)
+  .static(str)                 — set cached instruction. When set, .instruct() text moves
+                                 from system to user content, enabling context caching.
+                                 Use for large, stable prompt sections.
+  .global_instruct(str)        — set instruction shared by ALL agents in a workflow.
+                                 Only meaningful on the root agent. Prepended to every
+                                 agent's system prompt.
+  .generate_content_config()   — model-level config (temperature, top_p, etc.)
 
-Data flow:
-  .writes(key)                 — store response in state[key]
-  .reads(*keys)                — inject state keys into context
-  .returns(Schema)             — constrain output to Pydantic model
-  .accepts(Schema)             — define input schema for AgentTool usage
-  .context(C.xxx())            — set context engineering spec
-  .produces(Schema)            — contract annotation (no runtime effect)
-  .consumes(Schema)            — contract annotation (no runtime effect)
+### Data flow (five orthogonal concerns)
 
-Tools:
-  .tool(fn)                    — add a single tool function
-  .tools(list | TComposite)    — set multiple tools
-  .agent_tool(agent)           — wrap another agent as a callable tool
+Each method controls exactly one concern. See `data_flow()` for a snapshot.
 
-Callbacks:
+  .reads(*keys)                — CONTEXT: inject state[key] values into agent's prompt.
+                                 Side-effect: sets include_contents="none" (suppresses
+                                 full conversation history; current turn is still visible).
+  .context(C.xxx())            — CONTEXT: fine-grained control over what the agent sees.
+                                 Pass a C transform (C.window(5), C.user_only(), etc.).
+  .accepts(Schema)             — INPUT: validate input when this agent is invoked as a
+                                 tool via .agent_tool(). No effect for top-level agents.
+  .returns(Schema)             — OUTPUT: constrain LLM response to structured JSON
+                                 matching a Pydantic model. HAS runtime effect.
+  .writes(key)                 — STORAGE: store the agent's text response in state[key]
+                                 after execution.
+  .produces(Schema)            — CONTRACT: static annotation only — documents what state
+                                 keys this agent writes. NO runtime effect.
+  .consumes(Schema)            — CONTRACT: static annotation only — documents what state
+                                 keys this agent needs. NO runtime effect.
+
+### Tools
+
+  .tool(fn)                    — add a single tool (appends to existing tools)
+  .tools(list | TComposite)    — set / replace all tools at once
+  .agent_tool(agent)           — wrap another agent as a callable AgentTool. The parent
+                                 LLM invokes the child like any other tool and stays in
+                                 control. Compare with .sub_agent() which fully transfers
+                                 control to the child.
+
+### Callbacks
+
   .before_agent(fn)            — run before agent executes
   .after_agent(fn)             — run after agent executes
   .before_model(fn)            — run before LLM call
   .after_model(fn)             — run after LLM call
   .before_tool(fn)             — run before tool call
   .after_tool(fn)              — run after tool call
-  .guard(fn)                   — attach as both before_model and after_model
+  .guard(fn | G.xxx())         — output validation guard. Accepts a G composite
+                                 (G.pii() | G.length(max=500)) or a plain callable.
+                                 Guards run as after_model callbacks and validate/transform
+                                 the LLM response before it is returned.
   .on_model_error(fn)          — error callback for LLM failures
   .on_tool_error(fn)           — error callback for tool failures
 
-Flow control:
+### Flow control
+
   .loop_until(pred, max=10)    — loop while predicate is false
   .loop_while(pred, max=3)     — loop while predicate is true
   .until(pred)                 — alias for loop_until
   .proceed_if(pred)            — conditional execution
   .timeout(seconds)            — wrap with time limit (returns TimedAgent)
-  .dispatch(name=, on_complete=) — background task (returns BackgroundTask)
+  .dispatch(name=, on_complete=) — fire-and-forget background task (non-blocking)
 
-Transfer control:
-  .isolate()                   — prevent all transfers
-  .stay()                      — prevent parent transfer
-  .no_peers()                  — prevent sibling transfer
+### Transfer control (multi-agent routing)
 
-Memory:
+  .sub_agent(agent)            — add child agent as a transfer target. The LLM decides
+                                 when to hand off via the transfer_to_agent tool.
+  .isolate()                   — prevent transfers to parent AND peers. Agent completes
+                                 its task, then control auto-returns to parent.
+                                 Most common pattern for specialist agents.
+  .stay()                      — prevent transfer to parent only (can still transfer to
+                                 sibling peers). Equivalent to
+                                 .disallow_transfer_to_parent(True).
+  .no_peers()                  — prevent transfer to siblings only (can still return to
+                                 parent). Equivalent to
+                                 .disallow_transfer_to_peers(True).
+
+### Memory
+
   .memory(mode="preload")      — attach memory tools
   .memory_auto_save()          — auto-save to memory after execution
 
-Visibility:
+### Visibility
+
   .show()                      — include in topology
   .hide()                      — exclude from topology
   .transparent()               — transparent visibility mode
   .filtered()                  — filtered visibility mode
   .annotated()                 — annotated visibility mode
 
-Configuration:
+### Configuration
+
   .middleware(mw)              — attach middleware
-  .inject(**resources)         — inject dependencies
-  .use(preset)                 — apply preset configuration
-  .native(fn)                  — apply native hook
+  .inject(**resources)         — inject named resources into tool function parameters.
+                                 Matched by parameter name at build time. Injected params
+                                 are hidden from the LLM tool schema. Use for DB clients,
+                                 API keys, config objects.
+  .use(preset)                 — apply a Preset object that bundles multiple builder
+                                 settings (model, instruction, tools, callbacks, etc.)
+  .native(fn)                  — post-build hook: fn receives the raw ADK object for
+                                 direct manipulation. Escape hatch for ADK features not
+                                 yet exposed by the fluent API.
   .debug(enabled=True)         — debug tracing to stderr
   .strict()                    — enable strict contract checking
   .unchecked()                 — bypass contract checking
-  .prepend(fn)                 — prepend dynamic text to LLM
+  .prepend(fn)                 — prepend dynamic text to the LLM's input via
+                                 before_model_callback. fn(ctx) → str is injected before
+                                 the main instruction each turn.
 
-Schemas:
+### Schemas
+
   .tool_schema(schema)         — attach tool schema
   .callback_schema(schema)     — attach callback schema
   .prompt_schema(schema)       — attach prompt schema
   .artifact_schema(schema)     — attach artifact schema
   .artifacts(*transforms)      — artifact operations
 
-Execution:
+### Execution
+
+Sync methods (.ask, .map) raise RuntimeError inside an async event loop
+(Jupyter, FastAPI, etc.). Use the async variants instead.
+
   .build()                     — produce native ADK LlmAgent
-  .ask(prompt)                 — one-shot sync execution
-  .ask_async(prompt)           — async one-shot execution
-  .stream(prompt)              — async streaming iterator
-  .events(prompt)              — raw ADK Event streaming
-  .session()                   — create interactive ChatSession
-  .map(prompts, concurrency=5) — batch execution over multiple prompts
-  .map_async(prompts)          — async batch execution
-  .test(prompt, contains=)     — inline smoke test
+  .ask(prompt)                 — one-shot SYNC execution (blocking)
+  .ask_async(prompt)           — one-shot ASYNC execution (await)
+  .stream(prompt)              — ASYNC streaming iterator (yields text chunks)
+  .events(prompt)              — ASYNC raw ADK Event stream
+  .session()                   — ASYNC context manager for multi-turn chat
+  .map(prompts, concurrency=5) — batch SYNC execution (blocking)
+  .map_async(prompts)          — batch ASYNC execution (await)
+  .test(prompt, contains=)     — inline smoke test (sync, blocking)
   .mock(responses)             — replace LLM with canned responses
   .eval(prompt, expect=)       — inline evaluation
   .eval_suite()                — evaluation suite builder
 
-Introspection:
+### Introspection
+
   .explain()                   — print builder state
   .validate()                  — early error detection
   .clone(name)                 — deep copy with new name
@@ -362,29 +416,43 @@ Used with `.eval()` and `.eval_suite()`. Build evaluation criteria and test suit
   EvalReport                   — evaluation results
   ComparisonReport             — compare multiple agents/models
 
-### G — Guards
+### G — Guards (output validation)
 
-Used with `.guard()`. Build input/output validation guards.
+Used with `.guard()`. Guards validate/transform the LLM response (after_model).
+Compose with `|` (chain). Raise GuardViolation on failure.
 
-  G.guard(fn)                  — custom guard function
-  G.pii(detector=)             — PII detection guard
-  G.toxicity(threshold=)       — toxicity detection guard
-  G.length(max=)               — response length guard
-  G.schema(model)              — schema validation guard
-  GuardViolation               — raised when guard fails
+  G.guard(fn)                  — custom guard function (fn receives llm_response)
+  G.pii(detector=)             — detect and block/redact PII in output
+  G.toxicity(threshold=)       — block toxic content above threshold
+  G.length(max=)               — enforce max response length
+  G.schema(model)              — validate output against Pydantic model
+  GuardViolation               — raised when a guard check fails
   PIIDetector                  — PII detection provider
   ContentJudge                 — content judgment provider
+## Expression operators explained
+
+    A >> B           # Sequential: A runs, then B. Returns a Pipeline.
+    A | B            # Parallel: A and B run concurrently. Returns a FanOut.
+    (A >> B) * 3     # Loop: repeat the pipeline 3 times. Returns a Loop.
+    (A >> B) * until(pred, max=5)  # Conditional loop: repeat until pred(state) is true.
+    A // B           # Fallback: try A first. If A fails (exception), try B.
+    A @ Schema       # Structured output: constrain A's response to a Pydantic model.
+                     # Equivalent to A.returns(Schema).
+
 ## Expression primitives
 
 Function-level primitives for use with expression operators:
 
   until(pred, max=10)          — loop condition for * operator
-  tap(fn)                      — inline transform (no LLM, zero cost)
-  expect(fn)                   — alias for tap
+  tap(fn)                      — inline observation step (no LLM, zero cost). Reads
+                                 state, runs side-effect, never mutates state.
+  expect(pred, msg=)           — inline state assertion. Raises ValueError if pred(state)
+                                 is false. Unlike tap(), this is a contract check, not a
+                                 side-effect observer.
   map_over(key)                — map agent over list items in state[key]
   gate(predicate)              — conditional execution (skip if false)
   race(*agents)                — first-to-complete wins
-  dispatch(name=, on_complete=) — launch background task
+  dispatch(name=, on_complete=) — launch background task (non-blocking)
   join()                       — wait for all background tasks
 
 Routing:
@@ -410,21 +478,80 @@ Higher-order constructors that accept builders and return builders:
   chain(*agents)                  — sequential pipeline
   conditional(pred, then_agent, else_agent=)
   supervised(worker, supervisor)
+
+A2A patterns (remote agent-to-agent):
+
+  a2a_cascade(*endpoints, names=, timeout=)   — fallback chain across remote agents
+  a2a_fanout(*endpoints, names=, timeout=)    — parallel fan-out to remote agents
+  a2a_delegate(coordinator, **remotes)        — coordinator with named remote specialists
+## A2A (Agent-to-Agent) remote communication
+
+Experimental support for the A2A protocol. Requires `pip install google-adk[a2a]`.
+
+### RemoteAgent — consume a remote A2A agent
+
+    from adk_fluent import RemoteAgent
+
+    remote = (
+        RemoteAgent("researcher", agent_card="http://researcher:8001/.well-known/agent.json")
+        .describe("Remote research specialist")
+        .timeout(30)
+        .sends("query")           # serialize state keys into A2A message
+        .receives("findings")     # deserialize A2A response back into state
+        .persistent_context()     # maintain contextId across calls in same session
+    )
+
+RemoteAgent extends BuilderBase — all operators (>>, |, //, *) work:
+
+    pipeline = Agent("writer") >> remote >> Agent("reviewer")
+    fallback = remote // Agent("local-fallback", "gemini-2.5-flash")
+
+### A2AServer — publish a local agent via A2A
+
+    from adk_fluent import A2AServer
+
+    server = (
+        A2AServer(my_agent)
+        .port(8001)
+        .version("1.0.0")
+        .provider("Acme Corp", "https://acme.com")
+        .skill("research", "Academic Research",
+               description="Deep research with citations",
+               tags=["research", "citations"])
+        .health_check()
+        .graceful_shutdown(timeout=30)
+    )
+
+### A2A middleware (M namespace)
+
+    M.a2a_retry(max_attempts=3, backoff=2.0)   — retry with exponential backoff
+    M.a2a_circuit_breaker(threshold=5, reset_after=60)  — circuit breaker
+    M.a2a_timeout(seconds=30)                  — per-agent timeout
+
+### A2A tool composition (T namespace)
+
+    T.a2a(agent_card_url, name=, description=, timeout=)  — wrap remote agent as tool
+
+### Discovery
+
+    RemoteAgent.discover("research-agent.agents.acme.com")  — DNS well-known discovery
+    AgentRegistry("http://registry:9000").find(name="research")  — registry-based
+    RemoteAgent("code", env="CODE_AGENT_URL")  — environment variable configuration
 ## Builder inventory
 
-132 builders across 9 modules.
+135 builders across 9 modules.
 
-### agent module (2 builders)
+### agent module (3 builders)
 
-BaseAgent, Agent
+BaseAgent, Agent, RemoteA2aAgent
 
-### config module (38 builders)
+### config module (39 builders)
 
-AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
+A2aAgentExecutorConfig, AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
 
-### executor module (5 builders)
+### executor module (6 builders)
 
-AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
+A2aAgentExecutor, AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
 
 ### planner module (3 builders)
 
@@ -465,6 +592,13 @@ Loop, FanOut, Pipeline
 12. Use `.prepend()` not deprecated `.inject_context()`
 13. All operators are immutable — sub-expressions can be safely reused
 14. Every `.build()` returns a real ADK object compatible with adk web/run/deploy
+15. Use `.sub_agent()` for transfer-based delegation (LLM decides routing);
+    use `.agent_tool()` for tool-based invocation (parent stays in control)
+16. Use `.isolate()` on specialist agents by default — it is the most predictable pattern
+17. Always set `.describe()` on sub-agents — the description helps the coordinator LLM
+    pick the right specialist during transfer routing
+18. Use `.ask_async()` and `.map_async()` in async contexts (Jupyter, FastAPI).
+    The sync variants (.ask, .map) raise RuntimeError inside running event loops.
 ## Development commands
 
     pip install adk-fluent                  # install

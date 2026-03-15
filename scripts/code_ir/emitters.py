@@ -330,6 +330,40 @@ def _emit_module_python(mod: ModuleNode) -> str:
         grouped = _sort_and_group_imports(mod.imports)
         lines.extend(grouped)
 
+    # Emit optional imports wrapped in try/except or contextlib.suppress.
+    # Imports with a non-"pass" fallback (i.e. ``X = None``) are guarded
+    # with ``if not TYPE_CHECKING:`` so that pyright only sees the real
+    # type from the TYPE_CHECKING block (avoiding "Variable not allowed
+    # in type expression" errors).
+    if mod.optional_imports:
+        needs_suppress = any(fallback == "pass" for _, fallback in mod.optional_imports)
+        if needs_suppress:
+            lines.append("import contextlib")
+
+        # Separate: "pass" fallbacks don't shadow types; others do
+        type_guarded: list[tuple[str, str]] = []
+        for import_line, fallback in mod.optional_imports:
+            if fallback == "pass":
+                lines.append("with contextlib.suppress(ImportError, ModuleNotFoundError):")
+                lines.append(f"    {import_line}")
+            else:
+                type_guarded.append((import_line, fallback))
+
+        if type_guarded and mod.type_checking_imports:
+            lines.append("if not TYPE_CHECKING:")
+            for import_line, fallback in type_guarded:
+                lines.append("    try:")
+                lines.append(f"        {import_line}")
+                lines.append("    except (ImportError, ModuleNotFoundError):")
+                lines.append(f"        {fallback}")
+        elif type_guarded:
+            # No TYPE_CHECKING block — emit bare try/except
+            for import_line, fallback in type_guarded:
+                lines.append("try:")
+                lines.append(f"    {import_line}")
+                lines.append("except (ImportError, ModuleNotFoundError):")
+                lines.append(f"    {fallback}")
+
     # Emit TYPE_CHECKING-guarded imports (for type annotations only)
     if mod.type_checking_imports:
         lines.append("")

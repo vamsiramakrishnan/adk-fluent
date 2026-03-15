@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adk-fluent · Data Flow Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a28;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+
+    --context-color: #0ea5e9;
+    --context-bg: #0ea5e915;
+    --context-border: #0ea5e940;
+
+    --input-color: #f59e0b;
+    --input-bg: #f59e0b15;
+    --input-border: #f59e0b40;
+
+    --output-color: #e94560;
+    --output-bg: #e9456015;
+    --output-border: #e9456040;
+
+    --storage-color: #10b981;
+    --storage-bg: #10b98115;
+    --storage-border: #10b98140;
+
+    --contract-color: #a78bfa;
+    --contract-bg: #a78bfa15;
+    --contract-border: #a78bfa40;
+
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 3rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+
+  header .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 1rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--text-bright);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  header h1 span {
+    font-weight: 600;
+  }
+
+  header .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Section titles */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 1.5rem;
+  }
+
+  section {
+    margin-bottom: 4rem;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Quick-Reference Grid */
+  .concern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .concern-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .concern-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .concern-card.context::before { background: var(--context-color); }
+  .concern-card.input::before { background: var(--input-color); }
+  .concern-card.output::before { background: var(--output-color); }
+  .concern-card.storage::before { background: var(--storage-color); }
+  .concern-card.contract::before { background: var(--contract-color); }
+
+  .concern-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .concern-card.context .concern-icon {
+    background: var(--context-bg);
+    color: var(--context-color);
+    border: 1px solid var(--context-border);
+  }
+  .concern-card.input .concern-icon {
+    background: var(--input-bg);
+    color: var(--input-color);
+    border: 1px solid var(--input-border);
+  }
+  .concern-card.output .concern-icon {
+    background: var(--output-bg);
+    color: var(--output-color);
+    border: 1px solid var(--output-border);
+  }
+  .concern-card.storage .concern-icon {
+    background: var(--storage-bg);
+    color: var(--storage-color);
+    border: 1px solid var(--storage-border);
+  }
+  .concern-card.contract .concern-icon {
+    background: var(--contract-bg);
+    color: var(--contract-color);
+    border: 1px solid var(--contract-border);
+  }
+
+  .concern-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 0.35rem;
+  }
+
+  .concern-methods {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+    line-height: 1.8;
+  }
+
+  .concern-desc {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .badge-runtime {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .badge-runtime.yes {
+    background: #10b98120;
+    color: #10b981;
+    border: 1px solid #10b98140;
+  }
+
+  .badge-runtime.no {
+    background: #f59e0b18;
+    color: #f59e0b;
+    border: 1px solid #f59e0b40;
+  }
+
+  /* SVG sections */
+  .svg-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    overflow-x: auto;
+  }
+
+  .svg-container svg {
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Confusion Matrix Table */
+  .matrix-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    background: var(--surface);
+  }
+
+  .matrix-table th {
+    background: var(--surface-2);
+    color: var(--text-bright);
+    font-weight: 600;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .matrix-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .matrix-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .matrix-table tr:hover td {
+    background: var(--surface-2);
+  }
+
+  .matrix-table .concern-label {
+    font-family: var(--mono);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .matrix-table code {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: var(--surface-2);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+  }
+
+  .dot-yes {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+  }
+
+  .dot-no {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e94560;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+  }
+
+  /* Code block */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+  }
+
+  .code-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .code-filename {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-left: 0.5rem;
+  }
+
+  .code-body {
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+  }
+
+  .code-body pre {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.85;
+    color: var(--text);
+  }
+
+  .code-body .kw { color: #c678dd; }
+  .code-body .fn { color: #61afef; }
+  .code-body .str { color: #98c379; }
+  .code-body .comment-context { color: var(--context-color); font-style: italic; }
+  .code-body .comment-input { color: var(--input-color); font-style: italic; }
+  .code-body .comment-output { color: var(--output-color); font-style: italic; }
+  .code-body .comment-storage { color: var(--storage-color); font-style: italic; }
+  .code-body .comment-contract { color: var(--contract-color); font-style: italic; }
+  .code-body .method-context { color: var(--context-color); }
+  .code-body .method-input { color: var(--input-color); }
+  .code-body .method-output { color: var(--output-color); }
+  .code-body .method-storage { color: var(--storage-color); }
+  .code-body .method-contract { color: var(--contract-color); }
+  .code-body .paren { color: var(--text-dim); }
+  .code-body .name { color: #e5c07b; }
+  .code-body .op { color: var(--text-dim); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+
+  footer p {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  footer a {
+    color: var(--context-color);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Legend row */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    header h1 { font-size: 1.8rem; }
+    .concern-grid { grid-template-columns: 1fr; }
+    .svg-container { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="badge">adk-fluent / data-flow</div>
+    <h1>Data Flow <span>Reference</span></h1>
+    <p class="subtitle">
+      The five orthogonal data-flow concerns in adk-fluent &mdash; how data enters,
+      exits, and flows through every agent turn.
+    </p>
+  </header>
+
+  <!-- A) Quick-Reference Grid -->
+  <section>
+    <div class="section-label">Section A</div>
+    <h2 class="section-title">Quick-Reference Grid</h2>
+
+    <div class="concern-grid">
+
+      <!-- CONTEXT -->
+      <div class="card concern-card context">
+        <div class="concern-icon">C</div>
+        <h3>Context</h3>
+        <div class="concern-methods">
+          .reads(*keys)<br>
+          .context(C.xxx())
+        </div>
+        <p class="concern-desc">
+          Injects state values into the agent's prompt as additional context.
+          Values appear in LLM input at runtime.
+        </p>
+        <span class="badge-runtime yes">HAS RUNTIME EFFECT</span>
+      </div>
+
+      <!-- INPUT -->
+      <div class="card concern-card input">
+        <div class="concern-icon">I</div>
+        <h3>Input</h3>
+        <div class="concern-methods">
+          .accepts(Schema)
+        </div>
+        <p class="concern-desc">
+          Defines structured input schema when the agent is used as an AgentTool.
+          Validates incoming data from the parent agent.
+        </p>
+        <span class="badge-runtime yes">HAS RUNTIME EFFECT</span>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="card concern-card output">
+        <div class="concern-icon">O</div>
+        <h3>Output</h3>
+        <div class="concern-methods">
+          .returns(Schema)
+        </div>
+        <p class="concern-desc">
+          Constrains LLM response to structured JSON matching a Pydantic schema.
+          Forces output_schema on generate_content_config.
+        </p>
+        <span class="badge-runtime yes">HAS RUNTIME EFFECT</span>
+      </div>
+
+      <!-- STORAGE -->
+      <div class="card concern-card storage">
+        <div class="concern-icon">S</div>
+        <h3>Storage</h3>
+        <div class="concern-methods">
+          .writes(key)
+        </div>
+        <p class="concern-desc">
+          Stores the agent's text response in session state[key] after execution.
+          Downstream agents can read the stored value.
+        </p>
+        <span class="badge-runtime yes">HAS RUNTIME EFFECT</span>
+      </div>
+
+      <!-- CONTRACT -->
+      <div class="card concern-card contract">
+        <div class="concern-icon">K</div>
+        <h3>Contract</h3>
+        <div class="concern-methods">
+          .produces(Schema)<br>
+          .consumes(Schema)
+        </div>
+        <p class="concern-desc">
+          Static type annotations for pipeline validation and documentation.
+          No runtime effect &mdash; tooling and introspection only.
+        </p>
+        <span class="badge-runtime no">NO RUNTIME EFFECT</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- B) Data Flow Timeline SVG -->
+  <section>
+    <div class="section-label">Section B</div>
+    <h2 class="section-title">Data Flow Timeline</h2>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#0ea5e9"></div>Context</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b"></div>Input</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#e94560"></div>Output</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Storage</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#a78bfa"></div>Contract</div>
+    </div>
+
+    <div class="svg-container">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 260" width="980" height="260">
+        <defs>
+          <marker id="arrow-context" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#0ea5e9"/>
+          </marker>
+          <marker id="arrow-output" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#e94560"/>
+          </marker>
+          <marker id="arrow-storage" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#10b981"/>
+          </marker>
+          <marker id="arrow-input" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#f59e0b"/>
+          </marker>
+          <marker id="arrow-dim" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#8888a0"/>
+          </marker>
+        </defs>
+
+        <!-- Session State (left) -->
+        <rect x="20" y="90" width="120" height="60" rx="8" fill="#12121a" stroke="#2a2a3a" stroke-width="1.5"/>
+        <text x="80" y="117" text-anchor="middle" fill="#e0e0e8" font-family="Inter, sans-serif" font-size="12" font-weight="600">Session</text>
+        <text x="80" y="135" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">state[...]</text>
+
+        <!-- .accepts() arrow from top -->
+        <line x1="260" y1="30" x2="260" y2="85" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-input)"/>
+        <text x="260" y="22" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="10">.accepts(Schema)</text>
+
+        <!-- .reads / .context arrow -->
+        <line x1="145" y1="112" x2="215" y2="112" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arrow-context)"/>
+        <text x="180" y="102" text-anchor="middle" fill="#0ea5e9" font-family="JetBrains Mono, monospace" font-size="9">.reads()</text>
+        <text x="180" y="145" text-anchor="middle" fill="#0ea5e9" font-family="JetBrains Mono, monospace" font-size="9">.context()</text>
+
+        <!-- Agent Prompt box -->
+        <rect x="220" y="90" width="130" height="60" rx="8" fill="#0ea5e915" stroke="#0ea5e940" stroke-width="1.5"/>
+        <text x="285" y="117" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="12" font-weight="600">Agent Prompt</text>
+        <text x="285" y="135" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="9">+ injected context</text>
+
+        <!-- Arrow to LLM -->
+        <line x1="355" y1="120" x2="415" y2="120" stroke="#8888a0" stroke-width="1.5" marker-end="url(#arrow-dim)"/>
+
+        <!-- LLM box -->
+        <rect x="420" y="86" width="120" height="68" rx="8" fill="#1a1a28" stroke="#3a3a5a" stroke-width="1.5"/>
+        <text x="480" y="113" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="13" font-weight="700">LLM</text>
+        <text x="480" y="133" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="9">generate()</text>
+
+        <!-- Arrow to Response -->
+        <line x1="545" y1="120" x2="605" y2="120" stroke="#8888a0" stroke-width="1.5" marker-end="url(#arrow-dim)"/>
+
+        <!-- Response box -->
+        <rect x="610" y="90" width="120" height="60" rx="8" fill="#e9456015" stroke="#e9456040" stroke-width="1.5"/>
+        <text x="670" y="117" text-anchor="middle" fill="#e94560" font-family="Inter, sans-serif" font-size="12" font-weight="600">Response</text>
+        <text x="670" y="135" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="9">structured JSON</text>
+
+        <!-- .returns() annotation -->
+        <line x1="670" y1="80" x2="670" y2="87" stroke="#e94560" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="670" y="72" text-anchor="middle" fill="#e94560" font-family="JetBrains Mono, monospace" font-size="10">.returns(Schema)</text>
+
+        <!-- .writes() arrow to State -->
+        <line x1="735" y1="120" x2="815" y2="120" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-storage)"/>
+        <text x="775" y="108" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="9">.writes()</text>
+
+        <!-- Session State (right) -->
+        <rect x="820" y="90" width="130" height="60" rx="8" fill="#10b98115" stroke="#10b98140" stroke-width="1.5"/>
+        <text x="885" y="113" text-anchor="middle" fill="#10b981" font-family="Inter, sans-serif" font-size="12" font-weight="600">Session State</text>
+        <text x="885" y="133" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">state[key] = resp</text>
+
+        <!-- .produces / .consumes annotations (floating) -->
+        <rect x="340" y="195" width="280" height="46" rx="8" fill="#a78bfa12" stroke="#a78bfa35" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="480" y="215" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="10">.produces(Schema)  .consumes(Schema)</text>
+        <text x="480" y="232" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="9">static annotations only &mdash; no runtime effect</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- C) Confusion Matrix -->
+  <section>
+    <div class="section-label">Section C</div>
+    <h2 class="section-title">Confusion Matrix</h2>
+
+    <div class="matrix-wrapper">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Concern</th>
+            <th>When</th>
+            <th>Direction</th>
+            <th>Runtime?</th>
+            <th>Sets on ADK</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="concern-label" style="color: var(--context-color);">Context</td>
+            <td>Before LLM call</td>
+            <td>State &rarr; Prompt</td>
+            <td><span class="dot-yes"></span>Yes</td>
+            <td><code>include_contents</code> / instruction injection</td>
+            <td><code>.reads("article")</code></td>
+          </tr>
+          <tr>
+            <td class="concern-label" style="color: var(--input-color);">Input</td>
+            <td>When called as AgentTool</td>
+            <td>Parent &rarr; Agent</td>
+            <td><span class="dot-yes"></span>Yes</td>
+            <td><code>input_schema</code> on AgentTool</td>
+            <td><code>.accepts(SummarizeInput)</code></td>
+          </tr>
+          <tr>
+            <td class="concern-label" style="color: var(--output-color);">Output</td>
+            <td>LLM generation</td>
+            <td>Agent &rarr; Caller</td>
+            <td><span class="dot-yes"></span>Yes</td>
+            <td><code>output_schema</code> on generate_content_config</td>
+            <td><code>.returns(SummaryOutput)</code></td>
+          </tr>
+          <tr>
+            <td class="concern-label" style="color: var(--storage-color);">Storage</td>
+            <td>After execution</td>
+            <td>Response &rarr; State</td>
+            <td><span class="dot-yes"></span>Yes</td>
+            <td><code>output_key</code> on LlmAgent</td>
+            <td><code>.writes("summary")</code></td>
+          </tr>
+          <tr>
+            <td class="concern-label" style="color: var(--contract-color);">Contract</td>
+            <td>Build time / static analysis</td>
+            <td>N/A (annotation)</td>
+            <td><span class="dot-no"></span>No</td>
+            <td>Nothing &mdash; metadata only</td>
+            <td><code>.produces(SummaryContract)</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- D) Decision Flowchart SVG -->
+  <section>
+    <div class="section-label">Section D</div>
+    <h2 class="section-title">Decision Flowchart</h2>
+    <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.25rem;">
+      "Which method do I use?" &mdash; follow the questions to find the right data-flow method.
+    </p>
+
+    <div class="svg-container">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520">
+        <defs>
+          <marker id="fc-arrow" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+            <path d="M0,0 L7,2.5 L0,5 Z" fill="#8888a0"/>
+          </marker>
+          <marker id="fc-arrow-yes" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+            <path d="M0,0 L7,2.5 L0,5 Z" fill="#10b981"/>
+          </marker>
+        </defs>
+
+        <!-- Q1: Pass data TO the LLM? -->
+        <rect x="300" y="15" width="300" height="50" rx="25" fill="#1a1a28" stroke="#3a3a5a" stroke-width="1.5"/>
+        <text x="450" y="45" text-anchor="middle" fill="#e0e0e8" font-family="Inter, sans-serif" font-size="12" font-weight="500">Need to pass data TO the LLM?</text>
+
+        <!-- Yes arrow down-left to .reads / .context -->
+        <line x1="370" y1="65" x2="170" y2="115" stroke="#10b981" stroke-width="1.2" marker-end="url(#fc-arrow-yes)"/>
+        <text x="258" y="84" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="10">yes</text>
+
+        <!-- No arrow right to Q2 -->
+        <line x1="600" y1="40" x2="600" y2="115" stroke="#8888a0" stroke-width="1.2" marker-end="url(#fc-arrow)"/>
+        <text x="612" y="80" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">no</text>
+
+        <!-- Answer: .reads / .context -->
+        <rect x="50" y="118" width="240" height="48" rx="10" fill="#0ea5e915" stroke="#0ea5e940" stroke-width="1.5"/>
+        <text x="170" y="140" text-anchor="middle" fill="#0ea5e9" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">.reads()  /  .context()</text>
+        <text x="170" y="156" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">inject state into prompt</text>
+
+        <!-- Q2: Structured JSON output? -->
+        <rect x="450" y="118" width="300" height="50" rx="25" fill="#1a1a28" stroke="#3a3a5a" stroke-width="1.5"/>
+        <text x="600" y="148" text-anchor="middle" fill="#e0e0e8" font-family="Inter, sans-serif" font-size="12" font-weight="500">Need structured JSON output?</text>
+
+        <!-- Yes arrow left to .returns -->
+        <line x1="520" y1="168" x2="340" y2="228" stroke="#10b981" stroke-width="1.2" marker-end="url(#fc-arrow-yes)"/>
+        <text x="420" y="195" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="10">yes</text>
+
+        <!-- No arrow right to Q3 -->
+        <line x1="600" y1="168" x2="600" y2="225" stroke="#8888a0" stroke-width="1.2" marker-end="url(#fc-arrow)"/>
+        <text x="612" y="200" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">no</text>
+
+        <!-- Answer: .returns -->
+        <rect x="120" y="220" width="220" height="48" rx="10" fill="#e9456015" stroke="#e9456040" stroke-width="1.5"/>
+        <text x="230" y="242" text-anchor="middle" fill="#e94560" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">.returns(Schema)</text>
+        <text x="230" y="258" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">constrain LLM output</text>
+
+        <!-- Q3: Save response for later? -->
+        <rect x="450" y="228" width="300" height="50" rx="25" fill="#1a1a28" stroke="#3a3a5a" stroke-width="1.5"/>
+        <text x="600" y="258" text-anchor="middle" fill="#e0e0e8" font-family="Inter, sans-serif" font-size="12" font-weight="500">Need to save response for later?</text>
+
+        <!-- Yes arrow left to .writes -->
+        <line x1="520" y1="278" x2="340" y2="338" stroke="#10b981" stroke-width="1.2" marker-end="url(#fc-arrow-yes)"/>
+        <text x="420" y="305" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="10">yes</text>
+
+        <!-- No arrow down to Q4 -->
+        <line x1="600" y1="278" x2="600" y2="335" stroke="#8888a0" stroke-width="1.2" marker-end="url(#fc-arrow)"/>
+        <text x="612" y="310" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">no</text>
+
+        <!-- Answer: .writes -->
+        <rect x="120" y="330" width="220" height="48" rx="10" fill="#10b98115" stroke="#10b98140" stroke-width="1.5"/>
+        <text x="230" y="352" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">.writes(key)</text>
+        <text x="230" y="368" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">store in session state</text>
+
+        <!-- Q4: Agent used as AgentTool? -->
+        <rect x="450" y="338" width="300" height="50" rx="25" fill="#1a1a28" stroke="#3a3a5a" stroke-width="1.5"/>
+        <text x="600" y="368" text-anchor="middle" fill="#e0e0e8" font-family="Inter, sans-serif" font-size="12" font-weight="500">Agent used as an AgentTool?</text>
+
+        <!-- Yes arrow left to .accepts -->
+        <line x1="520" y1="388" x2="340" y2="445" stroke="#10b981" stroke-width="1.2" marker-end="url(#fc-arrow-yes)"/>
+        <text x="420" y="415" fill="#10b981" font-family="JetBrains Mono, monospace" font-size="10">yes</text>
+
+        <!-- No arrow right to .produces/.consumes -->
+        <line x1="600" y1="388" x2="600" y2="445" stroke="#8888a0" stroke-width="1.2" marker-end="url(#fc-arrow)"/>
+        <text x="612" y="420" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">no</text>
+
+        <!-- Answer: .accepts -->
+        <rect x="120" y="438" width="220" height="48" rx="10" fill="#f59e0b15" stroke="#f59e0b40" stroke-width="1.5"/>
+        <text x="230" y="460" text-anchor="middle" fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600">.accepts(Schema)</text>
+        <text x="230" y="476" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">validate AgentTool input</text>
+
+        <!-- Answer: .produces / .consumes -->
+        <rect x="470" y="448" width="260" height="52" rx="10" fill="#a78bfa12" stroke="#a78bfa35" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="600" y="470" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">.produces()  /  .consumes()</text>
+        <text x="600" y="489" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">documentation annotations only</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- E) Code Example -->
+  <section>
+    <div class="section-label">Section E</div>
+    <h2 class="section-title">All Five Concerns in One Agent</h2>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dot" style="background: #e94560;"></div>
+        <div class="code-dot" style="background: #f59e0b;"></div>
+        <div class="code-dot" style="background: #10b981;"></div>
+        <span class="code-filename">example.py</span>
+      </div>
+      <div class="code-body">
+<pre><span class="kw">from</span> adk_fluent <span class="kw">import</span> Agent
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="name">SummarizeInput</span><span class="paren">(</span>BaseModel<span class="paren">)</span>:
+    article_url: str
+    max_length: int <span class="op">=</span> <span class="str">500</span>
+
+<span class="kw">class</span> <span class="name">SummaryOutput</span><span class="paren">(</span>BaseModel<span class="paren">)</span>:
+    title: str
+    summary: str
+    key_points: list<span class="paren">[</span>str<span class="paren">]</span>
+
+<span class="kw">class</span> <span class="name">SummaryContract</span><span class="paren">(</span>BaseModel<span class="paren">)</span>:
+    summary: str
+
+agent <span class="op">=</span> <span class="paren">(</span>
+    Agent<span class="paren">(</span><span class="str">"summarizer"</span>, <span class="str">"gemini-2.5-flash"</span><span class="paren">)</span>
+    .<span class="method-context">reads</span><span class="paren">(</span><span class="str">"article"</span><span class="paren">)</span>           <span class="comment-context"># CONTEXT  -- inject article text into prompt</span>
+    .<span class="method-input">accepts</span><span class="paren">(</span>SummarizeInput<span class="paren">)</span>    <span class="comment-input"># INPUT    -- structured input schema for AgentTool</span>
+    .instruct<span class="paren">(</span><span class="str">"Summarize the article in {article}."</span><span class="paren">)</span>
+    .<span class="method-output">returns</span><span class="paren">(</span>SummaryOutput<span class="paren">)</span>     <span class="comment-output"># OUTPUT   -- structured JSON response from LLM</span>
+    .<span class="method-storage">writes</span><span class="paren">(</span><span class="str">"summary"</span><span class="paren">)</span>          <span class="comment-storage"># STORAGE  -- save response to state["summary"]</span>
+    .<span class="method-contract">produces</span><span class="paren">(</span>SummaryContract<span class="paren">)</span>  <span class="comment-contract"># CONTRACT -- static annotation (no runtime effect)</span>
+    .build<span class="paren">()</span>
+<span class="paren">)</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      adk-fluent Data Flow Reference &mdash;
+      <a href="https://vamsiramakrishnan.github.io/adk-fluent/">Docs</a> &middot;
+      <a href="https://pypi.org/project/adk-fluent/">PyPI</a> &middot;
+      <a href="https://github.com/vamsiramakrishnan/adk-fluent">GitHub</a>
+    </p>
+  </footer>
+
+</div>
+
+</body>
+</html>

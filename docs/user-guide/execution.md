@@ -267,6 +267,10 @@ See [Testing](testing.md).
 4. **Use `.session()` for multi-turn interactions.** Don't manually manage conversation history
 5. **Use `.test()` during development, `AgentHarness` in CI.** `.test()` hits the real LLM; `AgentHarness` with `mock_backend` is deterministic
 
+:::{tip}
+**Visual learner?** Open the [Execution Modes Interactive Reference](../execution-modes-reference.html){target="_blank"} for sync vs async flow diagrams, an environment compatibility matrix, and the RuntimeError trap.
+:::
+
 :::{seealso}
 - [Testing](testing.md) -- `.mock()`, `.test()`, `AgentHarness`, and `check_contracts()`
 - [Middleware](middleware.md) -- pipeline-wide retry, logging, and tracing via `.to_app()`

@@ -191,3 +191,13 @@ class ModuleNode:
     imports: list[str] = field(default_factory=list)
     classes: list[ClassNode] = field(default_factory=list)
     type_checking_imports: list[str] = field(default_factory=list)
+    optional_imports: list[tuple[str, str]] = field(default_factory=list)
+    """Imports that require optional dependencies.
+
+    Each entry is ``(import_line, fallback_assignment)`` — emitted as::
+
+        try:
+            <import_line>
+        except (ImportError, ModuleNotFoundError):
+            <fallback_assignment>
+    """

@@ -2,6 +2,10 @@
 
 In multi-agent systems, the LLM decides when to hand off a conversation to another agent. Transfer control flags let you constrain which agents are valid transfer targets, shaping how conversations flow through your agent hierarchy.
 
+:::{tip}
+**Visual learner?** Open the [Delegation & Transfer Interactive Reference](../delegation-reference.html){target="_blank"} for animated control flow diagrams, a transfer control matrix, and topology examples.
+:::
+
 ## Overview
 
 ADK supports three transfer directions:
@@ -133,10 +137,33 @@ Agents can be connected in several ways depending on the execution pattern you n
 | `Agent`    | `.sub_agent(agent)`  | Add a child agent (transfer-based, LLM decides)    |
 | `Agent`    | `.agent_tool(agent)` | Add as a tool (wrapped in `AgentTool`, LLM-routed) |
 
-`.sub_agent()` and `.agent_tool()` both let a parent agent invoke a child, but they differ in mechanism:
+`.sub_agent()` and `.agent_tool()` both let a parent agent invoke a child, but they differ fundamentally in control flow:
 
-- **`.sub_agent(agent)`** registers the child as a transfer target. The LLM sees a `transfer_to_agent` tool with the child's name in the enum. Control fully transfers to the child agent.
-- **`.agent_tool(agent)`** wraps the child in an `AgentTool`. The parent LLM calls it like any other tool -- it sends input, gets a response, and stays in control. Use this when the parent needs to orchestrate multiple tool calls in a single turn.
+| | `.sub_agent(agent)` | `.agent_tool(agent)` |
+|---|---|---|
+| **Mechanism** | Transfer-based. LLM sees a `transfer_to_agent` tool. | Tool-based. Child is wrapped in `AgentTool`. |
+| **Control** | Fully transfers to child. Parent loses control. | Parent stays in control. Child returns a response. |
+| **Multi-call** | One transfer per turn. | Parent can call multiple agent-tools per turn. |
+| **Conversation** | Child sees full history and can chat with user. | Child sees only the structured input from parent. |
+| **When to use** | Routing to specialists (customer service, triage). | Orchestrating sub-tasks (research + write in one turn). |
+
+```python
+# Transfer-based: LLM decides which specialist to route to
+coordinator = (
+    Agent("router", "gemini-2.5-flash")
+    .instruct("Route to the right specialist.")
+    .sub_agent(billing_agent)     # LLM transfers control entirely
+    .sub_agent(technical_agent)
+)
+
+# Tool-based: Parent orchestrates multiple sub-tasks in one turn
+coordinator = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Use your tools to research and summarize.")
+    .agent_tool(web_search_agent)   # Parent calls as tool, stays in control
+    .agent_tool(paper_search_agent)
+)
+```
 
 > **Note on `.writes()`:** If your agents need to pass results through session state, use `.writes("key")` to store an agent's response text under a state key. The name reads clearly: `agent.writes("summary")` means "this agent writes its response as `summary` in session state."
 

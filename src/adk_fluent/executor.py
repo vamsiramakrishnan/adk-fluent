@@ -6,7 +6,6 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
 from google.adk.code_executors.agent_engine_sandbox_code_executor import (
     AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
 )
@@ -17,7 +16,14 @@ from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecut
 
 from adk_fluent._base import BuilderBase
 
+if not TYPE_CHECKING:
+    try:
+        from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
+    except (ImportError, ModuleNotFoundError):
+        _ADK_A2aAgentExecutor = None  # type: ignore[assignment,misc]
+
 if TYPE_CHECKING:
+    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
     from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig
 
 
@@ -43,6 +49,8 @@ class A2aAgentExecutor(BuilderBase):
 
     def build(self) -> _ADK_A2aAgentExecutor:
         """An AgentExecutor that runs an ADK Agent against an A2A request and. Resolve into a native ADK _ADK_A2aAgentExecutor."""
+        if _ADK_A2aAgentExecutor is None:
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'")
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_A2aAgentExecutor, config)
         return self._apply_native_hooks(result)

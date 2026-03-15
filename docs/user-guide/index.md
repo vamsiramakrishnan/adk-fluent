@@ -182,5 +182,115 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
     </div>
   </div>
 
+  <div class="visual-ref-card" data-accent="#10b981">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect x="6" y="18" width="10" height="12" rx="2" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
+        <text x="11" y="27" text-anchor="middle" fill="#0ea5e9" font-size="6" font-weight="700" font-family="sans-serif">R</text>
+        <rect x="19" y="10" width="10" height="12" rx="2" stroke="#e94560" stroke-width="1.5" fill="none"/>
+        <text x="24" y="19" text-anchor="middle" fill="#e94560" font-size="6" font-weight="700" font-family="sans-serif">O</text>
+        <rect x="19" y="26" width="10" height="12" rx="2" stroke="#10b981" stroke-width="1.5" fill="none"/>
+        <text x="24" y="35" text-anchor="middle" fill="#10b981" font-size="6" font-weight="700" font-family="sans-serif">W</text>
+        <rect x="32" y="14" width="10" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+        <text x="37" y="23" text-anchor="middle" fill="#f59e0b" font-size="6" font-weight="700" font-family="sans-serif">I</text>
+        <rect x="32" y="30" width="10" height="12" rx="2" stroke="#a78bfa" stroke-width="1.5" fill="none"/>
+        <text x="37" y="39" text-anchor="middle" fill="#a78bfa" font-size="6" font-weight="700" font-family="sans-serif">C</text>
+        <path d="M16 24 L19 16" stroke="#0ea5e9" stroke-width="1" opacity="0.5"/>
+        <path d="M16 24 L19 32" stroke="#10b981" stroke-width="1" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../data-flow-reference.html" target="_blank" rel="noopener">Data Flow Reference ↗</a></h4>
+      <p>The five orthogonal data-flow concerns: <code>.reads()</code>, <code>.returns()</code>, <code>.writes()</code>, <code>.accepts()</code>, and <code>.produces()</code>. Timeline, confusion matrix, and decision flowchart.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #0ea5e9">Context</span>
+        <span class="vr-tag" style="--tag-color: #e94560">Output</span>
+        <span class="vr-tag" style="--tag-color: #10b981">Storage</span>
+        <span class="vr-tag" style="--tag-color: #f59e0b">Input</span>
+        <span class="vr-tag" style="--tag-color: #a78bfa">Contract</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="visual-ref-card" data-accent="#e94560">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <rect x="14" y="4" width="20" height="10" rx="3" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+        <text x="24" y="12" text-anchor="middle" fill="#f59e0b" font-size="7" font-weight="600" font-family="sans-serif">Parent</text>
+        <rect x="4" y="34" width="16" height="10" rx="3" stroke="#e94560" stroke-width="1.5" fill="none"/>
+        <text x="12" y="42" text-anchor="middle" fill="#e94560" font-size="6" font-weight="600" font-family="sans-serif">sub</text>
+        <rect x="28" y="34" width="16" height="10" rx="3" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
+        <text x="36" y="42" text-anchor="middle" fill="#0ea5e9" font-size="6" font-weight="600" font-family="sans-serif">tool</text>
+        <line x1="20" y1="14" x2="12" y2="34" stroke="#e94560" stroke-width="1.5"/>
+        <line x1="28" y1="14" x2="36" y2="34" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <polygon points="11,31 13,31 12,34" fill="#e94560"/>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../delegation-reference.html" target="_blank" rel="noopener">Delegation &amp; Transfer Reference ↗</a></h4>
+      <p><code>.sub_agent()</code> vs <code>.agent_tool()</code> control flow, transfer control matrix (<code>.isolate()</code>, <code>.stay()</code>, <code>.no_peers()</code>), and common topologies.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #e94560">Transfer</span>
+        <span class="vr-tag" style="--tag-color: #0ea5e9">AgentTool</span>
+        <span class="vr-tag" style="--tag-color: #10b981">Isolate</span>
+        <span class="vr-tag" style="--tag-color: #f59e0b">Topology</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="visual-ref-card" data-accent="#0ea5e9">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="12" cy="24" r="8" stroke="#e94560" stroke-width="1.5" fill="none"/>
+        <text x="12" y="27" text-anchor="middle" fill="#e94560" font-size="7" font-weight="700" font-family="sans-serif">S</text>
+        <circle cx="36" cy="24" r="8" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
+        <text x="36" y="27" text-anchor="middle" fill="#0ea5e9" font-size="7" font-weight="700" font-family="sans-serif">A</text>
+        <line x1="20" y1="24" x2="28" y2="24" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="24" y="20" text-anchor="middle" fill="#a78bfa" font-size="6" font-weight="600" font-family="sans-serif">vs</text>
+        <line x1="12" y1="36" x2="12" y2="44" stroke="#e94560" stroke-width="1" opacity="0.4"/>
+        <line x1="36" y1="36" x2="36" y2="44" stroke="#0ea5e9" stroke-width="1" opacity="0.4"/>
+        <text x="12" y="48" text-anchor="middle" fill="#e94560" font-size="5" font-family="monospace">sync</text>
+        <text x="36" y="48" text-anchor="middle" fill="#0ea5e9" font-size="5" font-family="monospace">async</text>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../execution-modes-reference.html" target="_blank" rel="noopener">Execution Modes Reference ↗</a></h4>
+      <p>Sync vs async execution: <code>.ask()</code> vs <code>.ask_async()</code>, streaming, environment compatibility matrix, and the RuntimeError trap.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #e94560">Sync</span>
+        <span class="vr-tag" style="--tag-color: #0ea5e9">Async</span>
+        <span class="vr-tag" style="--tag-color: #10b981">Stream</span>
+        <span class="vr-tag" style="--tag-color: #f59e0b">Batch</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="visual-ref-card" data-accent="#a78bfa">
+    <div class="visual-ref-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="14" cy="14" r="5" stroke="#10b981" stroke-width="1.5" fill="none"/>
+        <circle cx="34" cy="14" r="5" stroke="#10b981" stroke-width="1.5" fill="none"/>
+        <circle cx="14" cy="34" r="5" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
+        <circle cx="34" cy="34" r="5" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
+        <line x1="19" y1="14" x2="29" y2="14" stroke="#10b981" stroke-width="1"/>
+        <line x1="14" y1="19" x2="14" y2="29" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="34" y1="19" x2="34" y2="29" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="19" y1="34" x2="29" y2="34" stroke="#0ea5e9" stroke-width="1"/>
+        <line x1="19" y1="17" x2="29" y2="31" stroke="#a78bfa" stroke-width="0.8" stroke-dasharray="2,2" opacity="0.5"/>
+        <text x="24" y="27" text-anchor="middle" fill="#a78bfa" font-size="6" font-weight="600" font-family="sans-serif">A2A</text>
+      </svg>
+    </div>
+    <div class="visual-ref-content">
+      <h4><a href="../a2a-topology-reference.html" target="_blank" rel="noopener">A2A Topology Reference ↗</a></h4>
+      <p>Local vs remote agents, A2A mesh topology, state bridging (<code>.sends()</code> / <code>.receives()</code>), resilience middleware, and discovery methods.</p>
+      <div class="visual-ref-tags">
+        <span class="vr-tag" style="--tag-color: #10b981">Local</span>
+        <span class="vr-tag" style="--tag-color: #0ea5e9">Remote</span>
+        <span class="vr-tag" style="--tag-color: #a78bfa">A2A</span>
+        <span class="vr-tag" style="--tag-color: #f59e0b">Resilience</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 ```

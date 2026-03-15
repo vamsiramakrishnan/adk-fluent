@@ -2,6 +2,10 @@
 
 Every data-flow method in adk-fluent maps to exactly one of **five orthogonal concerns**. Understanding these five concerns eliminates all confusion about which method to use.
 
+:::{tip}
+**Visual learner?** Open the [Data Flow Interactive Reference](../data-flow-reference.html){target="_blank"} for SVG diagrams, a confusion matrix, and a decision flowchart.
+:::
+
 ## The Five Concerns
 
 ```{raw} html
@@ -826,8 +830,8 @@ from adk_fluent import Agent, FanOut, S
 
 research = (
     FanOut("research")
-    .add(Agent("web").writes("web_results"))
-    .add(Agent("docs").writes("doc_results"))
+    .branch(Agent("web").writes("web_results"))
+    .branch(Agent("docs").writes("doc_results"))
     >> S.merge("web_results", "doc_results", into="all_results")
     >> Agent("synthesizer").reads("all_results").writes("synthesis")
 )
@@ -849,30 +853,36 @@ pipeline = review_loop(
 
 ______________________________________________________________________
 
-## Future Modules
+## T Module: Tool Composition
 
-### T Module (Tools) — planned
-
-A compositional namespace for tool construction, analogous to C/P/S:
+The T module provides a compositional namespace for tool construction. Compose with `|` (chain).
 
 ```python
-# Future API:
-from adk_fluent import T
+from adk_fluent import Agent, T
 
 agent = Agent("assistant").tools(
-    T.google_search(),
-    T.code_executor(),
-    T.from_function(my_func),
+    T.google_search()
+    | T.fn(my_func)
+    | T.agent(specialist_agent)
 )
 ```
 
-### A Module (Artifacts) — planned
+See the [CLAUDE.md T namespace reference](../../CLAUDE.md) for all T factories.
 
-A namespace for artifact handling (files, images, large outputs):
+______________________________________________________________________
+
+## A Module: Artifact Operations
+
+The A module handles artifact publishing, snapshotting, and transformations. Used with `.artifacts()` or `>>`.
 
 ```python
-# Future API:
-from adk_fluent import A
+from adk_fluent import Agent, A
 
-agent = Agent("generator").artifacts(A.save("report.pdf"))
+agent = (
+    Agent("generator")
+    .writes("report_text")
+    .artifacts(A.publish("report.md", from_key="report_text"))
+)
 ```
+
+See the [CLAUDE.md A namespace reference](../../CLAUDE.md) for all A factories.

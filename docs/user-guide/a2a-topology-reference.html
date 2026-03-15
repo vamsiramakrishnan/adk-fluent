@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adk-fluent · A2A Topology Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a28;
+    --border: #2a2a3a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --red: #e94560;
+    --blue: #0ea5e9;
+    --green: #10b981;
+    --purple: #a78bfa;
+    --amber: #f59e0b;
+    --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+  }
+
+  .header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 .accent {
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-title .badge {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    border-color: #3a3a5a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .card p, .card li {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .card ul {
+    list-style: none;
+    margin: 0.5rem 0;
+  }
+
+  .card ul li {
+    padding: 0.25rem 0;
+    padding-left: 1.1rem;
+    position: relative;
+  }
+
+  .card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--text-dim);
+  }
+
+  /* Side by side */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .comparison { grid-template-columns: 1fr; }
+    .quad-grid { grid-template-columns: 1fr !important; }
+    .header h1 { font-size: 1.8rem; }
+  }
+
+  .comparison .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    color: var(--text);
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    color: var(--purple);
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  .kw { color: var(--purple); }
+  .str { color: var(--green); }
+  .fn { color: var(--blue); }
+  .cm { color: var(--text-dim); }
+  .num { color: var(--amber); }
+
+  /* SVG container */
+  .svg-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+  }
+
+  .svg-wrap svg { max-width: 100%; height: auto; }
+
+  /* Inline SVG in cards */
+  .svg-inline {
+    display: flex;
+    justify-content: center;
+    margin: 0.5rem 0;
+  }
+
+  /* Method tag */
+  .method-tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .method-tag {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+
+  /* Four-card grid */
+  .quad-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .quad-grid .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .quad-grid .card .icon-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .quad-grid .card .icon-row svg { flex-shrink: 0; }
+
+  /* Discovery list */
+  .discovery-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .discovery-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .discovery-item:hover {
+    border-color: #3a3a5a;
+    transform: translateY(-1px);
+  }
+
+  .discovery-num {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(167, 139, 250, 0.15);
+    color: var(--purple);
+  }
+
+  .discovery-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .discovery-item .label {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-bright);
+  }
+
+  .discovery-item code { font-size: 0.8rem; }
+
+  /* Bridge section */
+  .bridge-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header class="header">
+    <h1>A2A <span class="accent">Topology Reference</span></h1>
+    <p class="subtitle">Agent-to-Agent protocol support in adk-fluent &mdash; local, remote, and hybrid topologies</p>
+  </header>
+
+  <!-- Section 1: Local vs Remote Agents -->
+  <section class="section">
+    <h2 class="section-title">
+      Local vs Remote Agents
+      <span class="badge" style="background:rgba(14,165,233,0.15);color:var(--blue);">comparison</span>
+    </h2>
+    <div class="comparison">
+
+      <!-- Local Agent Card -->
+      <div class="card animate-in" style="border-color:rgba(16,185,129,0.3);animation-delay:0.1s;">
+        <h3 style="color:var(--green);">Local Agent <span style="font-weight:400;color:var(--text-dim);font-size:0.85rem;">&mdash; same process</span></h3>
+        <div class="svg-inline">
+          <svg width="320" height="140" viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="300" height="120" rx="10" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.5"/>
+            <text x="24" y="30" font-family="Inter,sans-serif" font-size="11" fill="#10b981" opacity="0.7">Process</text>
+            <rect x="40" y="48" width="100" height="50" rx="8" fill="#10b98118" stroke="#10b981" stroke-width="1.5"/>
+            <text x="90" y="70" font-family="'JetBrains Mono',monospace" font-size="12" fill="#10b981" text-anchor="middle">Agent A</text>
+            <text x="90" y="86" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">coordinator</text>
+            <rect x="180" y="48" width="100" height="50" rx="8" fill="#10b98118" stroke="#10b981" stroke-width="1.5"/>
+            <text x="230" y="70" font-family="'JetBrains Mono',monospace" font-size="12" fill="#10b981" text-anchor="middle">Agent B</text>
+            <text x="230" y="86" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">sub-agent</text>
+            <line x1="140" y1="73" x2="176" y2="73" stroke="#10b981" stroke-width="2"/>
+            <polygon points="174,68 182,73 174,78" fill="#10b981"/>
+          </svg>
+        </div>
+        <div class="method-tags">
+          <span class="method-tag" style="background:#10b98118;color:var(--green);">.sub_agent()</span>
+          <span class="method-tag" style="background:#10b98118;color:var(--green);">.agent_tool()</span>
+        </div>
+        <ul>
+          <li>Shared session state</li>
+          <li>Shared memory service</li>
+          <li>Zero network latency</li>
+        </ul>
+        <pre><code><span class="cm"># Local: same process, direct call</span>
+coordinator<span class="fn">.sub_agent</span>(local_agent)</code></pre>
+      </div>
+
+      <!-- Remote Agent Card -->
+      <div class="card animate-in" style="border-color:rgba(14,165,233,0.3);animation-delay:0.2s;">
+        <h3 style="color:var(--blue);">Remote Agent <span style="font-weight:400;color:var(--text-dim);font-size:0.85rem;">&mdash; A2A protocol</span></h3>
+        <div class="svg-inline">
+          <svg width="320" height="140" viewBox="0 0 320 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="130" height="120" rx="10" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.5"/>
+            <text x="22" y="30" font-family="Inter,sans-serif" font-size="11" fill="#0ea5e9" opacity="0.7">Process A</text>
+            <rect x="180" y="10" width="130" height="120" rx="10" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="6 3" opacity="0.5"/>
+            <text x="192" y="30" font-family="Inter,sans-serif" font-size="11" fill="#0ea5e9" opacity="0.7">Process B</text>
+            <rect x="25" y="48" width="100" height="50" rx="8" fill="#0ea5e918" stroke="#0ea5e9" stroke-width="1.5"/>
+            <text x="75" y="70" font-family="'JetBrains Mono',monospace" font-size="12" fill="#0ea5e9" text-anchor="middle">Agent A</text>
+            <text x="75" y="86" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">caller</text>
+            <rect x="195" y="48" width="100" height="50" rx="8" fill="#0ea5e918" stroke="#0ea5e9" stroke-width="1.5"/>
+            <text x="245" y="70" font-family="'JetBrains Mono',monospace" font-size="12" fill="#0ea5e9" text-anchor="middle">Agent B</text>
+            <text x="245" y="86" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">remote</text>
+            <line x1="125" y1="73" x2="191" y2="73" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="5 3"/>
+            <polygon points="189,68 197,73 189,78" fill="#0ea5e9"/>
+            <text x="160" y="64" font-family="'JetBrains Mono',monospace" font-size="9" fill="#0ea5e9" text-anchor="middle">HTTP</text>
+            <text x="160" y="90" font-family="'JetBrains Mono',monospace" font-size="8" fill="#8888a0" text-anchor="middle">A2A</text>
+          </svg>
+        </div>
+        <div class="method-tags">
+          <span class="method-tag" style="background:#0ea5e918;color:var(--blue);">RemoteAgent(url=...)</span>
+        </div>
+        <ul>
+          <li>Separate session state</li>
+          <li>HTTP/A2A transport layer</li>
+          <li>Network latency overhead</li>
+        </ul>
+        <pre><code><span class="cm"># Remote: separate process, A2A protocol</span>
+RemoteAgent(<span class="str">name</span>=<span class="str">"helper"</span>, <span class="str">url</span>=<span class="str">"http://..."</span>)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: A2A Mesh Topology SVG -->
+  <section class="section">
+    <h2 class="section-title">
+      A2A Mesh Topology
+      <span class="badge" style="background:rgba(167,139,250,0.15);color:var(--purple);">architecture</span>
+    </h2>
+    <div class="svg-wrap">
+      <svg width="760" height="460" viewBox="0 0 760 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr-green" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#10b981"/>
+          </marker>
+          <marker id="arr-blue" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#0ea5e9"/>
+          </marker>
+        </defs>
+
+        <!-- Background dots -->
+        <pattern id="dots" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.7" fill="#2a2a3a"/>
+        </pattern>
+        <rect width="760" height="460" fill="url(#dots)"/>
+
+        <!-- A2AServer center node -->
+        <rect x="280" y="170" width="200" height="100" rx="12" fill="#a78bfa12" stroke="#a78bfa" stroke-width="2"/>
+        <text x="380" y="198" font-family="'JetBrains Mono',monospace" font-size="14" fill="#a78bfa" text-anchor="middle" font-weight="600">A2AServer</text>
+        <text x="380" y="218" font-family="Inter,sans-serif" font-size="10" fill="#8888a0" text-anchor="middle">exposes local agents</text>
+        <text x="380" y="234" font-family="Inter,sans-serif" font-size="10" fill="#8888a0" text-anchor="middle">to remote callers</text>
+        <text x="380" y="258" font-family="'JetBrains Mono',monospace" font-size="9" fill="#a78bfa" text-anchor="middle" opacity="0.6">:8080</text>
+
+        <!-- Local Agent: Writer (top-left) -->
+        <rect x="60" y="50" width="140" height="60" rx="8" fill="#10b98115" stroke="#10b981" stroke-width="1.5"/>
+        <text x="130" y="76" font-family="'JetBrains Mono',monospace" font-size="12" fill="#10b981" text-anchor="middle">writer</text>
+        <text x="130" y="92" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">local agent</text>
+        <!-- Solid green line -->
+        <line x1="200" y1="95" x2="286" y2="178" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+        <!-- Local Agent: Analyzer (top-right) -->
+        <rect x="560" y="50" width="140" height="60" rx="8" fill="#10b98115" stroke="#10b981" stroke-width="1.5"/>
+        <text x="630" y="76" font-family="'JetBrains Mono',monospace" font-size="12" fill="#10b981" text-anchor="middle">analyzer</text>
+        <text x="630" y="92" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">local agent</text>
+        <!-- Solid green line -->
+        <line x1="560" y1="95" x2="474" y2="178" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+        <!-- Local Agent: Summarizer (top-center) -->
+        <rect x="310" y="40" width="140" height="60" rx="8" fill="#10b98115" stroke="#10b981" stroke-width="1.5"/>
+        <text x="380" y="66" font-family="'JetBrains Mono',monospace" font-size="12" fill="#10b981" text-anchor="middle">summarizer</text>
+        <text x="380" y="82" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">local agent</text>
+        <!-- Solid green line -->
+        <line x1="380" y1="100" x2="380" y2="168" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+        <!-- "A2AServer exposes" label on green lines -->
+        <text x="228" y="128" font-family="'JetBrains Mono',monospace" font-size="8" fill="#10b981" opacity="0.7" transform="rotate(-30,228,128)">A2AServer exposes</text>
+
+        <!-- Remote Agent: research-svc (bottom-left) -->
+        <rect x="40" y="330" width="160" height="60" rx="8" fill="#0ea5e915" stroke="#0ea5e9" stroke-width="1.5"/>
+        <text x="120" y="356" font-family="'JetBrains Mono',monospace" font-size="12" fill="#0ea5e9" text-anchor="middle">research-svc</text>
+        <text x="120" y="372" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">remote agent</text>
+        <!-- Dashed blue line with HTTP label -->
+        <line x1="186" y1="330" x2="300" y2="270" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arr-blue)"/>
+        <text x="230" y="310" font-family="'JetBrains Mono',monospace" font-size="8" fill="#0ea5e9" text-anchor="middle">HTTP/A2A</text>
+
+        <!-- Remote Agent: data-svc (bottom-right) -->
+        <rect x="560" y="330" width="160" height="60" rx="8" fill="#0ea5e915" stroke="#0ea5e9" stroke-width="1.5"/>
+        <text x="640" y="356" font-family="'JetBrains Mono',monospace" font-size="12" fill="#0ea5e9" text-anchor="middle">data-svc</text>
+        <text x="640" y="372" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">remote agent</text>
+        <!-- Dashed blue line -->
+        <line x1="574" y1="330" x2="460" y2="270" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arr-blue)"/>
+        <text x="530" y="310" font-family="'JetBrains Mono',monospace" font-size="8" fill="#0ea5e9" text-anchor="middle">HTTP/A2A</text>
+
+        <!-- Remote Agent: ext-caller (bottom-center) -->
+        <rect x="300" y="370" width="160" height="60" rx="8" fill="#0ea5e915" stroke="#0ea5e9" stroke-width="1.5"/>
+        <text x="380" y="396" font-family="'JetBrains Mono',monospace" font-size="12" fill="#0ea5e9" text-anchor="middle">ext-caller</text>
+        <text x="380" y="412" font-family="Inter,sans-serif" font-size="9" fill="#8888a0" text-anchor="middle">remote agent</text>
+        <!-- Dashed blue line -->
+        <line x1="380" y1="370" x2="380" y2="274" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arr-blue)"/>
+        <text x="396" y="330" font-family="'JetBrains Mono',monospace" font-size="8" fill="#0ea5e9">HTTP/A2A</text>
+
+        <!-- "RemoteAgent connects to" label -->
+        <text x="516" y="420" font-family="'JetBrains Mono',monospace" font-size="8" fill="#0ea5e9" opacity="0.7">RemoteAgent connects to</text>
+
+        <!-- Legend -->
+        <rect x="20" y="188" width="195" height="76" rx="8" fill="#12121a" stroke="#2a2a3a" stroke-width="1"/>
+        <text x="34" y="210" font-family="Inter,sans-serif" font-size="10" fill="#e0e0e8" font-weight="600">Legend</text>
+        <line x1="34" y1="224" x2="62" y2="224" stroke="#10b981" stroke-width="2"/>
+        <text x="70" y="228" font-family="Inter,sans-serif" font-size="10" fill="#8888a0">Local (solid, green)</text>
+        <line x1="34" y1="244" x2="62" y2="244" stroke="#0ea5e9" stroke-width="2" stroke-dasharray="5 3"/>
+        <text x="70" y="248" font-family="Inter,sans-serif" font-size="10" fill="#8888a0">Remote (dashed, blue)</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Section 3: State Bridging -->
+  <section class="section">
+    <h2 class="section-title">
+      State Bridging
+      <span class="badge" style="background:rgba(245,158,11,0.15);color:var(--amber);">data flow</span>
+    </h2>
+    <div class="bridge-section">
+      <div class="svg-wrap">
+        <svg width="700" height="200" viewBox="0 0 700 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arr-fwd" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,3 L0,6 Z" fill="#f59e0b"/>
+            </marker>
+            <marker id="arr-back" viewBox="0 0 10 6" refX="0" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+              <path d="M10,0 L0,3 L10,6 Z" fill="#a78bfa"/>
+            </marker>
+          </defs>
+
+          <!-- Local state box -->
+          <rect x="20" y="30" width="180" height="140" rx="10" fill="#10b98110" stroke="#10b981" stroke-width="1.5"/>
+          <text x="110" y="24" font-family="Inter,sans-serif" font-size="11" fill="#10b981" text-anchor="middle" font-weight="600">Local Session State</text>
+          <text x="38" y="66" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#f59e0b">"document"</tspan>]</text>
+          <text x="38" y="88" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#f59e0b">"preferences"</tspan>]</text>
+          <rect x="36" y="102" width="148" height="1" fill="#2a2a3a"/>
+          <text x="38" y="124" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#a78bfa">"analysis"</tspan>]</text>
+          <text x="38" y="146" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#a78bfa">"confidence"</tspan>]</text>
+
+          <!-- .sends() arrow (outbound, top) -->
+          <line x1="200" y1="72" x2="278" y2="72" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr-fwd)"/>
+          <text x="240" y="64" font-family="'JetBrains Mono',monospace" font-size="9" fill="#f59e0b" text-anchor="middle">.sends()</text>
+
+          <!-- A2A message box (center) -->
+          <rect x="286" y="30" width="128" height="140" rx="10" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="350" y="24" font-family="Inter,sans-serif" font-size="11" fill="#0ea5e9" text-anchor="middle" font-weight="600">A2A Message</text>
+          <text x="350" y="66" font-family="'JetBrains Mono',monospace" font-size="10" fill="#8888a0" text-anchor="middle">serialized</text>
+          <text x="350" y="82" font-family="'JetBrains Mono',monospace" font-size="10" fill="#8888a0" text-anchor="middle">JSON payload</text>
+          <text x="350" y="108" font-family="Inter,sans-serif" font-size="22" fill="#0ea5e9" text-anchor="middle" opacity="0.4">&#x21C4;</text>
+          <text x="350" y="142" font-family="'JetBrains Mono',monospace" font-size="10" fill="#8888a0" text-anchor="middle">HTTP transport</text>
+
+          <!-- .receives() arrow (inbound, bottom) -->
+          <line x1="286" y1="130" x2="204" y2="130" stroke="#a78bfa" stroke-width="2" marker-end="url(#arr-back)"/>
+          <text x="240" y="152" font-family="'JetBrains Mono',monospace" font-size="9" fill="#a78bfa" text-anchor="middle">.receives()</text>
+
+          <!-- Arrow to remote (outbound) -->
+          <line x1="414" y1="72" x2="492" y2="72" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-fwd)"/>
+
+          <!-- Arrow from remote (inbound) -->
+          <line x1="414" y1="130" x2="492" y2="130" stroke="#a78bfa" stroke-width="2" stroke-dasharray="5 3"/>
+
+          <!-- Remote state box -->
+          <rect x="500" y="30" width="180" height="140" rx="10" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="590" y="24" font-family="Inter,sans-serif" font-size="11" fill="#0ea5e9" text-anchor="middle" font-weight="600">Remote Session State</text>
+          <text x="518" y="66" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#f59e0b">"document"</tspan>]</text>
+          <text x="518" y="88" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#f59e0b">"preferences"</tspan>]</text>
+          <rect x="516" y="102" width="148" height="1" fill="#2a2a3a"/>
+          <text x="518" y="124" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#a78bfa">"analysis"</tspan>]</text>
+          <text x="518" y="146" font-family="'JetBrains Mono',monospace" font-size="11" fill="#e0e0e8">state[<tspan fill="#a78bfa">"confidence"</tspan>]</text>
+        </svg>
+      </div>
+
+      <pre><code><span class="cm"># State bridging: explicit send/receive contract</span>
+remote = (
+    RemoteAgent(<span class="str">name</span>=<span class="str">"analyzer"</span>, <span class="str">url</span>=<span class="str">"http://analyzer:8080"</span>)
+    <span class="fn">.sends</span>(<span class="str">"document"</span>, <span class="str">"preferences"</span>)    <span class="cm"># local &#x2192; remote</span>
+    <span class="fn">.receives</span>(<span class="str">"analysis"</span>, <span class="str">"confidence"</span>)   <span class="cm"># remote &#x2192; local</span>
+)</code></pre>
+    </div>
+  </section>
+
+  <!-- Section 4: Resilience Patterns -->
+  <section class="section">
+    <h2 class="section-title">
+      Resilience Patterns
+      <span class="badge" style="background:rgba(233,69,96,0.15);color:var(--red);">middleware</span>
+    </h2>
+    <div class="quad-grid">
+
+      <!-- Retry -->
+      <div class="card animate-in" style="border-color:rgba(245,158,11,0.3);animation-delay:0.1s;">
+        <div class="icon-row">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="17" stroke="#f59e0b" stroke-width="1.5" fill="#f59e0b10"/>
+            <path d="M12 18a6 6 0 0 1 10.3-4.2" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="23,11 24,16 19,15" fill="#f59e0b"/>
+            <path d="M24 18a6 6 0 0 1-10.3 4.2" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="13,25 12,20 17,21" fill="#f59e0b"/>
+          </svg>
+          <h3 style="color:var(--amber);font-size:1rem;">M.a2a_retry(max=3)</h3>
+        </div>
+        <div class="svg-inline" style="margin:0.5rem 0;">
+          <svg width="260" height="70" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Attempt 1 (fail) -->
+            <line x1="16" y1="32" x2="56" y2="32" stroke="#8888a0" stroke-width="1.5"/>
+            <circle cx="64" cy="32" r="10" fill="#e9456015" stroke="#e94560" stroke-width="1.5"/>
+            <text x="64" y="36" text-anchor="middle" fill="#e94560" font-family="Inter,sans-serif" font-size="11" font-weight="700">&#x2717;</text>
+            <text x="38" y="20" text-anchor="middle" fill="#8888a0" font-family="'JetBrains Mono',monospace" font-size="8">#1</text>
+            <!-- Backoff 1 -->
+            <path d="M74,38 Q86,56 98,38" stroke="#f59e0b" stroke-width="1" fill="none" opacity="0.6"/>
+            <text x="86" y="62" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono',monospace" font-size="7" opacity="0.8">1s</text>
+            <!-- Attempt 2 (fail) -->
+            <line x1="98" y1="32" x2="128" y2="32" stroke="#8888a0" stroke-width="1.5"/>
+            <circle cx="136" cy="32" r="10" fill="#e9456015" stroke="#e94560" stroke-width="1.5"/>
+            <text x="136" y="36" text-anchor="middle" fill="#e94560" font-family="Inter,sans-serif" font-size="11" font-weight="700">&#x2717;</text>
+            <text x="115" y="20" text-anchor="middle" fill="#8888a0" font-family="'JetBrains Mono',monospace" font-size="8">#2</text>
+            <!-- Backoff 2 -->
+            <path d="M146,38 Q164,60 182,38" stroke="#f59e0b" stroke-width="1" fill="none" opacity="0.6"/>
+            <text x="164" y="62" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono',monospace" font-size="7" opacity="0.8">2s</text>
+            <!-- Attempt 3 (success) -->
+            <line x1="182" y1="32" x2="212" y2="32" stroke="#8888a0" stroke-width="1.5"/>
+            <circle cx="220" cy="32" r="10" fill="#10b98115" stroke="#10b981" stroke-width="1.5"/>
+            <text x="220" y="36" text-anchor="middle" fill="#10b981" font-family="Inter,sans-serif" font-size="11" font-weight="700">&#x2713;</text>
+            <text x="199" y="20" text-anchor="middle" fill="#8888a0" font-family="'JetBrains Mono',monospace" font-size="8">#3</text>
+          </svg>
+        </div>
+        <p>Retry failed A2A calls with exponential backoff. Each attempt waits progressively longer before the next retry.</p>
+      </div>
+
+      <!-- Circuit Breaker -->
+      <div class="card animate-in" style="border-color:rgba(233,69,96,0.3);animation-delay:0.2s;">
+        <div class="icon-row">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="17" stroke="#e94560" stroke-width="1.5" fill="#e9456010"/>
+            <line x1="10" y1="14" x2="16" y2="14" stroke="#e94560" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="16" y1="14" x2="21" y2="23" stroke="#e94560" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="21" y1="23" x2="26" y2="23" stroke="#e94560" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+            <circle cx="16" cy="14" r="2" fill="#e94560"/>
+          </svg>
+          <h3 style="color:var(--red);font-size:1rem;">M.a2a_circuit_breaker(threshold=5)</h3>
+        </div>
+        <div class="svg-inline" style="margin:0.5rem 0;">
+          <svg width="260" height="70" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- CLOSED state -->
+            <rect x="6" y="16" width="60" height="32" rx="6" fill="#10b98115" stroke="#10b981" stroke-width="1.5"/>
+            <text x="36" y="36" text-anchor="middle" fill="#10b981" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="600">CLOSED</text>
+            <text x="36" y="10" text-anchor="middle" fill="#8888a0" font-family="Inter,sans-serif" font-size="8">normal</text>
+            <!-- Arrow -->
+            <line x1="66" y1="32" x2="92" y2="32" stroke="#8888a0" stroke-width="1"/>
+            <text x="79" y="24" text-anchor="middle" fill="#e94560" font-family="'JetBrains Mono',monospace" font-size="7">5 fails</text>
+            <!-- OPEN state -->
+            <rect x="94" y="16" width="60" height="32" rx="6" fill="#e9456015" stroke="#e94560" stroke-width="1.5"/>
+            <text x="124" y="36" text-anchor="middle" fill="#e94560" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="600">OPEN</text>
+            <text x="124" y="10" text-anchor="middle" fill="#8888a0" font-family="Inter,sans-serif" font-size="8">reject all</text>
+            <!-- Arrow -->
+            <line x1="154" y1="32" x2="180" y2="32" stroke="#8888a0" stroke-width="1"/>
+            <text x="167" y="24" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono',monospace" font-size="7">timer</text>
+            <!-- HALF-OPEN state -->
+            <rect x="182" y="16" width="70" height="32" rx="6" fill="#f59e0b15" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="217" y="36" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="600">HALF-OPEN</text>
+            <text x="217" y="10" text-anchor="middle" fill="#8888a0" font-family="Inter,sans-serif" font-size="8">probe</text>
+            <!-- Return arrow -->
+            <path d="M217,48 C217,64 36,64 36,48" stroke="#8888a0" stroke-width="1" fill="none" stroke-dasharray="3 2"/>
+            <text x="127" y="62" text-anchor="middle" fill="#10b981" font-family="'JetBrains Mono',monospace" font-size="7">success: reset</text>
+          </svg>
+        </div>
+        <p>Stop calling a failing remote agent after N consecutive failures. Automatically resets after a cooldown period.</p>
+      </div>
+
+      <!-- Timeout -->
+      <div class="card animate-in" style="border-color:rgba(167,139,250,0.3);animation-delay:0.3s;">
+        <div class="icon-row">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="17" stroke="#a78bfa" stroke-width="1.5" fill="#a78bfa10"/>
+            <circle cx="18" cy="19" r="8" stroke="#a78bfa" stroke-width="1.5" fill="none"/>
+            <line x1="18" y1="19" x2="18" y2="14" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18" y1="19" x2="22" y2="21" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="16" y1="10" x2="20" y2="10" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <h3 style="color:var(--purple);font-size:1rem;">M.a2a_timeout(seconds=30)</h3>
+        </div>
+        <div class="svg-inline" style="margin:0.5rem 0;">
+          <svg width="260" height="70" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Clock -->
+            <circle cx="50" cy="34" r="22" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+            <line x1="50" y1="34" x2="50" y2="18" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
+            <line x1="50" y1="34" x2="62" y2="38" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="50" cy="34" r="2" fill="#a78bfa"/>
+            <!-- Deadline line -->
+            <line x1="100" y1="8" x2="100" y2="62" stroke="#e94560" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text x="100" y="68" text-anchor="middle" fill="#e94560" font-family="'JetBrains Mono',monospace" font-size="8" font-weight="600">30s deadline</text>
+            <!-- OK zone -->
+            <rect x="118" y="12" width="80" height="20" rx="4" fill="#10b98112" stroke="#10b981" stroke-width="1"/>
+            <text x="158" y="26" text-anchor="middle" fill="#10b981" font-family="'JetBrains Mono',monospace" font-size="9">&lt; 30s  OK</text>
+            <!-- Timeout zone -->
+            <rect x="118" y="40" width="80" height="20" rx="4" fill="#e9456012" stroke="#e94560" stroke-width="1"/>
+            <text x="158" y="54" text-anchor="middle" fill="#e94560" font-family="'JetBrains Mono',monospace" font-size="9">&gt; 30s  FAIL</text>
+          </svg>
+        </div>
+        <p>Time limit for remote agent responses. Raises a timeout error if the remote agent does not reply within the deadline.</p>
+      </div>
+
+      <!-- Cache -->
+      <div class="card animate-in" style="border-color:rgba(14,165,233,0.3);animation-delay:0.4s;">
+        <div class="icon-row">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="17" stroke="#0ea5e9" stroke-width="1.5" fill="#0ea5e910"/>
+            <rect x="11" y="12" width="14" height="12" rx="2" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
+            <line x1="11" y1="17" x2="25" y2="17" stroke="#0ea5e9" stroke-width="1"/>
+            <line x1="11" y1="21" x2="25" y2="21" stroke="#0ea5e9" stroke-width="1"/>
+            <circle cx="14" cy="14.5" r="1" fill="#0ea5e9"/>
+            <circle cx="14" cy="19" r="1" fill="#0ea5e9"/>
+          </svg>
+          <h3 style="color:var(--blue);font-size:1rem;">M.a2a_cache(ttl=300)</h3>
+        </div>
+        <div class="svg-inline" style="margin:0.5rem 0;">
+          <svg width="260" height="70" viewBox="0 0 260 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Request 1 -->
+            <text x="18" y="14" fill="#8888a0" font-family="'JetBrains Mono',monospace" font-size="8">req #1</text>
+            <line x1="18" y1="22" x2="68" y2="22" stroke="#0ea5e9" stroke-width="1.5"/>
+            <!-- Cache box -->
+            <rect x="72" y="6" width="56" height="52" rx="6" fill="#0ea5e912" stroke="#0ea5e9" stroke-width="1.5"/>
+            <text x="100" y="26" text-anchor="middle" fill="#0ea5e9" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="600">CACHE</text>
+            <text x="100" y="40" text-anchor="middle" fill="#8888a0" font-family="'JetBrains Mono',monospace" font-size="8">ttl=300</text>
+            <text x="100" y="52" text-anchor="middle" fill="#0ea5e9" font-family="Inter,sans-serif" font-size="7" opacity="0.6">MISS</text>
+            <!-- Forward to remote -->
+            <line x1="128" y1="22" x2="176" y2="22" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text x="152" y="14" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono',monospace" font-size="7">remote</text>
+            <!-- Remote box -->
+            <rect x="178" y="10" width="50" height="28" rx="5" fill="#f59e0b12" stroke="#f59e0b" stroke-width="1"/>
+            <text x="203" y="28" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono',monospace" font-size="8">LLM</text>
+            <!-- Request 2 (cache hit) -->
+            <text x="18" y="52" fill="#8888a0" font-family="'JetBrains Mono',monospace" font-size="8">req #2</text>
+            <line x1="18" y1="58" x2="68" y2="58" stroke="#10b981" stroke-width="1.5"/>
+            <text x="152" y="64" text-anchor="middle" fill="#10b981" font-family="'JetBrains Mono',monospace" font-size="8">HIT &#x2192; instant</text>
+          </svg>
+        </div>
+        <p>Cache remote responses to reduce network calls. Identical requests within the TTL window return the cached result.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 5: Composition Example -->
+  <section class="section">
+    <h2 class="section-title">
+      Composition Example
+      <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--green);">hybrid</span>
+    </h2>
+    <div class="card">
+      <pre><code><span class="kw">from</span> adk_fluent <span class="kw">import</span> Agent, RemoteAgent
+
+<span class="cm"># A local agent &mdash; runs in the same process</span>
+local_writer = (
+    Agent(<span class="str">"writer"</span>, <span class="str">"gemini-2.5-flash"</span>)
+    <span class="fn">.instruct</span>(<span class="str">"Write content based on research."</span>)
+    <span class="fn">.isolate</span>()
+)
+
+<span class="cm"># A remote agent &mdash; communicates over A2A protocol</span>
+remote_researcher = (
+    RemoteAgent(<span class="str">name</span>=<span class="str">"researcher"</span>, <span class="str">url</span>=<span class="str">"http://research-service:8080"</span>)
+    <span class="fn">.sends</span>(<span class="str">"topic"</span>)
+    <span class="fn">.receives</span>(<span class="str">"findings"</span>)
+)
+
+<span class="cm"># Coordinator mixes local + remote seamlessly</span>
+coordinator = (
+    Agent(<span class="str">"coordinator"</span>, <span class="str">"gemini-2.5-flash"</span>)
+    <span class="fn">.instruct</span>(<span class="str">"Coordinate research and writing."</span>)
+    <span class="fn">.sub_agent</span>(local_writer)
+    <span class="fn">.sub_agent</span>(remote_researcher)
+    <span class="fn">.middleware</span>(M<span class="fn">.a2a_retry</span>(<span class="str">max</span>=<span class="num">3</span>) | M<span class="fn">.a2a_timeout</span>(<span class="str">seconds</span>=<span class="num">30</span>))
+)</code></pre>
+    </div>
+  </section>
+
+  <!-- Section 6: Discovery Methods -->
+  <section class="section">
+    <h2 class="section-title">
+      Discovery Methods
+      <span class="badge" style="background:rgba(167,139,250,0.15);color:var(--purple);">connectivity</span>
+    </h2>
+    <div class="discovery-list">
+      <div class="discovery-item animate-in" style="animation-delay:0.1s;">
+        <div class="discovery-num">1</div>
+        <div class="discovery-content">
+          <div class="label">Direct URL</div>
+          <code>RemoteAgent(url="http://agent-service:8080")</code>
+        </div>
+      </div>
+      <div class="discovery-item animate-in" style="animation-delay:0.2s;">
+        <div class="discovery-num">2</div>
+        <div class="discovery-content">
+          <div class="label">Service Registry</div>
+          <code>RemoteAgent.discover(registry_url="http://registry:9090")</code>
+        </div>
+      </div>
+      <div class="discovery-item animate-in" style="animation-delay:0.3s;">
+        <div class="discovery-num">3</div>
+        <div class="discovery-content">
+          <div class="label">Agent Card</div>
+          <code>RemoteAgent.from_card(card)</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-in').forEach(function(el) {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    });
+  });
+</script>
+
+</body>
+</html>
