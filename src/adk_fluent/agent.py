@@ -629,6 +629,58 @@ class Agent(BuilderBase):
         self._config["_artifact_schema"] = schema
         return self
 
+    def skill(
+        self,
+        skill_id: str,
+        name: str,
+        *,
+        description: str = "",
+        tags: list[str] | None = None,
+        examples: list[str] | None = None,
+        input_modes: list[str] | None = None,
+        output_modes: list[str] | None = None,
+    ) -> Self:
+        """Declare an A2A skill for this agent's AgentCard.
+
+        Skills are metadata consumed by ``A2AServer`` during card generation.
+        They have no effect on local agent execution.  If no skills are declared,
+        ``A2AServer`` auto-infers them from the agent's tools and sub-agents.
+        """
+        from adk_fluent._helpers import _add_skill
+
+        return _add_skill(
+            self,
+            skill_id,
+            name,
+            description=description,
+            tags=tags,
+            examples=examples,
+            input_modes=input_modes,
+            output_modes=output_modes,
+        )
+
+    def publish(self, *, port: int = 8000, host: str = "0.0.0.0") -> Any:
+        """Publish this agent as an A2A server (returns Starlette app).
+
+        Shorthand for ``A2AServer(self).port(port).host(host).build()``.
+        """
+        from adk_fluent.a2a import A2AServer
+
+        server = A2AServer(self).port(port).host(host)
+        # Pass declared skills to the server
+        skills = self._lists.get("_a2a_skills", [])
+        for s in skills:
+            server = server.skill(
+                s.id,
+                s.name,
+                description=s.description,
+                tags=s.tags,
+                examples=s.examples,
+                input_modes=s.input_modes,
+                output_modes=s.output_modes,
+            )
+        return server.build()
+
     def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
         """Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run()."""
         from adk_fluent._helpers import _eval_inline

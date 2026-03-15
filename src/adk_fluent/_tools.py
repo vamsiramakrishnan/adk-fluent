@@ -259,6 +259,38 @@ class T:
             builder = builder.tool_name_prefix(prefix)
         return TComposite([builder.build()], kind="mcp")
 
+    # --- A2A ---
+
+    @staticmethod
+    def a2a(
+        agent_card_url: str,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+        timeout: float = 600.0,
+    ) -> TComposite:
+        """Wrap a remote A2A agent as an AgentTool.
+
+        This is useful when you want the LLM to invoke a remote agent
+        as a tool (structured I/O) rather than delegating to it as a
+        sub-agent (opaque autonomous task).
+
+        Args:
+            agent_card_url: Base URL or full card URL of the remote agent.
+            name: Override the agent name (defaults to remote agent's name).
+            description: Override the agent description.
+            timeout: HTTP timeout in seconds.
+        """
+        from google.adk.tools.agent_tool import AgentTool
+
+        from adk_fluent.a2a import RemoteAgent
+
+        builder = RemoteAgent(name or "remote_a2a", agent_card_url).timeout(timeout)
+        if description:
+            builder = builder.describe(description)
+        built = builder.build()
+        return TComposite([AgentTool(agent=built)], kind="a2a")
+
     # --- OpenAPI ---
 
     @staticmethod

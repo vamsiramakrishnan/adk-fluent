@@ -278,6 +278,37 @@ def _add_artifacts(builder, transforms):
     return builder
 
 
+def _add_skill(
+    builder,
+    skill_id: str,
+    name: str,
+    *,
+    description: str = "",
+    tags: list | None = None,
+    examples: list | None = None,
+    input_modes: list | None = None,
+    output_modes: list | None = None,
+):
+    """Declare an A2A skill on the agent builder.
+
+    Skills are stored as metadata and used by ``A2AServer`` when generating
+    the ``AgentCard``.  They have no effect on local agent execution.
+    """
+    from adk_fluent.a2a import SkillDeclaration
+
+    skill = SkillDeclaration(
+        id=skill_id,
+        name=name,
+        description=description,
+        tags=tags or [],
+        examples=examples or [],
+        input_modes=input_modes or ["text/plain"],
+        output_modes=output_modes or ["text/plain"],
+    )
+    builder._lists.setdefault("_a2a_skills", []).append(skill)
+    return builder
+
+
 def add_agent_tool(builder, agent):
     """Wrap an agent (or builder) as an AgentTool and add it to this agent's tools.
 
