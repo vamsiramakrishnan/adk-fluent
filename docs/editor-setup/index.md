@@ -50,7 +50,7 @@ High-performance editor. Uses `llms.txt` via `#fetch` and supports MCP context s
 ```{grid-item-card} Agent Skills
 :link: agent-skills
 :link-type: doc
-8 portable skills for developing, testing, debugging, and reviewing adk-fluent projects. Works with any Agent Skills-compatible platform.
+14 portable skills for developing, testing, debugging, deploying, evaluating, and reviewing adk-fluent projects. Works with any Agent Skills-compatible platform.
 ```
 ````
 
