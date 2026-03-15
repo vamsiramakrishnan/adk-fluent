@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-15T06:27:56.389115+00:00"
+generated_at = "2026-03-15T07:00:02.887168+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -12,8 +12,10 @@ additive_fields = ["after_agent_callback", "after_model_callback", "after_tool_c
 list_extend_fields = ["after_agent_callbacks", "after_model_callbacks", "after_tool_callbacks", "args", "before_agent_callbacks", "before_model_callbacks", "before_tool_callbacks", "code_block_delimiters", "injection_configs", "plugins", "sub_agents", "tool_simulation_configs", "tools"]
 
 [field_docs]
-disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces a handoff back to parent on the next turn, preventing the user from getting stuck. See also ``.isolate()``."
-disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. See also ``.isolate()``."
+description = "Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."
+disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces an auto-handoff back to parent on the next turn. Equivalent to ``.stay()``. See also ``.isolate()``."
+disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. Equivalent to ``.no_peers()``. See also ``.isolate()``."
+global_instruction = "Set instruction shared by ALL agents in a workflow. Only meaningful on the root agent. Prepended to every agent's system prompt."
 input_schema = """Schema defining the expected input structure when this agent is invoked as a tool by another agent.
 
 When another agent invokes this agent via ``AgentTool``, the calling
@@ -25,8 +27,8 @@ for top-level agents — only for agents that serve as tools.
    Prefer ``.accepts(Model)`` over this method for clarity.
    ``.accepts()`` is the recommended alias on BuilderBase.
 
-   - ``.accepts(Model)`` → tool-mode input validation (same as this)
-   - ``.consumes(Model)`` → contract annotation (no runtime effect)
+   - ``.accepts(Model)`` → tool-mode input validation (same as this, HAS runtime effect)
+   - ``.consumes(Model)`` → contract annotation (NO runtime effect)
 """
 output_key = "Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."
 output_schema = """Force the LLM to respond with structured JSON matching a Pydantic model.
@@ -42,11 +44,12 @@ is active.
    parses the response in ``.ask()`` calls. This method sets the
    raw ADK field without automatic parsing.
 
-   - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing
+   - ``.returns(Model)`` / ``@ Model`` → LLM constraint + parsing (HAS runtime effect)
    - ``.output_schema(Model)`` → LLM constraint only (raw field)
    - ``.writes(key)`` → stores text in state (no format constraint)
-   - ``.produces(Model)`` → contract annotation (no runtime effect)
+   - ``.produces(Model)`` → contract annotation (NO runtime effect)
 """
+static_instruction = "Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."
 
 [builders.A2aAgentExecutor]
 source_class = "google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutor"
@@ -249,7 +252,7 @@ on_model_error = "on_model_error_callback"
 on_tool_error = "on_tool_error_callback"
 
 [builders.Agent.deprecated_aliases]
-delegate = { field = "_delegate", use = "agent_tool" }
+delegate = { doc = "Deprecated: wraps an agent as a callable tool. Use .agent_tool() instead.", field = "_delegate", use = "agent_tool" }
 guardrail = { field = "_guardrail", use = "guard" }
 history = { field = "include_contents", use = "context" }
 include_history = { field = "include_contents", use = "context" }
@@ -299,7 +302,7 @@ helper_func = "_add_tools"
 [[builders.Agent.extras]]
 name = "guard"
 signature = "(self, value: Any) -> Self"
-doc = "Add a guard. Accepts a G composite (G.pii() | G.budget()) or a plain callable (legacy dual-callback)."
+doc = "Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned."
 behavior = "runtime_helper"
 helper_func = "_guard_dispatch"
 example = '''
@@ -316,7 +319,7 @@ see_also = ["Agent.before_model", "Agent.after_model"]
 [[builders.Agent.extras]]
 name = "ask"
 signature = "(self, prompt: str) -> str"
-doc = "One-shot execution. Build agent, send prompt, return response text."
+doc = "One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response text. Raises RuntimeError inside async event loops (Jupyter, FastAPI) — use .ask_async() instead."
 behavior = "runtime_helper"
 helper_func = "run_one_shot"
 example = '''
@@ -328,14 +331,14 @@ see_also = ["Agent.ask_async", "Agent.stream"]
 [[builders.Agent.extras]]
 name = "ask_async"
 signature = "(self, prompt: str) -> str"
-doc = "Async one-shot execution."
+doc = "One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts."
 behavior = "runtime_helper_async"
 helper_func = "run_one_shot_async"
 
 [[builders.Agent.extras]]
 name = "stream"
 signature = "(self, prompt: str) -> AsyncIterator[str]"
-doc = "Streaming execution. Yields response text chunks."
+doc = "ASYNC streaming execution. Yields response text chunks as they arrive. Use with ``async for chunk in agent.stream(prompt):``."
 behavior = "runtime_helper_async_gen"
 helper_func = "run_stream"
 example = '''
@@ -354,21 +357,21 @@ helper_func = "run_inline_test"
 [[builders.Agent.extras]]
 name = "session"
 signature = "(self) -> Any"
-doc = "Create an interactive session context manager. Use with 'async with'."
+doc = "Create an interactive multi-turn chat session. Returns an async context manager — use with ``async with agent.session() as chat:``. The agent is auto-built."
 behavior = "runtime_helper_ctx"
 helper_func = "create_session"
 
 [[builders.Agent.extras]]
 name = "map"
 signature = "(self, prompts: list[str], *, concurrency: int = 5) -> list[str]"
-doc = "Run agent against multiple prompts with bounded concurrency."
+doc = "Batch SYNC execution (blocking). Run agent against multiple prompts with bounded concurrency. Raises RuntimeError inside async event loops — use .map_async() instead."
 behavior = "runtime_helper"
 helper_func = "run_map"
 
 [[builders.Agent.extras]]
 name = "map_async"
 signature = "(self, prompts: list[str], *, concurrency: int = 5) -> list[str]"
-doc = "Async batch execution against multiple prompts."
+doc = "Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts."
 behavior = "runtime_helper_async"
 helper_func = "run_map_async"
 
@@ -382,7 +385,7 @@ helper_func = "run_events"
 [[builders.Agent.extras]]
 name = "instruct"
 signature = "(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self"
-doc = "Set the `instruction` field. Raises TypeError if passed a CTransform (use .context() instead)."
+doc = "Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead)."
 behavior = "runtime_helper"
 helper_func = "_instruct_with_guard"
 
@@ -450,7 +453,7 @@ helper_func = "_add_memory_auto_save"
 [[builders.Agent.extras]]
 name = "agent_tool"
 signature = "(self, agent: Any) -> Self"
-doc = "Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name."
+doc = "Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child."
 behavior = "runtime_helper"
 helper_func = "add_agent_tool"
 example = '''
@@ -485,7 +488,7 @@ see_also = ["Agent.disallow_transfer_to_parent", "Agent.disallow_transfer_to_pee
 [[builders.Agent.extras]]
 name = "stay"
 signature = "(self) -> Self"
-doc = "Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning."
+doc = "Prevent transfer to parent only (can still transfer to sibling peers). Equivalent to .disallow_transfer_to_parent(True). Use for agents in peer-to-peer handoff chains where the coordinator should not regain control mid-sequence."
 behavior = "runtime_helper"
 helper_func = "_stay_agent"
 example = '''

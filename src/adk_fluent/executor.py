@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
 
 from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
 from google.adk.code_executors.agent_engine_sandbox_code_executor import (
@@ -16,9 +16,6 @@ from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCode
 from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
 
 from adk_fluent._base import BuilderBase
-
-if TYPE_CHECKING:
-    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig
 
 
 class A2aAgentExecutor(BuilderBase):

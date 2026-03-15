@@ -855,7 +855,7 @@ class BuilderBase:
             raise BuilderError(name, builder_type, [str(exc)], exc) from exc
 
     def native(self, fn: Callable) -> Self:
-        """Register a post-build hook to access raw ADK objects."""
+        """Post-build hook: fn receives the built ADK object for direct manipulation. Escape hatch for ADK features not yet exposed by the fluent API."""
         target = self._maybe_fork_for_mutation()
         hooks = target._config.setdefault("_native_hooks", [])
         hooks.append(fn)
@@ -1740,14 +1740,14 @@ class BuilderBase:
     # ------------------------------------------------------------------
 
     def prepend(self, fn: Callable) -> Self:
-        """Prepend dynamic text to the LLM prompt via before_model_callback.
+        """Prepend dynamic text to the LLM's input each turn via before_model_callback.
 
-        The function receives the callback context and returns a string.
-        That string is prepended as a content part before the LLM
-        processes the request.
+        ``fn(callback_context)`` → str is injected as a user content part
+        before the LLM processes the request. Use for dynamic context that
+        changes per-turn (user metadata, timestamps, etc.).
 
         Usage:
-            agent.prepend(lambda ctx: f"User: {ctx.state.get('user')}")
+            agent.prepend(lambda ctx: f"Current user: {ctx.state.get('user')}")
         """
 
         def _inject_cb(callback_context, llm_request):
@@ -2245,10 +2245,15 @@ class BuilderBase:
         return self
 
     def inject(self, **resources: Any) -> Self:
-        """Register resources for dependency injection into tool functions.
+        """Inject named resources into tool function parameters (dependency injection).
 
-        At build time, tools with matching parameter names will have
-        those parameters injected and hidden from the LLM schema.
+        At build time, tools whose signatures have parameters matching
+        the resource names will have those parameters auto-filled and
+        hidden from the LLM tool schema. Use for DB clients, API keys,
+        config objects — anything the LLM should never see or control.
+
+        Usage:
+            agent.inject(db=my_database, api_key=secret)
         """
         existing = self._config.setdefault("_resources", {})
         existing.update(resources)
@@ -2460,7 +2465,7 @@ class BuilderBase:
                 )
 
     def use(self, preset: Any) -> Self:
-        """Apply a Preset's fields and callbacks to this builder. Returns self."""
+        """Apply a Preset object that bundles multiple builder settings (model, instruction, tools, callbacks, etc.) onto this builder. Presets are reusable configuration bundles."""
         aliases = getattr(self.__class__, "_ALIASES", {})
         cb_aliases = getattr(self.__class__, "_CALLBACK_ALIASES", {})
 
