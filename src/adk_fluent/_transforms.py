@@ -776,6 +776,67 @@ class S:
         )
 
     @staticmethod
+    def to_ui(
+        *keys: str,
+        surface: str = "default",
+    ) -> STransform:
+        """Bridge state keys into the A2UI data model.
+
+        Creates a transform that copies named state keys into the
+        A2UI surface's internal data model, enabling reactive UI updates
+        via data bindings.
+
+        Args:
+            *keys: State keys to expose to the UI surface.
+            surface: Target surface identifier (default ``"default"``).
+
+        Usage::
+
+            Agent("calc").writes("total") >> S.to_ui("total", surface="dash")
+        """
+
+        def _to_ui(state: dict) -> StateDelta:
+            data = {k: state.get(k) for k in keys if k in state}
+            return StateDelta({f"_a2ui_data_{surface}": data})
+
+        return STransform(
+            _to_ui,
+            reads=frozenset(keys),
+            writes=frozenset({f"_a2ui_data_{surface}"}),
+            name=f"to_ui_{'_'.join(keys)}",
+        )
+
+    @staticmethod
+    def from_ui(
+        *keys: str,
+        surface: str = "default",
+    ) -> STransform:
+        """Bridge A2UI data model values back into agent state.
+
+        Reads values from the A2UI surface's data model and sets them
+        as state keys, enabling agents to consume user input from UI forms.
+
+        Args:
+            *keys: Data model keys to import into state.
+            surface: Source surface identifier (default ``"default"``).
+
+        Usage::
+
+            S.from_ui("name", "email", surface="contact") >> Agent("processor")
+        """
+
+        def _from_ui(state: dict) -> StateDelta:
+            data = state.get(f"_a2ui_data_{surface}", {})
+            return StateDelta({k: data[k] for k in keys if k in data})
+
+        return STransform(
+            _from_ui,
+            reads=frozenset({f"_a2ui_data_{surface}"}),
+            writes=frozenset(keys),
+            name=f"from_ui_{'_'.join(keys)}",
+        )
+
+    @staticmethod
     def group_by(items_key: str, key_fn: Callable[[Any], Any], into: str) -> STransform:
         """Group list items by a key function."""
 
