@@ -1,11 +1,18 @@
 """Sphinx configuration for adk-fluent documentation."""
 
+import datetime
+import warnings
+
+# sphinx-hoverxref 1.4.x uses deprecated Sphinx _Opt tuple interface;
+# suppress until upstream ships a fix.
+warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=PendingDeprecationWarning)
+
 project = "adk-fluent"
 copyright = "2025, adk-fluent contributors"
 author = "adk-fluent contributors"
 
 # Current year for display purposes
-import datetime
 _year = datetime.datetime.now().year
 if _year > 2025:
     copyright = f"2025–{_year}, adk-fluent contributors"
@@ -87,7 +94,7 @@ html_theme_options = {
     "announcement": (
         "adk-fluent is in active development &mdash; "
         '<a href="https://pypi.org/project/adk-fluent/">Install from PyPI</a> '
-        "or <a href=\"https://github.com/vamsiramakrishnan/adk-fluent\">star on GitHub</a>"
+        'or <a href="https://github.com/vamsiramakrishnan/adk-fluent">star on GitHub</a>'
     ),
     "sidebar_hide_name": True,
     "navigation_with_keys": True,
@@ -162,6 +169,7 @@ exclude_patterns = [
     "_build",
     "plans",
     "other_specs",
+    "architecture",
     "generated/cookbook/conftest.md",
     "cookbook/COOKBOOK_MASTER_PLAN.md",
 ]
