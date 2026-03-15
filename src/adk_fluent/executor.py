@@ -16,12 +16,14 @@ from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecut
 
 from adk_fluent._base import BuilderBase
 
-try:
-    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
-except (ImportError, ModuleNotFoundError):
-    _ADK_A2aAgentExecutor = None  # type: ignore[assignment,misc]
+if not TYPE_CHECKING:
+    try:
+        from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
+    except (ImportError, ModuleNotFoundError):
+        _ADK_A2aAgentExecutor = None  # type: ignore[assignment,misc]
 
 if TYPE_CHECKING:
+    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
     from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig
 
 

@@ -84,6 +84,12 @@ def specs_to_ir_module(specs: list[BuilderSpec], *, manifest: dict | None = None
                 tc_import_lines.append(type_map[name])
                 already_imported.add(name)
 
+    # Add optional imports to TYPE_CHECKING as well, so pyright resolves the
+    # real type for return annotations (the runtime try/except fallback sets
+    # the name to None which pyright rejects in type expressions).
+    for import_line, _fallback in optional_import_tuples:
+        tc_import_lines.append(import_line)
+
     if tc_import_lines:
         all_import_lines.append("from typing import TYPE_CHECKING")
 

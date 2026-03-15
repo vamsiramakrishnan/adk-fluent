@@ -50,19 +50,22 @@ from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
 
 from adk_fluent._base import BuilderBase
 
-try:
-    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
-except (ImportError, ModuleNotFoundError):
-    _ADK_A2aAgentExecutorConfig = None  # type: ignore[assignment,misc]
 with contextlib.suppress(ImportError, ModuleNotFoundError):
     import a2a.types
+if not TYPE_CHECKING:
+    try:
+        from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
+    except (ImportError, ModuleNotFoundError):
+        _ADK_A2aAgentExecutorConfig = None  # type: ignore[assignment,misc]
 
 if TYPE_CHECKING:
     from typing import Literal
 
+    import a2a.types
     from a2a.server.agent_execution.context import RequestContext
     from fastapi.openapi.models import APIKey, HTTPBase, HTTPBearer, OAuth2, OpenIdConnect
     from google.adk.a2a.converters.request_converter import AgentRunRequest
+    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig as _ADK_A2aAgentExecutorConfig
     from google.adk.agents.invocation_context import InvocationContext
     from google.adk.agents.run_config import StreamingMode
     from google.adk.apps.base_events_summarizer import BaseEventsSummarizer

@@ -11,16 +11,18 @@ from google.adk.agents.llm_agent import LlmAgent
 
 from adk_fluent._base import BuilderBase
 
-try:
-    from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
-except (ImportError, ModuleNotFoundError):
-    _ADK_RemoteA2aAgent = None  # type: ignore[assignment,misc]
+if not TYPE_CHECKING:
+    try:
+        from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
+    except (ImportError, ModuleNotFoundError):
+        _ADK_RemoteA2aAgent = None  # type: ignore[assignment,misc]
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable
     from typing import Literal
 
     from google.adk.agents.readonly_context import ReadonlyContext
+    from google.adk.agents.remote_a2a_agent import RemoteA2aAgent as _ADK_RemoteA2aAgent
     from google.adk.code_executors.base_code_executor import BaseCodeExecutor
     from google.adk.models.base_llm import BaseLlm
     from google.adk.planners.base_planner import BasePlanner
