@@ -319,11 +319,7 @@ class TestAgentSkillMethod:
 
     def test_multiple_skills(self):
         """Multiple .skill() calls accumulate."""
-        agent = (
-            Agent("test")
-            .skill("research", "Research", tags=["search"])
-            .skill("write", "Writing", tags=["docs"])
-        )
+        agent = Agent("test").skill("research", "Research", tags=["search"]).skill("write", "Writing", tags=["docs"])
         skills = agent._lists["_a2a_skills"]
         assert len(skills) == 2
         assert skills[0].id == "research"
@@ -331,11 +327,7 @@ class TestAgentSkillMethod:
 
     def test_skill_does_not_affect_build(self):
         """Skills are metadata only — they don't affect the native agent build."""
-        agent = (
-            Agent("test", "gemini-2.5-flash")
-            .instruct("Do things.")
-            .skill("research", "Research")
-        )
+        agent = Agent("test", "gemini-2.5-flash").instruct("Do things.").skill("research", "Research")
         native = agent.build()
         assert native.name == "test"
         # Skills are A2A metadata, not ADK properties

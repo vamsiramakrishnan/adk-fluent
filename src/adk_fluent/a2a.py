@@ -408,10 +408,7 @@ class RemoteAgent(BuilderBase):
         try:
             from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
         except ImportError as exc:
-            raise ImportError(
-                "A2A support requires the a2a SDK. "
-                "Install with: pip install google-adk[a2a]"
-            ) from exc
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install google-adk[a2a]") from exc
 
         config = dict(self._config)
 
@@ -439,10 +436,12 @@ class RemoteAgent(BuilderBase):
                 persistent_context=persistent_ctx,
                 context_state_key=ctx_state_key,
             )
-            if bridging_cbs.get("before"):
-                self._callbacks["before_agent_callback"].insert(0, bridging_cbs["before"])
-            if bridging_cbs.get("after"):
-                self._callbacks["after_agent_callback"].append(bridging_cbs["after"])
+            before_cb = bridging_cbs.get("before")
+            if before_cb is not None:
+                self._callbacks["before_agent_callback"].insert(0, before_cb)
+            after_cb = bridging_cbs.get("after")
+            if after_cb is not None:
+                self._callbacks["after_agent_callback"].append(after_cb)
 
         # Handle callbacks
         for _cb_alias, cb_field in self._CALLBACK_ALIASES.items():
@@ -451,11 +450,13 @@ class RemoteAgent(BuilderBase):
                 if len(fns) == 1:
                     config[cb_field] = fns[0]
                 else:
-                    composed = fns[0]
+                    composed: Callable[..., Any] = fns[0]
                     for fn in fns[1:]:
                         prev = composed
 
-                        async def _chain(ctx, prev=prev, fn=fn):  # noqa: E731
+                        async def _chain(
+                            ctx: Any, prev: Callable[..., Any] = prev, fn: Callable[..., Any] = fn
+                        ) -> None:  # noqa: E731
                             await prev(ctx)
                             await fn(ctx)
 
@@ -655,13 +656,10 @@ class A2AServer:
         try:
             from google.adk.a2a.utils.agent_to_a2a import to_a2a
         except ImportError as exc:
-            raise ImportError(
-                "A2A support requires the a2a SDK. "
-                "Install with: pip install google-adk[a2a]"
-            ) from exc
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install google-adk[a2a]") from exc
 
         # Build the agent if it's a builder
-        built_agent = self._agent
+        built_agent: Any = self._agent
         if hasattr(built_agent, "build") and hasattr(built_agent, "_config"):
             built_agent = built_agent.build()
 
@@ -698,15 +696,14 @@ class A2AServer:
 
         return app
 
-    def _build_agent_card(self, agent: _ADKBaseAgent) -> Any:
+    def _build_agent_card(self, agent: Any) -> Any:
         """Build an AgentCard from declared skills and metadata."""
         try:
-            from a2a.types import AgentCapabilities, AgentProvider, AgentSkill
-            from a2a.types import AgentCard as A2AAgentCard
+            from a2a.types import AgentCapabilities, AgentProvider, AgentSkill  # type: ignore[import-not-found]
+            from a2a.types import AgentCard as A2AAgentCard  # type: ignore[import-not-found]
         except ImportError as exc:
             raise ImportError(
-                "A2A card building requires the a2a SDK. "
-                "Install with: pip install google-adk[a2a]"
+                "A2A card building requires the a2a SDK. Install with: pip install google-adk[a2a]"
             ) from exc
 
         skills = []

@@ -1326,10 +1326,7 @@ class A2ARetryMiddleware:
         """Determine if an error is retryable (A2A-specific heuristics)."""
         error_str = str(error).lower()
         # Connection errors
-        if any(
-            term in error_str
-            for term in ("connection refused", "connection reset", "timed out", "timeout")
-        ):
+        if any(term in error_str for term in ("connection refused", "connection reset", "timed out", "timeout")):
             return True
         # HTTP 5xx errors
         if any(f"{code}" in error_str for code in range(500, 600)):
@@ -1406,9 +1403,7 @@ class A2ACircuitBreakerMiddleware:
         """Return currently open circuits with their trip times."""
         now = _time.monotonic()
         return {
-            name: now - trip_time
-            for name, trip_time in self._tripped_at.items()
-            if now - trip_time < self._reset_after
+            name: now - trip_time for name, trip_time in self._tripped_at.items() if now - trip_time < self._reset_after
         }
 
     def _get_agent_key(self, ctx: Any) -> str:
@@ -1421,8 +1416,7 @@ class A2ACircuitBreakerMiddleware:
             elapsed = _time.monotonic() - self._tripped_at[key]
             if elapsed < self._reset_after:
                 raise A2ACircuitOpenError(
-                    f"A2A circuit open for '{key}' — "
-                    f"{self._reset_after - elapsed:.0f}s until reset"
+                    f"A2A circuit open for '{key}' — {self._reset_after - elapsed:.0f}s until reset"
                 )
             # Half-open: allow one probe
             self._half_open.add(key)

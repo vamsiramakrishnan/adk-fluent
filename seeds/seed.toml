@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-03-10T18:18:30.899689+00:00"
+generated_at = "2026-03-15T04:57:31.466155+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -572,6 +572,20 @@ signature = "(self) -> Any"
 doc = "Convert this Agent builder to an AgentNode IR node."
 behavior = "runtime_helper_ctx"
 helper_func = "_agent_to_ir"
+
+[[builders.Agent.extras]]
+name = "skill"
+signature = "(self, skill_id: str, name: str, *, description: str = '', tags: list[str] | None = None, examples: list[str] | None = None, input_modes: list[str] | None = None, output_modes: list[str] | None = None) -> Self"
+doc = "Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by ``A2AServer`` during card generation. They have no effect on local agent execution. If no skills are declared, ``A2AServer`` auto-infers them from the agent's tools and sub-agents."
+behavior = "runtime_helper"
+helper_func = "_add_skill"
+
+[[builders.Agent.extras]]
+name = "publish"
+signature = "(self, *, port: int = 8000, host: str = '0.0.0.0') -> Any"
+doc = "Publish this agent as an A2A server (returns Starlette app). Shorthand for ``A2AServer(self).port(port).host(host).build()``."
+behavior = "runtime_helper"
+helper_func = "_publish_agent"
 
 [builders.LlmAgentConfig]
 source_class = "google.adk.agents.llm_agent_config.LlmAgentConfig"
@@ -2457,3 +2471,4 @@ extra_skip_fields = []
 name = "build"
 returns = "VertexAiSearchTool"
 doc = "Resolve into a native ADK VertexAiSearchTool."
+

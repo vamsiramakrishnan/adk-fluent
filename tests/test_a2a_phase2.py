@@ -53,12 +53,7 @@ class TestRemoteAgentSends:
     def test_sends_chainable(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            builder = (
-                RemoteAgent("helper", "http://h:8001")
-                .sends("draft")
-                .describe("A helper")
-                .timeout(30)
-            )
+            builder = RemoteAgent("helper", "http://h:8001").sends("draft").describe("A helper").timeout(30)
         assert builder._config["_sends_keys"] == ["draft"]
         assert builder._config["description"] == "A helper"
         assert builder._config["timeout"] == 30

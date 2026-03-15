@@ -309,6 +309,30 @@ def _add_skill(
     return builder
 
 
+def _publish_agent(builder, *, port: int = 8000, host: str = "0.0.0.0"):
+    """Publish an agent as an A2A server (returns Starlette app).
+
+    Shorthand for ``A2AServer(builder).port(port).host(host).build()``.
+    Forwards any declared `_a2a_skills` to the server.
+    """
+    from adk_fluent.a2a import A2AServer
+
+    server = A2AServer(builder).port(port).host(host)
+    # Pass declared skills to the server
+    skills = builder._lists.get("_a2a_skills", [])
+    for s in skills:
+        server = server.skill(
+            s.id,
+            s.name,
+            description=s.description,
+            tags=s.tags,
+            examples=s.examples,
+            input_modes=s.input_modes,
+            output_modes=s.output_modes,
+        )
+    return server.build()
+
+
 def add_agent_tool(builder, agent):
     """Wrap an agent (or builder) as an AgentTool and add it to this agent's tools.
 

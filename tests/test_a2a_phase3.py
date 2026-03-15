@@ -41,19 +41,13 @@ class TestRemoteAgentDiscover:
     def test_discover_custom_path(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            builder = RemoteAgent.discover(
-                "helper", "acme.com", path="/.well-known/agent-card.json"
-            )
+            builder = RemoteAgent.discover("helper", "acme.com", path="/.well-known/agent-card.json")
         assert builder._config["agent_card"] == "https://acme.com/.well-known/agent-card.json"
 
     def test_discover_chainable(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            builder = (
-                RemoteAgent.discover("helper", "helper.acme.com")
-                .describe("Research helper")
-                .timeout(120)
-            )
+            builder = RemoteAgent.discover("helper", "helper.acme.com").describe("Research helper").timeout(120)
         assert builder._config["description"] == "Research helper"
         assert builder._config["timeout"] == 120
 
@@ -253,12 +247,7 @@ class TestA2AServerHealthCheck:
     def test_health_check_chainable(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            server = (
-                A2AServer(Agent("test"))
-                .port(8001)
-                .health_check("/healthz")
-                .streaming()
-            )
+            server = A2AServer(Agent("test")).port(8001).health_check("/healthz").streaming()
         assert server._port == 8001
         assert server._health_path == "/healthz"
         assert server._streaming_enabled is True
@@ -294,12 +283,7 @@ class TestA2AServerGracefulShutdown:
     def test_graceful_shutdown_chainable(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            server = (
-                A2AServer(Agent("test"))
-                .port(8001)
-                .graceful_shutdown(45)
-                .health_check()
-            )
+            server = A2AServer(Agent("test")).port(8001).graceful_shutdown(45).health_check()
         assert server._port == 8001
         assert server._shutdown_timeout == 45
         assert server._health_path == "/health"
@@ -333,11 +317,7 @@ class TestPhase3FullChain:
         monkeypatch.setenv("REVIEWER_URL", "http://reviewer:8001")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            builder = (
-                RemoteAgent("reviewer", env="REVIEWER_URL")
-                .sends("draft")
-                .receives("feedback")
-            )
+            builder = RemoteAgent("reviewer", env="REVIEWER_URL").sends("draft").receives("feedback")
         assert builder._config["agent_card"] == "http://reviewer:8001"
         assert builder._config["_sends_keys"] == ["draft"]
 
