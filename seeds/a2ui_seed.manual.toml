@@ -1,0 +1,49 @@
+# A2UI Seed Manual Overrides
+# ===========================
+# Hand-curated DX overrides merged into auto-generated a2ui_seed.toml.
+# Edit this file to customize factory names, add aliases, and define
+# extra factories that don't come from the catalog schema.
+
+# --- Factory renames for better Python DX ---
+[factory_renames]
+list = "list_"                # avoid shadowing builtin list()
+check_box = "checkbox"        # more natural Python naming
+choice_picker = "choice"      # shorter alias
+date_time_input = "date_time" # shorter alias
+audio_player = "audio"        # shorter alias
+and = "and_"                  # Python keyword
+or = "or_"                    # Python keyword
+not = "not_"                  # Python keyword
+
+# --- Component aliases (sugar for common patterns) ---
+[component_aliases]
+heading = { component = "Text", default_variant = "h1", doc = "Sugar for UI.text(x, variant='h1')" }
+h1 = { component = "Text", default_variant = "h1", doc = "Heading level 1" }
+h2 = { component = "Text", default_variant = "h2", doc = "Heading level 2" }
+h3 = { component = "Text", default_variant = "h3", doc = "Heading level 3" }
+h4 = { component = "Text", default_variant = "h4", doc = "Heading level 4" }
+h5 = { component = "Text", default_variant = "h5", doc = "Heading level 5" }
+caption = { component = "Text", default_variant = "caption", doc = "Caption text" }
+paragraph = { component = "Text", default_variant = "body", doc = "Body paragraph" }
+primary_button = { component = "Button", default_variant = "primary", doc = "Primary action button" }
+link_button = { component = "Button", default_variant = "borderless", doc = "Borderless link-style button" }
+long_text = { component = "TextField", default_variant = "longText", doc = "Multi-line text input" }
+password = { component = "TextField", default_variant = "obscured", doc = "Password input" }
+number_input = { component = "TextField", default_variant = "number", doc = "Numeric text input" }
+
+# --- Extra factories (hand-written, not from catalog schema) ---
+[extra_factories]
+bind = { doc = "Create a data binding to a JSON Pointer path" }
+fmt = { doc = "Format string with ${/path} interpolation" }
+surface = { doc = "Create a named UI surface" }
+component = { doc = "Generic component (catalog-agnostic escape hatch)" }
+auto = { doc = "LLM-guided mode: inject catalog schema, let LLM generate UI" }
+schema = { doc = "Inject catalog schema as prompt section" }
+
+# --- Presets (hand-written surface templates) ---
+[presets]
+form = { doc = "Generate form surface from field spec dict" }
+dashboard = { doc = "Generate dashboard with metric cards" }
+wizard = { doc = "Multi-step wizard" }
+confirm = { doc = "Confirmation dialog" }
+table = { doc = "Data table with column definitions" }

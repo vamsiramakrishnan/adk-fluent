@@ -482,6 +482,12 @@ class Agent(BuilderBase):
 
         return _add_tools(self, value)
 
+    def ui(self, spec: Any) -> Self:
+        """Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go')))."""
+        from adk_fluent._helpers import _add_ui_spec
+
+        return _add_ui_spec(self, spec)
+
     def guard(self, value: Any) -> Self:
         """Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned."""
         from adk_fluent._helpers import _guard_dispatch

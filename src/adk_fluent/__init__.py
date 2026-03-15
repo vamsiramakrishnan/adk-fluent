@@ -699,6 +699,12 @@ from ._tool_schema import ToolSchema
 from ._tools import T
 from ._tools import TComposite
 from ._transforms import S
+from ._ui import UI
+from ._ui import UIBinding
+from ._ui import UICheck
+from ._ui import UIAction
+from ._ui import UIComponent
+from ._ui import UISurface
 from ._transforms import STransform
 from ._transforms import StateDelta
 from ._transforms import StateReplacement

@@ -1662,6 +1662,13 @@ class BuilderBase:
                 )
                 config["instruction"] = compiled
 
+        # UI spec: compile A2UI surface into tools + prompt + callbacks
+        ui_spec = self._config.get("_ui_spec")
+        if ui_spec is not None:
+            from adk_fluent._ui_compile import compile_ui_for_agent
+
+            compile_ui_for_agent(ui_spec, config)
+
         # Inject checkpoint agent for loop_until predicate
         if until_pred:
             from adk_fluent._routing import _make_checkpoint_agent

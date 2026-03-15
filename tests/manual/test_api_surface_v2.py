@@ -212,13 +212,19 @@ class TestPrelude:
             "a2a_cascade",
             "a2a_fanout",
             "a2a_delegate",
+            # Tier 10: UI (A2UI)
+            "UI",
+            "UIBinding",
+            "UICheck",
+            "UIComponent",
+            "UISurface",
         }
         assert set(prelude.__all__) == expected
 
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 62
+        assert len(prelude.__all__) == 67
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

@@ -1,0 +1,1028 @@
+{
+  "meta": {
+    "a2ui_version": "v0.10",
+    "catalog_uri": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+    "scan_timestamp": "2026-03-15T22:34:11.177406+00:00"
+  },
+  "components": [
+    {
+      "name": "Text",
+      "factory_name": "text",
+      "category": "content",
+      "description": "",
+      "required_args": [
+        "text"
+      ],
+      "optional_args": [
+        "variant"
+      ],
+      "default_values": {
+        "variant": "body"
+      },
+      "arg_types": {
+        "text": "str | UIBinding",
+        "variant": "str"
+      },
+      "enum_values": {
+        "variant": [
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "caption",
+          "body"
+        ]
+      },
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Image",
+      "factory_name": "image",
+      "category": "content",
+      "description": "",
+      "required_args": [
+        "url"
+      ],
+      "optional_args": [
+        "fit",
+        "variant"
+      ],
+      "default_values": {
+        "fit": "fill",
+        "variant": "mediumFeature"
+      },
+      "arg_types": {
+        "url": "str | UIBinding",
+        "fit": "str",
+        "variant": "str"
+      },
+      "enum_values": {
+        "fit": [
+          "contain",
+          "cover",
+          "fill",
+          "none",
+          "scaleDown"
+        ],
+        "variant": [
+          "icon",
+          "avatar",
+          "smallFeature",
+          "mediumFeature",
+          "largeFeature",
+          "header"
+        ]
+      },
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Icon",
+      "factory_name": "icon",
+      "category": "content",
+      "description": "",
+      "required_args": [
+        "name"
+      ],
+      "optional_args": [],
+      "default_values": {},
+      "arg_types": {
+        "name": "Any"
+      },
+      "enum_values": {},
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Video",
+      "factory_name": "video",
+      "category": "content",
+      "description": "",
+      "required_args": [
+        "url"
+      ],
+      "optional_args": [],
+      "default_values": {},
+      "arg_types": {
+        "url": "str | UIBinding"
+      },
+      "enum_values": {},
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "AudioPlayer",
+      "factory_name": "audio",
+      "category": "content",
+      "description": "",
+      "required_args": [
+        "url"
+      ],
+      "optional_args": [
+        "description"
+      ],
+      "default_values": {},
+      "arg_types": {
+        "url": "str | UIBinding",
+        "description": "str | UIBinding"
+      },
+      "enum_values": {},
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Row",
+      "factory_name": "row",
+      "category": "layout",
+      "description": "A layout component that arranges its children horizontally. To create a grid layout, nest Columns within this Row.",
+      "required_args": [
+        "children"
+      ],
+      "optional_args": [
+        "justify",
+        "align"
+      ],
+      "default_values": {
+        "justify": "start",
+        "align": "stretch"
+      },
+      "arg_types": {
+        "children": "tuple[UIComponent, ...]",
+        "justify": "str",
+        "align": "str"
+      },
+      "enum_values": {
+        "justify": [
+          "center",
+          "end",
+          "spaceAround",
+          "spaceBetween",
+          "spaceEvenly",
+          "start",
+          "stretch"
+        ],
+        "align": [
+          "start",
+          "center",
+          "end",
+          "stretch"
+        ]
+      },
+      "has_children": true,
+      "child_mode": "list",
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Column",
+      "factory_name": "column",
+      "category": "layout",
+      "description": "A layout component that arranges its children vertically. To create a grid layout, nest Rows within this Column.",
+      "required_args": [
+        "children"
+      ],
+      "optional_args": [
+        "justify",
+        "align"
+      ],
+      "default_values": {
+        "justify": "start",
+        "align": "stretch"
+      },
+      "arg_types": {
+        "children": "tuple[UIComponent, ...]",
+        "justify": "str",
+        "align": "str"
+      },
+      "enum_values": {
+        "justify": [
+          "start",
+          "center",
+          "end",
+          "spaceBetween",
+          "spaceAround",
+          "spaceEvenly",
+          "stretch"
+        ],
+        "align": [
+          "center",
+          "end",
+          "start",
+          "stretch"
+        ]
+      },
+      "has_children": true,
+      "child_mode": "list",
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "List",
+      "factory_name": "list_",
+      "category": "layout",
+      "description": "",
+      "required_args": [
+        "children"
+      ],
+      "optional_args": [
+        "direction",
+        "align"
+      ],
+      "default_values": {
+        "direction": "vertical",
+        "align": "stretch"
+      },
+      "arg_types": {
+        "children": "tuple[UIComponent, ...]",
+        "direction": "str",
+        "align": "str"
+      },
+      "enum_values": {
+        "direction": [
+          "vertical",
+          "horizontal"
+        ],
+        "align": [
+          "start",
+          "center",
+          "end",
+          "stretch"
+        ]
+      },
+      "has_children": true,
+      "child_mode": "list",
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Card",
+      "factory_name": "card",
+      "category": "layout",
+      "description": "",
+      "required_args": [
+        "child"
+      ],
+      "optional_args": [],
+      "default_values": {},
+      "arg_types": {
+        "child": "str"
+      },
+      "enum_values": {},
+      "has_children": true,
+      "child_mode": "single",
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Tabs",
+      "factory_name": "tabs",
+      "category": "layout",
+      "description": "",
+      "required_args": [
+        "tabs"
+      ],
+      "optional_args": [],
+      "default_values": {},
+      "arg_types": {
+        "tabs": "list[dict]"
+      },
+      "enum_values": {},
+      "has_children": true,
+      "child_mode": "tabs",
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Modal",
+      "factory_name": "modal",
+      "category": "layout",
+      "description": "",
+      "required_args": [
+        "trigger",
+        "content"
+      ],
+      "optional_args": [],
+      "default_values": {},
+      "arg_types": {
+        "trigger": "str",
+        "content": "str"
+      },
+      "enum_values": {},
+      "has_children": true,
+      "child_mode": "single",
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Divider",
+      "factory_name": "divider",
+      "category": "layout",
+      "description": "",
+      "required_args": [],
+      "optional_args": [
+        "axis"
+      ],
+      "default_values": {
+        "axis": "horizontal"
+      },
+      "arg_types": {
+        "axis": "str"
+      },
+      "enum_values": {
+        "axis": [
+          "horizontal",
+          "vertical"
+        ]
+      },
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": false,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "Button",
+      "factory_name": "button",
+      "category": "input",
+      "description": "",
+      "required_args": [
+        "child",
+        "action"
+      ],
+      "optional_args": [
+        "variant"
+      ],
+      "default_values": {
+        "variant": "default"
+      },
+      "arg_types": {
+        "child": "str",
+        "variant": "str",
+        "action": "UIAction | str"
+      },
+      "enum_values": {
+        "variant": [
+          "default",
+          "primary",
+          "borderless"
+        ]
+      },
+      "has_children": true,
+      "child_mode": "single",
+      "has_action": true,
+      "has_checks": true,
+      "has_weight": true,
+      "has_bind": false
+    },
+    {
+      "name": "TextField",
+      "factory_name": "text_field",
+      "category": "input",
+      "description": "",
+      "required_args": [
+        "label"
+      ],
+      "optional_args": [
+        "value",
+        "variant"
+      ],
+      "default_values": {
+        "variant": "shortText"
+      },
+      "arg_types": {
+        "label": "str | UIBinding",
+        "value": "str | UIBinding",
+        "variant": "str"
+      },
+      "enum_values": {
+        "variant": [
+          "longText",
+          "number",
+          "shortText",
+          "obscured"
+        ]
+      },
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": true,
+      "has_weight": true,
+      "has_bind": true
+    },
+    {
+      "name": "CheckBox",
+      "factory_name": "checkbox",
+      "category": "input",
+      "description": "",
+      "required_args": [
+        "label",
+        "value"
+      ],
+      "optional_args": [],
+      "default_values": {},
+      "arg_types": {
+        "label": "str | UIBinding",
+        "value": "bool | UIBinding"
+      },
+      "enum_values": {},
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": true,
+      "has_weight": true,
+      "has_bind": true
+    },
+    {
+      "name": "ChoicePicker",
+      "factory_name": "choice",
+      "category": "input",
+      "description": "A component that allows selecting one or more options from a list.",
+      "required_args": [
+        "options",
+        "value"
+      ],
+      "optional_args": [
+        "label",
+        "variant",
+        "displayStyle",
+        "filterable"
+      ],
+      "default_values": {
+        "variant": "mutuallyExclusive",
+        "displayStyle": "checkbox",
+        "filterable": false
+      },
+      "arg_types": {
+        "label": "str | UIBinding",
+        "variant": "str",
+        "options": "list[dict]",
+        "value": "str | UIBinding",
+        "displayStyle": "str",
+        "filterable": "bool"
+      },
+      "enum_values": {
+        "variant": [
+          "multipleSelection",
+          "mutuallyExclusive"
+        ],
+        "displayStyle": [
+          "checkbox",
+          "chips"
+        ]
+      },
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": true,
+      "has_weight": true,
+      "has_bind": true
+    },
+    {
+      "name": "Slider",
+      "factory_name": "slider",
+      "category": "input",
+      "description": "",
+      "required_args": [
+        "max",
+        "value"
+      ],
+      "optional_args": [
+        "label",
+        "min"
+      ],
+      "default_values": {
+        "min": 0
+      },
+      "arg_types": {
+        "label": "str | UIBinding",
+        "min": "int | float",
+        "max": "int | float",
+        "value": "int | float | UIBinding"
+      },
+      "enum_values": {},
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": true,
+      "has_weight": true,
+      "has_bind": true
+    },
+    {
+      "name": "DateTimeInput",
+      "factory_name": "date_time",
+      "category": "input",
+      "description": "",
+      "required_args": [
+        "value"
+      ],
+      "optional_args": [
+        "enableDate",
+        "enableTime",
+        "min",
+        "max",
+        "label"
+      ],
+      "default_values": {
+        "enableDate": false,
+        "enableTime": false
+      },
+      "arg_types": {
+        "value": "str | UIBinding",
+        "enableDate": "bool",
+        "enableTime": "bool",
+        "min": "str | UIBinding",
+        "max": "str | UIBinding",
+        "label": "str | UIBinding"
+      },
+      "enum_values": {},
+      "has_children": false,
+      "child_mode": null,
+      "has_action": false,
+      "has_checks": true,
+      "has_weight": true,
+      "has_bind": true
+    }
+  ],
+  "functions": [
+    {
+      "name": "required",
+      "factory_name": "required",
+      "category": "validation",
+      "description": "Checks that the value is not null, undefined, or empty.",
+      "args": [
+        {
+          "name": "value",
+          "type": "Any",
+          "required": true,
+          "description": "The value to check."
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "regex",
+      "factory_name": "regex",
+      "category": "validation",
+      "description": "Checks that the value matches a regular expression string.",
+      "args": [
+        {
+          "name": "value",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "pattern",
+          "type": "str",
+          "required": true,
+          "description": "The regex pattern to match against."
+        }
+      ],
+      "required_args": [
+        "pattern",
+        "value"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "length",
+      "factory_name": "length",
+      "category": "validation",
+      "description": "Checks string length constraints.",
+      "args": [
+        {
+          "name": "value",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "min",
+          "type": "int",
+          "required": false,
+          "description": "The minimum allowed length."
+        },
+        {
+          "name": "max",
+          "type": "int",
+          "required": false,
+          "description": "The maximum allowed length."
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "numeric",
+      "factory_name": "numeric",
+      "category": "validation",
+      "description": "Checks numeric range constraints.",
+      "args": [
+        {
+          "name": "value",
+          "type": "int | float | UIBinding",
+          "required": true,
+          "description": ""
+        },
+        {
+          "name": "min",
+          "type": "int | float",
+          "required": false,
+          "description": "The minimum allowed value."
+        },
+        {
+          "name": "max",
+          "type": "int | float",
+          "required": false,
+          "description": "The maximum allowed value."
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "email",
+      "factory_name": "email",
+      "category": "validation",
+      "description": "Checks that the value is a valid email address.",
+      "args": [
+        {
+          "name": "value",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": ""
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "formatString",
+      "factory_name": "formatString",
+      "category": "formatting",
+      "description": "Performs string interpolation of data model values and other functions in the catalog functions list and returns the resulting string. The value string can contain interpolated expressions in the `${expression}` format. Supported expression types include: JSON Pointer paths to the data model (e.g., `${/absolute/path}` or `${relative/path}`), and client-side function calls (e.g., `${now()}`). Function arguments must be named (e.g., `${formatDate(value:${/currentDate}, format:'MM-dd')}`). To include a literal `${` sequence, escape it as `\\${`.",
+      "args": [
+        {
+          "name": "value",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": ""
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "string"
+    },
+    {
+      "name": "formatNumber",
+      "factory_name": "formatNumber",
+      "category": "formatting",
+      "description": "Formats a number with the specified grouping and decimal precision.",
+      "args": [
+        {
+          "name": "value",
+          "type": "int | float | UIBinding",
+          "required": true,
+          "description": "The number to format."
+        },
+        {
+          "name": "decimals",
+          "type": "int | float | UIBinding",
+          "required": false,
+          "description": "Optional. The number of decimal places to show. Defaults to 0 or 2 depending on locale."
+        },
+        {
+          "name": "grouping",
+          "type": "bool | UIBinding",
+          "required": false,
+          "description": "Optional. If true, uses locale-specific grouping separators (e.g. '1,000'). If false, returns raw digits (e.g. '1000'). Defaults to true."
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "string"
+    },
+    {
+      "name": "formatCurrency",
+      "factory_name": "formatCurrency",
+      "category": "formatting",
+      "description": "Formats a number as a currency string.",
+      "args": [
+        {
+          "name": "value",
+          "type": "int | float | UIBinding",
+          "required": true,
+          "description": "The monetary amount."
+        },
+        {
+          "name": "currency",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": "The ISO 4217 currency code (e.g., 'USD', 'EUR')."
+        },
+        {
+          "name": "decimals",
+          "type": "int | float | UIBinding",
+          "required": false,
+          "description": "Optional. The number of decimal places to show. Defaults to 0 or 2 depending on locale."
+        },
+        {
+          "name": "grouping",
+          "type": "bool | UIBinding",
+          "required": false,
+          "description": "Optional. If true, uses locale-specific grouping separators (e.g. '1,000'). If false, returns raw digits (e.g. '1000'). Defaults to true."
+        }
+      ],
+      "required_args": [
+        "currency",
+        "value"
+      ],
+      "return_type": "string"
+    },
+    {
+      "name": "formatDate",
+      "factory_name": "formatDate",
+      "category": "formatting",
+      "description": "Formats a timestamp into a string using a pattern.",
+      "args": [
+        {
+          "name": "value",
+          "type": "Any",
+          "required": true,
+          "description": "The date to format."
+        },
+        {
+          "name": "format",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": "A Unicode TR35 date pattern string.\n\nToken Reference:\n- Year: 'yy' (26), 'yyyy' (2026)\n- Month: 'M' (1), 'MM' (01), 'MMM' (Jan), 'MMMM' (January)\n- Day: 'd' (1), 'dd' (01), 'E' (Tue), 'EEEE' (Tuesday)\n- Hour (12h): 'h' (1-12), 'hh' (01-12) - requires 'a' for AM/PM\n- Hour (24h): 'H' (0-23), 'HH' (00-23) - Military Time\n- Minute: 'mm' (00-59)\n- Second: 'ss' (00-59)\n- Period: 'a' (AM/PM)\n\nExamples:\n- 'MMM dd, yyyy' -> 'Jan 16, 2026'\n- 'HH:mm' -> '14:30' (Military)\n- 'h:mm a' -> '2:30 PM'\n- 'EEEE, d MMMM' -> 'Friday, 16 January'"
+        }
+      ],
+      "required_args": [
+        "format",
+        "value"
+      ],
+      "return_type": "string"
+    },
+    {
+      "name": "pluralize",
+      "factory_name": "pluralize",
+      "category": "formatting",
+      "description": "Returns a localized string based on the Common Locale Data Repository (CLDR) plural category of the count (zero, one, two, few, many, other). Requires an 'other' fallback. For English, just use 'one' and 'other'.",
+      "args": [
+        {
+          "name": "value",
+          "type": "int | float | UIBinding",
+          "required": true,
+          "description": "The numeric value used to determine the plural category."
+        },
+        {
+          "name": "zero",
+          "type": "str | UIBinding",
+          "required": false,
+          "description": "String for the 'zero' category (e.g., 0 items)."
+        },
+        {
+          "name": "one",
+          "type": "str | UIBinding",
+          "required": false,
+          "description": "String for the 'one' category (e.g., 1 item)."
+        },
+        {
+          "name": "two",
+          "type": "str | UIBinding",
+          "required": false,
+          "description": "String for the 'two' category (used in Arabic, Welsh, etc.)."
+        },
+        {
+          "name": "few",
+          "type": "str | UIBinding",
+          "required": false,
+          "description": "String for the 'few' category (e.g., small groups in Slavic languages)."
+        },
+        {
+          "name": "many",
+          "type": "str | UIBinding",
+          "required": false,
+          "description": "String for the 'many' category (e.g., large groups in various languages)."
+        },
+        {
+          "name": "other",
+          "type": "str | UIBinding",
+          "required": true,
+          "description": "The default/fallback string (used for general plural cases)."
+        }
+      ],
+      "required_args": [
+        "other",
+        "value"
+      ],
+      "return_type": "string"
+    },
+    {
+      "name": "openUrl",
+      "factory_name": "openUrl",
+      "category": "navigation",
+      "description": "Opens the specified URL in a browser or handler. This function has no return value.",
+      "args": [
+        {
+          "name": "url",
+          "type": "str",
+          "required": true,
+          "description": "The URL to open."
+        }
+      ],
+      "required_args": [
+        "url"
+      ],
+      "return_type": "void"
+    },
+    {
+      "name": "and",
+      "factory_name": "and_",
+      "category": "logic",
+      "description": "Performs a logical AND operation on a list of boolean values.",
+      "args": [
+        {
+          "name": "values",
+          "type": "Any",
+          "required": true,
+          "description": "The list of boolean values to evaluate."
+        }
+      ],
+      "required_args": [
+        "values"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "or",
+      "factory_name": "or_",
+      "category": "logic",
+      "description": "Performs a logical OR operation on a list of boolean values.",
+      "args": [
+        {
+          "name": "values",
+          "type": "Any",
+          "required": true,
+          "description": "The list of boolean values to evaluate."
+        }
+      ],
+      "required_args": [
+        "values"
+      ],
+      "return_type": "boolean"
+    },
+    {
+      "name": "not",
+      "factory_name": "not_",
+      "category": "logic",
+      "description": "Performs a logical NOT operation on a boolean value.",
+      "args": [
+        {
+          "name": "value",
+          "type": "bool | UIBinding",
+          "required": true,
+          "description": "The boolean value to negate."
+        }
+      ],
+      "required_args": [
+        "value"
+      ],
+      "return_type": "boolean"
+    }
+  ],
+  "aliases": {
+    "heading": {
+      "component": "Text",
+      "default_variant": "h1",
+      "doc": "Sugar for UI.text(x, variant='h1')"
+    },
+    "h1": {
+      "component": "Text",
+      "default_variant": "h1",
+      "doc": "Heading level 1"
+    },
+    "h2": {
+      "component": "Text",
+      "default_variant": "h2",
+      "doc": "Heading level 2"
+    },
+    "h3": {
+      "component": "Text",
+      "default_variant": "h3",
+      "doc": "Heading level 3"
+    },
+    "h4": {
+      "component": "Text",
+      "default_variant": "h4",
+      "doc": "Heading level 4"
+    },
+    "h5": {
+      "component": "Text",
+      "default_variant": "h5",
+      "doc": "Heading level 5"
+    },
+    "caption": {
+      "component": "Text",
+      "default_variant": "caption",
+      "doc": "Caption text"
+    },
+    "paragraph": {
+      "component": "Text",
+      "default_variant": "body",
+      "doc": "Body paragraph"
+    },
+    "primary_button": {
+      "component": "Button",
+      "default_variant": "primary",
+      "doc": "Primary action button"
+    },
+    "link_button": {
+      "component": "Button",
+      "default_variant": "borderless",
+      "doc": "Borderless link-style button"
+    },
+    "long_text": {
+      "component": "TextField",
+      "default_variant": "longText",
+      "doc": "Multi-line text input"
+    },
+    "password": {
+      "component": "TextField",
+      "default_variant": "obscured",
+      "doc": "Password input"
+    },
+    "number_input": {
+      "component": "TextField",
+      "default_variant": "number",
+      "doc": "Numeric text input"
+    }
+  },
+  "extra_factories": {
+    "bind": {
+      "doc": "Create a data binding to a JSON Pointer path"
+    },
+    "fmt": {
+      "doc": "Format string with ${/path} interpolation"
+    },
+    "surface": {
+      "doc": "Create a named UI surface"
+    },
+    "component": {
+      "doc": "Generic component (catalog-agnostic escape hatch)"
+    },
+    "auto": {
+      "doc": "LLM-guided mode: inject catalog schema, let LLM generate UI"
+    },
+    "schema": {
+      "doc": "Inject catalog schema as prompt section"
+    }
+  }
+}
