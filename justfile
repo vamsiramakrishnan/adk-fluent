@@ -61,6 +61,7 @@ IR_GEN        := "scripts/ir_generator.py"
 DOC_GEN       := "scripts/doc_generator.py"
 LLMS_GEN      := "scripts/llms_generator.py"
 COOKBOOK_GEN   := "scripts/cookbook_generator.py"
+SKILL_GEN     := "scripts/skill_generator.py"
 DOC_DIR       := "docs/generated"
 SPHINX_OUT    := "docs/_build/html"
 COOKBOOK_DIR   := "examples/cookbook"
@@ -70,7 +71,7 @@ COOKBOOK_DIR   := "examples/cookbook"
 GENERATED_PY  := "src/adk_fluent/agent.py src/adk_fluent/config.py src/adk_fluent/executor.py src/adk_fluent/planner.py src/adk_fluent/plugin.py src/adk_fluent/runtime.py src/adk_fluent/service.py src/adk_fluent/tool.py src/adk_fluent/workflow.py src/adk_fluent/_ir_generated.py"
 
 # --- Full pipeline ---
-all: scan seed generate docs docs-build
+all: scan seed generate docs skills docs-build
     @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/ and docs in {{DOC_DIR}}/"
 
 # --- Scan ADK ---
@@ -208,6 +209,11 @@ docs: _require-manifest _require-seed
 llms: _require-manifest _require-seed
     @echo "Generating llms.txt and editor rules..."
     @uv run python {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
+
+# --- Agent Skills reference generation ---
+skills: _require-manifest _require-seed
+    @echo "Generating agent skill references..."
+    @uv run python {{SKILL_GEN}} {{MANIFEST}} {{SEED}}
 
 docs-api: _require-manifest _require-seed
     @echo "Generating API reference..."
@@ -369,6 +375,7 @@ help:
     @echo "  just docs-build     Build Sphinx HTML documentation"
     @echo "  just docs-serve     Build and serve docs with live reload"
     @echo "  just llms           Generate llms.txt + editor rules (CLAUDE.md, .cursorrules, etc.)"
+    @echo "  just skills         Generate agent skill references (.claude/skills/ + .gemini/skills/)"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"

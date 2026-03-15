@@ -1,54 +1,62 @@
 ---
 name: review-pr
 description: Review a pull request for adk-fluent with project-specific checks. Use when reviewing PRs, checking code quality, or validating changes before merge.
+allowed-tools: Bash, Read, Glob, Grep
 ---
 
 # adk-fluent PR Review
 
 Review this pull request with adk-fluent-specific quality checks.
 
+## Automated checks
+
+Run these helper scripts for quick automated scanning:
+
+```bash
+# Check for deprecated method usage in changed files
+uv run .gemini/skills/_shared/scripts/check-deprecated.py src/ tests/ examples/
+
+# Check for internal module imports
+uv run .gemini/skills/_shared/scripts/validate-imports.py src/ tests/ examples/
+
+# Verify no generated files were hand-edited
+just check-gen
+```
+
 ## Checklist
 
 ### 1. Generated file protection
 
-Check if any auto-generated files were edited directly:
+Check if any auto-generated files were edited directly.
+Run `uv run .gemini/skills/_shared/scripts/list-generated-files.py` to see the full list,
+or read [`../_shared/references/generated-files.md`](../_shared/references/generated-files.md).
 
-```
-agent.py, workflow.py, tool.py, config.py, runtime.py, service.py,
-plugin.py, executor.py, planner.py, and their .pyi stubs
-```
-
-These files MUST NOT be edited directly. Changes should go through
-`seeds/seed.manual.toml` or the generator scripts.
+Changes to generated files should go through `seeds/seed.manual.toml` or the generator scripts.
 
 ### 2. Deprecated method usage
 
-Check for usage of deprecated methods in new/changed code:
-- `.save_as()` -> use `.writes()`
-- `.delegate()` -> use `.agent_tool()`
-- `.guardrail()` -> use `.guard()`
-- `.retry_if()` -> use `.loop_while()`
-- `.inject_context()` -> use `.prepend()`
-- `.output_schema()` -> use `.returns()`
-- `.history()` / `.include_history()` -> use `.context()`
+Run `uv run .gemini/skills/_shared/scripts/check-deprecated.py` on changed files.
+For the complete mapping table, read
+[`../_shared/references/deprecated-methods.md`](../_shared/references/deprecated-methods.md).
 
 ### 3. Import hygiene
 
-Verify imports are from `adk_fluent` top-level, not internal modules:
-- Never: `from adk_fluent._base import ...`
-- Never: `from adk_fluent.agent import ...`
-- Always: `from adk_fluent import Agent, Pipeline, ...`
+Run `uv run .gemini/skills/_shared/scripts/validate-imports.py` on changed files.
+- Always: `from adk_fluent import Agent, Pipeline, S, C, P, ...`
+- Never: `from adk_fluent._base import ...` or `from adk_fluent.agent import ...`
+
+Exception: Tests in `tests/` may import internals when specifically testing them.
 
 ### 4. Test coverage
 
 - New features must have tests in `tests/manual/`
 - Cookbook examples must use `.mock()` (no real API keys in CI)
-- Run: `uv run pytest tests/ -x -q --tb=short`
+- Tests must pass: `uv run pytest tests/ -x -q --tb=short`
 
 ### 5. Tooling consistency
 
 - All bash commands must use `uv run` (never bare `python` or `pip`)
-- All dependency installs must use `uv pip install` or `uv sync` (never bare `pip install`)
+- Scripts must be run via `uv run python scripts/...`
 
 ### 6. N-5 backward compatibility
 
@@ -57,12 +65,10 @@ If the PR changes any of these, verify the N-5 compat matrix is updated:
 - `.github/workflows/sync-adk.yml` — `test` job `adk-version` matrix
 - `README.md` — ADK Compatibility table
 
-If the PR adds new builder methods that use kwargs only available in newer ADK versions, note that these will raise `BuilderError` on older runtimes (which is the expected behavior, not a bug).
-
 ### 7. CHANGELOG
 
 - Changes should be documented under `[Unreleased]` in `CHANGELOG.md`
-- Follow Conventional Commits format
+- Follow Conventional Commits format (feat, fix, refactor, docs, etc.)
 
 ### 8. Type safety
 
@@ -70,9 +76,33 @@ If the PR adds new builder methods that use kwargs only available in newer ADK v
 - Fluent methods must return `Self` for chaining
 - Run: `uv run pyright src/adk_fluent/`
 
+### 9. API design consistency
+
+- **Naming**: verb-based (`.instruct()`, `.writes()`), not noun-based
+- **Chaining**: Every config method returns `Self`
+- **Immutability**: Operators create new instances (copy-on-write)
+- **No side effects**: Config methods only store state; `.build()` does the work
+
+### 10. Anti-patterns
+
+- **LLM routing when `Route()` works** — deterministic routing preferred
+- **Retry logic in tools** — use `M.retry()` middleware
+- **`.build()` on sub-builders** — auto-built inside Pipeline/FanOut/Loop
+- **Exposing infra in tool schemas** — use `.inject()` for DB clients, API keys
+
+### 11. Security
+
+- No API keys, tokens, or secrets in code or test fixtures
+- No `eval()` or `exec()` on user-provided strings
+
+### 12. Performance
+
+- `C.window(n=)` or `C.none()` for context management
+- `.timeout()` for agents that might hang
+
 ## Output format
 
-Provide findings as:
 - **Blockers**: Must fix before merge
 - **Suggestions**: Nice to have but not blocking
+- **Questions**: Need clarification from the author
 - **Praise**: What the PR does well

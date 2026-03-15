@@ -30,3 +30,7 @@ src/adk_fluent/_ir_generated.py linguist-generated=true
 
 # Generated tests (from scripts/generator.py)
 tests/generated/**          linguist-generated=true
+
+# Generated skill references (from scripts/skill_generator.py)
+.claude/skills/_shared/**   linguist-generated=true
+.gemini/skills/_shared/**   linguist-generated=true

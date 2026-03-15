@@ -9,6 +9,20 @@ allowed-tools: Bash, Read, Glob, Grep
 You are operating the adk-fluent code generation pipeline. This pipeline introspects
 google-adk and produces Python builder classes, type stubs, and test scaffolds.
 
+## Architecture overview
+
+```
+google-adk (installed package)
+  ↓ scanner.py
+manifest.json (machine-truth snapshot of ADK API)
+  ↓ seed_generator.py + seed.manual.toml
+seeds/seed.toml (builder specifications)
+  ↓ generator.py + code_ir/
+src/adk_fluent/ (generated builders, stubs, tests)
+  ↓ llms_generator.py + doc_generator.py + skill_generator.py
+CLAUDE.md, docs/, .claude/skills/_shared/ (context + documentation)
+```
+
 ## Pipeline stages
 
 Run stages in order. Each stage depends on the previous one.
@@ -19,20 +33,11 @@ Run stages in order. Each stage depends on the previous one.
 uv run python scripts/scanner.py -o manifest.json
 ```
 
-Produces `manifest.json` — a machine-truth snapshot of every ADK class, field, type,
-default, callback, and inheritance chain.
-
 ### 2. Seed (builder specification)
 
 ```bash
 uv run python scripts/seed_generator.py manifest.json -o seeds/seed.toml --merge seeds/seed.manual.toml
 ```
-
-Produces `seeds/seed.toml` by:
-- Classifying ADK classes (agent, tool, config, service, etc.)
-- Filtering for builder-worthy classes
-- Generating method aliases and extras
-- Merging manual overrides from `seeds/seed.manual.toml`
 
 ### 3. Generate (code emission)
 
@@ -41,42 +46,75 @@ uv run python scripts/generator.py seeds/seed.toml manifest.json --output-dir sr
 uv run python scripts/ir_generator.py manifest.json --output src/adk_fluent/_ir_generated.py
 ```
 
-Produces in `src/adk_fluent/`:
-- `.py` builder modules (agent.py, workflow.py, tool.py, config.py, etc.)
-- `.pyi` type stubs for IDE autocomplete
-- `__init__.py` with re-exports
-
-### 4. Docs & LLM context
+### 4. Docs, LLM context, and skill references
 
 ```bash
 uv run python scripts/llms_generator.py manifest.json seeds/seed.toml
 uv run python scripts/doc_generator.py seeds/seed.toml manifest.json --output-dir docs/generated --cookbook-dir examples/cookbook
+uv run python scripts/skill_generator.py manifest.json seeds/seed.toml
 ```
-
-Regenerates CLAUDE.md, .cursorrules, API docs, and cookbook pages.
 
 ## One-command pipeline
 
-If `just` is available (preferred):
-
 ```bash
-just all    # scan -> seed -> generate -> docs -> docs-build
+just all    # scan -> seed -> generate -> docs -> skills -> docs-build
 ```
 
-If not, run each stage manually in order.
+## Partial regeneration
+
+| What changed | Command | Why |
+|---|---|---|
+| ADK version upgraded | `just all` | Full rescan needed |
+| `seed.manual.toml` edited | `just seed && just generate` | Scan unchanged |
+| Generator script edited | `just generate` | Manifest + seed unchanged |
+| Docs template edited | `just docs` | Only docs need refresh |
+| Skill references stale | `just skills` | Only skill refs need refresh |
+| Stubs only | `just stubs` | Quick IDE refresh |
+
+For the full list of development commands, read
+[`../_shared/references/development-commands.md`](../_shared/references/development-commands.md).
 
 ## Verification
-
-After generation, always run:
 
 ```bash
 uv run pytest tests/ -x -q --tb=short
 uv run pyright src/adk_fluent/
+just check-gen    # Verify generated files are canonical
 ```
 
 ## Key rules
 
-- **NEVER edit generated files directly** — they will be overwritten
-- Generated files are marked in `.gitattributes` with `linguist-generated=true`
-- Hand-written files: `_base.py`, `_context.py`, `_prompt.py`, `_transforms.py`, `_routing.py`, `_guards.py`, `_eval.py`, `_helpers.py`, `_middleware.py`, `_tools.py`, `_artifacts.py`, `_primitives.py`
-- To customize generated output, edit `seeds/seed.manual.toml` or `scripts/generator/`
+- **NEVER edit generated files directly** — they will be overwritten on next `just generate`
+- To customize generated output, edit `seeds/seed.manual.toml` or `scripts/code_ir/`
+
+For the complete list of generated vs hand-written files, read
+[`../_shared/references/generated-files.md`](../_shared/references/generated-files.md)
+or run `uv run .claude/skills/_shared/scripts/list-generated-files.py`.
+
+## Troubleshooting
+
+### Generated files out of sync
+
+```bash
+just check-gen  # Will show diff if files are stale
+just generate   # Regenerate
+```
+
+### Scanner fails on new ADK version
+
+- **New base class not recognized**: Update classifier in `scripts/seed_generator.py`
+- **New parameter type not handled**: Update type mapping in `scripts/code_ir/ir_builders.py`
+- **Import path changed**: Check `scripts/scanner.py` import resolution
+
+### Generator produces invalid Python
+
+1. Check `seeds/seed.toml` for malformed entries
+2. Check `seeds/seed.manual.toml` for typos
+3. Run `uv run ruff check src/adk_fluent/` to see syntax issues
+
+### Missing builder method
+
+1. Check `manifest.json` — is the field captured by scanner?
+2. Check `seeds/seed.toml` — is the class included?
+3. If new field: `just scan && just seed && just generate`
+4. If should be excluded: add to skip list in `seeds/seed.manual.toml`

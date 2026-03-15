@@ -6,62 +6,106 @@ allowed-tools: Bash, Read, Glob, Grep
 
 # Debug an adk-fluent Builder
 
-Help the user diagnose and fix builder issues.
+Help the user diagnose and fix builder issues using adk-fluent's built-in introspection.
 
-## Diagnostic tools
+## Diagnostic workflow
 
-adk-fluent has built-in introspection. Use these methods on any builder:
+Follow this order: inspect → diagnose → fix.
 
-### Quick diagnosis
+### Step 1: Inspect the builder state
 
 ```python
 agent = Agent("name", "gemini-2.5-flash").instruct("...")
 
-# See all configured fields
-agent.explain()
-
-# Structured diagnosis (IR tree)
-agent.diagnose()
-
-# Formatted diagnostic report
-agent.doctor()
-
-# What the LLM actually sees
-agent.llm_anatomy()
-
-# Five-concern data flow view
-agent.data_flow()
-
-# Validate contracts and configuration
-agent.validate()
+agent.explain()       # Quick text summary of all configured fields
+agent.llm_anatomy()   # What the LLM actually sees
+agent.data_flow()     # Five-concern data flow view
+agent.inspect()       # Plain-text state dump
 ```
 
-### Contract checking
+### Step 2: Structured diagnosis
+
+```python
+agent.diagnose()      # IR tree — structured representation
+agent.doctor()        # Formatted diagnostic report
+issues = agent.validate()  # Validate contracts and configuration
+```
+
+### Step 3: Contract checking for workflows
 
 ```python
 from adk_fluent import check_contracts
 
-# Check a pipeline for data flow issues
 pipeline = Agent("a").writes("x") >> Agent("b").reads("x")
 issues = check_contracts(pipeline)
 ```
 
-### Common issues and fixes
+## Common issues and fixes
 
-| Symptom | Likely cause | Fix |
-|---------|-------------|-----|
-| `.reads()` key not found at runtime | Upstream agent doesn't `.writes()` that key | Add `.writes(key)` to the producing agent |
-| Method chaining breaks in IDE | Missing `.pyi` stub or method returns wrong type | Regenerate stubs: `python scripts/generator.py seeds/seed.toml manifest.json --stubs-only` |
-| `.build()` raises ValidationError | Pydantic validation on ADK native object | Check field types match ADK expectations, use `.explain()` to see current config |
-| Operator `>>` produces wrong pipeline | Sub-expression reuse without copy | Operators are immutable (copy-on-write) — check you're not mutating shared refs |
-| Context not reaching downstream agent | Missing `.context()` or wrong C spec | Use `.llm_anatomy()` to see what the LLM actually receives |
-| Agent not responding as expected | System prompt issue | Use `.llm_anatomy()` to inspect the full prompt sent to the LLM |
-| `.mock()` not working | Mock responses exhausted or wrong format | `.mock()` takes a list of strings; ensure enough responses for all interactions |
+### Data flow problems
 
-### Architecture reference
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `.reads()` key not found | Upstream doesn't `.writes()` that key | Add `.writes(key)` upstream |
+| State key empty | Agent didn't produce output | Check `.llm_anatomy()` |
+| Pipeline step gets wrong data | Keys don't match | Use `check_contracts(pipeline)` |
+| Unwanted state accumulation | No filtering | Add `>> S.pick("key1", "key2") >>` |
 
-- **Hand-written core**: `_base.py` (BuilderBase with all operators and methods)
-- **Generated builders**: `agent.py`, `workflow.py`, `tool.py`, etc.
-- **Namespace modules**: `_transforms.py` (S), `_context.py` (C), `_prompt.py` (P), `_artifacts.py` (A), `_middleware.py` (M), `_tools.py` (T), `_eval.py` (E), `_guards.py` (G)
-- **IR tree**: `_ir.py` + `_ir_generated.py`
-- **Testing utilities**: `testing/` directory
+### Builder configuration problems
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `.build()` raises ValidationError | Pydantic validation failed | Use `.explain()` to see config |
+| Method not found | Using deprecated name | See deprecated methods reference below |
+| `.build()` returns unexpected type | Wrong builder | Agent→LlmAgent, Pipeline→SequentialAgent |
+
+### Operator problems
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `>>` produces wrong pipeline | Calling `.build()` on sub-builders | Don't `.build()` sub-expressions |
+| `*` loop doesn't stop | Predicate never True | Use `* until(pred, max=N)` |
+| `//` fallback not triggering | First agent succeeds | Fallback triggers on exceptions only |
+
+### Context and prompt problems
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Agent ignores history | No context spec | Use `C.default()` or `C.window(n=5)` |
+| State keys not in prompt | Missing placeholder | Use `{key}` in `.instruct()` |
+
+### Testing and mocking problems
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `.mock()` not working | Responses exhausted | Provide enough mock responses |
+| `.ask()` hangs | No mock and no API key | Always use `.mock()` in tests |
+
+## References
+
+For the deprecated methods mapping table, read
+[`../_shared/references/deprecated-methods.md`](../_shared/references/deprecated-methods.md).
+
+For the builder inventory (what builders exist and their fields), read
+[`../_shared/references/builder-inventory.md`](../_shared/references/builder-inventory.md)
+or run `uv run .claude/skills/_shared/scripts/list-builders.py`.
+
+For the architecture reference (generated vs hand-written files), read
+[`../_shared/references/generated-files.md`](../_shared/references/generated-files.md).
+
+## Quick copy-paste diagnostics
+
+```python
+from adk_fluent import Agent
+
+agent = Agent("name", "gemini-2.5-flash").instruct("...")
+# ... user's configuration ...
+
+print("=== EXPLAIN ===")
+agent.explain()
+print("\n=== DOCTOR ===")
+agent.doctor()
+print("\n=== VALIDATE ===")
+for issue in agent.validate():
+    print(f"  - {issue}")
+```
