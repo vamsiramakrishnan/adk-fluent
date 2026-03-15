@@ -516,6 +516,7 @@ class A2AServer:
         self._health_path: str | None = None
         self._health_ready: bool = True
         self._shutdown_timeout: float | None = None
+        self._ui_catalogs: list[str] | None = None
 
     def agent(self, agent: BuilderBase | _ADKBaseAgent) -> A2AServer:
         """Set the agent to publish."""
@@ -626,6 +627,18 @@ class A2AServer:
         """
         self._health_path = path
         self._health_ready = include_ready
+        return self
+
+    def ui(self, *, catalogs: list[str] | None = None) -> A2AServer:
+        """Declare A2UI capabilities in the agent card.
+
+        When set, the published AgentCard includes A2UI extension metadata
+        so clients know this agent supports rich UI rendering.
+
+        Args:
+            catalogs: Supported catalog URIs (defaults to basic catalog).
+        """
+        self._ui_catalogs = catalogs or ["https://a2ui.org/specification/v0_10/basic_catalog.json"]
         return self
 
     def graceful_shutdown(self, timeout: float = 30) -> A2AServer:
@@ -744,6 +757,15 @@ class A2AServer:
 
         if self._docs_url:
             card_kwargs["documentation_url"] = self._docs_url
+
+        # A2UI extension metadata
+        if self._ui_catalogs:
+            extensions = card_kwargs.get("extensions", {})
+            extensions["a2ui"] = {
+                "version": "0.10",
+                "supportedCatalogs": self._ui_catalogs,
+            }
+            card_kwargs["extensions"] = extensions
 
         return A2AAgentCard(**card_kwargs)
 

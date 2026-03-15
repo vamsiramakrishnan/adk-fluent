@@ -50,6 +50,8 @@ __all__ = [
     "a2a_cascade",
     "a2a_fanout",
     "a2a_delegate",
+    "ui_form_agent",
+    "ui_dashboard_agent",
 ]
 
 
@@ -462,3 +464,93 @@ def a2a_delegate(
     for name, endpoint in remotes.items():
         coordinator = coordinator.sub_agent(RemoteAgent(name, endpoint))
     return coordinator
+
+
+# ======================================================================
+# A2UI composition patterns
+# ======================================================================
+
+
+def ui_form_agent(
+    name: str,
+    model: str,
+    *,
+    fields: dict[str, str],
+    on_submit: Callable | None = None,
+    instruction: str = "",
+    submit_label: str = "Submit",
+) -> Any:
+    """Create an agent with an attached form UI surface.
+
+    Generates a :class:`UISurface` with labeled fields, a submit button,
+    and optional submit handler. State keys match field names.
+
+    Args:
+        name: Agent name.
+        model: LLM model identifier.
+        fields: Mapping of field name → field type (``"text"``, ``"email"``,
+            ``"longText"``, ``"number"``, ``"choice"``).
+        on_submit: Async callback ``fn(callback_context)`` invoked on submit.
+        instruction: Agent instruction text.
+        submit_label: Label for the submit button.
+
+    Returns:
+        An Agent builder with ``.ui()`` pre-configured.
+
+    Usage::
+
+        agent = ui_form_agent(
+            "intake", "gemini-2.5-flash",
+            fields={"name": "text", "email": "email"},
+            instruction="Collect user info.",
+        ).build()
+    """
+    from adk_fluent import Agent, UI
+
+    agent = Agent(name, model)
+    if instruction:
+        agent = agent.instruct(instruction)
+    agent = agent.ui(UI.form(name, fields=fields, submit=submit_label))
+    if on_submit:
+        agent = agent.after_agent(on_submit)
+    return agent
+
+
+def ui_dashboard_agent(
+    name: str,
+    model: str,
+    *,
+    cards: list[dict[str, Any]],
+    instruction: str = "",
+) -> Any:
+    """Create an agent with an attached dashboard UI surface.
+
+    Generates a :class:`UISurface` with metric cards, each bound to
+    a data model path.
+
+    Args:
+        name: Agent name.
+        model: LLM model identifier.
+        cards: List of dicts with ``"title"`` and ``"bind"`` keys.
+        instruction: Agent instruction text.
+
+    Returns:
+        An Agent builder with ``.ui()`` pre-configured.
+
+    Usage::
+
+        agent = ui_dashboard_agent(
+            "metrics", "gemini-2.5-flash",
+            cards=[
+                {"title": "Users", "bind": "/stats/users"},
+                {"title": "Revenue", "bind": "/stats/revenue"},
+            ],
+        ).build()
+    """
+    from adk_fluent import Agent, UI
+
+    agent = Agent(name, model)
+    if instruction:
+        agent = agent.instruct(instruction)
+    agent = agent.ui(UI.dashboard(name, cards=cards))
+    return agent

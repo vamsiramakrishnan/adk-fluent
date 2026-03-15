@@ -381,6 +381,14 @@ def _replace_response_text(llm_response, new_text: str):
     )
 
 
+def _count_components(component: Any) -> int:
+    """Count total components in a UIComponent tree."""
+    count = 1
+    for child in getattr(component, "_children", ()):
+        count += _count_components(child)
+    return count
+
+
 def _compose_callbacks(fns: list) -> Callable:
     """Chain multiple callbacks into a single callable.
 
@@ -465,6 +473,29 @@ class BuilderBase:
     _ADDITIVE_FIELDS: set[str]
     _ADK_TARGET_CLASS: type | None = None
     _KNOWN_PARAMS: set[str] | None = None
+    _AUTO_KNOWN_PARAMS_CACHE: set[str] | None = None
+
+    @classmethod
+    def _auto_known_params(cls) -> set[str]:
+        """Auto-derive known field names from the builder's explicit methods.
+
+        Used as fallback typo detection when _ADK_TARGET_CLASS is unavailable
+        (optional dependency not installed). Caches the result per class.
+        """
+        if cls._AUTO_KNOWN_PARAMS_CACHE is not None:
+            return cls._AUTO_KNOWN_PARAMS_CACHE
+        params: set[str] = set()
+        # Collect all public methods defined on the builder (not inherited from BuilderBase)
+        _base_methods = set(dir(BuilderBase))
+        for name in dir(cls):
+            if name.startswith("_") or name in _base_methods:
+                continue
+            params.add(name)
+        # Also add alias targets and additive fields
+        params |= set(cls._ALIASES.values())
+        params |= cls._ADDITIVE_FIELDS
+        cls._AUTO_KNOWN_PARAMS_CACHE = params
+        return params
 
     # Instance attributes — declared here for pyright; initialized in subclass __init__
     _config: dict[str, Any]
@@ -544,8 +575,18 @@ class BuilderBase:
             available = sorted(_KNOWN_PARAMS | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
             cls_name = self.__class__.__name__
             raise AttributeError(
-                f"'{name}' is not a recognized parameter on {cls_name}. Available: {', '.join(available)}"
+                f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
             )
+        elif _ADK_TARGET_CLASS is None and "build" in self.__class__.__dict__:
+            # Concrete builder whose optional ADK target class is unavailable.
+            # Auto-derive known fields from the builder's own explicit methods.
+            _auto_params = self.__class__._auto_known_params()
+            if field_name not in _auto_params:
+                available = sorted(_auto_params | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
+                cls_name = self.__class__.__name__
+                raise AttributeError(
+                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
+                )
         # else: composite/standalone/primitive — accept any field
 
         # Return a setter that stores value and returns self for chaining
@@ -1390,6 +1431,24 @@ class BuilderBase:
             data_flow["produces"] = {"schema": produces.__name__, "fields": list(produces.model_fields.keys())}
         if data_flow:
             result["data_flow"] = data_flow
+
+        # UI
+        ui_spec = self._config.get("_ui_spec")
+        if ui_spec is not None:
+            ui_info: dict[str, Any] = {}
+            from adk_fluent._ui import UISurface, _UIAutoSpec
+
+            if isinstance(ui_spec, UISurface):
+                ui_info["surface"] = ui_spec.name
+                ui_info["mode"] = "declarative"
+                if ui_spec.root is not None:
+                    ui_info["components"] = _count_components(ui_spec.root)
+            elif isinstance(ui_spec, _UIAutoSpec):
+                ui_info["mode"] = "llm_guided"
+                ui_info["catalog"] = ui_spec.catalog
+            else:
+                ui_info["mode"] = "declarative"
+            result["ui"] = ui_info
 
         # Tools
         tools = list(self._config.get("tools", []))

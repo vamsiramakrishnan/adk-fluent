@@ -465,7 +465,7 @@ class TestFeatureConfigBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = FeatureConfig("test_stage")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -493,7 +493,7 @@ class TestAudioCacheConfigBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = AudioCacheConfig()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -549,7 +549,7 @@ class TestBigQueryLoggerConfigBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BigQueryLoggerConfig()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -577,7 +577,7 @@ class TestRetryConfigBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = RetryConfig()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 

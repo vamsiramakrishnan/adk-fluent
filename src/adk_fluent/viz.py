@@ -64,6 +64,7 @@ def ir_to_mermaid(
             TimeoutNode,
             TransferNode,
             TransformNode,
+            UINode,
         )
         from adk_fluent._ir_generated import AgentNode, LoopNode, ParallelNode, SequenceNode
 
@@ -117,6 +118,12 @@ def ir_to_mermaid(
             fname = getattr(n, "filename", "?")
             label = f"{op} ({fname})" if fname else op
             lines.append(f'    {nid}{{{{"{_sanitize(label)} artifact"}}}}')
+        elif isinstance(n, UINode):
+            sname = getattr(n, "surface_name", "?")
+            count = getattr(n, "component_count", 0)
+            mode = getattr(n, "mode", "declarative")
+            label = f"{sname} ({count} components, {mode})"
+            lines.append(f'    {nid}{{{{"{_sanitize(label)}"}}}}')
         else:
             lines.append(f'    {nid}["{_sanitize(name)}"]')
 
