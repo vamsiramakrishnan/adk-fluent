@@ -179,6 +179,10 @@ html_extra_path = [
     "user-guide/pcs-visual-reference.html",
     "user-guide/operator-algebra-reference.html",
     "user-guide/module-lifecycle-reference.html",
+    "user-guide/data-flow-reference.html",
+    "user-guide/delegation-reference.html",
+    "user-guide/execution-modes-reference.html",
+    "user-guide/a2a-topology-reference.html",
     "llms.txt",
 ]
 

@@ -2,6 +2,10 @@
 
 Every data-flow method in adk-fluent maps to exactly one of **five orthogonal concerns**. Understanding these five concerns eliminates all confusion about which method to use.
 
+:::{tip}
+**Visual learner?** Open the [Data Flow Interactive Reference](../data-flow-reference.html){target="_blank"} for SVG diagrams, a confusion matrix, and a decision flowchart.
+:::
+
 ## The Five Concerns
 
 ```{raw} html

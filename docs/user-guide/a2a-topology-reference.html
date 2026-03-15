@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adk-fluent · A2A Topology Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a28;
+    --border: #2a2a3a;
+    --border-accent: #3a3a5a;
+    --text: #e0e0e8;
+    --text-dim: #8888a0;
+    --text-bright: #ffffff;
+    --local: #10b981;
+    --local-bg: #10b98115;
+    --local-border: #10b98140;
+    --remote: #0ea5e9;
+    --remote-bg: #0ea5e915;
+    --remote-border: #0ea5e940;
+    --boundary: #f59e0b;
+    --boundary-bg: #f59e0b15;
+    --boundary-border: #f59e0b40;
+    --fail: #e94560;
+    --fail-bg: #e9456015;
+    --fail-border: #e9456040;
+    --middleware: #a78bfa;
+    --middleware-bg: #a78bfa15;
+    --middleware-border: #a78bfa40;
+    --accent: #a78bfa;
+    --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+  }
+
+  .header h1 {
+    font-size: 2.4rem;
+    font-weight: 300;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .header h1 .a2a { color: var(--remote); font-weight: 600; }
+  .header h1 .dot { color: var(--text-dim); font-weight: 200; padding: 0 0.1em; }
+
+  .header .subtitle {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  /* Section headers */
+  .section-title {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--text-bright);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+
+  .section-title .num {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-right: 0.75rem;
+    font-weight: 400;
+  }
+
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  /* Comparison grid */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .compare-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .compare-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .compare-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .compare-card.local-card::before { background: var(--local); }
+  .compare-card.remote-card::before { background: var(--remote); }
+
+  .compare-card .card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .compare-card.local-card .card-title { color: var(--local); }
+  .compare-card.remote-card .card-title { color: var(--remote); }
+
+  .compare-card .card-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .local-card .card-badge { background: var(--local-bg); color: var(--local); border: 1px solid var(--local-border); }
+  .remote-card .card-badge { background: var(--remote-bg); color: var(--remote); border: 1px solid var(--remote-border); }
+
+  .compare-card ul {
+    list-style: none;
+    margin-bottom: 1.25rem;
+  }
+
+  .compare-card ul li {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    padding: 0.3rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+
+  .compare-card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .local-card ul li::before { background: var(--local); opacity: 0.5; }
+  .remote-card ul li::before { background: var(--remote); opacity: 0.5; }
+
+  .code-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text);
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  .code-block .kw { color: var(--middleware); }
+  .code-block .str { color: var(--local); }
+  .code-block .fn { color: var(--remote); }
+  .code-block .comment { color: var(--text-dim); }
+
+  /* SVG diagram container */
+  .diagram-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    overflow-x: auto;
+  }
+
+  .diagram-wrap svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Resilience pattern cards */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .pattern-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .pattern-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--middleware);
+  }
+
+  .pattern-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .pattern-card .pattern-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--middleware);
+    margin-bottom: 0.25rem;
+  }
+
+  .pattern-card .pattern-api {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+
+  .pattern-card .pattern-diagram {
+    margin-bottom: 1rem;
+  }
+
+  .pattern-card .pattern-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* Composition examples */
+  .example-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .example-block .example-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  /* Discovery cards */
+  .discovery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .discovery-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .discovery-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--boundary);
+  }
+
+  .discovery-card:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .discovery-card .disc-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--boundary);
+    margin-bottom: 0.75rem;
+  }
+
+  .discovery-card .disc-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .compare-grid { grid-template-columns: 1fr; }
+    .pattern-grid { grid-template-columns: 1fr; }
+    .discovery-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.8rem; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 1rem; }
+    .header h1 { font-size: 1.5rem; }
+    .diagram-wrap { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>adk-fluent <span class="dot">&middot;</span> <span class="a2a">A2A</span> Topology Reference</h1>
+    <div class="subtitle">Agent-to-agent communication across process boundaries</div>
+  </div>
+
+  <!-- 1. Local vs Remote Comparison -->
+  <div class="section">
+    <div class="section-title"><span class="num">01</span>Local vs Remote Comparison</div>
+    <div class="compare-grid">
+
+      <div class="compare-card local-card animate-in" style="animation-delay: 0.1s;">
+        <div class="card-title">Local Agent <span class="card-badge">IN-PROCESS</span></div>
+        <ul>
+          <li>In-process, shared memory</li>
+          <li>Direct state access via <code style="font-family:var(--mono);font-size:0.85em;">session.state</code></li>
+          <li>Millisecond latency</li>
+          <li>Exception on failure</li>
+          <li>No network needed</li>
+        </ul>
+        <div class="code-block"><span class="fn">Agent</span>(<span class="str">"helper"</span>, <span class="str">"gemini-2.5-flash"</span>)</div>
+      </div>
+
+      <div class="compare-card remote-card animate-in" style="animation-delay: 0.2s;">
+        <div class="card-title">Remote A2A Agent <span class="card-badge">CROSS-PROCESS</span></div>
+        <ul>
+          <li>Separate process / machine</li>
+          <li>State bridged via <code style="font-family:var(--mono);font-size:0.85em;">.sends()</code> / <code style="font-family:var(--mono);font-size:0.85em;">.receives()</code></li>
+          <li>Seconds latency (network + remote LLM)</li>
+          <li>HTTP timeout, 503, FAILED task</li>
+          <li>Needs retry, circuit breaker, timeout</li>
+        </ul>
+        <div class="code-block"><span class="fn">RemoteAgent</span>(<span class="str">"helper"</span>, agent_card=<span class="str">"http://..."</span>)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. Mesh Topology Diagram -->
+  <div class="section">
+    <div class="section-title"><span class="num">02</span>Mesh Topology Diagram</div>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 720 520" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+        <defs>
+          <marker id="arrow-green" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#10b981"/>
+          </marker>
+          <marker id="arrow-blue" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#0ea5e9"/>
+          </marker>
+          <marker id="arrow-orange" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#f59e0b"/>
+          </marker>
+          <filter id="glow-green">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feFlood flood-color="#10b981" flood-opacity="0.3"/>
+            <feComposite in2="blur" operator="in"/>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glow-blue">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feFlood flood-color="#0ea5e9" flood-opacity="0.3"/>
+            <feComposite in2="blur" operator="in"/>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Network boundary (dashed orange) -->
+        <rect x="30" y="195" width="660" height="310" rx="16" ry="16"
+              fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="8,5" opacity="0.5"/>
+        <text x="56" y="220" fill="#f59e0b" font-size="11" font-weight="500" opacity="0.7" font-family="'JetBrains Mono', monospace">A2A NETWORK BOUNDARY</text>
+
+        <!-- Local boundary -->
+        <rect x="245" y="105" width="230" height="105" rx="12" ry="12"
+              fill="#10b98108" stroke="#10b981" stroke-width="1" stroke-dasharray="6,4" opacity="0.4"/>
+        <text x="270" y="125" fill="#10b981" font-size="10" font-weight="500" opacity="0.6" font-family="'JetBrains Mono', monospace">LOCAL PROCESS</text>
+
+        <!-- User node -->
+        <g class="mesh-node" data-delay="0">
+          <rect x="305" y="30" width="110" height="44" rx="8" fill="var(--surface-2)" stroke="var(--border-accent)" stroke-width="1.5"/>
+          <text x="360" y="57" text-anchor="middle" fill="var(--text-bright)" font-size="13" font-weight="500">User</text>
+        </g>
+
+        <!-- Arrow: User → Orchestrator -->
+        <line x1="360" y1="74" x2="360" y2="138" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+        <!-- Orchestrator (LOCAL) -->
+        <g class="mesh-node" data-delay="1">
+          <rect x="285" y="138" width="150" height="55" rx="10" fill="#10b98110" stroke="#10b981" stroke-width="1.5" filter="url(#glow-green)"/>
+          <text x="360" y="161" text-anchor="middle" fill="#10b981" font-size="13" font-weight="600">Orchestrator</text>
+          <text x="360" y="179" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="'JetBrains Mono', monospace">Port 8000</text>
+        </g>
+
+        <!-- A2A arrows from Orchestrator -->
+        <!-- To Research (left) -->
+        <path d="M285,170 L160,275" stroke="#0ea5e9" stroke-width="1.5" fill="none" marker-end="url(#arrow-blue)" stroke-dasharray="4,3"/>
+        <!-- To Code Agent (center) -->
+        <line x1="360" y1="193" x2="360" y2="375" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrow-blue)" stroke-dasharray="4,3"/>
+        <!-- To Review (right) -->
+        <path d="M435,170 L560,275" stroke="#0ea5e9" stroke-width="1.5" fill="none" marker-end="url(#arrow-blue)" stroke-dasharray="4,3"/>
+
+        <!-- Research Agent (REMOTE) -->
+        <g class="mesh-node" data-delay="2">
+          <rect x="65" y="260" width="150" height="65" rx="10" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1.5" filter="url(#glow-blue)"/>
+          <text x="140" y="284" text-anchor="middle" fill="#0ea5e9" font-size="13" font-weight="600">Research</text>
+          <text x="140" y="302" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="'JetBrains Mono', monospace">Port 8001</text>
+          <text x="140" y="316" text-anchor="middle" fill="var(--text-dim)" font-size="9">(team A)</text>
+        </g>
+
+        <!-- Citation Agent (REMOTE, under Research) -->
+        <g class="mesh-node" data-delay="4">
+          <rect x="65" y="380" width="150" height="55" rx="10" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1.5" filter="url(#glow-blue)"/>
+          <text x="140" y="404" text-anchor="middle" fill="#0ea5e9" font-size="13" font-weight="600">Citation</text>
+          <text x="140" y="422" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="'JetBrains Mono', monospace">Port 8004</text>
+        </g>
+
+        <!-- Arrow: Research → Citation -->
+        <line x1="140" y1="325" x2="140" y2="380" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrow-blue)" stroke-dasharray="4,3"/>
+
+        <!-- Code Agent (REMOTE, center bottom) -->
+        <g class="mesh-node" data-delay="3">
+          <rect x="285" y="380" width="150" height="55" rx="10" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1.5" filter="url(#glow-blue)"/>
+          <text x="360" y="404" text-anchor="middle" fill="#0ea5e9" font-size="13" font-weight="600">Code Agent</text>
+          <text x="360" y="422" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="'JetBrains Mono', monospace">Port 8002</text>
+        </g>
+
+        <!-- Review Agent (REMOTE, right) -->
+        <g class="mesh-node" data-delay="5">
+          <rect x="505" y="260" width="150" height="65" rx="10" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1.5" filter="url(#glow-blue)"/>
+          <text x="580" y="284" text-anchor="middle" fill="#0ea5e9" font-size="13" font-weight="600">Review</text>
+          <text x="580" y="302" text-anchor="middle" fill="var(--text-dim)" font-size="10" font-family="'JetBrains Mono', monospace">Port 8003</text>
+          <text x="580" y="316" text-anchor="middle" fill="var(--text-dim)" font-size="9">(team C)</text>
+        </g>
+
+        <!-- Legend -->
+        <g transform="translate(500, 440)">
+          <rect x="0" y="0" width="16" height="3" rx="1.5" fill="#10b981"/>
+          <text x="22" y="5" fill="var(--text-dim)" font-size="10">Local</text>
+          <rect x="0" y="14" width="16" height="3" rx="1.5" fill="#0ea5e9" stroke-dasharray="3,2"/>
+          <line x1="0" y1="15.5" x2="16" y2="15.5" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <text x="22" y="19" fill="var(--text-dim)" font-size="10">A2A Remote</text>
+          <line x1="0" y1="29.5" x2="16" y2="29.5" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="22" y="33" fill="var(--text-dim)" font-size="10">Network Boundary</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 3. State Bridging Diagram -->
+  <div class="section">
+    <div class="section-title"><span class="num">03</span>State Bridging Diagram</div>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+        <defs>
+          <marker id="arr-g" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#10b981"/>
+          </marker>
+          <marker id="arr-b" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#0ea5e9"/>
+          </marker>
+          <marker id="arr-o" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,3 L0,6 Z" fill="#f59e0b"/>
+          </marker>
+        </defs>
+
+        <!-- Column labels -->
+        <text x="110" y="28" text-anchor="middle" fill="var(--text-dim)" font-size="11" font-weight="600" text-transform="uppercase" letter-spacing="0.08em">LOCAL STATE</text>
+        <text x="380" y="28" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600" letter-spacing="0.08em">A2A BOUNDARY</text>
+        <text x="640" y="28" text-anchor="middle" fill="var(--text-dim)" font-size="11" font-weight="600" letter-spacing="0.08em">REMOTE AGENT</text>
+
+        <!-- A2A boundary column -->
+        <rect x="295" y="40" width="170" height="260" rx="10" fill="#f59e0b06" stroke="#f59e0b" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+
+        <!-- OUTBOUND ROW (.sends) -->
+        <!-- Local state box -->
+        <rect x="30" y="60" width="160" height="70" rx="8" fill="#10b98110" stroke="#10b981" stroke-width="1"/>
+        <text x="110" y="85" text-anchor="middle" fill="#10b981" font-size="12" font-weight="500" font-family="'JetBrains Mono', monospace">query: X</text>
+        <text x="110" y="107" text-anchor="middle" fill="#10b981" font-size="12" font-weight="500" font-family="'JetBrains Mono', monospace">tone: Y</text>
+
+        <!-- .sends() arrow -->
+        <line x1="190" y1="95" x2="305" y2="95" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr-g)"/>
+        <text x="248" y="88" text-anchor="middle" fill="#10b981" font-size="10" font-weight="600" font-family="'JetBrains Mono', monospace">.sends()</text>
+
+        <!-- Message Parts box -->
+        <rect x="310" y="65" width="140" height="55" rx="8" fill="#f59e0b10" stroke="#f59e0b" stroke-width="1"/>
+        <text x="380" y="88" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="500">Message</text>
+        <text x="380" y="106" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="500">Parts</text>
+
+        <!-- Arrow to remote -->
+        <line x1="450" y1="95" x2="555" y2="95" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr-o)"/>
+
+        <!-- Receives as prompt -->
+        <rect x="560" y="60" width="160" height="70" rx="8" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1"/>
+        <text x="640" y="85" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="500">Receives</text>
+        <text x="640" y="107" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="500">as prompt</text>
+
+        <!-- Vertical arrow on remote side -->
+        <line x1="640" y1="130" x2="640" y2="190" stroke="var(--text-dim)" stroke-width="1" stroke-dasharray="3,3"/>
+
+        <!-- RETURN ROW (.receives) -->
+        <!-- Local state box -->
+        <rect x="30" y="200" width="160" height="70" rx="8" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1"/>
+        <text x="110" y="225" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="500" font-family="'JetBrains Mono', monospace">findings</text>
+        <text x="110" y="247" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="500" font-family="'JetBrains Mono', monospace">score</text>
+
+        <!-- .receives() arrow (reversed) -->
+        <line x1="305" y1="235" x2="190" y2="235" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr-b)"/>
+        <text x="248" y="228" text-anchor="middle" fill="#0ea5e9" font-size="10" font-weight="600" font-family="'JetBrains Mono', monospace">.receives()</text>
+
+        <!-- Response Parts box -->
+        <rect x="310" y="205" width="140" height="55" rx="8" fill="#f59e0b10" stroke="#f59e0b" stroke-width="1"/>
+        <text x="380" y="228" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="500">Response</text>
+        <text x="380" y="246" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="500">Parts</text>
+
+        <!-- Arrow from remote -->
+        <line x1="555" y1="235" x2="450" y2="235" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arr-o)"/>
+
+        <!-- LLM runs box -->
+        <rect x="560" y="200" width="160" height="70" rx="8" fill="#0ea5e910" stroke="#0ea5e9" stroke-width="1"/>
+        <text x="640" y="225" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="500">LLM runs</text>
+        <text x="640" y="247" text-anchor="middle" fill="#0ea5e9" font-size="12" font-weight="500">produces output</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 4. Resilience Patterns -->
+  <div class="section">
+    <div class="section-title"><span class="num">04</span>Resilience Patterns</div>
+    <div class="pattern-grid">
+
+      <!-- Retry -->
+      <div class="pattern-card animate-in" style="animation-delay: 0.3s;">
+        <div class="pattern-name">Retry</div>
+        <div class="pattern-api">M.a2a_retry(max_attempts=3)</div>
+        <div class="pattern-diagram">
+          <svg viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+            <!-- Attempt 1 (fail) -->
+            <line x1="20" y1="50" x2="70" y2="50" stroke="var(--text-dim)" stroke-width="1.5"/>
+            <circle cx="75" cy="50" r="8" fill="#e9456020" stroke="#e94560" stroke-width="1.5"/>
+            <text x="75" y="54" text-anchor="middle" fill="#e94560" font-size="11" font-weight="700">x</text>
+            <text x="48" y="38" text-anchor="middle" fill="var(--text-dim)" font-size="9">#1</text>
+
+            <!-- Attempt 2 (fail) -->
+            <line x1="90" y1="50" x2="130" y2="50" stroke="var(--text-dim)" stroke-width="1.5"/>
+            <circle cx="135" cy="50" r="8" fill="#e9456020" stroke="#e94560" stroke-width="1.5"/>
+            <text x="135" y="54" text-anchor="middle" fill="#e94560" font-size="11" font-weight="700">x</text>
+            <text x="112" y="38" text-anchor="middle" fill="var(--text-dim)" font-size="9">#2</text>
+
+            <!-- Attempt 3 (success) -->
+            <line x1="150" y1="50" x2="190" y2="50" stroke="var(--text-dim)" stroke-width="1.5"/>
+            <circle cx="195" cy="50" r="8" fill="#10b98120" stroke="#10b981" stroke-width="1.5"/>
+            <text x="195" y="54" text-anchor="middle" fill="#10b981" font-size="11" font-weight="700">&#10003;</text>
+            <text x="172" y="38" text-anchor="middle" fill="var(--text-dim)" font-size="9">#3</text>
+
+            <!-- Backoff curve -->
+            <path d="M80,65 Q90,78 95,65" stroke="#f59e0b" stroke-width="1" fill="none" opacity="0.5"/>
+            <path d="M140,65 Q155,84 165,65" stroke="#f59e0b" stroke-width="1" fill="none" opacity="0.5"/>
+            <text x="90" y="85" text-anchor="middle" fill="#f59e0b" font-size="8" opacity="0.7">1s</text>
+            <text x="155" y="90" text-anchor="middle" fill="#f59e0b" font-size="8" opacity="0.7">2s</text>
+          </svg>
+        </div>
+        <div class="pattern-desc">Exponential backoff between retries. Configurable max attempts and delay multiplier.</div>
+      </div>
+
+      <!-- Circuit Breaker -->
+      <div class="pattern-card animate-in" style="animation-delay: 0.4s;">
+        <div class="pattern-name">Circuit Breaker</div>
+        <div class="pattern-api">M.a2a_circuit_breaker(max_fails=5)</div>
+        <div class="pattern-diagram">
+          <svg viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+            <!-- Closed state -->
+            <rect x="10" y="30" width="54" height="36" rx="6" fill="#10b98115" stroke="#10b981" stroke-width="1.5"/>
+            <text x="37" y="52" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">CLOSED</text>
+            <text x="37" y="24" text-anchor="middle" fill="var(--text-dim)" font-size="8">normal</text>
+
+            <!-- Arrow Closed→Open -->
+            <line x1="64" y1="48" x2="82" y2="48" stroke="var(--text-dim)" stroke-width="1"/>
+            <text x="73" y="42" text-anchor="middle" fill="#e94560" font-size="7">5 fails</text>
+
+            <!-- Open state -->
+            <rect x="83" y="30" width="54" height="36" rx="6" fill="#e9456015" stroke="#e94560" stroke-width="1.5"/>
+            <text x="110" y="52" text-anchor="middle" fill="#e94560" font-size="9" font-weight="600">OPEN</text>
+            <text x="110" y="24" text-anchor="middle" fill="var(--text-dim)" font-size="8">reject all</text>
+
+            <!-- Arrow Open→Half-Open -->
+            <line x1="137" y1="48" x2="155" y2="48" stroke="var(--text-dim)" stroke-width="1"/>
+            <text x="146" y="42" text-anchor="middle" fill="#f59e0b" font-size="7">timer</text>
+
+            <!-- Half-Open state -->
+            <rect x="156" y="30" width="54" height="36" rx="6" fill="#f59e0b15" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="183" y="47" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="600">HALF-</text>
+            <text x="183" y="58" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="600">OPEN</text>
+            <text x="183" y="24" text-anchor="middle" fill="var(--text-dim)" font-size="8">probe</text>
+
+            <!-- Return arrows -->
+            <path d="M183,66 C183,88 37,88 37,66" stroke="var(--text-dim)" stroke-width="1" fill="none" stroke-dasharray="3,2"/>
+            <text x="110" y="84" text-anchor="middle" fill="#10b981" font-size="7">success: close</text>
+          </svg>
+        </div>
+        <div class="pattern-desc">Trips open after consecutive failures. Auto-probes after cooldown. Prevents cascading failure.</div>
+      </div>
+
+      <!-- Timeout -->
+      <div class="pattern-card animate-in" style="animation-delay: 0.5s;">
+        <div class="pattern-name">Timeout</div>
+        <div class="pattern-api">M.a2a_timeout(seconds=30)</div>
+        <div class="pattern-diagram">
+          <svg viewBox="0 0 220 100" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+            <!-- Clock circle -->
+            <circle cx="70" cy="50" r="28" fill="none" stroke="var(--text-dim)" stroke-width="1.5"/>
+            <!-- Clock hands -->
+            <line x1="70" y1="50" x2="70" y2="30" stroke="var(--text-bright)" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="70" y1="50" x2="84" y2="55" stroke="var(--text-bright)" stroke-width="1" stroke-linecap="round"/>
+            <circle cx="70" cy="50" r="2.5" fill="var(--text-bright)"/>
+
+            <!-- Cutoff line -->
+            <line x1="110" y1="20" x2="110" y2="80" stroke="#e94560" stroke-width="2" stroke-dasharray="4,3"/>
+            <text x="110" y="92" text-anchor="middle" fill="#e94560" font-size="9" font-weight="600">30s limit</text>
+
+            <!-- OK zone -->
+            <rect x="125" y="28" width="70" height="20" rx="4" fill="#10b98115" stroke="#10b981" stroke-width="1"/>
+            <text x="160" y="42" text-anchor="middle" fill="#10b981" font-size="9" font-weight="500">&lt; 30s OK</text>
+
+            <!-- Timeout zone -->
+            <rect x="125" y="56" width="70" height="20" rx="4" fill="#e9456015" stroke="#e94560" stroke-width="1"/>
+            <text x="160" y="70" text-anchor="middle" fill="#e94560" font-size="9" font-weight="500">&gt; 30s FAIL</text>
+          </svg>
+        </div>
+        <div class="pattern-desc">Hard time limit per A2A call. Prevents hanging on unresponsive remote agents.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. Composition Examples -->
+  <div class="section">
+    <div class="section-title"><span class="num">05</span>Composition Examples</div>
+
+    <div class="example-block">
+      <div class="example-label">Sequential pipeline with remote agent</div>
+      <div class="code-block"><span class="comment"># Remote reviewer in a local pipeline</span>
+<span class="fn">pipeline</span> = <span class="fn">Agent</span>(<span class="str">"writer"</span>) >> remote_reviewer >> <span class="fn">Agent</span>(<span class="str">"editor"</span>)</div>
+    </div>
+
+    <div class="example-block">
+      <div class="example-label">Fallback chain: fast remote &rarr; slow remote &rarr; local</div>
+      <div class="code-block"><span class="comment"># Cascading fallback across boundaries</span>
+<span class="fn">chain</span> = <span class="fn">RemoteAgent</span>(<span class="str">"fast"</span>) // <span class="fn">RemoteAgent</span>(<span class="str">"backup"</span>) // <span class="fn">Agent</span>(<span class="str">"local"</span>)</div>
+    </div>
+
+    <div class="example-block">
+      <div class="example-label">Parallel fan-out mixing local and remote</div>
+      <div class="code-block"><span class="comment"># Local and remote agents in parallel</span>
+<span class="fn">fanout</span> = <span class="fn">Agent</span>(<span class="str">"local-search"</span>) | <span class="fn">RemoteAgent</span>(<span class="str">"web-search"</span>) | <span class="fn">RemoteAgent</span>(<span class="str">"paper-search"</span>)</div>
+    </div>
+
+    <div class="example-block">
+      <div class="example-label">Remote agent as tool</div>
+      <div class="code-block"><span class="comment"># Expose remote agent as a callable tool</span>
+<span class="fn">agent</span> = <span class="fn">Agent</span>(<span class="str">"coordinator"</span>).tools(<span class="fn">T</span>.a2a(<span class="str">"http://research:8001/agent.json"</span>))</div>
+    </div>
+  </div>
+
+  <!-- 6. Discovery Methods -->
+  <div class="section">
+    <div class="section-title"><span class="num">06</span>Discovery Methods</div>
+    <div class="discovery-grid">
+
+      <div class="discovery-card animate-in" style="animation-delay: 0.6s;">
+        <div class="disc-title">DNS Well-Known</div>
+        <div class="disc-desc">Discover agents via DNS-based well-known URI resolution. Zero-config for agents published with standard conventions.</div>
+        <div class="code-block"><span class="fn">RemoteAgent</span>.discover(
+  <span class="str">"research.agents.acme.com"</span>
+)</div>
+      </div>
+
+      <div class="discovery-card animate-in" style="animation-delay: 0.7s;">
+        <div class="disc-title">Registry</div>
+        <div class="disc-desc">Query a central agent registry by skill, capability, or metadata. Supports dynamic topology updates.</div>
+        <div class="code-block"><span class="fn">AgentRegistry</span>(
+  <span class="str">"http://registry:9000"</span>
+).find(skill=<span class="str">"research"</span>)</div>
+      </div>
+
+      <div class="discovery-card animate-in" style="animation-delay: 0.8s;">
+        <div class="disc-title">Environment</div>
+        <div class="disc-desc">Read agent card URL from environment variable. Ideal for container deployments and CI/CD pipelines.</div>
+        <div class="code-block"><span class="fn">RemoteAgent</span>(
+  <span class="str">"code"</span>,
+  env=<span class="str">"CODE_AGENT_URL"</span>
+)</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    adk-fluent A2A topology reference &mdash; open in browser for interactive reference
+  </div>
+
+</div>
+
+<script>
+  // Staggered fade-in for mesh diagram nodes
+  document.addEventListener('DOMContentLoaded', function() {
+    var nodes = document.querySelectorAll('.mesh-node');
+    nodes.forEach(function(node) {
+      var delay = parseInt(node.getAttribute('data-delay') || '0', 10);
+      node.style.opacity = '0';
+      node.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      node.style.transform = 'translateY(12px)';
+      setTimeout(function() {
+        node.style.opacity = '1';
+        node.style.transform = 'translateY(0)';
+      }, 200 + delay * 150);
+    });
+
+    // Animate .animate-in elements on scroll
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-in').forEach(function(el) {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    });
+  });
+</script>
+
+</body>
+</html>

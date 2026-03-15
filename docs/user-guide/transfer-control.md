@@ -2,6 +2,10 @@
 
 In multi-agent systems, the LLM decides when to hand off a conversation to another agent. Transfer control flags let you constrain which agents are valid transfer targets, shaping how conversations flow through your agent hierarchy.
 
+:::{tip}
+**Visual learner?** Open the [Delegation & Transfer Interactive Reference](../delegation-reference.html){target="_blank"} for animated control flow diagrams, a transfer control matrix, and topology examples.
+:::
+
 ## Overview
 
 ADK supports three transfer directions:
