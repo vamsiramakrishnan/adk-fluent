@@ -26,6 +26,11 @@
     --accent: #a78bfa;
     --accent-bg: #a78bfa15;
     --warning: #f59e0b;
+    --brand: #818cf8;
+    --nav-bg: rgba(10, 10, 15, 0.85);
+    --code-bg: #12121a;
+    --shadow-hover: rgba(0, 0, 0, 0.4);
+
     --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
     --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
@@ -686,9 +691,224 @@
     .concern-timeline::before { display: none; }
     .header h1 { font-size: 1.8rem; }
   }
+
+  /* ── Light theme ─────────────────────────────────────────── */
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --surface: #f8fafc;
+    --surface-2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #334155;
+    --text-dim: #64748b;
+    --text-bright: #0f172a;
+    --brand: #4f46e5;
+    --nav-bg: rgba(255, 255, 255, 0.85);
+    --code-bg: #f8fafc;
+    --shadow-hover: rgba(0, 0, 0, 0.08);
+  }
+
+  :root[data-theme="dark"], :root:not([data-theme]) {
+    --brand: #818cf8;
+    --nav-bg: rgba(10, 10, 15, 0.85);
+    --code-bg: #12121a;
+    --shadow-hover: rgba(0, 0, 0, 0.4);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --surface-2: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #334155;
+      --text-dim: #64748b;
+      --text-bright: #0f172a;
+      --brand: #4f46e5;
+      --nav-bg: rgba(255, 255, 255, 0.85);
+      --code-bg: #f8fafc;
+      --shadow-hover: rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  /* ── Light-mode SVG overrides ───────────────────────────── */
+  :root[data-theme="light"] svg text[fill="#e0e0e8"],
+  :root[data-theme="light"] svg text[fill="#ffffff"] {
+    fill: #0f172a;
+  }
+
+  :root[data-theme="light"] svg text[fill="#8888a0"] {
+    fill: #64748b;
+  }
+
+  :root[data-theme="light"] svg rect[fill="#12121a"],
+  :root[data-theme="light"] svg rect[fill="#1a1a28"] {
+    fill: #f1f5f9;
+  }
+
+  :root[data-theme="light"] svg rect[stroke="#2a2a3a"],
+  :root[data-theme="light"] svg rect[stroke="#3a3a5a"] {
+    stroke: #e2e8f0;
+  }
+
+  :root[data-theme="light"] svg line[stroke="#2a2a3a"] {
+    stroke: #e2e8f0;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) svg text[fill="#e0e0e8"],
+    :root:not([data-theme]) svg text[fill="#ffffff"] {
+      fill: #0f172a;
+    }
+    :root:not([data-theme]) svg text[fill="#8888a0"] {
+      fill: #64748b;
+    }
+    :root:not([data-theme]) svg rect[fill="#12121a"],
+    :root:not([data-theme]) svg rect[fill="#1a1a28"] {
+      fill: #f1f5f9;
+    }
+    :root:not([data-theme]) svg rect[stroke="#2a2a3a"],
+    :root:not([data-theme]) svg rect[stroke="#3a3a5a"] {
+      stroke: #e2e8f0;
+    }
+    :root:not([data-theme]) svg line[stroke="#2a2a3a"] {
+      stroke: #e2e8f0;
+    }
+  }
+
+  .card:hover {
+    box-shadow: 0 8px 32px var(--shadow-hover);
+  }
+
+  /* ── Navigation bar ─────────────────────────────────────── */
+  .ref-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1.5rem;
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--sans);
+    font-size: 0.8rem;
+  }
+
+  .ref-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .ref-nav-logo {
+    font-weight: 700;
+    color: var(--brand);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: -0.01em;
+  }
+
+  .ref-nav-logo:hover { opacity: 0.8; }
+
+  .ref-nav-sep {
+    color: var(--text-dim);
+    user-select: none;
+  }
+
+  .ref-nav-back {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .ref-nav-back:hover { color: var(--brand); }
+
+  .ref-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .ref-nav-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .ref-nav-link:hover { color: var(--text); }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--brand);
+    color: var(--text);
+  }
+
+  /* ── Unified footer ──────────────────────────────────────── */
+  .ref-footer {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .ref-footer-nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .ref-footer-nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: color 0.15s;
+  }
+
+  .ref-footer-nav a:hover { color: var(--brand); }
+
+  .ref-footer-copy {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .ref-footer-copy a {
+    color: var(--brand);
+    text-decoration: none;
+  }
+
+  .ref-footer-copy a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+<nav class="ref-nav" role="navigation" aria-label="Reference navigation">
+  <div class="ref-nav-left">
+    <a class="ref-nav-logo" href="index.html">adk-fluent</a>
+    <span class="ref-nav-sep">/</span>
+    <a class="ref-nav-back" href="user-guide/index.html">&larr; User Guide</a>
+  </div>
+  <div class="ref-nav-right">
+    <a class="ref-nav-link" href="user-guide/index.html">User Guide</a>
+    <a class="ref-nav-link" href="generated/api/index.html">API</a>
+    <a class="ref-nav-link" href="https://github.com/vamsiramakrishnan/adk-fluent" target="_blank" rel="noopener">GitHub</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#x263E;</button>
+  </div>
+</nav>
+
 
 <div class="container">
 
@@ -1183,11 +1403,58 @@ Be concise.
   </div>
 
   <!-- Footer -->
-  <div style="text-align:center; padding: 3rem 0 1rem; color: var(--text-dim); font-size: 0.75rem;">
-    adk-fluent &middot; P &middot; C &middot; S &mdash; Three modules, five concerns, one fluent API
+  <div class="ref-footer">
+  <div class="ref-footer-nav">
+    <a href="index.html">&larr; Back to User Guide</a>
+    <a href="user-guide/index.html">User Guide</a>
+    <a href="index.html">Home</a>
+    <a href="generated/api/index.html">API Reference</a>
+    <a href="https://pypi.org/project/adk-fluent/" target="_blank" rel="noopener">PyPI</a>
+    <a href="https://github.com/vamsiramakrishnan/adk-fluent" target="_blank" rel="noopener">GitHub</a>
   </div>
+  <div class="ref-footer-copy">
+    adk-fluent · P · C · S Visual Reference &mdash; <a href="index.html">adk-fluent</a> documentation
+  </div>
+</div>
+
 
 </div>
+
+<script>
+(function() {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  var stored = localStorage.getItem('adk-fluent-theme');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? '\u2600' : '\u263E';
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    localStorage.setItem('adk-fluent-theme', theme);
+  }
+
+  function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+
+  if (stored) {
+    applyTheme(stored);
+  } else {
+    applyTheme(getSystemTheme());
+  }
+
+  btn.addEventListener('click', function() {
+    var current = root.getAttribute('data-theme') || getSystemTheme();
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function(e) {
+    if (!localStorage.getItem('adk-fluent-theme')) {
+      applyTheme(e.matches ? 'light' : 'dark');
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
