@@ -1,3 +1,3 @@
 """Single source of truth for adk-fluent version."""
 
-__version__ = "0.11.0"
+__version__ = "0.12.1"

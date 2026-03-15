@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-03-15
+
+### Added
+
+- **A2A protocol integration**: First-class support for Google's Agent-to-Agent protocol
+  - `RemoteA2aAgent` builder for agents that communicate via A2A client
+  - `A2aAgentExecutor` and `A2aAgentExecutorConfig` builders for A2A server-side execution
+  - A2A Phase 2: state bridging between ADK sessions and A2A tasks, resilience middleware
+  - A2A Phase 3: agent discovery, registry, and lifecycle management
+  - `.skill()` method for A2A skill card declarations, `T.a2a()` for A2A tool composition
+  - Example: `examples/a2a_remote_delegation/` with client, server, and patterns demo
+- **`G` (Guards) module**: Input/output validation guard namespace
+  - `G.guard(fn)` custom guard, `G.pii()` PII detection, `G.toxicity()` toxicity detection
+  - `G.length()` response length guard, `G.schema()` schema validation
+  - Guard compilation and IR integration with `.guard()` builder method
+  - `GuardViolation`, `PIIDetector`, `ContentJudge` provider protocols
+- **`E` (Eval) module**: Fluent agent evaluation namespace
+  - `E.case()` evaluation cases, `E.criterion()` custom criteria, `E.persona()` personas
+  - `LLMJudge` for LLM-powered evaluation, `E.gate()` enforcement
+  - `EvalSuite`, `EvalReport`, `ComparisonReport` for structured evaluation
+- **Namespace expansion**: 30+ new methods across existing namespaces
+  - `S`: `accumulate`, `counter`, `history`, `validate`, `require`, `flatten`, `unflatten`, `zip`, `group_by`
+  - `T`: `mock`, `confirm`, `timeout`, `cache`, `mcp`, `openapi`, `transform`
+  - `M`: `circuit_breaker`, `timeout`, `cache`, `fallback_model`, `dedup`, `sample`, `trace`, `metrics`
+- **`NamespaceSpec` protocol**: Uniform interface across all namespace modules (P, C, S, A, M, T, E, G)
+- **Interactive visual references**: 5 standalone HTML reference pages with dark-theme design system
+  - Data flow reference, delegation reference, execution modes reference
+  - A2A topology reference, module lifecycle reference
+- **Documentation overhaul**
+  - 25-point visual audit: favicon, social cards, hover tooltips, 404 page, custom CSS/JS
+  - Hero workflow cookbooks: deep research, customer support triage, code review agent, and more
+  - Decision guide, best practices & anti-patterns guide, callbacks guide, execution guide
+  - Expanded user guides for middleware, testing, memory, visibility, presets, expression language
+  - Sequence diagram generation for module lifecycle
+- **AI coding agent skills**: Auto-generated skills for Claude Code and Gemini CLI
+  - 8 skills: develop-feature, codegen-pipeline, debug-builder, architect-agents, review-pr, add-cookbook, write-tests, upgrade-adk
+  - Shared reference files and validation scripts
+- **Editor rules**: Auto-generated `.clinerules`, `.cursor/rules`, `.windsurfrules`, `.github/instructions` from manifest
+- **CI improvements**: N-5 backward compatibility matrix, composite `setup-env` action, optimized workflows
+
+### Changed
+
+- **Code generation pipeline**: New `optional_imports` mechanism on `ModuleNode` IR for optional dependencies — emits `if not TYPE_CHECKING: try/except` with `TYPE_CHECKING`-guarded imports for pyright compatibility
+- **Code IR**: New `ForkAndAssign`, `AsyncForYield`, `DeprecationStmt` statement nodes; shared `split_at_commas` utility
+- **DevEx audit refactors** (PR #69): Exception hierarchy (`_exceptions.py`), context provider extraction (`_context_providers.py`), improved error messages
+- **Documentation site**: Redesigned CSS with Inter/JetBrains Mono fonts, card-based layouts, responsive grid
+- **CI workflows**: Consolidated with reusable composite action, `just check-gen` replaces inline git diff
+
+### Fixed
+
+- **A2A SDK is now truly optional**: Generator pipeline emits `try/except` with `None` fallback for `google.adk.a2a.*` and `google.adk.agents.remote_a2a_agent` imports — no more `ModuleNotFoundError` when `a2a` SDK is not installed
+- **Pyright `reportInvalidTypeForm`**: Optional import fallbacks (`_ADK_X = None`) guarded with `if not TYPE_CHECKING:` so pyright only sees real types from the `TYPE_CHECKING` block
+- **Ruff SIM105**: Optional `import a2a.types` uses `contextlib.suppress` instead of `try/except/pass`
+- **Docs build**: Suppress `hoverxref` deprecation warning, exclude architecture dir, fix Pygments lexer warnings
+- **Stale stubs**: Regenerated `.pyi` stubs for config, plugin, tool modules
+- **Deprecated API calls**: Replaced `.history("none")` with `.context(C.none())` across docs and cookbooks
+
 ## [0.11.0] - 2026-03-01
 
 ### Added
@@ -419,6 +476,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/vamsiramakrishnan/adk-fluent/releases/tag/v0.1.0
 [0.10.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.6...v0.10.0
 [0.11.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.10.0...v0.11.0
+[0.12.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.12.0...v0.12.1
 [0.2.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.1.0...v0.2.0
 [0.3.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.2.0...v0.3.0
 [0.3.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.3.0...v0.3.1
