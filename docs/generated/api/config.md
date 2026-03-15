@@ -4,6 +4,7 @@
 
 | Builder | Description |
 |---------|-------------|
+| [A2aAgentExecutorConfig](builder-A2aAgentExecutorConfig) | Configuration for the A2aAgentExecutor. |
 | [AgentConfig](builder-AgentConfig) | The config for the YAML schema to create an agent. |
 | [BaseAgentConfig](builder-BaseAgentConfig) | The config for the YAML schema of a BaseAgent. |
 | [AgentRefConfig](builder-AgentRefConfig) | The config for the reference to another agent. |
@@ -42,6 +43,49 @@
 | [BaseToolConfig](builder-BaseToolConfig) | The base class for all tool configs. |
 | [ToolArgsConfig](builder-ToolArgsConfig) | Config to host free key-value pairs for the args in ToolConfig. |
 | [ToolConfig](builder-ToolConfig) | The configuration for a tool. |
+
+(builder-A2aAgentExecutorConfig)=
+## A2aAgentExecutorConfig
+
+> Fluent builder for `google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutorConfig`
+
+Configuration for the A2aAgentExecutor.
+
+**Quick start:**
+
+```python
+from adk_fluent import A2aAgentExecutorConfig
+
+result = (
+    A2aAgentExecutorConfig()
+    .build()
+)
+```
+
+### Control Flow & Execution
+
+#### `.build() -> A2aAgentExecutorConfig` {bdg-primary}`Control Flow & Execution`
+
+Resolve into a native ADK A2aAgentExecutorConfig.
+
+**Example:**
+
+```python
+config = A2aAgentExecutorConfig("config").build("...")
+```
+
+### Forwarded Fields
+
+These fields are available via `__getattr__` forwarding.
+
+| Field | Type |
+|-------|------|
+| `.a2a_part_converter(value)` | `Callable[[Part], Part | None | list[Part]]` |
+| `.gen_ai_part_converter(value)` | `Callable[[Part], Part | None | list[Part]]` |
+| `.request_converter(value)` | `Callable[[RequestContext, Callable[[Part], Part | None | list[Part]]], AgentRunRequest]` |
+| `.event_converter(value)` | `Callable[[Event, InvocationContext, str | None, str | None, Callable[[Part], Part | None | list[Part]]], list[a2a.types.Message | a2a.types.Task | a2a.types.TaskStatusUpdateEvent | a2a.types.TaskArtifactUpdateEvent]]` |
+
+---
 
 (builder-AgentConfig)=
 ## AgentConfig
@@ -119,7 +163,7 @@ BaseAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -415,7 +459,7 @@ LlmAgentConfig(name: str, instruction: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -459,7 +503,7 @@ config = LlmAgentConfig("config").outputs("result_key")
 #### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `static_instruction`
-- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
+- Set cached instruction. When set, `.instruct()` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change.
 
 **Example:**
 
@@ -563,7 +607,7 @@ config = LlmAgentConfig("config").include_history("none")
 #### `.static_instruct(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `static_instruction`
-- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
+- Set cached instruction. When set, `.instruct()` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change.
 
 **Example:**
 
@@ -642,7 +686,7 @@ LoopAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -742,7 +786,7 @@ ParallelAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -960,7 +1004,7 @@ SequentialAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 

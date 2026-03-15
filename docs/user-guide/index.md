@@ -50,6 +50,7 @@ Production concerns.
 | [IR & Backends](ir-and-backends.md) | `.to_ir()`, compilation, backend abstraction |
 | [Middleware](middleware.md) | The M module: `M.retry()`, `M.log()`, `M.cost()`, `M.circuit_breaker()`, composition |
 | [Guards](guards.md) | The G module: `G.pii()`, `G.toxicity()`, `G.schema()`, input/output validation |
+| [A2A (Agent-to-Agent)](a2a.md) | `RemoteAgent`, `A2AServer`, state bridging, A2A middleware, discovery, A2A patterns |
 | [Evaluation](evaluation.md) | The E module: `E.case()`, `E.criterion()`, eval suites, comparison reports |
 | [Testing](testing.md) | `.mock()`, `.test()`, `check_contracts()`, `AgentHarness`, pytest integration |
 
@@ -86,6 +87,7 @@ memory
 ir-and-backends
 middleware
 guards
+a2a
 evaluation
 testing
 error-reference

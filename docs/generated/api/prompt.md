@@ -17,7 +17,7 @@ Prompt composition namespace. Each method returns a frozen PTransform.
 | `P.section(name, text)`                                                                                                                                                                                      | `PSection`    | Add a custom named section                                           |
 | `P.when(predicate, block)`                                                                                                                                                                                   | `PWhen`       | Include block only if predicate is truthy at runtime                 |
 | `P.from_state(*keys)`                                                                                                                                                                                        | `PFromState`  | Read named keys from session state and format as context             |
-| `P.template(text)`                                                                                                                                                                                           | `PTemplate`   | Template with \{key}, {key?}, and \{ns:key} placeholders             |
+| `P.template(text)`                                                                                                                                                                                           | `PTemplate`   | Template with {key}, {key?}, and {ns:key} placeholders               |
 | `P.reorder(*section_names)`                                                                                                                                                                                  | `PReorder`    | Override default section ordering.                                   |
 | `P.only(*section_names)`                                                                                                                                                                                     | `POnly`       | Keep only the named sections.                                        |
 | `P.without(*section_names)`                                                                                                                                                                                  | `PWithout`    | Remove the named sections.                                           |
@@ -72,7 +72,7 @@ Specify the desired output format.
 
 Add a few-shot example.
 
-Freeform: P.example("Input: x=1 | Output: valid")
+Freeform:  P.example("Input: x=1 | Output: valid")
 Structured: P.example(input="x=eval(y)", output="Critical: injection")
 
 **Parameters:**
@@ -97,7 +97,7 @@ Add a custom named section.
 Include block only if predicate is truthy at runtime.
 
 String predicate is a shortcut for state key check:
-P.when("verbose", P.context("...")) # include if state["verbose"] truthy
+    P.when("verbose", P.context("..."))  # include if state\["verbose"\] truthy
 
 **Parameters:**
 
@@ -114,7 +114,7 @@ Read named keys from session state and format as context.
 
 ### `P.template(text: str) -> PTemplate`
 
-Template with \{key}, {key?}, and \{ns:key} placeholders.
+Template with {key}, {key?}, and {ns:key} placeholders.
 
 Resolved from session state at runtime. Optional vars ({key?})
 produce empty string if missing.
@@ -206,7 +206,7 @@ Post-process the compiled output
 | ------------- | ----------------------------------------------------------------- |
 | `PTransform`  | Base prompt transform descriptor                                  |
 | `PComposite`  | Union of multiple prompt blocks (via + operator)                  |
-| `PPipe`       | Pipe transform: source feeds into transform (via                  |
+| `PPipe`       | Pipe transform: source feeds into transform (via | operator)      |
 | `PRole`       | Role/persona definition.                                          |
 | `PContext`    | Background context section                                        |
 | `PTask`       | Primary task/objective section                                    |
@@ -216,7 +216,7 @@ Post-process the compiled output
 | `PSection`    | Custom named section                                              |
 | `PWhen`       | Conditional section inclusion                                     |
 | `PFromState`  | Read named keys from session state and format as context sections |
-| `PTemplate`   | Template string with \{key}, {key?}, and \{ns:key} placeholders   |
+| `PTemplate`   | Template string with {key}, {key?}, and {ns:key} placeholders     |
 | `PReorder`    | Override default section ordering                                 |
 | `POnly`       | Keep only the named sections (projection).                        |
 | `PWithout`    | Remove the named sections.                                        |
