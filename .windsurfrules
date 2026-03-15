@@ -91,6 +91,33 @@ All operators are immutable (copy-on-write). Sub-expressions can be reused.
 
     # Deterministic routing
     router = Route("tier").eq("VIP", vip_agent).otherwise(standard_agent)
+
+### A2A (Agent-to-Agent) remote agents
+
+RemoteAgent works with all expression operators — composition is identical
+to local agents.
+
+    from adk_fluent import RemoteAgent
+
+    # Consume a remote A2A agent
+    remote = RemoteAgent("helper", "http://remote:8001")
+
+    # All operators work seamlessly
+    pipeline = Agent("coordinator") >> remote        # Sequential
+    fanout   = remote | Agent("local")               # Parallel
+    fallback = remote // Agent("local-fallback")     # Fallback
+
+    # As a sub-agent (LLM decides when to delegate)
+    coordinator = (
+        Agent("coordinator", "gemini-2.5-flash")
+        .instruct("Delegate research tasks to helper.")
+        .sub_agent(remote)
+        .build()
+    )
+
+    # Publish an agent as an A2A server
+    app = Agent("researcher").instruct("...").publish(port=8001)
+    # Run: uvicorn module:app --port 8001
 ## Agent builder methods
 
 Core configuration:
@@ -166,6 +193,11 @@ Schemas:
   .prompt_schema(schema)       — attach prompt schema
   .artifact_schema(schema)     — attach artifact schema
   .artifacts(*transforms)      — artifact operations
+
+A2A (Agent-to-Agent):
+  .skill(id, name, ...)        — declare A2A skill for AgentCard
+  .publish(port=, host=)       — publish as A2A server (returns ASGI app)
+  Agent.remote(name, url)      — create RemoteAgent (static constructor)
 
 Execution:
   .build()                     — produce native ADK LlmAgent
@@ -345,6 +377,7 @@ Used with `.tools()`. Compose with `|` (chain).
   T.mcp(server)                — MCP server tool
   T.openapi(spec)              — OpenAPI spec tool
   T.transform(fn)              — transform tool output
+  T.a2a(url, name=, desc=)    — wrap remote A2A agent as tool
 
 ### E — Evaluation
 
@@ -394,6 +427,43 @@ Routing:
 
   Fallback(name)               — explicit fallback chain
     .attempt(agent)            — add fallback alternative
+## A2A (Agent-to-Agent) protocol
+
+Requires ``pip install adk-fluent[a2a]``. Builders construct without deps;
+only ``.build()`` requires the extra.
+
+### RemoteAgent builder methods
+
+Consume a remote A2A agent. Inherits all operators from BuilderBase.
+
+  RemoteAgent(name, url)         — constructor (url = agent card endpoint)
+  .card(url_or_card)             — set/change agent card
+  .describe(str)                 — description (shown to parent LLM)
+  .timeout(seconds)              — HTTP request timeout (default 600)
+  .full_history(bool)            — send full history when stateless
+  .auth(bearer=, api_key=)       — configure authentication
+  .build()                       — produce native RemoteA2aAgent
+
+### A2AServer builder methods
+
+Publish an agent as an A2A-compatible server.
+
+  A2AServer(agent)               — constructor (agent or builder)
+  .host(str)                     — bind address (default 0.0.0.0)
+  .port(int)                     — port number (default 8000)
+  .protocol(str)                 — http or https
+  .version(str)                  — agent version for AgentCard
+  .provider(org, url)            — provider metadata
+  .streaming(bool)               — enable SSE streaming
+  .push_notifications(bool)      — enable push notifications
+  .docs(url)                     — documentation URL
+  .card(agent_card)              — explicit AgentCard override
+  .skill(id, name, ...)          — declare A2A skill
+  .auth_scheme(name, scheme)     — add security scheme
+  .task_store(store)             — custom task store
+  .push_store(store)             — custom push config store
+  .runner(runner)                — pre-configured Runner
+  .build()                       — produce Starlette ASGI app
 ## Composition patterns
 
 Higher-order constructors that accept builders and return builders:
@@ -405,6 +475,12 @@ Higher-order constructors that accept builders and return builders:
   chain(*agents)                  — sequential pipeline
   conditional(pred, then_agent, else_agent=)
   supervised(worker, supervisor)
+
+### A2A composition patterns
+
+  a2a_cascade(*urls, names=, timeout=)    — fallback chain across remote agents
+  a2a_fanout(*urls, names=, timeout=)     — parallel fan-out across remote agents
+  a2a_delegate(coordinator, **remotes)    — coordinator with named remote specialists
 ## Builder inventory
 
 132 builders across 9 modules.

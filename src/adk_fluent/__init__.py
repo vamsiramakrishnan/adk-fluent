@@ -148,6 +148,8 @@ from .tool import ToolboxToolset
 from .tool import TransferToAgentTool
 from .tool import UrlContextTool
 from .tool import VertexAiSearchTool
+from .a2a import RemoteAgent
+from .a2a import A2AServer
 
 __all__ = [
     "ActiveStreamingTool",
@@ -282,6 +284,11 @@ __all__ = [
     "TransferToAgentTool",
     "UrlContextTool",
     "VertexAiSearchTool",
+    "RemoteAgent",
+    "A2AServer",
+    "a2a_cascade",
+    "a2a_fanout",
+    "a2a_delegate",
     "ArtifactSchema",
     "Consumes",
     "Produces",
@@ -718,6 +725,9 @@ from .patterns import fan_out_merge
 from .patterns import chain
 from .patterns import conditional
 from .patterns import supervised
+from .patterns import a2a_cascade
+from .patterns import a2a_fanout
+from .patterns import a2a_delegate
 from .prelude import Agent
 from .prelude import Pipeline
 from .prelude import FanOut

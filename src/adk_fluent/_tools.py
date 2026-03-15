@@ -278,6 +278,44 @@ class T:
             builder = builder.auth_credential(auth)
         return TComposite([builder.build()], kind="openapi")
 
+    # --- A2A ---
+
+    @staticmethod
+    def a2a(
+        agent_card: str | Any,
+        *,
+        name: str = "remote_agent",
+        description: str = "",
+        timeout: float = 600.0,
+    ) -> TComposite:
+        """Wrap a remote A2A agent as a tool (``AgentTool`` around ``RemoteA2aAgent``).
+
+        Creates a ``RemoteAgent`` builder, builds it into a native
+        ``RemoteA2aAgent``, wraps it in an ``AgentTool``, and returns
+        a ``TComposite`` for composition with ``|``.
+
+        Requires ``pip install adk-fluent[a2a]``.
+
+        Args:
+            agent_card: URL to ``/.well-known/agent.json``, file path, or
+                ``AgentCard`` object.
+            name: Agent name (used by the parent LLM for tool selection).
+            description: Tool description shown to the LLM.
+            timeout: HTTP timeout in seconds (default 600).
+
+        Usage::
+
+            agent.tools(T.a2a("http://research:8001", name="research"))
+        """
+        from adk_fluent.a2a import RemoteAgent
+
+        remote = RemoteAgent(name, agent_card).describe(description).timeout(timeout)
+        built = remote.build()
+
+        from google.adk.tools.agent_tool import AgentTool
+
+        return TComposite([AgentTool(agent=built)], kind="a2a")
+
     # --- Transform ---
 
     @staticmethod

@@ -140,6 +140,8 @@ class TestPrelude:
         expected = {
             # Tier 1: Core builders
             "Agent",
+            "RemoteAgent",
+            "A2AServer",
             "Pipeline",
             "FanOut",
             "Loop",
@@ -185,6 +187,9 @@ class TestPrelude:
             "map_reduce",
             "conditional",
             "supervised",
+            "a2a_cascade",
+            "a2a_fanout",
+            "a2a_delegate",
             # Tier 5: Stream execution
             "Source",
             "Inbox",
@@ -210,7 +215,7 @@ class TestPrelude:
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 56
+        assert len(prelude.__all__) == 61
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""

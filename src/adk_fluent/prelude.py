@@ -40,8 +40,12 @@ from adk_fluent._routing import Fallback
 from adk_fluent._tool_registry import SearchToolset, ToolRegistry, search_aware_after_tool
 from adk_fluent._tools import T, TComposite
 from adk_fluent._transforms import STransform
+from adk_fluent.a2a import A2AServer, RemoteAgent
 from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
+    a2a_cascade,
+    a2a_delegate,
+    a2a_fanout,
     cascade,
     chain,
     conditional,
@@ -56,6 +60,8 @@ from adk_fluent.stream import StreamRunner
 __all__ = [
     # Tier 1: Core builders
     "Agent",
+    "RemoteAgent",
+    "A2AServer",
     "Pipeline",
     "FanOut",
     "Loop",
@@ -100,6 +106,9 @@ __all__ = [
     "map_reduce",
     "conditional",
     "supervised",
+    "a2a_cascade",
+    "a2a_fanout",
+    "a2a_delegate",
     # Tier 5: Stream execution
     "Source",
     "Inbox",

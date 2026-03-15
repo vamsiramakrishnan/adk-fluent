@@ -41,6 +41,9 @@ rich = [
 search = [
     "rank-bm25>=0.2.2",
 ]
+a2a = [
+    "google-adk[a2a]>=1.20.0",
+]
 examples = [
     "python-dotenv>=1.0",
 ]
@@ -121,6 +124,7 @@ include = [
     "src/adk_fluent/di.py",
     "src/adk_fluent/middleware.py",
     "src/adk_fluent/prelude.py",
+    "src/adk_fluent/a2a.py",
     "src/adk_fluent/presets.py",
     "src/adk_fluent/backends/",
     "src/adk_fluent/testing/",

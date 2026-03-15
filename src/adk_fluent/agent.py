@@ -647,6 +647,82 @@ class Agent(BuilderBase):
 
         return _agent_to_ir(self)
 
+    def skill(
+        self,
+        id: str,
+        name: str,
+        *,
+        description: str = "",
+        tags: list[str] | None = None,
+        examples: list[str] | None = None,
+    ) -> Self:
+        """Declare an A2A skill for this agent (used in AgentCard generation).
+
+        Multiple calls accumulate skills. If no skills are declared,
+        ``AgentCardBuilder`` auto-infers them from tools and instructions.
+
+        Args:
+            id: Unique skill identifier (e.g. ``"research"``).
+            name: Human-readable skill name (e.g. ``"Academic Research"``).
+            description: What this skill does.
+            tags: Categorization keywords.
+            examples: Sample prompts demonstrating this skill.
+        """
+        self = self._maybe_fork_for_mutation()
+        skills = self._config.setdefault("_a2a_skills", [])
+        skills.append(
+            {
+                "id": id,
+                "name": name,
+                "description": description,
+                "tags": tags or [],
+                "examples": examples or [],
+            }
+        )
+        return self
+
+    def publish(self, *, port: int = 8000, host: str = "0.0.0.0", **kwargs: Any) -> Any:
+        """Publish this agent as an A2A server. Returns a Starlette ASGI app.
+
+        Shorthand for ``A2AServer(self).port(port).host(host).build()``.
+        For full control, use ``A2AServer`` directly.
+
+        Requires ``pip install adk-fluent[a2a]``.
+
+        Usage::
+
+            app = Agent("researcher").instruct("...").tool(search).publish(port=8001)
+            # Run: uvicorn module:app --port 8001
+        """
+        from adk_fluent.a2a import A2AServer
+
+        server = A2AServer(self).port(port).host(host)
+        for key, value in kwargs.items():
+            setter = getattr(server, key, None)
+            if setter and callable(setter):
+                server = setter(value)
+        return server.build()
+
+    @staticmethod
+    def remote(name: str, agent_card: str | Any | None = None, **kwargs: Any) -> Any:
+        """Create a ``RemoteAgent`` (convenience factory).
+
+        Equivalent to ``RemoteAgent(name, agent_card)``.
+
+        Usage::
+
+            remote = Agent.remote("helper", "http://remote:8001")
+            pipeline = Agent("coordinator") >> remote
+        """
+        from adk_fluent.a2a import RemoteAgent
+
+        builder = RemoteAgent(name, agent_card)
+        for key, value in kwargs.items():
+            setter = getattr(builder, key, None)
+            if setter and callable(setter):
+                builder = setter(value)
+        return builder
+
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
         config = self._prepare_build_config()
