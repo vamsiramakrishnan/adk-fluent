@@ -647,6 +647,37 @@ class Agent(BuilderBase):
 
         return _agent_to_ir(self)
 
+    def skill(
+        self,
+        skill_id: str,
+        name: str,
+        *,
+        description: str = "",
+        tags: list[str] | None = None,
+        examples: list[str] | None = None,
+        input_modes: list[str] | None = None,
+        output_modes: list[str] | None = None,
+    ) -> Self:
+        """Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by ``A2AServer`` during card generation. They have no effect on local agent execution. If no skills are declared, ``A2AServer`` auto-infers them from the agent's tools and sub-agents."""
+        from adk_fluent._helpers import _add_skill
+
+        return _add_skill(
+            self,
+            skill_id,
+            name,
+            description=description,
+            tags=tags,
+            examples=examples,
+            input_modes=input_modes,
+            output_modes=output_modes,
+        )
+
+    def publish(self, *, port: int = 8000, host: str = "0.0.0.0") -> Any:
+        """Publish this agent as an A2A server (returns Starlette app). Shorthand for ``A2AServer(self).port(port).host(host).build()``."""
+        from adk_fluent._helpers import _publish_agent
+
+        return _publish_agent(self, port=port, host=host)
+
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
         config = self._prepare_build_config()

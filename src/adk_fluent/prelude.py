@@ -40,6 +40,7 @@ from adk_fluent._routing import Fallback
 from adk_fluent._tool_registry import SearchToolset, ToolRegistry, search_aware_after_tool
 from adk_fluent._tools import T, TComposite
 from adk_fluent._transforms import STransform
+from adk_fluent.a2a import A2AServer, AgentRegistry, RemoteAgent
 from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
     cascade,
@@ -54,6 +55,10 @@ from adk_fluent.source import Inbox, Source
 from adk_fluent.stream import StreamRunner
 
 __all__ = [
+    # Tier 0: A2A protocol
+    "RemoteAgent",
+    "A2AServer",
+    "AgentRegistry",
     # Tier 1: Core builders
     "Agent",
     "Pipeline",

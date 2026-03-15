@@ -57,6 +57,11 @@ __all__ = [
     # ContextVars
     "_trace_context",
     "_topology_hooks",
+    # A2A middleware
+    "A2ARetryMiddleware",
+    "A2ACircuitBreakerMiddleware",
+    "A2ACircuitOpenError",
+    "A2ATimeoutMiddleware",
 ]
 
 _log = _logging.getLogger(__name__)
@@ -1275,4 +1280,243 @@ class MetricsMiddleware:
         name = getattr(ctx, "agent_name", "unknown")
         if self._collector and hasattr(self._collector, "increment"):
             self._collector.increment(f"agent.{name}.errors")
+        return None
+
+
+# ======================================================================
+# A2A-specific middleware
+# ======================================================================
+
+
+class A2ARetryMiddleware:
+    """Retry middleware specialized for A2A remote agent failures.
+
+    Unlike the generic ``RetryMiddleware`` which retries LLM model errors,
+    this middleware handles A2A-specific failure modes:
+
+    - HTTP transport errors (connection refused, timeout, 5xx)
+    - A2A task state FAILED / REJECTED
+    - Network-level transient failures
+
+    Uses exponential backoff with jitter. Retries are scoped to agents
+    whose names match the ``agents`` filter (default: all agents).
+
+    Usage::
+
+        pipeline.middleware(M.a2a_retry(max_attempts=3, backoff=2.0))
+        pipeline.middleware(M.scope("remote_*", M.a2a_retry()))
+    """
+
+    def __init__(
+        self,
+        max_attempts: int = 3,
+        backoff_base: float = 2.0,
+        *,
+        agents: str | tuple[str, ...] | None = None,
+        on_retry: Callable | None = None,
+    ):
+        self.max_attempts = max_attempts
+        self.backoff_base = backoff_base
+        self.agents = agents
+        self._on_retry = on_retry
+        self._attempts: dict[str, int] = {}
+        self._log = _logging.getLogger(f"{__name__}.A2ARetryMiddleware")
+
+    def _should_retry(self, error: Exception) -> bool:
+        """Determine if an error is retryable (A2A-specific heuristics)."""
+        error_str = str(error).lower()
+        # Connection errors
+        if any(term in error_str for term in ("connection refused", "connection reset", "timed out", "timeout")):
+            return True
+        # HTTP 5xx errors
+        if any(f"{code}" in error_str for code in range(500, 600)):
+            return True
+        # A2A task states that are retryable
+        return any(term in error_str for term in ("task_state_failed", "failed", "rejected"))
+
+    async def on_tool_error(self, ctx: Any, tool_name: str, args: dict, error: Exception) -> dict | None:
+        """Retry on A2A agent tool failures (AgentTool wrapping RemoteA2aAgent)."""
+        if not self._should_retry(error):
+            return None
+        self._attempts[tool_name] = self._attempts.get(tool_name, 0) + 1
+        attempt = self._attempts[tool_name]
+        if attempt < self.max_attempts:
+            delay = self.backoff_base * (2 ** (attempt - 1))
+            self._log.info("A2A retry %d/%d for %s in %.1fs", attempt, self.max_attempts, tool_name, delay)
+            if self._on_retry:
+                await self._on_retry(ctx, tool_name, attempt, error)
+            await _asyncio.sleep(delay)
+        return None
+
+    async def on_model_error(self, ctx: Any, request: Any, error: Exception) -> Any:
+        """Retry on model errors that may be A2A-related."""
+        if not self._should_retry(error):
+            return None
+        key = f"model_{id(request)}"
+        self._attempts[key] = self._attempts.get(key, 0) + 1
+        attempt = self._attempts[key]
+        if attempt < self.max_attempts:
+            delay = self.backoff_base * (2 ** (attempt - 1))
+            self._log.info("A2A model retry %d/%d in %.1fs", attempt, self.max_attempts, delay)
+            await _asyncio.sleep(delay)
+        return None
+
+
+class A2ACircuitBreakerMiddleware:
+    """Circuit breaker for A2A remote agents.
+
+    Tracks failures per remote agent endpoint. When consecutive failures
+    exceed the threshold, the circuit opens and subsequent calls fail fast
+    with ``A2ACircuitOpenError`` until the reset period elapses.
+
+    States:
+        CLOSED  → normal operation, failures counted
+        OPEN    → calls rejected immediately
+        HALF_OPEN → one probe call allowed to test recovery
+
+    Usage::
+
+        pipeline.middleware(M.a2a_circuit_breaker(threshold=5, reset_after=60))
+    """
+
+    def __init__(
+        self,
+        threshold: int = 5,
+        reset_after: float = 60,
+        *,
+        agents: str | tuple[str, ...] | None = None,
+        on_open: Callable | None = None,
+        on_close: Callable | None = None,
+    ):
+        self._threshold = threshold
+        self._reset_after = reset_after
+        self.agents = agents
+        self._on_open = on_open
+        self._on_close = on_close
+        self._failures: dict[str, int] = {}
+        self._tripped_at: dict[str, float] = {}
+        self._half_open: set[str] = set()
+        self._log = _logging.getLogger(f"{__name__}.A2ACircuitBreakerMiddleware")
+
+    @property
+    def open_circuits(self) -> dict[str, float]:
+        """Return currently open circuits with their trip times."""
+        now = _time.monotonic()
+        return {
+            name: now - trip_time for name, trip_time in self._tripped_at.items() if now - trip_time < self._reset_after
+        }
+
+    def _get_agent_key(self, ctx: Any) -> str:
+        return getattr(ctx, "agent_name", "unknown")
+
+    async def before_agent(self, ctx: Any, agent_name: str) -> Any:
+        """Check circuit state before agent execution."""
+        key = agent_name
+        if key in self._tripped_at:
+            elapsed = _time.monotonic() - self._tripped_at[key]
+            if elapsed < self._reset_after:
+                raise A2ACircuitOpenError(
+                    f"A2A circuit open for '{key}' — {self._reset_after - elapsed:.0f}s until reset"
+                )
+            # Half-open: allow one probe
+            self._half_open.add(key)
+            self._log.info("A2A circuit half-open for '%s', allowing probe", key)
+        return None
+
+    async def after_agent(self, ctx: Any, agent_name: str) -> Any:
+        """Reset failure count on success."""
+        key = agent_name
+        if key in self._half_open:
+            self._half_open.discard(key)
+            del self._tripped_at[key]
+            self._failures[key] = 0
+            self._log.info("A2A circuit closed for '%s' after successful probe", key)
+            if self._on_close:
+                await self._on_close(ctx, key)
+        else:
+            self._failures[key] = 0
+        return None
+
+    async def on_tool_error(self, ctx: Any, tool_name: str, args: dict, error: Exception) -> dict | None:
+        """Track failures for circuit breaker logic."""
+        key = tool_name
+        if key in self._half_open:
+            # Probe failed, re-trip
+            self._half_open.discard(key)
+            self._tripped_at[key] = _time.monotonic()
+            self._log.warning("A2A circuit re-tripped for '%s' after failed probe", key)
+            return None
+
+        self._failures[key] = self._failures.get(key, 0) + 1
+        if self._failures[key] >= self._threshold:
+            self._tripped_at[key] = _time.monotonic()
+            self._log.warning(
+                "A2A circuit opened for '%s' after %d failures",
+                key,
+                self._failures[key],
+            )
+            if self._on_open:
+                await self._on_open(ctx, key)
+        return None
+
+
+class A2ACircuitOpenError(RuntimeError):
+    """Raised when an A2A circuit breaker is open."""
+
+
+class A2ATimeoutMiddleware:
+    """Per-delegation timeout for A2A remote agent calls.
+
+    Unlike the generic ``TimeoutMiddleware`` which tracks LLM model call
+    deadlines, this middleware enforces wall-clock time limits on entire
+    agent invocations, which is critical for remote A2A calls that may
+    involve network latency + remote LLM processing.
+
+    Usage::
+
+        pipeline.middleware(M.a2a_timeout(seconds=30))
+        pipeline.middleware(M.scope("slow_remote", M.a2a_timeout(120)))
+    """
+
+    def __init__(
+        self,
+        seconds: float = 30,
+        *,
+        agents: str | tuple[str, ...] | None = None,
+        on_timeout: Callable | None = None,
+    ):
+        self._seconds = seconds
+        self.agents = agents
+        self._on_timeout = on_timeout
+        self._deadlines: dict[str, float] = {}
+        self._log = _logging.getLogger(f"{__name__}.A2ATimeoutMiddleware")
+
+    async def before_agent(self, ctx: Any, agent_name: str) -> Any:
+        """Set deadline before agent execution."""
+        self._deadlines[agent_name] = _time.monotonic() + self._seconds
+        return None
+
+    async def after_agent(self, ctx: Any, agent_name: str) -> Any:
+        """Clean up deadline after agent execution."""
+        deadline = self._deadlines.pop(agent_name, None)
+        if deadline and _time.monotonic() > deadline:
+            self._log.warning("A2A agent '%s' exceeded %ss timeout", agent_name, self._seconds)
+            if self._on_timeout:
+                await self._on_timeout(ctx, agent_name, self._seconds)
+        return None
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        """Check deadline before each model call within the agent."""
+        name = getattr(ctx, "agent_name", "unknown")
+        deadline = self._deadlines.get(name)
+        if deadline and _time.monotonic() > deadline:
+            raise TimeoutError(f"A2A agent '{name}' exceeded {self._seconds}s timeout")
+        return None
+
+    async def before_tool(self, ctx: Any, tool_name: str, args: dict) -> dict | None:
+        """Check deadline before each tool call within the agent."""
+        name = getattr(ctx, "agent_name", "unknown")
+        deadline = self._deadlines.get(name)
+        if deadline and _time.monotonic() > deadline:
+            raise TimeoutError(f"A2A agent '{name}' exceeded {self._seconds}s timeout")
         return None

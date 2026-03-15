@@ -1,19 +1,4 @@
-"""adk-fluent: Fluent builder API for Google ADK.
-
-Quick start -- import only what you need 95% of the time::
-
-    from adk_fluent.prelude import *
-    # Gives you: Agent, Pipeline, FanOut, Loop, S, C, P, M, T, Route,
-    #            until, tap, gate, race, cascade, chain, and more.
-
-Or import specific builders::
-
-    from adk_fluent import Agent, Pipeline, FanOut, Loop
-    from adk_fluent import S, C, P, A, M, T, E, G
-
-Full API (347 symbols) available via ``from adk_fluent import ...``.
-For tools, configs, services, and plugins, import directly from this package.
-"""
+"""adk-fluent: Fluent builder API for Google ADK."""
 # Auto-generated for google-adk 1.25.0
 
 from .tool import ActiveStreamingTool
@@ -287,10 +272,9 @@ __all__ = [
     "Produces",
     "A",
     "ATransform",
-    "ADKFluentError",
     "BuilderBase",
     "BuilderError",
-    "PredicateError",
+    "ADKFluentError",
     "PrimitiveBuilderBase",
     "until",
     "tap",
@@ -355,10 +339,11 @@ __all__ = [
     "EvalReport",
     "ComparisonReport",
     "EPersona",
+    "GuardViolation",
+    "PredicateError",
     "G",
     "GComposite",
     "GGuard",
-    "GuardViolation",
     "PIIDetector",
     "PIIFinding",
     "ContentJudge",
@@ -460,6 +445,10 @@ __all__ = [
     "StateReplacement",
     "infer_visibility",
     "VisibilityPlugin",
+    "A2AServer",
+    "AgentRegistry",
+    "RemoteAgent",
+    "SkillDeclaration",
     "agent",
     "TraceContext",
     "DispatchDirective",
@@ -472,6 +461,10 @@ __all__ = [
     "TopologyLogMiddleware",
     "LatencyMiddleware",
     "CostTracker",
+    "A2ARetryMiddleware",
+    "A2ACircuitBreakerMiddleware",
+    "A2ACircuitOpenError",
+    "A2ATimeoutMiddleware",
     "review_loop",
     "map_reduce",
     "cascade",
@@ -510,7 +503,6 @@ from ._artifacts import ATransform
 from ._base import BuilderBase
 from ._base import BuilderError
 from ._base import ADKFluentError
-from ._exceptions import PredicateError
 from ._base import PrimitiveBuilderBase
 from ._base import until
 from ._base import tap
@@ -575,6 +567,10 @@ from ._eval import EvalSuite
 from ._eval import EvalReport
 from ._eval import ComparisonReport
 from ._eval import EPersona
+from ._exceptions import ADKFluentError
+from ._exceptions import BuilderError
+from ._exceptions import GuardViolation
+from ._exceptions import PredicateError
 from ._guards import G
 from ._guards import GComposite
 from ._guards import GGuard
@@ -699,6 +695,10 @@ from ._transforms import StateDelta
 from ._transforms import StateReplacement
 from ._visibility import infer_visibility
 from ._visibility import VisibilityPlugin
+from .a2a import A2AServer
+from .a2a import AgentRegistry
+from .a2a import RemoteAgent
+from .a2a import SkillDeclaration
 from .decorators import agent
 from .middleware import TraceContext
 from .middleware import DispatchDirective
@@ -711,6 +711,10 @@ from .middleware import DispatchLogMiddleware
 from .middleware import TopologyLogMiddleware
 from .middleware import LatencyMiddleware
 from .middleware import CostTracker
+from .middleware import A2ARetryMiddleware
+from .middleware import A2ACircuitBreakerMiddleware
+from .middleware import A2ACircuitOpenError
+from .middleware import A2ATimeoutMiddleware
 from .patterns import review_loop
 from .patterns import map_reduce
 from .patterns import cascade
@@ -718,6 +722,9 @@ from .patterns import fan_out_merge
 from .patterns import chain
 from .patterns import conditional
 from .patterns import supervised
+from .prelude import RemoteAgent
+from .prelude import A2AServer
+from .prelude import AgentRegistry
 from .prelude import Agent
 from .prelude import Pipeline
 from .prelude import FanOut

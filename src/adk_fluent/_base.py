@@ -1581,8 +1581,10 @@ class BuilderBase:
             if fns:
                 config[field] = _compose_callbacks(list(fns))
 
-        # Merge accumulated lists (auto-building items)
+        # Merge accumulated lists (auto-building items, skip internal _ keys)
         for field, items in self._lists.items():
+            if field.startswith("_"):
+                continue
             resolved = []
             for item in items:
                 if isinstance(item, BuilderBase) or hasattr(item, "build") and callable(item.build):

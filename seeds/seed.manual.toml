@@ -441,6 +441,20 @@ doc = "Convert this Agent builder to an AgentNode IR node."
 behavior = "runtime_helper_ctx"
 helper_func = "_agent_to_ir"
 
+[[builders.Agent.extras]]
+name = "skill"
+signature = "(self, skill_id: str, name: str, *, description: str = '', tags: list[str] | None = None, examples: list[str] | None = None, input_modes: list[str] | None = None, output_modes: list[str] | None = None) -> Self"
+doc = "Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by ``A2AServer`` during card generation. They have no effect on local agent execution. If no skills are declared, ``A2AServer`` auto-infers them from the agent's tools and sub-agents."
+behavior = "runtime_helper"
+helper_func = "_add_skill"
+
+[[builders.Agent.extras]]
+name = "publish"
+signature = "(self, *, port: int = 8000, host: str = '0.0.0.0') -> Any"
+doc = "Publish this agent as an A2A server (returns Starlette app). Shorthand for ``A2AServer(self).port(port).host(host).build()``."
+behavior = "runtime_helper"
+helper_func = "_publish_agent"
+
 [[builders.Pipeline.extras]]
 name = "to_ir"
 signature = "(self) -> Any"
