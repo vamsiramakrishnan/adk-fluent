@@ -26,6 +26,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 - [Fluent API Reference](#fluent-api-reference)
 - [When to Use adk-fluent](#when-to-use-adk-fluent)
 - [Run with adk web](#run-with-adk-web)
+- [Visual Cookbook Runner](#visual-cookbook-runner)
 - [Cookbook](#cookbook)
 - [Performance](#performance)
 - [ADK Compatibility](#adk-compatibility)
@@ -1257,15 +1258,24 @@ adk-fluent produces native ADK objects. You can mix fluent-built agents with han
 
 ### Environment Setup
 
-Before running any example, copy the `.env.example` and fill in your Google Cloud credentials:
+Before running any example, copy the `.env.example` and fill in your credentials. Two auth paths are supported — pick one:
 
 ```bash
 cd examples
 cp .env.example .env
-# Edit .env with your values:
-#   GOOGLE_CLOUD_PROJECT=your-project-id
-#   GOOGLE_CLOUD_LOCATION=us-central1
-#   GOOGLE_GENAI_USE_VERTEXAI=TRUE
+```
+
+**Option A: Gemini API Key** (simplest — no GCP project needed):
+```bash
+# Get a free key at https://aistudio.google.com/app/apikey
+GOOGLE_API_KEY=your-gemini-api-key-here
+```
+
+**Option B: Vertex AI** (full GCP — required for some advanced features):
+```bash
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=us-central1
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
 ```
 
 Every agent loads these variables automatically via `load_dotenv()`.
@@ -1380,6 +1390,53 @@ adk web race                  # race() first-to-finish
 </details>
 
 Browse by use case on the [docs site](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/recipes-by-use-case/).
+
+## Visual Cookbook Runner
+
+A custom web frontend for interactively running and debugging all cookbook agents, with live A2UI surface rendering.
+
+### Quick Start (from scratch)
+
+```bash
+# 1. Clone and install
+git clone https://github.com/vamsiramakrishnan/adk-fluent.git
+cd adk-fluent
+pip install -e ".[a2a,yaml,rich]"      # or: uv sync --all-extras
+
+# 2. Configure credentials
+cp visual/.env.example visual/.env
+# Edit visual/.env — add your Gemini API key or Vertex AI credentials
+
+# 3. Generate agent folders from cookbooks (one-time)
+just agents                             # or: uv run python scripts/cookbook_to_agents.py --force
+
+# 4. Launch the visual runner
+just visual                             # or: uv run uvicorn visual.server:app --port 8099 --reload
+```
+
+Opens at **http://localhost:8099** with:
+- **Left sidebar** — all cookbooks, grouped by difficulty
+- **Center panel** — interactive chat with any agent
+- **Right panel** — live A2UI surface rendering + JSON inspector
+
+### A2UI Preview (no API key needed)
+
+To browse A2UI component surfaces without any LLM calls:
+
+```bash
+just a2ui-preview
+```
+
+This exports surfaces from cookbooks 70-74 and opens a static gallery in your browser.
+
+### Visual Regression Tests
+
+```bash
+uv run pytest tests/visual/ -v                      # run tests (no API key needed)
+uv run pytest tests/visual/ -v --update-golden       # update golden snapshots
+```
+
+See [`visual/README.md`](visual/README.md) for full architecture details.
 
 ## Performance
 
