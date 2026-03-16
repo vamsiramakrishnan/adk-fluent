@@ -13,11 +13,13 @@ The codebase is well-maintained: zero TODO/FIXME comments, clean deprecation pat
 |----------|----------|-------|
 | Unimplemented backend methods | HIGH | 3 |
 | Composition operator asymmetry | HIGH | 6 namespaces |
+| Monolithic contract checker (812 lines) | MEDIUM | 1 function |
 | Broad exception handling | MEDIUM | 10+ sites |
 | Type annotation gaps | MEDIUM | 5+ modules |
-| Code duplication | MEDIUM | 3 sites |
-| Silent failure patterns | MEDIUM | 4 sites |
+| Code duplication (tree walk, middleware, identifiers) | MEDIUM | 5 sites |
+| Silent failure patterns | MEDIUM | 5 sites |
 | Deprecated methods to remove | LOW | 13 methods |
+| Placeholder compile passes | LOW | 1 |
 
 ---
 
@@ -219,6 +221,60 @@ Class attribute `state = {}` is a shared mutable default (anti-pattern). Class a
 
 ---
 
+## Testing & Compile Layer
+
+### T1: contracts.py `_check_sequence_contracts()` is 812 lines (MEDIUM)
+
+**File**: `testing/contracts.py:155-970`
+
+Single function performs all 16 contract passes. Cannot test individual passes in isolation, hard to maintain.
+
+**Fix**: Extract each pass into a separate function.
+
+### T2: Pass 11 missing from documentation (MEDIUM)
+
+**File**: `testing/contracts.py:1-23`
+
+Module docstring claims "16 total" passes but jumps from Pass 10 to Pass 12. Pass 11 is undocumented.
+
+**Fix**: Either document the missing pass or update the count.
+
+### T3: Duplicated tree traversal across contracts.py and diagnosis.py (MEDIUM)
+
+Both modules independently implement IR tree walking (`_walk()` patterns). Tree is traversed 3+ times during a single `diagnose()` call.
+
+**Fix**: Extract shared tree walker to a utility function.
+
+### T4: Silent issue type loss in `_convert_issues()` (MEDIUM)
+
+**File**: `testing/diagnosis.py:309-325`
+
+If `check_contracts()` returns a type not in `(str, dict)`, the issue is silently dropped — no else clause.
+
+**Fix**: Add `else:` clause that warns or preserves unknown issue types.
+
+### T5: No individual pass test utilities (LOW)
+
+**File**: `testing/__init__.py`
+
+Users can run `check_contracts()` but cannot test individual passes (e.g., just output key tracking, or just template var resolution) in isolation.
+
+**Fix**: Export per-pass validator functions.
+
+### T6: Placeholder `annotate_checkpoints()` in compile passes (LOW)
+
+**File**: `compile/passes.py:150-162`
+
+No-op function documented as "future feature" but already listed in `run_passes()`. 13 lines to document nothing.
+
+**Fix**: Remove from `run_passes()` until implemented, or implement it.
+
+### T7: Type annotation gaps across testing/compile (LOW)
+
+Functions accept `Any` where `FullNode | AgentNode` would be appropriate. Affects `diagnose()`, `check_contracts()`, `fuse_transforms()`, `run_passes()`.
+
+---
+
 ## Recommended Fix Order
 
 ### Sprint 1 (Critical path)
@@ -230,10 +286,13 @@ Class attribute `state = {}` is a shared mutable default (anti-pattern). Class a
 4. **H3**: Add missing namespace composition operators
 5. **M2 + M3**: Extract duplicated code to shared utilities
 6. **M6**: Add protocol properties to E namespace
-7. **L1**: Plan deprecation removal timeline
+7. **T4**: Fix silent issue type loss in `_convert_issues()`
+8. **L1**: Plan deprecation removal timeline
 
 ### Sprint 3 (Robustness)
-8. **H2**: Implement full Temporal workflow codegen
-9. **M5**: Add parallel state merge conflict detection
-10. **M7**: Switch codegen to proper templating
-11. **M8 + M9**: Fix protocol typing and task cleanup
+9. **H2**: Implement full Temporal workflow codegen
+10. **T1**: Refactor 812-line `_check_sequence_contracts()` into per-pass functions
+11. **T3**: Consolidate duplicated tree traversal logic
+12. **M5**: Add parallel state merge conflict detection
+13. **M7**: Switch codegen to proper templating
+14. **M8 + M9**: Fix protocol typing and task cleanup
