@@ -1,5 +1,5 @@
 """
-Presets: Reusable Configuration Bundles
+Enterprise Agent with Shared Compliance Preset
 
 Converted from cookbook example: 22_presets.py
 
@@ -15,26 +15,30 @@ from dotenv import load_dotenv
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 
-def log_before(callback_context, llm_request):
-    """Log before model calls."""
+def audit_before_model(callback_context, llm_request):
+    """Log all LLM requests for SOC2 compliance audit trail."""
     pass
 
 
-def log_after(callback_context, llm_response):
-    """Log after model calls."""
+def audit_after_model(callback_context, llm_response):
+    """Log all LLM responses for compliance review."""
     pass
 
 
-# Define reusable presets
-production = Preset(
+# Define a reusable compliance preset for all enterprise agents
+compliance = Preset(
     model="gemini-2.5-flash",
-    before_model=log_before,
-    after_model=log_after,
+    before_model=audit_before_model,
+    after_model=audit_after_model,
 )
 
-# Apply to any builder with .use()
-agent_a = Agent("service_a").instruct("Handle service A requests.").use(production)
+# Apply the preset to multiple domain-specific agents with .use()
+billing_agent = (
+    Agent("billing_agent").instruct("Handle billing inquiries, invoices, and payment disputes.").use(compliance)
+)
 
-agent_b = Agent("service_b").instruct("Handle service B requests.").use(production)
+hr_agent = (
+    Agent("hr_agent").instruct("Answer employee questions about benefits, PTO, and company policies.").use(compliance)
+)
 
-root_agent = agent_b.build()
+root_agent = hr_agent.build()

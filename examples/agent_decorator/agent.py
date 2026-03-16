@@ -1,5 +1,5 @@
 """
-@agent Decorator Syntax
+Domain Expert Agent via @agent Decorator
 
 Converted from cookbook example: 24_agent_decorator.py
 
@@ -14,26 +14,26 @@ from dotenv import load_dotenv
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 
-@agent("weather_bot", model="gemini-2.5-flash")
-def weather_bot():
-    """You help with weather queries."""
+@agent("pharma_advisor", model="gemini-2.5-flash")
+def pharma_advisor():
+    """You are a pharmaceutical advisor. Help healthcare professionals check drug interactions and dosage guidelines."""
     pass
 
 
-@weather_bot.tool
-def get_weather(city: str) -> str:
-    """Get weather for a city."""
-    return f"Sunny in {city}"
+@pharma_advisor.tool
+def lookup_drug_interaction(drug_a: str, drug_b: str) -> str:
+    """Check for known interactions between two drugs."""
+    return f"Checking interaction between {drug_a} and {drug_b}"
 
 
-@weather_bot.on("before_model")
-def log_call(callback_context, llm_request):
-    """Log every model call."""
+@pharma_advisor.on("before_model")
+def log_query(callback_context, llm_request):
+    """Log every query for regulatory compliance."""
     pass
 
 
-# The decorator returns a builder, not a built agent
-# Build it when ready:
-built = weather_bot.build()
+# The decorator returns a builder, not a built agent.
+# Build when ready to deploy:
+built = pharma_advisor.build()
 
 root_agent = built

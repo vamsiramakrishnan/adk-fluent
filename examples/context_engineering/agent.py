@@ -1,6 +1,14 @@
 """
 Context Engineering: Customer Support Pipeline
 
+Real-world use case: Customer support pipeline with context-aware routing.
+Uses context engineering to control what each agent sees -- stateless
+classifiers see only the current message while specialists see full history.
+
+In other frameworks: LangGraph manages context through TypedDict state slicing,
+requiring manual state key management. adk-fluent uses the C module (C.none(),
+C.from_state(), C.user_only()) for declarative context control.
+
 Converted from cookbook example: 49_context_engineering.py
 
 Usage:

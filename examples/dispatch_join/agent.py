@@ -6,6 +6,16 @@ agent execution.  Unlike FanOut (which blocks until all complete) or
 race (which takes first and cancels rest), dispatch fires agents as
 background tasks and lets the pipeline continue immediately.
 
+Pipeline topology:
+    writer
+        >> dispatch(email_sender, seo_optimizer)   -- fire-and-continue
+        >> formatter                                -- runs immediately
+        >> join()                                   -- barrier: wait for all
+        >> publisher
+
+    Selective join:
+        writer >> dispatch(email, seo) >> formatter >> join("seo") >> publisher >> join("email")
+
 Key concepts:
   - dispatch(*agents): launches agents as asyncio.Tasks, pipeline continues
   - join(): barrier that waits for dispatched tasks to complete
@@ -21,6 +31,8 @@ Usage:
 """
 
 from adk_fluent import Agent, Pipeline, dispatch, join
+from adk_fluent._primitive_builders import BackgroundTask, _JoinBuilder
+from adk_fluent._base import BuilderBase
 from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)

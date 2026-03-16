@@ -1,5 +1,5 @@
 """
-Expect: State Contract Assertions in Pipelines
+Analytics Data Quality: State Contract Assertions with expect()
 
 Converted from cookbook example: 36_expect_assertions.py
 
@@ -13,21 +13,32 @@ from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
-# expect(): assert a state contract at a pipeline step
-# Raises ValueError with your message if predicate fails
-pipeline_fluent = (
-    Agent("writer").model("gemini-2.5-flash").instruct("Write a draft.").writes("draft")
-    >> expect(lambda s: "draft" in s, "Draft must exist before review")
-    >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review the draft.")
+# expect(): assert a state contract at a pipeline step.
+# In analytics, data quality gates prevent garbage-in-garbage-out.
+analytics_pipeline = (
+    Agent("metric_calculator")
+    .model("gemini-2.5-flash")
+    .instruct("Compute key business metrics: revenue, churn rate, and LTV from raw data.")
+    .writes("metrics")
+    >> expect(lambda s: "metrics" in s, "Metrics must be computed before dashboard generation")
+    >> Agent("dashboard_generator")
+    .model("gemini-2.5-flash")
+    .instruct("Generate an executive dashboard with charts and insights from the metrics.")
 )
 
-# Multiple expectations in a pipeline
+# Multiple quality gates in a data pipeline — catch issues at each stage
 validated_pipeline = (
-    Agent("extractor").model("gemini-2.5-flash").instruct("Extract entities.")
-    >> expect(lambda s: "entities" in s, "Extraction must produce entities")
-    >> Agent("enricher").model("gemini-2.5-flash").instruct("Enrich entities.")
-    >> expect(lambda s: len(s.get("entities", "")) > 0, "Entities must not be empty")
-    >> Agent("formatter").model("gemini-2.5-flash").instruct("Format output.")
+    Agent("data_ingester")
+    .model("gemini-2.5-flash")
+    .instruct("Ingest raw event data from the warehouse and extract user behavior events.")
+    >> expect(lambda s: "events" in s, "Ingestion must produce events data")
+    >> Agent("aggregator")
+    .model("gemini-2.5-flash")
+    .instruct("Aggregate events into daily/weekly/monthly cohort metrics.")
+    >> expect(lambda s: len(s.get("events", "")) > 0, "Events data must not be empty after aggregation")
+    >> Agent("report_builder")
+    .model("gemini-2.5-flash")
+    .instruct("Build the final analytics report with trend analysis and recommendations.")
 )
 
 root_agent = validated_pipeline.build()
