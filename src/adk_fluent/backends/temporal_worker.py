@@ -391,7 +391,7 @@ async def create_activities(
         tool_runtime: Optional ``ToolRuntime`` for tool execution.
     """
     try:
-        from temporalio import activity as _activity
+        from temporalio import activity as _activity  # type: ignore[import-not-found]
     except ImportError:
         raise ImportError(
             "temporalio is required for create_activities(). Install with: pip install temporalio"
@@ -446,7 +446,7 @@ async def create_workflow_class(
     with a Temporal worker.
     """
     try:
-        from temporalio import workflow as _workflow
+        from temporalio import workflow as _workflow  # type: ignore[import-not-found]
     except ImportError:
         raise ImportError(
             "temporalio is required for create_workflow_class(). Install with: pip install temporalio"
@@ -516,7 +516,7 @@ async def create_worker(
     Returns:
         A ``temporalio.worker.Worker`` ready to be started with ``await worker.run()``.
     """
-    from temporalio.worker import Worker
+    from temporalio.worker import Worker  # type: ignore[import-not-found]
 
     activities = await create_activities(runnable, model_provider, tool_runtime)
     workflow_cls = await create_workflow_class(runnable)

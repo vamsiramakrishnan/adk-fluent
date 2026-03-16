@@ -175,7 +175,7 @@ async def _call_llm(model: str, prompt: str, response_schema: dict | None = None
     """
     global _genai_client
     if _genai_client is None:
-        from google import genai
+        from google import genai  # type: ignore[attr-defined]
 
         _genai_client = genai.Client()
 
