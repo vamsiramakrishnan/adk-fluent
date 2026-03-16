@@ -1,6 +1,6 @@
 """Tests for Agent .ui() integration: config storage, explain output."""
 
-from adk_fluent import Agent, UI
+from adk_fluent import UI, Agent
 from adk_fluent._ui import UISurface, _UIAutoSpec
 
 
@@ -30,11 +30,7 @@ class TestAgentUI:
         assert agent._config["_ui_spec"] is not None
 
     def test_ui_chainable(self):
-        agent = (
-            Agent("test", "gemini-2.5-flash")
-            .instruct("Help users.")
-            .ui(UI.form("F", fields={"name": "text"}))
-        )
+        agent = Agent("test", "gemini-2.5-flash").instruct("Help users.").ui(UI.form("F", fields={"name": "text"}))
         assert agent._config.get("instruction") is not None
         assert agent._config.get("_ui_spec") is not None
 

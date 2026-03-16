@@ -3,7 +3,6 @@
 import pytest  # noqa: F401 (used inside test methods)
 
 from adk_fluent.config import (
-    A2aAgentExecutorConfig,
     AgentConfig,
     AgentRefConfig,
     AgentSimulatorConfig,
@@ -43,22 +42,6 @@ from adk_fluent.config import (
     ToolSimulationConfig,
     ToolThreadPoolConfig,
 )
-
-
-class TestA2aAgentExecutorConfigBuilder:
-    """Tests for A2aAgentExecutorConfig builder mechanics (no .build() calls)."""
-
-    def test_builder_creation(self):
-        """Builder constructor stores args in _config."""
-        builder = A2aAgentExecutorConfig()
-        assert builder is not None
-        assert isinstance(builder._config, dict)
-
-    def test_typo_detection(self):
-        """Typos in method names raise clear AttributeError."""
-        builder = A2aAgentExecutorConfig()
-        with pytest.raises(AttributeError, match="not a recognized field"):
-            builder.zzz_not_a_real_field("oops")
 
 
 class TestAgentConfigBuilder:

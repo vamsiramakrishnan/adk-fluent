@@ -1,12 +1,13 @@
 """Tests for cross-namespace A2UI integration: T.a2ui, G.a2ui, P.ui_schema."""
 
-from adk_fluent import T, UI
+import pytest
+
+from adk_fluent import T
 from adk_fluent._guards import G, GComposite
 from adk_fluent._ir import UINode
 from adk_fluent._prompt import P
 from adk_fluent._tools import TComposite
 from adk_fluent.patterns import ui_dashboard_agent, ui_form_agent
-
 
 # ======================================================================
 # T.a2ui()
@@ -117,11 +118,8 @@ class TestUINodeIR:
 
     def test_uinode_frozen(self):
         node = UINode(name="test", surface_name="main")
-        try:
+        with pytest.raises(AttributeError):
             node.surface_name = "other"
-            assert False, "Should raise"
-        except AttributeError:
-            pass
 
 
 # ======================================================================

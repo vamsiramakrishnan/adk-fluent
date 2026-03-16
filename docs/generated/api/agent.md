@@ -41,7 +41,7 @@ BaseAgent(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Set the `description` field.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -165,7 +165,7 @@ Agent(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Set the `description` field.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -176,7 +176,7 @@ agent = Agent("agent").describe("...")
 #### `.global_instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `global_instruction`
-- Set the `global_instruction` field.
+- Set instruction shared by ALL agents in a workflow. Only meaningful on the root agent. Prepended to every agent's system prompt.
 
 **Example:**
 
@@ -195,10 +195,20 @@ agent = Agent("agent").global_instruct("...")
 agent = Agent("agent").instruct("You are a helpful assistant.")
 ```
 
+#### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
+
+Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead).
+
+**Example:**
+
+```python
+agent = Agent("agent").instruct("You are a helpful assistant.")
+```
+
 #### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `static_instruction`
-- Set the `static_instruction` field.
+- Set cached instruction. When set, `.instruct()` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change.
 
 **Example:**
 
@@ -236,7 +246,7 @@ agent = Agent("helper").tool(search).build()
 
 #### `.agent_tool(agent: Any) -> Self` {bdg-info}`Configuration`
 
-Wrap an agent as a callable tool (AgentTool) and add it to this agent's tools. The LLM can invoke the wrapped agent by name.
+Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child.
 
 **See also:** `Agent.tool`, `Agent.isolate`
 
@@ -306,21 +316,59 @@ agent = (
 )
 ```
 
-#### `.guard(fn: Callable[..., Any]) -> Self` {bdg-info}`Configuration`
+#### `.eval(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` {bdg-info}`Configuration`
 
-Attach a guard function as both before_model and after_model callback. Runs before the LLM call and after the LLM response.
+Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run().
+
+**See also:** `E`, `Agent.eval_suite`, `Agent.test`
+
+**Example:**
+
+```python
+from adk_fluent import E
+
+report = await agent.eval("What is 2+2?", expect="4").run()
+assert report.ok
+
+# With custom criteria
+report = await agent.eval("query", criteria=E.semantic_match()).run()
+```
+
+#### `.eval_suite() -> Any` {bdg-info}`Configuration`
+
+Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent.
+
+**See also:** `E`, `Agent.eval`, `EvalSuite`
+
+**Example:**
+
+```python
+from adk_fluent import E
+
+report = await (
+    agent.eval_suite()
+    .case("What is 2+2?", expect="4")
+    .criteria(E.trajectory() | E.response_match())
+    .run()
+)
+```
+
+#### `.guard(value: Any) -> Self` {bdg-info}`Configuration`
+
+Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned.
 
 **See also:** `Agent.before_model`, `Agent.after_model`
 
 **Example:**
 
 ```python
-def safety_check(callback_context, llm_request, llm_response, agent):
-    if "unsafe" in str(llm_response):
-        return None  # Block response
-    return llm_response
+from adk_fluent import G
 
-agent = Agent("safe", "gemini-2.5-flash").guard(safety_check).build()
+# Declarative guards
+agent = Agent("safe", "gemini-2.5-flash").guard(G.pii("redact") | G.budget(5000))
+
+# Legacy callable guard (still works)
+agent = Agent("safe", "gemini-2.5-flash").guard(my_guard_fn)
 ```
 
 #### `.hide() -> Self` {bdg-info}`Configuration`
@@ -385,6 +433,16 @@ Attach a PromptSchema declaring prompt state dependencies.
 agent = Agent("agent").prompt_schema("...")
 ```
 
+#### `.publish(*, port: int = 8000, host: str = '0.0.0.0') -> Any` {bdg-info}`Configuration`
+
+Publish this agent as an A2A server (returns Starlette app). Shorthand for `A2AServer(self).port(port).host(host).build()`.
+
+**Example:**
+
+```python
+agent = Agent("agent").publish("...")
+```
+
 #### `.show() -> Self` {bdg-info}`Configuration`
 
 Force this agent's events to be user-facing (override topology inference).
@@ -398,9 +456,19 @@ Force this agent's events to be user-facing (override topology inference).
 agent = Agent("logger").model("m").instruct("Log progress.").show()
 ```
 
+#### `.skill(skill_id: str, name: str, *, description: str = '', tags: list[str] | None = None, examples: list[str] | None = None, input_modes: list[str] | None = None, output_modes: list[str] | None = None) -> Self` {bdg-info}`Configuration`
+
+Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by `A2AServer` during card generation. They have no effect on local agent execution. If no skills are declared, `A2AServer` auto-infers them from the agent's tools and sub-agents.
+
+**Example:**
+
+```python
+agent = Agent("agent").skill("...")
+```
+
 #### `.stay() -> Self` {bdg-info}`Configuration`
 
-Prevent this agent from transferring back to its parent. Use for agents that should complete their work before returning.
+Prevent transfer to parent only (can still transfer to sibling peers). Equivalent to .disallow_transfer_to_parent(True). Use for agents in peer-to-peer handoff chains where the coordinator should not regain control mid-sequence.
 
 **See also:** `Agent.isolate`, `Agent.no_peers`
 
@@ -443,6 +511,26 @@ Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single t
 
 ```python
 agent = Agent("agent").tools("...")
+```
+
+#### `.ui(spec: Any) -> Self` {bdg-info}`Configuration`
+
+Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go'))).
+
+**See also:** `UI.surface`, `UI.form`, `UI.auto`
+
+**Example:**
+
+```python
+from adk_fluent import Agent, UI
+
+# Declarative form
+agent = Agent("support", "gemini-2.5-flash").ui(
+    UI.form("Contact", fields={"name": "text", "email": "email"})
+).build()
+
+# LLM-guided mode
+agent = Agent("creative", "gemini-2.5-flash").ui(UI.auto()).build()
 ```
 
 ### Callbacks
@@ -643,7 +731,7 @@ agent = Agent("agent").on_tool_error_if(condition, my_callback_fn)
 
 #### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
-One-shot execution. Build agent, send prompt, return response text.
+One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response text. Raises RuntimeError inside async event loops (Jupyter, FastAPI) — use .ask_async() instead.
 
 **See also:** `Agent.ask_async`, `Agent.stream`
 
@@ -656,7 +744,7 @@ print(reply)
 
 #### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
-Async one-shot execution.
+One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts.
 
 **Example:**
 
@@ -705,7 +793,7 @@ specialist = (
 
 #### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
-Run agent against multiple prompts with bounded concurrency.
+Batch SYNC execution (blocking). Run agent against multiple prompts with bounded concurrency. Raises RuntimeError inside async event loops — use .map_async() instead.
 
 **Example:**
 
@@ -715,7 +803,7 @@ agent = Agent("agent").map("...")
 
 #### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
-Async batch execution against multiple prompts.
+Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts.
 
 **Example:**
 
@@ -725,7 +813,7 @@ agent = Agent("agent").map_async("...")
 
 #### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
 
-Create an interactive session context manager. Use with 'async with'.
+Create an interactive multi-turn chat session. Returns an async context manager — use with `async with agent.session() as chat:`. The agent is auto-built.
 
 **Example:**
 
@@ -735,7 +823,7 @@ agent = Agent("agent").session("...")
 
 #### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
 
-Streaming execution. Yields response text chunks.
+ASYNC streaming execution. Yields response text chunks as they arrive. Use with `async for chunk in agent.stream(prompt):`.
 
 **See also:** `Agent.ask`, `Agent.events`
 

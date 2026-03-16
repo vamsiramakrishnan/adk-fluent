@@ -431,9 +431,9 @@ class M:
             agent.middleware(M.a2ui_log())
             pipeline.middleware(M.a2ui_log(level="debug"))
         """
-        from adk_fluent.middleware import _SingleHookMiddleware
-
         import logging
+
+        from adk_fluent.middleware import _SingleHookMiddleware
 
         logger = logging.getLogger("adk_fluent.a2ui")
 

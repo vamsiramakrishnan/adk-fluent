@@ -1,16 +1,7 @@
 # Analytics Data Quality: State Contract Assertions with expect()
 
-:::{admonition} Why this matters
-:class: important
-Data quality assertions catch pipeline bugs at the boundary between agents. If an analytics pipeline expects a `confidence_score` between 0 and 1 but receives `None`, `expect()` raises a clear error at the exact point where the invariant was violated -- not three stages later when a division-by-zero crashes the report generator.
-:::
-
-:::{warning} Without this
-Without state assertions, data quality bugs propagate silently through the pipeline. A missing required field produces `None`, which becomes "None" in a template, which the next agent interprets as the literal word "None" and produces a nonsensical analysis. The bug manifests far from its source, making debugging a multi-stage forensic investigation.
-:::
-
 :::{tip} What you'll learn
-How to assert state invariants at pipeline boundaries with expect().
+How to work with state keys and state transforms.
 :::
 
 _Source: `36_expect_assertions.py`_

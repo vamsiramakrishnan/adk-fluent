@@ -119,7 +119,7 @@ BaseAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -415,7 +415,7 @@ LlmAgentConfig(name: str, instruction: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -459,7 +459,7 @@ config = LlmAgentConfig("config").outputs("result_key")
 #### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `static_instruction`
-- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
+- Set cached instruction. When set, `.instruct()` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change.
 
 **Example:**
 
@@ -563,7 +563,7 @@ config = LlmAgentConfig("config").include_history("none")
 #### `.static_instruct(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `static_instruction`
-- Optional. LlmAgent.static_instruction. Static content sent literally at position 0 without placeholder processing. When set, changes instruction behavior to go to user content instead of system_instruction. Supports context caching. Accepts types.ContentUnion (str, types.Content, types.Part, PIL.Image.Image, types.File, or list\[PartUnion\]).
+- Set cached instruction. When set, `.instruct()` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change.
 
 **Example:**
 
@@ -642,7 +642,7 @@ LoopAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -742,7 +742,7 @@ ParallelAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -960,7 +960,7 @@ SequentialAgentConfig(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Optional. The description of the agent.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 

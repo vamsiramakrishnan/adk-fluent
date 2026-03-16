@@ -1,6 +1,6 @@
 """Tests for UI surface compilation: compile_surface, flatten_tree, ID generation."""
 
-from adk_fluent._ui import UI, UIBinding, UICheck, UISurface, compile_surface
+from adk_fluent._ui import UI, compile_surface
 
 
 class TestCompileSurface:

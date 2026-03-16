@@ -1,16 +1,7 @@
 # Middleware: Production Middleware Stack for a Healthcare API Agent
 
-:::{admonition} Why this matters
-:class: important
-Production agents need cross-cutting concerns: retry with exponential backoff for transient failures, structured audit logging for HIPAA compliance, cost tracking for budget management. These concerns apply to every agent in the pipeline but have nothing to do with the agent's core logic. Middleware separates operational concerns from business logic, applying them uniformly without modifying individual agents.
-:::
-
-:::{warning} Without this
-Without middleware, retry logic, logging, and compliance hooks are scattered across individual agent callbacks. Adding audit logging to a 10-agent pipeline means modifying 10 agents. Miss one and you have a compliance gap. Middleware applies the concern once and it covers the entire pipeline automatically.
-:::
-
 :::{tip} What you'll learn
-How to build production middleware stacks for retry, logging, and compliance.
+How to configure agents for production runtime.
 :::
 
 _Source: `45_middleware.py`_

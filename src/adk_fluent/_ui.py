@@ -691,7 +691,7 @@ class UI:
     ) -> UISurface:
         """Generate a multi-step wizard surface using Tabs."""
         tabs_items: list[UIComponent] = []
-        for step_title, step_content in steps:
+        for _step_title, step_content in steps:
             # We'll use the content directly; Tabs need special handling in compile
             tabs_items.append(step_content)
 

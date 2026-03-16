@@ -3,41 +3,12 @@
 import pytest  # noqa: F401 (used inside test methods)
 
 from adk_fluent.executor import (
-    A2aAgentExecutor,
     AgentEngineSandboxCodeExecutor,
     BaseCodeExecutor,
     BuiltInCodeExecutor,
     UnsafeLocalCodeExecutor,
     VertexAiCodeExecutor,
 )
-
-
-class TestA2aAgentExecutorBuilder:
-    """Tests for A2aAgentExecutor builder mechanics (no .build() calls)."""
-
-    def test_builder_creation(self):
-        """Builder constructor stores args in _config."""
-        builder = A2aAgentExecutor("test_runner")
-        assert builder is not None
-        assert isinstance(builder._config, dict)
-
-    def test_chaining_returns_self(self):
-        """.config() returns the builder instance for chaining."""
-        builder = A2aAgentExecutor("test_runner")
-        result = builder.config(None)
-        assert result is builder
-
-    def test_config_accumulation(self):
-        """Setting .config() stores the value in builder._config."""
-        builder = A2aAgentExecutor("test_runner")
-        builder.config(None)
-        assert builder._config["config"] == None
-
-    def test_typo_detection(self):
-        """Typos in method names raise clear AttributeError."""
-        builder = A2aAgentExecutor("test_runner")
-        with pytest.raises(AttributeError, match="not a recognized field"):
-            builder.zzz_not_a_real_field("oops")
 
 
 class TestAgentEngineSandboxCodeExecutorBuilder:

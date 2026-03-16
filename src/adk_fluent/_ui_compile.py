@@ -22,7 +22,6 @@ from adk_fluent._ui import (
     compile_surface,
 )
 
-
 # ---------------------------------------------------------------------------
 # Prompt generation
 # ---------------------------------------------------------------------------
@@ -115,8 +114,9 @@ def generate_ui_prompt_section(
         # Include pre-compiled surface as example
         messages = compile_surface(surface)
         sections.append("### Pre-defined Surface\n")
-        sections.append(f"Surface '{surface.name}' is already defined. "
-                        "You can update it using updateDataModel messages.\n")
+        sections.append(
+            f"Surface '{surface.name}' is already defined. You can update it using updateDataModel messages.\n"
+        )
         sections.append("```json")
         for msg in messages:
             sections.append(json.dumps(msg, indent=2))

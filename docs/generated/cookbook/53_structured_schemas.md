@@ -13,17 +13,8 @@ In other frameworks: LangGraph uses Pydantic with output_parser on chain calls.
 CrewAI uses output_pydantic on Task objects. adk-fluent uses the @ operator for
 inline schema binding on any agent.
 
-:::{admonition} Why this matters
-:class: important
-Structured output ensures that agent responses conform to a known schema. In an insurance pipeline, claim details must include `policy_number`, `incident_date`, and `damage_estimate` as typed fields -- not free-form text that a downstream system might fail to parse. The `@` operator and `.returns()` method bind Pydantic schemas to agent output, making the pipeline's data contracts explicit and enforceable.
-:::
-
-:::{warning} Without this
-Without structured output, each agent produces free-form text that downstream agents and systems must parse with fragile heuristics. A model update that changes the response format breaks every downstream consumer. With the `@` operator, the model is constrained to produce valid JSON matching the schema, and format changes are caught as schema validation errors -- not as production outages.
-:::
-
 :::{tip} What you'll learn
-How to enforce typed output schemas across pipeline stages with the @ operator.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `53_structured_schemas.py`_

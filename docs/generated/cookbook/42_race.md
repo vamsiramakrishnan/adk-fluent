@@ -6,17 +6,8 @@ Pipeline topology:
     Research pipeline:
         query_classifier >> race( federal_search, state_search ) >> citation_formatter
 
-:::{admonition} Why this matters
-:class: important
-When multiple providers can answer the same query, the fastest response wins. Legal research platforms query Westlaw and LexisNexis simultaneously; search engines query multiple indices in parallel. `race()` runs agents concurrently and returns the first result, minimizing user wait time. Unlike `|` (which waits for all branches), `race` returns as soon as one succeeds.
-:::
-
-:::{warning} Without this
-Without race semantics, you either query providers sequentially (multiplying latency) or use parallel fan-out and wait for all to complete (wasting time on the slowest provider). Native ADK's `ParallelAgent` runs all branches and merges results -- there's no built-in "first to finish wins" mechanism.
-:::
-
 :::{tip} What you'll learn
-How to take the first response from competing agents with race().
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `42_race.py`_

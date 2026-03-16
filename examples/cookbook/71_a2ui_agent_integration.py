@@ -18,8 +18,10 @@ from adk_fluent._ui import UISurface, _UIAutoSpec
 from adk_fluent.patterns import ui_dashboard_agent, ui_form_agent
 
 # --- 1. Agent.ui() with declarative surface ---
-agent = Agent("support", "gemini-2.5-flash").instruct("Help users.").ui(
-    UI.form("ticket", fields={"issue": "longText", "priority": "text"})
+agent = (
+    Agent("support", "gemini-2.5-flash")
+    .instruct("Help users.")
+    .ui(UI.form("ticket", fields={"issue": "longText", "priority": "text"}))
 )
 assert isinstance(agent._config["_ui_spec"], UISurface)
 

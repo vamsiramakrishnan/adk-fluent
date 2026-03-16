@@ -2,7 +2,7 @@
   "meta": {
     "a2ui_version": "v0.10",
     "catalog_uri": "https://a2ui.org/specification/v0_10/basic_catalog.json",
-    "scan_timestamp": "2026-03-15T22:34:11.177406+00:00"
+    "scan_timestamp": "2026-03-16T00:30:20.747054+00:00"
   },
   "components": [
     {
@@ -617,8 +617,8 @@
         }
       ],
       "required_args": [
-        "pattern",
-        "value"
+        "value",
+        "pattern"
       ],
       "return_type": "boolean"
     },
@@ -780,8 +780,8 @@
         }
       ],
       "required_args": [
-        "currency",
-        "value"
+        "value",
+        "currency"
       ],
       "return_type": "string"
     },
@@ -805,8 +805,8 @@
         }
       ],
       "required_args": [
-        "format",
-        "value"
+        "value",
+        "format"
       ],
       "return_type": "string"
     },
@@ -860,8 +860,8 @@
         }
       ],
       "required_args": [
-        "other",
-        "value"
+        "value",
+        "other"
       ],
       "return_type": "string"
     },

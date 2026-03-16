@@ -130,6 +130,7 @@ CHILD_BUTTON_COMPONENTS = {"Button"}  # child: ComponentId (label child)
 # TYPE RESOLUTION
 # ---------------------------------------------------------------------------
 
+
 def _resolve_type(prop_schema: dict, prop_name: str) -> str:
     """Resolve a JSON Schema property definition to a human-readable type name."""
     if "$ref" in prop_schema:
@@ -233,7 +234,8 @@ def scan_component(name: str, schema: dict) -> ComponentInfo:
     comp = ComponentInfo(
         name=name,
         category=_categorize_component(name),
-        supports_children=name in CHILD_LIST_COMPONENTS | CHILD_SINGLE_COMPONENTS | CHILD_TABS_COMPONENTS | CHILD_BUTTON_COMPONENTS,
+        supports_children=name
+        in CHILD_LIST_COMPONENTS | CHILD_SINGLE_COMPONENTS | CHILD_TABS_COMPONENTS | CHILD_BUTTON_COMPONENTS,
         child_mode=_get_child_mode(name),
         supports_action=name in ACTION_COMPONENTS,
         supports_checks=name in CHECKABLE_COMPONENTS,
@@ -318,13 +320,15 @@ def scan_function(name: str, schema: dict) -> FunctionInfo:
 
     for arg_name, arg_schema in args_props.items():
         arg_type = _resolve_type(arg_schema, arg_name)
-        func.args.append(PropertyInfo(
-            name=arg_name,
-            type=arg_type,
-            required=arg_name in args_required,
-            description=arg_schema.get("description", ""),
-            default=arg_schema.get("default"),
-        ))
+        func.args.append(
+            PropertyInfo(
+                name=arg_name,
+                type=arg_type,
+                required=arg_name in args_required,
+                description=arg_schema.get("description", ""),
+                default=arg_schema.get("default"),
+            )
+        )
 
     func.required_args = [a for a in args_required]
     return func
@@ -334,12 +338,14 @@ def scan_theme(theme_schema: dict) -> list[ThemeProperty]:
     """Extract theme properties from the catalog $defs."""
     result = []
     for name, prop in theme_schema.get("properties", {}).items():
-        result.append(ThemeProperty(
-            name=name,
-            type=prop.get("type", "string"),
-            description=prop.get("description", ""),
-            pattern=prop.get("pattern"),
-        ))
+        result.append(
+            ThemeProperty(
+                name=name,
+                type=prop.get("type", "string"),
+                description=prop.get("description", ""),
+                pattern=prop.get("pattern"),
+            )
+        )
     return result
 
 
@@ -396,10 +402,7 @@ def scan_catalog(spec_dir: Path) -> A2UIManifest:
 
     # Dynamic types from common_types
     defs = common.get("$defs", {})
-    manifest.dynamic_types = [
-        name for name in defs
-        if name.startswith("Dynamic")
-    ]
+    manifest.dynamic_types = [name for name in defs if name.startswith("Dynamic")]
     manifest.common_type_names = list(defs.keys())
 
     return manifest
@@ -468,8 +471,7 @@ def run(
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(result + "\n")
         print(
-            f"Wrote {output} ({len(manifest.components)} components, "
-            f"{len(manifest.functions)} functions)",
+            f"Wrote {output} ({len(manifest.components)} components, {len(manifest.functions)} functions)",
             file=sys.stderr,
         )
     else:
@@ -484,15 +486,14 @@ def run(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Scan A2UI JSON Schema spec files → a2ui_manifest.json"
-    )
+    parser = argparse.ArgumentParser(description="Scan A2UI JSON Schema spec files → a2ui_manifest.json")
     parser.add_argument(
         "spec_dir",
         help="Directory containing A2UI JSON Schema files (basic_catalog.json, etc.)",
     )
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         help="Output file path (default: stdout)",
     )
     parser.add_argument(

@@ -1,18 +1,18 @@
 """Tests for UI core types: UIComponent, UIBinding, UICheck, UISurface, operators."""
 
+import pytest
+
 from adk_fluent._ui import (
     UI,
     UIAction,
     UIBinding,
     UICheck,
-    UIComponent,
     UISurface,
+    _component,
     _UIAutoSpec,
     _UIGroup,
     _UISchemaSpec,
-    _component,
 )
-
 
 # ======================================================================
 # UIComponent basics
@@ -29,11 +29,8 @@ class TestUIComponent:
 
     def test_component_is_frozen(self):
         c = _component("Text", text="hello")
-        try:
+        with pytest.raises(AttributeError):
             c._kind = "Other"
-            assert False, "Should raise"
-        except AttributeError:
-            pass
 
     def test_component_with_id(self):
         c = _component("Text", id="my-id", text="hello")

@@ -1,16 +1,7 @@
 # Deployment Pipeline: Serialize Agent Configs with to_dict and to_yaml
 
-:::{admonition} Why this matters
-:class: important
-Production deployments need version-controlled agent configurations. Serializing agents to YAML or dict format enables CI/CD pipelines, configuration-as-code, and rollback to previous versions. A team can review agent configuration changes in a pull request the same way they review code changes.
-:::
-
-:::{warning} Without this
-Without serialization, agent configurations exist only as runtime objects. There's no way to diff two versions, no way to roll back a bad deployment, and no way to review configuration changes in code review. The agent's configuration is whatever's in the running code -- with no audit trail.
-:::
-
 :::{tip} What you'll learn
-How to serialize and deserialize agent configurations for CI/CD.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `26_serialization.py`_

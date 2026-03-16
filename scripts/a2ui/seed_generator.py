@@ -124,8 +124,7 @@ def generate_seed(manifest: dict, manual: dict | None = None) -> dict:
             "has_checks": comp.get("supports_checks", False),
             "has_weight": comp.get("supports_weight", True),
             "has_bind": any(
-                p["name"] == "value" and p.get("type", "").startswith("Dynamic")
-                for p in comp.get("properties", [])
+                p["name"] == "value" and p.get("type", "").startswith("Dynamic") for p in comp.get("properties", [])
             ),
         }
         seed["components"].append(comp_entry)
@@ -137,12 +136,14 @@ def generate_seed(manifest: dict, manual: dict | None = None) -> dict:
 
         args = []
         for arg in func.get("args", []):
-            args.append({
-                "name": arg["name"],
-                "type": _resolve_python_type(arg.get("type", "string")),
-                "required": arg.get("required", False),
-                "description": arg.get("description", ""),
-            })
+            args.append(
+                {
+                    "name": arg["name"],
+                    "type": _resolve_python_type(arg.get("type", "string")),
+                    "required": arg.get("required", False),
+                    "description": arg.get("description", ""),
+                }
+            )
 
         func_entry = {
             "name": name,
@@ -194,8 +195,7 @@ def run(
     fmt = write_toml_or_json(seed, output, prefer_json=prefer_json)
 
     print(
-        f"Wrote {output} ({fmt}: {len(seed['components'])} components, "
-        f"{len(seed['functions'])} functions)",
+        f"Wrote {output} ({fmt}: {len(seed['components'])} components, {len(seed['functions'])} functions)",
         file=sys.stderr,
     )
     return seed
@@ -207,9 +207,7 @@ def run(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Generate a2ui_seed.toml from a2ui_manifest.json"
-    )
+    parser = argparse.ArgumentParser(description="Generate a2ui_seed.toml from a2ui_manifest.json")
     parser.add_argument("manifest", help="Path to a2ui_manifest.json")
     parser.add_argument("-o", "--output", required=True, help="Output seed file path")
     parser.add_argument(

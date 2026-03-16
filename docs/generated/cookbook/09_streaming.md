@@ -10,17 +10,8 @@ requires graph compilation and manual event filtering. adk-fluent exposes
 .stream() directly on any pipeline, making token-by-token output a single
 async for loop.
 
-:::{admonition} Why this matters
-:class: important
-Streaming is critical for latency-sensitive applications. Live conference translation, real-time transcription, and interactive chat all need tokens to appear as they're generated -- not after the entire response is complete. A 2000-token response takes 10+ seconds to generate fully, but streaming shows the first token in milliseconds. The `.stream()` method makes any agent or pipeline streamable with a single async for loop.
-:::
-
-:::{warning} Without this
-Without streaming, users stare at a blank screen for seconds while the model generates its full response. In native ADK, streaming requires manual event iteration with type-checking each event, filtering for text deltas, and handling completion events -- 10+ lines of async boilerplate. With `.stream()`, the same pattern is `async for token in agent.stream("query")`.
-:::
-
 :::{tip} What you'll learn
-How to stream token-by-token output from any agent or pipeline.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `09_streaming.py`_

@@ -574,9 +574,7 @@ class BuilderBase:
             # init_signature mode: validate against static param set
             available = sorted(_KNOWN_PARAMS | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
             cls_name = self.__class__.__name__
-            raise AttributeError(
-                f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
-            )
+            raise AttributeError(f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}")
         elif _ADK_TARGET_CLASS is None and "build" in self.__class__.__dict__:
             # Concrete builder whose optional ADK target class is unavailable.
             # Auto-derive known fields from the builder's own explicit methods.

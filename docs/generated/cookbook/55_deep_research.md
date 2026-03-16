@@ -25,17 +25,8 @@ Pipeline topology:
 
 Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
 
-:::{admonition} Why this matters
-:class: important
-This recipe demonstrates adk-fluent's full expressive power in a scenario that every analyst team needs: comprehensive research briefs. The pipeline decomposes queries into sub-questions, searches multiple sources in parallel, synthesizes findings, iterates on quality until a confidence threshold is met, and produces a typed report. Every major adk-fluent feature -- `>>`, `|`, `*`, `@`, `S.*`, `C.*` -- works together in a single pipeline expression.
-:::
-
-:::{warning} Without this
-Building this pipeline in native ADK requires 7+ separate agent declarations, a `ParallelAgent` for multi-source search, a custom `LoopAgent` subclass with quality-check exit logic, manual `include_contents="none"` on stateless agents, Pydantic schema wiring for the final report, and manual `output_key` wiring between all stages. Total: ~120 lines of boilerplate where the topology is invisible. In adk-fluent, the entire topology is one readable expression.
-:::
-
 :::{tip} What you'll learn
-How to build a multi-stage research pipeline with parallel search and quality loops.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `55_deep_research.py`_

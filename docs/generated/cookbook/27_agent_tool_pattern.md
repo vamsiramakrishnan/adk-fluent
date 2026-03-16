@@ -1,16 +1,7 @@
 # Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
 
-:::{admonition} Why this matters
-:class: important
-Some routing decisions are too complex for deterministic rules -- "should this architecture question go to the database specialist or the frontend specialist?" requires understanding the question's content. The `.agent_tool()` pattern wraps specialist agents as tools that the coordinator's LLM can invoke based on its judgment. This provides flexible, context-aware delegation without sacrificing the specialist's focused expertise.
-:::
-
-:::{warning} Without this
-Without agent-as-tool delegation, you either force deterministic routing on complex decisions (requiring fragile keyword matching) or give a single agent all specialist knowledge (diluting its expertise). The `.agent_tool()` pattern lets the LLM decide who to delegate to while keeping each specialist focused on their domain.
-:::
-
 :::{tip} What you'll learn
-How to delegate tasks between agents using .agent_tool().
+How to delegate tasks between agents.
 :::
 
 _Source: `27_agent_tool_pattern.py`_

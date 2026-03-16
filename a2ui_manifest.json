@@ -1,6 +1,6 @@
 {
   "a2ui_version": "v0.10",
-  "scan_timestamp": "2026-03-15T22:34:11.177406+00:00",
+  "scan_timestamp": "2026-03-16T00:30:20.747054+00:00",
   "catalog_uri": "https://a2ui.org/specification/v0_10/basic_catalog.json",
   "spec_dir": "specification/v0_10/json",
   "components": [
@@ -436,8 +436,8 @@
         }
       ],
       "required_props": [
-        "trigger",
-        "content"
+        "content",
+        "trigger"
       ],
       "supports_children": true,
       "child_mode": "single",
@@ -598,8 +598,8 @@
         }
       ],
       "required_props": [
-        "label",
-        "value"
+        "value",
+        "label"
       ],
       "supports_children": false,
       "child_mode": null,
@@ -680,8 +680,8 @@
         }
       ],
       "required_props": [
-        "options",
-        "value"
+        "value",
+        "options"
       ],
       "supports_children": false,
       "child_mode": null,
@@ -736,8 +736,8 @@
         }
       ],
       "required_props": [
-        "max",
-        "value"
+        "value",
+        "max"
       ],
       "supports_children": false,
       "child_mode": null,
@@ -870,8 +870,8 @@
         }
       ],
       "required_args": [
-        "pattern",
-        "value"
+        "value",
+        "pattern"
       ],
       "return_type": "boolean"
     },
@@ -1087,8 +1087,8 @@
         }
       ],
       "required_args": [
-        "currency",
-        "value"
+        "value",
+        "currency"
       ],
       "return_type": "string"
     },
@@ -1119,8 +1119,8 @@
         }
       ],
       "required_args": [
-        "format",
-        "value"
+        "value",
+        "format"
       ],
       "return_type": "string"
     },
@@ -1201,8 +1201,8 @@
         }
       ],
       "required_args": [
-        "other",
-        "value"
+        "value",
+        "other"
       ],
       "return_type": "string"
     },

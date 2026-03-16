@@ -81,7 +81,6 @@ def _gen_component_factory(comp: dict) -> str:
     """Generate a single component factory method."""
     name = comp["name"]
     factory = comp["factory_name"]
-    category = comp["category"]
     desc = comp.get("description", f"{name} component.")
     has_children = comp.get("has_children", False)
     child_mode = comp.get("child_mode")
@@ -308,7 +307,7 @@ def _gen_alias(alias_name: str, alias_def: dict) -> str:
     doc = alias_def.get("doc", f"Alias for {component} with variant={default_variant}.")
 
     # For Text aliases, delegate to text() with fixed variant
-    if component == "Text":
+    if component == "Text":  # noqa: SIM116
         return f"""    @staticmethod
     def {alias_name}(content: str, *, id: str | None = None) -> UIComponent:
         \"\"\"{doc}\"\"\"
@@ -451,7 +450,6 @@ def generate_tests(seed: dict) -> str:
         child_mode = comp.get("child_mode")
         has_bind = comp.get("has_bind", False)
         has_checks = comp.get("has_checks", False)
-        has_action = comp.get("has_action", False)
         required_args = comp.get("required_args", [])
         types = comp.get("arg_types", {})
 
@@ -471,32 +469,32 @@ def generate_tests(seed: dict) -> str:
             elif "Boolean" in arg_type or arg_type == "bool":
                 call_args.append(f"{arg}=False")
             elif "StringList" in arg_type or arg_type.startswith("array"):
-                call_args.append(f'{arg}=[]')
+                call_args.append(f"{arg}=[]")
             else:
                 call_args.append(f'{arg}="test"')
 
         args_str = ", ".join(call_args)
 
         lines.append(f"def test_ui_{factory}_creates_component():")
-        lines.append(f'    c = UI.{factory}({args_str})')
-        lines.append('    assert isinstance(c, UIComponent)')
+        lines.append(f"    c = UI.{factory}({args_str})")
+        lines.append("    assert isinstance(c, UIComponent)")
         lines.append(f'    assert c._kind == "{name}"')
         lines.append("")
 
         # Bind test
         if has_bind:
-            bind_args = args_str + (', ' if args_str else '') + 'bind="/test/path"'
+            bind_args = args_str + (", " if args_str else "") + 'bind="/test/path"'
             lines.append(f"def test_ui_{factory}_with_bind():")
-            lines.append(f'    c = UI.{factory}({bind_args})')
+            lines.append(f"    c = UI.{factory}({bind_args})")
             lines.append("    assert len(c._bindings) == 1")
             lines.append('    assert c._bindings[0].path == "/test/path"')
             lines.append("")
 
         # Checks test
         if has_checks:
-            check_args = args_str + (', ' if args_str else '') + 'checks=[UI.required()]'
+            check_args = args_str + (", " if args_str else "") + "checks=[UI.required()]"
             lines.append(f"def test_ui_{factory}_with_checks():")
-            lines.append(f'    c = UI.{factory}({check_args})')
+            lines.append(f"    c = UI.{factory}({check_args})")
             lines.append("    assert len(c._checks) == 1")
             lines.append('    assert c._checks[0].fn == "required"')
             lines.append("")
@@ -521,12 +519,12 @@ def generate_tests(seed: dict) -> str:
                     if "String" in py_type or py_type == "str":
                         test_args.append(f'{arg["name"]}="test"')
                     elif "Number" in py_type:
-                        test_args.append(f'{arg["name"]}=0')
+                        test_args.append(f"{arg['name']}=0")
                     else:
                         test_args.append(f'{arg["name"]}="test"')
             call_str = ", ".join(test_args)
             lines.append(f"def test_ui_{factory}_check():")
-            lines.append(f'    c = UI.{factory}({call_str})')
+            lines.append(f"    c = UI.{factory}({call_str})")
             lines.append("    assert isinstance(c, UICheck)")
             lines.append(f'    assert c.fn == "{fname}"')
             lines.append("")
@@ -537,7 +535,7 @@ def generate_tests(seed: dict) -> str:
         component = alias_def.get("component", "Text")
         variant = alias_def.get("default_variant", "body")
         if component == "Text":
-            lines.append(f'def test_ui_{alias_name}_alias():')
+            lines.append(f"def test_ui_{alias_name}_alias():")
             lines.append(f'    c = UI.{alias_name}("test")')
             lines.append('    assert c._kind == "Text"')
             lines.append(f'    assert dict(c._props).get("variant") == "{variant}"')
@@ -582,9 +580,9 @@ def generate_tests(seed: dict) -> str:
     lines.append("def test_component_operators():")
     lines.append('    a = UI.text("A")')
     lines.append('    b = UI.text("B")')
-    lines.append('    row = a | b')
+    lines.append("    row = a | b")
     lines.append('    assert row._kind == "Row"')
-    lines.append('    col = a >> b')
+    lines.append("    col = a >> b")
     lines.append('    assert col._kind == "Column"')
     lines.append("")
 
@@ -628,9 +626,7 @@ def run(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Generate UI factories from a2ui_seed"
-    )
+    parser = argparse.ArgumentParser(description="Generate UI factories from a2ui_seed")
     parser.add_argument("seed", help="Path to a2ui_seed.toml or JSON")
     parser.add_argument("--output-dir", default="src/adk_fluent")
     parser.add_argument("--test-dir", default="tests/generated")

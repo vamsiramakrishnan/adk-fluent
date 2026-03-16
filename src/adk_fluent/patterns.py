@@ -505,7 +505,7 @@ def ui_form_agent(
             instruction="Collect user info.",
         ).build()
     """
-    from adk_fluent import Agent, UI
+    from adk_fluent import UI, Agent
 
     agent = Agent(name, model)
     if instruction:
@@ -547,7 +547,7 @@ def ui_dashboard_agent(
             ],
         ).build()
     """
-    from adk_fluent import Agent, UI
+    from adk_fluent import UI, Agent
 
     agent = Agent(name, model)
     if instruction:

@@ -136,4 +136,3 @@ The `>>` operator should respect this:
 
 Context engineering is not just overflow handling. It is the *continuous discipline* of assembling the smallest, highest-signal token set that maximizes an agent's likelihood of producing the desired outcome.
 
-```

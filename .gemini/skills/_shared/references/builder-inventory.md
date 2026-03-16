@@ -3,17 +3,15 @@
 
 # Builder Inventory
 
-**135 builders** across the following modules:
+**132 builders** across the following modules:
 
-## agent module (3 builders)
+## agent module (2 builders)
 
-- **Agent** — `google.adk.agents.llm_agent.LlmAgent` (24 fields, 32 extras)
+- **Agent** — `google.adk.agents.llm_agent.LlmAgent` (24 fields, 33 extras)
 - **BaseAgent** — `google.adk.agents.base_agent.BaseAgent` (4 fields, 1 extras)
-- **RemoteA2aAgent** — `google.adk.agents.remote_a2a_agent.RemoteA2aAgent` (4 fields, 1 extras)
 
-## config module (39 builders)
+## config module (38 builders)
 
-- **A2aAgentExecutorConfig** — `google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutorConfig` (4 fields, 0 extras)
 - **AgentConfig** — `google.adk.agents.agent_config.AgentConfig` (0 fields, 0 extras)
 - **AgentRefConfig** — `google.adk.agents.common_configs.AgentRefConfig` (2 fields, 0 extras)
 - **AgentSimulatorConfig** — `google.adk.tools.agent_simulator.agent_simulator_config.AgentSimulatorConfig` (5 fields, 1 extras)
@@ -53,9 +51,8 @@
 - **ToolSimulationConfig** — `google.adk.tools.agent_simulator.agent_simulator_config.ToolSimulationConfig` (2 fields, 1 extras)
 - **ToolThreadPoolConfig** — `google.adk.agents.run_config.ToolThreadPoolConfig` (1 fields, 0 extras)
 
-## executor module (6 builders)
+## executor module (5 builders)
 
-- **A2aAgentExecutor** — `google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutor` (0 fields, 0 extras)
 - **AgentEngineSandboxCodeExecutor** — `google.adk.code_executors.agent_engine_sandbox_code_executor.AgentEngineSandboxCodeExecutor` (6 fields, 1 extras)
 - **BaseCodeExecutor** — `google.adk.code_executors.base_code_executor.BaseCodeExecutor` (5 fields, 1 extras)
 - **BuiltInCodeExecutor** — `google.adk.code_executors.built_in_code_executor.BuiltInCodeExecutor` (5 fields, 1 extras)

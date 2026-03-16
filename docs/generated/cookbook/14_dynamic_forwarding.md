@@ -1,14 +1,5 @@
 # Multi-Department Ticket Routing via Dynamic Field Forwarding
 
-:::{admonition} Why this matters
-:class: important
-In multi-agent systems, upstream agents often produce outputs that downstream agents need. Dynamic field forwarding automatically pipes agent outputs into state keys that subsequent agents can read through instruction templates. This eliminates manual state-wiring boilerplate and keeps data flow declarative.
-:::
-
-:::{warning} Without this
-Without dynamic forwarding, you must manually extract outputs from each agent's response, write them to session state, and configure the next agent to read from that specific key. Miss one wiring step and the downstream agent receives an empty template variable, producing nonsensical output with no error message.
-:::
-
 :::{tip} What you'll learn
 How to use dynamic field forwarding.
 :::
