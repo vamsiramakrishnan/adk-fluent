@@ -2,6 +2,22 @@
 
 adk-fluent provides execution helpers that eliminate Runner and Session boilerplate. These methods let you go from builder to result in a single call.
 
+:::{admonition} Execution backend awareness
+:class: note
+
+All execution methods below work with the default **ADK backend**. When using alternative backends, behavior varies:
+
+| Method | ADK (default) | Temporal (in dev) | asyncio (in dev) |
+|--------|--------------|-------------------|------------------|
+| `.ask()` | Works | Not recommended (blocking) | Works |
+| `.ask_async()` | Works | Works (starts workflow) | Works |
+| `.stream()` | Real-time streaming | Falls back to batch | Works |
+| `.session()` | In-memory history | Requires external state | Works |
+| `.map_async()` | Concurrent tasks | Each prompt = workflow | Concurrent tasks |
+
+See [Execution Backends](execution-backends.md) for details. The examples below use the default ADK backend.
+:::
+
 ## `.ask(prompt)`
 
 Send a prompt, get response text. No Runner or Session setup needed:
@@ -263,17 +279,20 @@ See [Testing](testing.md).
 
 1. **Use `.ask()` for prototyping, `.to_app()` for production.** `.ask()` is convenient but doesn't support middleware, resumability, or compaction
 2. **Use `.stream()` for user-facing output.** Streaming provides better UX than waiting for the full response
-3. **Use `.map()` with bounded concurrency for batch jobs.** Don't fire 1000 concurrent requests -- use `concurrency=` to control
+3. **Use `.map()` with bounded concurrency for batch jobs.** Don't fire 1000 concurrent requests — use `concurrency=` to control
 4. **Use `.session()` for multi-turn interactions.** Don't manually manage conversation history
 5. **Use `.test()` during development, `AgentHarness` in CI.** `.test()` hits the real LLM; `AgentHarness` with `mock_backend` is deterministic
+6. **Use `.engine("temporal")` for crash-resilient pipelines.** When durability matters, switch to Temporal — your builder definitions stay the same (Temporal backend is in development)
 
 :::{tip}
 **Visual learner?** Open the [Execution Modes Interactive Reference](../execution-modes-reference.html){target="_blank"} for sync vs async flow diagrams, an environment compatibility matrix, and the RuntimeError trap.
 :::
 
 :::{seealso}
-- [Testing](testing.md) -- `.mock()`, `.test()`, `AgentHarness`, and `check_contracts()`
-- [Middleware](middleware.md) -- pipeline-wide retry, logging, and tracing via `.to_app()`
-- [Visibility](visibility.md) -- controlling which agents' output appears in streams
-- [Context Engineering](context-engineering.md) -- controlling history in `.session()` interactions
+- [Execution Backends](execution-backends.md) — backend selection, capability matrix, `.engine()` method
+- [Temporal Guide](temporal-guide.md) — durable execution, crash recovery, Temporal-specific patterns
+- [Testing](testing.md) — `.mock()`, `.test()`, `AgentHarness`, and `check_contracts()`
+- [Middleware](middleware.md) — pipeline-wide retry, logging, and tracing via `.to_app()`
+- [Visibility](visibility.md) — controlling which agents' output appears in streams
+- [Context Engineering](context-engineering.md) — controlling history in `.session()` interactions
 :::

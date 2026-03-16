@@ -70,12 +70,27 @@ Production concerns.
 | [Transfer Control](transfer-control.md) | `.isolate()`, `.stay()`, `.no_peers()` |
 | [Memory](memory.md) | `.memory()`, `.memory_auto_save()`, persistent agent memory |
 | [IR & Backends](ir-and-backends.md) | `.to_ir()`, compilation, backend abstraction |
+| [Execution Backends](execution-backends.md) | `.engine()`, ADK / Temporal / asyncio, capability matrix, backend selection |
+| [Temporal Guide](temporal-guide.md) | Durable execution, crash recovery, determinism rules, Temporal patterns |
 | [Middleware](middleware.md) | The M module: `M.retry()`, `M.log()`, `M.cost()`, `M.circuit_breaker()`, composition |
 | [Guards](guards.md) | The G module: `G.pii()`, `G.toxicity()`, `G.schema()`, input/output validation |
 | [Evaluation](evaluation.md) | The E module: `E.case()`, `E.criterion()`, eval suites, comparison reports |
 | [Testing](testing.md) | `.mock()`, `.test()`, `check_contracts()`, `AgentHarness`, pytest integration |
 | [A2A](a2a.md) | Remote agent-to-agent communication: `RemoteAgent`, `A2AServer`, discovery, resilience |
 | [A2UI](a2ui.md) | Declarative agent UIs: `UI` namespace, components, operators, surfaces, presets |
+
+:::{admonition} Backend maturity at a glance
+:class: tip
+
+| Backend | Status | Key Feature |
+|---------|--------|------------|
+| **ADK** | **Stable** — production-ready, default | Native ADK objects, streaming, `adk web/run/deploy` |
+| **Temporal** | **In Development** — API may change | Durable execution, crash recovery, distributed |
+| **asyncio** | **In Development** — reference impl | Zero-dependency IR interpreter |
+| **DBOS / Prefect** | **Conceptual** — not yet implemented | Under research |
+
+Start with ADK. If you need durability, see [Execution Backends](execution-backends.md).
+:::
 
 ## Reference
 
@@ -108,6 +123,8 @@ visibility
 transfer-control
 memory
 ir-and-backends
+execution-backends
+temporal-guide
 middleware
 guards
 evaluation
