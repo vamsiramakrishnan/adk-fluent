@@ -15,9 +15,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import logging
 import re
 import sys
-import traceback
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -36,6 +36,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
+
+logger = logging.getLogger("visual.server")
 
 # ── App setup ──────────────────────────────────────────────────
 app = FastAPI(title="adk-fluent Visual Runner", version="0.1.0")
@@ -124,7 +126,7 @@ _agent_cache: dict[str, object] = {}
 
 def _load_agent(cookbook_id: str):
     """Load and build an agent from a cookbook's example folder."""
-    cb = next((c for c in get_cookbooks() if c["id"] == cookbook_id), None)
+    cb = _validate_cookbook_id(cookbook_id)
     if not cb:
         raise ValueError(f"Cookbook '{cookbook_id}' not found")
 
@@ -149,13 +151,19 @@ def _load_agent(cookbook_id: str):
     raise ValueError(f"No runnable agent found for '{cookbook_id}'. Run 'just agents' first.")
 
 
+def _validate_cookbook_id(cookbook_id: str) -> dict | None:
+    """Validate cookbook_id against the discovered allowlist. Returns the cookbook entry or None."""
+    return next((c for c in get_cookbooks() if c["id"] == cookbook_id), None)
+
+
 def _get_builder(cookbook_id: str):
     """Load the builder (pre-build) from the cookbook script for introspection."""
-    cb = next((c for c in get_cookbooks() if c["id"] == cookbook_id), None)
+    cb = _validate_cookbook_id(cookbook_id)
     if not cb:
         return None
 
-    cookbook_file = COOKBOOK_DIR / f"{cookbook_id}.py"
+    # Use the validated ID from the allowlist, never raw user input in paths
+    cookbook_file = COOKBOOK_DIR / f"{cb['id']}.py"
     if not cookbook_file.exists():
         return None
 
@@ -241,8 +249,11 @@ async def run_agent(body: dict):
 
     try:
         agent = _load_agent(cookbook_id)
-    except (ValueError, RuntimeError) as e:
-        return JSONResponse({"error": str(e)})
+    except ValueError:
+        return JSONResponse({"error": f"Cookbook '{cookbook_id}' not found"}, status_code=404)
+    except RuntimeError:
+        logger.exception("Failed to load agent for cookbook '%s'", cookbook_id)
+        return JSONResponse({"error": "Failed to load agent"}, status_code=500)
 
     try:
         from google.adk.runners import InMemoryRunner
@@ -281,11 +292,10 @@ async def run_agent(body: dict):
         )
 
     except Exception as e:
+        logger.exception("Agent execution failed for cookbook '%s'", cookbook_id)
         return JSONResponse(
-            {
-                "error": str(e),
-                "traceback": traceback.format_exc(),
-            }
+            {"error": f"Agent execution failed: {type(e).__name__}"},
+            status_code=500,
         )
 
 
