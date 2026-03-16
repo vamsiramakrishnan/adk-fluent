@@ -7,10 +7,12 @@ from adk_fluent import (
     CompilationResult,
     ComputeConfig,
     EngineCapabilities,
-    compile_ir,
     configure,
     get_config,
     reset_config,
+)
+from adk_fluent import (
+    compile as compile_ir,
 )
 from adk_fluent._ir_generated import AgentNode
 
