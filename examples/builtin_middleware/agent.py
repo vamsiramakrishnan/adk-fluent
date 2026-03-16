@@ -221,10 +221,11 @@ production_pipeline.middleware(M.scope("fraud_detector", M.cost()))
 assert len(production_pipeline._middlewares) == 4
 
 # --- 10. Expanded built-in middleware classes ---
-from adk_fluent.middleware import (
 from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
+
+from adk_fluent.middleware import (
     CircuitBreakerMiddleware,
     DedupMiddleware,
     FallbackModelMiddleware,

@@ -316,8 +316,7 @@ class _ToolFactory:
             )
             if part is None:
                 warnings.warn(
-                    f"Artifact '{filename}' not found — load tool returning error dict "
-                    "instead of raising.",
+                    f"Artifact '{filename}' not found — load tool returning error dict instead of raising.",
                     stacklevel=2,
                 )
                 return {"error": f"Artifact '{filename}' not found"}

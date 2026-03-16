@@ -70,9 +70,7 @@ def parse_cookbook(filepath: Path) -> dict:
         for line in lines:
             if not past_docstring:
                 if '"""' in line:
-                    if in_docstring:
-                        past_docstring = True
-                    elif line.count('"""') >= 2:
+                    if in_docstring or line.count('"""') >= 2:
                         past_docstring = True
                     else:
                         in_docstring = True
@@ -131,10 +129,7 @@ def _is_buildable_example(parsed: dict) -> bool:
         return False
 
     # Must have an Agent or workflow builder construction
-    has_agent = any(
-        kw in fluent
-        for kw in ["Agent(", "Pipeline(", "FanOut(", "Loop(", "Route(", "@agent("]
-    )
+    has_agent = any(kw in fluent for kw in ["Agent(", "Pipeline(", "FanOut(", "Loop(", "Route(", "@agent("])
     if not has_agent:
         return False
 

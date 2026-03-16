@@ -310,5 +310,3 @@ def _generate_deployment_setup(cfg: PrefectWorkerConfig) -> list[str]:
     )
 
     return lines
-
-

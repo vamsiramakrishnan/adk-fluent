@@ -94,12 +94,13 @@ stats2.errors = 1
 
 # StreamRunner requires source to start
 import asyncio
+import contextlib
+
 from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
-try:
+with contextlib.suppress(ValueError):
     asyncio.run(StreamRunner(processor).start())
-except ValueError as e:
 
 root_agent = stats2.build()

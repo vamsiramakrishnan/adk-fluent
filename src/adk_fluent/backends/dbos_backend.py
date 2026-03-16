@@ -121,8 +121,7 @@ class DBOSBackend:
             import dbos  # type: ignore[import-not-found]  # noqa: F401 — verify dbos is installed
         except ImportError:
             raise ImportError(
-                "dbos is required for DBOSBackend.run(). "
-                "Install with: pip install adk-fluent[dbos]"
+                "dbos is required for DBOSBackend.run(). Install with: pip install adk-fluent[dbos]"
             ) from None
 
         events = await self._execute_plan(compiled.node_plan, prompt, kwargs.get("session"))

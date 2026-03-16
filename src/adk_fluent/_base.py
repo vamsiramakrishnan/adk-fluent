@@ -606,8 +606,7 @@ class BuilderBase:
                 cls_name = _ADK_TARGET_CLASS.__name__
                 suggestion = _suggest_match(name, available)
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} "
-                    f"Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} Available: {', '.join(available)}"
                 )
         elif _KNOWN_PARAMS is not None and field_name not in _KNOWN_PARAMS:
             # init_signature mode: validate against static param set
@@ -615,8 +614,7 @@ class BuilderBase:
             cls_name = self.__class__.__name__
             suggestion = _suggest_match(name, available)
             raise AttributeError(
-                f"'{name}' is not a recognized field on {cls_name}.{suggestion} "
-                f"Available: {', '.join(available)}"
+                f"'{name}' is not a recognized field on {cls_name}.{suggestion} Available: {', '.join(available)}"
             )
         elif _ADK_TARGET_CLASS is None and "build" in self.__class__.__dict__:
             # Concrete builder whose optional ADK target class is unavailable.
@@ -627,8 +625,7 @@ class BuilderBase:
                 cls_name = self.__class__.__name__
                 suggestion = _suggest_match(name, available)
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} "
-                    f"Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} Available: {', '.join(available)}"
                 )
         # else: composite/standalone/primitive — accept any field
 
@@ -2132,8 +2129,7 @@ class BuilderBase:
                 else:
                     suggestions.append(f"'{name}'")
             raise ValueError(
-                f"mock() could not find agent(s): {', '.join(suggestions)}. "
-                f"Available agents: {', '.join(available)}"
+                f"mock() could not find agent(s): {', '.join(suggestions)}. Available agents: {', '.join(available)}"
             )
         return self
 
@@ -2510,6 +2506,7 @@ class BuilderBase:
         existing = self._config.get("output_key")
         if existing is not None and existing != key:
             import warnings
+
             warnings.warn(
                 f".writes('{key}') overwrites existing .writes('{existing}'). "
                 f"Each agent can only write to one state key.",
@@ -2911,9 +2908,8 @@ class BuilderBase:
                 ir_issues = check_contracts(ir)
             except Exception as exc:
                 import logging
-                logging.getLogger("adk_fluent.contracts").debug(
-                    "IR contract check skipped — to_ir() failed: %s", exc
-                )
+
+                logging.getLogger("adk_fluent.contracts").debug("IR contract check skipped — to_ir() failed: %s", exc)
 
         all_issues = interop_issues + ir_issues
         if not all_issues:

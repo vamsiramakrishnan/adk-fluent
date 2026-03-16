@@ -362,7 +362,6 @@ def _generate_worker_setup(activities: list[dict], cfg: TemporalWorkerConfig) ->
     return lines
 
 
-
 # ---------------------------------------------------------------------------
 # Dynamic worker creation (runtime, not codegen)
 # ---------------------------------------------------------------------------

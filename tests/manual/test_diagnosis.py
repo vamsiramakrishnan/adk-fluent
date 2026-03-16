@@ -24,7 +24,9 @@ def test_diagnosis_ok_property():
     from adk_fluent import Agent
     from adk_fluent.testing.diagnosis import diagnose
 
-    pipeline = Agent("a", "gemini-2.5-flash").instruct("Produce.").writes("x") >> Agent("b", "gemini-2.5-flash").instruct("Use {x}.")
+    pipeline = Agent("a", "gemini-2.5-flash").instruct("Produce.").writes("x") >> Agent(
+        "b", "gemini-2.5-flash"
+    ).instruct("Use {x}.")
     diag = diagnose(pipeline.to_ir())
     assert diag.ok
 

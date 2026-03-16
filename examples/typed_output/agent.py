@@ -11,10 +11,14 @@ Usage:
 
 # --- Tools & Callbacks ---
 
+from pydantic import BaseModel
+
+
 class Invoice(BaseModel):
     vendor: str
     total_amount: float
     due_date: str
+
 
 from adk_fluent import Agent, Pipeline
 from dotenv import load_dotenv

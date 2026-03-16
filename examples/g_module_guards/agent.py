@@ -166,9 +166,6 @@ class CustomPIIDetector:
         findings = []
         # Example: detect employee IDs like EMP-12345
         import re
-from dotenv import load_dotenv
-
-load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
         for match in re.finditer(r"\bEMP-\d{5}\b", text):
             findings.append(

@@ -42,8 +42,7 @@ translator = (
 
 pipeline_fluent = transcriber >> translator
 
-# Build both to compare
-built_native = pipeline_native
+# Build the pipeline
 built_fluent = pipeline_fluent.build()
 
 root_agent = built_fluent

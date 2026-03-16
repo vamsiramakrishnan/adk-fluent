@@ -412,9 +412,7 @@ class AsyncioBackend:
         tasks = []
         for child in children:
             child_events: list[AgentEvent] = []
-            task = asyncio.create_task(
-                self._execute_node(child, prompt, dict(state), child_events)
-            )
+            task = asyncio.create_task(self._execute_node(child, prompt, dict(state), child_events))
             tasks.append((task, child_events))
 
         # Store task references for JoinNode to pick up
@@ -441,11 +439,7 @@ class AsyncioBackend:
         target_names = getattr(node, "target_names", None)
         if target_names is None:
             # Join all dispatched tasks
-            target_names = [
-                k.replace("_dispatch_", "")
-                for k in list(state.keys())
-                if k.startswith("_dispatch_")
-            ]
+            target_names = [k.replace("_dispatch_", "") for k in list(state.keys()) if k.startswith("_dispatch_")]
 
         for name in target_names:
             dispatch_entry = state.pop(f"_dispatch_{name}", None)

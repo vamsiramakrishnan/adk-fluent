@@ -119,8 +119,7 @@ class PrefectBackend:
             import prefect  # type: ignore[import-not-found]  # noqa: F401 — verify prefect is installed
         except ImportError:
             raise ImportError(
-                "prefect is required for PrefectBackend.run(). "
-                "Install with: pip install adk-fluent[prefect]"
+                "prefect is required for PrefectBackend.run(). Install with: pip install adk-fluent[prefect]"
             ) from None
 
         # Execute the plan as a Prefect flow

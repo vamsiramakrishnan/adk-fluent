@@ -394,22 +394,26 @@ def _check_common_mistakes(
     # 1. Agent with no model — will fail at runtime
     for summary in agents:
         if summary.node_type == "AgentNode" and not summary.model:
-            issues.append(ContractIssue(
-                level="error",
-                agent=summary.name,
-                message="Agent has no model set",
-                hint="Add .model('gemini-2.5-flash') or pass model as second arg: Agent('name', 'gemini-2.5-flash')",
-            ))
+            issues.append(
+                ContractIssue(
+                    level="error",
+                    agent=summary.name,
+                    message="Agent has no model set",
+                    hint="Add .model('gemini-2.5-flash') or pass model as second arg: Agent('name', 'gemini-2.5-flash')",
+                )
+            )
 
     # 2. Agent with no instruction — likely a mistake
     for summary in agents:
         if summary.node_type == "AgentNode" and not summary.instruction_preview:
-            issues.append(ContractIssue(
-                level="info",
-                agent=summary.name,
-                message="Agent has no instruction set",
-                hint="Add .instruct('...') to tell the agent what to do.",
-            ))
+            issues.append(
+                ContractIssue(
+                    level="info",
+                    agent=summary.name,
+                    message="Agent has no instruction set",
+                    hint="Add .instruct('...') to tell the agent what to do.",
+                )
+            )
 
     # 3. Missing keys: consumed but never produced (elevated from data flow to explicit error)
     #    Skip optional template vars ({var?}) — they resolve to empty string at runtime
@@ -417,12 +421,14 @@ def _check_common_mistakes(
         if not flow.producer and flow.consumers:
             if flow.key in optional_keys:
                 continue  # optional vars are OK to be missing
-            issues.append(ContractIssue(
-                level="error",
-                agent=flow.consumers[0],
-                message=f"Key '{flow.key}' is read but never produced by any upstream agent",
-                hint=f"Add .writes('{flow.key}') to the agent that should produce this value.",
-            ))
+            issues.append(
+                ContractIssue(
+                    level="error",
+                    agent=flow.consumers[0],
+                    message=f"Key '{flow.key}' is read but never produced by any upstream agent",
+                    hint=f"Add .writes('{flow.key}') to the agent that should produce this value.",
+                )
+            )
 
     # 4. Orphan writes: produced but never consumed (might indicate stale config)
     for flow in data_flow:
@@ -430,12 +436,14 @@ def _check_common_mistakes(
             # Only warn if it's an explicit output_key (not just an agent name)
             producer_summary = next((a for a in agents if a.name == flow.producer), None)
             if producer_summary and flow.key in producer_summary.writes_keys:
-                issues.append(ContractIssue(
-                    level="info",
-                    agent=flow.producer,
-                    message=f"Key '{flow.key}' is written but never read by any downstream agent",
-                    hint="Either add a consumer or remove .writes() if unneeded.",
-                ))
+                issues.append(
+                    ContractIssue(
+                        level="info",
+                        agent=flow.producer,
+                        message=f"Key '{flow.key}' is written but never read by any downstream agent",
+                        hint="Either add a consumer or remove .writes() if unneeded.",
+                    )
+                )
 
     # 5. Duplicate agent names in a composition
     name_counts: dict[str, int] = {}
@@ -443,44 +451,52 @@ def _check_common_mistakes(
         name_counts[summary.name] = name_counts.get(summary.name, 0) + 1
     for name, count in name_counts.items():
         if count > 1 and name != "?":
-            issues.append(ContractIssue(
-                level="error",
-                agent=name,
-                message=f"Agent name '{name}' appears {count} times in the pipeline",
-                hint="Agent names must be unique. Use different names for each agent.",
-            ))
+            issues.append(
+                ContractIssue(
+                    level="error",
+                    agent=name,
+                    message=f"Agent name '{name}' appears {count} times in the pipeline",
+                    hint="Agent names must be unique. Use different names for each agent.",
+                )
+            )
 
     # 6. Pipeline with single step — probably meant to use Agent directly
     node_type = type(ir_node).__name__
     children = getattr(ir_node, "children", ())
     if node_type == "SequenceNode" and len(children) == 1:
-        issues.append(ContractIssue(
-            level="info",
-            agent=getattr(ir_node, "name", "?"),
-            message="Pipeline has only one step — consider using the agent directly",
-            hint="A single-step pipeline adds unnecessary wrapping.",
-        ))
+        issues.append(
+            ContractIssue(
+                level="info",
+                agent=getattr(ir_node, "name", "?"),
+                message="Pipeline has only one step — consider using the agent directly",
+                hint="A single-step pipeline adds unnecessary wrapping.",
+            )
+        )
 
     # 7. FanOut with single branch
     if node_type == "ParallelNode" and len(children) == 1:
-        issues.append(ContractIssue(
-            level="info",
-            agent=getattr(ir_node, "name", "?"),
-            message="FanOut has only one branch — consider using the agent directly",
-            hint="Parallel execution with one branch adds unnecessary overhead.",
-        ))
+        issues.append(
+            ContractIssue(
+                level="info",
+                agent=getattr(ir_node, "name", "?"),
+                message="FanOut has only one branch — consider using the agent directly",
+                hint="Parallel execution with one branch adds unnecessary overhead.",
+            )
+        )
 
     # 8. Loop with no exit condition (max_iterations only, no predicate)
     if node_type == "LoopNode":
         has_predicate = getattr(ir_node, "exit_predicate", None) is not None
         max_iter = getattr(ir_node, "max_iterations", 0)
         if not has_predicate and max_iter > 0:
-            issues.append(ContractIssue(
-                level="info",
-                agent=getattr(ir_node, "name", "?"),
-                message=f"Loop runs exactly {max_iter} times with no exit condition",
-                hint="Consider adding .until(pred) for early termination when the goal is met.",
-            ))
+            issues.append(
+                ContractIssue(
+                    level="info",
+                    agent=getattr(ir_node, "name", "?"),
+                    message=f"Loop runs exactly {max_iter} times with no exit condition",
+                    hint="Consider adding .until(pred) for early termination when the goal is met.",
+                )
+            )
 
     # 9. Template var references a key that looks like a typo (close match)
     produced_keys = {f.key for f in data_flow if f.producer}
@@ -490,24 +506,28 @@ def _check_common_mistakes(
                 # Find close matches
                 close = [k for k in produced_keys if _is_close(var, k)]
                 if close:
-                    issues.append(ContractIssue(
-                        level="error",
-                        agent=summary.name,
-                        message=f"Template variable '{{{var}}}' not found — did you mean '{{{close[0]}}}'?",
-                        hint=f"Available keys: {', '.join(sorted(produced_keys))}",
-                    ))
+                    issues.append(
+                        ContractIssue(
+                            level="error",
+                            agent=summary.name,
+                            message=f"Template variable '{{{var}}}' not found — did you mean '{{{close[0]}}}'?",
+                            hint=f"Available keys: {', '.join(sorted(produced_keys))}",
+                        )
+                    )
 
     # 10. Route node with no rules
     def _check_empty_routes(node: Any) -> None:
         if type(node).__name__ == "RouteNode":
             rules = getattr(node, "rules", ())
             if not rules:
-                issues.append(ContractIssue(
-                    level="error",
-                    agent=getattr(node, "name", "?"),
-                    message="Route has no rules defined",
-                    hint="Add at least one .eq(), .contains(), or .when() rule.",
-                ))
+                issues.append(
+                    ContractIssue(
+                        level="error",
+                        agent=getattr(node, "name", "?"),
+                        message="Route has no rules defined",
+                        hint="Add at least one .eq(), .contains(), or .when() rule.",
+                    )
+                )
         for child in getattr(node, "children", ()):
             _check_empty_routes(child)
 
@@ -519,13 +539,15 @@ def _check_common_mistakes(
             has_schema = getattr(node, "output_schema", None) is not None
             has_tools = bool(getattr(node, "tools", ()))
             if has_schema and has_tools:
-                issues.append(ContractIssue(
-                    level="error",
-                    agent=getattr(node, "name", "?"),
-                    message="Agent has both .returns(Schema) and tools — tools will be silently disabled",
-                    hint="Remove .returns() to keep tools, or remove tools to use structured output. "
-                         "ADK disables tools when output_schema is set.",
-                ))
+                issues.append(
+                    ContractIssue(
+                        level="error",
+                        agent=getattr(node, "name", "?"),
+                        message="Agent has both .returns(Schema) and tools — tools will be silently disabled",
+                        hint="Remove .returns() to keep tools, or remove tools to use structured output. "
+                        "ADK disables tools when output_schema is set.",
+                    )
+                )
         for child in getattr(node, "children", ()):
             _check_schema_tool_conflict(child)
 
@@ -539,20 +561,21 @@ def _check_common_mistakes(
             if key not in all_writes:
                 # Don't duplicate if already caught by template var check
                 already_caught = any(
-                    key in i.message for i in issues
-                    if i.agent == summary.name and "template" in i.message.lower()
+                    key in i.message for i in issues if i.agent == summary.name and "template" in i.message.lower()
                 )
                 if not already_caught:
                     close = [k for k in all_writes if _is_close(key, k)]
                     hint = f"Add .writes('{key}') to the upstream agent."
                     if close:
                         hint = f"Did you mean .reads('{close[0]}')? " + hint
-                    issues.append(ContractIssue(
-                        level="error",
-                        agent=summary.name,
-                        message=f".reads('{key}') but no upstream agent has .writes('{key}')",
-                        hint=hint,
-                    ))
+                    issues.append(
+                        ContractIssue(
+                            level="error",
+                            agent=summary.name,
+                            message=f".reads('{key}') but no upstream agent has .writes('{key}')",
+                            hint=hint,
+                        )
+                    )
 
     # 13. Parallel branches writing to same state key
     def _check_parallel_writes(node: Any) -> None:
@@ -565,12 +588,14 @@ def _check_common_mistakes(
                     write_keys.setdefault(ok, []).append(child_name)
             for key, writers in write_keys.items():
                 if len(writers) > 1:
-                    issues.append(ContractIssue(
-                        level="error",
-                        agent=getattr(node, "name", "?"),
-                        message=f"Parallel branches {', '.join(writers)} all write to '{key}' — last write wins, data lost",
-                        hint="Use different .writes() keys for each branch, then merge with S.merge().",
-                    ))
+                    issues.append(
+                        ContractIssue(
+                            level="error",
+                            agent=getattr(node, "name", "?"),
+                            message=f"Parallel branches {', '.join(writers)} all write to '{key}' — last write wins, data lost",
+                            hint="Use different .writes() keys for each branch, then merge with S.merge().",
+                        )
+                    )
         for child in getattr(node, "children", ()):
             _check_parallel_writes(child)
 
@@ -584,26 +609,32 @@ def _check_common_mistakes(
         if ntype in container_types:
             name = getattr(node, "name", "?")
             if getattr(node, "instruction", ""):
-                issues.append(ContractIssue(
-                    level="error",
-                    agent=name,
-                    message=f".instruct() on a workflow container ({ntype}) has no effect",
-                    hint="Move .instruct() to individual agents inside the pipeline/fanout/loop.",
-                ))
+                issues.append(
+                    ContractIssue(
+                        level="error",
+                        agent=name,
+                        message=f".instruct() on a workflow container ({ntype}) has no effect",
+                        hint="Move .instruct() to individual agents inside the pipeline/fanout/loop.",
+                    )
+                )
             if getattr(node, "model", ""):
-                issues.append(ContractIssue(
-                    level="error",
-                    agent=name,
-                    message=f".model() on a workflow container ({ntype}) has no effect",
-                    hint="Set .model() on individual agents, not on the pipeline/fanout/loop.",
-                ))
+                issues.append(
+                    ContractIssue(
+                        level="error",
+                        agent=name,
+                        message=f".model() on a workflow container ({ntype}) has no effect",
+                        hint="Set .model() on individual agents, not on the pipeline/fanout/loop.",
+                    )
+                )
             if getattr(node, "tools", ()):
-                issues.append(ContractIssue(
-                    level="error",
-                    agent=name,
-                    message=f".tool() on a workflow container ({ntype}) has no effect",
-                    hint="Add .tool() to individual agents, not to the pipeline/fanout/loop.",
-                ))
+                issues.append(
+                    ContractIssue(
+                        level="error",
+                        agent=name,
+                        message=f".tool() on a workflow container ({ntype}) has no effect",
+                        hint="Add .tool() to individual agents, not to the pipeline/fanout/loop.",
+                    )
+                )
         for child in getattr(node, "children", ()):
             _check_container_misuse(child)
 

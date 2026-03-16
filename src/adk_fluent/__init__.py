@@ -500,6 +500,14 @@ __all__ = [
     "get_backend",
     "available_backends",
     "AsyncioBackend",
+    "DBOSBackend",
+    "DBOSRunnable",
+    "DBOSWorkerConfig",
+    "generate_app_code",
+    "PrefectBackend",
+    "PrefectRunnable",
+    "PrefectWorkerConfig",
+    "generate_flow_code",
     "TemporalBackend",
     "TemporalRunnable",
     "TemporalWorkerConfig",
@@ -850,6 +858,14 @@ from .backends import register_backend
 from .backends import get_backend
 from .backends import available_backends
 from .backends.asyncio_backend import AsyncioBackend
+from .backends.dbos_backend import DBOSBackend
+from .backends.dbos_backend import DBOSRunnable
+from .backends.dbos_worker import DBOSWorkerConfig
+from .backends.dbos_worker import generate_app_code
+from .backends.prefect_backend import PrefectBackend
+from .backends.prefect_backend import PrefectRunnable
+from .backends.prefect_worker import PrefectWorkerConfig
+from .backends.prefect_worker import generate_flow_code
 from .backends.temporal import TemporalBackend
 from .backends.temporal import TemporalRunnable
 from .backends.temporal_worker import TemporalWorkerConfig

@@ -15,13 +15,16 @@ Usage:
 
 # --- Tools & Callbacks ---
 
+
 def log_moderation_request(callback_context, llm_request):
     """Log incoming content for audit trail before the model processes it."""
     print("[AUDIT] Moderation request received")
 
+
 def check_response_safety(callback_context, llm_response):
     """Verify model output meets safety standards after generation."""
     print("[AUDIT] Response safety check passed")
+
 
 from adk_fluent import Agent
 from dotenv import load_dotenv

@@ -2,8 +2,7 @@
 
 import pytest
 
-from adk_fluent import Agent, Pipeline, FanOut, Loop
-
+from adk_fluent import Agent, Pipeline
 
 # ======================================================================
 # Enhanced .validate() — now runs contract checks
@@ -59,14 +58,15 @@ class TestValidateWithContracts:
 class TestMockByName:
     def test_mock_dict_on_pipeline(self):
         """Pipeline.mock(dict) propagates to named sub-agents."""
-        pipeline = (
-            Agent("researcher", "gemini-2.5-flash").instruct("Research.")
-            >> Agent("writer", "gemini-2.5-flash").instruct("Write.")
+        pipeline = Agent("researcher", "gemini-2.5-flash").instruct("Research.") >> Agent(
+            "writer", "gemini-2.5-flash"
+        ).instruct("Write.")
+        result = pipeline.mock(
+            {
+                "researcher": "Research findings.",
+                "writer": "Final report.",
+            }
         )
-        result = pipeline.mock({
-            "researcher": "Research findings.",
-            "writer": "Final report.",
-        })
         assert result is pipeline
 
         # Verify callbacks were applied to sub-agents
@@ -154,10 +154,9 @@ class TestDoctorCommonMistakes:
 
     def test_doctor_clean_pipeline(self):
         """doctor() reports OK for a properly wired pipeline."""
-        pipeline = (
-            Agent("a", "gemini-2.5-flash").instruct("Analyze.").writes("result")
-            >> Agent("b", "gemini-2.5-flash").instruct("Summarize {result}.")
-        )
+        pipeline = Agent("a", "gemini-2.5-flash").instruct("Analyze.").writes("result") >> Agent(
+            "b", "gemini-2.5-flash"
+        ).instruct("Summarize {result}.")
         diag = pipeline.diagnose()
         # Should have no errors (may have advisories)
         assert diag.error_count == 0
@@ -189,6 +188,7 @@ class TestDoctorCommonMistakes:
     def test_diagnose_schema_tool_conflict(self):
         """diagnose() catches .returns(Schema) + .tool() conflict."""
         from pydantic import BaseModel
+
         from adk_fluent.testing.diagnosis import diagnose
 
         class Out(BaseModel):
@@ -208,10 +208,9 @@ class TestDoctorCommonMistakes:
         """diagnose() catches .reads() without upstream .writes()."""
         from adk_fluent.testing.diagnosis import diagnose
 
-        pipeline = (
-            Agent("a", "gemini-2.5-flash").instruct("Go.")
-            >> Agent("b", "gemini-2.5-flash").instruct("Use.").reads("missing_key")
-        )
+        pipeline = Agent("a", "gemini-2.5-flash").instruct("Go.") >> Agent("b", "gemini-2.5-flash").instruct(
+            "Use."
+        ).reads("missing_key")
         diag = diagnose(pipeline.to_ir())
         reads_issues = [i for i in diag.issues if ".reads('missing_key')" in i.message]
         assert len(reads_issues) > 0
@@ -220,45 +219,33 @@ class TestDoctorCommonMistakes:
         """Optional {var?} template vars get info, not error."""
         from adk_fluent.testing.diagnosis import diagnose
 
-        pipeline = (
-            Agent("a", "gemini-2.5-flash").instruct("Go.")
-            >> Agent("b", "gemini-2.5-flash").instruct("Use {optional?} data.")
+        pipeline = Agent("a", "gemini-2.5-flash").instruct("Go.") >> Agent("b", "gemini-2.5-flash").instruct(
+            "Use {optional?} data."
         )
         diag = diagnose(pipeline.to_ir())
         # Should NOT have errors for optional vars
-        opt_errors = [
-            i for i in diag.issues
-            if "optional" in i.message and i.level == "error"
-        ]
+        opt_errors = [i for i in diag.issues if "optional" in i.message and i.level == "error"]
         assert len(opt_errors) == 0
         # May have info-level advisory
-        opt_info = [
-            i for i in diag.issues
-            if "optional" in i.message.lower() and i.level == "info"
-        ]
+        opt_info = [i for i in diag.issues if "optional" in i.message.lower() and i.level == "info"]
         assert len(opt_info) >= 0  # Advisory is optional
 
     def test_required_template_var_still_error(self):
         """Required {var} template vars still get error."""
-        pipeline = (
-            Agent("a", "gemini-2.5-flash").instruct("Go.")
-            >> Agent("b", "gemini-2.5-flash").instruct("Use {required_key}.")
+        pipeline = Agent("a", "gemini-2.5-flash").instruct("Go.") >> Agent("b", "gemini-2.5-flash").instruct(
+            "Use {required_key}."
         )
         diag = pipeline.diagnose()
-        req_errors = [
-            i for i in diag.issues
-            if "required_key" in i.message and i.level == "error"
-        ]
+        req_errors = [i for i in diag.issues if "required_key" in i.message and i.level == "error"]
         assert len(req_errors) > 0
 
     def test_diagnose_parallel_write_collision(self):
         """diagnose() catches parallel branches writing same key."""
         from adk_fluent.testing.diagnosis import diagnose
 
-        fanout = (
-            Agent("a", "gemini-2.5-flash").instruct("Go.").writes("result")
-            | Agent("b", "gemini-2.5-flash").instruct("Go.").writes("result")
-        )
+        fanout = Agent("a", "gemini-2.5-flash").instruct("Go.").writes("result") | Agent(
+            "b", "gemini-2.5-flash"
+        ).instruct("Go.").writes("result")
         diag = diagnose(fanout.to_ir())
         collision_issues = [i for i in diag.issues if "last write wins" in i.message]
         assert len(collision_issues) > 0
@@ -302,6 +289,7 @@ class TestDoctorCommonMistakes:
     def test_writes_overwrite_warns(self):
         """writes() warns when overwriting an existing key."""
         import warnings
+
         agent = Agent("a", "gemini-2.5-flash").writes("first")
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -372,10 +360,9 @@ class TestOperatorErrors:
 class TestIntegration:
     def test_validate_then_doctor(self):
         """validate() and doctor() give consistent results."""
-        pipeline = (
-            Agent("a", "gemini-2.5-flash").instruct("Step 1.").writes("x")
-            >> Agent("b", "gemini-2.5-flash").instruct("Step 2 with {x}.")
-        )
+        pipeline = Agent("a", "gemini-2.5-flash").instruct("Step 1.").writes("x") >> Agent(
+            "b", "gemini-2.5-flash"
+        ).instruct("Step 2 with {x}.")
         # Both should work without errors
         pipeline.validate()
         diag = pipeline.diagnose()

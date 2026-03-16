@@ -61,12 +61,12 @@ for t in tasks:
 # 5. Check backend capabilities
 caps = backend.capabilities
 assert isinstance(caps, EngineCapabilities)
-assert caps.durable is True      # With Prefect server
-assert caps.parallel is True     # .submit() + wait
-assert caps.signals is True      # pause/resume for HITL
+assert caps.durable is True  # With Prefect server
+assert caps.parallel is True  # .submit() + wait
+assert caps.signals is True  # pause/resume for HITL
 assert caps.distributed is True  # With work pools
-assert caps.streaming is False   # No native streaming
-assert caps.replay is False      # Prefect retries, not deterministic replay
+assert caps.streaming is False  # No native streaming
+assert caps.replay is False  # Prefect retries, not deterministic replay
 
 print(f"\nCapabilities: {caps}")
 
@@ -92,9 +92,8 @@ assert result.capabilities.durable is True
 print(f"\nCompile result: backend={result.backend_name}, warnings={result.warnings}")
 
 # 8. Parallel pipeline
-parallel_pipeline = (
-    Agent("web_search").instruct("Search the web.")
-    | Agent("paper_search").instruct("Search academic papers.")
+parallel_pipeline = Agent("web_search").instruct("Search the web.") | Agent("paper_search").instruct(
+    "Search academic papers."
 )
 parallel_ir = parallel_pipeline.to_ir()
 parallel_compiled = backend.compile(parallel_ir)
@@ -104,10 +103,7 @@ for node in parallel_plan:
     print(f"  {node['node_type']}: {node['name']} ({node['prefect_type']})")
 
 # 9. Loop pipeline
-loop_pipeline = (
-    Agent("writer").instruct("Write a draft.")
-    >> Agent("critic").instruct("Critique the draft.")
-) * 3
+loop_pipeline = (Agent("writer").instruct("Write a draft.") >> Agent("critic").instruct("Critique the draft.")) * 3
 loop_ir = loop_pipeline.to_ir()
 loop_compiled = backend.compile(loop_ir)
 loop_plan = loop_compiled.node_plan

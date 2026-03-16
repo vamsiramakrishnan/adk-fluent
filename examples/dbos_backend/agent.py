@@ -64,13 +64,13 @@ for s in steps:
 # 5. Check backend capabilities
 caps = backend.capabilities
 assert isinstance(caps, EngineCapabilities)
-assert caps.durable is True        # PostgreSQL-backed
-assert caps.replay is True         # Deterministic replay from DB log
-assert caps.parallel is True       # asyncio.gather in workflow
-assert caps.signals is True        # DBOS.recv() for HITL
+assert caps.durable is True  # PostgreSQL-backed
+assert caps.replay is True  # Deterministic replay from DB log
+assert caps.parallel is True  # asyncio.gather in workflow
+assert caps.signals is True  # DBOS.recv() for HITL
 assert caps.checkpointing is True  # Per-step recording
-assert caps.distributed is False   # Single-process (PG stores state)
-assert caps.streaming is False     # No native streaming
+assert caps.distributed is False  # Single-process (PG stores state)
+assert caps.streaming is False  # No native streaming
 
 print(f"\nCapabilities: {caps}")
 
@@ -106,7 +106,7 @@ print("\n--- DBOS vs Temporal ---")
 print(f"  durable:     DBOS={dbos_caps.durable}  Temporal={temporal_caps.durable}")
 print(f"  replay:      DBOS={dbos_caps.replay}  Temporal={temporal_caps.replay}")
 print(f"  distributed: DBOS={dbos_caps.distributed}  Temporal={temporal_caps.distributed}")
-print(f"  Infra:       DBOS=PostgreSQL only  Temporal=Temporal Server")
+print("  Infra:       DBOS=PostgreSQL only  Temporal=Temporal Server")
 
 # 9. Crash recovery scenario
 print("\n--- Crash Recovery Scenario ---")

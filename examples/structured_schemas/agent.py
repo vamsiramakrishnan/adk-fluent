@@ -24,16 +24,21 @@ Usage:
 
 # --- Tools & Callbacks ---
 
+from pydantic import BaseModel
+
+
 class ClaimIntake(BaseModel):
     claimant_name: str
     policy_number: str
     incident_date: str
     description: str
 
+
 class RiskAssessment(BaseModel):
     risk_level: str
     flags: list[str]
     recommended_action: str
+
 
 from adk_fluent import Agent, Pipeline
 from dotenv import load_dotenv

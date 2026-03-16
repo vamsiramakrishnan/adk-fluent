@@ -20,6 +20,7 @@ Usage:
 
 # --- Tools & Callbacks ---
 
+
 def medical_safety_screen(callback_context, llm_request):
     """Screen for dangerous medical advice in both requests and responses.
 
@@ -27,6 +28,7 @@ def medical_safety_screen(callback_context, llm_request):
     without disclaimers, and emergency situations that need 911.
     """
     return None
+
 
 from adk_fluent import Agent, G
 from dotenv import load_dotenv

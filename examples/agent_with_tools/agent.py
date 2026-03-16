@@ -15,13 +15,16 @@ Usage:
 
 # --- Tools & Callbacks ---
 
+
 def check_weather(city: str, date: str) -> str:
     """Check the weather forecast for a city on a given date."""
     return f"Forecast for {city} on {date}: 24C, partly cloudy"
 
+
 def search_flights(origin: str, destination: str, date: str) -> str:
     """Search available flights between two cities on a date."""
     return f"Found 3 flights from {origin} to {destination} on {date}, starting at $299"
+
 
 from adk_fluent import Agent
 from dotenv import load_dotenv
