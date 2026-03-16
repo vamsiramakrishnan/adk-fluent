@@ -85,8 +85,7 @@ class DefaultRuntime:
             backend_impl = backend
             if backend_impl is None:
                 raise ValueError(
-                    "When passing a raw runnable (not CompilationResult), "
-                    "you must provide a backend= argument."
+                    "When passing a raw runnable (not CompilationResult), you must provide a backend= argument."
                 )
 
         # Create session handle
@@ -150,8 +149,7 @@ class DefaultRuntime:
             backend_impl = backend
             if backend_impl is None:
                 raise ValueError(
-                    "When passing a raw runnable (not CompilationResult), "
-                    "you must provide a backend= argument."
+                    "When passing a raw runnable (not CompilationResult), you must provide a backend= argument."
                 )
 
         # Create session handle
