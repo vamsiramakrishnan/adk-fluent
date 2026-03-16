@@ -1,0 +1,22 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "button"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Button",
+          "id": "root",
+          "variant": "Click Me"
+        }
+      ],
+      "surfaceId": "button"
+    },
+    "version": "v0.10"
+  }
+]

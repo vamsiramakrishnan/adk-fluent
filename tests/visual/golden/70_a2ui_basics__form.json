@@ -1,0 +1,91 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "feedback"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Feedback",
+          "variant": "h1"
+        },
+        {
+          "component": "TextField",
+          "id": "name",
+          "label": "Name",
+          "value": {
+            "path": "/name"
+          },
+          "variant": "shortText"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/email/value"
+                  }
+                },
+                "call": "email",
+                "returnType": "boolean"
+              },
+              "message": "Invalid email"
+            }
+          ],
+          "component": "TextField",
+          "id": "email",
+          "label": "Email",
+          "value": {
+            "path": "/email"
+          },
+          "variant": "shortText"
+        },
+        {
+          "component": "TextField",
+          "id": "message",
+          "label": "Message",
+          "value": {
+            "path": "/message"
+          },
+          "variant": "longText"
+        },
+        {
+          "component": "Text",
+          "id": "submit_label",
+          "text": "Submit"
+        },
+        {
+          "action": {
+            "event": {
+              "name": "submit"
+            }
+          },
+          "child": "submit_label",
+          "component": "Button",
+          "id": "submit_btn",
+          "variant": "primary"
+        },
+        {
+          "children": [
+            "text",
+            "name",
+            "email",
+            "message",
+            "submit_btn"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "feedback"
+    },
+    "version": "v0.10"
+  }
+]

@@ -1,0 +1,94 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "signup"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Sign Up",
+          "variant": "h1"
+        },
+        {
+          "component": "TextField",
+          "id": "textfield",
+          "label": "First Name",
+          "value": null,
+          "variant": "shortText"
+        },
+        {
+          "component": "TextField",
+          "id": "textfield_2",
+          "label": "Last Name",
+          "value": null,
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "textfield",
+            "textfield_2"
+          ],
+          "component": "Row",
+          "id": "row"
+        },
+        {
+          "children": [
+            "text",
+            "row"
+          ],
+          "component": "Column",
+          "id": "column_2"
+        },
+        {
+          "component": "TextField",
+          "id": "textfield_3",
+          "label": "Email",
+          "value": null,
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "column_2",
+            "textfield_3"
+          ],
+          "component": "Column",
+          "id": "column"
+        },
+        {
+          "component": "Button",
+          "id": "button",
+          "variant": "Submit"
+        },
+        {
+          "component": "Button",
+          "id": "button_2",
+          "variant": "Cancel"
+        },
+        {
+          "children": [
+            "button",
+            "button_2"
+          ],
+          "component": "Row",
+          "id": "row_2"
+        },
+        {
+          "children": [
+            "column",
+            "row_2"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "signup"
+    },
+    "version": "v0.10"
+  }
+]
