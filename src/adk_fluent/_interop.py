@@ -131,6 +131,169 @@ class DataFlow:
         )
 
 
+@dataclass(frozen=True)
+class DataFlowContract:
+    """Three-channel coherence view for an agent in a pipeline.
+
+    Shows how the three ADK channels (conversation history, session state,
+    instruction templating) interact for this agent, and whether the
+    interaction is coherent or has issues.
+
+    Returned by ``check_data_flow_contract()`` for each agent in a pipeline.
+    """
+
+    agent: str
+    """Agent name."""
+
+    conversation: str
+    """What this agent sees via conversation history channel."""
+
+    state_reads: tuple[str, ...]
+    """State keys this agent reads (via template vars, .reads(), Route)."""
+
+    state_writes: str | None
+    """State key this agent writes to (output_key), or None."""
+
+    instruction_vars: tuple[str, ...]
+    """Template variables {var} found in instruction string."""
+
+    channel_issues: tuple[str, ...]
+    """Cross-channel coherence issues detected."""
+
+    def __str__(self) -> str:
+        lines = [f"DataFlowContract({self.agent}):"]
+        lines.append(f"  conversation: {self.conversation}")
+        lines.append(f"  state reads:  {list(self.state_reads) or '(none)'}")
+        lines.append(f"  state writes: {self.state_writes or '(none)'}")
+        lines.append(f"  template vars: {list(self.instruction_vars) or '(none)'}")
+        if self.channel_issues:
+            lines.append("  issues:")
+            for issue in self.channel_issues:
+                lines.append(f"    - {issue}")
+        else:
+            lines.append("  issues: (none — channels are coherent)")
+        return "\n".join(lines)
+
+
+def check_data_flow_contract(ir_node: Any) -> list[DataFlowContract]:
+    """Analyze cross-channel coherence for each agent in a pipeline.
+
+    For each agent in a SequenceNode, examines how the three channels
+    (conversation history, session state, instruction templating) interact
+    and identifies coherence issues.
+
+    Args:
+        ir_node: An IR node (typically SequenceNode from ``.to_ir()``).
+
+    Returns:
+        List of ``DataFlowContract`` objects, one per agent.
+
+    Example::
+
+        pipeline = Agent("a").writes("x") >> Agent("b").instruct("Use {x}")
+        contracts = check_data_flow_contract(pipeline.to_ir())
+        for c in contracts:
+            print(c)
+    """
+    import re
+
+    from adk_fluent._ir_generated import SequenceNode
+    from adk_fluent.testing.contracts import _context_description, _resolve_include_contents
+
+    if not isinstance(ir_node, SequenceNode) or not ir_node.children:
+        return []
+
+    children = ir_node.children
+    contracts: list[DataFlowContract] = []
+
+    # Track what keys have been produced upstream
+    produced_keys: set[str] = set()
+
+    for idx, child in enumerate(children):
+        child_type = type(child).__name__
+        if child_type != "AgentNode":
+            # Track non-agent producers
+            output_key = getattr(child, "output_key", None)
+            if output_key:
+                produced_keys.add(output_key)
+            continue
+
+        child_name = getattr(child, "name", "?")
+        output_key = getattr(child, "output_key", None)
+
+        # Channel 1: Conversation history
+        include_contents, context_spec = _resolve_include_contents(child)
+        conv_desc = _context_description(context_spec)
+
+        # Channel 2: State reads (template vars + .reads() + consumes)
+        instruction = getattr(child, "instruction", "")
+        template_vars: tuple[str, ...] = ()
+        if isinstance(instruction, str) and instruction:
+            template_vars = tuple(sorted(set(re.findall(r"\{(\w+)\??\}", instruction))))
+
+        reads_keys: set[str] = set()
+        if context_spec is not None:
+            kind = getattr(context_spec, "_kind", None)
+            if kind in ("from_state", "pipeline_aware"):
+                reads_keys = set(getattr(context_spec, "keys", ()))
+
+        all_reads = tuple(sorted(set(template_vars) | reads_keys))
+
+        # Channel 3: State writes
+        state_writes = output_key
+
+        # Cross-channel coherence issues
+        issues: list[str] = []
+
+        # Issue: Template var references key not produced upstream
+        for var in template_vars:
+            if var not in produced_keys:
+                issues.append("Template '{" + var + "}' references key not produced upstream")
+
+        # Issue: Writes to state + downstream sees via both channels
+        if output_key and include_contents == "default" and idx > 0:
+            issues.append(
+                f"Writes to state['{output_key}'] but sees full conversation — "
+                f"downstream agents may see data twice (state + history)"
+            )
+
+        # Issue: No writes + successor reads state
+        if not output_key and idx < len(children) - 1:
+            successor = children[idx + 1]
+            from adk_fluent.testing.contracts import _get_consumer_needs
+
+            succ_needs = _get_consumer_needs(successor)
+            unresolved = succ_needs - produced_keys
+            if unresolved:
+                issues.append(
+                    f"No .writes() but successor needs state keys {sorted(unresolved)} — output lost to state channel"
+                )
+
+        # Issue: reads state + full history = potential duplication
+        if reads_keys and include_contents == "default":
+            issues.append(
+                f"Reads state keys {sorted(reads_keys)} AND full conversation "
+                f"history — consider C.pipeline_aware() to avoid duplication"
+            )
+
+        contracts.append(
+            DataFlowContract(
+                agent=child_name,
+                conversation=conv_desc,
+                state_reads=all_reads,
+                state_writes=state_writes,
+                instruction_vars=template_vars,
+                channel_issues=tuple(issues),
+            )
+        )
+
+        # Update produced keys
+        if output_key:
+            produced_keys.add(output_key)
+
+    return contracts
+
+
 def _extract_data_flow(builder: Any) -> DataFlow:
     """Extract the DataFlow for a builder by inspecting its config."""
     config = getattr(builder, "_config", {})

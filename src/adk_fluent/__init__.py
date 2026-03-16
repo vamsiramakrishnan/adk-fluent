@@ -329,6 +329,7 @@ __all__ = [
     "CUser",
     "CManusCascade",
     "CWhen",
+    "CPipelineAware",
     "SessionStrategy",
     "ExecutionMode",
     "E",
@@ -493,6 +494,8 @@ __all__ = [
     "final_text",
     "ADKBackend",
     "check_contracts",
+    "infer_data_flow",
+    "DataFlowSuggestion",
     "mock_backend",
     "MockBackend",
     "AgentHarness",
@@ -503,6 +506,8 @@ __all__ = [
     "AgentSummary",
     "KeyFlow",
     "ContractIssue",
+    "DataFlowContract",
+    "check_data_flow_contract",
 ]
 
 # --- Manual module exports (auto-discovered from __all__) ---
@@ -568,6 +573,7 @@ from ._context import CFromAgentsWindowed
 from ._context import CUser
 from ._context import CManusCascade
 from ._context import CWhen
+from ._context import CPipelineAware
 from ._enums import SessionStrategy
 from ._enums import ExecutionMode
 from ._eval import E
@@ -815,6 +821,8 @@ from .backends import Backend
 from .backends import final_text
 from .backends.adk import ADKBackend
 from .testing import check_contracts
+from .testing import infer_data_flow
+from .testing import DataFlowSuggestion
 from .testing import mock_backend
 from .testing import MockBackend
 from .testing import AgentHarness
@@ -834,3 +842,5 @@ from .testing import EvalReport
 from .testing import ComparisonReport
 from .testing import ComparisonSuite
 from .testing import EPersona
+from .testing import DataFlowContract
+from .testing import check_data_flow_contract
