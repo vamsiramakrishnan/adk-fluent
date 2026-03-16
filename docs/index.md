@@ -355,6 +355,16 @@ caption: Research
 ---
 research/a2a-fluent-integration
 research/a2a-spec-audit
+research/durable-execution-five-layer-decoupling
+research/execution-backend-compatibility-matrix
+research/execution-backend-devex-audit
+research/packaging-deployment-dx-radical-improvement
+research/dx-appendix-a-self-critique
+research/dx-appendix-b-deployment-targets
+research/dx-appendix-c-scaffolding-codegen
+research/dx-appendix-d-local-dev-infra
+research/dx-appendix-e-adk-web-lessons
+research/tech-debt-audit
 ```
 
 ```{toctree}
