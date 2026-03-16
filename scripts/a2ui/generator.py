@@ -60,7 +60,7 @@ def _default_repr(value: Any) -> str:
         return str(value)
     if isinstance(value, str):
         return repr(value)
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return str(value)
     if isinstance(value, list):
         if not value:
