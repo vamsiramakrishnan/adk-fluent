@@ -1,0 +1,82 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "setup"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Setup",
+          "variant": "h1"
+        },
+        {
+          "component": "Text",
+          "id": "text_2",
+          "text": "Welcome",
+          "variant": "h3"
+        },
+        {
+          "component": "Text",
+          "id": "text_3",
+          "text": "Hi",
+          "variant": "body"
+        },
+        {
+          "children": [
+            "text_2",
+            "text_3"
+          ],
+          "component": "Column",
+          "id": "column"
+        },
+        {
+          "child": "column",
+          "component": "Card",
+          "id": "card"
+        },
+        {
+          "component": "Text",
+          "id": "text_4",
+          "text": "Done",
+          "variant": "h3"
+        },
+        {
+          "component": "Text",
+          "id": "text_5",
+          "text": "Bye",
+          "variant": "body"
+        },
+        {
+          "children": [
+            "text_4",
+            "text_5"
+          ],
+          "component": "Column",
+          "id": "column_2"
+        },
+        {
+          "child": "column_2",
+          "component": "Card",
+          "id": "card_2"
+        },
+        {
+          "children": [
+            "text",
+            "card",
+            "card_2"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "setup"
+    },
+    "version": "v0.10"
+  }
+]

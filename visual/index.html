@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>adk-fluent — Visual Cookbook Runner</title>
+<style>
+/* ── Reset & Base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f1117; --bg-card: #1a1d27; --bg-hover: #242836;
+  --border: #2a2e3a; --text: #e4e4e7; --text-muted: #9ca3af;
+  --primary: #6366f1; --primary-hover: #818cf8;
+  --green: #22c55e; --red: #ef4444; --amber: #f59e0b;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --radius: 8px; --radius-lg: 12px;
+}
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); }
+
+/* ── Layout ────────────────────────────────────────────────────── */
+.app { display: grid; grid-template-columns: 280px 1fr 400px; grid-template-rows: 56px 1fr; height: 100vh; }
+.header { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 20px;
+  border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.header h1 { font-size: 16px; font-weight: 600; }
+.header .pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--primary);
+  color: white; font-weight: 500; }
+.header .mode-tabs { margin-left: auto; display: flex; gap: 2px; background: var(--bg); border-radius: 6px; padding: 2px; }
+.header .mode-tab { padding: 6px 14px; border-radius: 4px; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; font-size: 13px; font-family: var(--font); }
+.header .mode-tab.active { background: var(--primary); color: white; }
+
+/* ── Sidebar ───────────────────────────────────────────────────── */
+.sidebar { border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; }
+.sidebar-search { width: 100%; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 13px; margin-bottom: 12px; outline: none; }
+.sidebar-search:focus { border-color: var(--primary); }
+.sidebar-group { margin-bottom: 16px; }
+.sidebar-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); padding: 4px 8px; font-weight: 600; }
+.sidebar-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius);
+  cursor: pointer; font-size: 13px; color: var(--text-muted); transition: all 0.15s; }
+.sidebar-item:hover { background: var(--bg-hover); color: var(--text); }
+.sidebar-item.active { background: var(--primary); color: white; }
+.sidebar-item .num { font-family: var(--mono); font-size: 11px; opacity: 0.5; min-width: 22px; }
+.sidebar-item .badge { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: 99px;
+  font-weight: 500; }
+.badge-a2ui { background: #7c3aed33; color: #a78bfa; }
+.badge-crawl { background: #22c55e22; color: #4ade80; }
+.badge-walk { background: #f59e0b22; color: #fbbf24; }
+.badge-run { background: #ef444422; color: #f87171; }
+
+/* ── Main Panel ────────────────────────────────────────────────── */
+.main { display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+.main-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.main-header h2 { font-size: 15px; font-weight: 600; }
+.main-header .desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.main-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.main-input { display: flex; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--border); }
+.main-input input { flex: 1; padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 13px; outline: none; }
+.main-input input:focus { border-color: var(--primary); }
+.main-input button { padding: 10px 20px; border-radius: var(--radius); border: none; background: var(--primary);
+  color: white; font-weight: 500; cursor: pointer; font-size: 13px; }
+.main-input button:hover { background: var(--primary-hover); }
+.main-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Chat messages */
+.msg { padding: 12px 16px; border-radius: var(--radius-lg); max-width: 85%; font-size: 13px; line-height: 1.6; }
+.msg-user { background: var(--primary); color: white; align-self: flex-end; }
+.msg-agent { background: var(--bg-card); border: 1px solid var(--border); align-self: flex-start; }
+.msg-system { background: var(--bg-hover); color: var(--text-muted); align-self: center;
+  font-size: 12px; text-align: center; }
+.msg pre { font-family: var(--mono); font-size: 12px; background: #00000033; padding: 8px;
+  border-radius: 4px; overflow-x: auto; margin-top: 8px; white-space: pre-wrap; }
+
+/* ── A2UI Preview Panel ────────────────────────────────────────── */
+.preview { display: flex; flex-direction: column; }
+.preview-header { padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; }
+.preview-header h3 { font-size: 13px; font-weight: 600; }
+.preview-tabs { display: flex; gap: 2px; margin-left: auto; background: var(--bg); border-radius: 4px; padding: 2px; }
+.preview-tab { padding: 4px 10px; border-radius: 3px; border: none; background: none;
+  color: var(--text-muted); cursor: pointer; font-size: 11px; font-family: var(--font); }
+.preview-tab.active { background: var(--bg-hover); color: var(--text); }
+.preview-body { flex: 1; overflow-y: auto; padding: 16px; }
+.preview-empty { display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; color: var(--text-muted); gap: 8px; }
+.preview-empty svg { opacity: 0.3; }
+
+/* ── A2UI Rendered Components ──────────────────────────────────── */
+.a2ui-surface { font-family: var(--font); }
+.a2ui-surface .a2ui-theme-bar { padding: 8px 12px; border-radius: var(--radius) var(--radius) 0 0;
+  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; }
+.a2ui-surface .a2ui-theme-bar img { width: 20px; height: 20px; border-radius: 50%; }
+.a2ui-surface .a2ui-content { padding: 16px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius) var(--radius); }
+
+/* Component renderers */
+.a2ui-text { line-height: 1.5; }
+.a2ui-text.h1 { font-size: 24px; font-weight: 700; }
+.a2ui-text.h2 { font-size: 20px; font-weight: 600; }
+.a2ui-text.h3 { font-size: 17px; font-weight: 600; }
+.a2ui-text.h4 { font-size: 15px; font-weight: 500; }
+.a2ui-text.h5 { font-size: 13px; font-weight: 500; }
+.a2ui-text.caption { font-size: 12px; color: var(--text-muted); }
+.a2ui-text.body { font-size: 14px; }
+
+.a2ui-row { display: flex; gap: 12px; }
+.a2ui-row.justify-center { justify-content: center; }
+.a2ui-row.justify-end { justify-content: flex-end; }
+.a2ui-row.justify-spaceBetween { justify-content: space-between; }
+.a2ui-row.justify-spaceAround { justify-content: space-around; }
+.a2ui-row.justify-spaceEvenly { justify-content: space-evenly; }
+.a2ui-row.align-center { align-items: center; }
+.a2ui-row.align-end { align-items: flex-end; }
+.a2ui-row.align-stretch { align-items: stretch; }
+
+.a2ui-column { display: flex; flex-direction: column; gap: 12px; }
+.a2ui-column.justify-center { justify-content: center; }
+.a2ui-column.justify-spaceBetween { justify-content: space-between; }
+.a2ui-column.align-center { align-items: center; }
+.a2ui-column.align-stretch { align-items: stretch; }
+
+.a2ui-list { display: flex; flex-direction: column; gap: 4px; }
+.a2ui-list.horizontal { flex-direction: row; }
+
+.a2ui-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; }
+
+.a2ui-tabs { }
+.a2ui-tabs .tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 12px; }
+.a2ui-tabs .tab-btn { padding: 8px 16px; border: none; background: none; color: var(--text-muted);
+  cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.a2ui-tabs .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.a2ui-tabs .tab-content { display: none; }
+.a2ui-tabs .tab-content.active { display: block; }
+
+.a2ui-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+.a2ui-divider.vertical { border-top: none; border-left: 1px solid var(--border); margin: 0 8px;
+  align-self: stretch; min-height: 20px; }
+
+.a2ui-image { max-width: 100%; border-radius: var(--radius); }
+.a2ui-image.icon { width: 24px; height: 24px; }
+.a2ui-image.avatar { width: 40px; height: 40px; border-radius: 50%; }
+
+.a2ui-icon { font-size: 20px; }
+
+.a2ui-button { padding: 8px 20px; border-radius: var(--radius); border: 1px solid var(--border);
+  cursor: pointer; font-size: 13px; font-family: var(--font); transition: all 0.15s;
+  background: var(--bg); color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
+.a2ui-button.primary { background: var(--primary); color: white; border-color: var(--primary); }
+.a2ui-button.primary:hover { background: var(--primary-hover); }
+.a2ui-button.borderless { background: none; border: none; color: var(--primary); }
+
+.a2ui-textfield { display: flex; flex-direction: column; gap: 4px; }
+.a2ui-textfield label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.a2ui-textfield input, .a2ui-textfield textarea { padding: 8px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 13px;
+  font-family: var(--font); outline: none; resize: vertical; }
+.a2ui-textfield input:focus, .a2ui-textfield textarea:focus { border-color: var(--primary); }
+.a2ui-textfield .error { color: var(--red); font-size: 11px; }
+
+.a2ui-checkbox { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.a2ui-checkbox input { accent-color: var(--primary); }
+
+.a2ui-choicepicker { display: flex; flex-direction: column; gap: 4px; }
+.a2ui-choicepicker label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.a2ui-choicepicker .options { display: flex; flex-wrap: wrap; gap: 6px; }
+.a2ui-choicepicker .chip { padding: 6px 14px; border-radius: 99px; border: 1px solid var(--border);
+  cursor: pointer; font-size: 12px; transition: all 0.15s; background: var(--bg); color: var(--text); }
+.a2ui-choicepicker .chip.selected { background: var(--primary); color: white; border-color: var(--primary); }
+.a2ui-choicepicker select { padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 13px; }
+
+.a2ui-slider { display: flex; flex-direction: column; gap: 4px; }
+.a2ui-slider label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.a2ui-slider input[type=range] { width: 100%; accent-color: var(--primary); }
+.a2ui-slider .value { font-size: 12px; color: var(--text-muted); text-align: right; }
+
+.a2ui-datetime { display: flex; flex-direction: column; gap: 4px; }
+.a2ui-datetime label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.a2ui-datetime input { padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 13px; }
+
+.a2ui-modal-trigger { display: inline-block; }
+
+.a2ui-video video { width: 100%; border-radius: var(--radius); }
+.a2ui-audio { display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg);
+  border-radius: var(--radius); }
+.a2ui-audio audio { width: 100%; }
+
+/* ── Introspection panel ───────────────────────────────────────── */
+.intro-panel { padding: 16px; font-family: var(--mono); font-size: 12px; line-height: 1.6;
+  white-space: pre-wrap; color: var(--text-muted); background: var(--bg); border-radius: var(--radius);
+  max-height: 400px; overflow-y: auto; }
+
+/* ── JSON viewer ───────────────────────────────────────────────── */
+.json-view { font-family: var(--mono); font-size: 12px; line-height: 1.5; white-space: pre-wrap;
+  background: var(--bg); padding: 12px; border-radius: var(--radius); overflow: auto; max-height: 500px; }
+.json-key { color: #a78bfa; }
+.json-string { color: #34d399; }
+.json-number { color: #fbbf24; }
+.json-bool { color: #f472b6; }
+.json-null { color: var(--text-muted); }
+
+/* ── Gallery mode ──────────────────────────────────────────────── */
+.gallery { display: grid; grid-template-columns: 1fr; gap: 24px; padding: 24px; }
+.gallery-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; }
+.gallery-item-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex;
+  align-items: center; justify-content: space-between; }
+.gallery-item-header h3 { font-size: 14px; font-weight: 600; }
+.gallery-item-header .source { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+.gallery-item-body { padding: 16px; }
+.gallery-item-json { border-top: 1px solid var(--border); }
+
+/* ── Utility ───────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+.flex-1 { flex: 1; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.status-dot.ok { background: var(--green); }
+.status-dot.error { background: var(--red); }
+.status-dot.loading { background: var(--amber); animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <h1>adk-fluent</h1>
+    <span class="pill">visual</span>
+    <span id="status-indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
+      <span class="status-dot loading"></span> connecting...
+    </span>
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="runner" onclick="setMode('runner')">Runner</button>
+      <button class="mode-tab" data-mode="gallery" onclick="setMode('gallery')">A2UI Gallery</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <input class="sidebar-search" placeholder="Search cookbooks..." id="search-input" oninput="filterCookbooks()">
+    <div id="sidebar-list"></div>
+  </nav>
+
+  <!-- Main (Runner mode) -->
+  <main class="main" id="main-runner">
+    <div class="main-header" id="main-header">
+      <h2 id="agent-name">Select a cookbook</h2>
+      <div class="desc" id="agent-desc">Choose an agent from the sidebar to start chatting</div>
+    </div>
+    <div class="main-body" id="chat-messages">
+      <div class="msg msg-system">Select a cookbook agent from the sidebar to begin.</div>
+    </div>
+    <div class="main-input">
+      <input id="prompt-input" placeholder="Send a message..." disabled
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}">
+      <button id="send-btn" onclick="sendMessage()" disabled>Send</button>
+    </div>
+  </main>
+
+  <!-- Main (Gallery mode) -->
+  <main class="main hidden" id="main-gallery" style="grid-column: 2 / 4;">
+    <div class="gallery" id="gallery-grid"></div>
+  </main>
+
+  <!-- Preview Panel -->
+  <aside class="preview" id="preview-panel">
+    <div class="preview-header">
+      <h3>A2UI Surface</h3>
+      <div class="preview-tabs">
+        <button class="preview-tab active" data-tab="render" onclick="setPreviewTab('render')">Render</button>
+        <button class="preview-tab" data-tab="json" onclick="setPreviewTab('json')">JSON</button>
+        <button class="preview-tab" data-tab="intro" onclick="setPreviewTab('intro')">Inspect</button>
+      </div>
+    </div>
+    <div class="preview-body" id="preview-render">
+      <div class="preview-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+        </svg>
+        <span style="font-size:13px">No A2UI surface active</span>
+        <span style="font-size:11px">Surfaces appear here when an agent emits A2UI messages</span>
+      </div>
+    </div>
+    <div class="preview-body hidden" id="preview-json"></div>
+    <div class="preview-body hidden" id="preview-intro"></div>
+  </aside>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// A2UI RENDERER — spec-driven component rendering
+// ═══════════════════════════════════════════════════════════════════
+
+class A2UIRenderer {
+  constructor() {
+    this.surfaces = {};    // surfaceId → { components, dataModel, theme, catalogId }
+    this.listeners = [];
+  }
+
+  // Process a single A2UI protocol message
+  processMessage(msg) {
+    if (msg.createSurface) {
+      const s = msg.createSurface;
+      this.surfaces[s.surfaceId] = {
+        components: [], dataModel: {}, theme: s.theme || {}, catalogId: s.catalogId
+      };
+    } else if (msg.updateComponents) {
+      const u = msg.updateComponents;
+      if (this.surfaces[u.surfaceId]) {
+        this.surfaces[u.surfaceId].components = u.components;
+      }
+    } else if (msg.updateDataModel) {
+      const u = msg.updateDataModel;
+      if (this.surfaces[u.surfaceId]) {
+        const path = u.path || '/';
+        if (path === '/') {
+          Object.assign(this.surfaces[u.surfaceId].dataModel, u.value || {});
+        } else {
+          this._setPath(this.surfaces[u.surfaceId].dataModel, path, u.value);
+        }
+      }
+    } else if (msg.deleteSurface) {
+      delete this.surfaces[msg.deleteSurface.surfaceId];
+    }
+    this._notify();
+  }
+
+  // Process an array of messages (batch)
+  processMessages(msgs) {
+    for (const m of msgs) this.processMessage(m);
+  }
+
+  onChange(fn) { this.listeners.push(fn); }
+  _notify() { for (const fn of this.listeners) fn(); }
+
+  _setPath(obj, path, value) {
+    const parts = path.split('/').filter(Boolean);
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!(parts[i] in cur)) cur[parts[i]] = {};
+      cur = cur[parts[i]];
+    }
+    if (value === undefined) delete cur[parts[parts.length - 1]];
+    else cur[parts[parts.length - 1]] = value;
+  }
+
+  _getPath(obj, path) {
+    if (!path || path === '/') return obj;
+    const parts = path.split('/').filter(Boolean);
+    let cur = obj;
+    for (const p of parts) {
+      if (cur == null || typeof cur !== 'object') return undefined;
+      cur = cur[p];
+    }
+    return cur;
+  }
+
+  // Resolve a DynamicValue (literal, DataBinding, or FunctionCall)
+  resolve(val, dataModel) {
+    if (val == null) return val;
+    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') return val;
+    if (Array.isArray(val)) return val;
+    if (val.path) return this._getPath(dataModel, val.path) ?? '';
+    if (val.call) return this._evalFunction(val, dataModel);
+    return val;
+  }
+
+  _evalFunction(fn, dm) {
+    const args = fn.args || {};
+    switch (fn.call) {
+      case 'formatString': {
+        let s = this.resolve(args.value, dm) || '';
+        return String(s).replace(/\$\{([^}]+)\}/g, (_, expr) => {
+          if (expr.startsWith('/')) return this._getPath(dm, expr) ?? '';
+          return expr;
+        });
+      }
+      case 'required': return !!this.resolve(args.value, dm);
+      case 'email': return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(this.resolve(args.value, dm)));
+      case 'length': {
+        const v = String(this.resolve(args.value, dm) || '');
+        if (args.min != null && v.length < args.min) return false;
+        if (args.max != null && v.length > args.max) return false;
+        return true;
+      }
+      case 'numeric': {
+        const n = Number(this.resolve(args.value, dm));
+        if (args.min != null && n < args.min) return false;
+        if (args.max != null && n > args.max) return false;
+        return true;
+      }
+      case 'formatNumber': {
+        const n = Number(this.resolve(args.value, dm));
+        const d = args.decimals != null ? Number(args.decimals) : 0;
+        return n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+      case 'formatCurrency': {
+        const n = Number(this.resolve(args.value, dm));
+        const c = String(this.resolve(args.currency, dm));
+        return n.toLocaleString(undefined, { style: 'currency', currency: c });
+      }
+      default: return `[${fn.call}(...)]`;
+    }
+  }
+
+  // Render a surface to a DOM element
+  renderSurface(surfaceId, container) {
+    const s = this.surfaces[surfaceId];
+    if (!s) { container.innerHTML = '<div class="preview-empty">Surface not found</div>'; return; }
+
+    const byId = {};
+    for (const c of s.components) byId[c.id] = c;
+
+    container.innerHTML = '';
+    const surface = document.createElement('div');
+    surface.className = 'a2ui-surface';
+
+    // Theme bar
+    if (s.theme && (s.theme.primaryColor || s.theme.agentDisplayName)) {
+      const bar = document.createElement('div');
+      bar.className = 'a2ui-theme-bar';
+      bar.style.background = (s.theme.primaryColor || '#6366f1') + '22';
+      bar.style.color = s.theme.primaryColor || 'var(--primary)';
+      if (s.theme.iconUrl) {
+        const img = document.createElement('img');
+        img.src = s.theme.iconUrl; img.alt = '';
+        bar.appendChild(img);
+      }
+      bar.appendChild(document.createTextNode(s.theme.agentDisplayName || surfaceId));
+      surface.appendChild(bar);
+    }
+
+    const content = document.createElement('div');
+    content.className = 'a2ui-content';
+
+    const rootComp = byId['root'];
+    if (rootComp) {
+      content.appendChild(this._renderComponent(rootComp, byId, s.dataModel, s.theme));
+    } else {
+      content.innerHTML = '<span style="color:var(--text-muted)">No root component</span>';
+    }
+    surface.appendChild(content);
+    container.appendChild(surface);
+  }
+
+  _renderComponent(comp, byId, dm, theme) {
+    const type = comp.component;
+    const el = document.createElement('div');
+    if (comp.weight) el.style.flex = comp.weight;
+
+    switch (type) {
+      case 'Text': return this._renderText(comp, dm);
+      case 'Image': return this._renderImage(comp, dm);
+      case 'Icon': return this._renderIcon(comp, dm);
+      case 'Video': return this._renderVideo(comp, dm);
+      case 'AudioPlayer': return this._renderAudio(comp, dm);
+      case 'Row': return this._renderLayout(comp, byId, dm, theme, 'row');
+      case 'Column': return this._renderLayout(comp, byId, dm, theme, 'column');
+      case 'List': return this._renderList(comp, byId, dm, theme);
+      case 'Card': return this._renderCard(comp, byId, dm, theme);
+      case 'Tabs': return this._renderTabs(comp, byId, dm, theme);
+      case 'Modal': return this._renderModal(comp, byId, dm, theme);
+      case 'Divider': return this._renderDivider(comp);
+      case 'Button': return this._renderButton(comp, byId, dm, theme);
+      case 'TextField': return this._renderTextField(comp, dm);
+      case 'CheckBox': return this._renderCheckBox(comp, dm);
+      case 'ChoicePicker': return this._renderChoicePicker(comp, dm);
+      case 'Slider': return this._renderSlider(comp, dm);
+      case 'DateTimeInput': return this._renderDateTimeInput(comp, dm);
+      default:
+        el.style.color = 'var(--text-muted)';
+        el.textContent = `[Unknown: ${type}]`;
+        return el;
+    }
+  }
+
+  _renderText(c, dm) {
+    const el = document.createElement('div');
+    const variant = c.variant || 'body';
+    el.className = `a2ui-text ${variant}`;
+    el.textContent = this.resolve(c.text, dm) ?? '';
+    return el;
+  }
+
+  _renderImage(c, dm) {
+    const img = document.createElement('img');
+    img.className = `a2ui-image ${c.variant || ''}`;
+    img.src = this.resolve(c.url, dm) || '';
+    img.alt = c.accessibility?.label || '';
+    if (c.fit) img.style.objectFit = c.fit === 'scaleDown' ? 'scale-down' : c.fit;
+    return img;
+  }
+
+  _renderIcon(c) {
+    const el = document.createElement('span');
+    el.className = 'a2ui-icon';
+    const name = typeof c.name === 'string' ? c.name : (c.name?.path || '?');
+    // Map A2UI icon names to Unicode/emoji approximations
+    const iconMap = {
+      accountCircle: '\u{1F464}', add: '+', arrowBack: '\u2190', arrowForward: '\u2192',
+      check: '\u2713', close: '\u2715', delete: '\u{1F5D1}', edit: '\u270E',
+      error: '\u26A0', favorite: '\u2764', home: '\u{1F3E0}', info: '\u2139',
+      mail: '\u2709', search: '\u{1F50D}', settings: '\u2699', star: '\u2B50',
+      warning: '\u26A0', send: '\u27A4', person: '\u{1F464}', phone: '\u{1F4DE}',
+      lock: '\u{1F512}', lockOpen: '\u{1F513}', play: '\u25B6', pause: '\u23F8',
+      stop: '\u23F9', refresh: '\u21BB', download: '\u{2B07}', upload: '\u{2B06}',
+      visibility: '\u{1F441}', menu: '\u2630', notifications: '\u{1F514}',
+      shoppingCart: '\u{1F6D2}', help: '?', folder: '\u{1F4C1}', photo: '\u{1F4F7}',
+    };
+    el.textContent = iconMap[name] || name;
+    return el;
+  }
+
+  _renderVideo(c, dm) {
+    const wrap = document.createElement('div');
+    wrap.className = 'a2ui-video';
+    const video = document.createElement('video');
+    video.src = this.resolve(c.url, dm) || '';
+    video.controls = true;
+    wrap.appendChild(video);
+    return wrap;
+  }
+
+  _renderAudio(c, dm) {
+    const wrap = document.createElement('div');
+    wrap.className = 'a2ui-audio';
+    if (c.description) {
+      const desc = document.createElement('span');
+      desc.textContent = this.resolve(c.description, dm) || '';
+      desc.style.fontSize = '12px';
+      wrap.appendChild(desc);
+    }
+    const audio = document.createElement('audio');
+    audio.src = this.resolve(c.url, dm) || '';
+    audio.controls = true;
+    wrap.appendChild(audio);
+    return wrap;
+  }
+
+  _renderLayout(c, byId, dm, theme, dir) {
+    const el = document.createElement('div');
+    el.className = `a2ui-${dir}`;
+    if (c.justify) el.classList.add(`justify-${c.justify}`);
+    if (c.align) el.classList.add(`align-${c.align}`);
+    const children = Array.isArray(c.children) ? c.children : [];
+    for (const childId of children) {
+      const child = byId[childId];
+      if (child) el.appendChild(this._renderComponent(child, byId, dm, theme));
+    }
+    if (c.weight) el.style.flex = c.weight;
+    return el;
+  }
+
+  _renderList(c, byId, dm, theme) {
+    const el = document.createElement('div');
+    el.className = 'a2ui-list';
+    if (c.direction === 'horizontal') el.classList.add('horizontal');
+    const children = Array.isArray(c.children) ? c.children : [];
+    for (const childId of children) {
+      const child = byId[childId];
+      if (child) el.appendChild(this._renderComponent(child, byId, dm, theme));
+    }
+    return el;
+  }
+
+  _renderCard(c, byId, dm, theme) {
+    const el = document.createElement('div');
+    el.className = 'a2ui-card';
+    if (c.child && byId[c.child]) {
+      el.appendChild(this._renderComponent(byId[c.child], byId, dm, theme));
+    }
+    if (c.weight) el.style.flex = c.weight;
+    return el;
+  }
+
+  _renderTabs(c, byId, dm, theme) {
+    const el = document.createElement('div');
+    el.className = 'a2ui-tabs';
+    const bar = document.createElement('div');
+    bar.className = 'tab-bar';
+    const tabs = c.tabs || [];
+    tabs.forEach((tab, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = this.resolve(tab.title, dm) || `Tab ${i+1}`;
+      btn.onclick = () => {
+        el.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        el.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        el.querySelectorAll('.tab-content')[i]?.classList.add('active');
+      };
+      bar.appendChild(btn);
+    });
+    el.appendChild(bar);
+    tabs.forEach((tab, i) => {
+      const content = document.createElement('div');
+      content.className = 'tab-content' + (i === 0 ? ' active' : '');
+      if (tab.child && byId[tab.child]) {
+        content.appendChild(this._renderComponent(byId[tab.child], byId, dm, theme));
+      }
+      el.appendChild(content);
+    });
+    return el;
+  }
+
+  _renderModal(c, byId, dm, theme) {
+    const el = document.createElement('div');
+    el.className = 'a2ui-modal-trigger';
+    if (c.trigger && byId[c.trigger]) {
+      const trigger = this._renderComponent(byId[c.trigger], byId, dm, theme);
+      trigger.style.cursor = 'pointer';
+      trigger.onclick = () => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:1000';
+        const modal = document.createElement('div');
+        modal.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;position:relative';
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '\u2715';
+        closeBtn.style.cssText = 'position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer';
+        closeBtn.onclick = () => overlay.remove();
+        modal.appendChild(closeBtn);
+        if (c.content && byId[c.content]) {
+          modal.appendChild(this._renderComponent(byId[c.content], byId, dm, theme));
+        }
+        overlay.appendChild(modal);
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        document.body.appendChild(overlay);
+      };
+      el.appendChild(trigger);
+    }
+    return el;
+  }
+
+  _renderDivider(c) {
+    const el = document.createElement('div');
+    el.className = `a2ui-divider ${c.axis === 'vertical' ? 'vertical' : ''}`;
+    return el;
+  }
+
+  _renderButton(c, byId, dm, theme) {
+    const btn = document.createElement('button');
+    btn.className = `a2ui-button ${c.variant || 'default'}`;
+    if (theme?.primaryColor && c.variant === 'primary') {
+      btn.style.background = theme.primaryColor;
+      btn.style.borderColor = theme.primaryColor;
+    }
+    if (c.child && byId[c.child]) {
+      btn.appendChild(this._renderComponent(byId[c.child], byId, dm, theme));
+    } else if (c.child && typeof c.child === 'string' && !byId[c.child]) {
+      btn.textContent = c.child;
+    }
+    if (c.action) {
+      btn.onclick = () => {
+        if (c.action.event) {
+          console.log('[A2UI Action]', c.action.event.name, c.action.event.context);
+          addChatMessage('system', `Action: ${c.action.event.name}`);
+        } else if (c.action.functionCall?.call === 'openUrl') {
+          window.open(c.action.functionCall.args.url, '_blank');
+        }
+      };
+    }
+    return btn;
+  }
+
+  _renderTextField(c, dm) {
+    const wrap = document.createElement('div');
+    wrap.className = 'a2ui-textfield';
+    if (c.label) {
+      const label = document.createElement('label');
+      label.textContent = this.resolve(c.label, dm) || '';
+      wrap.appendChild(label);
+    }
+    const isLong = c.variant === 'longText';
+    const input = document.createElement(isLong ? 'textarea' : 'input');
+    if (!isLong) {
+      input.type = c.variant === 'number' ? 'number' : c.variant === 'obscured' ? 'password' : 'text';
+    } else {
+      input.rows = 4;
+    }
+    const val = c.value ? this.resolve(c.value, dm) : '';
+    input.value = val ?? '';
+    if (c.value?.path) {
+      input.oninput = () => {
+        this._setPath(dm, c.value.path, input.value);
+        this._notify();
+      };
+    }
+    wrap.appendChild(input);
+    // Checks
+    if (c.checks) {
+      for (const check of c.checks) {
+        const errEl = document.createElement('div');
+        errEl.className = 'error hidden';
+        errEl.textContent = check.message || 'Validation error';
+        wrap.appendChild(errEl);
+        input.addEventListener('blur', () => {
+          const ok = this.resolve(check.condition, dm);
+          errEl.classList.toggle('hidden', ok !== false);
+        });
+      }
+    }
+    return wrap;
+  }
+
+  _renderCheckBox(c, dm) {
+    const label = document.createElement('label');
+    label.className = 'a2ui-checkbox';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!this.resolve(c.value, dm);
+    if (c.value?.path) {
+      input.onchange = () => {
+        this._setPath(dm, c.value.path, input.checked);
+        this._notify();
+      };
+    }
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(this.resolve(c.label, dm) || ''));
+    return label;
+  }
+
+  _renderChoicePicker(c, dm) {
+    const wrap = document.createElement('div');
+    wrap.className = 'a2ui-choicepicker';
+    if (c.label) {
+      const label = document.createElement('label');
+      label.textContent = this.resolve(c.label, dm) || '';
+      wrap.appendChild(label);
+    }
+    const selected = this.resolve(c.value, dm) || [];
+    const isMulti = c.variant === 'multipleSelection';
+    const useChips = c.displayStyle === 'chips' || true;
+
+    if (useChips) {
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      for (const opt of (c.options || [])) {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = this.resolve(opt.label, dm) || opt.value;
+        if (Array.isArray(selected) ? selected.includes(opt.value) : selected === opt.value) {
+          chip.classList.add('selected');
+        }
+        chip.onclick = () => {
+          chip.classList.toggle('selected');
+          // Update data model if bound
+          if (c.value?.path) {
+            const chips = opts.querySelectorAll('.chip.selected');
+            const vals = Array.from(chips).map(ch => {
+              const o = (c.options || []).find(o2 => (this.resolve(o2.label, dm) || o2.value) === ch.textContent);
+              return o ? o.value : ch.textContent;
+            });
+            this._setPath(dm, c.value.path, isMulti ? vals : vals[0] || '');
+            this._notify();
+          }
+        };
+        opts.appendChild(chip);
+      }
+      wrap.appendChild(opts);
+    }
+    return wrap;
+  }
+
+  _renderSlider(c, dm) {
+    const wrap = document.createElement('div');
+    wrap.className = 'a2ui-slider';
+    if (c.label) {
+      const label = document.createElement('label');
+      label.textContent = this.resolve(c.label, dm) || '';
+      wrap.appendChild(label);
+    }
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = c.min ?? 0;
+    input.max = c.max ?? 100;
+    input.value = this.resolve(c.value, dm) ?? input.min;
+    const valDisplay = document.createElement('div');
+    valDisplay.className = 'value';
+    valDisplay.textContent = input.value;
+    input.oninput = () => {
+      valDisplay.textContent = input.value;
+      if (c.value?.path) {
+        this._setPath(dm, c.value.path, Number(input.value));
+        this._notify();
+      }
+    };
+    wrap.appendChild(input);
+    wrap.appendChild(valDisplay);
+    return wrap;
+  }
+
+  _renderDateTimeInput(c, dm) {
+    const wrap = document.createElement('div');
+    wrap.className = 'a2ui-datetime';
+    if (c.label) {
+      const label = document.createElement('label');
+      label.textContent = this.resolve(c.label, dm) || '';
+      wrap.appendChild(label);
+    }
+    const input = document.createElement('input');
+    if (c.enableDate && c.enableTime) input.type = 'datetime-local';
+    else if (c.enableTime) input.type = 'time';
+    else input.type = 'date';
+    input.value = this.resolve(c.value, dm) || '';
+    if (c.value?.path) {
+      input.onchange = () => {
+        this._setPath(dm, c.value.path, input.value);
+        this._notify();
+      };
+    }
+    wrap.appendChild(input);
+    return wrap;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// APPLICATION STATE
+// ═══════════════════════════════════════════════════════════════════
+
+const renderer = new A2UIRenderer();
+let cookbooks = [];
+let activeCookbook = null;
+let currentMode = 'runner';
+let currentPreviewTab = 'render';
+let serverAvailable = false;
+
+// ── API calls ──────────────────────────────────────────────────
+
+const API = window.location.origin;
+
+async function checkServer() {
+  try {
+    const r = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(2000) });
+    if (r.ok) {
+      serverAvailable = true;
+      document.getElementById('status-indicator').innerHTML =
+        '<span class="status-dot ok"></span> connected';
+      return true;
+    }
+  } catch {}
+  serverAvailable = false;
+  document.getElementById('status-indicator').innerHTML =
+    '<span class="status-dot error"></span> server offline — gallery mode only';
+  return false;
+}
+
+async function loadCookbooks() {
+  // Try server first
+  if (serverAvailable) {
+    try {
+      const r = await fetch(`${API}/api/cookbooks`);
+      cookbooks = await r.json();
+      renderSidebar();
+      return;
+    } catch {}
+  }
+  // Fallback: try to load surface index
+  try {
+    const r = await fetch(`${API}/surfaces/_index.json`);
+    const surfaces = await r.json();
+    cookbooks = surfaces.map(s => ({
+      id: s.id, name: s.name, group: 'a2ui', badge: 'a2ui',
+      description: s.source || '', has_surface: true, surface_file: s.file
+    }));
+  } catch {
+    cookbooks = [];
+  }
+  renderSidebar();
+}
+
+async function loadSurfaces() {
+  try {
+    const r = await fetch(`${API}/surfaces/_index.json`);
+    const index = await r.json();
+    const gallery = document.getElementById('gallery-grid');
+    gallery.innerHTML = '';
+    for (const entry of index) {
+      try {
+        const sr = await fetch(`${API}/surfaces/${entry.file}`);
+        const data = await sr.json();
+        renderGalleryItem(gallery, entry, data);
+      } catch (e) {
+        console.warn('Failed to load surface:', entry.file, e);
+      }
+    }
+  } catch {
+    document.getElementById('gallery-grid').innerHTML =
+      '<div class="preview-empty"><span>No surfaces exported yet.</span><span style="font-size:12px">Run: just a2ui-preview</span></div>';
+  }
+}
+
+// ── Sidebar ───────────────────────────────────────────────────
+
+function renderSidebar() {
+  const list = document.getElementById('sidebar-list');
+  const groups = {};
+  for (const cb of cookbooks) {
+    const g = cb.group || 'other';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(cb);
+  }
+  const order = ['crawl', 'walk', 'run', 'a2ui', 'other'];
+  let html = '';
+  for (const g of order) {
+    if (!groups[g]) continue;
+    html += `<div class="sidebar-group"><div class="sidebar-group-label">${g}</div>`;
+    for (const cb of groups[g]) {
+      html += `<div class="sidebar-item" data-id="${cb.id}" onclick="selectCookbook('${cb.id}')">
+        <span class="num">${cb.id.match(/^\d+/) ? cb.id.match(/^\d+/)[0] : ''}</span>
+        <span>${cb.name}</span>
+        <span class="badge badge-${cb.badge || cb.group}">${cb.badge || cb.group}</span>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function filterCookbooks() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('hidden', !el.textContent.toLowerCase().includes(q));
+  });
+}
+
+// ── Cookbook selection ─────────────────────────────────────────
+
+async function selectCookbook(id) {
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+  activeCookbook = cookbooks.find(c => c.id === id);
+  if (!activeCookbook) return;
+
+  document.getElementById('agent-name').textContent = activeCookbook.name;
+  document.getElementById('agent-desc').textContent = activeCookbook.description || '';
+  document.getElementById('chat-messages').innerHTML = '';
+  document.getElementById('prompt-input').disabled = !serverAvailable;
+  document.getElementById('send-btn').disabled = !serverAvailable;
+
+  if (!serverAvailable) {
+    addChatMessage('system', 'Server offline. Start it with: just visual');
+  } else {
+    addChatMessage('system', `Agent loaded: ${activeCookbook.name}. Type a message to begin.`);
+    // Load introspection
+    try {
+      const r = await fetch(`${API}/api/inspect/${id}`);
+      if (r.ok) {
+        const data = await r.json();
+        document.getElementById('preview-intro').innerHTML =
+          `<div class="intro-panel">${escapeHtml(data.explain || '')}</div>`;
+        if (data.surface_messages) {
+          renderer.processMessages(data.surface_messages);
+          rerenderSurface();
+        }
+      }
+    } catch {}
+  }
+
+  // Load surface if available
+  if (activeCookbook.surface_file) {
+    try {
+      const r = await fetch(`${API}/surfaces/${activeCookbook.surface_file}`);
+      const data = await r.json();
+      renderer.processMessages(data.messages);
+      rerenderSurface();
+      showJsonPreview(data.messages);
+    } catch {}
+  }
+}
+
+// ── Chat ──────────────────────────────────────────────────────
+
+async function sendMessage() {
+  const input = document.getElementById('prompt-input');
+  const prompt = input.value.trim();
+  if (!prompt || !activeCookbook || !serverAvailable) return;
+
+  input.value = '';
+  addChatMessage('user', prompt);
+  input.disabled = true;
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const r = await fetch(`${API}/api/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cookbook: activeCookbook.id, prompt })
+    });
+    const data = await r.json();
+    if (data.error) {
+      addChatMessage('system', `Error: ${data.error}`);
+    } else {
+      addChatMessage('agent', data.response || '(no response)');
+      if (data.surface_messages?.length) {
+        renderer.processMessages(data.surface_messages);
+        rerenderSurface();
+        showJsonPreview(data.surface_messages);
+      }
+    }
+  } catch (e) {
+    addChatMessage('system', `Request failed: ${e.message}`);
+  }
+  input.disabled = false;
+  document.getElementById('send-btn').disabled = false;
+  input.focus();
+}
+
+function addChatMessage(role, text) {
+  const el = document.createElement('div');
+  el.className = `msg msg-${role}`;
+  // Handle code blocks
+  if (text.includes('```')) {
+    el.innerHTML = text.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre>$2</pre>')
+      .replace(/\n/g, '<br>');
+  } else {
+    el.textContent = text;
+  }
+  document.getElementById('chat-messages').appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Preview panel ─────────────────────────────────────────────
+
+function rerenderSurface() {
+  const container = document.getElementById('preview-render');
+  const ids = Object.keys(renderer.surfaces);
+  if (ids.length === 0) return;
+  container.innerHTML = '';
+  for (const id of ids) {
+    const div = document.createElement('div');
+    div.style.marginBottom = '16px';
+    renderer.renderSurface(id, div);
+    container.appendChild(div);
+  }
+}
+
+function showJsonPreview(messages) {
+  const container = document.getElementById('preview-json');
+  container.innerHTML = `<div class="json-view">${syntaxHighlight(JSON.stringify(messages, null, 2))}</div>`;
+}
+
+function setPreviewTab(tab) {
+  currentPreviewTab = tab;
+  document.querySelectorAll('.preview-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('preview-render').classList.toggle('hidden', tab !== 'render');
+  document.getElementById('preview-json').classList.toggle('hidden', tab !== 'json');
+  document.getElementById('preview-intro').classList.toggle('hidden', tab !== 'intro');
+}
+
+// ── Gallery mode ──────────────────────────────────────────────
+
+function renderGalleryItem(container, entry, data) {
+  const item = document.createElement('div');
+  item.className = 'gallery-item';
+  item.innerHTML = `
+    <div class="gallery-item-header">
+      <h3>${entry.name}</h3>
+      <span class="source">${entry.source || entry.file}</span>
+    </div>
+    <div class="gallery-item-body" id="gallery-surface-${entry.id}"></div>
+    <details class="gallery-item-json">
+      <summary style="padding:8px 16px;cursor:pointer;font-size:12px;color:var(--text-muted)">JSON</summary>
+      <div class="json-view" style="border-top:1px solid var(--border)">${syntaxHighlight(JSON.stringify(data.messages, null, 2))}</div>
+    </details>`;
+  container.appendChild(item);
+
+  // Render the surface
+  const surfaceContainer = item.querySelector(`#gallery-surface-${entry.id}`);
+  const localRenderer = new A2UIRenderer();
+  localRenderer.processMessages(data.messages);
+  const surfaceIds = Object.keys(localRenderer.surfaces);
+  for (const sid of surfaceIds) {
+    localRenderer.renderSurface(sid, surfaceContainer);
+  }
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  document.getElementById('main-runner').classList.toggle('hidden', mode !== 'runner');
+  document.getElementById('main-gallery').classList.toggle('hidden', mode !== 'gallery');
+  document.getElementById('preview-panel').classList.toggle('hidden', mode === 'gallery');
+  document.getElementById('sidebar').classList.toggle('hidden', mode === 'gallery');
+  if (mode === 'gallery') loadSurfaces();
+}
+
+// ── Utilities ─────────────────────────────────────────────────
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function syntaxHighlight(json) {
+  return escapeHtml(json).replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+    match => {
+      let cls = 'json-number';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'json-key' : 'json-string';
+      } else if (/true|false/.test(match)) {
+        cls = 'json-bool';
+      } else if (/null/.test(match)) {
+        cls = 'json-null';
+      }
+      return `<span class="${cls}">${match}</span>`;
+    }
+  );
+}
+
+// ── Init ──────────────────────────────────────────────────────
+
+async function init() {
+  await checkServer();
+  await loadCookbooks();
+  renderer.onChange(rerenderSurface);
+}
+
+init();
+</script>
+</body>
+</html>

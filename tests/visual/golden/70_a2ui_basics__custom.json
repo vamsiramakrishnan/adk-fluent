@@ -1,0 +1,24 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "custom"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "BarChart",
+          "data": "test",
+          "id": "root",
+          "x": "date",
+          "y": "value"
+        }
+      ],
+      "surfaceId": "custom"
+    },
+    "version": "v0.10"
+  }
+]

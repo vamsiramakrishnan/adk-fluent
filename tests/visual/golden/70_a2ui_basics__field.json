@@ -1,0 +1,24 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "field"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "TextField",
+          "id": "root",
+          "label": "Name",
+          "value": null,
+          "variant": "shortText"
+        }
+      ],
+      "surfaceId": "field"
+    },
+    "version": "v0.10"
+  }
+]

@@ -1,0 +1,5 @@
+# Generated surface exports (regenerated via `just visual-export`)
+surfaces/
+
+# Local env file (contains secrets)
+.env

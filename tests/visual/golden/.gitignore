@@ -1,0 +1,2 @@
+# Diff artifacts from failed golden comparisons
+*.actual.json

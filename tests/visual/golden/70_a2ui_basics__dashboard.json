@@ -1,0 +1,65 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "metrics"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Metrics",
+          "variant": "h1"
+        },
+        {
+          "component": "Text",
+          "id": "text_2",
+          "text": "Users",
+          "variant": "caption"
+        },
+        {
+          "component": "Text",
+          "id": "text_3",
+          "text": {
+            "path": "/users"
+          },
+          "variant": "h3"
+        },
+        {
+          "children": [
+            "text_2",
+            "text_3"
+          ],
+          "component": "Column",
+          "id": "column"
+        },
+        {
+          "child": "column",
+          "component": "Card",
+          "id": "card"
+        },
+        {
+          "children": [
+            "card"
+          ],
+          "component": "Row",
+          "id": "row"
+        },
+        {
+          "children": [
+            "text",
+            "row"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "metrics"
+    },
+    "version": "v0.10"
+  }
+]
