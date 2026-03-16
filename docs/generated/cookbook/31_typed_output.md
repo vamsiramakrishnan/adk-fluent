@@ -1,16 +1,7 @@
 # Structured Invoice Parsing: Typed Output Contracts with @ Operator
 
-:::{admonition} Why this matters
-:class: important
-LLMs produce free-form text by default. For structured data -- invoices, reports, API responses -- you need guaranteed schema conformance. The `@` operator binds a Pydantic schema to an agent's output, ensuring the response is a valid JSON object matching the schema. This turns unreliable text into reliable structured data that downstream systems can parse without error handling.
-:::
-
-:::{warning} Without this
-Without typed output, parsing LLM responses requires fragile regex or string splitting. A slight change in the model's formatting breaks the parser. With the `@` operator, the model is constrained to produce valid JSON matching the schema -- parsing failures are caught at the model level, not in your application code.
-:::
-
 :::{tip} What you'll learn
-How to bind structured output schemas to agents with the @ operator.
+How to use operator syntax for composing agents.
 :::
 
 _Source: `31_typed_output.py`_

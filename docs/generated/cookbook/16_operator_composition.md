@@ -5,17 +5,8 @@ Pipeline topologies:
     |   ( politics | markets )
     *   ( draft_writer >> fact_checker ) * 3
 
-:::{admonition} Why this matters
-:class: important
-Real pipelines combine sequential, parallel, and iterative patterns in a single workflow. A news analysis system scrapes sequentially, analyzes in parallel, and iterates on quality. The `>>`, `|`, and `*` operators compose naturally in a single expression, making the entire topology readable at a glance. This is the core value proposition of adk-fluent: complex workflows expressed as simple algebra.
-:::
-
-:::{warning} Without this
-Without operator composition, building a pipeline that combines sequence, parallel, and loop requires 3+ separate agent classes (`SequentialAgent`, `ParallelAgent`, `LoopAgent`) nested inside each other with manual `sub_agents` wiring. The topology is spread across dozens of lines and multiple class instantiations, making it nearly impossible to see the overall structure.
-:::
-
 :::{tip} What you'll learn
-How to combine >>, |, and * operators in a single expression.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `16_operator_composition.py`_

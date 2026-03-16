@@ -13,17 +13,8 @@ Key concepts:
   - get_execution_mode(): query current mode (pipeline/dispatched/stream)
   - task_budget(): configure max concurrent dispatch tasks
 
-:::{admonition} Why this matters
-:class: important
-Background agents running via `dispatch()` need the same observability as foreground agents -- logging when tasks start, tracking when they complete, and alerting when they fail. Dispatch-aware middleware hooks (`on_dispatch`, `on_task_complete`, `on_task_error`, `on_join`) provide this visibility without coupling monitoring logic to the dispatched agents themselves.
-:::
-
-:::{warning} Without this
-Without dispatch-aware middleware, background agent failures are silent. A dispatched email sender crashes, the join barrier never completes, and the pipeline hangs indefinitely with no error message. Dispatch middleware catches these failures, logs them, and can even trigger recovery actions -- turning silent hangs into actionable alerts.
-:::
-
 :::{tip} What you'll learn
-How to observe and control background agent lifecycle with middleware hooks.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `61_dispatch_middleware.py`_

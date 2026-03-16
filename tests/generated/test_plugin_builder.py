@@ -42,7 +42,7 @@ class TestRecordingsPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = RecordingsPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -70,7 +70,7 @@ class TestReplayPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ReplayPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -86,7 +86,7 @@ class TestBasePluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BasePlugin("test_name")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -114,7 +114,7 @@ class TestBigQueryAgentAnalyticsPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BigQueryAgentAnalyticsPlugin("test_project_id", "test_dataset_id", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -142,7 +142,7 @@ class TestContextFilterPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ContextFilterPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -170,7 +170,7 @@ class TestDebugLoggingPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = DebugLoggingPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -198,7 +198,7 @@ class TestGlobalInstructionPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GlobalInstructionPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -226,7 +226,7 @@ class TestLoggingPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LoggingPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -254,7 +254,7 @@ class TestMultimodalToolResultsPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = MultimodalToolResultsPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -282,7 +282,7 @@ class TestReflectAndRetryToolPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ReflectAndRetryToolPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -310,7 +310,7 @@ class TestSaveFilesAsArtifactsPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SaveFilesAsArtifactsPlugin()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -326,5 +326,5 @@ class TestAgentSimulatorPluginBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = AgentSimulatorPlugin("test_simulator_engine")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")

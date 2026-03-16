@@ -29,6 +29,7 @@ __all__ = [
     "ArtifactNode",
     "DispatchNode",
     "JoinNode",
+    "UINode",
     # Config
     "ExecutionConfig",
     "CompactionConfig",
@@ -186,6 +187,23 @@ class JoinNode:
     timeout: float | None = None
 
 
+@dataclass(frozen=True)
+class UINode:
+    """A2UI surface attached to an agent.
+
+    Represents declarative or LLM-guided UI that an agent can render.
+    Used by introspection tools (.explain, .to_mermaid, .doctor) to
+    visualize UI concerns alongside data flow.
+    """
+
+    name: str
+    surface_name: str
+    component_count: int = 0
+    bindings: tuple[str, ...] = ()
+    actions: tuple[str, ...] = ()
+    mode: str = "declarative"  # "declarative" or "llm_guided"
+
+
 # ======================================================================
 # Execution configuration
 # ======================================================================
@@ -278,4 +296,5 @@ Node = (
     | ArtifactNode
     | DispatchNode
     | JoinNode
+    | UINode
 )

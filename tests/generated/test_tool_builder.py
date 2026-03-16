@@ -109,7 +109,7 @@ class TestAgentToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = AgentTool("test_agent")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -137,7 +137,7 @@ class TestAPIHubToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = APIHubToolset("test_apihub_resource_name")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -165,7 +165,7 @@ class TestApplicationIntegrationToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ApplicationIntegrationToolset("test_project", "test_location")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -193,7 +193,7 @@ class TestIntegrationConnectorToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = IntegrationConnectorTool("test_name", "test_description", "test_connection_name")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -221,7 +221,7 @@ class TestBaseAuthenticatedToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseAuthenticatedTool("test_name", "test_description")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -249,7 +249,7 @@ class TestBaseToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseTool("test_name", "test_description")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -277,7 +277,7 @@ class TestBaseToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -305,7 +305,7 @@ class TestBigQueryToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BigQueryToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -333,7 +333,7 @@ class TestBigtableToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BigtableToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -349,7 +349,7 @@ class TestComputerUseToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ComputerUseTool("test_func", "test_screen_size")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -365,7 +365,7 @@ class TestComputerUseToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ComputerUseToolset("test_computer")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -393,7 +393,7 @@ class TestDataAgentToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = DataAgentToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -421,7 +421,7 @@ class TestDiscoveryEngineSearchToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = DiscoveryEngineSearchTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -437,7 +437,7 @@ class TestEnterpriseWebSearchToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = EnterpriseWebSearchTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -453,7 +453,7 @@ class TestExampleToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ExampleTool("test_examples")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -469,7 +469,7 @@ class TestFunctionToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = FunctionTool("test_func")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -497,7 +497,7 @@ class TestGoogleApiToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleApiTool("test_rest_api_tool")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -525,7 +525,7 @@ class TestGoogleApiToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleApiToolset("test_api_name", "test_api_version")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -553,7 +553,7 @@ class TestCalendarToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = CalendarToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -581,7 +581,7 @@ class TestDocsToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = DocsToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -609,7 +609,7 @@ class TestGmailToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GmailToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -637,7 +637,7 @@ class TestSheetsToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SheetsToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -665,7 +665,7 @@ class TestSlidesToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SlidesToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -693,7 +693,7 @@ class TestYoutubeToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = YoutubeToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -709,7 +709,7 @@ class TestGoogleMapsGroundingToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleMapsGroundingTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -725,7 +725,7 @@ class TestGoogleSearchAgentToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleSearchAgentTool("test_agent")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -753,7 +753,7 @@ class TestGoogleSearchToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleSearchTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -781,7 +781,7 @@ class TestGoogleToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GoogleTool("test_func")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -797,7 +797,7 @@ class TestLoadArtifactsToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LoadArtifactsTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -813,7 +813,7 @@ class TestLoadMcpResourceToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LoadMcpResourceTool("test_mcp_toolset")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -829,7 +829,7 @@ class TestLoadMemoryToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LoadMemoryTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -845,7 +845,7 @@ class TestLongRunningFunctionToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LongRunningFunctionTool("test_func")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -861,7 +861,7 @@ class TestMCPToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = MCPTool("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -889,7 +889,7 @@ class TestMcpToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = McpTool("test_mcp_tool", "test_mcp_session_manager")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -905,7 +905,7 @@ class TestMCPToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = MCPToolset("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -933,7 +933,7 @@ class TestMcpToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = McpToolset("test_connection_params")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -961,7 +961,7 @@ class TestOpenAPIToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = OpenAPIToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -989,7 +989,7 @@ class TestRestApiToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = RestApiTool("test_name", "test_description", "test_endpoint")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1005,7 +1005,7 @@ class TestPreloadMemoryToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = PreloadMemoryTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1033,7 +1033,7 @@ class TestPubSubToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = PubSubToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1061,7 +1061,7 @@ class TestBaseRetrievalToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseRetrievalTool("test_name", "test_description")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1077,7 +1077,7 @@ class TestSetModelResponseToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SetModelResponseTool("test_output_schema")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1093,7 +1093,7 @@ class TestLoadSkillResourceToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LoadSkillResourceTool("test_toolset")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1109,7 +1109,7 @@ class TestLoadSkillToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = LoadSkillTool("test_toolset")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1125,7 +1125,7 @@ class TestSkillToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SkillToolset("test_skills")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1153,7 +1153,7 @@ class TestSpannerToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SpannerToolset()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1181,7 +1181,7 @@ class TestToolboxToolsetBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ToolboxToolset("test_server_url", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1197,7 +1197,7 @@ class TestTransferToAgentToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = TransferToAgentTool("test_agent_names")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1213,7 +1213,7 @@ class TestUrlContextToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = UrlContextTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -1241,5 +1241,5 @@ class TestVertexAiSearchToolBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiSearchTool()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")

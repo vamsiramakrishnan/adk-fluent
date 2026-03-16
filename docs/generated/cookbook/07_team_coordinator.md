@@ -10,17 +10,8 @@ Pipeline topology:
         |-- engineering
         '-- legal
 
-:::{admonition} Why this matters
-:class: important
-Most complex tasks require multiple specialists. A product launch needs marketing copy, engineering specs, and legal review. A coordinator agent with sub-agents delegates based on the request, using the LLM's judgment to match tasks to the right specialist. This pattern scales naturally -- adding a new specialist is just adding one more `.sub_agent()` call rather than rewriting routing logic.
-:::
-
-:::{warning} Without this
-Without a coordinator pattern, you either hardcode routing logic (brittle and inflexible) or force a single agent to handle everything (jack-of-all-trades, master-of-none). The coordinator pattern provides the best of both worlds: an LLM makes the delegation decision, but each specialist has focused expertise and tools.
-:::
-
 :::{tip} What you'll learn
-How to build a team of agents with a coordinator that delegates.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `07_team_coordinator.py`_

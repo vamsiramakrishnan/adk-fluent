@@ -173,7 +173,7 @@ def spec_to_ir_test(spec: BuilderSpec) -> ClassNode:
         )
 
     # test_typo_detection
-    match_str = "not a recognized parameter" if spec.inspection_mode == "init_signature" else "not a recognized field"
+    match_str = "not a recognized field"
     methods.append(
         MethodNode(
             name="test_typo_detection",

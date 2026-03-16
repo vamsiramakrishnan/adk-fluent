@@ -14,17 +14,8 @@ Pipeline topology:
             >> report_writer
             >> S.compute(word_count=...)
 
-:::{admonition} Why this matters
-:class: important
-State transforms are the glue between agents in a pipeline. When a clinical data extractor produces `clinical_findings` but the statistical analyzer expects `analysis_input`, you need to rename that field. When parallel research streams produce separate results, you need to merge them. The `S` module provides composable, single-line transforms (`S.pick`, `S.drop`, `S.rename`, `S.merge`, `S.compute`) that slot into any pipeline with `>>`.
-:::
-
-:::{warning} Without this
-Without composable state transforms, every field rename, merge, or filter requires a custom `BaseAgent` subclass in native ADK -- 15-30 lines of boilerplate per transform. In a clinical pipeline with 5 transform steps, that's 5 separate classes (~100 lines) doing work that `S.pick >> S.rename >> S.merge` handles in 3 lines.
-:::
-
 :::{tip} What you'll learn
-How to reshape state between agents with S.pick, S.merge, S.rename, and more.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `33_state_transforms.py`_
@@ -123,6 +114,114 @@ research_pipeline = (
         word_count=lambda s: len(s.get("report", "").split()),
     )
 )
+
+# --- NEW EXPANSION METHODS ---
+
+# S.accumulate — collect observations across multiple iterations
+# In a longitudinal study, accumulate patient measurements over time
+accumulator = S.accumulate("blood_pressure", into="bp_readings")
+result = accumulator({"blood_pressure": 120, "bp_readings": [115, 118]})
+assert isinstance(result, StateDelta)
+assert result.updates == {"bp_readings": [115, 118, 120]}
+
+# S.accumulate with default target key — appends to "{key}_all"
+accumulator_default = S.accumulate("glucose_level")
+result = accumulator_default({"glucose_level": 5.4})
+assert isinstance(result, StateDelta)
+assert result.updates == {"glucose_level_all": [5.4]}
+
+# S.counter — track iteration count or event frequency
+# Count how many times a screening test was administered
+counter = S.counter("test_count")
+result = counter({"test_count": 3})
+assert isinstance(result, StateDelta)
+assert result.updates == {"test_count": 4}
+
+# S.counter with custom step — decrement remaining doses
+dose_counter = S.counter("doses_remaining", step=-1)
+result = dose_counter({"doses_remaining": 10})
+assert isinstance(result, StateDelta)
+assert result.updates == {"doses_remaining": 9}
+
+# S.history — maintain rolling window of recent values
+# Track recent temperature readings for trend detection
+history = S.history("temperature", max_size=3)
+result = history({"temperature": 37.2, "temperature_history": [36.8, 37.0]})
+assert isinstance(result, StateDelta)
+assert result.updates == {"temperature_history": [36.8, 37.0, 37.2]}
+
+# S.history enforces max_size — oldest values drop off
+result2 = history({"temperature": 37.5, "temperature_history": [36.8, 37.0, 37.2]})
+assert isinstance(result2, StateDelta)
+assert result2.updates == {"temperature_history": [37.0, 37.2, 37.5]}  # 36.8 dropped
+
+# S.validate — enforce state schema with Pydantic or dataclass
+# Ensure research data conforms to expected structure
+from dataclasses import dataclass
+
+
+@dataclass
+class ClinicalData:
+    patient_id: str
+    age: int
+    treatment: str
+
+
+validator = S.validate(ClinicalData)
+valid_state = {"patient_id": "P001", "age": 45, "treatment": "A"}
+result = validator(valid_state)
+assert isinstance(result, StateDelta)
+assert result.updates == {}  # validation passed, no changes
+
+# S.require — assert presence of critical keys
+# Before analysis, ensure required fields exist
+requirement = S.require("patient_id", "consent_signed")
+result = requirement({"patient_id": "P001", "consent_signed": True, "notes": "optional"})
+assert isinstance(result, StateDelta)
+assert result.updates == {}  # all required keys present
+
+# S.flatten — convert nested measurement data to flat dotted keys
+# Normalize hierarchical lab results for tabular analysis
+flattener = S.flatten("lab_results", separator=".")
+nested_state = {"lab_results": {"blood": {"hemoglobin": 14.2, "wbc": 7.5}, "urine": {"ph": 6.0}}}
+result = flattener(nested_state)
+assert isinstance(result, StateDelta)
+assert result.updates == {"blood.hemoglobin": 14.2, "blood.wbc": 7.5, "urine.ph": 6.0}
+
+# S.unflatten — rebuild nested structure from dotted keys
+# Reconstruct hierarchical data for JSON export
+unflattener = S.unflatten(separator=".")
+flat_state = {"patient.demographics.age": 45, "patient.demographics.gender": "F", "visit_id": "V123"}
+result = unflattener(flat_state)
+assert isinstance(result, StateReplacement)
+assert result.new_state == {
+    "patient": {"demographics": {"age": 45, "gender": "F"}},
+    "visit_id": "V123",
+}
+
+# S.zip — combine parallel measurement arrays
+# Align timestamps with sensor readings for time-series analysis
+zipper = S.zip("timestamps", "heart_rate", into="hr_timeseries")
+result = zipper({"timestamps": [0, 60, 120], "heart_rate": [72, 75, 71]})
+assert isinstance(result, StateDelta)
+assert result.updates == {"hr_timeseries": [(0, 72), (60, 75), (120, 71)]}
+
+# S.group_by — stratify cohort data by demographic category
+# Group patients by age bracket for subgroup analysis
+grouper = S.group_by("patients", key_fn=lambda p: p["age_bracket"], into="cohorts")
+patient_list = [
+    {"id": "P1", "age_bracket": "18-30"},
+    {"id": "P2", "age_bracket": "31-50"},
+    {"id": "P3", "age_bracket": "18-30"},
+]
+result = grouper({"patients": patient_list})
+assert isinstance(result, StateDelta)
+assert result.updates == {
+    "cohorts": {
+        "18-30": [{"id": "P1", "age_bracket": "18-30"}, {"id": "P3", "age_bracket": "18-30"}],
+        "31-50": [{"id": "P2", "age_bracket": "31-50"}],
+    }
+}
 ```
 :::
 :::{tab-item} Native ADK

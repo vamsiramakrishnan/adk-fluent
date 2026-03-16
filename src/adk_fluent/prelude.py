@@ -40,6 +40,7 @@ from adk_fluent._routing import Fallback
 from adk_fluent._tool_registry import SearchToolset, ToolRegistry, search_aware_after_tool
 from adk_fluent._tools import T, TComposite
 from adk_fluent._transforms import STransform
+from adk_fluent._ui import UI, UIBinding, UICheck, UIComponent, UISurface
 from adk_fluent.a2a import A2AServer, AgentRegistry, RemoteAgent
 from adk_fluent.middleware import DispatchLogMiddleware
 from adk_fluent.patterns import (
@@ -130,4 +131,10 @@ __all__ = [
     "ToolRegistry",
     "SearchToolset",
     "search_aware_after_tool",
+    # Tier 10: UI (A2UI)
+    "UI",
+    "UIBinding",
+    "UICheck",
+    "UIComponent",
+    "UISurface",
 ]

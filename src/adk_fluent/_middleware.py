@@ -410,3 +410,48 @@ class M:
             [A2ATimeoutMiddleware(seconds=seconds, agents=agents, on_timeout=on_timeout)],
             kind="a2a_timeout",
         )
+
+    @staticmethod
+    def a2ui_log(
+        *,
+        level: str = "info",
+        agents: list[str] | None = None,
+    ) -> MComposite:
+        """Log A2UI surface operations (createSurface, updateComponents, etc.).
+
+        Attaches an after_model callback that inspects tool calls for A2UI
+        operations and logs them at the specified level.
+
+        Args:
+            level: Log level — ``"info"`` or ``"debug"``.
+            agents: Optional list of agent names to scope the logging to.
+
+        Usage::
+
+            agent.middleware(M.a2ui_log())
+            pipeline.middleware(M.a2ui_log(level="debug"))
+        """
+        import logging
+
+        from adk_fluent.middleware import _SingleHookMiddleware
+
+        logger = logging.getLogger("adk_fluent.a2ui")
+
+        async def _log_a2ui(callback_context: Any) -> None:
+            response = getattr(callback_context, "response", None)
+            if response is None:
+                return
+            # Inspect function calls for A2UI operations
+            a2ui_ops = ["createSurface", "updateComponents", "updateDataModel", "deleteSurface"]
+            for part in getattr(response, "parts", []):
+                fc = getattr(part, "function_call", None)
+                if fc is None:
+                    continue
+                name = getattr(fc, "name", "")
+                if any(op in name for op in a2ui_ops):
+                    log_fn = getattr(logger, level, logger.info)
+                    agent_name = getattr(callback_context, "agent_name", "?")
+                    log_fn(f"[A2UI] {agent_name}: {name}")
+
+        mw = _SingleHookMiddleware("after_model_callback", _log_a2ui)
+        return MComposite([mw], kind="a2ui_log")

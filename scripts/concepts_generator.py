@@ -61,9 +61,10 @@ def main():
             if extracting:
                 content.append(line)
 
-        content.append("")
-
-    output_path.write_text("\n".join(content))
+    # Strip trailing empty strings to avoid double newlines at EOF
+    while content and content[-1] == "":
+        content.pop()
+    output_path.write_text("\n".join(content) + "\n")
     print(f"Generated {output_path}")
 
     # Inject into index.md

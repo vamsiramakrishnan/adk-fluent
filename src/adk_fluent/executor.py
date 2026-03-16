@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import Any, Self
 
 from google.adk.code_executors.agent_engine_sandbox_code_executor import (
     AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
@@ -15,45 +15,6 @@ from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCode
 from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
 
 from adk_fluent._base import BuilderBase
-
-if not TYPE_CHECKING:
-    try:
-        from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
-    except (ImportError, ModuleNotFoundError):
-        _ADK_A2aAgentExecutor = None  # type: ignore[assignment,misc]
-
-if TYPE_CHECKING:
-    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutor as _ADK_A2aAgentExecutor
-    from google.adk.a2a.executor.a2a_agent_executor import A2aAgentExecutorConfig
-
-
-class A2aAgentExecutor(BuilderBase):
-    """An AgentExecutor that runs an ADK Agent against an A2A request and."""
-
-    _ALIASES: dict[str, str] = {}
-    _CALLBACK_ALIASES: dict[str, str] = {}
-    _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"config", "runner"}
-
-    def __init__(self, runner: str) -> None:
-        self._config: dict[str, Any] = {"runner": runner}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
-
-    def config(self, value: A2aAgentExecutorConfig | None) -> Self:
-        """Set the ``config`` field."""
-        self = self._maybe_fork_for_mutation()
-        self._config["config"] = value
-        return self
-
-    def build(self) -> _ADK_A2aAgentExecutor:
-        """An AgentExecutor that runs an ADK Agent against an A2A request and. Resolve into a native ADK _ADK_A2aAgentExecutor."""
-        if _ADK_A2aAgentExecutor is None:
-            raise ImportError("A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'")
-        config = self._prepare_build_config()
-        result = self._safe_build(_ADK_A2aAgentExecutor, config)
-        return self._apply_native_hooks(result)
 
 
 class AgentEngineSandboxCodeExecutor(BuilderBase):

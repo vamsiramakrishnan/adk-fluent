@@ -8,17 +8,8 @@ In other frameworks: LangGraph manages context through TypedDict state slicing,
 requiring manual state key management. adk-fluent uses the C module (C.none(),
 C.from_state(), C.user_only()) for declarative context control.
 
-:::{admonition} Why this matters
-:class: important
-Context engineering is the single most impactful optimization for multi-agent pipelines. By default, every agent in a pipeline inherits the full conversation history -- including irrelevant internal reasoning from upstream agents. A stateless classifier that only needs the current message instead receives 10,000 tokens of history, wasting 90% of its context window on noise. The `C` module gives surgical control: `C.none()` strips all history, `C.from_state()` injects specific state values, `C.user_only()` keeps only user messages.
-:::
-
-:::{warning} Without this
-Without context engineering, every agent in a 5-agent pipeline sees every other agent's output. Token usage grows quadratically: Agent 5 sees output from Agents 1-4 plus all user messages. A pipeline that should cost $0.01 per request costs $0.05. Worse, agents get confused by upstream reasoning -- a billing specialist sees the classifier's internal debate about intent categories and incorporates it into its response.
-:::
-
 :::{tip} What you'll learn
-How to control what each agent sees with the C module.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `49_context_engineering.py`_

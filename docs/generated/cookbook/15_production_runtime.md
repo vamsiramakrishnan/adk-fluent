@@ -10,17 +10,8 @@ that must be applied to each node individually. adk-fluent uses middleware
 composition with the M module, applying cross-cutting concerns uniformly
 across the entire pipeline.
 
-:::{admonition} Why this matters
-:class: important
-Production systems face problems that development environments hide: transient API failures, rate limits, network timeouts, and the need for structured logging. The `to_app()` method compiles an agent pipeline into a production-ready application with middleware for retry, logging, and error handling. This separates operational concerns from agent logic, so your pipeline code stays clean.
-:::
-
-:::{warning} Without this
-Without middleware and production compilation, every transient API failure crashes your pipeline. You end up wrapping every agent call in try/except blocks, scattering retry logic across the codebase. In native ADK, applying retries requires custom node wrappers on every agent individually. adk-fluent's middleware applies cross-cutting concerns uniformly across the entire pipeline.
-:::
-
 :::{tip} What you'll learn
-How to deploy agents to production with middleware and to_app().
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `15_production_runtime.py`_

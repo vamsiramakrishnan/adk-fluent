@@ -1,8 +1,6 @@
 """adk-fluent: Fluent builder API for Google ADK."""
 # Auto-generated for google-adk 1.25.0
 
-from .executor import A2aAgentExecutor
-from .config import A2aAgentExecutorConfig
 from .tool import ActiveStreamingTool
 from .config import AgentConfig
 from .agent import BaseAgent
@@ -17,7 +15,6 @@ from .workflow import Loop
 from .config import LoopAgentConfig
 from .workflow import FanOut
 from .config import ParallelAgentConfig
-from .agent import RemoteA2aAgent
 from .config import RunConfig
 from .config import ToolThreadPoolConfig
 from .workflow import Pipeline
@@ -138,8 +135,6 @@ from .tool import UrlContextTool
 from .tool import VertexAiSearchTool
 
 __all__ = [
-    "A2aAgentExecutor",
-    "A2aAgentExecutorConfig",
     "ActiveStreamingTool",
     "AgentConfig",
     "BaseAgent",
@@ -154,7 +149,6 @@ __all__ = [
     "LoopAgentConfig",
     "FanOut",
     "ParallelAgentConfig",
-    "RemoteA2aAgent",
     "RunConfig",
     "ToolThreadPoolConfig",
     "Pipeline",
@@ -380,6 +374,7 @@ __all__ = [
     "ArtifactNode",
     "DispatchNode",
     "JoinNode",
+    "UINode",
     "ExecutionConfig",
     "CompactionConfig",
     "AgentEvent",
@@ -481,10 +476,17 @@ __all__ = [
     "a2a_cascade",
     "a2a_fanout",
     "a2a_delegate",
+    "ui_form_agent",
+    "ui_dashboard_agent",
     "ComparisonSuite",
     "Source",
     "Inbox",
     "StreamRunner",
+    "UI",
+    "UIBinding",
+    "UICheck",
+    "UIComponent",
+    "UISurface",
     "Preset",
     "StreamStats",
     "Backend",
@@ -614,6 +616,7 @@ from ._ir import CaptureNode
 from ._ir import ArtifactNode
 from ._ir import DispatchNode
 from ._ir import JoinNode
+from ._ir import UINode
 from ._ir import ExecutionConfig
 from ._ir import CompactionConfig
 from ._ir import AgentEvent
@@ -734,6 +737,8 @@ from .patterns import supervised
 from .patterns import a2a_cascade
 from .patterns import a2a_fanout
 from .patterns import a2a_delegate
+from .patterns import ui_form_agent
+from .patterns import ui_dashboard_agent
 from .prelude import RemoteAgent
 from .prelude import A2AServer
 from .prelude import AgentRegistry
@@ -796,6 +801,11 @@ from .prelude import Consumes
 from .prelude import ToolRegistry
 from .prelude import SearchToolset
 from .prelude import search_aware_after_tool
+from .prelude import UI
+from .prelude import UIBinding
+from .prelude import UICheck
+from .prelude import UIComponent
+from .prelude import UISurface
 from .presets import Preset
 from .source import Source
 from .source import Inbox

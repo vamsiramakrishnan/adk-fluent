@@ -297,6 +297,55 @@ def _convert_issues(raw_issues: list) -> list[ContractIssue]:
     return result
 
 
+def _check_ui_issues(ir_node: Any) -> list[ContractIssue]:
+    """Check for A2UI-related warnings in the IR tree."""
+    issues: list[ContractIssue] = []
+
+    def _walk(node: Any) -> None:
+        name = getattr(node, "name", "?")
+        node_type = type(node).__name__
+
+        if node_type in ("AgentNode",):
+            ui_spec = getattr(node, "ui_spec", None)
+            if ui_spec is None:
+                # Check config dict fallback
+                config = getattr(node, "_config", {})
+                ui_spec = config.get("_ui_spec") if isinstance(config, dict) else None
+
+            if ui_spec is not None:
+                from adk_fluent._ui import UISurface
+
+                if isinstance(ui_spec, UISurface) and ui_spec.root is not None:
+                    # Check for input fields without bindings
+                    _check_bindings(ui_spec.root, name, issues)
+
+        for child in getattr(node, "children", ()):
+            _walk(child)
+
+    def _check_bindings(component: Any, agent_name: str, issues: list) -> None:
+        kind = getattr(component, "_kind", "")
+        bindings = getattr(component, "_bindings", ())
+        if kind in ("TextField", "DateTimeInput", "ChoicePicker", "Slider") and not bindings:
+            label = ""
+            for k, v in getattr(component, "_props", ()):
+                if k == "label":
+                    label = v
+                    break
+            issues.append(
+                ContractIssue(
+                    level="info",
+                    agent=agent_name,
+                    message=f"UI input '{label or kind}' has no data binding",
+                    hint="Add bind='/path' to connect this field to the data model.",
+                )
+            )
+        for child in getattr(component, "_children", ()):
+            _check_bindings(child, agent_name, issues)
+
+    _walk(ir_node)
+    return issues
+
+
 def diagnose(ir_node: Any) -> Diagnosis:
     """Build a complete Diagnosis from an IR tree.
 
@@ -311,6 +360,10 @@ def diagnose(ir_node: Any) -> Diagnosis:
 
     raw_issues = check_contracts(ir_node)
     issues = _convert_issues(raw_issues)
+
+    # Add UI-specific warnings
+    ui_issues = _check_ui_issues(ir_node)
+    issues.extend(ui_issues)
 
     topology = ir_to_mermaid(ir_node, show_contracts=True, show_data_flow=True)
 

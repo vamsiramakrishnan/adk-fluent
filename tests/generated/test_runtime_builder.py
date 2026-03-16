@@ -57,7 +57,7 @@ class TestInMemoryRunnerBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = InMemoryRunner()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -85,5 +85,5 @@ class TestRunnerBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = Runner("test_session_service")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")

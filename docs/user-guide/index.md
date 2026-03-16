@@ -74,6 +74,8 @@ Production concerns.
 | [Guards](guards.md) | The G module: `G.pii()`, `G.toxicity()`, `G.schema()`, input/output validation |
 | [Evaluation](evaluation.md) | The E module: `E.case()`, `E.criterion()`, eval suites, comparison reports |
 | [Testing](testing.md) | `.mock()`, `.test()`, `check_contracts()`, `AgentHarness`, pytest integration |
+| [A2A](a2a.md) | Remote agent-to-agent communication: `RemoteAgent`, `A2AServer`, discovery, resilience |
+| [A2UI](a2ui.md) | Declarative agent UIs: `UI` namespace, components, operators, surfaces, presets |
 
 ## Reference
 
@@ -110,6 +112,8 @@ middleware
 guards
 evaluation
 testing
+a2a
+a2ui
 error-reference
 adk-samples/index
 ```

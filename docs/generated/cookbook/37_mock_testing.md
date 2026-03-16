@@ -1,16 +1,7 @@
 # Mock Testing: Customer Onboarding Pipeline with Deterministic Mocks
 
-:::{admonition} Why this matters
-:class: important
-Testing agent pipelines with real LLM calls is slow, expensive, and non-deterministic. Mock backends provide deterministic responses for each agent in the pipeline, enabling fast, repeatable CI tests that verify pipeline topology and data flow without making any API calls. This is essential for regression testing: ensure that refactoring the pipeline doesn't break the data flow between agents.
-:::
-
-:::{warning} Without this
-Without mock backends, every test requires real LLM calls -- adding 5-30 seconds per test, costing real money, and producing non-deterministic results that cause flaky CI pipelines. Teams either skip testing entirely (shipping bugs) or test manually (slow and unreliable). Mock backends make agent testing as fast and reliable as unit testing regular functions.
-:::
-
 :::{tip} What you'll learn
-How to test pipelines deterministically with mock backends.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `37_mock_testing.py`_
@@ -94,34 +85,6 @@ graph TD
 :::
 ::::
 
-## Combining with E module evaluation
-
-Mock backends give you deterministic testing. The E module adds
-structured evaluation with criteria scoring. Together, they form
-a complete testing strategy: mocks for fast CI, evals for quality gates.
-
-```python
-from adk_fluent import E
-
-# Use E.suite() to define structured evaluations alongside mock tests.
-# While .mock() bypasses the LLM for deterministic testing,
-# E.suite() evaluates real LLM responses against quality criteria.
-
-eval_suite = (
-    E.suite(kyc_verifier)
-    .case("Verify John Doe's passport", expect="KYC: approved")
-    .case("Verify expired document", expect="KYC: rejected")
-    .criteria(E.response_match(0.8) | E.safety())
-)
-
-# Serialize for CI:
-# eval_suite.to_file("kyc_verifier.test.json")
-
-# Run live evaluation (requires LLM):
-# report = await eval_suite.run()
-# assert report.ok
-```
-
 ## Equivalence
 
 ```python
@@ -152,8 +115,16 @@ assert result_fn.content.parts[0].text == "risk_level: low"
 assert account_provisioner._config["instruction"] == "Provision a new bank account for the approved customer."
 assert account_provisioner._config["output_key"] == "account_id"
 
-# E module eval suite builds correctly
+# E module eval suite builds correctly alongside mock testing
+from adk_fluent import E
 from adk_fluent._eval import EvalSuite
+
+eval_suite = (
+    E.suite(kyc_verifier)
+    .case("Verify John Doe's passport", expect="KYC: approved")
+    .case("Verify expired document", expect="KYC: rejected")
+    .criteria(E.response_match(0.8) | E.safety())
+)
 
 assert isinstance(eval_suite, EvalSuite)
 assert len(eval_suite._cases) == 2

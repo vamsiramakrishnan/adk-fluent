@@ -43,6 +43,7 @@ __all__ = [
     "_instruct_with_guard",
     "_context_with_guard",
     "_guard_dispatch",
+    "_add_ui_spec",
 ]
 
 
@@ -857,3 +858,21 @@ async def run_events(builder, prompt: str):
 
     async for event in runner.run_async(user_id="_events_user", session_id=session.id, new_message=content):
         yield event
+
+
+# ---------------------------------------------------------------------------
+# UI helpers
+# ---------------------------------------------------------------------------
+
+
+def _add_ui_spec(builder, spec):
+    """Attach A2UI surface/config to the agent.
+
+    Accepts:
+      - UISurface: declarative surface definition
+      - UIComponent: wrapped in a default surface
+      - _UIAutoSpec: LLM-guided mode (schema injection)
+      - _UISchemaSpec: schema-only prompt injection
+    """
+    builder._config["_ui_spec"] = spec
+    return builder

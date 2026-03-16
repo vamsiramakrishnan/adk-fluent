@@ -1020,6 +1020,41 @@ class C:
         """
         return CManusCascade(budget=budget, model=model)
 
+    @staticmethod
+    def with_ui(surface_id: str | None = None) -> CTransform:
+        """Include current UI surface state in agent context.
+
+        Injects the A2UI data model for the given surface (or all surfaces)
+        into the agent's context as a ``<ui_state>`` block.
+
+        Args:
+            surface_id: Optional surface to include. If ``None``, includes all.
+
+        Usage::
+
+            Agent("renderer").context(C.with_ui("dashboard"))
+            Agent("updater").context(C.from_state("total") + C.with_ui())
+        """
+        key_pattern = f"_a2ui_data_{surface_id}" if surface_id else "_a2ui_data_"
+
+        async def _ui_provider(ctx: Any) -> str:
+            state = ctx.state
+            ui_data: dict[str, Any] = {}
+            for k, v in state.items():
+                if isinstance(k, str) and k.startswith(key_pattern):
+                    surface = k.replace("_a2ui_data_", "")
+                    ui_data[surface] = v
+            if not ui_data:
+                return ""
+            import json
+
+            return f"<ui_state>\n{json.dumps(ui_data, indent=2)}\n</ui_state>"
+
+        return CTransform(
+            include_contents="default",
+            instruction_provider=_ui_provider,
+        )
+
 
 # ======================================================================
 # _compile_context_spec — lower C descriptors to ADK config

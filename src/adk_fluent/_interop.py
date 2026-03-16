@@ -99,6 +99,9 @@ class DataFlow:
     contract_consumes: str | None
     """What the contract checker knows about reads (CONTRACT concern)."""
 
+    ui: str | None = None
+    """UI surface info (UI concern) — mode and surface name if set."""
+
     def __str__(self) -> str:
         lines = ["Data Flow:"]
         lines.append(f"  reads:    {self.sees}")
@@ -114,6 +117,8 @@ class DataFlow:
             lines.append(f"  contract: {', '.join(parts)}")
         else:
             lines.append("  contract: (not set)")
+        if self.ui:
+            lines.append(f"  ui:       {self.ui}")
         return "\n".join(lines)
 
     def __repr__(self) -> str:
@@ -121,7 +126,8 @@ class DataFlow:
             f"DataFlow(sees={self.sees!r}, accepts={self.accepts!r}, "
             f"stores={self.stores!r}, format={self.format!r}, "
             f"contract_produces={self.contract_produces!r}, "
-            f"contract_consumes={self.contract_consumes!r})"
+            f"contract_consumes={self.contract_consumes!r}, "
+            f"ui={self.ui!r})"
         )
 
 
@@ -171,6 +177,19 @@ def _extract_data_flow(builder: Any) -> DataFlow:
         fields = list(consumes.model_fields.keys()) if hasattr(consumes, "model_fields") else []
         contract_consumes = f"{consumes.__name__}({', '.join(fields)})"
 
+    # UI concern
+    ui_spec = config.get("_ui_spec")
+    ui_str = None
+    if ui_spec is not None:
+        from adk_fluent._ui import UISurface, _UIAutoSpec
+
+        if isinstance(ui_spec, UISurface):
+            ui_str = f"declarative surface '{ui_spec.name}'"
+        elif isinstance(ui_spec, _UIAutoSpec):
+            ui_str = f"llm_guided (catalog={ui_spec.catalog})"
+        else:
+            ui_str = "declarative"
+
     return DataFlow(
         sees=sees,
         accepts=accepts_str,
@@ -178,6 +197,7 @@ def _extract_data_flow(builder: Any) -> DataFlow:
         format=format_str,
         contract_produces=contract_produces,
         contract_consumes=contract_consumes,
+        ui=ui_str,
     )
 
 

@@ -16,7 +16,7 @@ Context engineering namespace. Each method returns a frozen CTransform descripto
 | `C.window(n=5)`                                                                | `CWindow`             | Include last N turn-pairs from conversation history                         |
 | `C.last_n_turns(n)`                                                            | `CWindow`             | Alias for C.window(n=n)                                                     |
 | `C.from_state(*keys)`                                                          | `CFromState`          | Read named keys from session state as context                               |
-| `C.template(text)`                                                             | `CTemplate`           | Render a template string with \{key} and {key?} state placeholders          |
+| `C.template(text)`                                                             | `CTemplate`           | Render a template string with {key} and {key?} state placeholders           |
 | `C.when(predicate, block)`                                                     | `CWhen`               | Include block only if predicate is truthy at runtime                        |
 | `C.select(author=None, type=None, tag=None)`                                   | `CSelect`             | Filter events by metadata: author, type, and/or tag                         |
 | `C.recent(decay='exponential', half_life=10, min_weight=0.1)`                  | `CRecent`             | Importance-weighted selection based on recency with exponential decay       |
@@ -40,6 +40,7 @@ Context engineering namespace. Each method returns a frozen CTransform descripto
 | `C.from_agents_windowed(**agent_windows)`                                      | `CFromAgentsWindowed` | Per-agent selective windowing                                               |
 | `C.user(strategy='all')`                                                       | `CUser`               | Select user messages with a strategy                                        |
 | `C.manus_cascade(budget=8000, model='gemini-2.5-flash')`                       | `CManusCascade`       | Manus-inspired progressive compression cascade                              |
+| `C.with_ui(surface_id=None)`                                                   | `CTransform`          | Include current UI surface state in agent context                           |
 
 ## Methods
 
@@ -97,7 +98,7 @@ Read named keys from session state as context.
 
 ### `C.template(text: str) -> CTemplate`
 
-Render a template string with \{key} and {key?} state placeholders.
+Render a template string with {key} and {key?} state placeholders.
 
 **Parameters:**
 
@@ -108,8 +109,8 @@ Render a template string with \{key} and {key?} state placeholders.
 Include block only if predicate is truthy at runtime.
 
 String predicate is a shortcut for state key check:
-C.when("has_history", C.rolling("conversation"))
-C.when(lambda s: s.get("debug"), C.notes("debug_scratchpad"))
+    C.when("has_history", C.rolling("conversation"))
+    C.when(lambda s: s.get("debug"), C.notes("debug_scratchpad"))
 
 **Parameters:**
 
@@ -122,9 +123,9 @@ Filter events by metadata: author, type, and/or tag.
 
 **Parameters:**
 
-- `author` (*str | tuple[str, ...] | None*) — default: `None`
-- `type` (*str | tuple[str, ...] | None*) — default: `None`
-- `tag` (*str | tuple[str, ...] | None*) — default: `None`
+- `author` (*str | tuple\[str, ...\] | None*) — default: `None`
+- `type` (*str | tuple\[str, ...\] | None*) — default: `None`
+- `tag` (*str | tuple\[str, ...\] | None*) — default: `None`
 
 ### `C.recent(*, decay: str = exponential, half_life: int = 10, min_weight: float = 0.1) -> CRecent`
 
@@ -309,7 +310,7 @@ summarized via LLM.
 Per-agent selective windowing.
 
 Example:
-C.from_agents_windowed(researcher=1, critic=3)
+    C.from_agents_windowed(researcher=1, critic=3)
 
 **Parameters:**
 
@@ -336,6 +337,25 @@ Applies: compact → dedup → summarize → truncate.
 - `budget` (*int*) — default: `8000`
 - `model` (*str*) — default: `'gemini-2.5-flash'`
 
+### `C.with_ui(surface_id: str | None = None) -> CTransform`
+
+Include current UI surface state in agent context.
+
+Injects the A2UI data model for the given surface (or all surfaces)
+into the agent's context as a `<ui_state>` block.
+
+**Args:**
+
+- **`surface_id`**: Optional surface to include. If `None`, includes all.
+
+Usage:
+    Agent("renderer").context(C.with_ui("dashboard"))
+    Agent("updater").context(C.from_state("total") + C.with_ui())
+
+**Parameters:**
+
+- `surface_id` (*str | None*) — default: `None`
+
 ## Composition Operators
 
 ### `+` (union (CComposite))
@@ -352,13 +372,13 @@ Chain context processing
 | --------------------- | --------------------------------------------------------------------------- |
 | `CTransform`          | Base context transform descriptor                                           |
 | `CComposite`          | Union of multiple context blocks (via + operator)                           |
-| `CPipe`               | Pipe transform: source feeds into transform (via                            |
+| `CPipe`               | Pipe transform: source feeds into transform (via | operator)                |
 | `CFromState`          | Read named keys from session state and format as context                    |
 | `CWindow`             | Include only the last N turn-pairs from conversation history                |
 | `CUserOnly`           | Include only user messages from conversation history                        |
 | `CFromAgents`         | Include user messages + outputs from named agents                           |
 | `CExcludeAgents`      | Exclude outputs from named agents                                           |
-| `CTemplate`           | Render a template string with \{key} and {key?} placeholders from state     |
+| `CTemplate`           | Render a template string with {key} and {key?} placeholders from state      |
 | `CSelect`             | Filter events by metadata: author, type, and/or tag                         |
 | `CRecent`             | Importance-weighted selection based on recency with exponential decay       |
 | `CCompact`            | Structural compaction — merge sequential same-author messages or tool calls |

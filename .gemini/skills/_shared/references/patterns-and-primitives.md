@@ -53,6 +53,14 @@ Create a refinement loop: worker produces, reviewer evaluates, repeat until targ
 
 Worker-supervisor pattern: worker produces, supervisor approves or requests revision.
 
+### `ui_dashboard_agent(name: 'str', model: 'str', *, cards: 'list[dict[str, Any]]', instruction: 'str' = '') -> 'Any'`
+
+Create an agent with an attached dashboard UI surface.
+
+### `ui_form_agent(name: 'str', model: 'str', *, fields: 'dict[str, str]', on_submit: 'Callable | None' = None, instruction: 'str' = '', submit_label: 'str' = 'Submit') -> 'Any'`
+
+Create an agent with an attached form UI surface.
+
 ## Expression primitives
 
 | Primitive | Usage | Description |

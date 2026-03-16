@@ -5,17 +5,8 @@ a shared base configuration.  The scenario: A/B testing two customer
 support agents -- one using a formal tone and one using a casual tone
 -- while sharing the same underlying tool (order lookup).
 
-:::{admonition} Why this matters
-:class: important
-A/B testing requires creating agent variants that differ in one dimension (prompt, model, temperature) while sharing everything else (tools, callbacks, middleware). Manual duplication is error-prone: change the base agent and forget to update one variant. `.clone()` creates independent copies from a shared base, so changes to the base automatically propagate to all variants. This pattern is essential for systematic prompt engineering and model evaluation.
-:::
-
-:::{warning} Without this
-Without safe cloning, A/B testing requires manually duplicating constructor calls with copy-paste. Change the shared tool list in one variant but forget the other, and your experiment results are meaningless. The `.clone()` method guarantees independent copies that share the same base configuration, making experiments reproducible and maintainable.
-:::
-
 :::{tip} What you'll learn
-How to create independent agent variants with .clone() for A/B testing.
+How to attach tools to an agent using the fluent API.
 :::
 
 _Source: `10_cloning.py`_

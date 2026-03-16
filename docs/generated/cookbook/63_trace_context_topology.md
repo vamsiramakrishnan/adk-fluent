@@ -12,17 +12,8 @@ Key concepts:
   - TopologyLogMiddleware: built-in structured topology logging
   - _trace_context ContextVar: access from any hook
 
-:::{admonition} Why this matters
-:class: important
-When a 10-agent pipeline produces a wrong result, you need to trace the request through every stage to find where things went wrong. `TraceContext` provides a per-invocation state bag with request ID, elapsed time, and arbitrary key-value storage. Topology hooks (`on_loop_iteration`, `on_route_selected`, `on_fallback_attempt`) fire at structural decision points, giving you a complete audit trail of the pipeline's execution path.
-:::
-
-:::{warning} Without this
-Without trace context, correlating logs across agents in a concurrent pipeline is impossible. Two requests running simultaneously produce interleaved log entries with no way to tell which belongs to which request. Without topology hooks, you can't tell which route was selected, which fallback tier was reached, or how many loop iterations occurred -- making debugging a guessing game.
-:::
-
 :::{tip} What you'll learn
-How to trace requests and observe topology events across agents.
+How to run agents in parallel using FanOut.
 :::
 
 _Source: `63_trace_context_topology.py`_

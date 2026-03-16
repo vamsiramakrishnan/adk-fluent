@@ -1,16 +1,7 @@
 # ETL Pipeline: Plain Functions as Data Cleaning Steps (>> fn)
 
-:::{admonition} Why this matters
-:class: important
-Not every pipeline step needs an LLM. Data cleaning, normalization, format conversion, and validation are deterministic operations that should run as plain functions -- faster, cheaper, and more predictable than an LLM call. The `>> fn` syntax lets you mix plain Python functions into agent pipelines, using them as lightweight transform steps.
-:::
-
-:::{warning} Without this
-Without function steps, every pipeline stage must be an LlmAgent -- even deterministic operations like currency normalization or date parsing. This wastes API calls on tasks that a simple function handles perfectly. In native ADK, mixing functions into pipelines requires wrapping each one in a custom `BaseAgent` subclass (~15 lines of boilerplate per function).
-:::
-
 :::{tip} What you'll learn
-How to mix plain functions into agent pipelines with >> fn.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `29_function_steps.py`_

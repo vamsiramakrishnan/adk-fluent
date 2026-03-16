@@ -57,6 +57,10 @@ TEST_DIR      := "tests/generated"
 SCANNER       := "scripts/scanner.py"
 SEED_GEN      := "scripts/seed_generator.py"
 GENERATOR     := "scripts/generator.py"
+A2UI_SPEC_DIR := "specification/v0_10/json"
+A2UI_MANIFEST := "a2ui_manifest.json"
+A2UI_SEED     := "seeds/a2ui_seed.toml"
+A2UI_MANUAL   := "seeds/a2ui_seed.manual.toml"
 IR_GEN        := "scripts/ir_generator.py"
 DOC_GEN       := "scripts/doc_generator.py"
 LLMS_GEN      := "scripts/llms_generator.py"
@@ -71,8 +75,26 @@ COOKBOOK_DIR   := "examples/cookbook"
 GENERATED_PY  := "src/adk_fluent/agent.py src/adk_fluent/config.py src/adk_fluent/executor.py src/adk_fluent/planner.py src/adk_fluent/plugin.py src/adk_fluent/runtime.py src/adk_fluent/service.py src/adk_fluent/tool.py src/adk_fluent/workflow.py src/adk_fluent/_ir_generated.py"
 
 # --- Full pipeline ---
-all: scan seed generate docs skills docs-build
+all: scan seed generate a2ui docs skills docs-build
     @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/ and docs in {{DOC_DIR}}/"
+
+# --- A2UI pipeline ---
+a2ui: a2ui-scan a2ui-seed a2ui-generate
+    @echo "\nA2UI pipeline complete."
+
+a2ui-scan:
+    @echo "Scanning A2UI spec..."
+    @uv run python -m scripts.a2ui scan {{A2UI_SPEC_DIR}} -o {{A2UI_MANIFEST}}
+
+a2ui-seed: _require-a2ui-manifest
+    @echo "Generating A2UI seed..."
+    @uv run python -m scripts.a2ui seed {{A2UI_MANIFEST}} -o {{A2UI_SEED}} --json --merge {{A2UI_MANUAL}}
+
+a2ui-generate: _require-a2ui-seed
+    @echo "Generating A2UI UI factories..."
+    @uv run python -m scripts.a2ui generate {{A2UI_SEED}} --output-dir {{OUTPUT_DIR}} --test-dir {{TEST_DIR}}
+    @uv run ruff check --fix {{OUTPUT_DIR}}/_ui_generated.py {{TEST_DIR}}/test_ui_generated.py || true
+    @uv run ruff format {{OUTPUT_DIR}}/_ui_generated.py {{TEST_DIR}}/test_ui_generated.py
 
 # --- Scan ADK ---
 scan:
@@ -399,3 +421,11 @@ _require-manifest:
 [private]
 _require-seed:
     @test -f {{SEED}} || (echo "ERROR: {{SEED}} not found. Run 'just seed' first." && exit 1)
+
+[private]
+_require-a2ui-manifest:
+    @test -f {{A2UI_MANIFEST}} || (echo "ERROR: {{A2UI_MANIFEST}} not found. Run 'just a2ui-scan' first." && exit 1)
+
+[private]
+_require-a2ui-seed:
+    @test -f {{A2UI_SEED}} || (echo "ERROR: {{A2UI_SEED}} not found. Run 'just a2ui-seed' first." && exit 1)

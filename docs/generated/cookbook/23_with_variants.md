@@ -1,16 +1,7 @@
 # A/B Prompt Testing for Marketing Copy with .with_()
 
-:::{admonition} Why this matters
-:class: important
-Prompt engineering requires systematic experimentation: testing formal vs. casual tone, different temperature settings, or alternative instructions while keeping everything else identical. The `.with_()` method creates a new builder variant with specific overrides, preserving the original. This enables structured A/B testing without the risk of accidentally mutating the base agent.
-:::
-
-:::{warning} Without this
-Without immutable variants, changing a prompt for experimentation risks mutating the original agent (if using mutable state) or requires full constructor duplication (if using native ADK). With `.with_()`, the original agent is guaranteed unchanged, and each variant is a minimal diff from the base.
-:::
-
 :::{tip} What you'll learn
-How to create agent variants for prompt experimentation with .with_().
+How to run inline smoke tests on agents.
 :::
 
 _Source: `23_with_variants.py`_

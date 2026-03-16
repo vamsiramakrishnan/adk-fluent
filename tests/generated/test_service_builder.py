@@ -33,7 +33,7 @@ class TestBaseArtifactServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseArtifactService("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -49,7 +49,7 @@ class TestFileArtifactServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = FileArtifactService("test_root_dir")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -65,7 +65,7 @@ class TestGcsArtifactServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = GcsArtifactService("test_bucket_name", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -121,7 +121,7 @@ class TestPerAgentDatabaseSessionServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = PerAgentDatabaseSessionService("test_agents_root")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -137,7 +137,7 @@ class TestBaseMemoryServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseMemoryService("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -153,7 +153,7 @@ class TestInMemoryMemoryServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = InMemoryMemoryService()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -181,7 +181,7 @@ class TestVertexAiMemoryBankServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiMemoryBankService()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -209,7 +209,7 @@ class TestVertexAiRagMemoryServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiRagMemoryService()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -225,7 +225,7 @@ class TestBaseSessionServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BaseSessionService("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -241,7 +241,7 @@ class TestDatabaseSessionServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = DatabaseSessionService("test_db_url", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -257,7 +257,7 @@ class TestInMemorySessionServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = InMemorySessionService()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -273,7 +273,7 @@ class TestSqliteSessionServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = SqliteSessionService("test_db_path")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -301,7 +301,7 @@ class TestVertexAiSessionServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = VertexAiSessionService()
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -317,5 +317,5 @@ class TestForwardingArtifactServiceBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = ForwardingArtifactService("test_tool_context")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
