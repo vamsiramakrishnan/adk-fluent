@@ -97,3 +97,21 @@ def _asyncio_factory(**kwargs: Any) -> Any:
 
 
 register_backend("asyncio", _asyncio_factory)
+
+
+def _prefect_factory(**kwargs: Any) -> Any:
+    from adk_fluent.backends.prefect_backend import PrefectBackend
+
+    return PrefectBackend(**kwargs)
+
+
+register_backend("prefect", _prefect_factory)
+
+
+def _dbos_factory(**kwargs: Any) -> Any:
+    from adk_fluent.backends.dbos_backend import DBOSBackend
+
+    return DBOSBackend(**kwargs)
+
+
+register_backend("dbos", _dbos_factory)
