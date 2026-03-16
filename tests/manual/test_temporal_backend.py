@@ -5,7 +5,6 @@ import pytest
 from adk_fluent._ir import TransformNode
 from adk_fluent._ir_generated import AgentNode, LoopNode, ParallelNode, SequenceNode
 from adk_fluent.backends.temporal import TemporalBackend, TemporalRunnable
-from adk_fluent.compile import EngineCapabilities
 
 
 class TestTemporalBackendCapabilities:
@@ -97,14 +96,20 @@ class TestTemporalCompile:
     def test_compile_nested_pipeline(self):
         """Nested pipeline compiles recursively."""
         backend = TemporalBackend()
-        inner = SequenceNode(name="inner", children=(
-            AgentNode(name="a"),
-            TransformNode(name="t", fn=lambda s: s),
-        ))
-        outer = SequenceNode(name="outer", children=(
-            inner,
-            AgentNode(name="b"),
-        ))
+        inner = SequenceNode(
+            name="inner",
+            children=(
+                AgentNode(name="a"),
+                TransformNode(name="t", fn=lambda s: s),
+            ),
+        )
+        outer = SequenceNode(
+            name="outer",
+            children=(
+                inner,
+                AgentNode(name="b"),
+            ),
+        )
         result = backend.compile(outer)
 
         plan = result.node_plan[0]

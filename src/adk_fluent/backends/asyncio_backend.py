@@ -173,7 +173,6 @@ class AsyncioBackend:
 
         # Handle tool calls
         while result.has_tool_calls and tools:
-            tool_call_events = []
             for tc in result.tool_calls:
                 tc_name = tc.get("name", "")
                 tc_args = tc.get("args", {})
@@ -273,7 +272,7 @@ class AsyncioBackend:
         max_iter = getattr(node, "max_iterations", None) or 10
         children = getattr(node, "children", ())
 
-        for iteration in range(max_iter):
+        for _iteration in range(max_iter):
             for child in children:
                 await self._execute_node(child, prompt, state, events)
 

@@ -11,16 +11,12 @@ from adk_fluent.compute import (
 )
 from adk_fluent.compute._protocol import (
     ArtifactStore,
-    GenerateConfig,
     GenerateResult,
     Message,
-    ModelProvider,
     StateStore,
-    ToolDef,
     ToolRuntime,
 )
 from adk_fluent.compute.memory import LocalToolRuntime
-
 
 # ======================================================================
 # Data types
@@ -103,9 +99,9 @@ class TestInMemoryStateStore:
     def test_list_sessions(self):
         async def _test():
             store = InMemoryStateStore()
-            s1 = await store.create("ns1")
-            s2 = await store.create("ns1")
-            s3 = await store.create("ns2")
+            await store.create("ns1")
+            await store.create("ns1")
+            await store.create("ns2")
             assert len(await store.list_sessions("ns1")) == 2
             assert len(await store.list_sessions("ns2")) == 1
             assert len(await store.list_sessions("ns3")) == 0

@@ -495,6 +495,7 @@ async def _run_via_engine(builder, prompt: str) -> tuple[str, list]:
         if hasattr(compute, "tool_runtime") and compute.tool_runtime is not None:
             engine_kwargs.setdefault("tool_runtime", compute.tool_runtime)
 
+    assert engine is not None  # Caller guarantees engine is set
     backend = get_backend(engine, **engine_kwargs)
 
     # Compile IR
@@ -638,7 +639,7 @@ async def run_stream(builder, prompt: str):
             if isinstance(content, str) and content:
                 yield content
             elif content is not None and hasattr(content, "parts"):
-                for part in content.parts:
+                for part in content.parts:  # type: ignore[union-attr]
                     if getattr(part, "text", None):
                         yield part.text
     else:

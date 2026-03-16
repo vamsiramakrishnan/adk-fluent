@@ -8,7 +8,6 @@ from adk_fluent._ir import AgentEvent
 from adk_fluent.runtime_default import DefaultRuntime
 from adk_fluent.runtime_protocol import ExecutionResult, SessionHandle
 
-
 # ======================================================================
 # SessionHandle
 # ======================================================================
@@ -140,9 +139,7 @@ class TestDefaultRuntime:
         backend = FakeBackend(responses=["Hello world"])
         runtime = DefaultRuntime()
 
-        result = asyncio.run(
-            runtime.execute("fake_compiled", "Hi", backend=backend)
-        )
+        result = asyncio.run(runtime.execute("fake_compiled", "Hi", backend=backend))
 
         assert isinstance(result, ExecutionResult)
         assert result.text == "Hello world"
@@ -151,10 +148,9 @@ class TestDefaultRuntime:
 
     def test_execute_with_compilation_result(self):
         """execute() with a CompilationResult auto-resolves backend."""
-        from adk_fluent.compile import CompilationResult, EngineCapabilities
-
         # Register fake backend
         from adk_fluent.backends import _REGISTRY, register_backend
+        from adk_fluent.compile import CompilationResult, EngineCapabilities
 
         backend = FakeBackend(responses=["Compiled result"])
         register_backend("fake_test", lambda **kw: backend)
@@ -178,9 +174,7 @@ class TestDefaultRuntime:
         backend = FakeBackend()
         runtime = DefaultRuntime()
 
-        result = asyncio.run(
-            runtime.execute("fake_compiled", "Hi", backend=backend)
-        )
+        asyncio.run(runtime.execute("fake_compiled", "Hi", backend=backend))
 
         assert backend._run_calls[0]["session"].session_id.startswith("session_")
 
@@ -190,9 +184,7 @@ class TestDefaultRuntime:
         store = FakeStateStore()
         runtime = DefaultRuntime(state_store=store)
 
-        result = asyncio.run(
-            runtime.execute("fake_compiled", "Hi", backend=backend)
-        )
+        result = asyncio.run(runtime.execute("fake_compiled", "Hi", backend=backend))
 
         # Session should have been created via store
         assert result.session_id.startswith("store_")
@@ -211,9 +203,7 @@ class TestDefaultRuntime:
         store = FakeStateStore()
         runtime = DefaultRuntime(state_store=store)
 
-        result = asyncio.run(
-            runtime.execute("fake_compiled", "Hi", backend=backend)
-        )
+        result = asyncio.run(runtime.execute("fake_compiled", "Hi", backend=backend))
 
         # State should be persisted
         assert asyncio.run(store.load(result.session_id)) == {"key": "value"}
@@ -245,9 +235,7 @@ class TestDefaultRuntime:
         backend = FakeBackend()
         runtime = DefaultRuntime()
 
-        result = asyncio.run(
-            runtime.execute("fake_compiled", "Hi", backend=backend)
-        )
+        result = asyncio.run(runtime.execute("fake_compiled", "Hi", backend=backend))
 
         assert "elapsed_seconds" in result.metadata
         assert result.metadata["elapsed_seconds"] >= 0
@@ -266,9 +254,7 @@ class TestDefaultRuntime:
 
         async def collect():
             events = []
-            async for event in runtime.execute_stream(
-                "fake_compiled", "Hi", backend=backend
-            ):
+            async for event in runtime.execute_stream("fake_compiled", "Hi", backend=backend):
                 events.append(event)
             return events
 
@@ -293,8 +279,6 @@ class TestDefaultRuntime:
         backend = FakeBackend()
         runtime = DefaultRuntime()
 
-        result = asyncio.run(
-            runtime.execute("fake_compiled", "Hi", backend=backend, session_id="my-session")
-        )
+        result = asyncio.run(runtime.execute("fake_compiled", "Hi", backend=backend, session_id="my-session"))
 
         assert result.session_id == "my-session"

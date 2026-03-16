@@ -2,13 +2,10 @@
 
 import asyncio
 
-import pytest
-
-from adk_fluent._ir import AgentEvent, TransformNode, TapNode, FallbackNode
+from adk_fluent._ir import FallbackNode, TapNode, TransformNode
 from adk_fluent._ir_generated import AgentNode, LoopNode, ParallelNode, SequenceNode
 from adk_fluent.backends.asyncio_backend import AsyncioBackend
-from adk_fluent.compute._protocol import GenerateConfig, GenerateResult, Message
-
+from adk_fluent.compute._protocol import GenerateResult
 
 # ======================================================================
 # Fake ModelProvider for testing
@@ -58,6 +55,7 @@ class FakeModelProvider:
     async def generate_stream(self, messages, tools=None, config=None):
         result = await self.generate(messages, tools, config)
         from adk_fluent.compute._protocol import Chunk
+
         yield Chunk(text=result.text, is_final=True)
 
 
@@ -152,10 +150,13 @@ class TestAsyncioBackendSequence:
         backend = AsyncioBackend(model_provider=provider)
 
         async def _test():
-            seq = SequenceNode(name="pipeline", children=(
-                AgentNode(name="a", instruction="Step 1"),
-                AgentNode(name="b", instruction="Step 2"),
-            ))
+            seq = SequenceNode(
+                name="pipeline",
+                children=(
+                    AgentNode(name="a", instruction="Step 1"),
+                    AgentNode(name="b", instruction="Step 2"),
+                ),
+            )
             compiled = backend.compile(seq)
             events = await backend.run(compiled, "Go")
 
@@ -173,10 +174,13 @@ class TestAsyncioBackendParallel:
         backend = AsyncioBackend(model_provider=provider)
 
         async def _test():
-            par = ParallelNode(name="fanout", children=(
-                AgentNode(name="a", instruction="Branch 1"),
-                AgentNode(name="b", instruction="Branch 2"),
-            ))
+            par = ParallelNode(
+                name="fanout",
+                children=(
+                    AgentNode(name="a", instruction="Branch 1"),
+                    AgentNode(name="b", instruction="Branch 2"),
+                ),
+            )
             compiled = backend.compile(par)
             events = await backend.run(compiled, "Go")
 
@@ -194,9 +198,9 @@ class TestAsyncioBackendLoop:
         backend = AsyncioBackend(model_provider=provider)
 
         async def _test():
-            loop = LoopNode(name="repeat", children=(
-                AgentNode(name="worker", instruction="Do work"),
-            ), max_iterations=3)
+            loop = LoopNode(
+                name="repeat", children=(AgentNode(name="worker", instruction="Do work"),), max_iterations=3
+            )
             compiled = backend.compile(loop)
             events = await backend.run(compiled, "Go")
 
@@ -246,15 +250,17 @@ class TestAsyncioBackendTap:
 class TestAsyncioBackendFallback:
     def test_fallback_tries_children(self):
         """FallbackNode tries children in order."""
-        call_log: list[str] = []
         provider = FakeModelProvider(default="fallback result")
         backend = AsyncioBackend(model_provider=provider)
 
         async def _test():
-            fallback = FallbackNode(name="fallback", children=(
-                AgentNode(name="fast"),
-                AgentNode(name="slow"),
-            ))
+            fallback = FallbackNode(
+                name="fallback",
+                children=(
+                    AgentNode(name="fast"),
+                    AgentNode(name="slow"),
+                ),
+            )
             compiled = backend.compile(fallback)
             events = await backend.run(compiled, "Go")
 

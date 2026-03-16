@@ -1,7 +1,5 @@
 """Tests for Phase 7 — wiring: .engine(), .compute(), configure(), top-level exports."""
 
-import asyncio
-
 import pytest
 
 from adk_fluent import (
@@ -14,9 +12,7 @@ from adk_fluent import (
     get_config,
     reset_config,
 )
-from adk_fluent._config_global import _GLOBAL
 from adk_fluent._ir_generated import AgentNode
-
 
 # ======================================================================
 # Global configure() / reset_config() / get_config()
@@ -87,12 +83,7 @@ class TestBuilderEngine:
         assert agent._config["_compute"] is cc
 
     def test_engine_chainable(self):
-        agent = (
-            Agent("test", "gemini-2.5-flash")
-            .instruct("Hello")
-            .engine("asyncio")
-            .compute(ComputeConfig())
-        )
+        agent = Agent("test", "gemini-2.5-flash").instruct("Hello").engine("asyncio").compute(ComputeConfig())
         assert agent._config["_engine"] == "asyncio"
         assert "_compute" in agent._config
 

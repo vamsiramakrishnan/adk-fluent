@@ -8,17 +8,14 @@ Verifies that:
 5. Temporal codegen produces valid workflow/activity code
 """
 
-import asyncio
-from dataclasses import dataclass, field
-from typing import Any
 from collections.abc import AsyncIterator
 
 import pytest
 
 from adk_fluent import (
     Agent,
-    Pipeline,
     FanOut,
+    Pipeline,
     configure,
     reset_config,
 )
@@ -31,7 +28,6 @@ from adk_fluent.compute._protocol import (
     Message,
     ToolDef,
 )
-
 
 # ======================================================================
 # Mock ModelProvider for testing
@@ -148,11 +144,7 @@ class TestAsyncioEngineE2E:
     async def test_simple_agent(self):
         """Single agent with mock provider returns expected text."""
         provider = MockModelProvider(default="The answer is 42.")
-        agent = (
-            Agent("solver", "mock-model")
-            .instruct("Solve the problem.")
-            .engine("asyncio", model_provider=provider)
-        )
+        agent = Agent("solver", "mock-model").instruct("Solve the problem.").engine("asyncio", model_provider=provider)
         text, events = await _run_via_engine(agent, "What is the answer?")
         assert text == "The answer is 42."
         assert len(events) >= 1
@@ -162,19 +154,11 @@ class TestAsyncioEngineE2E:
     async def test_agent_with_output_key(self):
         """Agent .writes(key) stores output in state."""
         provider = MockModelProvider(default="result_value")
-        agent = (
-            Agent("writer")
-            .instruct("Write something.")
-            .writes("output")
-            .engine("asyncio", model_provider=provider)
-        )
+        agent = Agent("writer").instruct("Write something.").writes("output").engine("asyncio", model_provider=provider)
         text, events = await _run_via_engine(agent, "go")
         assert text == "result_value"
         # Check state delta contains output key
-        has_output_key = any(
-            e.state_delta and "output" in e.state_delta
-            for e in events
-        )
+        has_output_key = any(e.state_delta and "output" in e.state_delta for e in events)
         assert has_output_key
 
     @pytest.mark.asyncio
@@ -228,29 +212,20 @@ class TestAsyncioEngineE2E:
     async def test_compute_config_provider(self):
         """ComputeConfig.model_provider is injected into asyncio backend."""
         provider = MockModelProvider(default="via compute")
-        agent = (
-            Agent("test")
-            .instruct("Hello")
-            .engine("asyncio")
-            .compute(ComputeConfig(model_provider=provider))
-        )
+        agent = Agent("test").instruct("Hello").engine("asyncio").compute(ComputeConfig(model_provider=provider))
         text, events = await _run_via_engine(agent, "hi")
         assert text == "via compute"
 
     @pytest.mark.asyncio
     async def test_tool_execution(self):
         """Agent with tools executes tool calls through asyncio backend."""
+
         def my_tool(x: int) -> str:
             """A test tool."""
             return f"result: {x * 2}"
 
         provider = MockToolProvider()
-        agent = (
-            Agent("tool_user")
-            .instruct("Use the tool.")
-            .tool(my_tool)
-            .engine("asyncio", model_provider=provider)
-        )
+        agent = Agent("tool_user").instruct("Use the tool.").tool(my_tool).engine("asyncio", model_provider=provider)
         text, events = await _run_via_engine(agent, "test")
         assert text == "Tool result processed"
         assert provider._call_count == 2  # tool call + final response
@@ -314,11 +289,7 @@ class TestTransformTapE2E:
         def double(state):
             return {"count": state.get("count", 0) * 2}
 
-        pipeline = (
-            Agent("a").instruct("go").writes("count")
-            >> double
-            >> Agent("b").instruct("finish")
-        )
+        pipeline = Agent("a").instruct("go").writes("count") >> double >> Agent("b").instruct("finish")
         pipeline = pipeline.engine("asyncio", model_provider=provider)
         text, events = await _run_via_engine(pipeline, "go")
         assert text == "done"
@@ -334,7 +305,6 @@ class TestTemporalCodegen:
         """generate_worker_code produces valid Python with activities and workflow."""
         from adk_fluent.backends.temporal import TemporalBackend
         from adk_fluent.backends.temporal_worker import (
-            TemporalWorkerConfig,
             generate_worker_code,
         )
 

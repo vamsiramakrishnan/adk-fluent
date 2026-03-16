@@ -28,8 +28,7 @@ Requires: ``pip install temporalio``
 
 from __future__ import annotations
 
-import textwrap
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 __all__ = [
@@ -74,8 +73,6 @@ def generate_worker_code(runnable: Any, config: TemporalWorkerConfig | None = No
 
     # Collect all activity nodes
     activities = _collect_activities(plan)
-    workflow_body = _generate_workflow_body(plan, cfg)
-
     lines = [
         '"""Auto-generated Temporal worker for adk-fluent agent pipeline.',
         "",
@@ -141,10 +138,8 @@ def _generate_activity(node: dict, cfg: TemporalWorkerConfig) -> list[str]:
     name = node["name"]
     safe_name = _safe_identifier(name)
     model = node.get("model", "")
-    has_tools = node.get("has_tools", False)
-
     lines = [
-        f"@activity.defn(name=\"{name}\")",
+        f'@activity.defn(name="{name}")',
         f"async def {safe_name}_activity(",
         "    prompt: str,",
         "    state: dict[str, Any],",
@@ -161,21 +156,23 @@ def _generate_activity(node: dict, cfg: TemporalWorkerConfig) -> list[str]:
     ]
 
     # Add instruction handling
-    lines.extend([
-        f'    # Agent instruction is baked into the plan at compile time',
-        '    instruction = state.get(f"_instruction_{safe_name}", "")',
-        "    if instruction:",
-        '        messages.append(Message(role="system", content=instruction))',
-        '    messages.append(Message(role="user", content=prompt))',
-        "",
-        "    result = await model_provider.generate(messages, None, GenerateConfig())",
-        "",
-        '    output_key = state.get(f"_output_key_{safe_name}")',
-        "    if output_key and result.text:",
-        "        state[output_key] = result.text",
-        "",
-        '    return {"text": result.text, "state": state}',
-    ])
+    lines.extend(
+        [
+            "    # Agent instruction is baked into the plan at compile time",
+            '    instruction = state.get(f"_instruction_{safe_name}", "")',
+            "    if instruction:",
+            '        messages.append(Message(role="system", content=instruction))',
+            '    messages.append(Message(role="user", content=prompt))',
+            "",
+            "    result = await model_provider.generate(messages, None, GenerateConfig())",
+            "",
+            '    output_key = state.get(f"_output_key_{safe_name}")',
+            "    if output_key and result.text:",
+            "        state[output_key] = result.text",
+            "",
+            '    return {"text": result.text, "state": state}',
+        ]
+    )
 
     # Replace safe_name placeholders with actual name
     return [line.replace("{safe_name}", safe_name) for line in lines]
@@ -205,12 +202,12 @@ def _walk_plan_nodes(
         if temporal_type == "activity":
             # Activity call
             timeout = int(cfg.activity_timeout_seconds)
-            lines.append(f'{prefix}# Activity: {name}')
-            lines.append(f'{prefix}{safe}_result = await workflow.execute_activity(')
+            lines.append(f"{prefix}# Activity: {name}")
+            lines.append(f"{prefix}{safe}_result = await workflow.execute_activity(")
             lines.append(f'{prefix}    "{name}",')
-            lines.append(f'{prefix}    args=[prompt, state],')
-            lines.append(f'{prefix}    start_to_close_timeout=timedelta(seconds={timeout}),')
-            lines.append(f'{prefix})')
+            lines.append(f"{prefix}    args=[prompt, state],")
+            lines.append(f"{prefix}    start_to_close_timeout=timedelta(seconds={timeout}),")
+            lines.append(f"{prefix})")
             lines.append(f'{prefix}state.update({safe}_result.get("state", {{}}))')
             lines.append(f'{prefix}results.append({safe}_result.get("text", ""))')
             lines.append("")
@@ -231,14 +228,14 @@ def _walk_plan_nodes(
                     task_names.append(child_safe)
                     if child.get("temporal_type") == "activity":
                         timeout = int(cfg.activity_timeout_seconds)
-                        lines.append(f'{prefix}{child_safe}_handle = workflow.start_activity(')
+                        lines.append(f"{prefix}{child_safe}_handle = workflow.start_activity(")
                         lines.append(f'{prefix}    "{child.get("name", "")}",')
-                        lines.append(f'{prefix}    args=[prompt, dict(state)],')
-                        lines.append(f'{prefix}    start_to_close_timeout=timedelta(seconds={timeout}),')
-                        lines.append(f'{prefix})')
+                        lines.append(f"{prefix}    args=[prompt, dict(state)],")
+                        lines.append(f"{prefix}    start_to_close_timeout=timedelta(seconds={timeout}),")
+                        lines.append(f"{prefix})")
                 # Await all
                 for tn in task_names:
-                    lines.append(f'{prefix}{tn}_result = await {tn}_handle')
+                    lines.append(f"{prefix}{tn}_result = await {tn}_handle")
                     lines.append(f'{prefix}state.update({tn}_result.get("state", {{}}))')
                     lines.append(f'{prefix}results.append({tn}_result.get("text", ""))')
             lines.append("")
@@ -256,7 +253,7 @@ def _walk_plan_nodes(
 
         elif node_type == "TransformNode":
             lines.append(f"{prefix}# Transform: {name} (inline, deterministic)")
-            lines.append(f'{prefix}# Transform functions are stored in workflow state')
+            lines.append(f"{prefix}# Transform functions are stored in workflow state")
             lines.append("")
 
         elif node_type == "TapNode":
@@ -287,18 +284,17 @@ def _walk_plan_nodes(
 
         elif temporal_type == "signal_wait":
             lines.append(f"{prefix}# Gate: {name} (waiting for signal)")
-            msg = node.get("message", "Approval needed")
-            lines.append(f'{prefix}await workflow.wait_condition(')
+            lines.append(f"{prefix}await workflow.wait_condition(")
             lines.append(f'{prefix}    lambda: state.get("{safe}_approved", False)')
-            lines.append(f'{prefix})')
+            lines.append(f"{prefix})")
             lines.append("")
 
         elif temporal_type == "child_workflow":
             lines.append(f"{prefix}# Dispatch: {name} (child workflow)")
-            lines.append(f'{prefix}{safe}_handle = await workflow.start_child_workflow(')
+            lines.append(f"{prefix}{safe}_handle = await workflow.start_child_workflow(")
             lines.append(f'{prefix}    "{cfg.workflow_name}",')
-            lines.append(f'{prefix}    args=[prompt, dict(state)],')
-            lines.append(f'{prefix})')
+            lines.append(f"{prefix}    args=[prompt, dict(state)],")
+            lines.append(f"{prefix})")
             lines.append("")
 
 
@@ -311,7 +307,7 @@ def _generate_workflow_class(
     lines = [
         f'@workflow.defn(name="{cfg.workflow_name}")',
         "class AgentPipelineWorkflow:",
-        f'    """Auto-generated workflow for adk-fluent agent pipeline."""',
+        '    """Auto-generated workflow for adk-fluent agent pipeline."""',
         "",
         "    def __init__(self) -> None:",
         "        self._state: dict[str, Any] = {}",
@@ -333,9 +329,11 @@ def _generate_workflow_class(
     body = _generate_workflow_body(plan, cfg, indent=2)
     lines.extend(body)
 
-    lines.extend([
-        '        return {"results": results, "state": state}',
-    ])
+    lines.extend(
+        [
+            '        return {"results": results, "state": state}',
+        ]
+    )
 
     return lines
 
@@ -354,7 +352,7 @@ def _generate_worker_setup(activities: list[dict], cfg: TemporalWorkerConfig) ->
         "    return Worker(",
         "        client,",
         "        task_queue=task_queue,",
-        f"        workflows=[AgentPipelineWorkflow],",
+        "        workflows=[AgentPipelineWorkflow],",
         f"        activities=[{act_list}],",
         "    )",
     ]
@@ -365,6 +363,7 @@ def _generate_worker_setup(activities: list[dict], cfg: TemporalWorkerConfig) ->
 def _safe_identifier(name: str) -> str:
     """Convert a node name to a valid Python identifier."""
     import re
+
     result = re.sub(r"[^a-zA-Z0-9_]", "_", name)
     if result and result[0].isdigit():
         result = f"n_{result}"
@@ -395,8 +394,7 @@ async def create_activities(
         from temporalio import activity as _activity
     except ImportError:
         raise ImportError(
-            "temporalio is required for create_activities(). "
-            "Install with: pip install temporalio"
+            "temporalio is required for create_activities(). Install with: pip install temporalio"
         ) from None
 
     plan = runnable.node_plan
@@ -451,8 +449,7 @@ async def create_workflow_class(
         from temporalio import workflow as _workflow
     except ImportError:
         raise ImportError(
-            "temporalio is required for create_workflow_class(). "
-            "Install with: pip install temporalio"
+            "temporalio is required for create_workflow_class(). Install with: pip install temporalio"
         ) from None
 
     plan = runnable.node_plan

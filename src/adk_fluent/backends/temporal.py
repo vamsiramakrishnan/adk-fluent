@@ -125,11 +125,10 @@ class TemporalBackend:
             )
 
         try:
-            from temporalio.client import Client as _Client
+            import temporalio.client  # noqa: F401 — verify temporalio is installed
         except ImportError:
             raise ImportError(
-                "temporalio is required for TemporalBackend.run(). "
-                "Install with: pip install adk-fluent[temporal]"
+                "temporalio is required for TemporalBackend.run(). Install with: pip install adk-fluent[temporal]"
             ) from None
 
         # Start workflow
