@@ -82,6 +82,21 @@ _INSTALL = """
 ## Install
 
     pip install adk-fluent
+
+### Optional extras
+
+    pip install adk-fluent[a2a]            # A2A remote agent-to-agent communication
+    pip install adk-fluent[yaml]           # .to_yaml() / .from_yaml() serialization
+    pip install adk-fluent[rich]           # Rich terminal output for .explain()
+    pip install adk-fluent[search]         # BM25-indexed tool discovery (T.search)
+    pip install adk-fluent[pii]            # PII detection guard (G.pii with Cloud DLP)
+    pip install adk-fluent[observability]  # OpenTelemetry tracing and metrics
+
+Combine extras: ``pip install adk-fluent[a2a,yaml,rich]``
+
+A2UI (Agent-to-UI): The UI namespace ships with the core package.
+The full A2UI toolset will be available via ``pip install adk-fluent[a2ui]``
+when the ``a2ui-agent`` package is published.
 """
 
 _IMPORTS = """

@@ -42,6 +42,25 @@ pip install adk-fluent
 
 Autocomplete works immediately -- the package ships with `.pyi` type stubs for every builder. Type `Agent("name").` and your IDE shows all available methods with type hints.
 
+### Optional Extras
+
+Install additional capabilities as needed:
+
+```bash
+pip install adk-fluent[a2a]            # A2A remote agent-to-agent communication
+pip install adk-fluent[yaml]           # .to_yaml() / .from_yaml() serialization
+pip install adk-fluent[rich]           # Rich terminal output for .explain()
+pip install adk-fluent[search]         # BM25-indexed tool discovery (T.search)
+pip install adk-fluent[pii]            # PII detection guard (G.pii with Cloud DLP)
+pip install adk-fluent[observability]  # OpenTelemetry tracing and metrics
+pip install adk-fluent[dev]            # Development tools (pytest, ruff, pyright)
+pip install adk-fluent[docs]           # Documentation build (Sphinx, Furo)
+```
+
+Combine extras: `pip install adk-fluent[a2a,yaml,rich]`
+
+**A2UI (Agent-to-UI):** The UI namespace for declarative agent UIs ships with the core package -- no extra install needed. The full A2UI toolset (`SendA2uiToClientToolset`) will be available via `pip install adk-fluent[a2ui]` when the `a2ui-agent` package is published. Until then, all UI composition, compilation, and presets work out of the box.
+
 ### IDE Setup
 
 **VS Code** -- install the [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) extension (included in the Python extension pack). Autocomplete and type checking work out of the box.
@@ -1340,6 +1359,11 @@ adk web race                  # race() first-to-finish
 | 41  | Gate Approval        | `gate()` human-in-the-loop           |
 | 42  | Race                 | `race()` first-to-finish wins        |
 | 43+ | Advanced             | Middleware, DI, schemas, contracts   |
+| 70  | A2UI Basics          | UI components, operators, surfaces   |
+| 71  | A2UI Agent Integration | `.ui()`, `T.a2ui()`, `G.a2ui()`    |
+| 72  | A2UI Operators       | `\|` (Row), `>>` (Column) layouts    |
+| 73  | A2UI LLM-Guided      | `UI.auto()`, `P.ui_schema()`        |
+| 74  | A2UI Pipeline        | `S.to_ui()`, `S.from_ui()` bridges  |
 
 </details>
 
@@ -1433,6 +1457,7 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 - **Zero-maintenance** `__getattr__` forwarding for any ADK field
 - **Callback accumulation**: multiple `.before_model()` calls append, not replace
 - **Typo detection**: misspelled methods raise `AttributeError` with suggestions
+- **A2UI (Agent-to-UI)**: declarative UI composition via `UI` namespace -- `UI.form()`, `UI.dashboard()`, `|` (Row), `>>` (Column) operators, `compile_surface()` to A2UI JSON
 - **Deterministic routing**: `Route` evaluates predicates against session state (zero LLM calls)
 - **One-shot execution**: `.ask()`, `.stream()`, `.session()`, `.map()` without Runner boilerplate
 - **Presets**: reusable config bundles via `Preset` + `.use()`
