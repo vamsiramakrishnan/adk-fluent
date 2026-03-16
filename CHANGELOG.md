@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-03-16
+
+### Added
+
+- **A2UI (Agent-to-UI) integration**: Declarative UI composition for agents
+  - `UI` namespace with 18 component factories: `UI.text()`, `UI.button()`, `UI.text_field()`, `UI.image()`, `UI.row()`, `UI.column()`, and more
+  - Expression operators: `|` (Row), `>>` (Column) for composing UI layouts
+  - `UI.surface()` compilation root, `UI.auto()` for LLM-guided mode
+  - Data binding (`UI.bind()`) and validation (`UI.required()`, `UI.email()`)
+  - Preset surfaces: `UI.form()`, `UI.dashboard()`, `UI.wizard()`, `UI.confirm()`, `UI.table()`
+  - Agent integration: `.ui()` builder method, `T.a2ui()` toolset, `G.a2ui()` guard, `P.ui_schema()` prompt helper
+  - State bridges: `S.to_ui()`, `S.from_ui()` for bidirectional state-UI data flow
+  - Context: `C.with_ui()` for including UI state in agent context
+  - Middleware: `M.a2ui_log()` for surface operation logging
+  - A2UI codegen pipeline: `scripts/a2ui/` scanner, seed generator, and code generator
+  - A2UI specification files: `specification/v0_10/json/` (basic catalog, common types, client/server schemas)
+  - 5 cookbook examples: basics (#70), agent integration (#71), operators (#72), LLM-guided (#73), pipeline (#74)
+  - Full test coverage: `test_ui_core.py`, `test_ui_compile.py`, `test_ui_agent.py`, `test_ui_namespaces.py`, `test_ui_presets.py`, `test_ui_generated.py`
+- **A2UI composition patterns**: Higher-order constructors in `patterns.py`
+  - `ui_form_agent()`, `ui_dashboard_agent()`, `ui_wizard_agent()` for quick agent+UI scaffolding
+- **Agent skills**: 6 distributable skills auto-synced to `.gemini/skills/`
+  - cheatsheet, dev-guide, eval-guide, deploy-guide, observe-guide, scaffold
+- **Documentation improvements**
+  - A2UI user guide (`docs/user-guide/a2ui.md`)
+  - A2A user guide (`docs/user-guide/a2a.md`)
+  - DevEx Tooling Manifesto (`docs/devex-tooling-manifesto.md`)
+  - Guards cookbook (#67) with full G module composition examples
+  - Progressive disclosure and hero openings across documentation
+
+### Changed
+
+- **Codegen pipeline**: Extracted shared utilities into `scripts/shared.py`, eliminated `sys.argv` manipulation in generators
+- **`just all` pipeline**: Now includes `a2ui` and `skills` stages (`scan → seed → generate → a2ui → docs → skills → docs-build`)
+- **A2UI seed format**: Generated with `--json` flag for richer component metadata
+- **Editor rules**: Regenerated `.clinerules`, `.cursor/rules`, `.windsurfrules`, `.github/instructions` with A2UI documentation
+
+### Fixed
+
+- **Pyright `typecheck-core`**: 9 type errors resolved
+  - `_ui.py`: Restructured nested dict build to avoid narrowed type conflict
+  - `_ui_generated.py`: Generator now emits `T | None = None` for optional params
+  - `patterns.py`: Widened `ui_form_agent` `fields` param to match `UI.form` signature
+- **Pre-commit hooks**: 3 failures resolved
+  - UP038: `isinstance(value, (int, float))` → `isinstance(value, int | float)`
+  - `end-of-file-fixer`: Fixed trailing blank line in `concepts_generator.py` output
+  - `check-toml`: Excluded JSON-content `seeds/a2ui_seed.toml` from TOML validation
+- **Ruff lint**: Fixed B011 (`assert False` → `pytest.raises`), F841 (unused variables), B007 (unused loop variable), SIM116 (consecutive if suppression)
+
 ## [0.12.1] - 2026-03-15
 
 ### Added
@@ -476,6 +524,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/vamsiramakrishnan/adk-fluent/releases/tag/v0.1.0
 [0.10.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.9.6...v0.10.0
 [0.11.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.10.0...v0.11.0
+[0.13.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.12.0...v0.12.1
 [0.2.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.1.0...v0.2.0
 [0.3.0]: https://github.com/vamsiramakrishnan/adk-fluent/compare/v0.2.0...v0.3.0
