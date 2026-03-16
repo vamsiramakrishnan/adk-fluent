@@ -824,3 +824,10 @@ from .testing import EvalReport
 from .testing import ComparisonReport
 from .testing import ComparisonSuite
 from .testing import EPersona
+from ._config_global import configure
+from ._config_global import reset_config
+from ._config_global import get_config
+from .compile import compile as compile_ir
+from .compile import CompilationResult
+from .compile import EngineCapabilities
+from .compute import ComputeConfig

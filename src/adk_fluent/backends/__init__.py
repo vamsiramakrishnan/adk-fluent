@@ -79,3 +79,21 @@ def _adk_factory(**kwargs: Any) -> Any:
 
 
 register_backend("adk", _adk_factory)
+
+
+def _temporal_factory(**kwargs: Any) -> Any:
+    from adk_fluent.backends.temporal import TemporalBackend
+
+    return TemporalBackend(**kwargs)
+
+
+register_backend("temporal", _temporal_factory)
+
+
+def _asyncio_factory(**kwargs: Any) -> Any:
+    from adk_fluent.backends.asyncio_backend import AsyncioBackend
+
+    return AsyncioBackend(**kwargs)
+
+
+register_backend("asyncio", _asyncio_factory)
