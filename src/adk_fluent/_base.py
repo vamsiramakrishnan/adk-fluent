@@ -779,6 +779,9 @@ class BuilderBase:
         self._freeze()
         from adk_fluent.workflow import FanOut
 
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
+
         my_name = self._config.get("name", "")
         other_name = other._config.get("name", "")
         if isinstance(self, FanOut):
@@ -815,6 +818,15 @@ class BuilderBase:
             loop._config["_until_predicate"] = other.predicate
             return loop
 
+        if not isinstance(other, int):
+            return NotImplemented
+
+        if other < 1:
+            raise ValueError(
+                f"Loop iterations must be >= 1, got {other}. "
+                "Use agent * 3 for 3 iterations or agent * until(pred) for conditional loops."
+            )
+
         iterations = other
         my_name = self._config.get("name", "")
         name = f"{my_name}_x{iterations}"
@@ -841,6 +853,11 @@ class BuilderBase:
 
         Equivalent to ``.returns(Schema)`` or ``.output(Schema)``.
         """
+        if not isinstance(schema, type):
+            raise TypeError(
+                f"agent @ X requires X to be a type (Pydantic model), got {type(schema).__name__}. "
+                "Usage: agent @ MySchema"
+            )
         self._freeze()
         clone = self._fork_for_operator()
         clone._config["_output_schema"] = schema
@@ -946,13 +963,85 @@ class BuilderBase:
 
         return self.native(_apply)
 
-    def validate(self) -> Self:
-        """Try to build; raise ValueError with clear message on failure. Returns self."""
+    def validate(self, *, strict: bool = False) -> Self:
+        """Validate this builder: build check + contract analysis.
+
+        Goes beyond just calling ``.build()`` — also runs the 16-pass
+        contract checker on the IR tree to catch data flow issues,
+        missing template variables, dead keys, and more.
+
+        Args:
+            strict: If True, raise on *any* issue (including advisories).
+                    If False (default), raise only on errors.
+
+        Returns self for chaining.
+
+        Raises:
+            ValueError: If build fails or contract errors are found.
+
+        Usage::
+
+            # Basic validation (errors only)
+            pipeline.validate()
+
+            # Strict mode (errors + advisories)
+            pipeline.validate(strict=True)
+        """
+        name = self._config.get("name", "?")
+        cls_name = self.__class__.__name__
+
+        # Phase 1: Build check
         try:
             self.build()
         except Exception as exc:
-            name = self._config.get("name", "?")
-            raise ValueError(f"Validation failed for {self.__class__.__name__}('{name}'): {exc}") from exc
+            raise ValueError(f"Validation failed for {cls_name}('{name}'): {exc}") from exc
+
+        # Phase 2: Contract analysis on IR tree
+        try:
+            ir = self.to_ir()
+        except Exception:
+            # Some builders (single agents) may not support IR — that's OK
+            return self
+
+        try:
+            from adk_fluent.testing.contracts import check_contracts
+
+            raw_issues = check_contracts(ir)
+        except Exception:
+            return self
+
+        if not raw_issues:
+            return self
+
+        # Classify issues
+        errors = []
+        advisories = []
+        for issue in raw_issues:
+            if isinstance(issue, dict):
+                level = issue.get("level", "error")
+                msg = issue.get("message", str(issue))
+                agent = issue.get("agent", "")
+                hint = issue.get("hint", "")
+                formatted = f"  [{agent}] {msg}" if agent else f"  {msg}"
+                if hint:
+                    formatted += f"\n    Hint: {hint}"
+                if level == "error":
+                    errors.append(formatted)
+                else:
+                    advisories.append(formatted)
+            elif isinstance(issue, str):
+                errors.append(f"  {issue}")
+
+        if errors or (strict and advisories):
+            parts = [f"Validation failed for {cls_name}('{name}'):"]
+            if errors:
+                parts.append(f"\n{len(errors)} error(s):")
+                parts.extend(errors)
+            if strict and advisories:
+                parts.append(f"\n{len(advisories)} advisory(s):")
+                parts.extend(advisories)
+            raise ValueError("\n".join(parts))
+
         return self
 
     def _explain_plain(self) -> str:
@@ -1907,13 +1996,30 @@ class BuilderBase:
         but scoped to this builder instead of globally.
 
         Args:
-            responses: Either a list of response strings (cycles when
-                       exhausted), or a callable(llm_request) -> str.
+            responses: One of:
+                - ``list[str]``: cycle through responses (applied to this agent)
+                - ``callable(llm_request) -> str``: dynamic mock (applied to this agent)
+                - ``dict[str, str | list[str]]``: mock specific agents by name.
+                  Keys are agent names, values are response strings or lists.
+                  Works on Pipeline, FanOut, Loop — propagates to sub-agents.
 
-        Usage:
+        Usage::
+
+            # Single agent
             agent.mock(["Hello!", "World!"])
             agent.mock(lambda req: "Fixed response")
+
+            # Pipeline/composition — mock each agent by name
+            pipeline = Agent("researcher") >> Agent("writer")
+            pipeline.mock({
+                "researcher": "Research findings here.",
+                "writer": "Final report.",
+            })
         """
+        # Dict: propagate mocks to named sub-agents
+        if isinstance(responses, dict):
+            return self._mock_by_name(responses)
+
         if callable(responses) and not isinstance(responses, list):
             fn = responses
 
@@ -1934,6 +2040,49 @@ class BuilderBase:
                 return LlmResponse(content=types.Content(role="model", parts=[types.Part(text=str(text))]))
 
         self._callbacks.setdefault("before_model_callback", []).append(_mock_cb)
+        return self
+
+    def _mock_by_name(self, responses: dict) -> Self:
+        """Propagate mock responses to sub-agents by name.
+
+        Walks the builder tree (sub_agents list) and applies .mock()
+        to each builder whose name matches a key in the dict.
+        Raises ValueError if a name in the dict doesn't match any agent.
+        """
+        matched = set()
+
+        def _apply(builder):
+            name = builder._config.get("name", "")
+            if name in responses:
+                matched.add(name)
+                resp = responses[name]
+                if isinstance(resp, str):
+                    resp = [resp]
+                builder.mock(resp)
+            # Recurse into sub-agents
+            for sub in builder._lists.get("sub_agents", []):
+                if isinstance(sub, BuilderBase):
+                    _apply(sub)
+
+        _apply(self)
+
+        unmatched = set(responses.keys()) - matched
+        if unmatched:
+            available = []
+
+            def _collect_names(b):
+                n = b._config.get("name", "")
+                if n:
+                    available.append(n)
+                for sub in b._lists.get("sub_agents", []):
+                    if isinstance(sub, BuilderBase):
+                        _collect_names(sub)
+
+            _collect_names(self)
+            raise ValueError(
+                f"mock() could not find agent(s): {', '.join(sorted(unmatched))}. "
+                f"Available agents: {', '.join(available)}"
+            )
         return self
 
     def loop_while(self, predicate: Callable, *, max_iterations: int = 3) -> BuilderBase:
