@@ -13,6 +13,8 @@ from google.adk.agents.sequential_agent import SequentialAgent
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
     from google.adk.agents.base_agent import BaseAgent
 
 
@@ -94,6 +96,70 @@ class Loop(BuilderBase):
 
         return _loop_to_ir(self)
 
+    def ask(self, prompt: str) -> str:
+        """One-shot SYNC execution (blocking). Builds loop, sends prompt, returns response text."""
+        from adk_fluent._helpers import run_one_shot
+
+        return run_one_shot(self, prompt)
+
+    async def ask_async(self, prompt: str) -> str:
+        """One-shot ASYNC execution (non-blocking, use with await)."""
+        from adk_fluent._helpers import run_one_shot_async
+
+        return await run_one_shot_async(self, prompt)
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        """ASYNC streaming execution. Yields response text chunks as they arrive."""
+        from adk_fluent._helpers import run_stream
+
+        async for chunk in run_stream(self, prompt):
+            yield chunk
+
+    async def events(self, prompt: str) -> AsyncIterator[Any]:
+        """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
+        from adk_fluent._helpers import run_events
+
+        async for chunk in run_events(self, prompt):
+            yield chunk
+
+    def session(self) -> Any:
+        """Create an interactive multi-turn chat session. Returns an async context manager."""
+        from adk_fluent._helpers import create_session
+
+        return create_session(self)
+
+    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch SYNC execution (blocking). Run loop against multiple prompts with bounded concurrency."""
+        from adk_fluent._helpers import run_map
+
+        return run_map(self, prompts, concurrency=concurrency)
+
+    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch ASYNC execution (non-blocking, use with await)."""
+        from adk_fluent._helpers import run_map_async
+
+        return await run_map_async(self, prompts, concurrency=concurrency)
+
+    def test(
+        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+    ) -> Self:
+        """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
+        from adk_fluent._helpers import run_inline_test
+
+        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
+
+    def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
+        """Inline evaluation. Run a single eval case against this loop."""
+        from adk_fluent._helpers import _eval_inline
+
+        return _eval_inline(self, prompt, expect=expect, criteria=criteria)
+
+    def eval_suite(self) -> Any:
+        """Create an evaluation suite builder for this loop."""
+        from adk_fluent._helpers import _eval_suite
+
+        return _eval_suite(self)
+
     def build(self) -> LoopAgent:
         """A shell agent that run its sub-agents in a loop. Resolve into a native ADK LoopAgent."""
         config = self._prepare_build_config()
@@ -173,6 +239,70 @@ class FanOut(BuilderBase):
 
         return _fanout_to_ir(self)
 
+    def ask(self, prompt: str) -> str:
+        """One-shot SYNC execution (blocking). Builds fan-out, sends prompt, returns response text."""
+        from adk_fluent._helpers import run_one_shot
+
+        return run_one_shot(self, prompt)
+
+    async def ask_async(self, prompt: str) -> str:
+        """One-shot ASYNC execution (non-blocking, use with await)."""
+        from adk_fluent._helpers import run_one_shot_async
+
+        return await run_one_shot_async(self, prompt)
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        """ASYNC streaming execution. Yields response text chunks as they arrive."""
+        from adk_fluent._helpers import run_stream
+
+        async for chunk in run_stream(self, prompt):
+            yield chunk
+
+    async def events(self, prompt: str) -> AsyncIterator[Any]:
+        """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
+        from adk_fluent._helpers import run_events
+
+        async for chunk in run_events(self, prompt):
+            yield chunk
+
+    def session(self) -> Any:
+        """Create an interactive multi-turn chat session. Returns an async context manager."""
+        from adk_fluent._helpers import create_session
+
+        return create_session(self)
+
+    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch SYNC execution (blocking). Run fan-out against multiple prompts with bounded concurrency."""
+        from adk_fluent._helpers import run_map
+
+        return run_map(self, prompts, concurrency=concurrency)
+
+    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch ASYNC execution (non-blocking, use with await)."""
+        from adk_fluent._helpers import run_map_async
+
+        return await run_map_async(self, prompts, concurrency=concurrency)
+
+    def test(
+        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+    ) -> Self:
+        """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
+        from adk_fluent._helpers import run_inline_test
+
+        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
+
+    def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
+        """Inline evaluation. Run a single eval case against this fan-out."""
+        from adk_fluent._helpers import _eval_inline
+
+        return _eval_inline(self, prompt, expect=expect, criteria=criteria)
+
+    def eval_suite(self) -> Any:
+        """Create an evaluation suite builder for this fan-out."""
+        from adk_fluent._helpers import _eval_suite
+
+        return _eval_suite(self)
+
     def build(self) -> ParallelAgent:
         """A shell agent that runs its sub-agents in parallel in an isolated manner. Resolve into a native ADK ParallelAgent."""
         config = self._prepare_build_config()
@@ -251,6 +381,70 @@ class Pipeline(BuilderBase):
         from adk_fluent._helpers import _pipeline_to_ir
 
         return _pipeline_to_ir(self)
+
+    def ask(self, prompt: str) -> str:
+        """One-shot SYNC execution (blocking). Builds pipeline, sends prompt, returns response text."""
+        from adk_fluent._helpers import run_one_shot
+
+        return run_one_shot(self, prompt)
+
+    async def ask_async(self, prompt: str) -> str:
+        """One-shot ASYNC execution (non-blocking, use with await)."""
+        from adk_fluent._helpers import run_one_shot_async
+
+        return await run_one_shot_async(self, prompt)
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        """ASYNC streaming execution. Yields response text chunks as they arrive."""
+        from adk_fluent._helpers import run_stream
+
+        async for chunk in run_stream(self, prompt):
+            yield chunk
+
+    async def events(self, prompt: str) -> AsyncIterator[Any]:
+        """Stream raw ADK Event objects. Yields every event including state deltas and function calls."""
+        from adk_fluent._helpers import run_events
+
+        async for chunk in run_events(self, prompt):
+            yield chunk
+
+    def session(self) -> Any:
+        """Create an interactive multi-turn chat session. Returns an async context manager."""
+        from adk_fluent._helpers import create_session
+
+        return create_session(self)
+
+    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch SYNC execution (blocking). Run pipeline against multiple prompts with bounded concurrency."""
+        from adk_fluent._helpers import run_map
+
+        return run_map(self, prompts, concurrency=concurrency)
+
+    async def map_async(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch ASYNC execution (non-blocking, use with await)."""
+        from adk_fluent._helpers import run_map_async
+
+        return await run_map_async(self, prompts, concurrency=concurrency)
+
+    def test(
+        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+    ) -> Self:
+        """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
+        from adk_fluent._helpers import run_inline_test
+
+        return run_inline_test(self, prompt, contains=contains, matches=matches, equals=equals)
+
+    def eval(self, prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any:
+        """Inline evaluation. Run a single eval case against this pipeline."""
+        from adk_fluent._helpers import _eval_inline
+
+        return _eval_inline(self, prompt, expect=expect, criteria=criteria)
+
+    def eval_suite(self) -> Any:
+        """Create an evaluation suite builder for this pipeline."""
+        from adk_fluent._helpers import _eval_suite
+
+        return _eval_suite(self)
 
     def build(self) -> SequentialAgent:
         """A shell agent that runs its sub-agents in sequence. Resolve into a native ADK SequentialAgent."""
