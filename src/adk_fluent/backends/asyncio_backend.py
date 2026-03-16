@@ -23,6 +23,7 @@ Usage::
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -134,6 +135,10 @@ class AsyncioBackend:
         """AgentNode → call ModelProvider.generate()."""
         if self._provider is None:
             # No provider — return a placeholder
+            logging.getLogger("adk_fluent.backends.asyncio").warning(
+                "No ModelProvider configured — agent '%s' will return a placeholder response",
+                node.name,
+            )
             events.append(
                 AgentEvent(
                     author=node.name,
@@ -258,8 +263,19 @@ class AsyncioBackend:
         # Merge events and state
         for be in branch_events:
             events.extend(be)
+        # Detect parallel write conflicts
+        seen_keys: dict[str, int] = {}
         for bs in branch_states:
+            for k in bs:
+                if k not in state or bs[k] != state.get(k):
+                    seen_keys[k] = seen_keys.get(k, 0) + 1
             state.update(bs)
+        conflicts = [k for k, count in seen_keys.items() if count > 1]
+        if conflicts:
+            logging.getLogger("adk_fluent.backends.asyncio").warning(
+                "Parallel branches wrote same key(s): %s — last write wins",
+                ", ".join(sorted(conflicts)),
+            )
 
     async def _run_loop(
         self,
@@ -356,6 +372,178 @@ class AsyncioBackend:
         if default is not None:
             await self._execute_node(default, prompt, state, events)
 
+    async def _run_gate(
+        self,
+        node: Any,
+        prompt: str,
+        state: dict[str, Any],
+        events: list[AgentEvent],
+    ) -> None:
+        """GateNode → asyncio.Event wait (no true HITL without external trigger).
+
+        In the asyncio backend, gates check a predicate against state.
+        If the predicate is not satisfied, the gate is skipped with a warning
+        (no external signal mechanism in plain asyncio).
+        """
+        predicate = getattr(node, "predicate", None)
+        if predicate is not None:
+            try:
+                if predicate(state):
+                    return  # Gate passed
+            except Exception:
+                pass
+
+        events.append(
+            AgentEvent(
+                author=node.name,
+                content=f"[gate '{node.name}' passed (asyncio backend has no signal support)]",
+            )
+        )
+
+    async def _run_dispatch(
+        self,
+        node: Any,
+        prompt: str,
+        state: dict[str, Any],
+        events: list[AgentEvent],
+    ) -> None:
+        """DispatchNode → asyncio.create_task (fire-and-forget)."""
+        children = getattr(node, "children", ())
+        tasks = []
+        for child in children:
+            child_events: list[AgentEvent] = []
+            task = asyncio.create_task(self._execute_node(child, prompt, dict(state), child_events))
+            tasks.append((task, child_events))
+
+        # Store task references for JoinNode to pick up
+        task_names = getattr(node, "task_names", ())
+        for i, name in enumerate(task_names):
+            if i < len(tasks):
+                state[f"_dispatch_{name}"] = tasks[i]
+
+        events.append(
+            AgentEvent(
+                author=node.name,
+                content=f"[dispatched {len(tasks)} background task(s)]",
+            )
+        )
+
+    async def _run_join(
+        self,
+        node: Any,
+        prompt: str,
+        state: dict[str, Any],
+        events: list[AgentEvent],
+    ) -> None:
+        """JoinNode → await dispatched tasks."""
+        target_names = getattr(node, "target_names", None)
+        if target_names is None:
+            # Join all dispatched tasks
+            target_names = [k.replace("_dispatch_", "") for k in list(state.keys()) if k.startswith("_dispatch_")]
+
+        for name in target_names:
+            dispatch_entry = state.pop(f"_dispatch_{name}", None)
+            if dispatch_entry is not None:
+                task, child_events = dispatch_entry
+                await task
+                events.extend(child_events)
+
+    async def _run_timeout(
+        self,
+        node: Any,
+        prompt: str,
+        state: dict[str, Any],
+        events: list[AgentEvent],
+    ) -> None:
+        """TimeoutNode → asyncio.wait_for wrapper."""
+        body = getattr(node, "body", None)
+        seconds = getattr(node, "seconds", 0)
+
+        if body is None:
+            return
+
+        try:
+            await asyncio.wait_for(
+                self._execute_node(body, prompt, state, events),
+                timeout=seconds if seconds > 0 else None,
+            )
+        except TimeoutError:
+            events.append(
+                AgentEvent(
+                    author=node.name,
+                    content=f"[timeout after {seconds}s]",
+                )
+            )
+
+    async def _run_race(
+        self,
+        node: Any,
+        prompt: str,
+        state: dict[str, Any],
+        events: list[AgentEvent],
+    ) -> None:
+        """RaceNode → first-to-complete wins."""
+        children = getattr(node, "children", ())
+        if not children:
+            return
+
+        # Each branch gets its own events list and state copy
+        branch_data = []
+        tasks = []
+        for child in children:
+            child_events: list[AgentEvent] = []
+            child_state = dict(state)
+            branch_data.append((child_events, child_state))
+
+            async def _run_branch(c: Any, ev: list, st: dict) -> int:
+                await self._execute_node(c, prompt, st, ev)
+                return len(ev)
+
+            tasks.append(asyncio.create_task(_run_branch(child, child_events, child_state)))
+
+        # Wait for first to complete
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+
+        # Cancel remaining
+        for p in pending:
+            p.cancel()
+
+        # Collect events from the winner
+        for i, task in enumerate(tasks):
+            if task in done:
+                child_events, child_state = branch_data[i]
+                events.extend(child_events)
+                state.update(child_state)
+                break
+
+    async def _run_mapover(
+        self,
+        node: Any,
+        prompt: str,
+        state: dict[str, Any],
+        events: list[AgentEvent],
+    ) -> None:
+        """MapOverNode → iterate over list items and execute body for each."""
+        body = getattr(node, "body", None)
+        list_key = getattr(node, "list_key", "")
+
+        if body is None or not list_key:
+            return
+
+        items = state.get(list_key, [])
+        if not isinstance(items, list):
+            return
+
+        for i, item in enumerate(items):
+            item_state = dict(state)
+            item_state["_item"] = item
+            item_state["_index"] = i
+            await self._execute_node(body, prompt, item_state, events)
+            # Merge back any state changes (excluding temp keys)
+            for k, v in item_state.items():
+                if not k.startswith("_"):
+                    state[k] = v
+
 
 class _AsyncioRunnable:
     """Wrapper around an IR node for the asyncio backend."""
@@ -370,10 +558,8 @@ class _AsyncioRunnable:
 class _DictState:
     """Minimal state wrapper for when no session is provided."""
 
-    state: dict[str, Any] = {}
-
     def __init__(self) -> None:
-        self.state = {}
+        self.state: dict[str, Any] = {}
 
 
 # Dispatch table for node handlers
@@ -386,4 +572,10 @@ _NODE_HANDLERS: dict[str, Any] = {
     "TapNode": AsyncioBackend._run_tap,
     "FallbackNode": AsyncioBackend._run_fallback,
     "RouteNode": AsyncioBackend._run_route,
+    "GateNode": AsyncioBackend._run_gate,
+    "DispatchNode": AsyncioBackend._run_dispatch,
+    "JoinNode": AsyncioBackend._run_join,
+    "TimeoutNode": AsyncioBackend._run_timeout,
+    "RaceNode": AsyncioBackend._run_race,
+    "MapOverNode": AsyncioBackend._run_mapover,
 }

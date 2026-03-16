@@ -373,11 +373,14 @@ class _LLMJudge:
             return self._parse_response(response.text or "", fail_key)
         except ImportError:
             import logging
+            import warnings
 
-            logging.getLogger(__name__).warning(
-                "google-genai not installed — _LLMJudge falling back to pass-through. "
-                "Install with: pip install google-genai"
+            msg = (
+                "google-genai not installed — _LLMJudge guard is disabled and will "
+                "pass all content through unchecked. Install with: pip install google-genai"
             )
+            logging.getLogger(__name__).warning(msg)
+            warnings.warn(msg, stacklevel=2)
             return JudgmentResult(passed=True, score=0.0, reason="google-genai not available")
         except Exception as exc:
             import logging

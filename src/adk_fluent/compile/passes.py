@@ -9,10 +9,9 @@ Current passes:
 - ``fuse_transforms``: Merge adjacent TransformNodes into a single node.
 - ``validate_contracts``: Run static contract checks (delegates to
   ``testing.contracts``).
-- ``annotate_checkpoints``: Mark nodes that need checkpointing for durable
-  backends (placeholder for future use).
 
-The ``run_passes`` entry point runs all passes in sequence.
+The ``run_passes`` entry point runs fuse_transforms. Contract validation
+is advisory and should be invoked explicitly via ``validate_contracts()``.
 """
 
 from __future__ import annotations
@@ -171,11 +170,11 @@ def run_passes(ir: Any) -> Any:
 
     Pass order:
     1. fuse_transforms — merge adjacent TransformNodes
-    2. annotate_checkpoints — mark checkpoint boundaries
 
     Contract validation is NOT run here — it is advisory and should be
     invoked explicitly via ``validate_contracts(ir)`` when needed.
     """
     ir = fuse_transforms(ir)
-    ir = annotate_checkpoints(ir)
+    # annotate_checkpoints is a placeholder — will be added when durable
+    # backends need checkpoint metadata
     return ir

@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" font-family="Inter, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="layer1bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e8f5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c8e6c9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="layer2bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e3f2fd;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bbdefb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="layer3bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fff3e0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffe0b2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="layer4bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fce4ec;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8bbd0;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.15"/>
+    </filter>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#546e7a"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="35" text-anchor="middle" font-size="20" font-weight="700" fill="#263238">adk-fluent Five-Layer Execution Architecture</text>
+
+  <!-- ================================================================== -->
+  <!-- LAYER 1: CODE / SDK -->
+  <!-- ================================================================== -->
+  <rect x="30" y="55" width="940" height="150" rx="8" fill="url(#layer1bg)" stroke="#4caf50" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="50" y="78" font-size="11" font-weight="700" fill="#2e7d32" letter-spacing="1">LAYER 1</text>
+  <text x="120" y="78" font-size="11" font-weight="600" fill="#2e7d32">CODE / SDK — What does this agent do?</text>
+
+  <!-- Builder example -->
+  <rect x="50" y="90" width="420" height="55" rx="4" fill="#ffffff" stroke="#81c784" stroke-width="1"/>
+  <text x="60" y="108" font-size="11" font-family="monospace" fill="#1b5e20">Agent("writer", "gemini-2.5-flash")</text>
+  <text x="60" y="123" font-size="11" font-family="monospace" fill="#1b5e20">  .instruct(P.role("expert") + P.task("write"))</text>
+  <text x="60" y="138" font-size="11" font-family="monospace" fill="#1b5e20">  .tool(search_fn).writes("draft")</text>
+
+  <!-- Operators -->
+  <rect x="490" y="90" width="220" height="55" rx="4" fill="#ffffff" stroke="#81c784" stroke-width="1"/>
+  <text x="500" y="108" font-size="11" font-weight="600" fill="#2e7d32">Expression Operators</text>
+  <text x="500" y="123" font-size="10" font-family="monospace" fill="#333">A >> B  (pipeline)</text>
+  <text x="500" y="138" font-size="10" font-family="monospace" fill="#333">A | B   (parallel)  A * 3 (loop)</text>
+
+  <!-- Namespaces -->
+  <rect x="730" y="90" width="220" height="55" rx="4" fill="#ffffff" stroke="#81c784" stroke-width="1"/>
+  <text x="740" y="108" font-size="11" font-weight="600" fill="#2e7d32">Namespaces</text>
+  <text x="740" y="123" font-size="10" fill="#333">S (State) · C (Context) · P (Prompt)</text>
+  <text x="740" y="138" font-size="10" fill="#333">T (Tools) · M (Middleware) · G (Guards)</text>
+
+  <!-- .to_ir() arrow -->
+  <text x="500" y="170" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="#2e7d32">.to_ir()</text>
+  <line x1="500" y1="175" x2="500" y2="210" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ================================================================== -->
+  <!-- LAYER 2: INTERMEDIATE REPRESENTATION -->
+  <!-- ================================================================== -->
+  <rect x="30" y="215" width="940" height="130" rx="8" fill="url(#layer2bg)" stroke="#1976d2" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="50" y="238" font-size="11" font-weight="700" fill="#0d47a1" letter-spacing="1">LAYER 2</text>
+  <text x="120" y="238" font-size="11" font-weight="600" fill="#0d47a1">INTERMEDIATE REPRESENTATION — Validated, optimized execution plan</text>
+
+  <!-- IR Nodes row 1 -->
+  <rect x="50" y="250" width="110" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="105" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">AgentNode</text>
+
+  <rect x="170" y="250" width="120" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="230" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">SequenceNode</text>
+
+  <rect x="300" y="250" width="110" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="355" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">ParallelNode</text>
+
+  <rect x="420" y="250" width="95" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="467" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">LoopNode</text>
+
+  <rect x="525" y="250" width="115" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="582" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">TransformNode</text>
+
+  <rect x="650" y="250" width="100" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="700" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">RouteNode</text>
+
+  <rect x="760" y="250" width="110" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="815" y="268" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">FallbackNode</text>
+
+  <!-- IR Nodes row 2 -->
+  <rect x="50" y="285" width="95" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="97" y="303" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">GateNode</text>
+
+  <rect x="155" y="285" width="110" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="210" y="303" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">DispatchNode</text>
+
+  <rect x="275" y="285" width="95" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="322" y="303" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">JoinNode</text>
+
+  <rect x="380" y="285" width="105" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="432" y="303" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">TimeoutNode</text>
+
+  <rect x="495" y="285" width="95" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="542" y="303" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">RaceNode</text>
+
+  <rect x="600" y="285" width="110" height="28" rx="4" fill="#ffffff" stroke="#64b5f6" stroke-width="1"/>
+  <text x="655" y="303" text-anchor="middle" font-size="10" font-family="monospace" fill="#0d47a1">MapOverNode</text>
+
+  <!-- Properties -->
+  <text x="750" y="300" font-size="9" fill="#546e7a">Frozen dataclasses</text>
+  <text x="750" y="312" font-size="9" fill="#546e7a">Zero ADK imports</text>
+  <text x="750" y="324" font-size="9" fill="#546e7a">Serializable · Hashable</text>
+
+  <!-- Backend.compile() arrow -->
+  <text x="500" y="355" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="#0d47a1">Backend.compile()</text>
+  <line x1="500" y1="358" x2="500" y2="378" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ================================================================== -->
+  <!-- LAYER 3: EXECUTION BACKEND -->
+  <!-- ================================================================== -->
+  <rect x="30" y="383" width="940" height="220" rx="8" fill="url(#layer3bg)" stroke="#f57c00" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="50" y="406" font-size="11" font-weight="700" fill="#e65100" letter-spacing="1">LAYER 3</text>
+  <text x="120" y="406" font-size="11" font-weight="600" fill="#e65100">EXECUTION BACKEND — Scheduling, durability, crash recovery</text>
+
+  <!-- ADK Backend -->
+  <rect x="50" y="418" width="165" height="120" rx="6" fill="#ffffff" stroke="#ff9800" stroke-width="1.5"/>
+  <rect x="50" y="418" width="165" height="24" rx="6" fill="#ff9800"/>
+  <text x="132" y="434" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">ADK</text>
+  <text x="60" y="456" font-size="9" fill="#333" font-weight="600">Full SDK</text>
+  <text x="60" y="469" font-size="9" fill="#555">LlmAgent · SequentialAgent</text>
+  <text x="60" y="482" font-size="9" fill="#555">ParallelAgent · LoopAgent</text>
+  <text x="60" y="495" font-size="9" fill="#555">Model calls · Tool exec</text>
+  <text x="60" y="508" font-size="9" fill="#555">Session service · Deploy</text>
+  <text x="60" y="525" font-size="8" fill="#4caf50" font-weight="600">STABLE · PRODUCTION</text>
+
+  <!-- Temporal Backend -->
+  <rect x="230" y="418" width="165" height="120" rx="6" fill="#ffffff" stroke="#ff9800" stroke-width="1.5"/>
+  <rect x="230" y="418" width="165" height="24" rx="6" fill="#7b1fa2"/>
+  <text x="312" y="434" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Temporal</text>
+  <text x="240" y="456" font-size="9" fill="#333" font-weight="600">Orchestrator</text>
+  <text x="240" y="469" font-size="9" fill="#555">Workflows + Activities</text>
+  <text x="240" y="482" font-size="9" fill="#555">Deterministic replay</text>
+  <text x="240" y="495" font-size="9" fill="#555">Signals for HITL</text>
+  <text x="240" y="508" font-size="9" fill="#555">Distributed workers</text>
+  <text x="240" y="525" font-size="8" fill="#ff9800" font-weight="600">IN DEVELOPMENT</text>
+
+  <!-- asyncio Backend -->
+  <rect x="410" y="418" width="165" height="120" rx="6" fill="#ffffff" stroke="#ff9800" stroke-width="1.5"/>
+  <rect x="410" y="418" width="165" height="24" rx="6" fill="#0277bd"/>
+  <text x="492" y="434" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">asyncio</text>
+  <text x="420" y="456" font-size="9" fill="#333" font-weight="600">Interpreter</text>
+  <text x="420" y="469" font-size="9" fill="#555">Direct IR execution</text>
+  <text x="420" y="482" font-size="9" fill="#555">asyncio.gather / wait</text>
+  <text x="420" y="495" font-size="9" fill="#555">Zero dependencies</text>
+  <text x="420" y="508" font-size="9" fill="#555">No durability</text>
+  <text x="420" y="525" font-size="8" fill="#0277bd" font-weight="600">REFERENCE IMPL</text>
+
+  <!-- Prefect Backend -->
+  <rect x="590" y="418" width="165" height="120" rx="6" fill="#ffffff" stroke="#ff9800" stroke-width="1.5"/>
+  <rect x="590" y="418" width="165" height="24" rx="6" fill="#00695c"/>
+  <text x="672" y="434" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Prefect</text>
+  <text x="600" y="456" font-size="9" fill="#333" font-weight="600">Orchestrator</text>
+  <text x="600" y="469" font-size="9" fill="#555">Flows + Tasks</text>
+  <text x="600" y="482" font-size="9" fill="#555">Result caching</text>
+  <text x="600" y="495" font-size="9" fill="#555">Pause/resume HITL</text>
+  <text x="600" y="508" font-size="9" fill="#555">Work pools</text>
+  <text x="600" y="525" font-size="8" fill="#ff9800" font-weight="600">IN DEVELOPMENT</text>
+
+  <!-- DBOS Backend -->
+  <rect x="770" y="418" width="165" height="120" rx="6" fill="#ffffff" stroke="#ff9800" stroke-width="1.5"/>
+  <rect x="770" y="418" width="165" height="24" rx="6" fill="#c62828"/>
+  <text x="852" y="434" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">DBOS</text>
+  <text x="780" y="456" font-size="9" fill="#333" font-weight="600">Orchestrator</text>
+  <text x="780" y="469" font-size="9" fill="#555">Durable functions</text>
+  <text x="780" y="482" font-size="9" fill="#555">PostgreSQL-backed</text>
+  <text x="780" y="495" font-size="9" fill="#555">DBOS.recv() HITL</text>
+  <text x="780" y="508" font-size="9" fill="#555">Deterministic replay</text>
+  <text x="780" y="525" font-size="8" fill="#ff9800" font-weight="600">IN DEVELOPMENT</text>
+
+  <!-- Key distinction callout -->
+  <rect x="50" y="548" width="910" height="38" rx="4" fill="#fff8e1" stroke="#ffc107" stroke-width="1"/>
+  <text x="60" y="563" font-size="10" font-weight="700" fill="#e65100">KEY DISTINCTION:</text>
+  <text x="200" y="563" font-size="10" fill="#333">ADK = Full SDK (model calls + tools + state + deploy).</text>
+  <text x="200" y="577" font-size="10" fill="#333">Temporal / Prefect / DBOS = Orchestrators (scheduling + durability). They delegate LLM calls to the Compute Layer below.</text>
+
+  <!-- Backend.run() arrow -->
+  <text x="500" y="600" text-anchor="middle" font-size="11" font-family="monospace" font-weight="600" fill="#e65100">Backend.run() / Backend.stream()</text>
+  <line x1="500" y1="603" x2="500" y2="623" stroke="#546e7a" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ================================================================== -->
+  <!-- LAYER 4: EXECUTION COMPUTE -->
+  <!-- ================================================================== -->
+  <rect x="30" y="628" width="940" height="190" rx="8" fill="url(#layer4bg)" stroke="#c62828" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="50" y="651" font-size="11" font-weight="700" fill="#b71c1c" letter-spacing="1">LAYER 4</text>
+  <text x="120" y="651" font-size="11" font-weight="600" fill="#b71c1c">EXECUTION COMPUTE — Where work physically happens</text>
+
+  <!-- ModelProvider -->
+  <rect x="50" y="665" width="200" height="90" rx="6" fill="#ffffff" stroke="#e57373" stroke-width="1"/>
+  <text x="150" y="683" text-anchor="middle" font-size="11" font-weight="700" fill="#b71c1c">ModelProvider</text>
+  <text x="60" y="700" font-size="10" fill="#555">Gemini · OpenAI · Anthropic</text>
+  <text x="60" y="714" font-size="10" fill="#555">Ollama · Bedrock · vLLM</text>
+  <text x="60" y="735" font-size="9" fill="#888">ADK: uses native model handling</text>
+  <text x="60" y="747" font-size="9" fill="#888">Others: use ModelProvider directly</text>
+
+  <!-- StateStore -->
+  <rect x="270" y="665" width="200" height="90" rx="6" fill="#ffffff" stroke="#e57373" stroke-width="1"/>
+  <text x="370" y="683" text-anchor="middle" font-size="11" font-weight="700" fill="#b71c1c">StateStore</text>
+  <text x="280" y="700" font-size="10" fill="#555">InMemory · SQLite</text>
+  <text x="280" y="714" font-size="10" fill="#555">PostgreSQL · Redis</text>
+  <text x="280" y="728" font-size="10" fill="#555">Firestore · DynamoDB</text>
+
+  <!-- ToolRuntime -->
+  <rect x="490" y="665" width="200" height="90" rx="6" fill="#ffffff" stroke="#e57373" stroke-width="1"/>
+  <text x="590" y="683" text-anchor="middle" font-size="11" font-weight="700" fill="#b71c1c">ToolRuntime</text>
+  <text x="500" y="700" font-size="10" fill="#555">Local (subprocess)</text>
+  <text x="500" y="714" font-size="10" fill="#555">Sandboxed (gVisor)</text>
+  <text x="500" y="728" font-size="10" fill="#555">Remote (MCP Server)</text>
+
+  <!-- ArtifactStore -->
+  <rect x="710" y="665" width="200" height="90" rx="6" fill="#ffffff" stroke="#e57373" stroke-width="1"/>
+  <text x="810" y="683" text-anchor="middle" font-size="11" font-weight="700" fill="#b71c1c">ArtifactStore</text>
+  <text x="720" y="700" font-size="10" fill="#555">InMemory · Filesystem</text>
+  <text x="720" y="714" font-size="10" fill="#555">GCS · S3</text>
+
+  <!-- Deploy targets -->
+  <rect x="50" y="765" width="860" height="38" rx="4" fill="#ffffff" stroke="#e57373" stroke-width="1"/>
+  <text x="60" y="782" font-size="10" font-weight="700" fill="#b71c1c">Deploy Targets:</text>
+  <text x="170" y="782" font-size="10" fill="#333">Local</text>
+  <text x="230" y="782" font-size="10" fill="#888">│</text>
+  <text x="250" y="782" font-size="10" fill="#333">Cloud Run</text>
+  <text x="340" y="782" font-size="10" fill="#888">│</text>
+  <text x="360" y="782" font-size="10" fill="#333">Kubernetes</text>
+  <text x="460" y="782" font-size="10" fill="#888">│</text>
+  <text x="480" y="782" font-size="10" fill="#333">Vertex AI</text>
+  <text x="560" y="782" font-size="10" fill="#888">│</text>
+  <text x="580" y="782" font-size="10" fill="#333">Lambda</text>
+  <text x="645" y="782" font-size="10" fill="#888">│</text>
+  <text x="665" y="782" font-size="10" fill="#333">Agent Engine</text>
+  <text x="775" y="782" font-size="10" fill="#888">│</text>
+  <text x="795" y="782" font-size="10" fill="#333">DBOS Cloud</text>
+  <text x="60" y="797" font-size="9" fill="#888">ADK: adk deploy</text>
+  <text x="250" y="797" font-size="9" fill="#888">Temporal: worker + server</text>
+  <text x="480" y="797" font-size="9" fill="#888">Prefect: deployment YAML</text>
+  <text x="700" y="797" font-size="9" fill="#888">DBOS: dbos deploy</text>
+
+  <!-- Side flow: Create → Package → Deploy -->
+  <rect x="30" y="835" width="940" height="50" rx="8" fill="#eceff1" stroke="#90a4ae" stroke-width="1"/>
+  <text x="500" y="855" text-anchor="middle" font-size="11" font-weight="700" fill="#37474f">LIFECYCLE</text>
+
+  <text x="100" y="875" text-anchor="middle" font-size="10" fill="#333" font-weight="600">Define</text>
+  <text x="100" y="855" text-anchor="middle" font-size="9" fill="#888">Agent().instruct()</text>
+  <line x1="150" y1="865" x2="200" y2="865" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <text x="260" y="875" text-anchor="middle" font-size="10" fill="#333" font-weight="600">Compile</text>
+  <text x="260" y="855" text-anchor="middle" font-size="9" fill="#888">.to_ir() → compile()</text>
+  <line x1="320" y1="865" x2="370" y2="865" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <text x="430" y="875" text-anchor="middle" font-size="10" fill="#333" font-weight="600">Package</text>
+  <text x="430" y="855" text-anchor="middle" font-size="9" fill="#888">Worker codegen / deploy artifact</text>
+  <line x1="500" y1="865" x2="550" y2="865" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <text x="610" y="875" text-anchor="middle" font-size="10" fill="#333" font-weight="600">Deploy</text>
+  <text x="610" y="855" text-anchor="middle" font-size="9" fill="#888">Cloud Run / Worker / App</text>
+  <line x1="670" y1="865" x2="720" y2="865" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <text x="780" y="875" text-anchor="middle" font-size="10" fill="#333" font-weight="600">Execute</text>
+  <text x="780" y="855" text-anchor="middle" font-size="9" fill="#888">.ask() / .stream()</text>
+  <line x1="830" y1="865" x2="880" y2="865" stroke="#546e7a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <text x="930" y="875" text-anchor="middle" font-size="10" fill="#333" font-weight="600">Observe</text>
+  <text x="930" y="855" text-anchor="middle" font-size="9" fill="#888">M.log() / M.trace()</text>
+</svg>

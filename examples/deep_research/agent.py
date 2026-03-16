@@ -6,6 +6,24 @@ Gemini's Deep Research feature and Perplexity. A query is decomposed
 into sub-questions, searched in parallel across multiple sources,
 synthesized, quality-reviewed in a loop, and formatted as a report.
 
+Real-world use case: Deep research agent inspired by Gemini Deep Research and
+Perplexity. Decomposes queries, searches multiple sources in parallel,
+synthesizes with quality review loop, and produces typed reports. Used by
+analysts for comprehensive research briefs.
+
+In other frameworks: LangGraph requires StateGraph with conditional back-edges
+for the quality loop, fan-out nodes for parallel search, and Pydantic
+integration for typed output (~60 lines of graph wiring). adk-fluent expresses
+the entire topology -- parallel search, quality loop, typed output -- in one
+expression using >>, |, *, and @.
+
+Pipeline topology:
+    query_analyzer
+        >> ( web_searcher | academic_searcher | news_searcher )
+        >> synthesizer
+        >> ( quality_reviewer >> revision_agent ) * until(score >= 0.85)
+        >> report_writer @ ResearchReport
+
 Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
 
 Converted from cookbook example: 55_deep_research.py

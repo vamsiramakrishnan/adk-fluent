@@ -6,6 +6,14 @@ agent responses.  The scenario: an insurance company processes claims
 through a pipeline -- first ingesting claim details into a structured
 form, then assessing risk, then summarizing the outcome.
 
+Real-world use case: Insurance claim processing pipeline with typed data flow.
+Extracts claim details into structured schemas, validates coverage, and
+produces typed assessment reports.
+
+In other frameworks: LangGraph uses Pydantic with output_parser on chain calls.
+CrewAI uses output_pydantic on Task objects. adk-fluent uses the @ operator for
+inline schema binding on any agent.
+
 Converted from cookbook example: 53_structured_schemas.py
 
 Usage:

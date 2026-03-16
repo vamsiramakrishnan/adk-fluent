@@ -10,10 +10,10 @@ adk-fluent decouples **what** your agent does (builders, operators, namespaces) 
 | **ADK** | **Stable** — production-ready, default backend | `pip install adk-fluent` |
 | **Temporal** | **In Development** — API may change, core compile/run path works | `pip install adk-fluent[temporal]` |
 | **asyncio** | **In Development** — reference implementation, no durability | `pip install adk-fluent` (included) |
-| **DBOS** | **Conceptual** — under research, not yet implemented | — |
-| **Prefect** | **Conceptual** — under research, not yet implemented | — |
+| **Prefect** | **In Development** — compile + plan generation works | `pip install adk-fluent[prefect]` |
+| **DBOS** | **In Development** — compile + plan generation works | `pip install adk-fluent[dbos]` |
 
-Only the ADK backend is recommended for production use today. Temporal support is actively being built and is available for early experimentation. DBOS and Prefect are being evaluated as future backend candidates — no code exists yet.
+Only the ADK backend is recommended for production use today. Temporal, Prefect, and DBOS support is actively being built and available for early experimentation.
 :::
 
 ## How It Works
@@ -238,18 +238,57 @@ On restart:
 
 See [Temporal Guide](temporal-guide.md) for detailed patterns and constraints.
 
-### Future Backends (Conceptual)
+### Prefect (in dev)
+**Status: In Development** — API may change
 
-:::{admonition} Under Research
-:class: note
+Compiles IR to Prefect flows and tasks. LLM calls become tasks with result caching; deterministic nodes become inline flow code. Supports HITL via `pause_flow_run()`.
 
-The following backends are being **evaluated as concepts only**. No implementation exists. They are listed here to show the architecture's extensibility, not as commitments.
+```python
+from adk_fluent import Agent
+
+# Same pipeline definition — just add .engine()
+pipeline = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic.").writes("findings")
+    >> Agent("writer", "gemini-2.5-flash")
+    .instruct("Write a report about {findings}.")
+).engine("prefect", work_pool="gpu-pool")
+
+response = await pipeline.ask_async("AI in healthcare")
+```
+
+**When to use:** Teams already using Prefect, need durability with familiar UI.
+
+### DBOS (in dev)
+**Status: In Development** — API may change
+
+Compiles IR to DBOS durable workflows and steps backed by PostgreSQL. LLM calls become `@DBOS.step()` functions (durably recorded); deterministic nodes become inline workflow code. Supports HITL via `DBOS.recv()`.
+
+```python
+from adk_fluent import Agent
+
+# Same pipeline definition — just add .engine()
+pipeline = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic.").writes("findings")
+    >> Agent("writer", "gemini-2.5-flash")
+    .instruct("Write a report about {findings}.")
+).engine("dbos", database_url="postgresql://localhost/agents")
+
+response = await pipeline.ask_async("AI in healthcare")
+```
+
+**When to use:** Lightweight durability without heavy infrastructure (only PostgreSQL needed).
+
+### SDK vs. Orchestrator
+
+:::{important}
+**ADK is a full SDK** — it owns model calls, tool execution, state management, and deployment. When you use the ADK backend, adk-fluent compiles IR to native ADK objects and ADK handles everything.
+
+**Temporal, Prefect, and DBOS are orchestrators** — they own scheduling, durability, and crash recovery, but delegate LLM calls to a `ModelProvider` from the compute layer. This is why they need additional configuration (model_provider, database_url) that ADK doesn't.
+
+The key benefit of orchestrators: if a 10-step pipeline crashes at step 7, the orchestrator replays steps 1-6 from cache (zero LLM cost) and re-executes only step 7+.
 :::
-
-| Backend | Concept | Potential Fit |
-|---------|---------|--------------|
-| **DBOS** | Durable functions with PostgreSQL | Lightweight durability without Temporal infrastructure |
-| **Prefect** | Flow orchestration with observability | Teams already using Prefect for data pipelines |
 
 ## Engine Capabilities
 
@@ -267,16 +306,18 @@ print(caps.durable)        # False
 print(caps.checkpointing)  # False
 ```
 
-| Capability | ADK | Temporal | asyncio |
-|------------|-----|----------|---------|
-| `streaming` | Yes | No | Yes |
-| `parallel` | Yes | Yes | Yes |
-| `durable` | No | Yes | No |
-| `replay` | No | Yes | No |
-| `checkpointing` | No | Yes | No |
-| `signals` | No | Yes | No |
-| `dispatch_join` | Yes | Yes | Yes |
-| `distributed` | No | Yes | No |
+| Capability | ADK | Temporal | asyncio | Prefect | DBOS |
+|------------|-----|----------|---------|---------|------|
+| `streaming` | Yes | No | Yes | No | No |
+| `parallel` | Yes | Yes | Yes | Yes | Yes |
+| `durable` | No | Yes | No | Yes* | Yes |
+| `replay` | No | Yes | No | No | Yes |
+| `checkpointing` | No | Yes | No | Yes* | Yes |
+| `signals` | No | Yes | No | Yes | Yes |
+| `dispatch_join` | Yes | Yes | Yes | Yes | Yes |
+| `distributed` | No | Yes | No | Yes* | No |
+
+\*Requires Prefect Server or Prefect Cloud.
 
 ## Backend Registry
 
@@ -285,7 +326,7 @@ Backends self-register. You can query the registry:
 ```python
 from adk_fluent.backends import available_backends, get_backend
 
-print(available_backends())  # ['adk', 'asyncio', 'temporal']
+print(available_backends())  # ['adk', 'asyncio', 'dbos', 'prefect', 'temporal']
 
 backend = get_backend("temporal", client=client, task_queue="my-queue")
 ```
@@ -333,14 +374,16 @@ register_backend("custom", lambda **kw: MyBackend(**kw))
 |-----------|-------------------|
 | Prototyping / development | **ADK** (default) |
 | Production without durability needs | **ADK** |
-| Long-running pipelines that must survive crashes | **Temporal** (when stable) |
-| Distributed multi-worker execution | **Temporal** (when stable) |
-| Human-in-the-loop approval workflows | **Temporal** (when stable) |
+| Long-running pipelines that must survive crashes | **Temporal** |
+| Distributed multi-worker execution | **Temporal** or **Prefect** |
+| Human-in-the-loop approval workflows | **Temporal**, **Prefect**, or **DBOS** |
 | Testing backend abstraction | **asyncio** |
-| Existing Prefect/DBOS infrastructure | Watch for future backends |
+| Team already uses Prefect | **Prefect** |
+| Lightweight durability, minimal infrastructure | **DBOS** |
+| Cost-sensitive crash recovery | **Temporal** or **DBOS** (replay = zero LLM cost) |
 
 :::{tip}
-Start with the ADK backend. If you later need durability or distribution, switch to Temporal by adding `.engine("temporal", ...)` — your builder definitions don't change.
+Start with the ADK backend. If you later need durability or distribution, switch by adding `.engine("temporal", ...)` — your builder definitions don't change.
 :::
 
 :::{seealso}

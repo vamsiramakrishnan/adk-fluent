@@ -5,6 +5,10 @@ Demonstrates building a versatile task agent with multiple tools,
 safety guardrails, and dependency injection -- inspired by Manus AI's
 tool-using agent and the OpenAI Agents SDK patterns.
 
+Pipeline topology:
+    task_agent [tools: search, calc, read_file] [guardrail] [inject: api_key]
+        >> verifier [C.from_state("task_result")]
+
 Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 
 Converted from cookbook example: 58_multi_tool_agent.py

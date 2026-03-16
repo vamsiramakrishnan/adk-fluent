@@ -1,5 +1,5 @@
 """
-Immutable Variants with .with_()
+A/B Prompt Testing for Marketing Copy with .with_()
 
 Converted from cookbook example: 23_with_variants.py
 
@@ -13,14 +13,26 @@ from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
-base = Agent("assistant").model("gemini-2.5-flash").instruct("You are a helpful assistant.")
+# Base marketing copywriter agent
+base_copywriter = (
+    Agent("copywriter")
+    .model("gemini-2.5-flash")
+    .instruct("Write compelling marketing copy for product launches. Focus on benefits, not features.")
+)
 
-# with_() creates an independent copy with overrides
-creative = base.with_(name="creative", model="gemini-2.5-pro")
-fast = base.with_(name="fast", instruct="You are fast and concise.")
+# with_() creates independent copies with overrides -- perfect for A/B testing
+variant_a = base_copywriter.with_(
+    name="copywriter_formal",
+    instruct="Write formal, authoritative marketing copy for enterprise products. "
+    "Use data-driven language and industry terminology.",
+)
+variant_b = base_copywriter.with_(
+    name="copywriter_casual",
+    instruct="Write casual, conversational marketing copy for consumer products. Use humor and relatable language.",
+)
 
-# Original is unchanged
-assert base._config["name"] == "assistant"
-assert base._config["model"] == "gemini-2.5-flash"
+# Original is unchanged -- variants are fully independent
+assert base_copywriter._config["name"] == "copywriter"
+assert base_copywriter._config["model"] == "gemini-2.5-flash"
 
-root_agent = fast.build()
+root_agent = variant_b.build()

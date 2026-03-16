@@ -381,6 +381,17 @@ def _replace_response_text(llm_response, new_text: str):
     )
 
 
+def _propagate_middlewares(left: Any, right: Any, result: Any) -> None:
+    """Merge middleware from both operands onto the result builder."""
+    merged = list(getattr(left, "_middlewares", []))
+    other_mw = getattr(right, "_middlewares", []) if isinstance(right, BuilderBase) else []
+    for mw in other_mw:
+        if mw not in merged:
+            merged.append(mw)
+    if merged:
+        result._middlewares = merged
+
+
 def _count_components(component: Any) -> int:
     """Count total components in a UIComponent tree."""
     count = 1
@@ -460,6 +471,25 @@ def until(predicate: Callable, *, max: int = 10) -> _UntilSpec:
 # Re-export from canonical location for backward compatibility
 from adk_fluent._exceptions import BuilderError as BuilderError  # noqa: E402
 from adk_fluent._exceptions import ADKFluentError as ADKFluentError  # noqa: E402
+
+
+def _attr_is_close(a: str, b: str) -> bool:
+    """Check if two attribute names are within edit distance 1 (typo detection)."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        return sum(ca != cb for ca, cb in zip(a, b)) == 1
+    short, long = (a, b) if len(a) < len(b) else (b, a)
+    diffs = 0
+    si = li = 0
+    while si < len(short) and li < len(long):
+        if short[si] != long[li]:
+            diffs += 1
+            li += 1
+        else:
+            si += 1
+            li += 1
+    return diffs <= 1
 
 
 class BuilderBase:
@@ -560,6 +590,13 @@ class BuilderBase:
         _ADK_TARGET_CLASS = self.__class__._ADK_TARGET_CLASS
         _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
 
+        def _suggest_match(name: str, available: list[str]) -> str:
+            """Find close matches for typo suggestions."""
+            close = [a for a in available if _attr_is_close(name, a)]
+            if close:
+                return f" Did you mean '.{close[0]}'?"
+            return ""
+
         if _ADK_TARGET_CLASS is not None:
             # Pydantic mode: validate against model_fields
             if field_name not in _ADK_TARGET_CLASS.model_fields:
@@ -567,14 +604,18 @@ class BuilderBase:
                     set(_ADK_TARGET_CLASS.model_fields.keys()) | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys())
                 )
                 cls_name = _ADK_TARGET_CLASS.__name__
+                suggestion = _suggest_match(name, available)
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} Available: {', '.join(available)}"
                 )
         elif _KNOWN_PARAMS is not None and field_name not in _KNOWN_PARAMS:
             # init_signature mode: validate against static param set
             available = sorted(_KNOWN_PARAMS | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
             cls_name = self.__class__.__name__
-            raise AttributeError(f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}")
+            suggestion = _suggest_match(name, available)
+            raise AttributeError(
+                f"'{name}' is not a recognized field on {cls_name}.{suggestion} Available: {', '.join(available)}"
+            )
         elif _ADK_TARGET_CLASS is None and "build" in self.__class__.__dict__:
             # Concrete builder whose optional ADK target class is unavailable.
             # Auto-derive known fields from the builder's own explicit methods.
@@ -582,8 +623,9 @@ class BuilderBase:
             if field_name not in _auto_params:
                 available = sorted(_auto_params | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
                 cls_name = self.__class__.__name__
+                suggestion = _suggest_match(name, available)
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} Available: {', '.join(available)}"
                 )
         # else: composite/standalone/primitive — accept any field
 
@@ -683,14 +725,25 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _merge_middlewares(left: BuilderBase, right: Any) -> list:
+        """Merge middleware lists from two builder operands (deduplicating)."""
+        merged = list(getattr(left, "_middlewares", []))
+        other_mw = getattr(right, "_middlewares", []) if isinstance(right, BuilderBase) else []
+        for mw in other_mw:
+            if mw not in merged:
+                merged.append(mw)
+        return merged
+
     def _fork_for_operator(self) -> Self:
         """Create an operator-safe fork. Shares sub-builders (safe: operators never mutate children)."""
         new = object.__new__(type(self))
         new._config = dict(self._config)
         new._callbacks = {k: list(v) for k, v in self._callbacks.items()}
         new._lists = {k: list(v) for k, v in self._lists.items()}
-        if hasattr(self, "_middlewares"):
-            new._middlewares = list(self._middlewares)
+        mw = getattr(self, "_middlewares", None)
+        if mw is not None:
+            new._middlewares = list(mw)
         return new
 
     def __rshift__(self, other) -> BuilderBase:
@@ -758,13 +811,7 @@ class BuilderBase:
             result = p
 
         # Propagate middleware from operands to result
-        merged_mw = list(getattr(self, "_middlewares", []))
-        other_mw = getattr(other, "_middlewares", []) if isinstance(other, BuilderBase) else []
-        for mw in other_mw:
-            if mw not in merged_mw:
-                merged_mw.append(mw)
-        if merged_mw:
-            result._middlewares = merged_mw
+        _propagate_middlewares(self, other, result)
         return result
 
     def __rrshift__(self, other) -> BuilderBase:
@@ -778,6 +825,9 @@ class BuilderBase:
         """Create or extend a FanOut: a | b | c."""
         self._freeze()
         from adk_fluent.workflow import FanOut
+
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
 
         my_name = self._config.get("name", "")
         other_name = other._config.get("name", "")
@@ -795,13 +845,7 @@ class BuilderBase:
             result = f
 
         # Propagate middleware from operands to result
-        merged_mw = list(getattr(self, "_middlewares", []))
-        other_mw = getattr(other, "_middlewares", []) if isinstance(other, BuilderBase) else []
-        for mw in other_mw:
-            if mw not in merged_mw:
-                merged_mw.append(mw)
-        if merged_mw:
-            result._middlewares = merged_mw
+        _propagate_middlewares(self, other, result)
         return result
 
     def __mul__(self, other) -> BuilderBase:
@@ -814,6 +858,15 @@ class BuilderBase:
             loop = self.__mul__(other.max)
             loop._config["_until_predicate"] = other.predicate
             return loop
+
+        if not isinstance(other, int):
+            return NotImplemented
+
+        if other < 1:
+            raise ValueError(
+                f"Loop iterations must be >= 1, got {other}. "
+                "Use agent * 3 for 3 iterations or agent * until(pred) for conditional loops."
+            )
 
         iterations = other
         my_name = self._config.get("name", "")
@@ -841,6 +894,11 @@ class BuilderBase:
 
         Equivalent to ``.returns(Schema)`` or ``.output(Schema)``.
         """
+        if not isinstance(schema, type):
+            raise TypeError(
+                f"agent @ X requires X to be a type (Pydantic model), got {type(schema).__name__}. "
+                "Usage: agent @ MySchema"
+            )
         self._freeze()
         clone = self._fork_for_operator()
         clone._config["_output_schema"] = schema
@@ -946,13 +1004,85 @@ class BuilderBase:
 
         return self.native(_apply)
 
-    def validate(self) -> Self:
-        """Try to build; raise ValueError with clear message on failure. Returns self."""
+    def validate(self, *, strict: bool = False) -> Self:
+        """Validate this builder: build check + contract analysis.
+
+        Goes beyond just calling ``.build()`` — also runs the 16-pass
+        contract checker on the IR tree to catch data flow issues,
+        missing template variables, dead keys, and more.
+
+        Args:
+            strict: If True, raise on *any* issue (including advisories).
+                    If False (default), raise only on errors.
+
+        Returns self for chaining.
+
+        Raises:
+            ValueError: If build fails or contract errors are found.
+
+        Usage::
+
+            # Basic validation (errors only)
+            pipeline.validate()
+
+            # Strict mode (errors + advisories)
+            pipeline.validate(strict=True)
+        """
+        name = self._config.get("name", "?")
+        cls_name = self.__class__.__name__
+
+        # Phase 1: Build check
         try:
             self.build()
         except Exception as exc:
-            name = self._config.get("name", "?")
-            raise ValueError(f"Validation failed for {self.__class__.__name__}('{name}'): {exc}") from exc
+            raise ValueError(f"Validation failed for {cls_name}('{name}'): {exc}") from exc
+
+        # Phase 2: Contract analysis on IR tree
+        try:
+            ir = self.to_ir()
+        except (NotImplementedError, AttributeError):
+            # Some builders (single agents) may not support IR — that's OK
+            return self
+
+        try:
+            from adk_fluent.testing.contracts import check_contracts
+
+            raw_issues = check_contracts(ir)
+        except (ImportError, NotImplementedError):
+            return self
+
+        if not raw_issues:
+            return self
+
+        # Classify issues
+        errors = []
+        advisories = []
+        for issue in raw_issues:
+            if isinstance(issue, dict):
+                level = issue.get("level", "error")
+                msg = issue.get("message", str(issue))
+                agent = issue.get("agent", "")
+                hint = issue.get("hint", "")
+                formatted = f"  [{agent}] {msg}" if agent else f"  {msg}"
+                if hint:
+                    formatted += f"\n    Hint: {hint}"
+                if level == "error":
+                    errors.append(formatted)
+                else:
+                    advisories.append(formatted)
+            elif isinstance(issue, str):
+                errors.append(f"  {issue}")
+
+        if errors or (strict and advisories):
+            parts = [f"Validation failed for {cls_name}('{name}'):"]
+            if errors:
+                parts.append(f"\n{len(errors)} error(s):")
+                parts.extend(errors)
+            if strict and advisories:
+                parts.append(f"\n{len(advisories)} advisory(s):")
+                parts.extend(advisories)
+            raise ValueError("\n".join(parts))
+
         return self
 
     def _explain_plain(self) -> str:
@@ -1101,7 +1231,7 @@ class BuilderBase:
                         lines.append(f"    [{marker}] {agent}: {msg}")
                         if hint:
                             lines.append(f"           Hint: {hint}")
-        except (NotImplementedError, Exception):
+        except (NotImplementedError, AttributeError, ImportError):
             pass  # IR not available or conversion failed
 
         return "\n".join(lines)
@@ -1278,7 +1408,7 @@ class BuilderBase:
                         node = issues_branch.add(f"{marker} {agent}: {msg}")
                         if hint:
                             node.add(f"[dim]Hint: {hint}[/dim]")
-        except (NotImplementedError, Exception):
+        except (NotImplementedError, AttributeError, ImportError):
             pass  # IR not available or conversion failed
 
         return tree
@@ -1503,7 +1633,7 @@ class BuilderBase:
                     else {"message": str(i)}
                     for i in issues
                 ]
-        except (NotImplementedError, Exception):
+        except (NotImplementedError, AttributeError, ImportError):
             pass
 
         return result
@@ -1907,13 +2037,30 @@ class BuilderBase:
         but scoped to this builder instead of globally.
 
         Args:
-            responses: Either a list of response strings (cycles when
-                       exhausted), or a callable(llm_request) -> str.
+            responses: One of:
+                - ``list[str]``: cycle through responses (applied to this agent)
+                - ``callable(llm_request) -> str``: dynamic mock (applied to this agent)
+                - ``dict[str, str | list[str]]``: mock specific agents by name.
+                  Keys are agent names, values are response strings or lists.
+                  Works on Pipeline, FanOut, Loop — propagates to sub-agents.
 
-        Usage:
+        Usage::
+
+            # Single agent
             agent.mock(["Hello!", "World!"])
             agent.mock(lambda req: "Fixed response")
+
+            # Pipeline/composition — mock each agent by name
+            pipeline = Agent("researcher") >> Agent("writer")
+            pipeline.mock({
+                "researcher": "Research findings here.",
+                "writer": "Final report.",
+            })
         """
+        # Dict: propagate mocks to named sub-agents
+        if isinstance(responses, dict):
+            return self._mock_by_name(responses)
+
         if callable(responses) and not isinstance(responses, list):
             fn = responses
 
@@ -1934,6 +2081,56 @@ class BuilderBase:
                 return LlmResponse(content=types.Content(role="model", parts=[types.Part(text=str(text))]))
 
         self._callbacks.setdefault("before_model_callback", []).append(_mock_cb)
+        return self
+
+    def _mock_by_name(self, responses: dict) -> Self:
+        """Propagate mock responses to sub-agents by name.
+
+        Walks the builder tree (sub_agents list) and applies .mock()
+        to each builder whose name matches a key in the dict.
+        Raises ValueError if a name in the dict doesn't match any agent.
+        """
+        matched = set()
+
+        def _apply(builder):
+            name = builder._config.get("name", "")
+            if name in responses:
+                matched.add(name)
+                resp = responses[name]
+                if isinstance(resp, str):
+                    resp = [resp]
+                builder.mock(resp)
+            # Recurse into sub-agents
+            for sub in builder._lists.get("sub_agents", []):
+                if isinstance(sub, BuilderBase):
+                    _apply(sub)
+
+        _apply(self)
+
+        unmatched = set(responses.keys()) - matched
+        if unmatched:
+            available = []
+
+            def _collect_names(b):
+                n = b._config.get("name", "")
+                if n:
+                    available.append(n)
+                for sub in b._lists.get("sub_agents", []):
+                    if isinstance(sub, BuilderBase):
+                        _collect_names(sub)
+
+            _collect_names(self)
+            # Suggest close matches for typos
+            suggestions = []
+            for name in sorted(unmatched):
+                close = [a for a in available if _attr_is_close(name, a)]
+                if close:
+                    suggestions.append(f"'{name}' — did you mean '{close[0]}'?")
+                else:
+                    suggestions.append(f"'{name}'")
+            raise ValueError(
+                f"mock() could not find agent(s): {', '.join(suggestions)}. Available agents: {', '.join(available)}"
+            )
         return self
 
     def loop_while(self, predicate: Callable, *, max_iterations: int = 3) -> BuilderBase:
@@ -1993,6 +2190,14 @@ class BuilderBase:
             bg_pipeline = (researcher >> analyzer).dispatch(name="analysis")
             workflow = writer >> bg_email >> bg_pipeline >> join()
         """
+        if progress_key is not None:
+            import warnings
+
+            warnings.warn(
+                ".dispatch(progress_key=) is deprecated, use stream_to= instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         task_name = name or self._config.get("name", f"task_{next(_dispatch_counter)}")
         builder_name = f"dispatch_{task_name}"
         return BackgroundTask(
@@ -2080,7 +2285,7 @@ class BuilderBase:
                 "Did you mean .tools(...)? Use .middleware() for middleware/MComposite, "
                 ".tools() for TComposite."
             )
-        if not hasattr(self, "_middlewares"):
+        if getattr(self, "_middlewares", None) is None:
             self._middlewares = []
         if isinstance(mw, MComposite):
             self._middlewares.extend(mw.to_stack())
@@ -2284,7 +2489,30 @@ class BuilderBase:
             # Downstream agent reads it
             Agent("writer").reads("findings").writes("draft")
         """
+        if key is None:
+            # Allow None to clear the output key
+            self = self._maybe_fork_for_mutation()
+            self._config["output_key"] = None
+            return self
+        if not isinstance(key, str) or not key:
+            raise ValueError(f".writes() requires a non-empty string key, got {key!r}")
+        if not key.isidentifier():
+            raise ValueError(
+                f".writes('{key}') — key must be a valid Python identifier "
+                f"(letters, digits, underscores, no spaces/hyphens). "
+                f"Consider: .writes('{key.replace('-', '_').replace(' ', '_')}')"
+            )
         self = self._maybe_fork_for_mutation()
+        existing = self._config.get("output_key")
+        if existing is not None and existing != key:
+            import warnings
+
+            warnings.warn(
+                f".writes('{key}') overwrites existing .writes('{existing}'). "
+                f"Each agent can only write to one state key.",
+                UserWarning,
+                stacklevel=2,
+            )
         self._config["output_key"] = key
         return self
 
@@ -2549,7 +2777,7 @@ class BuilderBase:
         try:
             ir = self.to_ir()
             suggestions = infer_data_flow(ir)
-        except Exception:
+        except (NotImplementedError, AttributeError, ImportError):
             return self  # Can't infer — leave unchanged
 
         if not suggestions:
@@ -2678,8 +2906,10 @@ class BuilderBase:
                 from adk_fluent.testing.contracts import check_contracts
 
                 ir_issues = check_contracts(ir)
-            except Exception:
-                pass  # IR conversion failed — skip contracts silently
+            except Exception as exc:
+                import logging
+
+                logging.getLogger("adk_fluent.contracts").debug("IR contract check skipped — to_ir() failed: %s", exc)
 
         all_issues = interop_issues + ir_issues
         if not all_issues:

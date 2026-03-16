@@ -29,27 +29,63 @@ from pathlib import Path
 
 
 def parse_cookbook(filepath: Path) -> dict:
-    """Parse a cookbook file into title and sections."""
+    """Parse a cookbook file into title and sections.
+
+    If the cookbook has NATIVE/FLUENT/ASSERT markers, parse into sections.
+    Otherwise (e.g. A2UI cookbooks), treat the entire file as the fluent
+    section, stripping assert statements.
+    """
     text = filepath.read_text()
 
     # Extract title from docstring
     title_match = re.match(r'"""(.+?)"""', text, re.DOTALL)
     title = title_match.group(1).strip() if title_match else filepath.stem
 
-    sections = {"native": "", "fluent": "", "assert": ""}
-    current = None
-    for line in text.split("\n"):
-        if "# --- NATIVE ---" in line:
-            current = "native"
-            continue
-        elif "# --- FLUENT ---" in line:
-            current = "fluent"
-            continue
-        elif "# --- ASSERT ---" in line:
-            current = "assert"
-            continue
-        if current:
-            sections[current] += line + "\n"
+    has_sections = "# --- FLUENT ---" in text
+
+    if has_sections:
+        sections = {"native": "", "fluent": "", "assert": ""}
+        current = None
+        for line in text.split("\n"):
+            if "# --- NATIVE ---" in line:
+                current = "native"
+                continue
+            elif "# --- FLUENT ---" in line:
+                current = "fluent"
+                continue
+            elif "# --- ASSERT ---" in line:
+                current = "assert"
+                continue
+            if current:
+                sections[current] += line + "\n"
+    else:
+        # No section markers — extract everything after the docstring
+        # as "fluent", stripping assert lines and print statements
+        lines = text.split("\n")
+        # Skip docstring
+        in_docstring = False
+        fluent_lines = []
+        native_lines = []
+        past_docstring = False
+        for line in lines:
+            if not past_docstring:
+                if '"""' in line:
+                    if in_docstring or line.count('"""') >= 2:
+                        past_docstring = True
+                    else:
+                        in_docstring = True
+                continue
+            stripped = line.strip()
+            # Skip assert lines and print lines
+            if stripped.startswith("assert ") or stripped.startswith("print("):
+                continue
+            fluent_lines.append(line)
+
+        sections = {
+            "native": "\n".join(native_lines),
+            "fluent": "\n".join(fluent_lines),
+            "assert": "",
+        }
 
     return {"title": title, "filepath": filepath, **sections}
 
@@ -93,13 +129,13 @@ def _is_buildable_example(parsed: dict) -> bool:
         return False
 
     # Must have an Agent or workflow builder construction
-    if not any(kw in fluent for kw in ["Agent(", "Pipeline(", "FanOut(", "Loop(", "Route(", "@agent("]):
+    has_agent = any(kw in fluent for kw in ["Agent(", "Pipeline(", "FanOut(", "Loop(", "Route(", "@agent("])
+    if not has_agent:
         return False
 
-    # Skip pure StateKey/Artifact examples (no agent at all)
-    return (
-        "Agent(" in fluent or "Pipeline(" in fluent or "FanOut(" in fluent or "Loop(" in fluent or "@agent(" in fluent
-    )
+    # Must have a variable that could be the root agent
+    # (filters out examples that only create agents inside asserts)
+    return _find_root_agent_var(fluent) is not None
 
 
 # ---------------------------------------------------------------------------

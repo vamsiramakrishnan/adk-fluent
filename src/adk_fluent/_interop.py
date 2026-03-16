@@ -560,6 +560,28 @@ def check_output_interop(config: dict[str, Any]) -> list[dict[str, str]]:
             }
         )
 
+    # Pattern 5: .returns(Schema) + .tool() — tools silently disabled by ADK
+    if output_schema is not None:
+        # Check both _lists["tools"] (from .tool()) and config["tools"]
+        # We only have access to config dict here, not builder lists
+        config_tools = config.get("tools")
+        if config_tools:
+            schema_name = getattr(output_schema, "__name__", str(output_schema))
+            issues.append(
+                {
+                    "level": "error",
+                    "agent": name,
+                    "message": (
+                        f"Agent '{name}' has both .returns({schema_name}) and "
+                        f"tools — ADK silently disables tools when output_schema is set"
+                    ),
+                    "hint": (
+                        "Remove .returns() to keep tools, or remove tools to use "
+                        "structured output. These are mutually exclusive in ADK."
+                    ),
+                }
+            )
+
     return issues
 
 

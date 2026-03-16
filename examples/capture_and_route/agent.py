@@ -1,6 +1,22 @@
 """
 Capture and Route: IT Helpdesk Triage
 
+Real-world use case: IT helpdesk ticket capture and routing system. Captures
+incoming messages into state, classifies urgency, and routes to appropriate
+support tiers.
+
+In other frameworks: LangGraph requires custom state capture via TypedDict
+updates and conditional_edges for routing. adk-fluent uses S.capture() for
+state injection and Route() for declarative branching.
+
+Pipeline topology:
+    S.capture("ticket")
+        >> triage [save_as: priority]
+        >> Route("priority")
+            ├─ "p1" -> incident_commander
+            ├─ "p2" -> senior_support
+            └─ else -> support_bot
+
 Converted from cookbook example: 50_capture_and_route.py
 
 Usage:

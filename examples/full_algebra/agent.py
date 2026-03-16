@@ -1,5 +1,23 @@
 """
-Full Expression Algebra: All Operators Together
+Code Review Pipeline -- Expression Algebra in Practice
+
+Demonstrates how composition operators (>>, |, @, //) combine naturally
+in a real-world code review system. A diff parser extracts changes,
+parallel reviewers check style, security, and logic independently,
+then findings are aggregated into a structured verdict.
+
+Real-world use case: Automated code review pipeline that runs style, security,
+and logic reviewers in parallel, then merges findings. Used by engineering teams
+as a pre-merge quality gate.
+
+In other frameworks: LangGraph models this as a fan-out subgraph with merge
+node (~45 lines). adk-fluent composes parallel reviewers with | and sequences
+with >> in a single expression.
+
+Pipeline topology:
+    diff_parser
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
 
 Converted from cookbook example: 34_full_algebra.py
 
@@ -9,66 +27,56 @@ Usage:
 """
 
 from pydantic import BaseModel
-from adk_fluent import Agent, S, Pipeline, until
-from adk_fluent._base import _FallbackBuilder
+
+from adk_fluent import Agent
 from dotenv import load_dotenv
 
 load_dotenv()  # loads .env from examples/ (copy .env.example -> .env)
 
 
-class Report(BaseModel):
-    title: str
-    body: str
-    confidence: float
+class ReviewVerdict(BaseModel):
+    """Structured output from the code review pipeline."""
+
+    has_issues: bool
+    critical_count: int
+    summary: str
 
 
-# The complete proof: all operators compose into one expression
-#
-#   |   parallel research
-#   >>  sequence
-#   fn  state transform
-#   @   typed output
-#   //  fallback
-#   *   conditional loop
-#   S   state transforms
-pipeline = (
-    # Step 1: Parallel research (|)
-    (
-        Agent("web").model("gemini-2.5-flash").instruct("Search the web for information.")
-        | Agent("scholar").model("gemini-2.5-flash").instruct("Search academic papers.")
-    )
-    # Step 2: Merge research results (S transform via >>)
-    >> S.merge("web", "scholar", into="research")
-    # Step 3: Write with typed output (@) and fallback (//)
-    >> Agent("writer").model("gemini-2.5-flash").instruct("Write a report.")
-    @ Report
-    // Agent("writer_b").model("gemini-2.5-pro").instruct("Write a report.")
-    @ Report
-    # Step 4: Quality loop (* until)
+# The code review pipeline uses 4 operators:
+#   >>  sequential flow (parse -> review -> aggregate)
+#   |   parallel fan-out (style + security + logic run concurrently)
+#   @   typed output (aggregator returns ReviewVerdict)
+#   //  fallback (primary model -> backup model)
+
+review_pipeline = (
+    # Step 1: Parse the diff into reviewable chunks
+    Agent("diff_parser")
+    .model("gemini-2.5-flash")
+    .instruct("Parse the git diff into individual file changes with context.")
+    .writes("parsed_diff")
+    # Step 2: Three reviewers run in parallel
     >> (
-        Agent("critic").model("gemini-2.5-flash").instruct("Score the report.").writes("confidence")
-        >> Agent("reviser").model("gemini-2.5-flash").instruct("Improve the report.")
+        Agent("style_checker")
+        .model("gemini-2.5-flash")
+        .instruct("Check code style: naming conventions, formatting, docstrings.")
+        | Agent("security_scanner")
+        .model("gemini-2.5-flash")
+        .instruct("Scan for security issues: injection, auth bypass, secrets in code.")
+        | Agent("logic_reviewer")
+        .model("gemini-2.5-flash")
+        .instruct("Review business logic: edge cases, error handling, race conditions.")
     )
-    * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
+    # Step 3: Aggregate findings with typed output and model fallback
+    >> (
+        Agent("finding_aggregator")
+        .model("gemini-2.5-flash")
+        .instruct("Aggregate all review findings into a final verdict.")
+        @ ReviewVerdict
+        // Agent("backup_aggregator")
+        .model("gemini-2.5-pro")
+        .instruct("Aggregate all review findings into a final verdict.")
+        @ ReviewVerdict
+    )
 )
 
-# Sub-expression reuse — immutable operators make this safe
-review = Agent("reviewer").model("gemini-2.5-flash").instruct("Review quality.") >> Agent("scorer").model(
-    "gemini-2.5-flash"
-).instruct("Score.").writes("score")
-quality_gate = until(lambda s: float(s.get("score", 0)) > 0.8, max=3)
-
-# Same sub-expression in two independent pipelines
-pipeline_a = (
-    Agent("writer_a").model("gemini-2.5-flash").instruct("Write version A.")
-    >> review * quality_gate
-    >> S.rename(score="final_score_a")
-)
-
-pipeline_b = (
-    Agent("writer_b").model("gemini-2.5-flash").instruct("Write version B.")
-    >> review * quality_gate
-    >> S.rename(score="final_score_b")
-)
-
-root_agent = pipeline_b.build()
+root_agent = review_pipeline.build()

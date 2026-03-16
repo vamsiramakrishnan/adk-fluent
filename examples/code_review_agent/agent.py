@@ -6,6 +6,22 @@ Gemini CLI's code review and GitHub Copilot's review features.
 Uses parallel fan-out for concurrent analysis, typed output for
 structured findings, and conditional gating.
 
+Real-world use case: Automated code review agent inspired by Gemini CLI and
+GitHub Copilot code review. Analyzes code for style, bugs, and security
+issues, then produces structured feedback.
+
+In other frameworks: LangGraph and CrewAI both require separate agent/node
+definitions for each review dimension plus aggregation logic. adk-fluent
+composes parallel reviewers with | and sequences with >> for a concise review
+pipeline.
+
+Pipeline topology:
+    diff_parser [save_as: parsed_changes]
+        >> ( style_checker | security_scanner | logic_reviewer )
+        >> tap(log)
+        >> finding_aggregator @ ReviewResult
+        >> comment_writer [gated: findings_count > 0]
+
 Uses: >>, |, @, proceed_if, save_as, tap
 
 Converted from cookbook example: 57_code_review_agent.py

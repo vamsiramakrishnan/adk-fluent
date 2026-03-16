@@ -2,7 +2,7 @@
 
 Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 
-**Sequence passes (16 total):**
+**Sequence passes (15 total, numbering is not sequential — pass 11 was removed):**
 
 1. **reads_keys / writes_keys** (backward compat) -- old-style Pydantic-schema contracts.
 2. **Output key tracking** -- tracks keys produced by output_key, CaptureNode.key,
@@ -223,29 +223,49 @@ def _check_sequence_contracts(
         if not isinstance(instruction, str) or not instruction:
             continue
 
-        template_vars = re.findall(r"\{(\w+)\??\}", instruction)
-        if not template_vars:
+        # Capture (name, optional_marker) pairs: {var} → ("var", ""), {var?} → ("var", "?")
+        template_matches = re.findall(r"\{(\w+)(\??)\}", instruction)
+        if not template_matches:
             continue
 
         child_name = getattr(child, "name", "?")
         upstream_keys = produced_at[idx - 1] if idx > 0 else set()
 
-        for var in template_vars:
+        for var, opt_marker in template_matches:
             consumed_keys_by_idx[idx].add(var)
+            is_optional = opt_marker == "?"
             if var not in upstream_keys:
-                issues.append(
-                    {
-                        "level": "error",
-                        "agent": _scoped(child_name),
-                        "message": (
-                            f"Template variable '{{{var}}}' in instruction is not produced by any upstream agent"
-                        ),
-                        "hint": (
-                            f"Add .outputs('{var}') to an upstream agent, or use "
-                            f"S.capture('{var}') to capture user input into state."
-                        ),
-                    }
-                )
+                if is_optional:
+                    # Optional vars get an advisory, not an error
+                    issues.append(
+                        {
+                            "level": "info",
+                            "agent": _scoped(child_name),
+                            "message": (
+                                f"Optional template variable '{{{var}?}}' is not produced by any upstream agent "
+                                f"(will resolve to empty string at runtime)"
+                            ),
+                            "hint": (
+                                f"This is OK if the variable is intentionally optional. "
+                                f"Otherwise, add .writes('{var}') to an upstream agent."
+                            ),
+                        }
+                    )
+                else:
+                    issues.append(
+                        {
+                            "level": "error",
+                            "agent": _scoped(child_name),
+                            "message": (
+                                f"Template variable '{{{var}}}' in instruction is not produced by any upstream agent"
+                            ),
+                            "hint": (
+                                f"Add .outputs('{var}') to an upstream agent, or use "
+                                f"S.capture('{var}') to capture user input into state. "
+                                f"If this variable is optional, use '{{{var}?}}' syntax."
+                            ),
+                        }
+                    )
 
     # Also track reads_keys as consumed (skip None — TransformNode uses None for opaque)
     for idx, child in enumerate(children):

@@ -763,40 +763,41 @@ class JoinAgent(BaseAgent):
         for task in pending:
             task.cancel()
 
-        # Yield events from completed tasks into the main stream
-        for task in done:
-            if not task.cancelled() and task.exception() is None:
-                for event in task.result():
-                    yield event
+        try:
+            # Yield events from completed tasks into the main stream
+            for task in done:
+                if not task.cancelled() and task.exception() is None:
+                    for event in task.result():
+                        yield event
 
-        # Update session state metadata
-        task_to_name = {v: k for k, v in to_wait.items()}
+            # Update session state metadata
+            task_to_name = {v: k for k, v in to_wait.items()}
 
-        status_map = ctx.session.state.get("_dispatch_status", {})
-        for task in done:
-            name = task_to_name.get(task)
-            if name and name in status_map:
-                if task.cancelled():
-                    status_map[name]["status"] = "cancelled"
-                elif task.exception():
-                    status_map[name]["status"] = "error"
-                    status_map[name]["error"] = str(task.exception())
-                else:
-                    status_map[name]["status"] = "completed"
-        for task in pending:
-            name = task_to_name.get(task)
-            if name and name in status_map:
-                status_map[name]["status"] = "timed_out"
+            status_map = ctx.session.state.get("_dispatch_status", {})
+            for task in done:
+                name = task_to_name.get(task)
+                if name and name in status_map:
+                    if task.cancelled():
+                        status_map[name]["status"] = "cancelled"
+                    elif task.exception():
+                        status_map[name]["status"] = "error"
+                        status_map[name]["error"] = str(task.exception())
+                    else:
+                        status_map[name]["status"] = "completed"
+            for task in pending:
+                name = task_to_name.get(task)
+                if name and name in status_map:
+                    status_map[name]["status"] = "timed_out"
 
-        # Fire on_join topology hook
-        joined = [task_to_name[t] for t in done if not t.cancelled() and t.exception() is None]
-        timed_out = [task_to_name[t] for t in pending]
-        hooks = _get_topology_hooks()
-        if hooks:
-            fn = getattr(hooks, "on_join", None)
-            if fn is not None:
-                await fn(ctx, joined, timed_out)
-
-        # Remove joined tasks from registry
-        for name in to_wait:
-            tasks.pop(name, None)
+            # Fire on_join topology hook
+            joined = [task_to_name[t] for t in done if not t.cancelled() and t.exception() is None]
+            timed_out = [task_to_name[t] for t in pending]
+            hooks = _get_topology_hooks()
+            if hooks:
+                fn = getattr(hooks, "on_join", None)
+                if fn is not None:
+                    await fn(ctx, joined, timed_out)
+        finally:
+            # Always remove joined tasks from registry to prevent memory leaks
+            for name in to_wait:
+                tasks.pop(name, None)

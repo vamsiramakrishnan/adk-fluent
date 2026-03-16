@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from adk_fluent._ir import AgentEvent, ExecutionConfig
+
+if TYPE_CHECKING:
+    from adk_fluent.compile import EngineCapabilities
 
 
 @runtime_checkable
@@ -33,11 +36,10 @@ class Backend(Protocol):
         ...
 
     @property
-    def capabilities(self) -> Any:
+    def capabilities(self) -> EngineCapabilities:
         """Declare what this engine supports.
 
-        Returns an ``EngineCapabilities`` instance. Typed as Any here to
-        avoid circular imports (EngineCapabilities lives in compile).
+        Returns an ``EngineCapabilities`` instance.
         """
         ...
 
