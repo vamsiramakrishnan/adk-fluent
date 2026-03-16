@@ -121,6 +121,25 @@ behavior = "runtime_helper"
 helper_func = "_add_tools"
 
 [[builders.Agent.extras]]
+name = "ui"
+signature = "(self, spec: Any) -> Self"
+doc = "Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go')))."
+behavior = "runtime_helper"
+helper_func = "_add_ui_spec"
+example = '''
+from adk_fluent import Agent, UI
+
+# Declarative form
+agent = Agent("support", "gemini-2.5-flash").ui(
+    UI.form("Contact", fields={"name": "text", "email": "email"})
+).build()
+
+# LLM-guided mode
+agent = Agent("creative", "gemini-2.5-flash").ui(UI.auto()).build()
+'''
+see_also = ["UI.surface", "UI.form", "UI.auto"]
+
+[[builders.Agent.extras]]
 name = "guard"
 signature = "(self, value: Any) -> Self"
 doc = "Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned."

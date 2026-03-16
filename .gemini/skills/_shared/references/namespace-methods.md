@@ -19,6 +19,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `S.default()` | `(**defaults: 'Any') -> 'STransform'` | Fill missing keys with default values. Existing keys are not overwritten. |
 | `S.drop()` | `(*keys: 'str') -> 'STransform'` | Remove the specified keys from state. Only session-scoped keys are affected. |
 | `S.flatten()` | `(key: 'str', separator: 'str' = '.') -> 'STransform'` | Flatten nested dict at ``state[key]`` into dotted keys. |
+| `S.from_ui()` | `(*keys: 'str', surface: 'str' = 'default') -> 'STransform'` | Bridge A2UI data model values back into agent state. |
 | `S.group_by()` | `(items_key: 'str', key_fn: 'Callable[[Any], Any]', into: 'str') -> 'STransform'` | Group list items by a key function. |
 | `S.guard()` | `(predicate: 'Callable[[dict], bool]', msg: 'str' = 'State guard failed') -> 'STransform'` | Assert a state invariant. Raises ValueError if predicate is falsy. |
 | `S.history()` | `(key: 'str', max_size: 'int' = 10) -> 'STransform'` | Keep a rolling window of past values at ``state[f"{key}_history"]``. |
@@ -29,6 +30,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `S.rename()` | `(**mapping: 'str') -> 'STransform'` | Rename state keys. Unmapped session-scoped keys pass through unchanged. |
 | `S.require()` | `(*keys: 'str') -> 'STransform'` | Assert that *keys* exist in state and are truthy. |
 | `S.set()` | `(**values: 'Any') -> 'STransform'` | Set explicit key-value pairs in state (additive merge). |
+| `S.to_ui()` | `(*keys: 'str', surface: 'str' = 'default') -> 'STransform'` | Bridge state keys into the A2UI data model. |
 | `S.transform()` | `(key: 'str', fn: 'Callable') -> 'STransform'` | Apply a function to a single state value. |
 | `S.unflatten()` | `(separator: 'str' = '.') -> 'STransform'` | Unflatten dotted keys back into nested dicts. |
 | `S.validate()` | `(schema_cls: 'type', *, strict: 'bool' = False) -> 'STransform'` | Validate state against a Pydantic model or dataclass. |
@@ -72,6 +74,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `C.validate()` | `(*checks: 'str', model: 'str' = 'gemini-2.5-flash') -> 'CValidate'` | Validate context quality. Checks: 'contradictions', 'completeness', 'freshness', |
 | `C.when()` | `(predicate: 'Callable | str', block: 'CTransform') -> 'CWhen'` | Include block only if predicate is truthy at runtime. |
 | `C.window()` | `(*, n: 'int' = 5) -> 'CWindow'` | Include last N turn-pairs from conversation history. |
+| `C.with_ui()` | `(surface_id: 'str | None' = None) -> 'CTransform'` | Include current UI surface state in agent context. |
 | `C.write_notes()` | `(key: 'str' = 'default', *, strategy: 'str' = 'append', source_key: 'str | None' = None) -> 'CWriteNotes'` | Write to scratchpad after agent execution. |
 
 ## P — Prompt composition
@@ -94,6 +97,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `P.section()` | `(name: 'str', text: 'str') -> 'PSection'` | Add a custom named section. |
 | `P.task()` | `(text: 'str') -> 'PTask'` | Define the primary task or objective. |
 | `P.template()` | `(text: 'str') -> 'PTemplate'` | Template with {key}, {key?}, and {ns:key} placeholders. |
+| `P.ui_schema()` | `(*, catalog: 'str' = 'basic', examples: 'bool' = True) -> 'PSection'` | Inject A2UI schema and catalog documentation as a prompt section. |
 | `P.versioned()` | `(block: 'PTransform', *, tag: 'str' = '') -> 'PVersioned'` | Attach version metadata + fingerprint to a prompt. |
 | `P.when()` | `(predicate: 'Callable | str', block: 'PTransform') -> 'PWhen'` | Include block only if predicate is truthy at runtime. |
 | `P.without()` | `(*section_names: 'str') -> 'PWithout'` | Remove the named sections. Keep all others. |
@@ -131,6 +135,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `M.a2a_circuit_breaker()` | `(threshold: 'int' = 5, reset_after: 'float' = 60, *, agents: 'str | tuple[str, ...] | None' = None, on_open: 'Callable | None' = None, on_close: 'Callable | None' = None) -> 'MComposite'` | Circuit breaker for A2A remote agents. |
 | `M.a2a_retry()` | `(max_attempts: 'int' = 3, backoff: 'float' = 2.0, *, agents: 'str | tuple[str, ...] | None' = None, on_retry: 'Callable | None' = None) -> 'MComposite'` | A2A-specific retry middleware for remote agent failures. |
 | `M.a2a_timeout()` | `(seconds: 'float' = 30, *, agents: 'str | tuple[str, ...] | None' = None, on_timeout: 'Callable | None' = None) -> 'MComposite'` | Per-delegation timeout for A2A remote agent calls. |
+| `M.a2ui_log()` | `(*, level: 'str' = 'info', agents: 'list[str] | None' = None) -> 'MComposite'` | Log A2UI surface operations (createSurface, updateComponents, etc.). |
 | `M.after_agent()` | `(fn: 'Callable') -> 'MComposite'` | Single-hook middleware: fires after each agent. |
 | `M.after_model()` | `(fn: 'Callable') -> 'MComposite'` | Single-hook middleware: fires after each LLM response. |
 | `M.before_agent()` | `(fn: 'Callable') -> 'MComposite'` | Single-hook middleware: fires before each agent. |
@@ -163,6 +168,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | Method | Signature | Description |
 |---|---|---|
 | `T.a2a()` | `(agent_card_url: 'str', *, name: 'str | None' = None, description: 'str | None' = None, timeout: 'float' = 600.0) -> 'TComposite'` | Wrap a remote A2A agent as an AgentTool. |
+| `T.a2ui()` | `(*, catalog: 'str' = 'basic', schema: 'Any' = None) -> 'TComposite'` | A2UI toolset for LLM-guided UI generation. |
 | `T.agent()` | `(agent_or_builder: 'Any') -> 'TComposite'` | Wrap an agent (or builder) as an AgentTool. |
 | `T.cache()` | `(tool_or_composite: 'TComposite | Any', ttl: 'float' = 300, key_fn: 'Any' = None) -> 'TComposite'` | Wrap tool(s) with a TTL-based result cache. |
 | `T.confirm()` | `(tool_or_composite: 'TComposite | Any', message: 'str | None' = None) -> 'TComposite'` | Wrap tool(s) with a confirmation requirement. |
@@ -206,6 +212,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 
 | Method | Signature | Description |
 |---|---|---|
+| `G.a2ui()` | `(*, max_components: 'int' = 50, allowed_types: 'list[str] | None' = None, deny_types: 'list[str] | None' = None) -> 'GComposite'` | Validate LLM-generated A2UI output. |
 | `G.budget()` | `(max_tokens: 'int') -> 'GComposite'` | Enforce a token budget. |
 | `G.custom()` | `(fn: 'Callable[..., Any]') -> '_CustomDetector'` | Wrap an async callable as a PII detector. |
 | `G.custom_judge()` | `(fn: 'Callable[..., Any]') -> '_CustomJudge'` | Wrap an async callable as a content judge. |

@@ -12,17 +12,8 @@ Key concepts:
   - M.before_agent(fn): single-hook shortcut for quick observability
   - MComposite: composable chain class with to_stack() for flattening
 
-:::{admonition} Why this matters
-:class: important
-The `M` module brings the same fluent composition to middleware that `S` provides for state transforms and `C` provides for context. `M.retry(3) | M.log() | M.cost()` reads as a pipeline of cross-cutting concerns, composed with the same `|` operator used for parallel agents. Scoped middleware (`M.scope("agent_name", mw)`) and conditional middleware (`M.when(condition, mw)`) provide surgical control over where and when middleware activates.
-:::
-
-:::{warning} Without this
-Without fluent middleware composition, middleware configuration is a flat list of class instances with no compositional structure. Applying retry only to specific agents requires manual `if agent.name == "..."` checks inside the middleware. Conditional middleware requires custom predicate logic in every middleware class. The M module makes these patterns declarative and composable.
-:::
-
 :::{tip} What you'll learn
-How to compose middleware fluently with the M module and | operator.
+How to use operator syntax for composing agents.
 :::
 
 _Source: `62_m_module_composition.py`_
@@ -154,6 +145,73 @@ assert len(predicate_mw) == 1
 # The condition is deferred -- wraps inner in _ConditionalMiddleware
 inner_mw = predicate_mw.to_stack()[0]
 assert callable(getattr(inner_mw, "after_model", None))  # guarded wrapper
+
+# --- 10. Expanded M factories: circuit breaker, timeout, cache, fallback ---
+
+# Circuit breaker trips open after N consecutive errors
+cb = M.circuit_breaker(threshold=5, reset_after=60)
+assert isinstance(cb, MComposite)
+assert len(cb) == 1
+
+# Per-agent timeout
+tm = M.timeout(seconds=30)
+assert isinstance(tm, MComposite)
+assert len(tm) == 1
+
+# Model cache with TTL
+cache = M.cache(ttl=300, key_fn=None)
+assert isinstance(cache, MComposite)
+assert len(cache) == 1
+
+# Fallback model on primary failure
+fallback = M.fallback_model(model="gemini-2.0-flash")
+assert isinstance(fallback, MComposite)
+assert len(fallback) == 1
+
+# Dedup suppresses duplicate calls
+dedup = M.dedup(window=10)
+assert isinstance(dedup, MComposite)
+assert len(dedup) == 1
+
+# Sample wraps inner middleware probabilistically
+sampled = M.sample(0.1, M.log())
+assert isinstance(sampled, MComposite)
+assert len(sampled) == 1
+
+# Trace exports to OpenTelemetry
+trace = M.trace(exporter=None)
+assert isinstance(trace, MComposite)
+assert len(trace) == 1
+
+# Metrics collection
+metrics = M.metrics(collector=None)
+assert isinstance(metrics, MComposite)
+assert len(metrics) == 1
+
+# --- 11. Production resilience stack composition ---
+# Compose new factories with existing ones
+resilience = M.retry(3) | M.circuit_breaker(threshold=5) | M.timeout(30) | M.cache(ttl=60)
+assert len(resilience) == 4  # four middleware instances
+
+# Full observability + resilience stack
+full_stack = (
+    M.retry(3)
+    | M.circuit_breaker(threshold=5)
+    | M.timeout(30)
+    | M.cache(ttl=60)
+    | M.fallback_model("gemini-2.0-flash")
+    | M.dedup(window=10)
+    | M.log()
+    | M.cost()
+)
+assert len(full_stack) == 8
+
+# These factories work with M.scope() and M.when()
+scoped_cb = M.scope("critical_agent", M.circuit_breaker(threshold=3))
+assert len(scoped_cb) == 1
+
+conditional_timeout = M.when("stream", M.timeout(45))
+assert len(conditional_timeout) == 1
 
 print("All M module composition assertions passed!")
 ```

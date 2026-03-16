@@ -18,17 +18,8 @@ Pipeline topology:
         >> ( style_checker | security_scanner | logic_reviewer )
         >> ( finding_aggregator @ ReviewVerdict // backup_aggregator @ ReviewVerdict )
 
-:::{admonition} Why this matters
-:class: important
-This recipe demonstrates the full composition algebra in a realistic code review pipeline. Sequential (`>>`), parallel (`|`), typed output (`@`), and fallback (`//`) operators combine in a single expression to express: parse changes, run reviewers in parallel, aggregate findings into a structured verdict, and fall back to a backup aggregator if the primary fails. This is the expressive power that makes complex topologies readable and maintainable.
-:::
-
-:::{warning} Without this
-Building this pipeline in native ADK requires separate `ParallelAgent`, `SequentialAgent`, and custom fallback classes nested together -- ~45 lines where the topology is invisible. When the pipeline structure needs to change (add a new reviewer, change the fallback strategy), the modification is spread across multiple class definitions instead of being visible in a single expression.
-:::
-
 :::{tip} What you'll learn
-How to combine all composition operators in a single real-world expression.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `34_full_algebra.py`_
@@ -54,12 +45,6 @@ class ReviewVerdict(BaseModel):
 #   |   parallel fan-out (style + security + logic run concurrently)
 #   @   typed output (aggregator returns ReviewVerdict)
 #   //  fallback (primary model -> backup model)
-#
-# The E module adds evaluation — quality-gate the pipeline output:
-#   E.suite(review_pipeline)
-#       .case("Review a SQL injection bug", expect="critical")
-#       .criteria(E.trajectory() | E.response_match() | E.safety())
-# See cookbook #11 for inline eval, #46 for eval + contracts.
 
 review_pipeline = (
     # Step 1: Parse the diff into reviewable chunks

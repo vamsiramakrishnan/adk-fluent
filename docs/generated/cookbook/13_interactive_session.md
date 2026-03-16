@@ -1,16 +1,7 @@
 # Customer Support Chat Session with .session()
 
-:::{admonition} Why this matters
-:class: important
-Multi-turn conversations require session state: the agent needs to remember what the customer said three messages ago. The `.session()` context manager handles session creation, state persistence, and cleanup automatically. This is essential for customer support chatbots, guided workflows, and any interaction that spans multiple exchanges.
-:::
-
-:::{warning} Without this
-Without managed sessions, multi-turn agents either lose context between messages (treating each turn as independent) or require manual session lifecycle management -- creating `InMemorySessionService`, generating session IDs, and ensuring cleanup on errors. A leaked session consumes memory indefinitely. The `.session()` context manager handles all of this automatically.
-:::
-
 :::{tip} What you'll learn
-How to manage interactive multi-turn sessions with agents.
+How to manage interactive sessions with agents.
 :::
 
 _Source: `13_interactive_session.py`_

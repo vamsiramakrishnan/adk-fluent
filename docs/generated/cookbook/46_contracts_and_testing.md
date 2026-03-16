@@ -1,16 +1,7 @@
 # Contracts and Testing: Medical Imaging Pipeline with Strict Data Contracts
 
-:::{admonition} Why this matters
-:class: important
-Data contracts (`.produces()`, `.consumes()`) declare what each agent writes to and reads from state. The contract checker validates these declarations at build time, catching data flow bugs before the pipeline ever runs. In a medical imaging pipeline, this means catching a missing `diagnosis` field before it surfaces at runtime with patient data at stake -- not after.
-:::
-
-:::{warning} Without this
-Without data contracts, data flow bugs are silent at build time. Agent B expects a `diagnosis` field from Agent A, but Agent A never writes it. The pipeline compiles and starts running. When Agent B tries to read `diagnosis`, it gets `None`, produces a garbage report, and nobody notices until a clinician flags the output. Data contracts catch this at build time with a clear error message.
-:::
-
 :::{tip} What you'll learn
-How to enforce data contracts and test pipelines with mock backends.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `46_contracts_and_testing.py`_
@@ -77,37 +68,6 @@ graph TD
 :::
 ::::
 
-## Closing the loop with E module evaluation
-
-Contracts verify structure at build time. The E module verifies
-behavior at eval time. Together, they close the quality loop:
-contracts catch missing fields before runtime, evals catch
-incorrect responses during quality assessment.
-
-```python
-from adk_fluent import E
-
-# Structured evaluation with trajectory and quality criteria
-eval_suite = (
-    E.suite(imaging_pipeline)
-    .case(
-        "Analyze chest CT scan showing 3 nodules",
-        expect="nodules",
-        tools=[("dicom_parser", {"modality": "CT", "body_region": "chest"})],
-    )
-    .criteria(
-        E.trajectory()              # Verify tool calls match expected trajectory
-        | E.response_match(0.7)     # Check response similarity
-        | E.hallucination()         # Ensure grounded in tool outputs
-        | E.safety()                # Medical safety check
-    )
-    .rubric("Must recommend follow-up imaging for nodules > 6mm")
-)
-
-# Serialize for CI alongside contract checks:
-# eval_suite.to_file("imaging_pipeline.test.json")
-```
-
 ## Equivalence
 
 ```python
@@ -126,7 +86,19 @@ assert len(broken_issues) == 3  # modality, body_region, and finding_count are a
 assert any("modality" in str(issue) for issue in broken_issues)
 
 # E module evaluation composes with contract-checked pipelines
+from adk_fluent import E
 from adk_fluent._eval import EvalSuite
+
+eval_suite = (
+    E.suite(imaging_pipeline)
+    .case(
+        "Analyze chest CT scan showing 3 nodules",
+        expect="nodules",
+        tools=[("dicom_parser", {"modality": "CT", "body_region": "chest"})],
+    )
+    .criteria(E.trajectory() | E.response_match(0.7) | E.hallucination() | E.safety())
+    .rubric("Must recommend follow-up imaging for nodules > 6mm")
+)
 
 assert isinstance(eval_suite, EvalSuite)
 assert len(eval_suite._cases) == 1

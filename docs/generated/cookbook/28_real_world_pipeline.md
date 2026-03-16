@@ -18,17 +18,8 @@ Pipeline topology:
         >> ( portfolio_reviewer >> analysis_refiner ) * until(approved)
         >> report_generator  [gated: only if approved]
 
-:::{admonition} Why this matters
-:class: important
-This recipe demonstrates the full power of adk-fluent's expression language in a realistic investment analysis scenario. It combines routing (classify assets), parallel composition (multiple analysts), iterative quality review (loop until approved), and conditional gating (only generate reports when approved) -- all in a single readable expression. This is the kind of pipeline that would require 100+ lines of boilerplate in native ADK or LangGraph.
-:::
-
-:::{warning} Without this
-Building this pipeline in native ADK requires 7+ separate agent declarations, a custom routing BaseAgent, a SequentialAgent wrapper, a ParallelAgent for the alternative asset branch, a custom LoopAgent with quality-check logic, and manual state wiring between all of them. The topology is invisible -- buried in nested constructor arguments across 100+ lines. In adk-fluent, the entire topology is visible in the pipeline expression.
-:::
-
 :::{tip} What you'll learn
-How to combine routing, loops, gating, and parallel composition in a single expression.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `28_real_world_pipeline.py`_

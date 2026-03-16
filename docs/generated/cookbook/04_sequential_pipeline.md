@@ -13,17 +13,8 @@ same pipeline in a single expression.
 Pipeline topology:
     extractor >> risk_analyst >> summarizer
 
-:::{admonition} Why this matters
-:class: important
-Sequential pipelines are the workhorse of production AI systems. Legal contract review, medical diagnosis, financial analysis -- all follow the same pattern: extract, analyze, summarize. Each stage builds on the previous stage's output. The `>>` operator makes the pipeline topology visible in a single line of code, so anyone can understand the data flow at a glance without navigating across 4+ class definitions.
-:::
-
-:::{warning} Without this
-In native ADK, a 3-stage pipeline requires 3 separate `LlmAgent` declarations plus a `SequentialAgent` wrapper -- 20+ lines where the topology is implicit in the `sub_agents` list. When pipelines grow to 5-10 stages, the topology becomes invisible. With LangGraph, you need ~35 lines of StateGraph wiring. With adk-fluent, the same pipeline is a single readable expression: `extractor >> analyst >> summarizer`.
-:::
-
 :::{tip} What you'll learn
-How to compose agents into a sequential pipeline with the >> operator.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `04_sequential_pipeline.py`_

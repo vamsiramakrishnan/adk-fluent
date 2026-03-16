@@ -104,3 +104,4 @@ Complete builder method inventory extracted from `seeds/seed.toml` and `manifest
 | `.step()` | `(value: BaseAgent) -> Self` | Append to ``sub_agents`` (lazy — built at .build() time). |
 | `.sub_agent()` | `(value: BaseAgent) -> Self` | Append to ``sub_agents`` (lazy — built at .build() time). |
 | `.tool_simulation_config()` | `(value: ToolSimulationConfig) -> Self` | Append to ``tool_simulation_configs`` (lazy — built at .build() time). |
+| `.ui()` | `(spec: Any) -> Self` | Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guid |

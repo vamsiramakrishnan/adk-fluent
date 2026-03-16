@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # DevEx Tooling Manifesto
 
 > The definitive guide to every automation script, agent skill, and development command in adk-fluent.

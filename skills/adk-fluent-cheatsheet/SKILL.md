@@ -455,6 +455,46 @@ Compose with `|` (chain). Raise GuardViolation on failure.
   PIIDetector                  — PII detection provider
   ContentJudge                 — content judgment provider
 
+### UI — Agent-to-UI composition (A2UI)
+
+Declarative UI composition for agents. Compose with `|` (Row), `>>` (Column).
+Import: ``from adk_fluent import UI`` or ``from adk_fluent._ui import UI``.
+
+Component factories:
+  UI.text(content, variant=)   — text content (h1-h5, caption, body)
+  UI.button(label, action=)    — clickable button
+  UI.text_field(label, bind=)  — text input with optional data binding
+  UI.image(src, alt=, fit=)    — display an image
+  UI.row(*children)            — horizontal layout
+  UI.column(*children)         — vertical layout
+  UI.component(kind, **props)  — generic escape hatch
+
+Data binding & validation:
+  UI.bind(path)                — create data binding to JSON Pointer path
+  UI.required(msg=)            — required field validation
+  UI.email(msg=)               — email format validation
+
+Surface lifecycle:
+  UI.surface(name, *children)  — create named surface (compilation root)
+  UI.auto(catalog=)            — LLM-guided mode (agent decides UI)
+
+Presets:
+  UI.form(title, fields=)      — form surface from field spec
+  UI.dashboard(title, cards=)  — dashboard with metric cards
+  UI.wizard(title, steps=)     — multi-step wizard
+  UI.confirm(message)          — confirmation dialog
+  UI.table(columns, data_bind=) — data table
+
+Agent integration:
+  Agent.ui(spec)               — attach UI surface to agent
+  T.a2ui()                     — A2UI toolset for LLM-guided mode
+  G.a2ui(max_components=)      — validate LLM-generated UI
+  P.ui_schema()                — inject catalog schema into prompt
+  S.to_ui(*keys, surface=)     — bridge state → A2UI data model
+  S.from_ui(*keys, surface=)   — bridge A2UI data model → state
+  M.a2ui_log(level=)           — log A2UI surface operations
+  C.with_ui(surface_id=)       — include UI state in context
+
 ## Expression operators explained
 
     A >> B           # Sequential: A runs, then B. Returns a Pipeline.

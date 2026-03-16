@@ -23,17 +23,8 @@ Pipeline topology:
 
 Uses: >>, |, @, proceed_if, save_as, tap
 
-:::{admonition} Why this matters
-:class: important
-Automated code review requires running multiple analysis dimensions in parallel (style, security, logic), aggregating findings into a structured report, and conditionally posting comments only when issues are found. This recipe demonstrates the pattern using `|` for parallel analysis, `@` for typed output, `tap` for logging, and `proceed_if` for conditional execution -- composing a sophisticated review pipeline in a single expression.
-:::
-
-:::{warning} Without this
-Without parallel composition, code reviews run each check sequentially -- tripling latency. Without typed output, findings arrive as free-form text that's impossible to aggregate programmatically. Without conditional gating, the bot posts empty "no issues found" comments on clean code, creating noise. This recipe shows how adk-fluent handles each concern declaratively.
-:::
-
 :::{tip} What you'll learn
-How to build a parallel code review pipeline with typed findings.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `57_code_review_agent.py`_

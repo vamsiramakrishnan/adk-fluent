@@ -381,6 +381,14 @@ def _replace_response_text(llm_response, new_text: str):
     )
 
 
+def _count_components(component: Any) -> int:
+    """Count total components in a UIComponent tree."""
+    count = 1
+    for child in getattr(component, "_children", ()):
+        count += _count_components(child)
+    return count
+
+
 def _compose_callbacks(fns: list) -> Callable:
     """Chain multiple callbacks into a single callable.
 
@@ -465,6 +473,29 @@ class BuilderBase:
     _ADDITIVE_FIELDS: set[str]
     _ADK_TARGET_CLASS: type | None = None
     _KNOWN_PARAMS: set[str] | None = None
+    _AUTO_KNOWN_PARAMS_CACHE: set[str] | None = None
+
+    @classmethod
+    def _auto_known_params(cls) -> set[str]:
+        """Auto-derive known field names from the builder's explicit methods.
+
+        Used as fallback typo detection when _ADK_TARGET_CLASS is unavailable
+        (optional dependency not installed). Caches the result per class.
+        """
+        if cls._AUTO_KNOWN_PARAMS_CACHE is not None:
+            return cls._AUTO_KNOWN_PARAMS_CACHE
+        params: set[str] = set()
+        # Collect all public methods defined on the builder (not inherited from BuilderBase)
+        _base_methods = set(dir(BuilderBase))
+        for name in dir(cls):
+            if name.startswith("_") or name in _base_methods:
+                continue
+            params.add(name)
+        # Also add alias targets and additive fields
+        params |= set(cls._ALIASES.values())
+        params |= cls._ADDITIVE_FIELDS
+        cls._AUTO_KNOWN_PARAMS_CACHE = params
+        return params
 
     # Instance attributes — declared here for pyright; initialized in subclass __init__
     _config: dict[str, Any]
@@ -543,9 +574,17 @@ class BuilderBase:
             # init_signature mode: validate against static param set
             available = sorted(_KNOWN_PARAMS | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
             cls_name = self.__class__.__name__
-            raise AttributeError(
-                f"'{name}' is not a recognized parameter on {cls_name}. Available: {', '.join(available)}"
-            )
+            raise AttributeError(f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}")
+        elif _ADK_TARGET_CLASS is None and "build" in self.__class__.__dict__:
+            # Concrete builder whose optional ADK target class is unavailable.
+            # Auto-derive known fields from the builder's own explicit methods.
+            _auto_params = self.__class__._auto_known_params()
+            if field_name not in _auto_params:
+                available = sorted(_auto_params | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
+                cls_name = self.__class__.__name__
+                raise AttributeError(
+                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
+                )
         # else: composite/standalone/primitive — accept any field
 
         # Return a setter that stores value and returns self for chaining
@@ -1391,6 +1430,24 @@ class BuilderBase:
         if data_flow:
             result["data_flow"] = data_flow
 
+        # UI
+        ui_spec = self._config.get("_ui_spec")
+        if ui_spec is not None:
+            ui_info: dict[str, Any] = {}
+            from adk_fluent._ui import UISurface, _UIAutoSpec
+
+            if isinstance(ui_spec, UISurface):
+                ui_info["surface"] = ui_spec.name
+                ui_info["mode"] = "declarative"
+                if ui_spec.root is not None:
+                    ui_info["components"] = _count_components(ui_spec.root)
+            elif isinstance(ui_spec, _UIAutoSpec):
+                ui_info["mode"] = "llm_guided"
+                ui_info["catalog"] = ui_spec.catalog
+            else:
+                ui_info["mode"] = "declarative"
+            result["ui"] = ui_info
+
         # Tools
         tools = list(self._config.get("tools", []))
         tools.extend(self._lists.get("tools", []))
@@ -1550,6 +1607,10 @@ class BuilderBase:
 
     def _prepare_build_config(self) -> dict[str, Any]:
         """Prepare config dict for building: strip internal fields, auto-build sub-builders, merge callbacks and lists."""
+        # Auto-wire data flow if .wired() was called
+        if self._config.get("_auto_wire"):
+            self.auto_wire()
+
         # Run IR-first contract checking (appendix_f Q1, Q3)
         self._run_build_contracts()
 
@@ -1661,6 +1722,13 @@ class BuilderBase:
                     existing_instruction=config.get("instruction"),
                 )
                 config["instruction"] = compiled
+
+        # UI spec: compile A2UI surface into tools + prompt + callbacks
+        ui_spec = self._config.get("_ui_spec")
+        if ui_spec is not None:
+            from adk_fluent._ui_compile import compile_ui_for_agent
+
+            compile_ui_for_agent(ui_spec, config)
 
         # Inject checkpoint agent for loop_until predicate
         if until_pred:
@@ -2408,6 +2476,134 @@ class BuilderBase:
         from adk_fluent._interop import _extract_data_flow
 
         return _extract_data_flow(self)
+
+    def data_flow_contract(self):
+        """Analyze cross-channel coherence for all agents in this pipeline.
+
+        Returns a list of ``DataFlowContract`` objects showing how the
+        three ADK channels (conversation history, session state,
+        instruction templating) interact for each agent, and whether
+        the interaction is coherent.
+
+        This is the comprehensive diagnostic for data flow issues in
+        pipelines. It answers questions like:
+
+        - Does agent B's ``{intent}`` template have a producer upstream?
+        - Is agent A's output duplicated across state AND conversation?
+        - Will data be lost because A has no ``.writes()`` and B has
+          ``include_contents='none'``?
+
+        Usage::
+
+            pipeline = Agent("a").writes("x") >> Agent("b").instruct("{x}")
+            for contract in pipeline.data_flow_contract():
+                print(contract)
+        """
+        from adk_fluent._interop import check_data_flow_contract
+
+        return check_data_flow_contract(self.to_ir())
+
+    def infer_data_flow(self):
+        """Get topology-aware suggestions for improving data flow.
+
+        Analyzes the pipeline structure and returns suggestions for:
+
+        - Missing ``.writes()`` where downstream agents need state
+        - Unused ``.writes()`` where no downstream agent reads the key
+        - Context recommendations to avoid channel duplication
+
+        Usage::
+
+            pipeline = Agent("classifier") >> Route("intent").eq("book", booker)
+            for suggestion in pipeline.infer_data_flow():
+                print(f"{suggestion.agent}: {suggestion.action}('{suggestion.key}')")
+                print(f"  {suggestion.reason}")
+        """
+        from adk_fluent.testing.contracts import infer_data_flow
+
+        return infer_data_flow(self.to_ir())
+
+    def auto_wire(self) -> Self:
+        """Automatically wire data flow based on topology analysis.
+
+        Analyzes the pipeline to find intermediate agents that should
+        have ``.writes()`` based on their successors' needs, and
+        applies the inferred settings.
+
+        Only applies ``add_writes`` suggestions — does not remove
+        existing explicit configuration.
+
+        Returns the modified builder (mutates in place).
+
+        Usage::
+
+            # Before: classifier has no .writes(), but Route needs 'intent'
+            pipeline = (
+                Agent("classifier").instruct("Classify intent.")
+                >> Route("intent").eq("booking", booker)
+            ).auto_wire()
+            # After: classifier automatically gets .writes("intent")
+        """
+        from adk_fluent.testing.contracts import infer_data_flow
+
+        try:
+            ir = self.to_ir()
+            suggestions = infer_data_flow(ir)
+        except Exception:
+            return self  # Can't infer — leave unchanged
+
+        if not suggestions:
+            return self
+
+        # Build a map of agent name -> suggested writes
+        writes_map: dict[str, str] = {}
+        for s in suggestions:
+            if s.action == "add_writes" and s.agent not in writes_map:
+                writes_map[s.agent] = s.key
+
+        if not writes_map:
+            return self
+
+        # Apply writes to matching sub-builders
+        sub_agents = self._lists.get("sub_agents", [])
+        for item in sub_agents:
+            if not hasattr(item, "_config"):
+                continue
+            name = item._config.get("name", "")
+            if name in writes_map and not item._config.get("output_key"):
+                item._config["output_key"] = writes_map[name]
+
+        return self
+
+    def wired(self) -> Self:
+        """Enable automatic data flow wiring at build time.
+
+        When set, ``.build()`` automatically infers missing ``.writes()``
+        on intermediate agents based on what downstream agents need
+        (template variables, ``.reads()`` keys, Route keys).
+
+        This makes ``>>`` truly encode data flow — the developer
+        declares the relationship, the library figures out the wiring.
+
+        Only meaningful on compound builders (Pipeline, Loop).
+        Has no effect on single agents.
+
+        Usage::
+
+            # Without .wired(): contract checker warns about missing .writes()
+            pipeline = Agent("classify") >> Route("intent").eq("book", booker)
+
+            # With .wired(): library auto-infers .writes("intent") on classify
+            pipeline = (
+                Agent("classify") >> Route("intent").eq("book", booker)
+            ).wired()
+
+        Returns:
+            Self for chaining.
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["_auto_wire"] = True
+        return self
 
     def llm_anatomy(self) -> str:
         """Show exactly what will be sent to the LLM for this agent.

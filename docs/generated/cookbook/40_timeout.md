@@ -1,16 +1,7 @@
 # Timeout: Real-Time Trading Agent with Strict Execution Deadline
 
-:::{admonition} Why this matters
-:class: important
-In latency-sensitive systems, a stale result is worse than no result. A trading analysis that arrives after the market window closes is useless. A real-time recommendation that takes 30 seconds loses the customer. `.timeout()` enforces strict execution deadlines, canceling agents that exceed their time budget and allowing the pipeline to fail fast or fall back to an alternative.
-:::
-
-:::{warning} Without this
-Without timeouts, a slow API call or a model that enters an infinite reasoning loop blocks the entire pipeline indefinitely. Users wait forever with no feedback. In native ADK, there's no built-in timeout mechanism -- you'd need to implement `asyncio.wait_for` wrappers around every agent call manually.
-:::
-
 :::{tip} What you'll learn
-How to enforce execution time limits with .timeout().
+How to use timeout: real-time trading agent with strict execution deadline with the fluent API.
 :::
 
 _Source: `40_timeout.py`_

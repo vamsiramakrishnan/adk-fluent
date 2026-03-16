@@ -12,17 +12,8 @@ Key concepts:
   - on_middleware_error: notification hook for other middleware
   - Custom middleware with typed MiddlewareSchema
 
-:::{admonition} Why this matters
-:class: important
-Production agent systems need three observability pillars: cost tracking (are we within budget?), latency monitoring (are we meeting SLAs?), and topology logging (what path did the request take?). The built-in `CostTracker`, `LatencyMiddleware`, and `TopologyLogMiddleware` provide these out of the box. The error boundary mechanism ensures that a middleware failure (e.g., a metrics endpoint being down) doesn't crash the pipeline it's monitoring.
-:::
-
-:::{warning} Without this
-Without built-in observability middleware, teams build their own cost trackers, latency monitors, and topology loggers from scratch -- duplicating effort across projects. Without error boundaries, a bug in your logging middleware crashes the production pipeline it was supposed to be monitoring. The built-in middleware handles these edge cases with battle-tested implementations.
-:::
-
 :::{tip} What you'll learn
-How to add production observability with built-in cost, latency, and topology middleware.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `65_builtin_middleware.py`_
@@ -229,6 +220,110 @@ production_pipeline = (order_agent >> fraud_agent).middleware(
 production_pipeline.middleware(M.scope("fraud_detector", M.cost()))
 
 assert len(production_pipeline._middlewares) == 4
+
+# --- 10. Expanded built-in middleware classes ---
+from adk_fluent.middleware import (
+    CircuitBreakerMiddleware,
+    DedupMiddleware,
+    FallbackModelMiddleware,
+    MetricsMiddleware,
+    ModelCacheMiddleware,
+    RetryMiddleware,
+    TimeoutMiddleware,
+    TraceMiddleware,
+    _SampledMiddleware,
+)
+
+# CircuitBreakerMiddleware
+circuit_breaker = CircuitBreakerMiddleware(threshold=5, reset_after=60)
+assert circuit_breaker._threshold == 5
+assert circuit_breaker._reset_after == 60
+assert circuit_breaker._failures == {}
+assert hasattr(circuit_breaker, "before_model")
+assert hasattr(circuit_breaker, "after_model")
+assert isinstance(circuit_breaker, Middleware)
+
+# TimeoutMiddleware
+timeout_mw = TimeoutMiddleware(seconds=30)
+assert timeout_mw._seconds == 30
+assert timeout_mw._deadlines == {}
+assert hasattr(timeout_mw, "before_agent")
+assert hasattr(timeout_mw, "before_model")
+assert isinstance(timeout_mw, Middleware)
+
+# ModelCacheMiddleware
+cache_mw = ModelCacheMiddleware(ttl=300, key_fn=None)
+assert cache_mw._ttl == 300
+assert cache_mw._cache == {}
+assert hasattr(cache_mw, "before_model")
+assert hasattr(cache_mw, "after_model")
+assert isinstance(cache_mw, Middleware)
+
+# FallbackModelMiddleware
+fallback_mw = FallbackModelMiddleware(fallback_model="gemini-2.0-flash")
+assert fallback_mw._fallback == "gemini-2.0-flash"
+assert hasattr(fallback_mw, "on_model_error")
+assert isinstance(fallback_mw, Middleware)
+
+# DedupMiddleware
+dedup_mw = DedupMiddleware(window=10)
+assert dedup_mw._window == 10
+assert dedup_mw._recent == []
+assert hasattr(dedup_mw, "before_model")
+assert isinstance(dedup_mw, Middleware)
+
+# _SampledMiddleware
+inner_log = M.log().to_stack()[0]
+sampled_mw = _SampledMiddleware(rate=0.5, inner=inner_log)
+assert sampled_mw._rate == 0.5
+assert sampled_mw._inner is inner_log
+
+# TraceMiddleware
+trace_mw = TraceMiddleware(exporter=None)
+assert hasattr(trace_mw, "before_agent")
+assert hasattr(trace_mw, "after_agent")
+assert isinstance(trace_mw, Middleware)
+
+# MetricsMiddleware
+metrics_mw = MetricsMiddleware(collector=None)
+assert metrics_mw._collector is None
+assert metrics_mw._counts == {}
+assert hasattr(metrics_mw, "after_agent")
+assert hasattr(metrics_mw, "on_model_error")
+assert isinstance(metrics_mw, Middleware)
+
+# --- 11. Production resilience stack with new middleware ---
+# High-availability API gateway with full observability + error handling
+api_agent = Agent("api_gateway").model("gemini-2.5-flash").instruct("Route API requests.")
+
+resilient_pipeline = api_agent.middleware(
+    # Retry with circuit breaker to prevent cascade failures
+    M.retry(3)
+    | M.circuit_breaker(threshold=5, reset_after=60)
+    # Timeout to prevent hanging requests
+    | M.timeout(seconds=30)
+    # Cache to reduce redundant LLM calls
+    | M.cache(ttl=60)
+    # Fallback model if primary fails
+    | M.fallback_model("gemini-2.0-flash")
+    # Dedup to suppress duplicate requests
+    | M.dedup(window=10)
+    # Observability
+    | M.log()
+    | M.cost()
+    | M.latency()
+)
+
+assert len(resilient_pipeline._middlewares) == 9
+
+# Verify flattened stack has correct types
+flat = [mw for mw in resilient_pipeline._middlewares]
+assert isinstance(flat[0], RetryMiddleware)
+assert isinstance(flat[1], CircuitBreakerMiddleware)
+assert isinstance(flat[2], TimeoutMiddleware)
+assert isinstance(flat[3], ModelCacheMiddleware)
+assert isinstance(flat[4], FallbackModelMiddleware)
+assert isinstance(flat[5], DedupMiddleware)
 
 print("All built-in middleware assertions passed!")
 ```

@@ -17,7 +17,7 @@ class TestBasePlannerBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BasePlanner("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -33,7 +33,7 @@ class TestBuiltInPlannerBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = BuiltInPlanner("test_thinking_config")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")
 
 
@@ -49,5 +49,5 @@ class TestPlanReActPlannerBuilder:
     def test_typo_detection(self):
         """Typos in method names raise clear AttributeError."""
         builder = PlanReActPlanner("test_args", "test_kwargs")
-        with pytest.raises(AttributeError, match="not a recognized parameter"):
+        with pytest.raises(AttributeError, match="not a recognized field"):
             builder.zzz_not_a_real_field("oops")

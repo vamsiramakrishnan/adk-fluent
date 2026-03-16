@@ -11,7 +11,8 @@ from adk_fluent._eval import (
     EvalReport,
     EvalSuite,
 )
-from adk_fluent.testing.contracts import check_contracts
+from adk_fluent._interop import DataFlowContract, check_data_flow_contract
+from adk_fluent.testing.contracts import DataFlowSuggestion, check_contracts, infer_data_flow
 from adk_fluent.testing.diagnosis import (
     AgentSummary,
     ContractIssue,
@@ -25,6 +26,8 @@ from adk_fluent.testing.mock_backend import MockBackend, mock_backend
 
 __all__ = [
     "check_contracts",
+    "infer_data_flow",
+    "DataFlowSuggestion",
     "mock_backend",
     "MockBackend",
     "AgentHarness",
@@ -44,4 +47,6 @@ __all__ = [
     "ComparisonReport",
     "ComparisonSuite",
     "EPersona",
+    "DataFlowContract",
+    "check_data_flow_contract",
 ]

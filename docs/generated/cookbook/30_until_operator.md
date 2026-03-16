@@ -8,17 +8,8 @@ In other frameworks: LangGraph requires conditional_edges with a custom routing
 function to implement loop-until semantics (~30 lines). adk-fluent uses
 * until(predicate) for declarative conditional loops.
 
-:::{admonition} Why this matters
-:class: important
-The `* until(predicate)` operator combines bounded iteration with intelligent early exit. In a customer onboarding flow, you keep collecting information until all required fields are present -- but never more than 5 rounds. This prevents both premature termination (not enough info collected) and infinite loops (the customer never provides their SSN).
-:::
-
-:::{warning} Without this
-Without the until operator, conditional loops require subclassing `LoopAgent` with custom exit logic -- ~25 lines of boilerplate that's easy to get wrong. A bug in the exit condition causes either infinite loops (burning tokens and frustrating users) or premature exits (shipping incomplete onboarding data to compliance).
-:::
-
 :::{tip} What you'll learn
-How to build conditional loops with the * until(predicate) operator.
+How to create looping agent workflows.
 :::
 
 _Source: `30_until_operator.py`_

@@ -3,12 +3,6 @@
 Side-by-side examples comparing native ADK code with the adk-fluent
 equivalent. Each recipe demonstrates a specific pattern or feature.
 
-Every recipe answers three questions: **what** the pattern does, **why** it
-matters in production, and **what breaks** when you don't have it. Code tabs
-show the fluent version alongside the native ADK equivalent so you can see
-exactly how much boilerplate disappears -- and verify that both produce
-identical runtime objects.
-
 :::{note}
 Looking for a specific scenario? Check out the [Recipes by Use Case](recipes-by-use-case.md) guide.
 :::
@@ -16,14 +10,6 @@ Looking for a specific scenario? Check out the [Recipes by Use Case](recipes-by-
 ## Basics
 
 Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.
-
-Every agent system starts here. These recipes cover the building blocks that
-every pipeline depends on -- agent creation, tool attachment, lifecycle hooks,
-and the three core topologies (sequence, parallel, loop). Without these
-primitives, you end up with ad-hoc wiring that breaks the moment your system
-grows beyond a single agent. adk-fluent turns each of these into a one-liner
-so the topology is visible at a glance rather than buried in constructor
-keyword arguments.
 
 ````{grid} 1 2 2 2
 ---
@@ -76,7 +62,7 @@ Pipeline topology:
 :link: 04_sequential_pipeline
 :link-type: doc
 
-How to compose agents into a sequential pipeline with the >> operator.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Market Research Fan-Out -- Parallel FanOut
 
@@ -99,7 +85,7 @@ Pipeline topology:
 :link: 05_parallel_fanout
 :link-type: doc
 
-How to run agents concurrently using the | (parallel) operator.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Essay Refinement Loop -- Loop Agent
 
@@ -121,7 +107,7 @@ Pipeline topology:
 :link: 06_loop_agent
 :link-type: doc
 
-How to iterate agents in a loop using the * (repeat) operator.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Product Launch Coordinator -- Team Coordinator Pattern
 
@@ -137,7 +123,7 @@ Pipeline topology:
 :link: 07_team_coordinator
 :link-type: doc
 
-How to build a team of agents with a coordinator that delegates.
+How to compose agents into a sequential pipeline.
 ```
 ````
 
@@ -156,14 +142,6 @@ How to build a team of agents with a coordinator that delegates.
 ## Execution
 
 Running agents: one-shot, streaming, cloning, testing, and sessions.
-
-Building an agent is only half the story -- you also need to **run** it. These
-recipes cover the execution surface: fire-and-forget queries, token-by-token
-streaming, safe cloning for A/B tests, inline smoke tests, guardrails, and
-multi-turn sessions. Without these, you end up writing 15-20 lines of runner
-boilerplate every time you want to invoke an agent. adk-fluent collapses each
-execution pattern into a single method call (`.ask()`, `.stream()`, `.clone()`,
-`.test()`, `.guard()`, `.session()`) so you spend time on logic, not plumbing.
 
 ````{grid} 1 2 2 2
 ---
@@ -194,7 +172,7 @@ async for loop.
 :link: 09_streaming
 :link-type: doc
 
-How to stream token-by-token output from any agent or pipeline.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} A/B Testing Agent Variants -- Agent Cloning with .clone()
 
@@ -205,36 +183,40 @@ support agents -- one using a formal tone and one using a casual tone
 :link: 10_cloning
 :link-type: doc
 
-How to create independent agent variants with .clone() for A/B testing.
+How to attach tools to an agent using the fluent API.
 ```
-```{grid-item-card} Smoke-Testing and Evaluation -- Inline Testing with .test() and .eval()
+```{grid-item-card} Smoke-Testing a Customer Support Bot -- Inline Testing with .test()
 
-Demonstrates `.test()` for inline smoke tests and `.eval()` / `.eval_suite()`
-for structured evaluation using the E module. Composable criteria
-(`E.trajectory()`, `E.response_match()`, `E.safety()`, etc.) let you define
-quality gates alongside your agent definition.
+Demonstrates the .test() method for validating agent behavior during
+development.  The scenario: a customer support bot that is
+smoke-tested inline before deployment to ensure it handles common
+queries correctly.  No LLM calls are made here -- we verify that
+the builder exposes the test API with the right signature.
 :link: 11_inline_testing
 :link-type: doc
 
-How to run inline smoke tests and structured evaluations on agents.
+How to run inline smoke tests on agents.
 ```
 ```{grid-item-card} Medical Advice Safety Guardrails -- Guardrails with .guard()
 
-Demonstrates the .guard() method that registers a function as
-both a before_model and after_model callback in one call.  The
-scenario: a medical information agent with safety guards that
+Demonstrates guard mechanisms for agent safety and policy enforcement:
+1. Legacy callable guards (backward compatibility)
+2. G namespace composable guards (new declarative API)
+
+The scenario: a medical information agent with safety guards that
 screen requests and responses for dangerous self-diagnosis or
-treatment recommendations.
+treatment recommendations, enforce output constraints, and prevent
+PII leakage.
 :link: 12_guards
 :link-type: doc
 
-How to add safety guardrails with the unified .guard() method.
+How to attach guardrails to agent model calls.
 ```
 ```{grid-item-card} Customer Support Chat Session with .session()
 :link: 13_interactive_session
 :link-type: doc
 
-How to manage interactive multi-turn sessions with agents.
+How to manage interactive sessions with agents.
 ```
 ```{grid-item-card} Medical Advice Safety Guards -- Guards with .guard()
 :link: 12_guardrails
@@ -260,13 +242,6 @@ How to attach guardrails to agent model calls.
 
 Advanced composition: dynamic forwarding, operators, routing, and conditional logic.
 
-Real systems rarely follow a straight line. Orders need routing, pipelines need
-conditional gates, retries need exit conditions, and production deployments need
-middleware. These recipes cover the composition patterns that turn a linear
-pipeline into a robust workflow graph. Without them, you resort to custom
-BaseAgent subclasses (30+ lines each) for every branching or gating decision --
-logic that belongs in your topology, not buried in class hierarchies.
-
 ````{grid} 1 2 2 2
 ---
 gutter: 3
@@ -275,7 +250,7 @@ gutter: 3
 :link: 14_dynamic_forwarding
 :link-type: doc
 
-How to use dynamic field forwarding to route agent outputs.
+How to use dynamic field forwarding.
 ```
 ```{grid-item-card} Production Deployment -- to_app() with Middleware Stack
 
@@ -291,7 +266,7 @@ across the entire pipeline.
 :link: 15_production_runtime
 :link-type: doc
 
-How to deploy agents to production with middleware and to_app().
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} News Analysis Pipeline with Operator Composition: >>, |, *
 
@@ -302,7 +277,7 @@ Pipeline topologies:
 :link: 16_operator_composition
 :link-type: doc
 
-How to combine >>, |, and * operators in a single expression.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} E-Commerce Order Routing with Deterministic Branching
 
@@ -323,19 +298,19 @@ Pipeline topology:
 :link: 17_route_branching
 :link-type: doc
 
-How to route agents deterministically based on state values.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Multi-Language Support Routing with Dict >> Shorthand
 :link: 18_dict_routing
 :link-type: doc
 
-How to use dict-based routing for concise intent dispatch.
+How to use dict-based routing.
 ```
 ```{grid-item-card} Fraud Detection Pipeline with Conditional Gating
 :link: 19_conditional_gating
 :link-type: doc
 
-How to conditionally skip pipeline stages with proceed_if().
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Resume Refinement Loop with Conditional Exit
 
@@ -344,7 +319,7 @@ Pipeline topology:
 :link: 20_loop_until
 :link-type: doc
 
-How to loop agents until a predicate is satisfied with loop_until().
+How to compose agents into a sequential pipeline.
 ```
 ````
 
@@ -364,14 +339,6 @@ How to loop agents until a predicate is satisfied with loop_until().
 
 Real-world patterns: state management, presets, decorators, serialization, and more.
 
-These recipes cover the patterns that separate a prototype from a production
-system. Typed state keys prevent the silent key-collision bugs that plague
-dict-based state. Presets enforce organizational standards (model, compliance
-callbacks, audit logging) across dozens of agents without copy-paste. Contract
-assertions catch data-flow bugs at build time instead of at 2 AM in production.
-Each pattern exists because teams hit real pain at scale -- and each one shows
-exactly what breaks without it.
-
 ````{grid} 1 2 2 2
 ---
 gutter: 3
@@ -380,7 +347,7 @@ gutter: 3
 :link: 21_statekey
 :link-type: doc
 
-How to use typed StateKey descriptors for safe state access.
+How to work with state keys and state transforms.
 ```
 ```{grid-item-card} Enterprise Agent with Shared Compliance Preset
 :link: 22_presets
@@ -392,13 +359,13 @@ How to define and apply reusable configuration presets.
 :link: 23_with_variants
 :link-type: doc
 
-How to create agent variants for prompt experimentation with .with_().
+How to run inline smoke tests on agents.
 ```
 ```{grid-item-card} Domain Expert Agent via @agent Decorator
 :link: 24_agent_decorator
 :link-type: doc
 
-How to use the @agent decorator for concise agent definitions.
+How to use the agent decorator pattern.
 ```
 ```{grid-item-card} Introspection & Debugging -- validate(), explain(), inspect()
 
@@ -409,19 +376,19 @@ before going live.
 :link: 25_validate_explain
 :link-type: doc
 
-How to debug and introspect agent configurations before deployment.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Deployment Pipeline: Serialize Agent Configs with to_dict and to_yaml
 :link: 26_serialization
 :link-type: doc
 
-How to serialize and deserialize agent configurations for CI/CD.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
 :link: 27_agent_tool_pattern
 :link-type: doc
 
-How to delegate tasks between agents using .agent_tool().
+How to delegate tasks between agents.
 ```
 ```{grid-item-card} Investment Analysis Pipeline: Full Expression Language in Production
 
@@ -445,13 +412,13 @@ Pipeline topology:
 :link: 28_real_world_pipeline
 :link-type: doc
 
-How to combine routing, loops, gating, and parallel composition in a single expression.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} ETL Pipeline: Plain Functions as Data Cleaning Steps (>> fn)
 :link: 29_function_steps
 :link-type: doc
 
-How to mix plain functions into agent pipelines with >> fn.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Customer Onboarding: Conditional Loops with * until(pred) Operator
 
@@ -465,13 +432,13 @@ function to implement loop-until semantics (~30 lines). adk-fluent uses
 :link: 30_until_operator
 :link-type: doc
 
-How to build conditional loops with the * until(predicate) operator.
+How to create looping agent workflows.
 ```
 ```{grid-item-card} Structured Invoice Parsing: Typed Output Contracts with @ Operator
 :link: 31_typed_output
 :link-type: doc
 
-How to bind structured output schemas to agents with the @ operator.
+How to use operator syntax for composing agents.
 ```
 ```{grid-item-card} Knowledge Retrieval: Primary API + Fallback Search with // Operator
 
@@ -484,7 +451,7 @@ Pipeline topologies:
 :link: 32_fallback_operator
 :link-type: doc
 
-How to build graceful degradation chains with the // (fallback) operator.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Research Data Pipeline: State Transforms with S Factories
 
@@ -504,7 +471,7 @@ Pipeline topology:
 :link: 33_state_transforms
 :link-type: doc
 
-How to reshape state between agents with S.pick, S.merge, S.rename, and more.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Code Review Pipeline -- Expression Algebra in Practice
 
@@ -528,49 +495,49 @@ Pipeline topology:
 :link: 34_full_algebra
 :link-type: doc
 
-How to combine all composition operators in a single real-world expression.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} ML Inference Monitoring: Performance Tap for Pure Observation
 :link: 35_tap_observation
 :link-type: doc
 
-How to observe pipeline state without mutation using tap().
+How to use ml inference monitoring: performance tap for pure observation with the fluent API.
 ```
 ```{grid-item-card} Analytics Data Quality: State Contract Assertions with expect()
 :link: 36_expect_assertions
 :link-type: doc
 
-How to assert state invariants at pipeline boundaries with expect().
+How to work with state keys and state transforms.
 ```
 ```{grid-item-card} Mock Testing: Customer Onboarding Pipeline with Deterministic Mocks
 :link: 37_mock_testing
 :link-type: doc
 
-How to test pipelines deterministically with mock backends.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Retry If: API Integration Agent That Retries on Transient Failures
 :link: 38_loop_while
 :link-type: doc
 
-How to retry agent execution on transient failures with loop_while().
+How to use retry if: api integration agent that retries on transient failures with the fluent API.
 ```
 ```{grid-item-card} Map Over: Batch Processing Customer Feedback with Iteration
 :link: 39_map_over
 :link-type: doc
 
-How to iterate an agent over a list of items with map_over().
+How to use map over: batch processing customer feedback with iteration with the fluent API.
 ```
 ```{grid-item-card} Timeout: Real-Time Trading Agent with Strict Execution Deadline
 :link: 40_timeout
 :link-type: doc
 
-How to enforce execution time limits with .timeout().
+How to use timeout: real-time trading agent with strict execution deadline with the fluent API.
 ```
 ```{grid-item-card} Gate: Legal Document Review with Human Approval
 :link: 41_gate_approval
 :link-type: doc
 
-How to pause pipelines for human approval with gate().
+How to use gate: legal document review with human approval with the fluent API.
 ```
 ```{grid-item-card} Race: Fastest-Response Search Across Multiple Providers
 
@@ -582,25 +549,25 @@ Pipeline topology:
 :link: 42_race
 :link-type: doc
 
-How to take the first response from competing agents with race().
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Primitives Showcase: E-Commerce Order Pipeline Using All Primitives
 :link: 43_primitives_showcase
 :link-type: doc
 
-How to combine all primitives (tap, expect, gate, race, timeout) in one pipeline.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
 :link: 27_delegate_pattern
 :link-type: doc
 
-How to delegate tasks between agents using .agent_tool().
+How to delegate tasks between agents.
 ```
 ```{grid-item-card} Retry If: API Integration Agent That Retries on Transient Failures
 :link: 38_retry_if
 :link-type: doc
 
-How to retry agent execution on transient failures with loop_while().
+How to use retry if: api integration agent that retries on transient failures with the fluent API.
 ```
 ````
 
@@ -638,14 +605,6 @@ How to retry agent execution on transient failures with loop_while().
 
 IR compilation, middleware, contracts, testing, dependency injection, and visualization.
 
-These features turn agent definitions into inspectable, optimizable, and
-testable artifacts. IR compilation lets platform teams analyze pipeline graphs
-before deployment -- catching structural issues the same way a compiler catches
-type errors. Middleware applies cross-cutting concerns (retry, logging, cost
-tracking) uniformly without touching individual agents. Contracts verify data
-flow at build time. Without these, every production issue becomes a runtime
-mystery that you debug with print statements and prayer.
-
 ````{grid} 1 2 2 2
 ---
 gutter: 3
@@ -659,25 +618,25 @@ inspects the agent graph for optimization before deployment.
 :link: 44_ir_and_backends
 :link-type: doc
 
-How to inspect, compile, and optimize agent graphs with to_ir() and to_app().
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Middleware: Production Middleware Stack for a Healthcare API Agent
 :link: 45_middleware
 :link-type: doc
 
-How to build production middleware stacks for retry, logging, and compliance.
+How to configure agents for production runtime.
 ```
 ```{grid-item-card} Contracts and Testing: Medical Imaging Pipeline with Strict Data Contracts
 :link: 46_contracts_and_testing
 :link-type: doc
 
-How to enforce data contracts and test pipelines with mock backends.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Dependency Injection: Multi-Environment Deployment (Dev/Staging/Prod)
 :link: 47_dependency_injection
 :link-type: doc
 
-How to inject environment-specific dependencies with .inject().
+How to use dependency injection: multi-environment deployment (dev/staging/prod) with the fluent API.
 ```
 ```{grid-item-card} Architecture Documentation -- Mermaid Diagrams from Live Code
 
@@ -687,7 +646,7 @@ incident response platform's agent topology for runbooks and onboarding.
 :link: 48_visualization
 :link-type: doc
 
-How to generate live architecture diagrams with to_mermaid().
+How to build a team of agents with a coordinator.
 ```
 ````
 
@@ -705,16 +664,6 @@ How to generate live architecture diagrams with to_mermaid().
 
 Context engineering, visibility, memory, and contract verification.
 
-Context engineering is the single most impactful optimization for multi-agent
-pipelines. Every agent in a pipeline inherits the full conversation history by
-default -- including irrelevant internal reasoning from upstream agents. This
-wastes tokens, inflates latency, and confuses downstream models. The C module
-gives you surgical control over what each agent sees. Visibility policies hide
-internal agent chatter from end users. State capture and routing turn free-form
-user messages into structured, deterministic workflows. Without these, your
-pipeline costs 3-5x more tokens than necessary and produces inconsistent results
-because every agent is distracted by context it was never meant to see.
-
 ````{grid} 1 2 2 2
 ---
 gutter: 3
@@ -731,7 +680,7 @@ C.from_state(), C.user_only()) for declarative context control.
 :link: 49_context_engineering
 :link-type: doc
 
-How to control what each agent sees with the C module.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Capture and Route: IT Helpdesk Triage
 
@@ -753,19 +702,19 @@ Pipeline topology:
 :link: 50_capture_and_route
 :link-type: doc
 
-How to capture user input into state and route on it.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Visibility: Content Review Pipeline
 :link: 51_visibility_policies
 :link-type: doc
 
-How to hide internal agent outputs from end users with visibility policies.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Contract Checking: Catch Data Flow Bugs Before Runtime
 :link: 52_contract_checking
 :link-type: doc
 
-How to catch missing state keys and template errors at build time.
+How to configure agents for production runtime.
 ```
 ```{grid-item-card} Insurance Claim Processing: Structured Data Pipelines
 
@@ -784,7 +733,7 @@ inline schema binding on any agent.
 :link: 53_structured_schemas
 :link-type: doc
 
-How to enforce typed output schemas across pipeline stages with the @ operator.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Customer Service Hub: Agent Transfer Control
 
@@ -796,7 +745,7 @@ task before returning control.
 :link: 54_transfer_control
 :link-type: doc
 
-How to control agent transfer behavior with .isolate() and transfer flags.
+How to build a team of agents with a coordinator.
 ```
 ```{grid-item-card} Deep Research Agent -- Gemini Deep Research / Perplexity Clone
 
@@ -827,7 +776,7 @@ Uses: >>, |, *, @, S.*, C.*, save_as, loop_until
 :link: 55_deep_research
 :link-type: doc
 
-How to build a multi-stage research pipeline with parallel search and quality loops.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Customer Support Triage -- ADK-Samples Inspired Multi-Tier Support
 
@@ -861,7 +810,7 @@ Uses: S.capture, C.none, C.from_state, Route, gate, save_as
 :link: 56_customer_support_triage
 :link-type: doc
 
-How to build a multi-tier support system with capture, routing, and escalation.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Code Review Agent -- Gemini CLI / GitHub Copilot Inspired
 
@@ -890,7 +839,7 @@ Uses: >>, |, @, proceed_if, save_as, tap
 :link: 57_code_review_agent
 :link-type: doc
 
-How to build a parallel code review pipeline with typed findings.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Multi-Tool Task Agent -- Manus / OpenAI Agents SDK Inspired
 
@@ -906,7 +855,7 @@ Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 :link: 58_multi_tool_agent
 :link-type: doc
 
-How to build a multi-tool agent with guardrails and dependency injection.
+How to attach tools to an agent using the fluent API.
 ```
 ```{grid-item-card} Dispatch & Join: Fire-and-Continue Background Execution
 
@@ -934,7 +883,7 @@ Key concepts:
 :link: 59_dispatch_join
 :link-type: doc
 
-How to run agents in the background with dispatch() and synchronize with join().
+How to register lifecycle callbacks with accumulation semantics.
 ```
 ```{grid-item-card} StreamRunner: Continuous Userless Agent Execution
 
@@ -953,7 +902,7 @@ Key concepts:
 :link: 60_stream_runner
 :link-type: doc
 
-How to process continuous data streams without user interaction.
+How to register lifecycle callbacks with accumulation semantics.
 ```
 ```{grid-item-card} Dispatch-Aware Middleware: Observability for Background Execution
 
@@ -972,7 +921,7 @@ Key concepts:
 :link: 61_dispatch_middleware
 :link-type: doc
 
-How to observe and control background agent lifecycle with middleware hooks.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} M Module: Fluent Middleware Composition
 
@@ -990,7 +939,7 @@ Key concepts:
 :link: 62_m_module_composition
 :link-type: doc
 
-How to compose middleware fluently with the M module and | operator.
+How to use operator syntax for composing agents.
 ```
 ```{grid-item-card} TraceContext and Topology Hooks: Cross-Cutting Observability
 
@@ -1008,7 +957,7 @@ Key concepts:
 :link: 63_trace_context_topology
 :link-type: doc
 
-How to trace requests and observe topology events across agents.
+How to run agents in parallel using FanOut.
 ```
 ```{grid-item-card} MiddlewareSchema: Typed Middleware State Declarations
 
@@ -1028,7 +977,7 @@ Key concepts:
 :link: 64_middleware_schema
 :link-type: doc
 
-How to declare typed middleware state dependencies for compile-time validation.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} Built-in Middleware: CostTracker, LatencyMiddleware, TopologyLogMiddleware
 
@@ -1046,7 +995,7 @@ Key concepts:
 :link: 65_builtin_middleware
 :link-type: doc
 
-How to add production observability with built-in cost, latency, and topology middleware.
+How to compose agents into a sequential pipeline.
 ```
 ```{grid-item-card} T Module: Fluent Tool Composition and Dynamic Loading
 
@@ -1066,7 +1015,105 @@ Key concepts:
 :link: 66_t_module_tools
 :link-type: doc
 
-How to compose, wrap, and dynamically load tools with the T module.
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} G Module: Declarative Guard Composition
+
+Demonstrates the G module -- a fluent composition surface for safety,
+validation, and policy guards. Guards compile into before/after model
+callbacks automatically.
+
+Key concepts:
+  - GGuard: single guard unit with phase and compile function
+  - GComposite: composable chain with | operator
+  - G.json(), G.length(), G.regex(): structural guards
+  - G.output(), G.input(): schema validation guards
+  - G.pii(), G.toxicity(), G.topic(): content safety guards
+  - G.budget(), G.rate_limit(), G.max_turns(): policy guards
+  - G.grounded(), G.hallucination(): grounding guards
+  - G.when(predicate, guard): conditional guards
+  - Provider protocols: PIIDetector, ContentJudge
+:link: 67_g_module_guards
+:link-type: doc
+
+How to register lifecycle callbacks with accumulation semantics.
+```
+```{grid-item-card} A2UI Basics: Declarative Agent-to-UI Composition
+
+Demonstrates the UI namespace for building rich agent UIs declaratively.
+
+Key concepts:
+  - UIComponent: frozen dataclass with composition operators
+  - UI.text(), UI.button(), UI.text_field(): component factories
+  - UI.bind(), UI.required(): data binding and validation
+  - UI.surface(): named UI surface (compilation root)
+  - compile_surface(): nested Python tree → flat A2UI JSON
+  - Operators: | (Row), >> (Column), + (sibling group)
+:link: 70_a2ui_basics
+:link-type: doc
+
+How to use operator syntax for composing agents.
+```
+```{grid-item-card} A2UI Agent Integration: Wiring UI to Agents
+
+Demonstrates attaching UI surfaces to agents and cross-namespace integration.
+
+Key concepts:
+  - Agent.ui(): attach declarative or LLM-guided UI
+  - UI.auto(): LLM-guided mode
+  - T.a2ui(): A2UI toolset in tool composition
+  - G.a2ui(): guard for LLM-generated UI validation
+  - P.ui_schema(): inject catalog schema into prompt
+  - ui_form_agent(): pattern helper
+:link: 71_a2ui_agent_integration
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} A2UI Operators: UI Composition with |, >>, +
+
+Demonstrates declarative UI layout using Python operators.
+
+Key concepts:
+  - | operator: horizontal Row layout
+  - >> operator: vertical Column layout
+  - + operator: sibling group (UIGroup)
+  - Nesting: combine operators for complex layouts
+  - compile_surface(): nested tree → flat A2UI JSON
+:link: 72_a2ui_operators
+:link-type: doc
+
+How to use operator syntax for composing agents.
+```
+```{grid-item-card} A2UI LLM-Guided Mode: Let the LLM Design the UI
+
+Demonstrates LLM-guided UI mode where the agent has full control
+over the A2UI surface via toolset + catalog schema injection.
+
+Key concepts:
+  - UI.auto(): LLM-guided mode marker
+  - P.ui_schema(): inject catalog schema into prompt
+  - T.a2ui(): A2UI toolset for LLM-controlled UI
+  - G.a2ui(): guard to validate LLM-generated UI output
+:link: 73_a2ui_llm_guided
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} A2UI Pipeline: UI in Multi-Agent Pipelines
+
+Demonstrates using S.to_ui() and S.from_ui() to bridge state data
+between agents and A2UI surfaces.
+
+Key concepts:
+  - S.to_ui(): bridge agent state → A2UI data model
+  - S.from_ui(): bridge A2UI data model → agent state
+  - M.a2ui_log(): log A2UI surface operations
+  - C.with_ui(): include UI surface state in context
+:link: 74_a2ui_pipeline
+:link-type: doc
+
+How to compose agents into a sequential pipeline.
 ```
 ````
 
@@ -1091,6 +1138,12 @@ How to compose, wrap, and dynamically load tools with the T module.
 64_middleware_schema
 65_builtin_middleware
 66_t_module_tools
+67_g_module_guards
+70_a2ui_basics
+71_a2ui_agent_integration
+72_a2ui_operators
+73_a2ui_llm_guided
+74_a2ui_pipeline
 ```
 
 ```{toctree}

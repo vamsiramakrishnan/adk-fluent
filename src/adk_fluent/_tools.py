@@ -310,6 +310,27 @@ class T:
             builder = builder.auth_credential(auth)
         return TComposite([builder.build()], kind="openapi")
 
+    # --- A2UI ---
+
+    @staticmethod
+    def a2ui(*, catalog: str = "basic", schema: Any = None) -> TComposite:
+        """A2UI toolset for LLM-guided UI generation.
+
+        If ``a2ui-agent`` is installed, wraps ``SendA2uiToClientToolset``.
+        Otherwise returns a no-op marker composite.
+
+        Args:
+            catalog: Catalog identifier (default ``"basic"``).
+            schema: Optional catalog schema dict for validation.
+        """
+        try:
+            from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
+
+            return TComposite([SendA2uiToClientToolset()], kind="a2ui")
+        except ImportError:
+            # Lightweight marker — prompt injection handled by .ui()
+            return TComposite([], kind="a2ui")
+
     # --- Transform ---
 
     @staticmethod

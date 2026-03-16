@@ -82,10 +82,12 @@ _SECTION_LABELS: dict[str, str | None] = {
     "constraint": "Constraints",
     "format": "Output Format",
     "example": "Examples",
+    "ui_schema": "UI Schema",
 }
 
 _SECTION_ORDER_MAP: dict[str, int] = {k: i * 100 + 100 for i, k in enumerate(_SECTION_ORDER)}
 # role=100, context=200, task=300, constraint=400, format=500, example=600
+_SECTION_ORDER_MAP["ui_schema"] = 250  # Between context (200) and task (300)
 
 
 # ======================================================================
@@ -607,6 +609,23 @@ class P:
     def versioned(block: PTransform, *, tag: str = "") -> PVersioned:
         """Attach version metadata + fingerprint to a prompt."""
         return PVersioned(block=block, tag=tag)
+
+    @staticmethod
+    def ui_schema(*, catalog: str = "basic", examples: bool = True) -> PSection:
+        """Inject A2UI schema and catalog documentation as a prompt section.
+
+        Use with ``.instruct()`` to give the LLM knowledge of the A2UI protocol::
+
+            agent.instruct(P.role("UI Designer") + P.ui_schema() + P.task("Build a dashboard"))
+
+        Args:
+            catalog: Catalog to document (default ``"basic"``).
+            examples: Include usage examples in the prompt.
+        """
+        from adk_fluent._ui_compile import generate_ui_prompt_section
+
+        text = generate_ui_prompt_section(catalog=catalog)
+        return PSection(name="ui_schema", content=text)
 
 
 # ======================================================================

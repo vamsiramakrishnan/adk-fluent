@@ -42,7 +42,7 @@ Loop(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Set the `description` field.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -189,7 +189,7 @@ FanOut(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Set the `description` field.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 
@@ -335,7 +335,7 @@ Pipeline(name: str)
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
-- Set the `description` field.
+- Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
 
 **Example:**
 

@@ -12,6 +12,21 @@ fully compatible with `adk web`, `adk run`, and `adk deploy`.
 ## Install
 
     pip install adk-fluent
+
+### Optional extras
+
+    pip install adk-fluent[a2a]            # A2A remote agent-to-agent communication
+    pip install adk-fluent[yaml]           # .to_yaml() / .from_yaml() serialization
+    pip install adk-fluent[rich]           # Rich terminal output for .explain()
+    pip install adk-fluent[search]         # BM25-indexed tool discovery (T.search)
+    pip install adk-fluent[pii]            # PII detection guard (G.pii with Cloud DLP)
+    pip install adk-fluent[observability]  # OpenTelemetry tracing and metrics
+
+Combine extras: ``pip install adk-fluent[a2a,yaml,rich]``
+
+A2UI (Agent-to-UI): The UI namespace ships with the core package.
+The full A2UI toolset will be available via ``pip install adk-fluent[a2ui]``
+when the ``a2ui-agent`` package is published.
 ## Imports
 
 Always import from the top-level package:
@@ -424,6 +439,46 @@ Compose with `|` (chain). Raise GuardViolation on failure.
   GuardViolation               — raised when a guard check fails
   PIIDetector                  — PII detection provider
   ContentJudge                 — content judgment provider
+
+### UI — Agent-to-UI composition (A2UI)
+
+Declarative UI composition for agents. Compose with `|` (Row), `>>` (Column).
+Import: ``from adk_fluent import UI`` or ``from adk_fluent._ui import UI``.
+
+Component factories:
+  UI.text(content, variant=)   — text content (h1-h5, caption, body)
+  UI.button(label, action=)    — clickable button
+  UI.text_field(label, bind=)  — text input with optional data binding
+  UI.image(src, alt=, fit=)    — display an image
+  UI.row(*children)            — horizontal layout
+  UI.column(*children)         — vertical layout
+  UI.component(kind, **props)  — generic escape hatch
+
+Data binding & validation:
+  UI.bind(path)                — create data binding to JSON Pointer path
+  UI.required(msg=)            — required field validation
+  UI.email(msg=)               — email format validation
+
+Surface lifecycle:
+  UI.surface(name, *children)  — create named surface (compilation root)
+  UI.auto(catalog=)            — LLM-guided mode (agent decides UI)
+
+Presets:
+  UI.form(title, fields=)      — form surface from field spec
+  UI.dashboard(title, cards=)  — dashboard with metric cards
+  UI.wizard(title, steps=)     — multi-step wizard
+  UI.confirm(message)          — confirmation dialog
+  UI.table(columns, data_bind=) — data table
+
+Agent integration:
+  Agent.ui(spec)               — attach UI surface to agent
+  T.a2ui()                     — A2UI toolset for LLM-guided mode
+  G.a2ui(max_components=)      — validate LLM-generated UI
+  P.ui_schema()                — inject catalog schema into prompt
+  S.to_ui(*keys, surface=)     — bridge state → A2UI data model
+  S.from_ui(*keys, surface=)   — bridge A2UI data model → state
+  M.a2ui_log(level=)           — log A2UI surface operations
+  C.with_ui(surface_id=)       — include UI state in context
 ## Expression operators explained
 
     A >> B           # Sequential: A runs, then B. Returns a Pipeline.
@@ -534,19 +589,19 @@ RemoteAgent extends BuilderBase — all operators (>>, |, //, *) work:
     RemoteAgent("code", env="CODE_AGENT_URL")  — environment variable configuration
 ## Builder inventory
 
-135 builders across 9 modules.
+132 builders across 9 modules.
 
-### agent module (3 builders)
+### agent module (2 builders)
 
-BaseAgent, Agent, RemoteA2aAgent
+BaseAgent, Agent
 
-### config module (39 builders)
+### config module (38 builders)
 
-A2aAgentExecutorConfig, AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
+AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
 
-### executor module (6 builders)
+### executor module (5 builders)
 
-A2aAgentExecutor, AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
+AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
 
 ### planner module (3 builders)
 

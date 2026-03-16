@@ -22,8 +22,8 @@ Complete API reference for all **132 builders** across
 | `artifacts` | A | [artifacts](artifacts.md) |
 | `middleware` | M | [middleware](middleware.md) |
 | `tools` | T | [tools](tools.md) |
-| `eval` | E | [eval](eval.md) |
 | `contracts` | — | [contracts](contracts.md) |
+| `eval` | — | [eval](eval.md) |
 | `visibility` | — | [visibility](visibility.md) |
 
 ```{toctree}
@@ -44,7 +44,7 @@ transforms
 artifacts
 middleware
 tools
-eval
 contracts
+eval
 visibility
 ```

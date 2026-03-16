@@ -103,6 +103,7 @@ __all__ = [
     "CUser",
     "CManusCascade",
     "CWhen",
+    "CPipelineAware",
     "_compile_context_spec",
 ]
 
@@ -788,6 +789,60 @@ class CManusCascade(CTransform):
 # Provider factories are in _context_providers.py (imported at module top).
 
 
+@dataclass(frozen=True)
+class CPipelineAware(CTransform):
+    """Topology-aware context for pipeline agents.
+
+    Includes user messages plus explicit state keys while suppressing
+    intermediate agent conversation history.  This addresses the gap
+    between ``include_contents='default'`` (everything, including
+    noisy intermediate agent text) and ``include_contents='none'``
+    (current turn only, losing the user's original message).
+
+    A pipeline agent often needs:
+    - The user's original message (conversational context)
+    - Structured data from state (routing info, extracted entities)
+    - But NOT the raw text of intermediate agents (noise, duplication)
+
+    ``C.pipeline_aware(*keys)`` is shorthand for
+    ``C.user_only() + C.from_state(*keys)`` — it gives the agent
+    exactly the user message plus named state values.
+
+    Usage::
+
+        # Classifier writes intent, handler reads it + user message
+        classifier = Agent("classify").writes("intent")
+        handler = Agent("handle").context(C.pipeline_aware("intent"))
+        pipeline = classifier >> handler
+    """
+
+    keys: tuple[str, ...] = ()
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "pipeline_aware"
+
+    def __post_init__(self) -> None:
+        # Compose: user messages + state keys
+        user_provider = _make_user_only_provider()
+        state_provider = _make_from_state_provider(self.keys) if self.keys else None
+
+        async def _pipeline_aware_provider(ctx: Any) -> str:
+            parts: list[str] = []
+            user_ctx = await user_provider(ctx)
+            if user_ctx:
+                parts.append(user_ctx)
+            if state_provider:
+                state_ctx = await state_provider(ctx)
+                if state_ctx:
+                    parts.append(state_ctx)
+            return "\n\n".join(parts)
+
+        object.__setattr__(self, "instruction_provider", _pipeline_aware_provider)
+
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        return frozenset(self.keys)
+
+
 # ======================================================================
 # C — public API namespace
 # ======================================================================
@@ -1019,6 +1074,64 @@ class C:
         Applies: compact → dedup → summarize → truncate.
         """
         return CManusCascade(budget=budget, model=model)
+
+    @staticmethod
+    def pipeline_aware(*keys: str) -> CPipelineAware:
+        """Topology-aware context: user messages + named state keys.
+
+        Designed for pipeline agents that need the user's original
+        message plus structured data from upstream agents, but should
+        NOT see raw intermediate agent conversation history.
+
+        Equivalent to ``C.user_only() + C.from_state(*keys)`` but
+        with clearer intent and better contract checker support.
+
+        Example::
+
+            # classifier writes intent, handler sees user msg + intent
+            classifier = Agent("classify").writes("intent")
+            handler = Agent("handle").context(C.pipeline_aware("intent"))
+            pipeline = classifier >> handler
+
+        Args:
+            *keys: State key names to include alongside user messages.
+        """
+        return CPipelineAware(keys=keys)
+
+    @staticmethod
+    def with_ui(surface_id: str | None = None) -> CTransform:
+        """Include current UI surface state in agent context.
+
+        Injects the A2UI data model for the given surface (or all surfaces)
+        into the agent's context as a ``<ui_state>`` block.
+
+        Args:
+            surface_id: Optional surface to include. If ``None``, includes all.
+
+        Usage::
+
+            Agent("renderer").context(C.with_ui("dashboard"))
+            Agent("updater").context(C.from_state("total") + C.with_ui())
+        """
+        key_pattern = f"_a2ui_data_{surface_id}" if surface_id else "_a2ui_data_"
+
+        async def _ui_provider(ctx: Any) -> str:
+            state = ctx.state
+            ui_data: dict[str, Any] = {}
+            for k, v in state.items():
+                if isinstance(k, str) and k.startswith(key_pattern):
+                    surface = k.replace("_a2ui_data_", "")
+                    ui_data[surface] = v
+            if not ui_data:
+                return ""
+            import json
+
+            return f"<ui_state>\n{json.dumps(ui_data, indent=2)}\n</ui_state>"
+
+        return CTransform(
+            include_contents="default",
+            instruction_provider=_ui_provider,
+        )
 
 
 # ======================================================================

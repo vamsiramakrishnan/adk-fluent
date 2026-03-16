@@ -16,17 +16,8 @@ adk-fluent uses * N for fixed iterations or * until() for conditional loops.
 Pipeline topology:
     ( critic >> reviser ) * 3
 
-:::{admonition} Why this matters
-:class: important
-Quality improvement is inherently iterative. First drafts need revision. Code needs review cycles. Research needs fact-checking rounds. The `* N` operator formalizes iteration as part of the pipeline topology, making the number of refinement cycles explicit, testable, and bounded. Content teams use this pattern to guarantee minimum quality standards before publishing.
-:::
-
-:::{warning} Without this
-Without structured iteration, quality loops are unbounded -- agents either stop after one pass (producing mediocre output) or loop indefinitely (burning tokens and time). In native ADK, you need a separate `LoopAgent` class with manual `max_iterations` configuration. In adk-fluent, `(critic >> reviser) * 3` is a single expression that makes the iteration count part of the topology.
-:::
-
 :::{tip} What you'll learn
-How to iterate agents in a loop using the * (repeat) operator.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `06_loop_agent.py`_

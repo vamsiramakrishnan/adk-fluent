@@ -1,16 +1,7 @@
 # Primitives Showcase: E-Commerce Order Pipeline Using All Primitives
 
-:::{admonition} Why this matters
-:class: important
-This recipe demonstrates every primitive -- `tap`, `expect`, `gate`, `race`, `timeout`, `proceed_if`, `map_over` -- working together in a realistic e-commerce order pipeline. It shows that primitives compose naturally with the core operators (`>>`, `|`, `*`), enabling sophisticated control flow without custom agent subclasses. This is the reference implementation for understanding how all the pieces fit together.
-:::
-
-:::{warning} Without this
-Building this pipeline in native ADK would require 6+ custom `BaseAgent` subclasses for the observation, assertion, approval, racing, timeout, and iteration logic. Each primitive would be a separate class with its own boilerplate -- totaling 150+ lines of infrastructure code that has nothing to do with the business logic.
-:::
-
 :::{tip} What you'll learn
-How to combine all primitives (tap, expect, gate, race, timeout) in one pipeline.
+How to compose agents into a sequential pipeline.
 :::
 
 _Source: `43_primitives_showcase.py`_

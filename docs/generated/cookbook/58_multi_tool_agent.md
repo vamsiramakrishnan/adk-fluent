@@ -10,17 +10,8 @@ Pipeline topology:
 
 Uses: .tool(), .guard(), .inject(), .sub_agent(), .context()
 
-:::{admonition} Why this matters
-:class: important
-Production agents need multiple tools (search, calculation, file access), safety guardrails (input/output screening), and environment-specific configuration (API keys, database URLs). This recipe shows how `.tool()`, `.guard()`, and `.inject()` compose together to build a production-ready task agent -- inspired by Manus AI and the OpenAI Agents SDK -- without leaking infrastructure details into the LLM's tool schema.
-:::
-
-:::{warning} Without this
-Without dependency injection, API keys and database URLs appear in the LLM's tool schema, confusing the model and creating a security risk. Without guardrails, the agent can execute dangerous operations unchecked. In native ADK, combining tools, guards, and DI requires manual `partial()` wrapping, separate callback registration, and careful tool schema management -- none of which compose cleanly.
-:::
-
 :::{tip} What you'll learn
-How to build a multi-tool agent with guardrails and dependency injection.
+How to attach tools to an agent using the fluent API.
 :::
 
 _Source: `58_multi_tool_agent.py`_

@@ -55,6 +55,7 @@ Checks SequenceNode, ParallelNode, and LoopNode IR trees:
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -100,6 +101,9 @@ def _context_description(context_spec: Any) -> str:
     if kind == "manus_cascade":
         budget = getattr(context_spec, "budget", "?")
         return f"C.manus_cascade(budget={budget})"
+    if kind == "pipeline_aware":
+        keys = getattr(context_spec, "keys", ())
+        return f"C.pipeline_aware({', '.join(repr(k) for k in keys)}) — user messages + state keys"
 
     # Composite or pipe
     cls_name = type(context_spec).__name__
@@ -843,6 +847,102 @@ def _check_sequence_contracts(
             artifacts_available.add(produced.filename)
             artifact_mime_map[produced.filename] = produced.mime
 
+    # =================================================================
+    # Pass 17: Cross-channel coherence analysis
+    # =================================================================
+    # Synthesizes all three channels (conversation, state, instruction)
+    # into unified data flow contract suggestions.
+
+    for idx in range(len(children) - 1):
+        child = children[idx]
+        child_type = type(child).__name__
+        if child_type != "AgentNode":
+            continue
+
+        child_name = getattr(child, "name", "?")
+        output_key = getattr(child, "output_key", None)
+        successor = children[idx + 1]
+        succ_name = getattr(successor, "name", "?")
+        succ_type = type(successor).__name__
+        succ_include, succ_context_spec = _resolve_include_contents(successor)
+
+        # --- Inference: successor reads state but predecessor has no output_key ---
+        # Check template vars in successor instruction
+        succ_instruction = getattr(successor, "instruction", "")
+        succ_template_vars: set[str] = set()
+        if isinstance(succ_instruction, str) and succ_instruction:
+            succ_template_vars = set(re.findall(r"\{(\w+)\??\}", succ_instruction))
+
+        # Check successor .reads() keys (from context spec)
+        succ_reads: set[str] = set()
+        if succ_context_spec is not None:
+            succ_kind = getattr(succ_context_spec, "_kind", None)
+            if succ_kind == "from_state":
+                succ_reads = set(getattr(succ_context_spec, "keys", ()))
+
+        # Check if successor is a RouteNode
+        succ_route_key = None
+        if succ_type == "RouteNode":
+            succ_route_key = getattr(successor, "key", None)
+
+        # Collect all state keys the successor needs
+        succ_needs_keys = succ_template_vars | succ_reads
+        if succ_route_key:
+            succ_needs_keys.add(succ_route_key)
+
+        if not output_key and succ_needs_keys:
+            # Predecessor has no output_key but successor needs state data.
+            upstream_keys = produced_at[idx - 1] if idx > 0 else set()
+            unresolved = succ_needs_keys - upstream_keys
+
+            if unresolved:
+                hint_keys = ", ".join(f"'{k}'" for k in sorted(unresolved))
+                issues.append(
+                    {
+                        "level": "warning",
+                        "agent": _scoped(child_name),
+                        "message": (
+                            f"Agent '{child_name}' precedes '{succ_name}' which reads "
+                            f"state keys [{hint_keys}], but '{child_name}' has no "
+                            f".writes() — its output does not reach state. "
+                            f"Consider adding .writes(<key>) to '{child_name}' "
+                            f"or an S.capture() transform between them."
+                        ),
+                        "hint": (
+                            f"The >> operator implies data flow from '{child_name}' "
+                            f"to '{succ_name}'. Without .writes(), the output exists "
+                            f"only in conversation history, not in session state."
+                        ),
+                    }
+                )
+
+        # --- Cross-channel: output_key set + default history = duplication risk ---
+        if (
+            output_key
+            and succ_include == "default"
+            and succ_type == "AgentNode"
+            and output_key not in succ_template_vars
+            and output_key not in succ_reads
+        ):
+            issues.append(
+                {
+                    "level": "info",
+                    "agent": _scoped(succ_name),
+                    "message": (
+                        f"Agent '{child_name}' writes to state['{output_key}'] "
+                        f"but '{succ_name}' doesn't read it via template or "
+                        f".reads() — the structured output is unused while "
+                        f"conversation history carries the raw text"
+                    ),
+                    "hint": (
+                        f"If '{succ_name}' needs '{child_name}''s output, "
+                        f"add .reads('{output_key}') or '{{" + output_key + "}}' "
+                        f"in the instruction. Otherwise consider removing "
+                        f".writes('{output_key}') from '{child_name}'."
+                    ),
+                }
+            )
+
     return issues
 
 
@@ -992,3 +1092,218 @@ def check_contracts(ir_node: Any) -> list[dict[str, str] | str]:
         return []
 
     return []
+
+
+# ======================================================================
+# Data flow inference (topology-aware suggestions)
+# ======================================================================
+
+
+@dataclass(frozen=True)
+class DataFlowSuggestion:
+    """A suggestion for improving data flow in a pipeline.
+
+    Returned by ``infer_data_flow()`` to help developers wire their
+    pipelines correctly.  Each suggestion identifies an agent, the
+    recommended action, and the reasoning behind it.
+    """
+
+    agent: str
+    """Name of the agent the suggestion applies to."""
+
+    action: str
+    """Short action verb: 'add_writes', 'add_reads', 'set_context', 'remove_writes'."""
+
+    key: str
+    """The state key involved in the suggestion."""
+
+    reason: str
+    """Human-readable explanation of why this suggestion exists."""
+
+    successor: str = ""
+    """Name of the downstream agent that motivated this suggestion."""
+
+    channel: str = ""
+    """Which channel is affected: 'state', 'conversation', 'instruction'."""
+
+
+def infer_data_flow(ir_node: Any) -> list[DataFlowSuggestion]:
+    """Analyze an IR tree and return topology-aware data flow suggestions.
+
+    Examines the pipeline structure to identify:
+
+    1. **Missing writes**: An agent precedes a consumer that reads from
+       state (via template vars, ``.reads()``, or Route key) but the
+       agent has no ``.writes()`` — its output doesn't reach state.
+
+    2. **Unused writes**: An agent writes to state via ``output_key``
+       but no downstream agent reads that key — the write is wasted.
+
+    3. **Missing reads**: A downstream agent receives data only via
+       conversation history when it could use structured state access.
+
+    4. **Context recommendations**: Suggestions for using context
+       engineering (``C.user_only()``, ``C.from_agents()``) to avoid
+       channel duplication.
+
+    Returns:
+        List of ``DataFlowSuggestion`` objects, sorted by pipeline position.
+
+    Example::
+
+        pipeline = Agent("classifier") >> Route("intent").eq("book", booker)
+        suggestions = infer_data_flow(pipeline.to_ir())
+        for s in suggestions:
+            print(f"{s.agent}: {s.action}('{s.key}') — {s.reason}")
+    """
+    from adk_fluent._ir_generated import SequenceNode
+
+    if not isinstance(ir_node, SequenceNode):
+        return []
+    if not ir_node.children:
+        return []
+
+    children = ir_node.children
+    suggestions: list[DataFlowSuggestion] = []
+
+    # Build produced_keys map at each position
+    produced_keys: set[str] = set()
+    produced_at: list[set[str]] = []
+    for child in children:
+        child_type = type(child).__name__
+        output_key = getattr(child, "output_key", None)
+        if output_key:
+            produced_keys.add(output_key)
+        if child_type == "CaptureNode":
+            capture_key = getattr(child, "key", None)
+            if capture_key:
+                produced_keys.add(capture_key)
+        if child_type == "TransformNode":
+            tw = _get_transform_writes(child)
+            if tw:
+                produced_keys |= tw
+        produced_at.append(set(produced_keys))
+
+    # Analyze each agent's data flow needs
+    for idx, child in enumerate(children):
+        child_type = type(child).__name__
+        child_name = getattr(child, "name", "?")
+        output_key = getattr(child, "output_key", None)
+
+        # --- Suggestion 1: Missing writes ---
+        if child_type == "AgentNode" and not output_key and idx < len(children) - 1:
+            successor = children[idx + 1]
+            succ_name = getattr(successor, "name", "?")
+
+            # What does successor need from state?
+            needed_keys = _get_consumer_needs(successor)
+            upstream_keys = produced_at[idx - 1] if idx > 0 else set()
+            unresolved = needed_keys - upstream_keys
+
+            if unresolved:
+                # Suggest the most plausible key name
+                suggested_key = child_name if len(unresolved) > 1 else next(iter(unresolved))
+                suggestions.append(
+                    DataFlowSuggestion(
+                        agent=child_name,
+                        action="add_writes",
+                        key=suggested_key,
+                        reason=(
+                            f"Successor '{succ_name}' reads state keys "
+                            f"{sorted(unresolved)} but '{child_name}' has no "
+                            f".writes() — output stays in conversation only"
+                        ),
+                        successor=succ_name,
+                        channel="state",
+                    )
+                )
+
+        # --- Suggestion 2: Unused writes ---
+        if output_key and idx < len(children) - 1:
+            consumed_downstream = False
+            for later_idx in range(idx + 1, len(children)):
+                later = children[later_idx]
+                later_needs = _get_consumer_needs(later)
+                if output_key in later_needs:
+                    consumed_downstream = True
+                    break
+            if not consumed_downstream:
+                suggestions.append(
+                    DataFlowSuggestion(
+                        agent=child_name,
+                        action="remove_writes",
+                        key=output_key,
+                        reason=(
+                            f"output_key='{output_key}' is not read by any downstream agent — the write has no consumer"
+                        ),
+                        channel="state",
+                    )
+                )
+
+        # --- Suggestion 3: Context recommendations ---
+        if child_type == "AgentNode" and output_key and idx < len(children) - 1:
+            successor = children[idx + 1]
+            succ_type2 = type(successor).__name__
+            if succ_type2 == "AgentNode":
+                succ_include, succ_ctx = _resolve_include_contents(successor)
+                succ_name = getattr(successor, "name", "?")
+
+                # Successor has default history AND reads the key via template
+                succ_instruction = getattr(successor, "instruction", "")
+                if (
+                    isinstance(succ_instruction, str)
+                    and f"{{{output_key}}}" in succ_instruction
+                    and succ_include == "default"
+                ):
+                    suggestions.append(
+                        DataFlowSuggestion(
+                            agent=succ_name,
+                            action="set_context",
+                            key=output_key,
+                            reason=(
+                                f"'{succ_name}' reads '{output_key}' via "
+                                f"template AND conversation history — "
+                                f"consider .context(C.user_only()) or "
+                                f".reads('{output_key}') to avoid duplication"
+                            ),
+                            successor=succ_name,
+                            channel="conversation",
+                        )
+                    )
+
+    return suggestions
+
+
+def _get_consumer_needs(node: Any) -> set[str]:
+    """Extract all state keys a node needs from upstream.
+
+    Combines template variables, .reads() keys, and Route keys
+    into a single set.
+    """
+    needs: set[str] = set()
+    node_type = type(node).__name__
+
+    # Template variables in instruction
+    instruction = getattr(node, "instruction", "")
+    if isinstance(instruction, str) and instruction:
+        needs |= set(re.findall(r"\{(\w+)\??\}", instruction))
+
+    # .reads() / context spec keys
+    context_spec = getattr(node, "context_spec", None)
+    if context_spec is not None:
+        kind = getattr(context_spec, "_kind", None)
+        if kind == "from_state":
+            needs |= set(getattr(context_spec, "keys", ()))
+
+    # Route key
+    if node_type == "RouteNode":
+        route_key = getattr(node, "key", None)
+        if route_key:
+            needs.add(route_key)
+
+    # consumes_type keys
+    consumes_type = getattr(node, "consumes_type", None)
+    if consumes_type is not None and hasattr(consumes_type, "model_fields"):
+        needs |= set(consumes_type.model_fields.keys())
+
+    return needs

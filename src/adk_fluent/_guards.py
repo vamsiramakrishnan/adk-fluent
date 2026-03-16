@@ -546,6 +546,43 @@ class G:
         return GComposite([GGuard("max_turns", _Phase.PRE_MODEL, frozenset(), _compile)])
 
     # ------------------------------------------------------------------
+    # A2UI output guards
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def a2ui(
+        *,
+        max_components: int = 50,
+        allowed_types: list[str] | None = None,
+        deny_types: list[str] | None = None,
+    ) -> GComposite:
+        """Validate LLM-generated A2UI output.
+
+        Checks that the number of components doesn't exceed ``max_components``
+        and that only allowed component types are used.
+
+        Args:
+            max_components: Maximum number of components allowed.
+            allowed_types: If set, only these component types are permitted.
+            deny_types: If set, these component types are blocked.
+        """
+
+        def _compile(builder: Any) -> None:
+            cbs = builder._callbacks.setdefault("after_model_callback", [])
+            cbs.append(
+                (
+                    "guard:a2ui",
+                    {
+                        "max_components": max_components,
+                        "allowed_types": allowed_types,
+                        "deny_types": deny_types,
+                    },
+                )
+            )
+
+        return GComposite([GGuard("a2ui", _Phase.POST_MODEL, frozenset(), _compile)])
+
+    # ------------------------------------------------------------------
     # Content safety guards
     # ------------------------------------------------------------------
 
