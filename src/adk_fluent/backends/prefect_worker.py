@@ -23,9 +23,10 @@ Requires: ``pip install prefect``
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from typing import Any
+
+from adk_fluent.backends._utils import safe_identifier as _safe_identifier
 
 __all__ = [
     "PrefectWorkerConfig",
@@ -311,9 +312,3 @@ def _generate_deployment_setup(cfg: PrefectWorkerConfig) -> list[str]:
     return lines
 
 
-def _safe_identifier(name: str) -> str:
-    """Convert a node name to a valid Python identifier."""
-    result = re.sub(r"[^a-zA-Z0-9_]", "_", name)
-    if result and result[0].isdigit():
-        result = f"n_{result}"
-    return result or "unnamed"

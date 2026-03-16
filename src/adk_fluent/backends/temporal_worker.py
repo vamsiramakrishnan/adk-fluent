@@ -31,6 +31,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from adk_fluent.backends._utils import safe_identifier as _safe_identifier
+
 __all__ = [
     "TemporalWorkerConfig",
     "generate_worker_code",
@@ -359,15 +361,6 @@ def _generate_worker_setup(activities: list[dict], cfg: TemporalWorkerConfig) ->
 
     return lines
 
-
-def _safe_identifier(name: str) -> str:
-    """Convert a node name to a valid Python identifier."""
-    import re
-
-    result = re.sub(r"[^a-zA-Z0-9_]", "_", name)
-    if result and result[0].isdigit():
-        result = f"n_{result}"
-    return result or "unnamed"
 
 
 # ---------------------------------------------------------------------------

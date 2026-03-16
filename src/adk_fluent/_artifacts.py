@@ -113,6 +113,25 @@ class ATransform:
         """No-op marker. Real work happens in ArtifactAgent at runtime."""
         return None
 
+    # --- Composition operators ---
+
+    def __rshift__(self, other: Any) -> Any:
+        """Chain: ``a >> b``. Delegates to the pipeline operator when chaining with builders."""
+        if isinstance(other, ATransform):
+            # Both are artifact ops — chain via pipeline
+            from adk_fluent._base import _fn_step
+
+            return _fn_step(self) >> _fn_step(other)
+
+        from adk_fluent._base import BuilderBase, _fn_step
+        from adk_fluent._routing import Route
+
+        if isinstance(other, BuilderBase | Route):
+            return _fn_step(self) >> other
+        if callable(other) and not isinstance(other, type):
+            return _fn_step(self) >> other
+        return NotImplemented
+
     # --- NamespaceSpec protocol conformance ---
 
     @property
@@ -274,9 +293,16 @@ class _ToolFactory:
 
         async def _load_fn(filename: str, tool_context: Any) -> dict:
             """Load artifact content."""
+            import warnings
+
             ctx = tool_context
             svc = ctx._invocation_context.artifact_service
             if svc is None:
+                warnings.warn(
+                    "No artifact service configured — load tool returning error dict "
+                    "instead of raising. Configure an artifact service to use this tool.",
+                    stacklevel=2,
+                )
                 return {"error": "No artifact service configured"}
 
             is_user = scope == "user"
@@ -289,6 +315,11 @@ class _ToolFactory:
                 filename=filename,
             )
             if part is None:
+                warnings.warn(
+                    f"Artifact '{filename}' not found — load tool returning error dict "
+                    "instead of raising.",
+                    stacklevel=2,
+                )
                 return {"error": f"Artifact '{filename}' not found"}
 
             if part.text is not None:

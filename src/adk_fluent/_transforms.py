@@ -6,6 +6,7 @@ plugs into the ``>>`` pipeline operator and the ``+`` combine operator.
 Composition operators::
 
     >>  chain   — first runs, state updated, second runs on updated state
+    |   pipe    — alias for >> (namespace consistency)
     +   combine — both run on original state, results merge
 
 StateDelta:        additive merge — only the returned keys are updated.
@@ -212,6 +213,10 @@ class STransform:
     # ------------------------------------------------------------------
     # Composition: + (combine)
     # ------------------------------------------------------------------
+
+    def __or__(self, other: Any) -> Any:
+        """Pipe: alias for ``>>`` (chain). Provided for namespace consistency."""
+        return self.__rshift__(other)
 
     def __add__(self, other: Any) -> STransform:
         """Combine: ``self + other``.

@@ -9,6 +9,7 @@ these descriptors into the two ADK knobs: ``include_contents`` and
 Composition operators:
     +  union  (CComposite)
     |  pipe   (CPipe)
+    >> chain  (alias for |, namespace consistency)
 
 Usage:
     from adk_fluent._context import C
@@ -135,6 +136,10 @@ class CTransform:
     def __or__(self, other: CTransform) -> CPipe:
         """Pipe: source | transform."""
         return CPipe(source=self, transform=other)
+
+    def __rshift__(self, other: CTransform) -> CPipe:
+        """Chain: alias for ``|`` (pipe). Provided for namespace consistency."""
+        return self.__or__(other)
 
     def _as_list(self) -> tuple[CTransform, ...]:
         """Flatten for composite building. Overridden by CComposite."""

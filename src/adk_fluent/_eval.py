@@ -125,8 +125,24 @@ class EComposite:
         E.trajectory() | E.response_match() | E.safety()
     """
 
+    _kind: str = "eval"
+
     def __init__(self, criteria: list[ECriterion] | None = None):
         self._criteria: list[ECriterion] = list(criteria or [])
+
+    # ------------------------------------------------------------------
+    # NamespaceSpec protocol: key metadata for contract tracing
+    # ------------------------------------------------------------------
+
+    @property
+    def _reads_keys(self) -> frozenset[str]:
+        """State keys this eval spec reads. Evals are opaque — return empty."""
+        return frozenset()
+
+    @property
+    def _writes_keys(self) -> frozenset[str]:
+        """State keys this eval spec writes. Evals are opaque — return empty."""
+        return frozenset()
 
     def __or__(self, other: EComposite | ECriterion) -> EComposite:
         """E.trajectory() | E.response_match()"""

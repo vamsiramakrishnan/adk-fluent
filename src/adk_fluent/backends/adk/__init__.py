@@ -33,7 +33,14 @@ from adk_fluent._ir_generated import (
 
 
 class ADKBackend:
-    """Compiles IR node trees into native Google ADK objects wrapped in an App."""
+    """Compiles IR node trees into native Google ADK objects wrapped in an App.
+
+    This is a **compile-only** backend: ``compile()`` lowers IR into ADK
+    objects suitable for ``adk web``, ``adk run``, and ``adk deploy``.
+    ``run()`` and ``stream()`` are not implemented because execution
+    requires a live session service and API credentials managed by the ADK
+    runtime itself.
+    """
 
     name: str = "adk"
 

@@ -381,6 +381,17 @@ def _replace_response_text(llm_response, new_text: str):
     )
 
 
+def _propagate_middlewares(left: Any, right: Any, result: Any) -> None:
+    """Merge middleware from both operands onto the result builder."""
+    merged = list(getattr(left, "_middlewares", []))
+    other_mw = getattr(right, "_middlewares", []) if isinstance(right, BuilderBase) else []
+    for mw in other_mw:
+        if mw not in merged:
+            merged.append(mw)
+    if merged:
+        result._middlewares = merged
+
+
 def _count_components(component: Any) -> int:
     """Count total components in a UIComponent tree."""
     count = 1
@@ -717,14 +728,25 @@ class BuilderBase:
     # Task 3: Operator Composition (>>, |, *)
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _merge_middlewares(left: BuilderBase, right: Any) -> list:
+        """Merge middleware lists from two builder operands (deduplicating)."""
+        merged = list(getattr(left, "_middlewares", []))
+        other_mw = getattr(right, "_middlewares", []) if isinstance(right, BuilderBase) else []
+        for mw in other_mw:
+            if mw not in merged:
+                merged.append(mw)
+        return merged
+
     def _fork_for_operator(self) -> Self:
         """Create an operator-safe fork. Shares sub-builders (safe: operators never mutate children)."""
         new = object.__new__(type(self))
         new._config = dict(self._config)
         new._callbacks = {k: list(v) for k, v in self._callbacks.items()}
         new._lists = {k: list(v) for k, v in self._lists.items()}
-        if hasattr(self, "_middlewares"):
-            new._middlewares = list(self._middlewares)
+        mw = getattr(self, "_middlewares", None)
+        if mw is not None:
+            new._middlewares = list(mw)
         return new
 
     def __rshift__(self, other) -> BuilderBase:
@@ -792,13 +814,7 @@ class BuilderBase:
             result = p
 
         # Propagate middleware from operands to result
-        merged_mw = list(getattr(self, "_middlewares", []))
-        other_mw = getattr(other, "_middlewares", []) if isinstance(other, BuilderBase) else []
-        for mw in other_mw:
-            if mw not in merged_mw:
-                merged_mw.append(mw)
-        if merged_mw:
-            result._middlewares = merged_mw
+        _propagate_middlewares(self, other, result)
         return result
 
     def __rrshift__(self, other) -> BuilderBase:
@@ -832,13 +848,7 @@ class BuilderBase:
             result = f
 
         # Propagate middleware from operands to result
-        merged_mw = list(getattr(self, "_middlewares", []))
-        other_mw = getattr(other, "_middlewares", []) if isinstance(other, BuilderBase) else []
-        for mw in other_mw:
-            if mw not in merged_mw:
-                merged_mw.append(mw)
-        if merged_mw:
-            result._middlewares = merged_mw
+        _propagate_middlewares(self, other, result)
         return result
 
     def __mul__(self, other) -> BuilderBase:
@@ -1033,7 +1043,7 @@ class BuilderBase:
         # Phase 2: Contract analysis on IR tree
         try:
             ir = self.to_ir()
-        except Exception:
+        except (NotImplementedError, AttributeError):
             # Some builders (single agents) may not support IR — that's OK
             return self
 
@@ -1041,7 +1051,7 @@ class BuilderBase:
             from adk_fluent.testing.contracts import check_contracts
 
             raw_issues = check_contracts(ir)
-        except Exception:
+        except (ImportError, NotImplementedError):
             return self
 
         if not raw_issues:
@@ -1224,7 +1234,7 @@ class BuilderBase:
                         lines.append(f"    [{marker}] {agent}: {msg}")
                         if hint:
                             lines.append(f"           Hint: {hint}")
-        except (NotImplementedError, Exception):
+        except (NotImplementedError, AttributeError, ImportError):
             pass  # IR not available or conversion failed
 
         return "\n".join(lines)
@@ -1401,7 +1411,7 @@ class BuilderBase:
                         node = issues_branch.add(f"{marker} {agent}: {msg}")
                         if hint:
                             node.add(f"[dim]Hint: {hint}[/dim]")
-        except (NotImplementedError, Exception):
+        except (NotImplementedError, AttributeError, ImportError):
             pass  # IR not available or conversion failed
 
         return tree
@@ -1626,7 +1636,7 @@ class BuilderBase:
                     else {"message": str(i)}
                     for i in issues
                 ]
-        except (NotImplementedError, Exception):
+        except (NotImplementedError, AttributeError, ImportError):
             pass
 
         return result
@@ -2184,6 +2194,14 @@ class BuilderBase:
             bg_pipeline = (researcher >> analyzer).dispatch(name="analysis")
             workflow = writer >> bg_email >> bg_pipeline >> join()
         """
+        if progress_key is not None:
+            import warnings
+
+            warnings.warn(
+                ".dispatch(progress_key=) is deprecated, use stream_to= instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         task_name = name or self._config.get("name", f"task_{next(_dispatch_counter)}")
         builder_name = f"dispatch_{task_name}"
         return BackgroundTask(
@@ -2271,7 +2289,7 @@ class BuilderBase:
                 "Did you mean .tools(...)? Use .middleware() for middleware/MComposite, "
                 ".tools() for TComposite."
             )
-        if not hasattr(self, "_middlewares"):
+        if getattr(self, "_middlewares", None) is None:
             self._middlewares = []
         if isinstance(mw, MComposite):
             self._middlewares.extend(mw.to_stack())
@@ -2762,7 +2780,7 @@ class BuilderBase:
         try:
             ir = self.to_ir()
             suggestions = infer_data_flow(ir)
-        except Exception:
+        except (NotImplementedError, AttributeError, ImportError):
             return self  # Can't infer — leave unchanged
 
         if not suggestions:

@@ -8,6 +8,7 @@ into instruction strings or async InstructionProvider callables.
 Composition operators:
     +  union  (PComposite) — merge sections
     |  pipe   (PPipe)      — post-process compiled output
+    >> chain  (alias for |, namespace consistency)
 
 Usage:
     from adk_fluent import P
@@ -115,6 +116,10 @@ class PTransform:
     def __or__(self, other: PTransform) -> PPipe:
         """Pipe: source | transform."""
         return PPipe(source=self, transform=other)
+
+    def __rshift__(self, other: PTransform) -> PPipe:
+        """Chain: alias for ``|`` (pipe). Provided for namespace consistency."""
+        return self.__or__(other)
 
     def _as_list(self) -> tuple[PTransform, ...]:
         """Flatten for composite building. Overridden by PComposite."""

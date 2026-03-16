@@ -23,6 +23,7 @@ Usage::
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -134,6 +135,10 @@ class AsyncioBackend:
         """AgentNode → call ModelProvider.generate()."""
         if self._provider is None:
             # No provider — return a placeholder
+            logging.getLogger("adk_fluent.backends.asyncio").warning(
+                "No ModelProvider configured — agent '%s' will return a placeholder response",
+                node.name,
+            )
             events.append(
                 AgentEvent(
                     author=node.name,
@@ -258,8 +263,19 @@ class AsyncioBackend:
         # Merge events and state
         for be in branch_events:
             events.extend(be)
+        # Detect parallel write conflicts
+        seen_keys: dict[str, int] = {}
         for bs in branch_states:
+            for k in bs:
+                if k not in state or bs[k] != state.get(k):
+                    seen_keys[k] = seen_keys.get(k, 0) + 1
             state.update(bs)
+        conflicts = [k for k, count in seen_keys.items() if count > 1]
+        if conflicts:
+            logging.getLogger("adk_fluent.backends.asyncio").warning(
+                "Parallel branches wrote same key(s): %s — last write wins",
+                ", ".join(sorted(conflicts)),
+            )
 
     async def _run_loop(
         self,
@@ -548,10 +564,8 @@ class _AsyncioRunnable:
 class _DictState:
     """Minimal state wrapper for when no session is provided."""
 
-    state: dict[str, Any] = {}
-
     def __init__(self) -> None:
-        self.state = {}
+        self.state: dict[str, Any] = {}
 
 
 # Dispatch table for node handlers

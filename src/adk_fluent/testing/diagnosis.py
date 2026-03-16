@@ -321,6 +321,9 @@ def _convert_issues(raw_issues: list) -> list[ContractIssue]:
                     hint=issue.get("hint", ""),
                 )
             )
+        else:
+            # Unknown issue format — preserve as error
+            result.append(ContractIssue(level="error", agent="?", message=str(issue)))
     return result
 
 
