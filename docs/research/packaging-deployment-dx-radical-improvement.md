@@ -817,3 +817,19 @@ adk-fluent promote v2.agent
 **From 1 line of agent definition to production deployment, any backend, any target, any frontend — with full observability and cost control.**
 
 That's what 100x engineers build.
+
+---
+
+## Appendices — Deep Dive Series
+
+This document is the executive summary. The following appendices explore each dimension in depth, with honest trade-offs as seen by pragmatic SWEs, ambitious DevEx-obsessed Staff SWEs, and product-minded PMs:
+
+- **[Appendix A: Self-Critique](dx-appendix-a-self-critique.md)** — Contra points, dependency bloat analysis, scope creep risks, NIH assessment, maintenance burden, and what we should NOT build. Includes pip package size analysis (google-adk is already 600 MB installed; our additions are < 1 MB) and honest competitive landscape assessment.
+
+- **[Appendix B: Deployment Targets Deep Dive](dx-appendix-b-deployment-targets.md)** — Every deployment target in detail: Docker, Cloud Run, Agent Engine, GKE, K8s (generic), AWS Lambda, ECS/Fargate, Azure Container Apps, Temporal Cloud, Prefect Cloud, DBOS Cloud, and bare metal/systemd. Includes configuration externalization (three-layer config model), secrets management, and the multi-backend deployment decision tree.
+
+- **[Appendix C: Scaffolding and Codegen Architecture](dx-appendix-c-scaffolding-codegen.md)** — Template engine design (Jinja2 vs string concatenation), scaffold command UX flow, template maintenance strategy, worker codegen pipeline, dependency detection, and the `package` command architecture. Includes the template directory structure and ScaffoldContext data model.
+
+- **[Appendix D: Local Development Infrastructure](dx-appendix-d-local-dev-infra.md)** — The "minikube for orchestrators" problem. How to make Temporal, Prefect, and DBOS as easy to run locally as `minikube start`. Docker-based infra management, per-backend compose files, the Docker-free path (DBOS+SQLite, Temporal CLI dev server), memory budgets, port conflict handling, and data persistence strategy.
+
+- **[Appendix E: Learning from adk-web](dx-appendix-e-adk-web-lessons.md)** — Analysis of 25 open adk-web GitHub issues, the two-process architecture problem, heavy Angular frontend stack, agent discovery failures, UI crashes, and missing features. How `adk-fluent dev` avoids each pain point. Embedded vanilla JS UI design (~20 KB vs ~200 MB), terminal-first tracing, and the coexistence strategy with adk-web.
