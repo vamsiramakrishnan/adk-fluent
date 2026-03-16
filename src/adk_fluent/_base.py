@@ -1607,6 +1607,10 @@ class BuilderBase:
 
     def _prepare_build_config(self) -> dict[str, Any]:
         """Prepare config dict for building: strip internal fields, auto-build sub-builders, merge callbacks and lists."""
+        # Auto-wire data flow if .wired() was called
+        if self._config.get("_auto_wire"):
+            self.auto_wire()
+
         # Run IR-first contract checking (appendix_f Q1, Q3)
         self._run_build_contracts()
 
@@ -2428,6 +2432,134 @@ class BuilderBase:
         from adk_fluent._interop import _extract_data_flow
 
         return _extract_data_flow(self)
+
+    def data_flow_contract(self):
+        """Analyze cross-channel coherence for all agents in this pipeline.
+
+        Returns a list of ``DataFlowContract`` objects showing how the
+        three ADK channels (conversation history, session state,
+        instruction templating) interact for each agent, and whether
+        the interaction is coherent.
+
+        This is the comprehensive diagnostic for data flow issues in
+        pipelines. It answers questions like:
+
+        - Does agent B's ``{intent}`` template have a producer upstream?
+        - Is agent A's output duplicated across state AND conversation?
+        - Will data be lost because A has no ``.writes()`` and B has
+          ``include_contents='none'``?
+
+        Usage::
+
+            pipeline = Agent("a").writes("x") >> Agent("b").instruct("{x}")
+            for contract in pipeline.data_flow_contract():
+                print(contract)
+        """
+        from adk_fluent._interop import check_data_flow_contract
+
+        return check_data_flow_contract(self.to_ir())
+
+    def infer_data_flow(self):
+        """Get topology-aware suggestions for improving data flow.
+
+        Analyzes the pipeline structure and returns suggestions for:
+
+        - Missing ``.writes()`` where downstream agents need state
+        - Unused ``.writes()`` where no downstream agent reads the key
+        - Context recommendations to avoid channel duplication
+
+        Usage::
+
+            pipeline = Agent("classifier") >> Route("intent").eq("book", booker)
+            for suggestion in pipeline.infer_data_flow():
+                print(f"{suggestion.agent}: {suggestion.action}('{suggestion.key}')")
+                print(f"  {suggestion.reason}")
+        """
+        from adk_fluent.testing.contracts import infer_data_flow
+
+        return infer_data_flow(self.to_ir())
+
+    def auto_wire(self) -> Self:
+        """Automatically wire data flow based on topology analysis.
+
+        Analyzes the pipeline to find intermediate agents that should
+        have ``.writes()`` based on their successors' needs, and
+        applies the inferred settings.
+
+        Only applies ``add_writes`` suggestions — does not remove
+        existing explicit configuration.
+
+        Returns the modified builder (mutates in place).
+
+        Usage::
+
+            # Before: classifier has no .writes(), but Route needs 'intent'
+            pipeline = (
+                Agent("classifier").instruct("Classify intent.")
+                >> Route("intent").eq("booking", booker)
+            ).auto_wire()
+            # After: classifier automatically gets .writes("intent")
+        """
+        from adk_fluent.testing.contracts import infer_data_flow
+
+        try:
+            ir = self.to_ir()
+            suggestions = infer_data_flow(ir)
+        except Exception:
+            return self  # Can't infer — leave unchanged
+
+        if not suggestions:
+            return self
+
+        # Build a map of agent name -> suggested writes
+        writes_map: dict[str, str] = {}
+        for s in suggestions:
+            if s.action == "add_writes" and s.agent not in writes_map:
+                writes_map[s.agent] = s.key
+
+        if not writes_map:
+            return self
+
+        # Apply writes to matching sub-builders
+        sub_agents = self._lists.get("sub_agents", [])
+        for item in sub_agents:
+            if not hasattr(item, "_config"):
+                continue
+            name = item._config.get("name", "")
+            if name in writes_map and not item._config.get("output_key"):
+                item._config["output_key"] = writes_map[name]
+
+        return self
+
+    def wired(self) -> Self:
+        """Enable automatic data flow wiring at build time.
+
+        When set, ``.build()`` automatically infers missing ``.writes()``
+        on intermediate agents based on what downstream agents need
+        (template variables, ``.reads()`` keys, Route keys).
+
+        This makes ``>>`` truly encode data flow — the developer
+        declares the relationship, the library figures out the wiring.
+
+        Only meaningful on compound builders (Pipeline, Loop).
+        Has no effect on single agents.
+
+        Usage::
+
+            # Without .wired(): contract checker warns about missing .writes()
+            pipeline = Agent("classify") >> Route("intent").eq("book", booker)
+
+            # With .wired(): library auto-infers .writes("intent") on classify
+            pipeline = (
+                Agent("classify") >> Route("intent").eq("book", booker)
+            ).wired()
+
+        Returns:
+            Self for chaining.
+        """
+        self = self._maybe_fork_for_mutation()
+        self._config["_auto_wire"] = True
+        return self
 
     def llm_anatomy(self) -> str:
         """Show exactly what will be sent to the LLM for this agent.
