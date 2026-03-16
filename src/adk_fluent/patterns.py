@@ -475,7 +475,7 @@ def ui_form_agent(
     name: str,
     model: str,
     *,
-    fields: dict[str, str],
+    fields: dict[str, str | list[str]],
     on_submit: Callable | None = None,
     instruction: str = "",
     submit_label: str = "Submit",

@@ -302,13 +302,10 @@ def _flatten_tree(
 
     # Add action
     if component._action:
-        comp_dict["action"] = {
-            "event": {
-                "name": component._action.event,
-            }
-        }
+        event_dict: dict[str, Any] = {"name": component._action.event}
         if component._action.context:
-            comp_dict["action"]["event"]["context"] = dict(component._action.context)
+            event_dict["context"] = dict(component._action.context)
+        comp_dict["action"] = {"event": event_dict}
 
     # Add checks
     if component._checks:

@@ -123,7 +123,8 @@ def _gen_component_factory(comp: dict) -> str:
         py_type = _py_type(types.get(arg, "str"))
         default = defaults.get(arg)
         default_str = _default_repr(default)
-        kw_params.append(f"{arg}: {py_type} = {default_str}")
+        param_type = f"{py_type} | None" if default is None else py_type
+        kw_params.append(f"{arg}: {param_type} = {default_str}")
         if enums.get(arg):
             doc_params.append(f"{arg}: One of {enums[arg]}. Default: {default_str}.")
 

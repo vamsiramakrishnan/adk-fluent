@@ -66,7 +66,9 @@ class _GeneratedFactories:
         return _component("Video", id=id, url=url)
 
     @staticmethod
-    def audio(url: str | UIBinding, *, description: str | UIBinding = None, id: str | None = None) -> UIComponent:
+    def audio(
+        url: str | UIBinding, *, description: str | UIBinding | None = None, id: str | None = None
+    ) -> UIComponent:
         """
 
         Args:
@@ -181,7 +183,7 @@ class _GeneratedFactories:
     def text_field(
         label: str | UIBinding,
         *,
-        value: str | UIBinding = None,
+        value: str | UIBinding | None = None,
         variant: str = "shortText",
         bind: str | None = None,
         checks: list[UICheck] | None = None,
@@ -227,7 +229,7 @@ class _GeneratedFactories:
         options: list[dict[str, Any]],
         value: str | UIBinding,
         *,
-        label: str | UIBinding = None,
+        label: str | UIBinding | None = None,
         variant: str = "mutuallyExclusive",
         displayStyle: str = "checkbox",
         filterable: bool = False,
@@ -265,7 +267,7 @@ class _GeneratedFactories:
         max: int | float,
         value: int | float | UIBinding,
         *,
-        label: str | UIBinding = None,
+        label: str | UIBinding | None = None,
         min: int | float = 0,
         bind: str | None = None,
         checks: list[UICheck] | None = None,
@@ -291,9 +293,9 @@ class _GeneratedFactories:
         *,
         enableDate: bool = False,
         enableTime: bool = False,
-        min: str | UIBinding = None,
-        max: str | UIBinding = None,
-        label: str | UIBinding = None,
+        min: str | UIBinding | None = None,
+        max: str | UIBinding | None = None,
+        label: str | UIBinding | None = None,
         bind: str | None = None,
         checks: list[UICheck] | None = None,
         id: str | None = None,
