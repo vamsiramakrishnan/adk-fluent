@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Plan: Five-Layer Decoupling — Definition / Compile / Runtime / Execution Backend / Compute
 
 ## Context

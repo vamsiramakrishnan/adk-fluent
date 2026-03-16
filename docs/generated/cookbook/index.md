@@ -609,12 +609,13 @@ IR compilation, middleware, contracts, testing, dependency injection, and visual
 ---
 gutter: 3
 ---
-```{grid-item-card} Pipeline Optimization with IR -- Inspecting and Compiling Agent Graphs
+```{grid-item-card} Pipeline Optimization with IR -- Inspecting, Compiling, and Selecting Backends
 
 Demonstrates to_ir() for pipeline analysis, to_app() for production
-compilation, and to_mermaid() for architecture documentation. The
-scenario: a mortgage approval pipeline where the platform team
-inspects the agent graph for optimization before deployment.
+compilation, to_mermaid() for architecture documentation, and the new
+compile layer for backend-selectable execution. The scenario: a mortgage
+approval pipeline where the platform team inspects the agent graph for
+optimization before deploying to different execution backends.
 :link: 44_ir_and_backends
 :link-type: doc
 
@@ -1038,6 +1039,34 @@ Key concepts:
 
 How to register lifecycle callbacks with accumulation semantics.
 ```
+```{grid-item-card} Engine Selection -- Backend-Selectable Agent Execution
+
+The same agent definition can run on different execution backends:
+ADK (default), asyncio (zero-dependency), or Temporal (durable).
+Use .engine() per-agent or configure() globally. The agent logic
+stays identical -- only the execution engine changes.
+
+This is the core concept of the five-layer architecture:
+  Definition → Compile → Runtime → Backend → Compute
+:link: 68_engine_selection
+:link-type: doc
+
+How to configure agents for production runtime.
+```
+```{grid-item-card} Asyncio Backend -- Zero-Dependency IR Interpreter
+
+The asyncio backend executes agent pipelines directly using Python
+asyncio — no ADK, no Temporal, no external dependencies. It interprets
+the IR tree and calls a ModelProvider for LLM invocations.
+
+Use cases: testing without API keys, lightweight deployments, custom
+model integrations (local models, OpenAI, Anthropic), and proving
+that the five-layer architecture works with any backend.
+:link: 69_asyncio_backend
+:link-type: doc
+
+How to compose agents into a sequential pipeline.
+```
 ```{grid-item-card} A2UI Basics: Declarative Agent-to-UI Composition
 
 Demonstrates the UI namespace for building rich agent UIs declaratively.
@@ -1054,6 +1083,28 @@ Key concepts:
 
 How to use operator syntax for composing agents.
 ```
+```{grid-item-card} Temporal Backend -- Durable Execution for Agent Pipelines
+
+The Temporal backend compiles IR nodes to Temporal workflows and
+activities. If a 10-step pipeline crashes at step 7, Temporal replays
+steps 1-6 from cached results (zero LLM cost) and re-executes only
+step 7+.
+
+Key mappings:
+  AgentNode     → Activity  (non-deterministic: LLM call, cached on replay)
+  SequenceNode  → Workflow  (deterministic orchestration)
+  ParallelNode  → Workflow  (concurrent activities)
+  LoopNode      → Workflow  (iteration with checkpoints)
+  TransformNode → Inline    (deterministic, replayed from history)
+  GateNode      → Signal    (human-in-the-loop approval)
+  DispatchNode  → Child WF  (durable background task)
+
+Usage requires: pip install adk-fluent[temporal]
+:link: 70_temporal_backend
+:link-type: doc
+
+How to compose agents into a sequential pipeline.
+```
 ```{grid-item-card} A2UI Agent Integration: Wiring UI to Agents
 
 Demonstrates attaching UI surfaces to agents and cross-namespace integration.
@@ -1066,6 +1117,24 @@ Key concepts:
   - P.ui_schema(): inject catalog schema into prompt
   - ui_form_agent(): pattern helper
 :link: 71_a2ui_agent_integration
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} Compute Layer -- Pluggable Model, State, Tool, and Artifact Providers
+
+The compute layer decouples WHERE work runs from HOW it's orchestrated.
+Four independent protocols let you swap infrastructure without changing
+agent logic:
+
+  ModelProvider   → LLM backend (Gemini, OpenAI, local, mock)
+  StateStore      → Session persistence (memory, Redis, SQL)
+  ToolRuntime     → Tool execution sandbox
+  ArtifactStore   → Binary artifact storage (files, GCS, S3)
+
+Use ComputeConfig to bundle providers, then attach via .compute()
+on any builder or configure() globally.
+:link: 71_compute_layer
 :link-type: doc
 
 How to attach tools to an agent using the fluent API.
@@ -1139,8 +1208,12 @@ How to compose agents into a sequential pipeline.
 65_builtin_middleware
 66_t_module_tools
 67_g_module_guards
+68_engine_selection
+69_asyncio_backend
 70_a2ui_basics
+70_temporal_backend
 71_a2ui_agent_integration
+71_compute_layer
 72_a2ui_operators
 73_a2ui_llm_guided
 74_a2ui_pipeline

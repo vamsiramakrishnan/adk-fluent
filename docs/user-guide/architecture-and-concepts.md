@@ -89,105 +89,46 @@ pipeline = (
 
 These operate exclusively on Channel 2 (session state). They don't touch Channel 1 (conversation history) or Channel 3 (instruction templating). FnAgent writes directly to `ctx.session.state` and yields nothing — no events, no state_delta, no conversation history entry.
 
-## Data Flow Contracts
+## What's Actually Missing
 
-The S module is fine for what it does. It's a clean set of state transforms. The real challenge is coordinating all three channels so the common patterns work correctly. adk-fluent provides three layers of support for this.
+The S module is fine for what it does. It's a clean set of state transforms. The problem isn't the transforms — it's that the developer has to manually coordinate all three channels, and the common patterns require getting the coordination exactly right.
 
-### Layer 1: Contract Checker (automatic, build-time)
+### Missing: The >> operator doesn't encode data flow
 
-The contract checker runs automatically on every `.build()` call and analyzes cross-channel coherence across 17 passes. It detects:
+When a developer writes `a >> b`, they mean "a's output feeds b." But `>>` in adk-fluent compiles to `SequentialAgent`, which just runs agents in order within the same session. The operator implies data flow but implements sequential execution. The gap between these is where every state management mistake lives.
 
-- **Template variable resolution** — Agent B's instruction references `{intent}`. Does any upstream agent produce `intent` via `.writes()`?
-- **Channel duplication** — Agent A writes `output_key="intent"` but Agent B has default `include_contents`. B sees the value twice (state + conversation).
-- **Data loss** — Agent A has no `.writes()` and B has `include_contents='none'`. A's output reaches B through neither channel.
-- **Route key validation** — `Route("intent")` reads state but no upstream agent writes `"intent"`.
-- **Missing writes inference** — Agent A precedes a successor that reads state keys, but A has no `.writes()`. Its output doesn't reach state.
-- **Unused writes** — Agent A writes to state but no downstream agent reads that key.
+Unix pipes work because `|` means "stdout of left connects to stdin of right." The shell handles the plumbing. Programs don't think about it. `>>` should carry that same weight: the developer declares the relationship, the library figures out the wiring.
 
-These checks run in advisory mode by default (logged as warnings). Use `.strict()` to make them errors:
+### Missing: output_key should be inferred from topology, not manually assigned
 
-```python
-pipeline = (
-    Agent("classifier").instruct("Classify.")
-    >> Route("intent").eq("booking", booker)
-).strict().build()  # Raises ValueError: classifier has no .writes() for Route key
-```
+If an agent has a successor in a pipeline and the successor reads from state, the intermediate agent needs an `output_key`. Today the developer has to know this. There's no signal from the library that says "you put classifier before a Route that reads 'intent', but classifier has no output_key — its output won't be in state."
 
-### Layer 2: Topology-Aware Inference
+### Missing: include_contents should have a topology-aware mode
 
-The `infer_data_flow()` function and `.infer_data_flow()` builder method analyze a pipeline's topology and return specific suggestions:
+The binary choice (everything / current turn) is insufficient for pipelines. A downstream agent often needs: the user's original message (conversational context) + structured data from state (routing info, extracted entities) — but NOT the raw text of intermediate agents (noise, duplication).
 
-```python
-pipeline = Agent("classifier") >> Route("intent").eq("booking", booker)
-for s in pipeline.infer_data_flow():
-    print(f"{s.agent}: {s.action}('{s.key}') — {s.reason}")
-# classifier: add_writes('intent') — Successor 'intent_routed' reads state keys ['intent'] ...
-```
+This isn't something adk-fluent can fix at the ADK level. But it could provide a mechanism: a custom `InstructionProvider` that assembles context from state rather than relying on ADK's conversation history. Agents with `include_contents='none'` plus a carefully constructed instruction that includes `{user_message}` from state — where `{user_message}` was captured by an earlier agent or S transform.
 
-The `DataFlowContract` view shows all three channels for each agent:
+### Missing: Contract validation across all three channels
 
-```python
-for contract in pipeline.data_flow_contract():
-    print(contract)
-# DataFlowContract(classifier):
-#   conversation: full conversation history
-#   state reads:  (none)
-#   state writes: (none)
-#   template vars: (none)
-#   issues:
-#     - No .writes() but successor needs state keys ['intent'] — output lost to state channel
-```
+The build-time check the developer actually needs isn't "does key X exist in state." It's a coherence analysis across channels:
 
-### Layer 3: Automatic Wiring
+- Agent B's instruction template references `{intent}`. Does any upstream agent produce `intent` via `output_key`?
+- Agent A has `output_key="intent"` but agent B has `include_contents='default'`. B will see "booking" twice (state + conversation). Is this intentional?
+- Agent A has no `output_key` and B has `include_contents='none'`. A's output reaches B through neither channel. Data is lost.
+- Route reads `state["intent"]` but classifier has no `output_key`. Route will read stale or missing state.
 
-For pipelines where you want the library to figure out the plumbing, use `.wired()`:
+## What the Thoughtful Library Does
+
+The 100x team doesn't add more S transforms. The S module is already complete for explicit state manipulation. They focus on three things:
+
+### 1. Make >> aware of data contracts
+
+`output_key` is not just a storage mechanism — it's a declaration of agent role. An agent with `output_key` is saying "my text is data, not conversation." An agent without `output_key` is saying "my text IS the conversation."
+
+The `>>` operator should respect this:
 
 ```python
-# Library auto-infers .writes("intent") on classifier
-pipeline = (
-    Agent("classifier").instruct("Classify.")
-    >> Route("intent").eq("booking", booker)
-).wired().build()
-```
-
-Or call `.auto_wire()` explicitly for fine-grained control:
-
-```python
-pipeline = Agent("classifier") >> Route("intent").eq("booking", booker)
-pipeline.auto_wire()  # Mutates: classifier gets .writes("intent")
-```
-
-`auto_wire()` only adds missing `.writes()` — it never overrides explicit configuration. It infers the key name from what downstream agents need (template variables, `.reads()` keys, Route keys).
-
-### Topology-Aware Context: `C.pipeline_aware()`
-
-ADK's `include_contents` is a binary switch: everything or current turn. For pipelines, you often need the user's original message plus structured data from state, but NOT intermediate agent text.
-
-`C.pipeline_aware()` solves this. It includes user messages plus named state keys while suppressing intermediate agent conversation history:
-
-```python
-classifier = Agent("classify").writes("intent")
-handler = (
-    Agent("handle")
-    .instruct("Handle the request.")
-    .context(C.pipeline_aware("intent"))
-)
-pipeline = classifier >> handler
-# handler sees: user's original message + state["intent"]
-# handler does NOT see: classifier's raw text in conversation history
-```
-
-This is equivalent to `C.user_only() + C.from_state("intent")` but with clearer intent and better contract checker support.
-
-### The Three-Channel Decision Matrix
-
-| Scenario | `.writes()` | `.context()` | Result |
-|----------|-------------|--------------|--------|
-| Default (no config) | — | — | Output in conversation only; successor sees full history |
-| State pass-through | `.writes("key")` | — | Output in state AND conversation; successor sees both (duplication) |
-| Clean pipeline | `.writes("key")` | `C.pipeline_aware("key")` | Output in state; successor sees user + state (no duplication) |
-| Reads only | `.writes("key")` | `.reads("key")` | Output in state; successor sees state keys only (no user message) |
-| Template bridge | `.writes("key")` | — + `{key}` in instruction | Output in state AND conversation; instruction also gets it (triple) |
 
 ---
 
