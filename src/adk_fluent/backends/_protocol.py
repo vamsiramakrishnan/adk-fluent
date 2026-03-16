@@ -10,7 +10,15 @@ from adk_fluent._ir import AgentEvent, ExecutionConfig
 
 @runtime_checkable
 class Backend(Protocol):
-    """A backend compiles IR node trees into runnable objects and executes them."""
+    """A backend compiles IR node trees into runnable objects and executes them.
+
+    Every execution engine (ADK, Temporal, DBOS, plain asyncio) implements
+    this protocol. The ``compile()`` method lowers IR to a backend-specific
+    runnable; ``run()`` and ``stream()`` execute it.
+    """
+
+    name: str
+    """Short identifier for this backend (e.g., "adk", "temporal")."""
 
     def compile(self, node: Any, config: ExecutionConfig | None = None) -> Any:
         """Transform an IR node tree into a backend-specific runnable."""
@@ -22,6 +30,15 @@ class Backend(Protocol):
 
     async def stream(self, compiled: Any, prompt: str, **kwargs) -> AsyncIterator[AgentEvent]:
         """Stream events as they occur."""
+        ...
+
+    @property
+    def capabilities(self) -> Any:
+        """Declare what this engine supports.
+
+        Returns an ``EngineCapabilities`` instance. Typed as Any here to
+        avoid circular imports (EngineCapabilities lives in compile).
+        """
         ...
 
 

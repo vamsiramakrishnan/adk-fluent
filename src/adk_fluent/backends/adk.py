@@ -35,6 +35,23 @@ from adk_fluent._ir_generated import (
 class ADKBackend:
     """Compiles IR node trees into native Google ADK objects wrapped in an App."""
 
+    name: str = "adk"
+
+    @property
+    def capabilities(self):
+        from adk_fluent.compile import EngineCapabilities
+
+        return EngineCapabilities(
+            streaming=True,
+            parallel=True,
+            durable=False,
+            replay=False,
+            checkpointing=False,
+            signals=False,
+            dispatch_join=True,
+            distributed=False,
+        )
+
     # ------------------------------------------------------------------
     # Public API (satisfies Backend protocol)
     # ------------------------------------------------------------------
