@@ -11,7 +11,8 @@ This is the core concept of the five-layer architecture:
 
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline, FanOut, configure, reset_config
-from adk_fluent import compile_ir, EngineCapabilities, CompilationResult
+from adk_fluent import EngineCapabilities, CompilationResult
+from adk_fluent import compile as compile_ir
 from adk_fluent.backends import available_backends, get_backend
 
 # 1. Check what backends are registered

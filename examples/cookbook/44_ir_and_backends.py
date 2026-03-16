@@ -31,7 +31,8 @@ underwriter = LlmAgent(
 pipeline_native = SequentialAgent(name="mortgage_pipeline", sub_agents=[doc_collector, parallel_checks, underwriter])
 
 # --- FLUENT ---
-from adk_fluent import Agent, compile_ir, EngineCapabilities
+from adk_fluent import Agent, EngineCapabilities
+from adk_fluent import compile as compile_ir
 
 # Same pipeline expressed fluently
 mortgage_pipeline = (
