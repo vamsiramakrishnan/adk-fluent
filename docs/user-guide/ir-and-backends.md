@@ -73,9 +73,13 @@ class Backend(Protocol):
 
 Every backend declares its capabilities (streaming, durability, parallelism, etc.) via `EngineCapabilities`. See [Execution Backends](execution-backends.md) for the full capability matrix.
 
-### ADKBackend (Stable)
+### Backend Implementations
 
-The default backend. Compiles IR to native ADK objects:
+::::{tab-set}
+:::{tab-item} ADK (default)
+**Status: Stable** — production-ready
+
+Compiles IR to native ADK objects. `.to_app()` is shorthand for this.
 
 ```python
 from adk_fluent.backends.adk import ADKBackend
@@ -86,11 +90,17 @@ ir = (Agent("a") >> Agent("b")).to_ir()
 app = backend.compile(ir, config=ExecutionConfig(app_name="demo"))
 ```
 
-`.to_app()` is shorthand for this — it creates an ADKBackend internally.
+Or via builder shorthand:
 
-### TemporalBackend (In Development)
+```python
+agent = Agent("helper", "gemini-2.5-flash").instruct("Help.")
+# .engine("adk") is implicit — no need to specify
+```
+:::
+:::{tab-item} Temporal (in dev)
+**Status: In Development** — API may change
 
-Compiles IR to Temporal workflows and activities for durable execution:
+Compiles IR to Temporal workflows and activities for durable execution.
 
 ```python
 from temporalio.client import Client
@@ -98,32 +108,38 @@ from adk_fluent.backends.temporal import TemporalBackend
 
 client = await Client.connect("localhost:7233")
 backend = TemporalBackend(client=client, task_queue="agents")
+ir = (Agent("a") >> Agent("b")).to_ir()
+plan = backend.compile(ir)
+```
+
+Or via builder shorthand:
+
+```python
+agent = Agent("helper").instruct("Help.").engine("temporal", client=client)
 ```
 
 See [Temporal Guide](temporal-guide.md) for detailed usage.
+:::
+:::{tab-item} asyncio (in dev)
+**Status: In Development** — reference implementation
 
-### AsyncioBackend (In Development)
-
-Pure-Python IR interpreter with no external dependencies:
+Pure-Python IR interpreter with no external dependencies.
 
 ```python
 from adk_fluent.backends.asyncio_backend import AsyncioBackend
 
 backend = AsyncioBackend()
+ir = (Agent("a") >> Agent("b")).to_ir()
+result = backend.compile(ir)
 ```
 
-### Selecting a backend via `.engine()`
+Or via builder shorthand:
 
 ```python
-# Default (ADK) — no .engine() needed
-agent = Agent("helper", "gemini-2.5-flash").instruct("Help.")
-
-# Temporal
-agent = Agent("helper").instruct("Help.").engine("temporal", client=client)
-
-# Asyncio
 agent = Agent("helper").instruct("Help.").engine("asyncio")
 ```
+:::
+::::
 
 ## ExecutionConfig
 

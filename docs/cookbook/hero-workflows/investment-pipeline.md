@@ -133,6 +133,32 @@ client report would deliver substandard analysis. `proceed_if(approved)` gates
 the final deliverable — if not approved after 3 rounds, the pipeline exits
 without producing a report, signaling that human intervention is needed.
 
+## Running on Different Backends
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+response = pipeline.ask("Analyze NVIDIA as a potential portfolio addition")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# Route() is deterministic — replays identically (zero cost)
+# Review loop iterations are individually checkpointed
+durable = pipeline.engine("temporal", client=client, task_queue="invest")
+response = await durable.ask_async("Analyze NVIDIA as a potential portfolio addition")
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+response = await pipeline.engine("asyncio").ask_async("Analyze NVIDIA")
+```
+:::
+::::
+
 ## Pipeline Topology
 
 ```

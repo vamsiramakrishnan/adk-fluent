@@ -34,27 +34,46 @@ The IR is the universal contract. Every backend must be implementable from IR al
 
 ### Per-agent: `.engine()`
 
+`.engine()` accepts the backend name as the first argument and forwards keyword arguments to the backend constructor.
+
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 from adk_fluent import Agent
 
-# Default — ADK backend (no .engine() needed)
+# No .engine() needed — ADK is the default
 agent = Agent("helper", "gemini-2.5-flash").instruct("Help.")
+response = agent.ask("What is 2+2?")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+from adk_fluent import Agent
 
-# Explicit ADK selection
-agent = Agent("helper", "gemini-2.5-flash").instruct("Help.").engine("adk")
+client = await Client.connect("localhost:7233")
 
-# Temporal backend (requires pip install adk-fluent[temporal])
 agent = (
     Agent("helper", "gemini-2.5-flash")
     .instruct("Help.")
-    .engine("temporal", client=temporal_client, task_queue="agents")
+    .engine("temporal", client=client, task_queue="agents")
 )
-
-# Asyncio backend (zero-dependency reference implementation)
-agent = Agent("helper", "gemini-2.5-flash").instruct("Help.").engine("asyncio")
+response = await agent.ask_async("What is 2+2?")
 ```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+from adk_fluent import Agent
 
-`.engine()` accepts the backend name as the first argument and forwards keyword arguments to the backend constructor.
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("Help.")
+    .engine("asyncio")
+)
+response = await agent.ask_async("What is 2+2?")
+```
+:::
+::::
 
 ### Global default: `configure()`
 
@@ -71,6 +90,8 @@ response = await Agent("x").instruct("...").ask_async("hello")
 
 For full control, create a backend directly and use it with the compile layer:
 
+::::{tab-set}
+:::{tab-item} ADK
 ```python
 from adk_fluent.backends.adk import ADKBackend
 from adk_fluent.compile import compile
@@ -79,36 +100,60 @@ backend = ADKBackend()
 ir = (Agent("a") >> Agent("b")).to_ir()
 result = compile(ir, backend=backend)
 ```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+from adk_fluent.backends.temporal import TemporalBackend
+from adk_fluent.compile import compile
+
+client = await Client.connect("localhost:7233")
+backend = TemporalBackend(client=client, task_queue="agents")
+ir = (Agent("a") >> Agent("b")).to_ir()
+result = compile(ir, backend=backend)
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+from adk_fluent.backends.asyncio_backend import AsyncioBackend
+from adk_fluent.compile import compile
+
+backend = AsyncioBackend()
+ir = (Agent("a") >> Agent("b")).to_ir()
+result = compile(ir, backend=backend)
+```
+:::
+::::
 
 ## Backend Comparison
 
-### ADK Backend (Stable)
+The same pipeline definition works across all backends — only the engine selection changes:
 
-The default backend. Compiles IR to native ADK objects (`LlmAgent`, `SequentialAgent`, etc.) and executes via ADK's `InMemoryRunner`.
+::::{tab-set}
+:::{tab-item} ADK (default)
+**Status: Stable** — production-ready
+
+Compiles IR to native ADK objects (`LlmAgent`, `SequentialAgent`, etc.) and executes via ADK's `InMemoryRunner`.
 
 ```python
-# This is the default — you don't need to specify it
-agent = Agent("writer", "gemini-2.5-flash").instruct("Write a story.")
-response = agent.ask("Tell me about space exploration.")
+from adk_fluent import Agent
+
+# Define a pipeline — identical across all backends
+pipeline = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic.").writes("findings")
+    >> Agent("writer", "gemini-2.5-flash")
+    .instruct("Write a report about {findings}.")
+)
+
+# ADK: default, no .engine() needed
+response = pipeline.ask("AI in healthcare")
 ```
 
-**Capabilities:**
-- Streaming: Yes
-- Parallel execution: Yes
-- Durable execution: No
-- Crash recovery: No
-- Distributed: No
-- Human-in-the-loop signals: No
-
-**When to use:** Prototyping, development, production workloads that don't need crash recovery or durability.
-
-### Temporal Backend (In Development)
-
-:::{admonition} In Development
-:class: warning
-
-The Temporal backend is under active development. The compile path and basic run path work, but the API may change. Not recommended for production use yet. Contributions and feedback are welcome.
+**When to use:** Prototyping, development, production workloads that don't need crash recovery.
 :::
+:::{tab-item} Temporal (in dev)
+**Status: In Development** — API may change
 
 Compiles IR to Temporal workflows and activities. LLM calls become activities (cached on replay); deterministic nodes become workflow code.
 
@@ -116,26 +161,46 @@ Compiles IR to Temporal workflows and activities. LLM calls become activities (c
 from temporalio.client import Client
 from adk_fluent import Agent
 
-# Connect to Temporal
 client = await Client.connect("localhost:7233")
 
-# Select Temporal backend
-agent = (
+# Same pipeline definition — just add .engine()
+pipeline = (
     Agent("researcher", "gemini-2.5-flash")
-    .instruct("Research the topic thoroughly.")
-    .engine("temporal", client=client, task_queue="research")
-)
+    .instruct("Research the topic.").writes("findings")
+    >> Agent("writer", "gemini-2.5-flash")
+    .instruct("Write a report about {findings}.")
+).engine("temporal", client=client, task_queue="research")
 
-response = await agent.ask_async("quantum computing advances")
+# Must use async — Temporal starts a workflow
+response = await pipeline.ask_async("AI in healthcare")
 ```
 
-**Capabilities:**
-- Streaming: No (falls back to collecting all events)
-- Parallel execution: Yes
-- Durable execution: Yes — survives process crashes
-- Crash recovery: Yes — replays from checkpoint, zero repeated LLM cost
-- Distributed: Yes — runs across multiple workers
-- Human-in-the-loop signals: Yes (via `GateNode`)
+**When to use:** Long-running pipelines, crash recovery, distributed execution.
+:::
+:::{tab-item} asyncio (in dev)
+**Status: In Development** — reference implementation
+
+Direct IR interpreter using plain `asyncio`. No durability, no external dependencies.
+
+```python
+from adk_fluent import Agent
+
+# Same pipeline definition — just add .engine()
+pipeline = (
+    Agent("researcher", "gemini-2.5-flash")
+    .instruct("Research the topic.").writes("findings")
+    >> Agent("writer", "gemini-2.5-flash")
+    .instruct("Write a report about {findings}.")
+).engine("asyncio")
+
+response = await pipeline.ask_async("AI in healthcare")
+```
+
+**When to use:** Testing the backend abstraction, environments where ADK is not available.
+:::
+::::
+
+### Capability Details
 
 **IR → Temporal mapping:**
 
@@ -172,36 +237,6 @@ On restart:
 - Requires a running Temporal server (`temporal server start-dev` for local development)
 
 See [Temporal Guide](temporal-guide.md) for detailed patterns and constraints.
-
-### Asyncio Backend (In Development)
-
-:::{admonition} In Development
-:class: warning
-
-The asyncio backend is a reference implementation that proves the backend abstraction works without any external engine. It is under development and not recommended for production use.
-:::
-
-Direct IR interpreter using plain `asyncio`. No durability, no external dependencies.
-
-```python
-agent = (
-    Agent("helper", "gemini-2.5-flash")
-    .instruct("Help the user.")
-    .engine("asyncio")
-)
-
-response = await agent.ask_async("What is the capital of France?")
-```
-
-**Capabilities:**
-- Streaming: Yes
-- Parallel execution: Yes
-- Durable execution: No
-- Crash recovery: No
-- Distributed: No
-- Human-in-the-loop signals: No
-
-**When to use:** Testing the backend abstraction, environments where ADK is not available, educational purposes.
 
 ### Future Backends (Conceptual)
 

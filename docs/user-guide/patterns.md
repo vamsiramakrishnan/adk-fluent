@@ -191,10 +191,26 @@ pipeline = map_reduce(
 
 ## Durable Execution
 
-All patterns above work with any execution backend. When using the Temporal backend (in development), each pattern gains crash recovery — if the process fails mid-pipeline, Temporal replays completed steps from cache.
+All patterns above work with any execution backend. The definition is identical — only the engine selection changes:
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
-# Same pattern, durable execution
+pipeline = review_loop(
+    worker=Agent("writer").instruct("Write."),
+    reviewer=Agent("reviewer").instruct("Review."),
+    quality_key="score",
+    target=0.8,
+)
+response = pipeline.ask("Write about AI safety")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# Same pattern — each review iteration is checkpointed
 pipeline = review_loop(
     worker=Agent("writer").instruct("Write."),
     reviewer=Agent("reviewer").instruct("Review."),
@@ -202,8 +218,23 @@ pipeline = review_loop(
     target=0.8,
 ).engine("temporal", client=client, task_queue="quality")
 
+# If crash occurs mid-loop, completed iterations replay from cache
 response = await pipeline.ask_async("Write about AI safety")
 ```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+pipeline = review_loop(
+    worker=Agent("writer").instruct("Write."),
+    reviewer=Agent("reviewer").instruct("Review."),
+    quality_key="score",
+    target=0.8,
+).engine("asyncio")
+
+response = await pipeline.ask_async("Write about AI safety")
+```
+:::
+::::
 
 Patterns with natural checkpoint boundaries (each step in `chain`, each iteration in `review_loop`) are especially well-suited for durable execution. See [Temporal Guide](temporal-guide.md) for details.
 

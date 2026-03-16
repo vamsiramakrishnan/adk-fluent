@@ -101,3 +101,29 @@ S.default(currency, shipping)
                 ──► S.compute(eta_days)
                     ──► notification_sender
 ```
+
+## Running on Different Backends
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+response = ecommerce_pipeline.ask("Order #12345 — where is my package?")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# tap(), expect(), Route() are all deterministic — replay-safe
+# Each agent step is a checkpointed Activity
+durable = ecommerce_pipeline.engine("temporal", client=client, task_queue="orders")
+response = await durable.ask_async("Order #12345 — where is my package?")
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+response = await ecommerce_pipeline.engine("asyncio").ask_async("Order #12345")
+```
+:::
+::::

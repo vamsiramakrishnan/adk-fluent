@@ -20,8 +20,10 @@ See [Execution Backends](execution-backends.md) for details. The examples below 
 
 ## `.ask(prompt)`
 
-Send a prompt, get response text. No Runner or Session setup needed:
+Send a prompt, get response text. No Runner or Session setup needed.
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 from adk_fluent import Agent
 
@@ -30,13 +32,37 @@ agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistan
 response = agent.ask("What is the capital of France?")
 print(response)  # "The capital of France is Paris."
 ```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+# .ask() is sync and blocks — use .ask_async() with Temporal instead.
+# Temporal requires an async event loop to start workflows.
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+from adk_fluent import Agent
+
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are a helpful assistant.")
+    .engine("asyncio")
+)
+
+response = agent.ask("What is the capital of France?")
+print(response)
+```
+:::
+::::
 
 `.ask()` internally builds the agent, creates a Runner and Session, sends the prompt, and returns the final response text.
 
 ## `.ask_async(prompt)`
 
-Async version of `.ask()`:
+Async version of `.ask()`. **Required for the Temporal backend.**
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 import asyncio
 from adk_fluent import Agent
@@ -49,11 +75,53 @@ async def main():
 
 asyncio.run(main())
 ```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+import asyncio
+from temporalio.client import Client
+from adk_fluent import Agent
+
+async def main():
+    client = await Client.connect("localhost:7233")
+
+    agent = (
+        Agent("helper", "gemini-2.5-flash")
+        .instruct("You are a helpful assistant.")
+        .engine("temporal", client=client, task_queue="qa")
+    )
+    # Starts a Temporal workflow — durable, crash-recoverable
+    response = await agent.ask_async("What is the capital of France?")
+    print(response)
+
+asyncio.run(main())
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+import asyncio
+from adk_fluent import Agent
+
+async def main():
+    agent = (
+        Agent("helper", "gemini-2.5-flash")
+        .instruct("You are a helpful assistant.")
+        .engine("asyncio")
+    )
+    response = await agent.ask_async("What is the capital of France?")
+    print(response)
+
+asyncio.run(main())
+```
+:::
+::::
 
 ## `.stream(prompt)`
 
-Async generator that yields response text chunks as they arrive:
+Async generator that yields response text chunks as they arrive.
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 import asyncio
 from adk_fluent import Agent
@@ -66,6 +134,33 @@ async def main():
 
 asyncio.run(main())
 ```
+Real-time streaming — chunks arrive as the LLM generates them.
+:::
+:::{tab-item} Temporal (in dev)
+```python
+# Temporal does NOT support real-time streaming.
+# .stream() falls back to collecting all events, then yielding them at once.
+# Use .ask_async() instead for Temporal workloads.
+
+async for chunk in agent.stream("Tell me a story."):
+    print(chunk, end="", flush=True)  # All chunks arrive at once
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+import asyncio
+from adk_fluent import Agent
+
+agent = Agent("helper", "gemini-2.5-flash").instruct("Tell stories.").engine("asyncio")
+
+async def main():
+    async for chunk in agent.stream("Tell me a story."):
+        print(chunk, end="", flush=True)
+
+asyncio.run(main())
+```
+:::
+::::
 
 ## `.events(prompt)`
 

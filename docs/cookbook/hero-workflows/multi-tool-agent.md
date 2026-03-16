@@ -110,3 +110,31 @@ task_agent
   └─ writes: "task_result"
       ──► verifier [C.from_state("task_result")]
 ```
+
+## Running on Different Backends
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+pipeline = task_agent >> verifier
+response = pipeline.ask("Analyze the Q3 earnings for AAPL")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# Tool calls become Activity sub-calls within the agent Activity
+# Guards and callbacks execute within the Activity boundary
+pipeline = (task_agent >> verifier).engine("temporal", client=client, task_queue="tools")
+response = await pipeline.ask_async("Analyze the Q3 earnings for AAPL")
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+pipeline = (task_agent >> verifier).engine("asyncio")
+response = await pipeline.ask_async("Analyze the Q3 earnings for AAPL")
+```
+:::
+::::
