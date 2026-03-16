@@ -18,31 +18,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
-import re
 import sys
 from pathlib import Path
 
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib  # type: ignore[no-redef]
-
-try:
-    import tomli_w
-except ImportError:
-    tomli_w = None  # type: ignore[assignment]
-
-
-# ---------------------------------------------------------------------------
-# CAMEL → SNAKE
-# ---------------------------------------------------------------------------
-
-def _camel_to_snake(name: str) -> str:
-    """Convert CamelCase to snake_case."""
-    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", name)
-    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
-
+from scripts.shared import camel_to_snake as _camel_to_snake
+from scripts.shared import load_manifest, load_toml, write_toml_or_json
 
 # ---------------------------------------------------------------------------
 # TYPE MAPPING: A2UI schema types → Python type hints
@@ -187,18 +167,38 @@ def generate_seed(manifest: dict, manual: dict | None = None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# TOML OUTPUT (fallback to JSON if tomli_w not available)
+# PROGRAMMATIC ENTRY POINT
 # ---------------------------------------------------------------------------
 
 
-def _write_toml(data: dict, path: Path) -> None:
-    """Write seed data as TOML (or JSON fallback)."""
-    if tomli_w is not None:
-        path.write_bytes(tomli_w.dumps(data).encode())
-    else:
-        # Fallback: write as JSON with .toml extension (still machine-readable)
-        path.write_text(json.dumps(data, indent=2) + "\n")
-        print("Warning: tomli_w not installed, wrote JSON instead of TOML", file=sys.stderr)
+def run(
+    *,
+    manifest: Path,
+    output: Path,
+    merge: Path | None = None,
+    prefer_json: bool = False,
+) -> dict:
+    """Run the seed generator programmatically (no sys.argv manipulation).
+
+    Returns the generated seed dict.
+    """
+    manifest_data = load_manifest(manifest)
+
+    manual = None
+    if merge and merge.exists():
+        manual = load_toml(merge)
+
+    seed = generate_seed(manifest_data, manual)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fmt = write_toml_or_json(seed, output, prefer_json=prefer_json)
+
+    print(
+        f"Wrote {output} ({fmt}: {len(seed['components'])} components, "
+        f"{len(seed['functions'])} functions)",
+        file=sys.stderr,
+    )
+    return seed
 
 
 # ---------------------------------------------------------------------------
@@ -219,27 +219,11 @@ def main() -> None:
     parser.add_argument("--json", action="store_true", help="Output as JSON instead of TOML")
     args = parser.parse_args()
 
-    manifest = json.loads(Path(args.manifest).read_text())
-
-    manual = None
-    if args.merge and Path(args.merge).exists():
-        with open(args.merge, "rb") as f:
-            manual = tomllib.load(f)
-
-    seed = generate_seed(manifest, manual)
-
-    out_path = Path(args.output)
-    if args.json or tomli_w is None:
-        out_path.write_text(json.dumps(seed, indent=2) + "\n")
-        fmt = "JSON"
-    else:
-        _write_toml(seed, out_path)
-        fmt = "TOML"
-
-    print(
-        f"Wrote {out_path} ({fmt}: {len(seed['components'])} components, "
-        f"{len(seed['functions'])} functions)",
-        file=sys.stderr,
+    run(
+        manifest=Path(args.manifest),
+        output=Path(args.output),
+        merge=Path(args.merge) if args.merge else None,
+        prefer_json=args.json,
     )
 
 

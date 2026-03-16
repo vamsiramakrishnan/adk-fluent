@@ -12,7 +12,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import sys
+from pathlib import Path
 
 
 def main() -> None:
@@ -50,55 +50,59 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "scan":
-        from scripts.a2ui.scanner import main as scan_main
+        from scripts.a2ui.scanner import run as scan_run
 
-        sys.argv = ["a2ui-scan", args.spec_dir]
-        if args.output:
-            sys.argv += ["-o", args.output]
-        if args.summary:
-            sys.argv += ["--summary"]
-        scan_main()
+        scan_run(
+            spec_dir=Path(args.spec_dir),
+            output=Path(args.output) if args.output else None,
+            summary=args.summary,
+        )
 
     elif args.command == "seed":
-        from scripts.a2ui.seed_generator import main as seed_main
+        from scripts.a2ui.seed_generator import run as seed_run
 
-        sys.argv = ["a2ui-seed", args.manifest, "-o", args.output]
-        if args.merge:
-            sys.argv += ["--merge", args.merge]
-        if args.json:
-            sys.argv += ["--json"]
-        seed_main()
+        seed_run(
+            manifest=Path(args.manifest),
+            output=Path(args.output),
+            merge=Path(args.merge) if args.merge else None,
+            prefer_json=args.json,
+        )
 
     elif args.command == "generate":
-        from scripts.a2ui.generator import main as gen_main
+        from scripts.a2ui.generator import run as gen_run
 
-        sys.argv = ["a2ui-generate", args.seed, "--output-dir", args.output_dir, "--test-dir", args.test_dir]
-        gen_main()
+        gen_run(
+            seed=Path(args.seed),
+            output_dir=Path(args.output_dir),
+            test_dir=Path(args.test_dir),
+        )
 
     elif args.command == "all":
-        from pathlib import Path
+        from scripts.a2ui.generator import run as gen_run
+        from scripts.a2ui.scanner import run as scan_run
+        from scripts.a2ui.seed_generator import run as seed_run
 
-        from scripts.a2ui.generator import main as gen_main
-        from scripts.a2ui.scanner import main as scan_main
-        from scripts.a2ui.seed_generator import main as seed_main
-
-        manifest_path = "a2ui_manifest.json"
-        seed_path = "seeds/a2ui_seed.toml"
-        manual_path = "seeds/a2ui_seed.manual.toml"
+        manifest_path = Path("a2ui_manifest.json")
+        seed_path = Path("seeds/a2ui_seed.toml")
+        manual_path = Path("seeds/a2ui_seed.manual.toml")
 
         print("=== Stage 1: Scan A2UI spec ===")
-        sys.argv = ["a2ui-scan", args.spec_dir, "-o", manifest_path]
-        scan_main()
+        scan_run(spec_dir=Path(args.spec_dir), output=manifest_path)
 
         print("\n=== Stage 2: Generate seed ===")
-        sys.argv = ["a2ui-seed", manifest_path, "-o", seed_path, "--json"]
-        if Path(manual_path).exists():
-            sys.argv += ["--merge", manual_path]
-        seed_main()
+        seed_run(
+            manifest=manifest_path,
+            output=seed_path,
+            merge=manual_path if manual_path.exists() else None,
+            prefer_json=True,
+        )
 
         print("\n=== Stage 3: Generate code ===")
-        sys.argv = ["a2ui-generate", seed_path, "--output-dir", args.output_dir, "--test-dir", args.test_dir]
-        gen_main()
+        gen_run(
+            seed=seed_path,
+            output_dir=Path(args.output_dir),
+            test_dir=Path(args.test_dir),
+        )
 
         print("\n=== A2UI pipeline complete ===")
 

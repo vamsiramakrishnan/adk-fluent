@@ -27,7 +27,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # DATA STRUCTURES
 # ---------------------------------------------------------------------------
@@ -443,6 +442,43 @@ def print_summary(manifest: A2UIManifest) -> None:
 
 
 # ---------------------------------------------------------------------------
+# PROGRAMMATIC ENTRY POINT
+# ---------------------------------------------------------------------------
+
+
+def run(
+    *,
+    spec_dir: Path,
+    output: Path | None = None,
+    summary: bool = False,
+) -> A2UIManifest:
+    """Run the scanner programmatically (no sys.argv manipulation).
+
+    Returns the scanned A2UIManifest.
+    """
+    manifest = scan_catalog(spec_dir)
+
+    if summary:
+        print_summary(manifest)
+        return manifest
+
+    result = json.dumps(manifest_to_dict(manifest), indent=2)
+
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(result + "\n")
+        print(
+            f"Wrote {output} ({len(manifest.components)} components, "
+            f"{len(manifest.functions)} functions)",
+            file=sys.stderr,
+        )
+    else:
+        print(result)
+
+    return manifest
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -466,21 +502,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    spec_dir = Path(args.spec_dir)
-    manifest = scan_catalog(spec_dir)
-
-    if args.summary:
-        print_summary(manifest)
-        return
-
-    result = json.dumps(manifest_to_dict(manifest), indent=2)
-
-    if args.output:
-        Path(args.output).write_text(result + "\n")
-        print(f"Wrote {args.output} ({len(manifest.components)} components, "
-              f"{len(manifest.functions)} functions)", file=sys.stderr)
-    else:
-        print(result)
+    run(
+        spec_dir=Path(args.spec_dir),
+        output=Path(args.output) if args.output else None,
+        summary=args.summary,
+    )
 
 
 if __name__ == "__main__":

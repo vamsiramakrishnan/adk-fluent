@@ -18,33 +18,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
-import textwrap
 from pathlib import Path
 from typing import Any
 
-
-# ---------------------------------------------------------------------------
-# SEED LOADING
-# ---------------------------------------------------------------------------
-
-
-def _load_seed(path: Path) -> dict:
-    """Load seed from TOML or JSON."""
-    text = path.read_text()
-    # Try JSON first (our default output format)
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-    # Try TOML
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib  # type: ignore[no-redef]
-    return tomllib.loads(text)
-
+from scripts.shared import load_toml_or_json as _load_seed
 
 # ---------------------------------------------------------------------------
 # PYTHON TYPE MAPPING
@@ -429,17 +407,17 @@ def generate_stubs(seed: dict) -> str:
 
     for comp in seed.get("components", []):
         factory = comp["factory_name"]
-        lines.append(f"    @staticmethod")
+        lines.append("    @staticmethod")
         lines.append(f"    def {factory}(*args: Any, **kwargs: Any) -> UIComponent: ...")
 
     for func in seed.get("functions", []):
         factory = func["factory_name"]
-        lines.append(f"    @staticmethod")
+        lines.append("    @staticmethod")
         lines.append(f"    def {factory}(*args: Any, **kwargs: Any) -> UICheck: ...")
 
     aliases = seed.get("aliases", {})
     for alias_name in aliases:
-        lines.append(f"    @staticmethod")
+        lines.append("    @staticmethod")
         lines.append(f"    def {alias_name}(*args: Any, **kwargs: Any) -> UIComponent: ...")
 
     return "\n".join(lines) + "\n"
@@ -492,10 +470,8 @@ def generate_tests(seed: dict) -> str:
                 call_args.append(f"{arg}=0")
             elif "Boolean" in arg_type or arg_type == "bool":
                 call_args.append(f"{arg}=False")
-            elif "StringList" in arg_type:
+            elif "StringList" in arg_type or arg_type.startswith("array"):
                 call_args.append(f'{arg}=[]')
-            elif arg_type.startswith("array"):
-                call_args.append(f"{arg}=[]")
             else:
                 call_args.append(f'{arg}="test"')
 
@@ -503,7 +479,7 @@ def generate_tests(seed: dict) -> str:
 
         lines.append(f"def test_ui_{factory}_creates_component():")
         lines.append(f'    c = UI.{factory}({args_str})')
-        lines.append(f'    assert isinstance(c, UIComponent)')
+        lines.append('    assert isinstance(c, UIComponent)')
         lines.append(f'    assert c._kind == "{name}"')
         lines.append("")
 
@@ -512,8 +488,8 @@ def generate_tests(seed: dict) -> str:
             bind_args = args_str + (', ' if args_str else '') + 'bind="/test/path"'
             lines.append(f"def test_ui_{factory}_with_bind():")
             lines.append(f'    c = UI.{factory}({bind_args})')
-            lines.append(f"    assert len(c._bindings) == 1")
-            lines.append(f'    assert c._bindings[0].path == "/test/path"')
+            lines.append("    assert len(c._bindings) == 1")
+            lines.append('    assert c._bindings[0].path == "/test/path"')
             lines.append("")
 
         # Checks test
@@ -521,8 +497,8 @@ def generate_tests(seed: dict) -> str:
             check_args = args_str + (', ' if args_str else '') + 'checks=[UI.required()]'
             lines.append(f"def test_ui_{factory}_with_checks():")
             lines.append(f'    c = UI.{factory}({check_args})')
-            lines.append(f"    assert len(c._checks) == 1")
-            lines.append(f'    assert c._checks[0].fn == "required"')
+            lines.append("    assert len(c._checks) == 1")
+            lines.append('    assert c._checks[0].fn == "required"')
             lines.append("")
 
     # Function tests
@@ -551,7 +527,7 @@ def generate_tests(seed: dict) -> str:
             call_str = ", ".join(test_args)
             lines.append(f"def test_ui_{factory}_check():")
             lines.append(f'    c = UI.{factory}({call_str})')
-            lines.append(f"    assert isinstance(c, UICheck)")
+            lines.append("    assert isinstance(c, UICheck)")
             lines.append(f'    assert c.fn == "{fname}"')
             lines.append("")
 
@@ -563,7 +539,7 @@ def generate_tests(seed: dict) -> str:
         if component == "Text":
             lines.append(f'def test_ui_{alias_name}_alias():')
             lines.append(f'    c = UI.{alias_name}("test")')
-            lines.append(f'    assert c._kind == "Text"')
+            lines.append('    assert c._kind == "Text"')
             lines.append(f'    assert dict(c._props).get("variant") == "{variant}"')
             lines.append("")
 
@@ -620,6 +596,37 @@ def generate_tests(seed: dict) -> str:
 # ---------------------------------------------------------------------------
 
 
+def run(
+    *,
+    seed: Path,
+    output_dir: Path = Path("src/adk_fluent"),
+    test_dir: Path = Path("tests/generated"),
+) -> None:
+    """Run the generator programmatically (no sys.argv manipulation)."""
+    seed_data = _load_seed(seed)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    test_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate source
+    src = generate_factories(seed_data)
+    src_path = output_dir / "_ui_generated.py"
+    src_path.write_text(src)
+    print(f"Wrote {src_path}", file=sys.stderr)
+
+    # Generate stubs
+    stubs = generate_stubs(seed_data)
+    stubs_path = output_dir / "_ui_generated.pyi"
+    stubs_path.write_text(stubs)
+    print(f"Wrote {stubs_path}", file=sys.stderr)
+
+    # Generate tests
+    tests = generate_tests(seed_data)
+    test_path = test_dir / "test_ui_generated.py"
+    test_path.write_text(tests)
+    print(f"Wrote {test_path}", file=sys.stderr)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate UI factories from a2ui_seed"
@@ -629,30 +636,11 @@ def main() -> None:
     parser.add_argument("--test-dir", default="tests/generated")
     args = parser.parse_args()
 
-    seed = _load_seed(Path(args.seed))
-
-    out_dir = Path(args.output_dir)
-    test_dir = Path(args.test_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    test_dir.mkdir(parents=True, exist_ok=True)
-
-    # Generate source
-    src = generate_factories(seed)
-    src_path = out_dir / "_ui_generated.py"
-    src_path.write_text(src)
-    print(f"Wrote {src_path}", file=sys.stderr)
-
-    # Generate stubs
-    stubs = generate_stubs(seed)
-    stubs_path = out_dir / "_ui_generated.pyi"
-    stubs_path.write_text(stubs)
-    print(f"Wrote {stubs_path}", file=sys.stderr)
-
-    # Generate tests
-    tests = generate_tests(seed)
-    test_path = test_dir / "test_ui_generated.py"
-    test_path.write_text(tests)
-    print(f"Wrote {test_path}", file=sys.stderr)
+    run(
+        seed=Path(args.seed),
+        output_dir=Path(args.output_dir),
+        test_dir=Path(args.test_dir),
+    )
 
 
 if __name__ == "__main__":
