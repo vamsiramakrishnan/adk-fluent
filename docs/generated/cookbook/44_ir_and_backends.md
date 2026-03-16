@@ -1,9 +1,10 @@
-# Pipeline Optimization with IR -- Inspecting and Compiling Agent Graphs
+# Pipeline Optimization with IR -- Inspecting, Compiling, and Selecting Backends
 
 Demonstrates to_ir() for pipeline analysis, to_app() for production
-compilation, and to_mermaid() for architecture documentation. The
-scenario: a mortgage approval pipeline where the platform team
-inspects the agent graph for optimization before deployment.
+compilation, to_mermaid() for architecture documentation, and the new
+compile layer for backend-selectable execution. The scenario: a mortgage
+approval pipeline where the platform team inspects the agent graph for
+optimization before deploying to different execution backends.
 
 :::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
@@ -14,7 +15,8 @@ _Source: `44_ir_and_backends.py`_
 ::::{tab-set}
 :::{tab-item} adk-fluent
 ```python
-from adk_fluent import Agent
+from adk_fluent import Agent, EngineCapabilities
+from adk_fluent import compile as compile_ir
 
 # Same pipeline expressed fluently
 mortgage_pipeline = (
@@ -41,6 +43,16 @@ mermaid = mortgage_pipeline.to_mermaid()
 
 # 4. Build directly for comparison
 built_fluent = mortgage_pipeline.build()
+
+# 5. NEW: Compile through the compile layer with backend selection
+#    The compile layer adds optimization passes and backend-specific compilation.
+adk_result = compile_ir(ir, backend="adk")
+asyncio_result = compile_ir(ir, backend="asyncio")
+temporal_result = compile_ir(ir, backend="temporal")
+
+# 6. NEW: Inspect engine capabilities per backend
+adk_caps = adk_result.capabilities
+temporal_caps = temporal_result.capabilities
 ```
 :::
 :::{tab-item} Native ADK
@@ -115,4 +127,19 @@ assert "-->" in mermaid
 # build() matches native structure
 assert type(pipeline_native) == type(built_fluent)
 assert len(built_fluent.sub_agents) == 3
+
+# Compile layer produces CompilationResult with backend info
+from adk_fluent import CompilationResult
+
+assert isinstance(adk_result, CompilationResult)
+assert adk_result.backend_name == "adk"
+assert asyncio_result.backend_name == "asyncio"
+assert temporal_result.backend_name == "temporal"
+
+# Backend capabilities reflect their nature
+assert adk_caps.durable is False
+assert adk_caps.streaming is True
+assert temporal_caps.durable is True
+assert temporal_caps.replay is True
+assert temporal_caps.distributed is True
 ```

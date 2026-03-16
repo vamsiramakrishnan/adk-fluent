@@ -38,7 +38,8 @@ def test_to_ir_on_agent():
 
 def test_exports_available():
     """New IR/backend types should be importable from adk_fluent."""
-    from adk_fluent import ADKBackend, AgentEvent, Backend, CompactionConfig, ExecutionConfig, final_text
+    from adk_fluent import AgentEvent, Backend, CompactionConfig, ExecutionConfig, final_text
+    from adk_fluent.backends.adk import ADKBackend
 
     assert ExecutionConfig is not None
     assert CompactionConfig is not None

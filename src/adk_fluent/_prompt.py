@@ -1064,7 +1064,7 @@ def _get_genai_client():
     global _genai_client
     if _genai_client is None:
         try:
-            from google import genai
+            from google import genai  # type: ignore[attr-defined]
 
             _genai_client = genai.Client()
         except ImportError:

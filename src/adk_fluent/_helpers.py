@@ -450,33 +450,111 @@ def _add_memory_auto_save(builder):
     return builder
 
 
+def _resolve_engine(builder) -> str | None:
+    """Resolve the engine name from builder config or global config.
+
+    Returns the engine name (e.g., "adk", "asyncio", "temporal") or None
+    for the default ADK path.
+    """
+    # Builder-level override takes priority
+    engine = builder._config.get("_engine")
+    if engine is not None:
+        return engine
+
+    # Global config fallback
+    from adk_fluent._config_global import get_config
+
+    global_cfg = get_config()
+    return global_cfg.get("engine")
+
+
+async def _run_via_engine(builder, prompt: str) -> tuple[str, list]:
+    """Execute a builder through the five-layer engine path.
+
+    Returns (final_text, events_list).
+    """
+    from adk_fluent._config_global import get_config
+    from adk_fluent.backends import get_backend
+
+    engine = _resolve_engine(builder)
+    global_cfg = get_config()
+
+    # Resolve backend kwargs
+    engine_kwargs = builder._config.get("_engine_kwargs", {})
+    if not engine_kwargs:
+        engine_kwargs = global_cfg.get("engine_config", {})
+
+    # Resolve compute config
+    compute = builder._config.get("_compute")
+    if compute is None:
+        compute = global_cfg.get("compute")
+
+    # Inject compute into backend kwargs if applicable
+    if compute is not None:
+        if hasattr(compute, "model_provider") and compute.model_provider is not None:
+            engine_kwargs.setdefault("model_provider", compute.model_provider)
+        if hasattr(compute, "tool_runtime") and compute.tool_runtime is not None:
+            engine_kwargs.setdefault("tool_runtime", compute.tool_runtime)
+
+    assert engine is not None  # Caller guarantees engine is set
+    backend = get_backend(engine, **engine_kwargs)
+
+    # Compile IR
+    ir = builder.to_ir()
+    compiled = backend.compile(ir)
+
+    # Execute
+    events = await backend.run(compiled, prompt)
+
+    # Extract final text
+    last_text = ""
+    for event in events:
+        content = getattr(event, "content", None)
+        if isinstance(content, str):
+            last_text = content
+        elif content is not None and hasattr(content, "parts"):
+            for part in content.parts:
+                if getattr(part, "text", None):
+                    last_text = part.text
+
+    return last_text, events
+
+
 async def run_one_shot_async(builder, prompt: str) -> str:
     """Execute a builder as a one-shot agent and return the text response.
 
     Supports structured output and debug tracing.
+    Routes to the appropriate engine based on builder/global config.
     """
-    from google.adk.runners import InMemoryRunner
-    from google.genai import types
-
     debug = builder._config.get("_debug", False)
     agent_name = builder._config.get("name", "?")
 
-    agent = builder.build()
-    app_name = f"_ask_{agent.name}"
-    runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
-    content = types.Content(role="user", parts=[types.Part(text=prompt)])
+    engine = _resolve_engine(builder)
 
     t0 = time.monotonic()
     if debug:
         _debug_log(agent_name, f"Sending prompt ({len(prompt)} chars)")
 
-    last_text = ""
-    async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if part.text:
-                    last_text = part.text
+    # Non-ADK engine path: use five-layer architecture
+    if engine is not None and engine != "adk":
+        last_text, _events = await _run_via_engine(builder, prompt)
+    else:
+        # Default ADK path
+        from google.adk.runners import InMemoryRunner
+        from google.genai import types
+
+        agent = builder.build()
+        app_name = f"_ask_{agent.name}"
+        runner = InMemoryRunner(agent=agent, app_name=app_name)
+        session = await runner.session_service.create_session(app_name=app_name, user_id="_ask_user")
+        content = types.Content(role="user", parts=[types.Part(text=prompt)])
+
+        last_text = ""
+        async for event in runner.run_async(user_id="_ask_user", session_id=session.id, new_message=content):
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.text:
+                        last_text = part.text
 
     if debug:
         elapsed = time.monotonic() - t0
@@ -552,20 +630,35 @@ def run_one_shot(builder, prompt: str) -> str:
 
 async def run_stream(builder, prompt: str):
     """Stream text chunks from a one-shot agent execution."""
-    from google.adk.runners import InMemoryRunner
-    from google.genai import types
+    engine = _resolve_engine(builder)
 
-    agent = builder.build()
-    app_name = f"_stream_{agent.name}"
-    runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(app_name=app_name, user_id="_stream_user")
-    content = types.Content(role="user", parts=[types.Part(text=prompt)])
+    if engine is not None and engine != "adk":
+        # Non-ADK engine path
+        _text, events = await _run_via_engine(builder, prompt)
+        for event in events:
+            content = getattr(event, "content", None)
+            if isinstance(content, str) and content:
+                yield content
+            elif content is not None and hasattr(content, "parts"):
+                for part in content.parts:  # type: ignore[union-attr]
+                    if getattr(part, "text", None):
+                        yield part.text
+    else:
+        # Default ADK path
+        from google.adk.runners import InMemoryRunner
+        from google.genai import types
 
-    async for event in runner.run_async(user_id="_stream_user", session_id=session.id, new_message=content):
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if part.text:
-                    yield part.text
+        agent = builder.build()
+        app_name = f"_stream_{agent.name}"
+        runner = InMemoryRunner(agent=agent, app_name=app_name)
+        session = await runner.session_service.create_session(app_name=app_name, user_id="_stream_user")
+        content = types.Content(role="user", parts=[types.Part(text=prompt)])
+
+        async for event in runner.run_async(user_id="_stream_user", session_id=session.id, new_message=content):
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.text:
+                        yield part.text
 
 
 def run_inline_test(builder, prompt: str, *, contains=None, matches=None, equals=None):
@@ -835,7 +928,7 @@ def _eval_suite(builder) -> Any:
 
 
 async def run_events(builder, prompt: str):
-    """Stream raw ADK Event objects from a one-shot agent execution.
+    """Stream raw Event objects from a one-shot agent execution.
 
     Unlike .ask() which returns only the final text, this yields every
     Event including state deltas, function calls, tool results, etc.
@@ -847,17 +940,26 @@ async def run_events(builder, prompt: str):
             if event.actions and event.actions.state_delta:
                 print(f"State changed: {event.actions.state_delta}")
     """
-    from google.adk.runners import InMemoryRunner
-    from google.genai import types
+    engine = _resolve_engine(builder)
 
-    agent = builder.build()
-    app_name = f"_events_{agent.name}"
-    runner = InMemoryRunner(agent=agent, app_name=app_name)
-    session = await runner.session_service.create_session(app_name=app_name, user_id="_events_user")
-    content = types.Content(role="user", parts=[types.Part(text=prompt)])
+    if engine is not None and engine != "adk":
+        # Non-ADK engine path
+        _text, events = await _run_via_engine(builder, prompt)
+        for event in events:
+            yield event
+    else:
+        # Default ADK path
+        from google.adk.runners import InMemoryRunner
+        from google.genai import types
 
-    async for event in runner.run_async(user_id="_events_user", session_id=session.id, new_message=content):
-        yield event
+        agent = builder.build()
+        app_name = f"_events_{agent.name}"
+        runner = InMemoryRunner(agent=agent, app_name=app_name)
+        session = await runner.session_service.create_session(app_name=app_name, user_id="_events_user")
+        content = types.Content(role="user", parts=[types.Part(text=prompt)])
+
+        async for event in runner.run_async(user_id="_events_user", session_id=session.id, new_message=content):
+            yield event
 
 
 # ---------------------------------------------------------------------------

@@ -129,6 +129,32 @@ diff_parser ──► ┌─ style_checker ────┐
                                                     comment_writer
 ```
 
+## Running on Different Backends
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+response = code_review.ask("Review this PR: ...")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# Parallel reviews become concurrent Activities
+# If one review crashes, only that branch re-executes
+durable = code_review.engine("temporal", client=client, task_queue="reviews")
+response = await durable.ask_async("Review this PR: ...")
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+response = await code_review.engine("asyncio").ask_async("Review this PR: ...")
+```
+:::
+::::
+
 ## Framework Comparison
 
 | Framework    | Lines | Parallel reviews? | Typed verdict? | Conditional output? |

@@ -1,13 +1,26 @@
 # IR and Backends
 
-The Intermediate Representation (IR) decouples the fluent builder API from ADK. Builders compile to a tree of frozen dataclasses, which backends then compile to native objects.
+The Intermediate Representation (IR) decouples the fluent builder API from execution engines. Builders compile to a tree of frozen dataclasses, which backends then compile to engine-specific runnables.
+
+:::{admonition} Multiple execution backends
+:class: tip
+
+adk-fluent supports multiple execution backends. The IR is the universal contract — every backend compiles from the same IR tree. See [Execution Backends](execution-backends.md) for the full comparison.
+
+| Backend | Status | Durability |
+|---------|--------|-----------|
+| **ADK** | **Stable** (default) | No |
+| **Temporal** | **In Development** | Yes — crash recovery, replay |
+| **asyncio** | **In Development** | No |
+| **DBOS / Prefect** | **Conceptual** — not yet implemented | — |
+:::
 
 ## Why IR?
 
 - **Inspection**: Walk and analyze the agent tree without building ADK objects
 - **Testing**: Use mock backends for deterministic testing without LLM calls
 - **Visualization**: Generate Mermaid diagrams from the IR tree
-- **Portability**: Future backends could target different execution engines
+- **Portability**: The same IR compiles to ADK, Temporal, or asyncio backends
 
 ## IR Nodes
 
@@ -49,14 +62,24 @@ A backend compiles IR nodes into runnable objects:
 from adk_fluent.backends import Backend
 
 class Backend(Protocol):
+    name: str
     def compile(self, node, config=None) -> Any: ...
     async def run(self, compiled, prompt, **kwargs) -> list[AgentEvent]: ...
     async def stream(self, compiled, prompt, **kwargs) -> AsyncIterator[AgentEvent]: ...
+
+    @property
+    def capabilities(self) -> EngineCapabilities: ...
 ```
 
-### ADKBackend
+Every backend declares its capabilities (streaming, durability, parallelism, etc.) via `EngineCapabilities`. See [Execution Backends](execution-backends.md) for the full capability matrix.
 
-The built-in `ADKBackend` compiles IR to native ADK objects:
+### Backend Implementations
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+**Status: Stable** — production-ready
+
+Compiles IR to native ADK objects. `.to_app()` is shorthand for this.
 
 ```python
 from adk_fluent.backends.adk import ADKBackend
@@ -67,7 +90,56 @@ ir = (Agent("a") >> Agent("b")).to_ir()
 app = backend.compile(ir, config=ExecutionConfig(app_name="demo"))
 ```
 
-`.to_app()` is shorthand for this -- it creates an ADKBackend internally.
+Or via builder shorthand:
+
+```python
+agent = Agent("helper", "gemini-2.5-flash").instruct("Help.")
+# .engine("adk") is implicit — no need to specify
+```
+:::
+:::{tab-item} Temporal (in dev)
+**Status: In Development** — API may change
+
+Compiles IR to Temporal workflows and activities for durable execution.
+
+```python
+from temporalio.client import Client
+from adk_fluent.backends.temporal import TemporalBackend
+
+client = await Client.connect("localhost:7233")
+backend = TemporalBackend(client=client, task_queue="agents")
+ir = (Agent("a") >> Agent("b")).to_ir()
+plan = backend.compile(ir)
+```
+
+Or via builder shorthand:
+
+```python
+agent = Agent("helper").instruct("Help.").engine("temporal", client=client)
+```
+
+See [Temporal Guide](temporal-guide.md) for detailed usage.
+:::
+:::{tab-item} asyncio (in dev)
+**Status: In Development** — reference implementation
+
+Pure-Python IR interpreter with no external dependencies.
+
+```python
+from adk_fluent.backends.asyncio_backend import AsyncioBackend
+
+backend = AsyncioBackend()
+ir = (Agent("a") >> Agent("b")).to_ir()
+result = backend.compile(ir)
+```
+
+Or via builder shorthand:
+
+```python
+agent = Agent("helper").instruct("Help.").engine("asyncio")
+```
+:::
+::::
 
 ## ExecutionConfig
 
@@ -118,3 +190,9 @@ graph TD
 ```
 
 When agents have `.produces()` or `.consumes()` annotations, the diagram includes data-flow edges.
+
+:::{seealso}
+- [Execution Backends](execution-backends.md) — full backend comparison, capability matrix, and selection guide
+- [Temporal Guide](temporal-guide.md) — Temporal-specific patterns, determinism rules, and crash recovery
+- [Execution](execution.md) — `.ask()`, `.stream()`, `.session()` and how they interact with backends
+:::

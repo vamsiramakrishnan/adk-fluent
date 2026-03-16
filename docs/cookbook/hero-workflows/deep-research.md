@@ -205,6 +205,44 @@ sequenceDiagram
     Note right of RW: @ ResearchReport (typed output)
 ```
 
+## Running on Different Backends
+
+The pipeline definition above is backend-agnostic. Here's how to execute it on each backend:
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+# Default backend — no .engine() needed
+response = deep_research.ask("What are the latest advances in quantum computing?")
+print(response)
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+
+client = await Client.connect("localhost:7233")
+
+# Same pipeline definition, durable execution
+durable_research = deep_research.engine("temporal", client=client, task_queue="research")
+response = await durable_research.ask_async("What are the latest advances in quantum computing?")
+
+# If the process crashes during the quality loop, Temporal replays:
+# - query_analyzer: cached (0 LLM cost)
+# - 3 searchers: cached (0 LLM cost)
+# - synthesizer: cached (0 LLM cost)
+# - quality loop: resumes from last completed iteration
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+# Pure asyncio, no ADK dependency at runtime
+async_research = deep_research.engine("asyncio")
+response = await async_research.ask_async("What are the latest advances in quantum computing?")
+```
+:::
+::::
+
 ## Framework Comparison
 
 | Framework    | Lines | Notes                                              |

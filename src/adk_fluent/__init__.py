@@ -296,6 +296,9 @@ __all__ = [
     "DispatchAgent",
     "JoinAgent",
     "CallbackSchema",
+    "configure",
+    "reset_config",
+    "get_config",
     "C",
     "CTransform",
     "CComposite",
@@ -397,7 +400,6 @@ __all__ = [
     "evaluate_predicate",
     "TimedAgent",
     "BackgroundTask",
-    "ArtifactAgent",
     "P",
     "PTransform",
     "PComposite",
@@ -445,8 +447,6 @@ __all__ = [
     "STransform",
     "StateDelta",
     "StateReplacement",
-    "infer_visibility",
-    "VisibilityPlugin",
     "A2AServer",
     "AgentRegistry",
     "RemoteAgent",
@@ -489,10 +489,44 @@ __all__ = [
     "UIComponent",
     "UISurface",
     "Preset",
+    "DefaultRuntime",
+    "Runtime",
+    "ExecutionResult",
+    "SessionHandle",
     "StreamStats",
     "Backend",
     "final_text",
-    "ADKBackend",
+    "register_backend",
+    "get_backend",
+    "available_backends",
+    "AsyncioBackend",
+    "TemporalBackend",
+    "TemporalRunnable",
+    "TemporalWorkerConfig",
+    "generate_worker_code",
+    "create_activities",
+    "create_workflow_class",
+    "create_worker",
+    "CompilationResult",
+    "EngineCapabilities",
+    "compile",
+    "run_passes",
+    "fuse_transforms",
+    "validate_contracts",
+    "annotate_checkpoints",
+    "ModelProvider",
+    "StateStore",
+    "ToolRuntime",
+    "ArtifactStore",
+    "Message",
+    "ToolDef",
+    "GenerateConfig",
+    "GenerateResult",
+    "Chunk",
+    "ComputeConfig",
+    "InMemoryStateStore",
+    "InMemoryArtifactStore",
+    "LocalToolRuntime",
     "check_contracts",
     "infer_data_flow",
     "DataFlowSuggestion",
@@ -540,6 +574,9 @@ from ._base import RaceAgent
 from ._base import DispatchAgent
 from ._base import JoinAgent
 from ._callback_schema import CallbackSchema
+from ._config_global import configure
+from ._config_global import reset_config
+from ._config_global import get_config
 from ._context import C
 from ._context import CTransform
 from ._context import CComposite
@@ -652,18 +689,6 @@ from ._primitive_builders import gate
 from ._primitive_builders import race
 from ._primitive_builders import dispatch
 from ._primitive_builders import join
-from ._primitives import FnAgent
-from ._primitives import TapAgent
-from ._primitives import CaptureAgent
-from ._primitives import ArtifactAgent
-from ._primitives import FallbackAgent
-from ._primitives import MapOverAgent
-from ._primitives import TimeoutAgent
-from ._primitives import GateAgent
-from ._primitives import RaceAgent
-from ._primitives import DispatchAgent
-from ._primitives import JoinAgent
-from ._primitives import get_execution_mode
 from ._prompt import P
 from ._prompt import PTransform
 from ._prompt import PComposite
@@ -711,8 +736,6 @@ from ._transforms import S
 from ._transforms import STransform
 from ._transforms import StateDelta
 from ._transforms import StateReplacement
-from ._visibility import infer_visibility
-from ._visibility import VisibilityPlugin
 from .a2a import A2AServer
 from .a2a import AgentRegistry
 from .a2a import RemoteAgent
@@ -813,13 +836,58 @@ from .prelude import UICheck
 from .prelude import UIComponent
 from .prelude import UISurface
 from .presets import Preset
+from .runtime_default import DefaultRuntime
+from .runtime_protocol import Runtime
+from .runtime_protocol import ExecutionResult
+from .runtime_protocol import SessionHandle
 from .source import Source
 from .source import Inbox
 from .stream import StreamRunner
 from .stream import StreamStats
 from .backends import Backend
 from .backends import final_text
-from .backends.adk import ADKBackend
+from .backends import register_backend
+from .backends import get_backend
+from .backends import available_backends
+from .backends.asyncio_backend import AsyncioBackend
+from .backends.temporal import TemporalBackend
+from .backends.temporal import TemporalRunnable
+from .backends.temporal_worker import TemporalWorkerConfig
+from .backends.temporal_worker import generate_worker_code
+from .backends.temporal_worker import create_activities
+from .backends.temporal_worker import create_workflow_class
+from .backends.temporal_worker import create_worker
+from .compile import CompilationResult
+from .compile import EngineCapabilities
+from .compile import compile
+from .compile.passes import run_passes
+from .compile.passes import fuse_transforms
+from .compile.passes import validate_contracts
+from .compile.passes import annotate_checkpoints
+from .compute import ModelProvider
+from .compute import StateStore
+from .compute import ToolRuntime
+from .compute import ArtifactStore
+from .compute import Message
+from .compute import ToolDef
+from .compute import GenerateConfig
+from .compute import GenerateResult
+from .compute import Chunk
+from .compute import ComputeConfig
+from .compute import InMemoryStateStore
+from .compute import InMemoryArtifactStore
+from .compute._protocol import ModelProvider
+from .compute._protocol import StateStore
+from .compute._protocol import ToolRuntime
+from .compute._protocol import ArtifactStore
+from .compute._protocol import Message
+from .compute._protocol import ToolDef
+from .compute._protocol import GenerateConfig
+from .compute._protocol import GenerateResult
+from .compute._protocol import Chunk
+from .compute.memory import InMemoryStateStore
+from .compute.memory import InMemoryArtifactStore
+from .compute.memory import LocalToolRuntime
 from .testing import check_contracts
 from .testing import infer_data_flow
 from .testing import DataFlowSuggestion

@@ -99,6 +99,33 @@ or dashboard updates.
 Log completion times, send alerts on failure, update metrics — all without
 adding agents to the pipeline.
 
+## Running on Different Backends
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+response = basic_pipeline.ask("Write a blog post about AI safety")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# dispatch() → Temporal child workflow (fire-and-forget)
+# join() → await child workflow handle
+# Background tasks survive main pipeline crashes
+durable = basic_pipeline.engine("temporal", client=client, task_queue="content")
+response = await durable.ask_async("Write a blog post about AI safety")
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+response = await basic_pipeline.engine("asyncio").ask_async("Write a blog post")
+```
+:::
+::::
+
 ## Pipeline Topology
 
 ```

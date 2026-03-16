@@ -363,7 +363,7 @@ class _LLMJudge:
             fail_key = "toxic"
 
         try:
-            from google import genai
+            from google import genai  # type: ignore[attr-defined]
 
             client = genai.Client()
             response = await client.aio.models.generate_content(

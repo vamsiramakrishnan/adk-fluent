@@ -184,6 +184,40 @@ sequenceDiagram
     end
 ```
 
+## Running on Different Backends
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+response = support_pipeline.ask("I was charged twice for my subscription")
+print(response)
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+
+client = await Client.connect("localhost:7233")
+
+# Route() becomes deterministic workflow code (zero LLM cost for routing)
+# gate() becomes a Temporal Signal (pauses for human approval)
+durable = support_pipeline.engine("temporal", client=client, task_queue="support")
+response = await durable.ask_async("I was charged twice for my subscription")
+```
+
+This pipeline is especially well-suited for Temporal because:
+- `Route()` is deterministic — replays identically from history
+- `gate()` maps to Temporal Signals — pauses workflow for human input
+- Each specialist handler is a separate Activity — cached on replay
+:::
+:::{tab-item} asyncio (in dev)
+```python
+async_pipeline = support_pipeline.engine("asyncio")
+response = await async_pipeline.ask_async("I was charged twice for my subscription")
+```
+:::
+::::
+
 ## Framework Comparison
 
 | Framework    | Lines | Deterministic routing? | Context isolation? | Escalation gate? |

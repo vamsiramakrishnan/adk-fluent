@@ -2088,6 +2088,50 @@ class BuilderBase:
             self._middlewares.append(mw)
         return self
 
+    def engine(self, name: str, **kwargs) -> Self:
+        """Select the execution engine for this builder.
+
+        The engine determines HOW the agent is orchestrated (ADK, Temporal,
+        asyncio, etc.). Default is "adk".
+
+        Args:
+            name: Backend name (e.g., "adk", "temporal", "asyncio").
+            **kwargs: Backend-specific configuration (e.g., client=,
+                     task_queue= for Temporal).
+
+        Example::
+
+            agent = (
+                Agent("researcher", "gemini-2.5-flash")
+                .instruct("Research the topic.")
+                .engine("temporal", task_queue="research")
+            )
+        """
+        self._config["_engine"] = name
+        self._config["_engine_kwargs"] = kwargs
+        return self
+
+    def compute(self, config) -> Self:
+        """Set compute configuration for this builder.
+
+        Compute determines WHERE work physically runs (model provider,
+        state store, tool runtime).
+
+        Args:
+            config: A ``ComputeConfig`` instance.
+
+        Example::
+
+            from adk_fluent.compute import ComputeConfig, InMemoryStateStore
+
+            agent = (
+                Agent("writer")
+                .compute(ComputeConfig(state_store=InMemoryStateStore()))
+            )
+        """
+        self._config["_compute"] = config
+        return self
+
     def produces(self, schema: type) -> Self:
         """Annotate what state keys this agent writes. Contract-only, no runtime effect.
 

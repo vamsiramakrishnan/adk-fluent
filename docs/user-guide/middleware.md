@@ -256,10 +256,34 @@ See [Testing](testing.md).
 4. **Use `M.when()` for environment-specific behavior.** Don't branch in your pipeline code -- let middleware handle it
 5. **Middleware is for infrastructure, not business logic.** Retry, logging, tracing, caching -- these are middleware concerns. Routing, classification, data transformation -- these are agent/function concerns
 
+## Backend Awareness
+
+Middleware works across all execution backends:
+
+- **ADK backend**: Middleware runs as ADK `BasePlugin` instances compiled into the App
+- **Temporal backend** (in development): Middleware runs as runtime hooks around workflow/activity execution
+- **asyncio backend** (in development): Middleware runs as direct Python hooks
+
+The middleware *definition* is identical regardless of backend. Only the execution mechanism differs:
+
+```python
+# Same middleware definition, works with any engine
+pipeline = (Agent("a") >> Agent("b")).middleware(M.retry(3) | M.log())
+
+# ADK (default)
+app = pipeline.to_app()
+
+# Temporal (in development)
+pipeline_t = pipeline.engine("temporal", client=client)
+response = await pipeline_t.ask_async("Go")
+```
+
 :::{seealso}
-- [Callbacks](callbacks.md) -- per-agent callback attachment
-- [Presets](presets.md) -- shared agent configuration
-- [Guards](guards.md) -- per-agent safety and validation
-- [Visibility](visibility.md) -- controlling user-facing output
-- [Best Practices](best-practices.md) -- the "Callbacks vs. Middleware" decision tree
+- [Execution Backends](execution-backends.md) — backend selection and capability matrix
+- [Temporal Guide](temporal-guide.md) — durable execution and how middleware interacts with Temporal
+- [Callbacks](callbacks.md) — per-agent callback attachment
+- [Presets](presets.md) — shared agent configuration
+- [Guards](guards.md) — per-agent safety and validation
+- [Visibility](visibility.md) — controlling user-facing output
+- [Best Practices](best-practices.md) — the "Callbacks vs. Middleware" decision tree
 :::

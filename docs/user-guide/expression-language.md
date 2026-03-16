@@ -325,3 +325,23 @@ pipeline = (
 ```
 
 This expression combines parallel fan-out (`|`), state transforms (`S.merge`), typed output (`@ Report`), fallback (`//`), and conditional loops (`* until`).
+
+## Backend Compatibility
+
+All expression operators work identically across backends. The *definition* is the same — only execution semantics change:
+
+| Operator | ADK (default) | Temporal (in dev) | asyncio (in dev) |
+|----------|--------------|-------------------|------------------|
+| `>>` (sequence) | Sequential agents | Sequential activities | Sequential coroutines |
+| `\|` (parallel) | Parallel agents | `asyncio.gather()` over activities | `asyncio.gather()` |
+| `*` (loop) | Loop agent | Checkpointed `while` loop | `while` loop |
+| `//` (fallback) | Fallback agent | try/except over activities | try/except |
+| `@ Schema` | output_schema | Same (schema on activity) | Same |
+| `Route(...)` | Custom agent | Inline deterministic code | Inline |
+
+When using Temporal, deterministic operators (`>>`, `Route`, `S.*`) become replay-safe workflow code, while non-deterministic operators (anything involving an LLM call) become cached activities. See [Temporal Guide](temporal-guide.md) for details.
+
+:::{seealso}
+- [Execution Backends](execution-backends.md) — backend selection and capability matrix
+- [Temporal Guide](temporal-guide.md) — how operators map to Temporal concepts
+:::

@@ -2,10 +2,28 @@
 
 adk-fluent provides execution helpers that eliminate Runner and Session boilerplate. These methods let you go from builder to result in a single call.
 
+:::{admonition} Execution backend awareness
+:class: note
+
+All execution methods below work with the default **ADK backend**. When using alternative backends, behavior varies:
+
+| Method | ADK (default) | Temporal (in dev) | asyncio (in dev) |
+|--------|--------------|-------------------|------------------|
+| `.ask()` | Works | Not recommended (blocking) | Works |
+| `.ask_async()` | Works | Works (starts workflow) | Works |
+| `.stream()` | Real-time streaming | Falls back to batch | Works |
+| `.session()` | In-memory history | Requires external state | Works |
+| `.map_async()` | Concurrent tasks | Each prompt = workflow | Concurrent tasks |
+
+See [Execution Backends](execution-backends.md) for details. The examples below use the default ADK backend.
+:::
+
 ## `.ask(prompt)`
 
-Send a prompt, get response text. No Runner or Session setup needed:
+Send a prompt, get response text. No Runner or Session setup needed.
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 from adk_fluent import Agent
 
@@ -14,13 +32,37 @@ agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistan
 response = agent.ask("What is the capital of France?")
 print(response)  # "The capital of France is Paris."
 ```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+# .ask() is sync and blocks — use .ask_async() with Temporal instead.
+# Temporal requires an async event loop to start workflows.
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+from adk_fluent import Agent
+
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are a helpful assistant.")
+    .engine("asyncio")
+)
+
+response = agent.ask("What is the capital of France?")
+print(response)
+```
+:::
+::::
 
 `.ask()` internally builds the agent, creates a Runner and Session, sends the prompt, and returns the final response text.
 
 ## `.ask_async(prompt)`
 
-Async version of `.ask()`:
+Async version of `.ask()`. **Required for the Temporal backend.**
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 import asyncio
 from adk_fluent import Agent
@@ -33,11 +75,53 @@ async def main():
 
 asyncio.run(main())
 ```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+import asyncio
+from temporalio.client import Client
+from adk_fluent import Agent
+
+async def main():
+    client = await Client.connect("localhost:7233")
+
+    agent = (
+        Agent("helper", "gemini-2.5-flash")
+        .instruct("You are a helpful assistant.")
+        .engine("temporal", client=client, task_queue="qa")
+    )
+    # Starts a Temporal workflow — durable, crash-recoverable
+    response = await agent.ask_async("What is the capital of France?")
+    print(response)
+
+asyncio.run(main())
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+import asyncio
+from adk_fluent import Agent
+
+async def main():
+    agent = (
+        Agent("helper", "gemini-2.5-flash")
+        .instruct("You are a helpful assistant.")
+        .engine("asyncio")
+    )
+    response = await agent.ask_async("What is the capital of France?")
+    print(response)
+
+asyncio.run(main())
+```
+:::
+::::
 
 ## `.stream(prompt)`
 
-Async generator that yields response text chunks as they arrive:
+Async generator that yields response text chunks as they arrive.
 
+::::{tab-set}
+:::{tab-item} ADK (default)
 ```python
 import asyncio
 from adk_fluent import Agent
@@ -50,6 +134,33 @@ async def main():
 
 asyncio.run(main())
 ```
+Real-time streaming — chunks arrive as the LLM generates them.
+:::
+:::{tab-item} Temporal (in dev)
+```python
+# Temporal does NOT support real-time streaming.
+# .stream() falls back to collecting all events, then yielding them at once.
+# Use .ask_async() instead for Temporal workloads.
+
+async for chunk in agent.stream("Tell me a story."):
+    print(chunk, end="", flush=True)  # All chunks arrive at once
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+import asyncio
+from adk_fluent import Agent
+
+agent = Agent("helper", "gemini-2.5-flash").instruct("Tell stories.").engine("asyncio")
+
+async def main():
+    async for chunk in agent.stream("Tell me a story."):
+        print(chunk, end="", flush=True)
+
+asyncio.run(main())
+```
+:::
+::::
 
 ## `.events(prompt)`
 
@@ -263,17 +374,20 @@ See [Testing](testing.md).
 
 1. **Use `.ask()` for prototyping, `.to_app()` for production.** `.ask()` is convenient but doesn't support middleware, resumability, or compaction
 2. **Use `.stream()` for user-facing output.** Streaming provides better UX than waiting for the full response
-3. **Use `.map()` with bounded concurrency for batch jobs.** Don't fire 1000 concurrent requests -- use `concurrency=` to control
+3. **Use `.map()` with bounded concurrency for batch jobs.** Don't fire 1000 concurrent requests — use `concurrency=` to control
 4. **Use `.session()` for multi-turn interactions.** Don't manually manage conversation history
 5. **Use `.test()` during development, `AgentHarness` in CI.** `.test()` hits the real LLM; `AgentHarness` with `mock_backend` is deterministic
+6. **Use `.engine("temporal")` for crash-resilient pipelines.** When durability matters, switch to Temporal — your builder definitions stay the same (Temporal backend is in development)
 
 :::{tip}
 **Visual learner?** Open the [Execution Modes Interactive Reference](../execution-modes-reference.html){target="_blank"} for sync vs async flow diagrams, an environment compatibility matrix, and the RuntimeError trap.
 :::
 
 :::{seealso}
-- [Testing](testing.md) -- `.mock()`, `.test()`, `AgentHarness`, and `check_contracts()`
-- [Middleware](middleware.md) -- pipeline-wide retry, logging, and tracing via `.to_app()`
-- [Visibility](visibility.md) -- controlling which agents' output appears in streams
-- [Context Engineering](context-engineering.md) -- controlling history in `.session()` interactions
+- [Execution Backends](execution-backends.md) — backend selection, capability matrix, `.engine()` method
+- [Temporal Guide](temporal-guide.md) — durable execution, crash recovery, Temporal-specific patterns
+- [Testing](testing.md) — `.mock()`, `.test()`, `AgentHarness`, and `check_contracts()`
+- [Middleware](middleware.md) — pipeline-wide retry, logging, and tracing via `.to_app()`
+- [Visibility](visibility.md) — controlling which agents' output appears in streams
+- [Context Engineering](context-engineering.md) — controlling history in `.session()` interactions
 :::

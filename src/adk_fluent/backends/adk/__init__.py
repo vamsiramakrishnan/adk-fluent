@@ -35,6 +35,23 @@ from adk_fluent._ir_generated import (
 class ADKBackend:
     """Compiles IR node trees into native Google ADK objects wrapped in an App."""
 
+    name: str = "adk"
+
+    @property
+    def capabilities(self):
+        from adk_fluent.compile import EngineCapabilities
+
+        return EngineCapabilities(
+            streaming=True,
+            parallel=True,
+            durable=False,
+            replay=False,
+            checkpointing=False,
+            signals=False,
+            dispatch_join=True,
+            distributed=False,
+        )
+
     # ------------------------------------------------------------------
     # Public API (satisfies Backend protocol)
     # ------------------------------------------------------------------
@@ -229,7 +246,7 @@ class ADKBackend:
         from google.adk.agents.sequential_agent import SequentialAgent
 
         from adk_fluent._base import _compose_callbacks
-        from adk_fluent._primitives import _FanOutHookAgent
+        from adk_fluent.backends.adk._primitives import _FanOutHookAgent
 
         kwargs: dict[str, Any] = {
             "name": node.name,
@@ -268,7 +285,7 @@ class ADKBackend:
         from google.adk.agents.loop_agent import LoopAgent
 
         from adk_fluent._base import _compose_callbacks
-        from adk_fluent._primitives import _LoopHookAgent
+        from adk_fluent.backends.adk._primitives import _LoopHookAgent
 
         children = self._compile_children(node.children)
 
@@ -293,19 +310,19 @@ class ADKBackend:
 
     def _compile_transform(self, node: TransformNode) -> Any:
         """TransformNode -> FnAgent."""
-        from adk_fluent._primitives import FnAgent
+        from adk_fluent.backends.adk._primitives import FnAgent
 
         return FnAgent(name=node.name, fn=node.fn)
 
     def _compile_tap(self, node: TapNode) -> Any:
         """TapNode -> TapAgent."""
-        from adk_fluent._primitives import TapAgent
+        from adk_fluent.backends.adk._primitives import TapAgent
 
         return TapAgent(name=node.name, fn=node.fn)
 
     def _compile_fallback(self, node: FallbackNode) -> Any:
         """FallbackNode -> FallbackAgent."""
-        from adk_fluent._primitives import FallbackAgent
+        from adk_fluent.backends.adk._primitives import FallbackAgent
 
         return FallbackAgent(
             name=node.name,
@@ -314,7 +331,7 @@ class ADKBackend:
 
     def _compile_race(self, node: RaceNode) -> Any:
         """RaceNode -> RaceAgent."""
-        from adk_fluent._primitives import RaceAgent
+        from adk_fluent.backends.adk._primitives import RaceAgent
 
         return RaceAgent(
             name=node.name,
@@ -323,7 +340,7 @@ class ADKBackend:
 
     def _compile_gate(self, node: GateNode) -> Any:
         """GateNode -> GateAgent."""
-        from adk_fluent._primitives import GateAgent
+        from adk_fluent.backends.adk._primitives import GateAgent
 
         return GateAgent(
             name=node.name,
@@ -334,7 +351,7 @@ class ADKBackend:
 
     def _compile_mapover(self, node: MapOverNode) -> Any:
         """MapOverNode -> MapOverAgent."""
-        from adk_fluent._primitives import MapOverAgent
+        from adk_fluent.backends.adk._primitives import MapOverAgent
 
         sub_agents = []
         if node.body is not None:
@@ -349,7 +366,7 @@ class ADKBackend:
 
     def _compile_timeout(self, node: TimeoutNode) -> Any:
         """TimeoutNode -> TimeoutAgent."""
-        from adk_fluent._primitives import TimeoutAgent
+        from adk_fluent.backends.adk._primitives import TimeoutAgent
 
         sub_agents = []
         if node.body is not None:
@@ -411,13 +428,13 @@ class ADKBackend:
 
     def _compile_capture(self, node: CaptureNode) -> Any:
         """CaptureNode -> CaptureAgent."""
-        from adk_fluent._primitives import CaptureAgent
+        from adk_fluent.backends.adk._primitives import CaptureAgent
 
         return CaptureAgent(name=node.name, key=node.key)
 
     def _compile_dispatch(self, node: DispatchNode) -> Any:
         """DispatchNode -> DispatchAgent."""
-        from adk_fluent._primitives import DispatchAgent
+        from adk_fluent.backends.adk._primitives import DispatchAgent
 
         return DispatchAgent(
             name=node.name,
@@ -428,7 +445,7 @@ class ADKBackend:
 
     def _compile_join(self, node: JoinNode) -> Any:
         """JoinNode -> JoinAgent."""
-        from adk_fluent._primitives import JoinAgent
+        from adk_fluent.backends.adk._primitives import JoinAgent
 
         return JoinAgent(
             name=node.name,

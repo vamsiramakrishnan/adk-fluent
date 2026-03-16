@@ -14,8 +14,16 @@ class MockBackend:
     Satisfies the Backend protocol without making any LLM calls.
     """
 
+    name: str = "mock"
+
     def __init__(self, responses: dict[str, Any]):
         self._responses = responses
+
+    @property
+    def capabilities(self):
+        from adk_fluent.compile import EngineCapabilities
+
+        return EngineCapabilities()
 
     def compile(self, node: Any, config: ExecutionConfig | None = None) -> Any:
         return node  # Pass-through; we walk the IR directly in run()

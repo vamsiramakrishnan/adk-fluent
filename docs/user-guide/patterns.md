@@ -188,3 +188,58 @@ pipeline = map_reduce(
 1. Reads `state[items_key]` (a list)
 1. Runs mapper on each item in parallel
 1. Reducer combines all mapper outputs
+
+## Durable Execution
+
+All patterns above work with any execution backend. The definition is identical — only the engine selection changes:
+
+::::{tab-set}
+:::{tab-item} ADK (default)
+```python
+pipeline = review_loop(
+    worker=Agent("writer").instruct("Write."),
+    reviewer=Agent("reviewer").instruct("Review."),
+    quality_key="score",
+    target=0.8,
+)
+response = pipeline.ask("Write about AI safety")
+```
+:::
+:::{tab-item} Temporal (in dev)
+```python
+from temporalio.client import Client
+client = await Client.connect("localhost:7233")
+
+# Same pattern — each review iteration is checkpointed
+pipeline = review_loop(
+    worker=Agent("writer").instruct("Write."),
+    reviewer=Agent("reviewer").instruct("Review."),
+    quality_key="score",
+    target=0.8,
+).engine("temporal", client=client, task_queue="quality")
+
+# If crash occurs mid-loop, completed iterations replay from cache
+response = await pipeline.ask_async("Write about AI safety")
+```
+:::
+:::{tab-item} asyncio (in dev)
+```python
+pipeline = review_loop(
+    worker=Agent("writer").instruct("Write."),
+    reviewer=Agent("reviewer").instruct("Review."),
+    quality_key="score",
+    target=0.8,
+).engine("asyncio")
+
+response = await pipeline.ask_async("Write about AI safety")
+```
+:::
+::::
+
+Patterns with natural checkpoint boundaries (each step in `chain`, each iteration in `review_loop`) are especially well-suited for durable execution. See [Temporal Guide](temporal-guide.md) for details.
+
+:::{seealso}
+- [Execution Backends](execution-backends.md) — backend selection and capability matrix
+- [Temporal Guide](temporal-guide.md) — durable execution patterns and constraints
+- [Expression Language](expression-language.md) — the operator equivalents of these patterns
+:::

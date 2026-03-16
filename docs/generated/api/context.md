@@ -40,6 +40,7 @@ Context engineering namespace. Each method returns a frozen CTransform descripto
 | `C.from_agents_windowed(**agent_windows)`                                      | `CFromAgentsWindowed` | Per-agent selective windowing                                               |
 | `C.user(strategy='all')`                                                       | `CUser`               | Select user messages with a strategy                                        |
 | `C.manus_cascade(budget=8000, model='gemini-2.5-flash')`                       | `CManusCascade`       | Manus-inspired progressive compression cascade                              |
+| `C.pipeline_aware(*keys)`                                                      | `CPipelineAware`      | Topology-aware context: user messages + named state keys                    |
 | `C.with_ui(surface_id=None)`                                                   | `CTransform`          | Include current UI surface state in agent context                           |
 
 ## Methods
@@ -337,6 +338,31 @@ Applies: compact → dedup → summarize → truncate.
 - `budget` (*int*) — default: `8000`
 - `model` (*str*) — default: `'gemini-2.5-flash'`
 
+### `C.pipeline_aware(*keys: str) -> CPipelineAware`
+
+Topology-aware context: user messages + named state keys.
+
+Designed for pipeline agents that need the user's original
+message plus structured data from upstream agents, but should
+NOT see raw intermediate agent conversation history.
+
+Equivalent to `C.user_only() + C.from_state(*keys)` but
+with clearer intent and better contract checker support.
+
+Example:
+    # classifier writes intent, handler sees user msg + intent
+    classifier = Agent("classify").writes("intent")
+    handler = Agent("handle").context(C.pipeline_aware("intent"))
+    pipeline = classifier >> handler
+
+**Args:**
+
+  *keys: State key names to include alongside user messages.
+
+**Parameters:**
+
+- `*keys` (*str*)
+
 ### `C.with_ui(surface_id: str | None = None) -> CTransform`
 
 Include current UI surface state in agent context.
@@ -402,3 +428,4 @@ Chain context processing
 | `CUser`               | User message strategies                                                     |
 | `CManusCascade`       | Manus-inspired progressive compression cascade                              |
 | `CWhen`               | Conditional context inclusion                                               |
+| `CPipelineAware`      | Topology-aware context for pipeline agents                                  |
