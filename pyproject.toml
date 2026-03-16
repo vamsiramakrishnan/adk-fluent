@@ -48,6 +48,11 @@ a2a = [
 examples = [
     "python-dotenv>=1.0",
 ]
+visual = [
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "python-dotenv>=1.0",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -154,6 +159,7 @@ markers = [
     "integration: marks tests requiring a full ADK install",
     "generated: marks auto-generated test scaffolds",
     "pipeline: marks tests for the codegen pipeline (generator/seed_generator/code_ir)",
+    "visual: marks visual regression tests requiring API key",
 ]
 
 [tool.ruff]

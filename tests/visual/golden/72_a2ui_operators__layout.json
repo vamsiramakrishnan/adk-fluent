@@ -1,0 +1,51 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "layout"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Logo",
+          "variant": "body"
+        },
+        {
+          "component": "Text",
+          "id": "text_2",
+          "text": "Nav",
+          "variant": "body"
+        },
+        {
+          "children": [
+            "text",
+            "text_2"
+          ],
+          "component": "Row",
+          "id": "row"
+        },
+        {
+          "component": "Text",
+          "id": "text_3",
+          "text": "Footer",
+          "variant": "body"
+        },
+        {
+          "children": [
+            "row",
+            "text_3"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "layout"
+    },
+    "version": "v0.10"
+  }
+]

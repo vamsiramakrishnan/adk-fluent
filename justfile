@@ -310,6 +310,28 @@ agents:
     @echo "Converting cookbook examples to adk-web agent folders..."
     @uv run python scripts/cookbook_to_agents.py --force
 
+# --- Visual: A2UI preview (static, no LLM, no server) ---
+a2ui-preview:
+    @echo "Exporting A2UI surfaces from cookbooks..."
+    @uv run python scripts/export_a2ui_surfaces.py
+    @echo "Opening A2UI gallery in browser..."
+    @python3 -c "import webbrowser; webbrowser.open('visual/index.html')" 2>/dev/null || echo "Open visual/index.html in your browser"
+
+# --- Visual: full cookbook runner (requires API key) ---
+visual: a2ui-preview
+    @echo "Starting visual cookbook runner at http://localhost:8099..."
+    @uv run uvicorn visual.server:app --host 0.0.0.0 --port 8099 --reload
+
+# --- Visual: export surfaces only ---
+visual-export:
+    @echo "Exporting A2UI surfaces..."
+    @uv run python scripts/export_a2ui_surfaces.py
+
+# --- Visual test suite (requires API key) ---
+test-visual:
+    @echo "Running visual test suite..."
+    @uv run pytest tests/visual/ -v --tb=short -m visual
+
 # --- Diff against previous ---
 diff:
     #!/usr/bin/env bash
@@ -401,6 +423,10 @@ help:
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"
+    @echo "  just a2ui-preview   Static A2UI gallery (no server, no LLM)"
+    @echo "  just visual         Full visual runner (requires API key)"
+    @echo "  just visual-export  Export A2UI surfaces to JSON"
+    @echo "  just test-visual    Run visual regression tests"
     @echo "  just diff           Show changes since last scan (JSON)"
     @echo "  just diff-md        Generate API diff as docs/generated/api-diff.md"
     @echo "  just build          Build pip package"

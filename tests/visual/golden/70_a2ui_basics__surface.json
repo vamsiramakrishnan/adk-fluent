@@ -1,0 +1,38 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "contact_form"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Contact Us",
+          "variant": "body"
+        },
+        {
+          "component": "TextField",
+          "id": "textfield",
+          "label": "Name",
+          "value": null,
+          "variant": "shortText"
+        },
+        {
+          "children": [
+            "text",
+            "textfield"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "contact_form"
+    },
+    "version": "v0.10"
+  }
+]

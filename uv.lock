@@ -85,6 +85,11 @@ rich = [
 search = [
     { name = "rank-bm25" },
 ]
+visual = [
+    { name = "fastapi" },
+    { name = "python-dotenv" },
+    { name = "uvicorn" },
+]
 yaml = [
     { name = "pyyaml" },
 ]
@@ -100,6 +105,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "fastapi", marker = "extra == 'visual'", specifier = ">=0.115" },
     { name = "furo", marker = "extra == 'docs'", specifier = ">=2024.0" },
     { name = "google-adk", specifier = ">=1.20.0" },
     { name = "google-adk", extras = ["a2a"], marker = "extra == 'a2a'", specifier = ">=1.20.0" },
@@ -115,6 +121,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.3.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
     { name = "python-dotenv", marker = "extra == 'examples'", specifier = ">=1.0" },
+    { name = "python-dotenv", marker = "extra == 'visual'", specifier = ">=1.0" },
     { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0" },
     { name = "rank-bm25", marker = "extra == 'search'", specifier = ">=0.2.2" },
     { name = "rich", marker = "extra == 'rich'", specifier = ">=13.0" },
@@ -126,9 +133,10 @@ requires-dist = [
     { name = "sphinx-hoverxref", marker = "extra == 'docs'", specifier = ">=1.4.2" },
     { name = "sphinxcontrib-mermaid", marker = "extra == 'docs'", specifier = ">=1.0" },
     { name = "sphinxext-opengraph", marker = "extra == 'docs'", specifier = ">=0.13.0" },
+    { name = "uvicorn", marker = "extra == 'visual'", specifier = ">=0.34" },
     { name = "watchfiles", marker = "extra == 'dev'", specifier = ">=0.21.0" },
 ]
-provides-extras = ["a2a", "dev", "docs", "examples", "observability", "pii", "rich", "search", "yaml"]
+provides-extras = ["a2a", "dev", "docs", "examples", "observability", "pii", "rich", "search", "visual", "yaml"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest-asyncio", specifier = ">=1.3.0" }]

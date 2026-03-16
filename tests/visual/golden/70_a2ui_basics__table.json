@@ -1,0 +1,52 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "table"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Name",
+          "variant": "caption"
+        },
+        {
+          "component": "Text",
+          "id": "text_2",
+          "text": "Email",
+          "variant": "caption"
+        },
+        {
+          "children": [
+            "text",
+            "text_2"
+          ],
+          "component": "Row",
+          "id": "header"
+        },
+        {
+          "children": {
+            "path": "/users"
+          },
+          "component": "List",
+          "id": "data_list"
+        },
+        {
+          "children": [
+            "header",
+            "data_list"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "table"
+    },
+    "version": "v0.10"
+  }
+]
