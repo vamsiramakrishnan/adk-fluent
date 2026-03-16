@@ -162,10 +162,19 @@ def _build_agent_summaries(ir_node: Any) -> list[AgentSummary]:
             capture_key = getattr(node, "key", "")
             summary.writes_keys = [capture_key] if capture_key else []
 
-        # Context
+        # Context — also extract reads_keys from context spec
         context_spec = getattr(node, "context_spec", None)
         if context_spec is not None:
             summary.context_description = _context_description(context_spec)
+            # Extract keys from context spec (e.g., C.from_state("x", "y"))
+            ctx_reads = getattr(context_spec, "_reads_keys", None)
+            if ctx_reads is None and hasattr(context_spec, "keys"):
+                ctx_reads = frozenset(context_spec.keys)
+            if ctx_reads:
+                # Merge with existing reads_keys (from schemas)
+                existing = set(summary.reads_keys)
+                existing.update(ctx_reads)
+                summary.reads_keys = sorted(existing)
         else:
             include = getattr(node, "include_contents", "default")
             if include != "default":
@@ -211,10 +220,15 @@ def _build_agent_summaries(ir_node: Any) -> list[AgentSummary]:
     return summaries
 
 
-def _build_data_flow(ir_node: Any) -> list[KeyFlow]:
-    """Build data flow edges from the IR tree."""
+def _build_data_flow(ir_node: Any) -> tuple[list[KeyFlow], set[str]]:
+    """Build data flow edges from the IR tree.
+
+    Returns (flows, optional_keys) where optional_keys are template vars
+    using the {var?} syntax.
+    """
     producers: dict[str, str] = {}  # key -> producer name
     consumers: dict[str, list[str]] = {}  # key -> [consumer names]
+    optional_keys: set[str] = set()  # keys from {var?} syntax
 
     def _walk(node: Any) -> None:
         name = getattr(node, "name", "?")
@@ -243,13 +257,26 @@ def _build_data_flow(ir_node: Any) -> list[KeyFlow]:
         # What this node consumes
         instruction = getattr(node, "instruction", "")
         if isinstance(instruction, str) and instruction:
-            template_vars = re.findall(r"\{(\w+)\??\}", instruction)
-            for var in template_vars:
+            # Capture (name, optional_marker) pairs
+            template_matches = re.findall(r"\{(\w+)(\??)\}", instruction)
+            for var, opt_marker in template_matches:
                 consumers.setdefault(var, []).append(name)
+                if opt_marker == "?":
+                    optional_keys.add(var)
 
         reads = getattr(node, "reads_keys", frozenset())
         for key in reads:
             consumers.setdefault(key, []).append(name)
+
+        # Context spec reads (e.g., .reads("key") → C.from_state("key"))
+        context_spec = getattr(node, "context_spec", None)
+        if context_spec is not None:
+            ctx_reads = getattr(context_spec, "_reads_keys", None)
+            if ctx_reads is None and hasattr(context_spec, "keys"):
+                ctx_reads = frozenset(context_spec.keys)
+            if ctx_reads:
+                for key in ctx_reads:
+                    consumers.setdefault(key, []).append(name)
 
         if node_type == "TransformNode":
             t_reads = getattr(node, "reads_keys", None)
@@ -276,7 +303,7 @@ def _build_data_flow(ir_node: Any) -> list[KeyFlow]:
         cons = consumers.get(key, [])
         flows.append(KeyFlow(key=key, producer=prod, consumers=cons))
 
-    return flows
+    return flows, optional_keys
 
 
 def _convert_issues(raw_issues: list) -> list[ContractIssue]:
@@ -346,12 +373,19 @@ def _check_ui_issues(ir_node: Any) -> list[ContractIssue]:
     return issues
 
 
-def _check_common_mistakes(ir_node: Any, agents: list[AgentSummary], data_flow: list[KeyFlow]) -> list[ContractIssue]:
-    """Check for the top 10 most common mistakes users make.
+def _check_common_mistakes(
+    ir_node: Any,
+    agents: list[AgentSummary],
+    data_flow: list[KeyFlow],
+    optional_keys: set[str] | None = None,
+) -> list[ContractIssue]:
+    """Check for the top 13 most common mistakes users make.
 
     These are pragmatic checks that go beyond contract analysis to
     catch patterns that lead to silent failures or confusion.
     """
+    if optional_keys is None:
+        optional_keys = set()
     issues: list[ContractIssue] = []
 
     # 1. Agent with no model — will fail at runtime
@@ -375,8 +409,11 @@ def _check_common_mistakes(ir_node: Any, agents: list[AgentSummary], data_flow: 
             ))
 
     # 3. Missing keys: consumed but never produced (elevated from data flow to explicit error)
+    #    Skip optional template vars ({var?}) — they resolve to empty string at runtime
     for flow in data_flow:
         if not flow.producer and flow.consumers:
+            if flow.key in optional_keys:
+                continue  # optional vars are OK to be missing
             issues.append(ContractIssue(
                 level="error",
                 agent=flow.consumers[0],
@@ -473,6 +510,102 @@ def _check_common_mistakes(ir_node: Any, agents: list[AgentSummary], data_flow: 
 
     _check_empty_routes(ir_node)
 
+    # 11. .returns(Schema) + .tool() conflict — tools silently disabled
+    def _check_schema_tool_conflict(node: Any) -> None:
+        if type(node).__name__ == "AgentNode":
+            has_schema = getattr(node, "output_schema", None) is not None
+            has_tools = bool(getattr(node, "tools", ()))
+            if has_schema and has_tools:
+                issues.append(ContractIssue(
+                    level="error",
+                    agent=getattr(node, "name", "?"),
+                    message="Agent has both .returns(Schema) and tools — tools will be silently disabled",
+                    hint="Remove .returns() to keep tools, or remove tools to use structured output. "
+                         "ADK disables tools when output_schema is set.",
+                ))
+        for child in getattr(node, "children", ()):
+            _check_schema_tool_conflict(child)
+
+    _check_schema_tool_conflict(ir_node)
+
+    # 12. .reads() without .writes() upstream — explicit wiring gap
+    #     (complements Pass 1 in contracts but gives better hint)
+    all_writes = {f.key for f in data_flow if f.producer}
+    for summary in agents:
+        for key in summary.reads_keys:
+            if key not in all_writes:
+                # Don't duplicate if already caught by template var check
+                already_caught = any(
+                    key in i.message for i in issues
+                    if i.agent == summary.name and "template" in i.message.lower()
+                )
+                if not already_caught:
+                    close = [k for k in all_writes if _is_close(key, k)]
+                    hint = f"Add .writes('{key}') to the upstream agent."
+                    if close:
+                        hint = f"Did you mean .reads('{close[0]}')? " + hint
+                    issues.append(ContractIssue(
+                        level="error",
+                        agent=summary.name,
+                        message=f".reads('{key}') but no upstream agent has .writes('{key}')",
+                        hint=hint,
+                    ))
+
+    # 13. Parallel branches writing to same state key
+    def _check_parallel_writes(node: Any) -> None:
+        if type(node).__name__ == "ParallelNode":
+            write_keys: dict[str, list[str]] = {}  # key -> [agent names]
+            for child in getattr(node, "children", ()):
+                child_name = getattr(child, "name", "?")
+                ok = getattr(child, "output_key", None)
+                if ok:
+                    write_keys.setdefault(ok, []).append(child_name)
+            for key, writers in write_keys.items():
+                if len(writers) > 1:
+                    issues.append(ContractIssue(
+                        level="error",
+                        agent=getattr(node, "name", "?"),
+                        message=f"Parallel branches {', '.join(writers)} all write to '{key}' — last write wins, data lost",
+                        hint="Use different .writes() keys for each branch, then merge with S.merge().",
+                    ))
+        for child in getattr(node, "children", ()):
+            _check_parallel_writes(child)
+
+    _check_parallel_writes(ir_node)
+
+    # 14. Workflow container with instruction/model/tools — these don't apply
+    container_types = {"SequenceNode", "ParallelNode", "LoopNode"}
+
+    def _check_container_misuse(node: Any) -> None:
+        ntype = type(node).__name__
+        if ntype in container_types:
+            name = getattr(node, "name", "?")
+            if getattr(node, "instruction", ""):
+                issues.append(ContractIssue(
+                    level="error",
+                    agent=name,
+                    message=f".instruct() on a workflow container ({ntype}) has no effect",
+                    hint="Move .instruct() to individual agents inside the pipeline/fanout/loop.",
+                ))
+            if getattr(node, "model", ""):
+                issues.append(ContractIssue(
+                    level="error",
+                    agent=name,
+                    message=f".model() on a workflow container ({ntype}) has no effect",
+                    hint="Set .model() on individual agents, not on the pipeline/fanout/loop.",
+                ))
+            if getattr(node, "tools", ()):
+                issues.append(ContractIssue(
+                    level="error",
+                    agent=name,
+                    message=f".tool() on a workflow container ({ntype}) has no effect",
+                    hint="Add .tool() to individual agents, not to the pipeline/fanout/loop.",
+                ))
+        for child in getattr(node, "children", ()):
+            _check_container_misuse(child)
+
+    _check_container_misuse(ir_node)
+
     return issues
 
 
@@ -506,13 +639,13 @@ def diagnose(ir_node: Any) -> Diagnosis:
     from adk_fluent.viz import ir_to_mermaid
 
     agents = _build_agent_summaries(ir_node)
-    data_flow = _build_data_flow(ir_node)
+    data_flow, optional_keys = _build_data_flow(ir_node)
 
     raw_issues = check_contracts(ir_node)
     issues = _convert_issues(raw_issues)
 
     # Add common mistake checks
-    common_issues = _check_common_mistakes(ir_node, agents, data_flow)
+    common_issues = _check_common_mistakes(ir_node, agents, data_flow, optional_keys)
     issues.extend(common_issues)
 
     # Add UI-specific warnings

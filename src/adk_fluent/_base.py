@@ -462,6 +462,25 @@ from adk_fluent._exceptions import BuilderError as BuilderError  # noqa: E402
 from adk_fluent._exceptions import ADKFluentError as ADKFluentError  # noqa: E402
 
 
+def _attr_is_close(a: str, b: str) -> bool:
+    """Check if two attribute names are within edit distance 1 (typo detection)."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        return sum(ca != cb for ca, cb in zip(a, b)) == 1
+    short, long = (a, b) if len(a) < len(b) else (b, a)
+    diffs = 0
+    si = li = 0
+    while si < len(short) and li < len(long):
+        if short[si] != long[li]:
+            diffs += 1
+            li += 1
+        else:
+            si += 1
+            li += 1
+    return diffs <= 1
+
+
 class BuilderBase:
     """Mixin base class providing shared builder capabilities.
 
@@ -560,6 +579,13 @@ class BuilderBase:
         _ADK_TARGET_CLASS = self.__class__._ADK_TARGET_CLASS
         _KNOWN_PARAMS = self.__class__._KNOWN_PARAMS
 
+        def _suggest_match(name: str, available: list[str]) -> str:
+            """Find close matches for typo suggestions."""
+            close = [a for a in available if _attr_is_close(name, a)]
+            if close:
+                return f" Did you mean '.{close[0]}'?"
+            return ""
+
         if _ADK_TARGET_CLASS is not None:
             # Pydantic mode: validate against model_fields
             if field_name not in _ADK_TARGET_CLASS.model_fields:
@@ -567,14 +593,20 @@ class BuilderBase:
                     set(_ADK_TARGET_CLASS.model_fields.keys()) | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys())
                 )
                 cls_name = _ADK_TARGET_CLASS.__name__
+                suggestion = _suggest_match(name, available)
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} "
+                    f"Available: {', '.join(available)}"
                 )
         elif _KNOWN_PARAMS is not None and field_name not in _KNOWN_PARAMS:
             # init_signature mode: validate against static param set
             available = sorted(_KNOWN_PARAMS | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
             cls_name = self.__class__.__name__
-            raise AttributeError(f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}")
+            suggestion = _suggest_match(name, available)
+            raise AttributeError(
+                f"'{name}' is not a recognized field on {cls_name}.{suggestion} "
+                f"Available: {', '.join(available)}"
+            )
         elif _ADK_TARGET_CLASS is None and "build" in self.__class__.__dict__:
             # Concrete builder whose optional ADK target class is unavailable.
             # Auto-derive known fields from the builder's own explicit methods.
@@ -582,8 +614,10 @@ class BuilderBase:
             if field_name not in _auto_params:
                 available = sorted(_auto_params | set(_ALIASES.keys()) | set(_CALLBACK_ALIASES.keys()))
                 cls_name = self.__class__.__name__
+                suggestion = _suggest_match(name, available)
                 raise AttributeError(
-                    f"'{name}' is not a recognized field on {cls_name}. Available: {', '.join(available)}"
+                    f"'{name}' is not a recognized field on {cls_name}.{suggestion} "
+                    f"Available: {', '.join(available)}"
                 )
         # else: composite/standalone/primitive — accept any field
 
@@ -2433,6 +2467,19 @@ class BuilderBase:
             # Downstream agent reads it
             Agent("writer").reads("findings").writes("draft")
         """
+        if key is None:
+            # Allow None to clear the output key
+            self = self._maybe_fork_for_mutation()
+            self._config["output_key"] = None
+            return self
+        if not isinstance(key, str) or not key:
+            raise ValueError(f".writes() requires a non-empty string key, got {key!r}")
+        if not key.isidentifier():
+            raise ValueError(
+                f".writes('{key}') — key must be a valid Python identifier "
+                f"(letters, digits, underscores, no spaces/hyphens). "
+                f"Consider: .writes('{key.replace('-', '_').replace(' ', '_')}')"
+            )
         self = self._maybe_fork_for_mutation()
         self._config["output_key"] = key
         return self
@@ -2827,8 +2874,11 @@ class BuilderBase:
                 from adk_fluent.testing.contracts import check_contracts
 
                 ir_issues = check_contracts(ir)
-            except Exception:
-                pass  # IR conversion failed — skip contracts silently
+            except Exception as exc:
+                import logging
+                logging.getLogger("adk_fluent.contracts").debug(
+                    "IR contract check skipped — to_ir() failed: %s", exc
+                )
 
         all_issues = interop_issues + ir_issues
         if not all_issues:

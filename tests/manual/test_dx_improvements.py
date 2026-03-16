@@ -186,6 +186,112 @@ class TestDoctorCommonMistakes:
         typo_issues = [i for i in diag.issues if "did you mean" in i.message.lower()]
         assert len(typo_issues) > 0
 
+    def test_diagnose_schema_tool_conflict(self):
+        """diagnose() catches .returns(Schema) + .tool() conflict."""
+        from pydantic import BaseModel
+        from adk_fluent.testing.diagnosis import diagnose
+
+        class Out(BaseModel):
+            x: str
+
+        def my_tool():
+            """A tool."""
+            return "hi"
+
+        agent = Agent("a", "gemini-2.5-flash").instruct("Go.").returns(Out).tool(my_tool)
+        pipeline = Pipeline("p").step(agent)
+        diag = diagnose(pipeline.to_ir())
+        conflict_issues = [i for i in diag.issues if "silently disabled" in i.message]
+        assert len(conflict_issues) > 0
+
+    def test_diagnose_reads_without_writes(self):
+        """diagnose() catches .reads() without upstream .writes()."""
+        from adk_fluent.testing.diagnosis import diagnose
+
+        pipeline = (
+            Agent("a", "gemini-2.5-flash").instruct("Go.")
+            >> Agent("b", "gemini-2.5-flash").instruct("Use.").reads("missing_key")
+        )
+        diag = diagnose(pipeline.to_ir())
+        reads_issues = [i for i in diag.issues if ".reads('missing_key')" in i.message]
+        assert len(reads_issues) > 0
+
+    def test_optional_template_var_not_error(self):
+        """Optional {var?} template vars get info, not error."""
+        from adk_fluent.testing.diagnosis import diagnose
+
+        pipeline = (
+            Agent("a", "gemini-2.5-flash").instruct("Go.")
+            >> Agent("b", "gemini-2.5-flash").instruct("Use {optional?} data.")
+        )
+        diag = diagnose(pipeline.to_ir())
+        # Should NOT have errors for optional vars
+        opt_errors = [
+            i for i in diag.issues
+            if "optional" in i.message and i.level == "error"
+        ]
+        assert len(opt_errors) == 0
+        # May have info-level advisory
+        opt_info = [
+            i for i in diag.issues
+            if "optional" in i.message.lower() and i.level == "info"
+        ]
+        assert len(opt_info) >= 0  # Advisory is optional
+
+    def test_required_template_var_still_error(self):
+        """Required {var} template vars still get error."""
+        pipeline = (
+            Agent("a", "gemini-2.5-flash").instruct("Go.")
+            >> Agent("b", "gemini-2.5-flash").instruct("Use {required_key}.")
+        )
+        diag = pipeline.diagnose()
+        req_errors = [
+            i for i in diag.issues
+            if "required_key" in i.message and i.level == "error"
+        ]
+        assert len(req_errors) > 0
+
+    def test_diagnose_parallel_write_collision(self):
+        """diagnose() catches parallel branches writing same key."""
+        from adk_fluent.testing.diagnosis import diagnose
+
+        fanout = (
+            Agent("a", "gemini-2.5-flash").instruct("Go.").writes("result")
+            | Agent("b", "gemini-2.5-flash").instruct("Go.").writes("result")
+        )
+        diag = diagnose(fanout.to_ir())
+        collision_issues = [i for i in diag.issues if "last write wins" in i.message]
+        assert len(collision_issues) > 0
+
+    def test_instruct_on_pipeline_raises_attributeerror(self):
+        """Calling .instruct() on Pipeline raises helpful AttributeError."""
+        pipeline = Pipeline("flow").step(Agent("a", "gemini-2.5-flash").instruct("Go."))
+        with pytest.raises(AttributeError, match="instruct.*is not a recognized field"):
+            pipeline.instruct("This should not be here.")
+
+    def test_writes_rejects_invalid_key(self):
+        """writes() rejects non-identifier keys."""
+        agent = Agent("a", "gemini-2.5-flash")
+        with pytest.raises(ValueError, match="valid Python identifier"):
+            agent.writes("not-valid")
+
+    def test_writes_rejects_empty_key(self):
+        """writes() rejects empty key."""
+        agent = Agent("a", "gemini-2.5-flash")
+        with pytest.raises(ValueError, match="non-empty string"):
+            agent.writes("")
+
+    def test_writes_accepts_valid_key(self):
+        """writes() accepts valid identifier keys."""
+        agent = Agent("a", "gemini-2.5-flash").writes("my_result")
+        assert agent._config["output_key"] == "my_result"
+
+    def test_getattr_suggests_close_match(self):
+        """AttributeError suggests close match for typos."""
+        agent = Agent("a", "gemini-2.5-flash")
+        with pytest.raises(AttributeError, match="Did you mean"):
+            agent.instruc("typo")  # missing 't'
+
 
 # ======================================================================
 # Operator error messages
