@@ -272,6 +272,55 @@ app = pipeline.to_app()  # Middleware compiled into App plugins
 
 See [Middleware](middleware.md) for the full middleware guide.
 
+## Escape Hatches
+
+When the fluent API doesn't expose an ADK feature you need, two escape hatches let you reach the underlying objects directly.
+
+### `.with_raw_config(**kwargs)` -- Declarative
+
+Sets arbitrary attributes on the built ADK object. This is the recommended approach for simple field overrides:
+
+```python
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are helpful.")
+    .with_raw_config(
+        disallow_transfer_to_parent=True,
+        include_contents="none",
+    )
+    .build()
+)
+```
+
+If a field name doesn't exist on the ADK object, a warning is raised at build time with suggestions -- the same typo protection as the rest of the builder API.
+
+### `.native(fn)` -- Programmatic
+
+Registers a post-build hook that receives the raw ADK object for direct manipulation:
+
+```python
+def customize(adk_agent):
+    if len(adk_agent.sub_agents) > 3:
+        adk_agent.disallow_transfer_to_peers = True
+
+agent = (
+    Agent("router", "gemini-2.5-flash")
+    .instruct("Route requests.")
+    .sub_agent(a).sub_agent(b).sub_agent(c).sub_agent(d)
+    .native(customize)
+    .build()
+)
+```
+
+Multiple `.native()` calls chain in order. Each hook receives the same object after the previous hook has run.
+
+### When to use which
+
+| Approach | Best for |
+| --- | --- |
+| `.with_raw_config()` | Setting one or more known fields to fixed values |
+| `.native(fn)` | Conditional logic, complex mutations, or inspecting the built object |
+
 ## Workflow Builders
 
 All workflow builders (Pipeline, FanOut, Loop) accept both built ADK agents and fluent builders as arguments. Builders are auto-built at `.build()` time.
