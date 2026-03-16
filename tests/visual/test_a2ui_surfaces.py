@@ -10,9 +10,9 @@ Run:
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import io
-import contextlib
 from pathlib import Path
 
 import pytest
@@ -129,23 +129,36 @@ class TestA2UIProtocolCompliance:
                             for child_id in children:
                                 if isinstance(child_id, str):
                                     assert child_id in all_ids, (
-                                        f"{key}: component '{c['id']}' references "
-                                        f"unknown child '{child_id}'"
+                                        f"{key}: component '{c['id']}' references unknown child '{child_id}'"
                                     )
                         # Check single child references
                         if "child" in c and isinstance(c["child"], str):
                             assert c["child"] in all_ids, (
-                                f"{key}: component '{c['id']}' references "
-                                f"unknown child '{c['child']}'"
+                                f"{key}: component '{c['id']}' references unknown child '{c['child']}'"
                             )
 
     def test_component_types_are_valid(self):
         """Standard components must be from the A2UI basic catalog.
         Custom components (via UI.component() escape hatch) are allowed."""
         valid_types = {
-            "Text", "Image", "Icon", "Video", "AudioPlayer",
-            "Row", "Column", "List", "Card", "Tabs", "Modal", "Divider",
-            "Button", "TextField", "CheckBox", "ChoicePicker", "Slider", "DateTimeInput",
+            "Text",
+            "Image",
+            "Icon",
+            "Video",
+            "AudioPlayer",
+            "Row",
+            "Column",
+            "List",
+            "Card",
+            "Tabs",
+            "Modal",
+            "Divider",
+            "Button",
+            "TextField",
+            "CheckBox",
+            "ChoicePicker",
+            "Slider",
+            "DateTimeInput",
         }
         # Surfaces using UI.component() escape hatch (custom types allowed)
         custom_surfaces = {"70_a2ui_basics__custom"}
@@ -230,7 +243,7 @@ class TestDataBinding:
         comps = msgs[1]["updateComponents"]["components"]
         text_comp = next(c for c in comps if c["component"] == "Text")
         # Should have a path reference, not a literal string
-        assert isinstance(text_comp["text"], dict) or isinstance(text_comp["text"], str)
+        assert isinstance(text_comp["text"], dict | str)
 
     def test_binding_in_textfield(self):
         from adk_fluent._ui import UI, UISurface, compile_surface

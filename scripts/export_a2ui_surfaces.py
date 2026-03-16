@@ -26,8 +26,8 @@ def _load_module(filepath: Path):
     spec = importlib.util.spec_from_file_location(filepath.stem, filepath)
     mod = importlib.util.module_from_spec(spec)
     # Suppress print output during import
-    import io
     import contextlib
+    import io
 
     with contextlib.redirect_stdout(io.StringIO()):
         try:

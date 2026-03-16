@@ -8,6 +8,7 @@ Provides fixtures for:
 
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -35,10 +36,8 @@ def update_golden(request):
 
 
 def pytest_addoption(parser):
-    try:
+    with contextlib.suppress(ValueError):
         parser.addoption("--update-golden", action="store_true", default=False, help="Update golden snapshot files")
-    except ValueError:
-        pass  # Already added by another conftest
 
 
 def assert_golden(data: dict | list, name: str, golden_dir: Path, update: bool = False):

@@ -13,7 +13,6 @@ Usage:
 
 from __future__ import annotations
 
-import asyncio
 import importlib.util
 import json
 import re
@@ -23,7 +22,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 # ── Path setup ─────────────────────────────────────────────────
@@ -164,8 +163,8 @@ def _get_builder(cookbook_id: str):
         spec = importlib.util.spec_from_file_location(f"cb_{cookbook_id}", cookbook_file)
         mod = importlib.util.module_from_spec(spec)
 
-        import io
         import contextlib
+        import io
 
         with contextlib.redirect_stdout(io.StringIO()):
             spec.loader.exec_module(mod)
