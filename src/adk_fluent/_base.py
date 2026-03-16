@@ -2113,8 +2113,16 @@ class BuilderBase:
                         _collect_names(sub)
 
             _collect_names(self)
+            # Suggest close matches for typos
+            suggestions = []
+            for name in sorted(unmatched):
+                close = [a for a in available if _attr_is_close(name, a)]
+                if close:
+                    suggestions.append(f"'{name}' — did you mean '{close[0]}'?")
+                else:
+                    suggestions.append(f"'{name}'")
             raise ValueError(
-                f"mock() could not find agent(s): {', '.join(sorted(unmatched))}. "
+                f"mock() could not find agent(s): {', '.join(suggestions)}. "
                 f"Available agents: {', '.join(available)}"
             )
         return self
@@ -2481,6 +2489,15 @@ class BuilderBase:
                 f"Consider: .writes('{key.replace('-', '_').replace(' ', '_')}')"
             )
         self = self._maybe_fork_for_mutation()
+        existing = self._config.get("output_key")
+        if existing is not None and existing != key:
+            import warnings
+            warnings.warn(
+                f".writes('{key}') overwrites existing .writes('{existing}'). "
+                f"Each agent can only write to one state key.",
+                UserWarning,
+                stacklevel=2,
+            )
         self._config["output_key"] = key
         return self
 

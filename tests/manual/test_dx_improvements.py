@@ -292,6 +292,23 @@ class TestDoctorCommonMistakes:
         with pytest.raises(AttributeError, match="Did you mean"):
             agent.instruc("typo")  # missing 't'
 
+    def test_mock_dict_suggests_close_match(self):
+        """mock(dict) suggests close matches for agent name typos."""
+        pipeline = Agent("researcher", "gemini-2.5-flash") >> Agent("writer", "gemini-2.5-flash")
+        with pytest.raises(ValueError, match="did you mean") as exc_info:
+            pipeline.mock({"resercher": "response"})  # typo
+        assert "researcher" in str(exc_info.value)
+
+    def test_writes_overwrite_warns(self):
+        """writes() warns when overwriting an existing key."""
+        import warnings
+        agent = Agent("a", "gemini-2.5-flash").writes("first")
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            agent.writes("second")
+            assert len(w) == 1
+            assert "overwrites" in str(w[0].message)
+
 
 # ======================================================================
 # Operator error messages
