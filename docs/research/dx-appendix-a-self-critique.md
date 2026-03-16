@@ -74,7 +74,7 @@ prefect-client = ["prefect-client>=3.0"]  # Lightweight alternative!
 dbos = ["dbos>=1.0"]
 
 # Full dev experience
-dev = ["adk-fluent[cli]", "pytest>=7.0", ...]
+dev = ["adk-fluent[cli]", "pytest>=7.0"]  # plus other dev tools
 ```
 
 **Key insight:** Prefect themselves created `prefect-client` (a lightweight subset) because the full package is too heavy. We should recommend `prefect-client` for deployment targets that only need flow submission, not the full server.
