@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-03-16
+
+### Fixed
+
+- **Broad exception handling** (M1): Replaced 10 `except Exception` sites in `_base.py` with specific types (`NotImplementedError`, `AttributeError`, `ImportError`)
+- **Silent failures** (M4): Guards (`_LLMJudge`), artifacts (`_ToolFactory.load`), and asyncio backend now emit `warnings.warn()` instead of silently passing
+- **Dispatch task cleanup** (M9): `JoinAgent` uses `try/finally` to prevent ContextVar task registry leaks
+- **Silent issue type loss** (T4): `_convert_issues()` now preserves unknown issue types instead of dropping them
+- **Contract pass count** (T2): Fixed docstring claiming 16 passes (actual: 15)
+- **Broken example files**: Fixed syntax errors in 6 example agent files (corrupted imports, missing `BaseModel`, empty except blocks)
+- **Sphinx warnings**: Added 10 missing research docs to toctree; fixed TOML lexer warning from `...` in code block
+- **`_DictState` mutable default** (L7): Changed from shared class attribute to instance-only
+
+### Added
+
+- **Namespace composition operator symmetry** (H3):
+  - `S` module: added `|` (pipe, alias for `>>`)
+  - `C` module: added `>>` (chain, alias for `|`)
+  - `P` module: added `>>` (chain, alias for `|`)
+  - `A` module: added `>>` (chain via pipeline operator)
+- **Parallel merge conflict detection** (M5): Asyncio backend logs a warning when parallel branches write the same state key
+- **E namespace protocol properties** (M6): Added `_kind`, `_reads_keys`, `_writes_keys` to `EComposite`
+- **Backend protocol typing** (M8): `Backend.capabilities` typed as `EngineCapabilities` via `TYPE_CHECKING` guard
+- **ADK backend documentation** (H1): Class docstring now documents compile-only design
+- **`_propagate_middlewares` helper** (M2): Extracted duplicated middleware merge logic from `__rshift__`/`__or__`
+- **`backends/_utils.py`** (M3): Shared `safe_identifier()` utility (removed duplicate from `dbos_worker.py`)
+
+### Deprecated
+
+- `.dispatch(progress_key=)` now emits `DeprecationWarning` — use `stream_to=` instead (L5)
+
+### Changed
+
+- **`hasattr` → `getattr`** (L6): Standardized `_middlewares` access pattern across `_base.py`
+- **`annotate_checkpoints`** (T6): Removed no-op placeholder from `run_passes()` (function retained for future use)
+- Applied ruff formatting via pre-commit hooks across all hand-written files
+
 ## [0.13.0] - 2026-03-16
 
 ### Added
