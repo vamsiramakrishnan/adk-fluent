@@ -4,7 +4,8 @@ import asyncio
 
 import pytest
 
-from adk_fluent._base import BuilderBase, _fn_step, _fn_step_counter
+from adk_fluent._base import BuilderBase
+from adk_fluent._primitive_builders import _fn_step, _fn_step_counter
 from adk_fluent.agent import Agent
 
 # ======================================================================

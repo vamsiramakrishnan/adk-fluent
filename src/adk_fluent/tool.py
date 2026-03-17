@@ -7,62 +7,6 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents.active_streaming_tool import ActiveStreamingTool as _ADK_ActiveStreamingTool
-from google.adk.tools.agent_tool import AgentTool as _ADK_AgentTool
-from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset as _ADK_APIHubToolset
-from google.adk.tools.application_integration_tool.application_integration_toolset import (
-    ApplicationIntegrationToolset as _ADK_ApplicationIntegrationToolset,
-)
-from google.adk.tools.application_integration_tool.integration_connector_tool import (
-    IntegrationConnectorTool as _ADK_IntegrationConnectorTool,
-)
-from google.adk.tools.base_authenticated_tool import BaseAuthenticatedTool as _ADK_BaseAuthenticatedTool
-from google.adk.tools.base_tool import BaseTool as _ADK_BaseTool
-from google.adk.tools.base_toolset import BaseToolset as _ADK_BaseToolset
-from google.adk.tools.bigquery.bigquery_toolset import BigQueryToolset as _ADK_BigQueryToolset
-from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset as _ADK_BigtableToolset
-from google.adk.tools.computer_use.computer_use_tool import ComputerUseTool as _ADK_ComputerUseTool
-from google.adk.tools.computer_use.computer_use_toolset import ComputerUseToolset as _ADK_ComputerUseToolset
-from google.adk.tools.data_agent.data_agent_toolset import DataAgentToolset as _ADK_DataAgentToolset
-from google.adk.tools.discovery_engine_search_tool import DiscoveryEngineSearchTool as _ADK_DiscoveryEngineSearchTool
-from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool as _ADK_EnterpriseWebSearchTool
-from google.adk.tools.example_tool import ExampleTool as _ADK_ExampleTool
-from google.adk.tools.function_tool import FunctionTool as _ADK_FunctionTool
-from google.adk.tools.google_api_tool.google_api_tool import GoogleApiTool as _ADK_GoogleApiTool
-from google.adk.tools.google_api_tool.google_api_toolset import GoogleApiToolset as _ADK_GoogleApiToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import CalendarToolset as _ADK_CalendarToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import DocsToolset as _ADK_DocsToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import GmailToolset as _ADK_GmailToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import SheetsToolset as _ADK_SheetsToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import SlidesToolset as _ADK_SlidesToolset
-from google.adk.tools.google_api_tool.google_api_toolsets import YoutubeToolset as _ADK_YoutubeToolset
-from google.adk.tools.google_maps_grounding_tool import GoogleMapsGroundingTool as _ADK_GoogleMapsGroundingTool
-from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool as _ADK_GoogleSearchAgentTool
-from google.adk.tools.google_search_tool import GoogleSearchTool as _ADK_GoogleSearchTool
-from google.adk.tools.google_tool import GoogleTool as _ADK_GoogleTool
-from google.adk.tools.load_artifacts_tool import LoadArtifactsTool as _ADK_LoadArtifactsTool
-from google.adk.tools.load_mcp_resource_tool import LoadMcpResourceTool as _ADK_LoadMcpResourceTool
-from google.adk.tools.load_memory_tool import LoadMemoryTool as _ADK_LoadMemoryTool
-from google.adk.tools.long_running_tool import LongRunningFunctionTool as _ADK_LongRunningFunctionTool
-from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _ADK_MCPTool
-from google.adk.tools.mcp_tool.mcp_tool import McpTool as _ADK_McpTool
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset as _ADK_MCPToolset
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
-from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import OpenAPIToolset as _ADK_OpenAPIToolset
-from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import RestApiTool as _ADK_RestApiTool
-from google.adk.tools.preload_memory_tool import PreloadMemoryTool as _ADK_PreloadMemoryTool
-from google.adk.tools.pubsub.pubsub_toolset import PubSubToolset as _ADK_PubSubToolset
-from google.adk.tools.retrieval.base_retrieval_tool import BaseRetrievalTool as _ADK_BaseRetrievalTool
-from google.adk.tools.set_model_response_tool import SetModelResponseTool as _ADK_SetModelResponseTool
-from google.adk.tools.skill_toolset import LoadSkillResourceTool as _ADK_LoadSkillResourceTool
-from google.adk.tools.skill_toolset import LoadSkillTool as _ADK_LoadSkillTool
-from google.adk.tools.skill_toolset import SkillToolset as _ADK_SkillToolset
-from google.adk.tools.spanner.spanner_toolset import SpannerToolset as _ADK_SpannerToolset
-from google.adk.tools.toolbox_toolset import ToolboxToolset as _ADK_ToolboxToolset
-from google.adk.tools.transfer_to_agent_tool import TransferToAgentTool as _ADK_TransferToAgentTool
-from google.adk.tools.url_context_tool import UrlContextTool as _ADK_UrlContextTool
-from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool as _ADK_VertexAiSearchTool
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
@@ -70,25 +14,82 @@ if TYPE_CHECKING:
     from typing import Literal, TextIO
 
     from fastapi.openapi.models import Operation
+    from google.adk.agents.active_streaming_tool import ActiveStreamingTool as _ADK_ActiveStreamingTool
     from google.adk.agents.live_request_queue import LiveRequestQueue
     from google.adk.agents.readonly_context import ReadonlyContext
     from google.adk.auth.auth_credential import AuthCredential, ServiceAccount
     from google.adk.auth.auth_schemes import AuthScheme
     from google.adk.auth.auth_tool import AuthConfig
     from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig
+    from google.adk.tools.agent_tool import AgentTool as _ADK_AgentTool
+    from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset as _ADK_APIHubToolset
     from google.adk.tools.apihub_tool.clients.apihub_client import APIHubClient
+    from google.adk.tools.application_integration_tool.application_integration_toolset import (
+        ApplicationIntegrationToolset as _ADK_ApplicationIntegrationToolset,
+    )
+    from google.adk.tools.application_integration_tool.integration_connector_tool import (
+        IntegrationConnectorTool as _ADK_IntegrationConnectorTool,
+    )
+    from google.adk.tools.base_authenticated_tool import BaseAuthenticatedTool as _ADK_BaseAuthenticatedTool
+    from google.adk.tools.base_tool import BaseTool as _ADK_BaseTool
+    from google.adk.tools.base_toolset import BaseToolset as _ADK_BaseToolset
     from google.adk.tools.base_toolset import ToolPredicate
     from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig
+    from google.adk.tools.bigquery.bigquery_toolset import BigQueryToolset as _ADK_BigQueryToolset
     from google.adk.tools.bigquery.config import BigQueryToolConfig
     from google.adk.tools.bigtable.bigtable_credentials import BigtableCredentialsConfig
+    from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset as _ADK_BigtableToolset
     from google.adk.tools.bigtable.settings import BigtableToolSettings
+    from google.adk.tools.computer_use.computer_use_tool import ComputerUseTool as _ADK_ComputerUseTool
+    from google.adk.tools.computer_use.computer_use_toolset import ComputerUseToolset as _ADK_ComputerUseToolset
     from google.adk.tools.data_agent.config import DataAgentToolConfig
     from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig
+    from google.adk.tools.data_agent.data_agent_toolset import DataAgentToolset as _ADK_DataAgentToolset
+    from google.adk.tools.discovery_engine_search_tool import (
+        DiscoveryEngineSearchTool as _ADK_DiscoveryEngineSearchTool,
+    )
+    from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool as _ADK_EnterpriseWebSearchTool
+    from google.adk.tools.example_tool import ExampleTool as _ADK_ExampleTool
+    from google.adk.tools.function_tool import FunctionTool as _ADK_FunctionTool
+    from google.adk.tools.google_api_tool.google_api_tool import GoogleApiTool as _ADK_GoogleApiTool
+    from google.adk.tools.google_api_tool.google_api_toolset import GoogleApiToolset as _ADK_GoogleApiToolset
+    from google.adk.tools.google_api_tool.google_api_toolsets import CalendarToolset as _ADK_CalendarToolset
+    from google.adk.tools.google_api_tool.google_api_toolsets import DocsToolset as _ADK_DocsToolset
+    from google.adk.tools.google_api_tool.google_api_toolsets import GmailToolset as _ADK_GmailToolset
+    from google.adk.tools.google_api_tool.google_api_toolsets import SheetsToolset as _ADK_SheetsToolset
+    from google.adk.tools.google_api_tool.google_api_toolsets import SlidesToolset as _ADK_SlidesToolset
+    from google.adk.tools.google_api_tool.google_api_toolsets import YoutubeToolset as _ADK_YoutubeToolset
+    from google.adk.tools.google_maps_grounding_tool import GoogleMapsGroundingTool as _ADK_GoogleMapsGroundingTool
+    from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool as _ADK_GoogleSearchAgentTool
+    from google.adk.tools.google_search_tool import GoogleSearchTool as _ADK_GoogleSearchTool
+    from google.adk.tools.google_tool import GoogleTool as _ADK_GoogleTool
+    from google.adk.tools.load_artifacts_tool import LoadArtifactsTool as _ADK_LoadArtifactsTool
+    from google.adk.tools.load_mcp_resource_tool import LoadMcpResourceTool as _ADK_LoadMcpResourceTool
+    from google.adk.tools.load_memory_tool import LoadMemoryTool as _ADK_LoadMemoryTool
+    from google.adk.tools.long_running_tool import LongRunningFunctionTool as _ADK_LongRunningFunctionTool
+    from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _ADK_MCPTool
+    from google.adk.tools.mcp_tool.mcp_tool import McpTool as _ADK_McpTool
     from google.adk.tools.mcp_tool.mcp_tool import ProgressCallbackFactory
+    from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset as _ADK_MCPToolset
+    from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
+    from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import OpenAPIToolset as _ADK_OpenAPIToolset
+    from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import RestApiTool as _ADK_RestApiTool
+    from google.adk.tools.preload_memory_tool import PreloadMemoryTool as _ADK_PreloadMemoryTool
     from google.adk.tools.pubsub.config import PubSubToolConfig
     from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig
+    from google.adk.tools.pubsub.pubsub_toolset import PubSubToolset as _ADK_PubSubToolset
+    from google.adk.tools.retrieval.base_retrieval_tool import BaseRetrievalTool as _ADK_BaseRetrievalTool
+    from google.adk.tools.set_model_response_tool import SetModelResponseTool as _ADK_SetModelResponseTool
+    from google.adk.tools.skill_toolset import LoadSkillResourceTool as _ADK_LoadSkillResourceTool
+    from google.adk.tools.skill_toolset import LoadSkillTool as _ADK_LoadSkillTool
+    from google.adk.tools.skill_toolset import SkillToolset as _ADK_SkillToolset
     from google.adk.tools.spanner.settings import SpannerToolSettings
     from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig
+    from google.adk.tools.spanner.spanner_toolset import SpannerToolset as _ADK_SpannerToolset
+    from google.adk.tools.toolbox_toolset import ToolboxToolset as _ADK_ToolboxToolset
+    from google.adk.tools.transfer_to_agent_tool import TransferToAgentTool as _ADK_TransferToAgentTool
+    from google.adk.tools.url_context_tool import UrlContextTool as _ADK_UrlContextTool
+    from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool as _ADK_VertexAiSearchTool
     from google.genai.types import VertexAISearchDataStoreSpec
     from mcp.shared.session import ProgressFnT
     from pydantic import BaseModel
@@ -100,7 +101,6 @@ class ActiveStreamingTool(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ActiveStreamingTool
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -122,6 +122,8 @@ class ActiveStreamingTool(BuilderBase):
 
     def build(self) -> _ADK_ActiveStreamingTool:
         """Manages streaming tool related resources during invocation. Resolve into a native ADK _ADK_ActiveStreamingTool."""
+        from google.adk.agents.active_streaming_tool import ActiveStreamingTool as _ADK_ActiveStreamingTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ActiveStreamingTool, config)
         return self._apply_native_hooks(result)
@@ -155,6 +157,8 @@ class AgentTool(BuilderBase):
 
     def build(self) -> _ADK_AgentTool:
         """A tool that wraps an agent. Resolve into a native ADK _ADK_AgentTool."""
+        from google.adk.tools.agent_tool import AgentTool as _ADK_AgentTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentTool, config)
         return self._apply_native_hooks(result)
@@ -241,6 +245,8 @@ class APIHubToolset(BuilderBase):
 
     def build(self) -> _ADK_APIHubToolset:
         """APIHubTool generates tools from a given API Hub resource. Resolve into a native ADK _ADK_APIHubToolset."""
+        from google.adk.tools.apihub_tool.apihub_toolset import APIHubToolset as _ADK_APIHubToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_APIHubToolset, config)
         return self._apply_native_hooks(result)
@@ -349,6 +355,10 @@ class ApplicationIntegrationToolset(BuilderBase):
 
     def build(self) -> _ADK_ApplicationIntegrationToolset:
         """ApplicationIntegrationToolset generates tools from a given Application. Resolve into a native ADK _ADK_ApplicationIntegrationToolset."""
+        from google.adk.tools.application_integration_tool.application_integration_toolset import (
+            ApplicationIntegrationToolset as _ADK_ApplicationIntegrationToolset,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ApplicationIntegrationToolset, config)
         return self._apply_native_hooks(result)
@@ -430,6 +440,10 @@ class IntegrationConnectorTool(BuilderBase):
 
     def build(self) -> _ADK_IntegrationConnectorTool:
         """A tool that wraps a RestApiTool to interact with a specific Application Integration endpoint. Resolve into a native ADK _ADK_IntegrationConnectorTool."""
+        from google.adk.tools.application_integration_tool.integration_connector_tool import (
+            IntegrationConnectorTool as _ADK_IntegrationConnectorTool,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_IntegrationConnectorTool, config)
         return self._apply_native_hooks(result)
@@ -463,6 +477,8 @@ class BaseAuthenticatedTool(BuilderBase):
 
     def build(self) -> _ADK_BaseAuthenticatedTool:
         """A base tool class that handles authentication before the actual tool logic. Resolve into a native ADK _ADK_BaseAuthenticatedTool."""
+        from google.adk.tools.base_authenticated_tool import BaseAuthenticatedTool as _ADK_BaseAuthenticatedTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseAuthenticatedTool, config)
         return self._apply_native_hooks(result)
@@ -496,6 +512,8 @@ class BaseTool(BuilderBase):
 
     def build(self) -> _ADK_BaseTool:
         """The base class for all tools. Resolve into a native ADK _ADK_BaseTool."""
+        from google.adk.tools.base_tool import BaseTool as _ADK_BaseTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseTool, config)
         return self._apply_native_hooks(result)
@@ -529,6 +547,8 @@ class BaseToolset(BuilderBase):
 
     def build(self) -> _ADK_BaseToolset:
         """Base class for toolset. Resolve into a native ADK _ADK_BaseToolset."""
+        from google.adk.tools.base_toolset import BaseToolset as _ADK_BaseToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseToolset, config)
         return self._apply_native_hooks(result)
@@ -568,6 +588,8 @@ class BigQueryToolset(BuilderBase):
 
     def build(self) -> _ADK_BigQueryToolset:
         """BigQuery Toolset contains tools for interacting with BigQuery data and metadata. Resolve into a native ADK _ADK_BigQueryToolset."""
+        from google.adk.tools.bigquery.bigquery_toolset import BigQueryToolset as _ADK_BigQueryToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigQueryToolset, config)
         return self._apply_native_hooks(result)
@@ -607,6 +629,8 @@ class BigtableToolset(BuilderBase):
 
     def build(self) -> _ADK_BigtableToolset:
         """Bigtable Toolset contains tools for interacting with Bigtable data and metadata. Resolve into a native ADK _ADK_BigtableToolset."""
+        from google.adk.tools.bigtable.bigtable_toolset import BigtableToolset as _ADK_BigtableToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigtableToolset, config)
         return self._apply_native_hooks(result)
@@ -634,6 +658,8 @@ class ComputerUseTool(BuilderBase):
 
     def build(self) -> _ADK_ComputerUseTool:
         """A tool that wraps computer control functions for use with LLMs. Resolve into a native ADK _ADK_ComputerUseTool."""
+        from google.adk.tools.computer_use.computer_use_tool import ComputerUseTool as _ADK_ComputerUseTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ComputerUseTool, config)
         return self._apply_native_hooks(result)
@@ -655,6 +681,8 @@ class ComputerUseToolset(BuilderBase):
 
     def build(self) -> _ADK_ComputerUseToolset:
         """Fluent builder for ComputerUseToolset. Resolve into a native ADK _ADK_ComputerUseToolset."""
+        from google.adk.tools.computer_use.computer_use_toolset import ComputerUseToolset as _ADK_ComputerUseToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ComputerUseToolset, config)
         return self._apply_native_hooks(result)
@@ -694,6 +722,8 @@ class DataAgentToolset(BuilderBase):
 
     def build(self) -> _ADK_DataAgentToolset:
         """Data Agent Toolset contains tools for interacting with data agents. Resolve into a native ADK _ADK_DataAgentToolset."""
+        from google.adk.tools.data_agent.data_agent_toolset import DataAgentToolset as _ADK_DataAgentToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DataAgentToolset, config)
         return self._apply_native_hooks(result)
@@ -745,6 +775,10 @@ class DiscoveryEngineSearchTool(BuilderBase):
 
     def build(self) -> _ADK_DiscoveryEngineSearchTool:
         """Tool for searching the discovery engine. Resolve into a native ADK _ADK_DiscoveryEngineSearchTool."""
+        from google.adk.tools.discovery_engine_search_tool import (
+            DiscoveryEngineSearchTool as _ADK_DiscoveryEngineSearchTool,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DiscoveryEngineSearchTool, config)
         return self._apply_native_hooks(result)
@@ -766,6 +800,8 @@ class EnterpriseWebSearchTool(BuilderBase):
 
     def build(self) -> _ADK_EnterpriseWebSearchTool:
         """A Gemini 2+ built-in tool using web grounding for Enterprise compliance. Resolve into a native ADK _ADK_EnterpriseWebSearchTool."""
+        from google.adk.tools.enterprise_search_tool import EnterpriseWebSearchTool as _ADK_EnterpriseWebSearchTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_EnterpriseWebSearchTool, config)
         return self._apply_native_hooks(result)
@@ -787,6 +823,8 @@ class ExampleTool(BuilderBase):
 
     def build(self) -> _ADK_ExampleTool:
         """A tool that adds (few-shot) examples to the LLM request. Resolve into a native ADK _ADK_ExampleTool."""
+        from google.adk.tools.example_tool import ExampleTool as _ADK_ExampleTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ExampleTool, config)
         return self._apply_native_hooks(result)
@@ -814,6 +852,8 @@ class FunctionTool(BuilderBase):
 
     def build(self) -> _ADK_FunctionTool:
         """A tool that wraps a user-defined Python function. Resolve into a native ADK _ADK_FunctionTool."""
+        from google.adk.tools.function_tool import FunctionTool as _ADK_FunctionTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_FunctionTool, config)
         return self._apply_native_hooks(result)
@@ -865,6 +905,8 @@ class GoogleApiTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleApiTool:
         """Fluent builder for GoogleApiTool. Resolve into a native ADK _ADK_GoogleApiTool."""
+        from google.adk.tools.google_api_tool.google_api_tool import GoogleApiTool as _ADK_GoogleApiTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GoogleApiTool, config)
         return self._apply_native_hooks(result)
@@ -931,6 +973,8 @@ class GoogleApiToolset(BuilderBase):
 
     def build(self) -> _ADK_GoogleApiToolset:
         """Google API Toolset contains tools for interacting with Google APIs. Resolve into a native ADK _ADK_GoogleApiToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolset import GoogleApiToolset as _ADK_GoogleApiToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GoogleApiToolset, config)
         return self._apply_native_hooks(result)
@@ -988,6 +1032,8 @@ class CalendarToolset(BuilderBase):
 
     def build(self) -> _ADK_CalendarToolset:
         """Auto-generated Calendar toolset based on Google Calendar API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_CalendarToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolsets import CalendarToolset as _ADK_CalendarToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_CalendarToolset, config)
         return self._apply_native_hooks(result)
@@ -1045,6 +1091,8 @@ class DocsToolset(BuilderBase):
 
     def build(self) -> _ADK_DocsToolset:
         """Auto-generated Docs toolset based on Google Docs API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_DocsToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolsets import DocsToolset as _ADK_DocsToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DocsToolset, config)
         return self._apply_native_hooks(result)
@@ -1102,6 +1150,8 @@ class GmailToolset(BuilderBase):
 
     def build(self) -> _ADK_GmailToolset:
         """Auto-generated Gmail toolset based on Google Gmail API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_GmailToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolsets import GmailToolset as _ADK_GmailToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GmailToolset, config)
         return self._apply_native_hooks(result)
@@ -1159,6 +1209,8 @@ class SheetsToolset(BuilderBase):
 
     def build(self) -> _ADK_SheetsToolset:
         """Auto-generated Sheets toolset based on Google Sheets API v4 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SheetsToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolsets import SheetsToolset as _ADK_SheetsToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SheetsToolset, config)
         return self._apply_native_hooks(result)
@@ -1216,6 +1268,8 @@ class SlidesToolset(BuilderBase):
 
     def build(self) -> _ADK_SlidesToolset:
         """Auto-generated Slides toolset based on Google Slides API v1 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_SlidesToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolsets import SlidesToolset as _ADK_SlidesToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SlidesToolset, config)
         return self._apply_native_hooks(result)
@@ -1273,6 +1327,8 @@ class YoutubeToolset(BuilderBase):
 
     def build(self) -> _ADK_YoutubeToolset:
         """Auto-generated YouTube toolset based on YouTube API v3 spec exposed by Google API discovery API. Resolve into a native ADK _ADK_YoutubeToolset."""
+        from google.adk.tools.google_api_tool.google_api_toolsets import YoutubeToolset as _ADK_YoutubeToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_YoutubeToolset, config)
         return self._apply_native_hooks(result)
@@ -1294,6 +1350,8 @@ class GoogleMapsGroundingTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleMapsGroundingTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. Resolve into a native ADK _ADK_GoogleMapsGroundingTool."""
+        from google.adk.tools.google_maps_grounding_tool import GoogleMapsGroundingTool as _ADK_GoogleMapsGroundingTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GoogleMapsGroundingTool, config)
         return self._apply_native_hooks(result)
@@ -1315,6 +1373,8 @@ class GoogleSearchAgentTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleSearchAgentTool:
         """A tool that wraps a sub-agent that only uses google_search tool. Resolve into a native ADK _ADK_GoogleSearchAgentTool."""
+        from google.adk.tools.google_search_agent_tool import GoogleSearchAgentTool as _ADK_GoogleSearchAgentTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GoogleSearchAgentTool, config)
         return self._apply_native_hooks(result)
@@ -1348,6 +1408,8 @@ class GoogleSearchTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleSearchTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve search results from Google Search. Resolve into a native ADK _ADK_GoogleSearchTool."""
+        from google.adk.tools.google_search_tool import GoogleSearchTool as _ADK_GoogleSearchTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GoogleSearchTool, config)
         return self._apply_native_hooks(result)
@@ -1381,6 +1443,8 @@ class GoogleTool(BuilderBase):
 
     def build(self) -> _ADK_GoogleTool:
         """GoogleTool class for tools that call Google APIs. Resolve into a native ADK _ADK_GoogleTool."""
+        from google.adk.tools.google_tool import GoogleTool as _ADK_GoogleTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GoogleTool, config)
         return self._apply_native_hooks(result)
@@ -1402,6 +1466,8 @@ class LoadArtifactsTool(BuilderBase):
 
     def build(self) -> _ADK_LoadArtifactsTool:
         """A tool that loads the artifacts and adds them to the session. Resolve into a native ADK _ADK_LoadArtifactsTool."""
+        from google.adk.tools.load_artifacts_tool import LoadArtifactsTool as _ADK_LoadArtifactsTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoadArtifactsTool, config)
         return self._apply_native_hooks(result)
@@ -1423,6 +1489,8 @@ class LoadMcpResourceTool(BuilderBase):
 
     def build(self) -> _ADK_LoadMcpResourceTool:
         """A tool that loads the MCP resources and adds them to the session. Resolve into a native ADK _ADK_LoadMcpResourceTool."""
+        from google.adk.tools.load_mcp_resource_tool import LoadMcpResourceTool as _ADK_LoadMcpResourceTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoadMcpResourceTool, config)
         return self._apply_native_hooks(result)
@@ -1444,6 +1512,8 @@ class LoadMemoryTool(BuilderBase):
 
     def build(self) -> _ADK_LoadMemoryTool:
         """A tool that loads the memory for the current user. Resolve into a native ADK _ADK_LoadMemoryTool."""
+        from google.adk.tools.load_memory_tool import LoadMemoryTool as _ADK_LoadMemoryTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoadMemoryTool, config)
         return self._apply_native_hooks(result)
@@ -1465,6 +1535,8 @@ class LongRunningFunctionTool(BuilderBase):
 
     def build(self) -> _ADK_LongRunningFunctionTool:
         """A function tool that returns the result asynchronously. Resolve into a native ADK _ADK_LongRunningFunctionTool."""
+        from google.adk.tools.long_running_tool import LongRunningFunctionTool as _ADK_LongRunningFunctionTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LongRunningFunctionTool, config)
         return self._apply_native_hooks(result)
@@ -1486,6 +1558,8 @@ class MCPTool(BuilderBase):
 
     def build(self) -> _ADK_MCPTool:
         """Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool."""
+        from google.adk.tools.mcp_tool.mcp_tool import MCPTool as _ADK_MCPTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_MCPTool, config)
         return self._apply_native_hooks(result)
@@ -1545,6 +1619,8 @@ class McpTool(BuilderBase):
 
     def build(self) -> _ADK_McpTool:
         """Turns an MCP Tool into an ADK Tool. Resolve into a native ADK _ADK_McpTool."""
+        from google.adk.tools.mcp_tool.mcp_tool import McpTool as _ADK_McpTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_McpTool, config)
         return self._apply_native_hooks(result)
@@ -1566,6 +1642,8 @@ class MCPToolset(BuilderBase):
 
     def build(self) -> _ADK_MCPToolset:
         """Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset."""
+        from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset as _ADK_MCPToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_MCPToolset, config)
         return self._apply_native_hooks(result)
@@ -1652,6 +1730,8 @@ class McpToolset(BuilderBase):
 
     def build(self) -> _ADK_McpToolset:
         """Connects to a MCP Server, and retrieves MCP Tools into ADK Tools. Resolve into a native ADK _ADK_McpToolset."""
+        from google.adk.tools.mcp_tool.mcp_toolset import McpToolset as _ADK_McpToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_McpToolset, config)
         return self._apply_native_hooks(result)
@@ -1744,6 +1824,10 @@ class OpenAPIToolset(BuilderBase):
 
     def build(self) -> _ADK_OpenAPIToolset:
         """Class for parsing OpenAPI spec into a list of RestApiTool. Resolve into a native ADK _ADK_OpenAPIToolset."""
+        from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import (
+            OpenAPIToolset as _ADK_OpenAPIToolset,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_OpenAPIToolset, config)
         return self._apply_native_hooks(result)
@@ -1818,6 +1902,8 @@ class RestApiTool(BuilderBase):
 
     def build(self) -> _ADK_RestApiTool:
         """A generic tool that interacts with a REST API. Resolve into a native ADK _ADK_RestApiTool."""
+        from google.adk.tools.openapi_tool.openapi_spec_parser.rest_api_tool import RestApiTool as _ADK_RestApiTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RestApiTool, config)
         return self._apply_native_hooks(result)
@@ -1839,6 +1925,8 @@ class PreloadMemoryTool(BuilderBase):
 
     def build(self) -> _ADK_PreloadMemoryTool:
         """A tool that preloads the memory for the current user. Resolve into a native ADK _ADK_PreloadMemoryTool."""
+        from google.adk.tools.preload_memory_tool import PreloadMemoryTool as _ADK_PreloadMemoryTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_PreloadMemoryTool, config)
         return self._apply_native_hooks(result)
@@ -1878,6 +1966,8 @@ class PubSubToolset(BuilderBase):
 
     def build(self) -> _ADK_PubSubToolset:
         """Pub/Sub Toolset contains tools for interacting with Pub/Sub topics and subscriptions. Resolve into a native ADK _ADK_PubSubToolset."""
+        from google.adk.tools.pubsub.pubsub_toolset import PubSubToolset as _ADK_PubSubToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_PubSubToolset, config)
         return self._apply_native_hooks(result)
@@ -1911,6 +2001,8 @@ class BaseRetrievalTool(BuilderBase):
 
     def build(self) -> _ADK_BaseRetrievalTool:
         """Fluent builder for BaseRetrievalTool. Resolve into a native ADK _ADK_BaseRetrievalTool."""
+        from google.adk.tools.retrieval.base_retrieval_tool import BaseRetrievalTool as _ADK_BaseRetrievalTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseRetrievalTool, config)
         return self._apply_native_hooks(result)
@@ -1932,6 +2024,8 @@ class SetModelResponseTool(BuilderBase):
 
     def build(self) -> _ADK_SetModelResponseTool:
         """Internal tool used for output schema workaround. Resolve into a native ADK _ADK_SetModelResponseTool."""
+        from google.adk.tools.set_model_response_tool import SetModelResponseTool as _ADK_SetModelResponseTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SetModelResponseTool, config)
         return self._apply_native_hooks(result)
@@ -1953,6 +2047,8 @@ class LoadSkillResourceTool(BuilderBase):
 
     def build(self) -> _ADK_LoadSkillResourceTool:
         """Tool to load resources (references or assets) from a skill. Resolve into a native ADK _ADK_LoadSkillResourceTool."""
+        from google.adk.tools.skill_toolset import LoadSkillResourceTool as _ADK_LoadSkillResourceTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoadSkillResourceTool, config)
         return self._apply_native_hooks(result)
@@ -1974,6 +2070,8 @@ class LoadSkillTool(BuilderBase):
 
     def build(self) -> _ADK_LoadSkillTool:
         """Tool to load a skill's instructions. Resolve into a native ADK _ADK_LoadSkillTool."""
+        from google.adk.tools.skill_toolset import LoadSkillTool as _ADK_LoadSkillTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoadSkillTool, config)
         return self._apply_native_hooks(result)
@@ -1995,6 +2093,8 @@ class SkillToolset(BuilderBase):
 
     def build(self) -> _ADK_SkillToolset:
         """A toolset for managing and interacting with agent skills. Resolve into a native ADK _ADK_SkillToolset."""
+        from google.adk.tools.skill_toolset import SkillToolset as _ADK_SkillToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SkillToolset, config)
         return self._apply_native_hooks(result)
@@ -2034,6 +2134,8 @@ class SpannerToolset(BuilderBase):
 
     def build(self) -> _ADK_SpannerToolset:
         """Spanner Toolset contains tools for interacting with Spanner data, database and table information. Resolve into a native ADK _ADK_SpannerToolset."""
+        from google.adk.tools.spanner.spanner_toolset import SpannerToolset as _ADK_SpannerToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SpannerToolset, config)
         return self._apply_native_hooks(result)
@@ -2099,6 +2201,8 @@ class ToolboxToolset(BuilderBase):
 
     def build(self) -> _ADK_ToolboxToolset:
         """A class that provides access to toolbox toolsets. Resolve into a native ADK _ADK_ToolboxToolset."""
+        from google.adk.tools.toolbox_toolset import ToolboxToolset as _ADK_ToolboxToolset
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ToolboxToolset, config)
         return self._apply_native_hooks(result)
@@ -2120,6 +2224,8 @@ class TransferToAgentTool(BuilderBase):
 
     def build(self) -> _ADK_TransferToAgentTool:
         """A specialized FunctionTool for agent transfer with enum constraints. Resolve into a native ADK _ADK_TransferToAgentTool."""
+        from google.adk.tools.transfer_to_agent_tool import TransferToAgentTool as _ADK_TransferToAgentTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_TransferToAgentTool, config)
         return self._apply_native_hooks(result)
@@ -2141,6 +2247,8 @@ class UrlContextTool(BuilderBase):
 
     def build(self) -> _ADK_UrlContextTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. Resolve into a native ADK _ADK_UrlContextTool."""
+        from google.adk.tools.url_context_tool import UrlContextTool as _ADK_UrlContextTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_UrlContextTool, config)
         return self._apply_native_hooks(result)
@@ -2205,6 +2313,8 @@ class VertexAiSearchTool(BuilderBase):
 
     def build(self) -> _ADK_VertexAiSearchTool:
         """A built-in tool using Vertex AI Search. Resolve into a native ADK _ADK_VertexAiSearchTool."""
+        from google.adk.tools.vertex_ai_search_tool import VertexAiSearchTool as _ADK_VertexAiSearchTool
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_VertexAiSearchTool, config)
         return self._apply_native_hooks(result)

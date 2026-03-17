@@ -119,11 +119,12 @@ class ATransform:
         """Chain: ``a >> b``. Delegates to the pipeline operator when chaining with builders."""
         if isinstance(other, ATransform):
             # Both are artifact ops — chain via pipeline
-            from adk_fluent._base import _fn_step
+            from adk_fluent._primitive_builders import _fn_step
 
             return _fn_step(self) >> _fn_step(other)
 
-        from adk_fluent._base import BuilderBase, _fn_step
+        from adk_fluent._base import BuilderBase
+        from adk_fluent._primitive_builders import _fn_step
         from adk_fluent._routing import Route
 
         if isinstance(other, BuilderBase | Route):

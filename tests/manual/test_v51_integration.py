@@ -110,7 +110,7 @@ class TestCaptureIntegration:
     def test_s_capture_builds_capture_agent(self):
         pipeline = S.capture("user_message") >> Agent("a").model("gemini-2.5-flash")
         built = pipeline.build()
-        from adk_fluent._base import CaptureAgent
+        from adk_fluent._primitives import CaptureAgent
 
         assert isinstance(built.sub_agents[0], CaptureAgent)
 

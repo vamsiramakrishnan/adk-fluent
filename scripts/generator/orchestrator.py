@@ -254,35 +254,141 @@ def generate_all(
                 manual_names.append(name)
                 manual_import_lines.append(f"from {module_name} import {name}")
 
-        # Generate __init__.py with re-exports
+        # Generate __init__.py with lazy imports via __getattr__
+        # This avoids loading heavy ADK dependencies until actually needed.
         init_lines = [
             '"""adk-fluent: Fluent builder API for Google ADK."""',
             f"# Auto-generated for google-adk {adk_version}",
             "",
         ]
-        for spec in specs:
-            init_lines.append(f"from .{spec.output_module} import {spec.name}")
 
-        init_lines.append("")
-        init_lines.append("__all__ = [")
+        # Build the lazy import mapping: name -> (module, name)
+        lazy_map: dict[str, tuple[str, str]] = {}
         seen_names: set[str] = set()
+
         for spec in specs:
-            init_lines.append(f'    "{spec.name}",')
+            lazy_map[spec.name] = (f".{spec.output_module}", spec.name)
             seen_names.add(spec.name)
+
         for name in manual_names:
             if name not in seen_names:
-                init_lines.append(f'    "{name}",')
+                # Find the module for this manual name
+                for module_name, names in manual_exports:
+                    stem = module_name.lstrip(".")
+                    if stem in generated_modules:
+                        continue
+                    if name in names:
+                        lazy_map[name] = (module_name, name)
+                        break
                 seen_names.add(name)
+
+        # Emit __all__
+        init_lines.append("__all__ = [")
+        for name in lazy_map:
+            init_lines.append(f'    "{name}",')
         init_lines.append("]")
 
-        if manual_import_lines:
+        # Emit the lazy import map
+        init_lines.append("")
+        init_lines.append("_LAZY_IMPORTS: dict[str, tuple[str, str]] = {")
+        for name, (mod, attr) in lazy_map.items():
+            init_lines.append(f'    "{name}": ("{mod}", "{attr}"),')
+        init_lines.append("}")
+
+        # Detect subpackage names that conflict with exported names.
+        # When importing e.g. CompilationResult from .compile, Python auto-sets
+        # adk_fluent.compile = <module>, shadowing the lazy function export.
+        subpkg_names = {
+            d.name
+            for d in output_path.iterdir()
+            if d.is_dir() and (d / "__init__.py").exists() and not d.name.startswith("_")
+        }
+        subpkg_conflicts = sorted(subpkg_names & set(lazy_map.keys()))
+        if subpkg_conflicts:
             init_lines.append("")
-            init_lines.append("# --- Manual module exports (auto-discovered from __all__) ---")
-            init_lines.extend(manual_import_lines)
+            init_lines.append("# Names that conflict with subpackage names — need special resolution")
+            init_lines.append("_SUBPACKAGE_EXPORTS: dict[str, tuple[str, str]] = {")
+            for name in subpkg_conflicts:
+                mod, attr = lazy_map[name]
+                init_lines.append(f'    "{name}": ("{mod}", "{attr}"),')
+            init_lines.append("}")
+
+        # Emit __getattr__ for lazy loading
+        init_lines.append("")
+        init_lines.append("")
+        init_lines.append("def _fix_subpackage_shadows():")
+        init_lines.append('    """Fix attributes shadowed by subpackage auto-imports.')
+        init_lines.append("")
+        init_lines.append("    Python's import system auto-sets parent.child = <module>")
+        init_lines.append("    when importing parent.child. This can shadow our lazy")
+        init_lines.append("    function/class exports when a subpackage name matches")
+        init_lines.append("    an exported name (e.g. 'compile' is both a subpackage")
+        init_lines.append("    and an exported function).")
+        init_lines.append('    """')
+        init_lines.append("    import types")
+        init_lines.append("")
+        init_lines.append('    _spx = globals().get("_SUBPACKAGE_EXPORTS", {})')
+        init_lines.append("    for _name, (_mod, _attr) in _spx.items():")
+        init_lines.append("        _val = globals().get(_name)")
+        init_lines.append("        if isinstance(_val, types.ModuleType):")
+        init_lines.append("            globals()[_name] = getattr(_val, _attr)")
+        init_lines.append("")
+        init_lines.append("")
+        init_lines.append("def __getattr__(name: str):")
+        init_lines.append("    if name in _LAZY_IMPORTS:")
+        init_lines.append("        import importlib")
+        init_lines.append("")
+        init_lines.append("        _mod, _attr = _LAZY_IMPORTS[name]")
+        init_lines.append("        module = importlib.import_module(_mod, __name__)")
+        init_lines.append("        value = getattr(module, _attr)")
+        init_lines.append("        globals()[name] = value")
+        init_lines.append("        # Importing a submodule may auto-set subpackage names")
+        init_lines.append("        # in our namespace — fix any that got shadowed.")
+        init_lines.append("        _fix_subpackage_shadows()")
+        init_lines.append("        return value")
+        init_lines.append('    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")')
+        init_lines.append("")
+        init_lines.append("")
+        init_lines.append("def __dir__():")
+        init_lines.append("    return __all__")
 
         init_path = output_path / "__init__.py"
         _write_file(init_path, "\n".join(init_lines) + "\n")
         print(f"  Generated: {init_path}")
+
+        # Generate __init__.pyi so pyright resolves lazy imports correctly
+        pyi_lines = [
+            '"""adk-fluent: Fluent builder API for Google ADK."""',
+            f"# Auto-generated for google-adk {adk_version}",
+            "",
+        ]
+
+        # Group specs by module for organized imports
+        for module_name_key in sorted(by_module.keys()):
+            module_spec_names = sorted(s.name for s in by_module[module_name_key])
+            for spec_name in module_spec_names:
+                pyi_lines.append(f"from .{module_name_key} import {spec_name} as {spec_name}")
+
+        # Re-export manual modules
+        for module_name, names in manual_exports:
+            stem = module_name.lstrip(".")
+            if stem in generated_modules:
+                continue
+            for name in names:
+                if name.startswith("_"):
+                    continue
+                pyi_lines.append(f"from {module_name} import {name} as {name}")
+
+        pyi_lines.append("")
+        pyi_lines.append("__all__ = [")
+        for name in lazy_map:
+            pyi_lines.append(f'    "{name}",')
+        pyi_lines.append("]")
+        pyi_lines.append("")
+
+        init_pyi_path = output_path / "__init__.pyi"
+        _write_file(init_pyi_path, "\n".join(pyi_lines) + "\n")
+        print(f"  Generated: {init_pyi_path}")
 
     # --- Generate .pyi stubs ---
     if not tests_only:

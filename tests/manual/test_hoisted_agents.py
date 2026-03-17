@@ -3,7 +3,7 @@
 
 def test_fn_agent_same_type_across_builds():
     """Two FnStep builds should produce agents of the same type."""
-    from adk_fluent._base import _fn_step
+    from adk_fluent._primitive_builders import _fn_step
 
     fn = lambda state: {"x": 1}
     a1 = _fn_step(fn).build()
@@ -23,43 +23,43 @@ def test_tap_agent_same_type_across_builds():
 
 def test_fn_agent_is_importable():
     """Module-level agent classes should be importable."""
-    from adk_fluent._base import FnAgent
+    from adk_fluent._primitives import FnAgent
 
     assert FnAgent is not None
 
 
 def test_tap_agent_is_importable():
-    from adk_fluent._base import TapAgent
+    from adk_fluent._primitives import TapAgent
 
     assert TapAgent is not None
 
 
 def test_gate_agent_is_importable():
-    from adk_fluent._base import GateAgent
+    from adk_fluent._primitives import GateAgent
 
     assert GateAgent is not None
 
 
 def test_race_agent_is_importable():
-    from adk_fluent._base import RaceAgent
+    from adk_fluent._primitives import RaceAgent
 
     assert RaceAgent is not None
 
 
 def test_fallback_agent_is_importable():
-    from adk_fluent._base import FallbackAgent
+    from adk_fluent._primitives import FallbackAgent
 
     assert FallbackAgent is not None
 
 
 def test_timeout_agent_is_importable():
-    from adk_fluent._base import TimeoutAgent
+    from adk_fluent._primitives import TimeoutAgent
 
     assert TimeoutAgent is not None
 
 
 def test_map_over_agent_is_importable():
-    from adk_fluent._base import MapOverAgent
+    from adk_fluent._primitives import MapOverAgent
 
     assert MapOverAgent is not None
 
@@ -67,7 +67,7 @@ def test_map_over_agent_is_importable():
 def test_fallback_agent_same_type_across_builds():
     """Two fallback builds should produce agents of the same type."""
     from adk_fluent import Agent
-    from adk_fluent._base import _FallbackBuilder
+    from adk_fluent._primitive_builders import _FallbackBuilder
 
     child = Agent("c")
     a1 = _FallbackBuilder("fb1", _children=[child]).build()

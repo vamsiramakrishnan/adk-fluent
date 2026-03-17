@@ -4,7 +4,7 @@ import types
 
 import pytest
 
-from adk_fluent._base import TapAgent
+from adk_fluent._primitives import TapAgent
 
 
 def test_mapping_proxy_is_immutable():

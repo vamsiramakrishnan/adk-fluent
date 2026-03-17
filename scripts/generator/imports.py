@@ -47,6 +47,7 @@ def _is_optional_source(source_class: str) -> bool:
 def gen_runtime_imports(spec: BuilderSpec) -> list[str]:
     """Return raw import lines for a single builder spec (no header/grouping).
 
+    ADK class imports are deferred to build() time for faster startup.
     Does NOT include optional imports — call ``gen_optional_import`` separately.
     """
     lines = [
@@ -56,18 +57,26 @@ def gen_runtime_imports(spec: BuilderSpec) -> list[str]:
         "from adk_fluent._base import BuilderBase",
     ]
 
-    if not spec.is_composite and not spec.is_standalone:
-        if _is_optional_source(spec.source_class):
-            return lines  # handled by gen_optional_import
-        module_path = ".".join(spec.source_class.split(".")[:-1])
-        class_name = spec.source_class.split(".")[-1]
-        import_name = adk_import_name(spec)
-        if import_name != class_name:
-            lines.append(f"from {module_path} import {class_name} as {import_name}")
-        else:
-            lines.append(f"from {module_path} import {class_name}")
-
+    # ADK class imports are now deferred — emitted inside build() by ir_build_method()
     return lines
+
+
+def gen_deferred_import_line(spec: BuilderSpec) -> str | None:
+    """Return the import line to be emitted inside build() for deferred loading.
+
+    Returns None for composite/standalone specs or optional imports.
+    """
+    if spec.is_composite or spec.is_standalone:
+        return None
+    if _is_optional_source(spec.source_class):
+        return None  # handled by gen_optional_import
+
+    module_path = ".".join(spec.source_class.split(".")[:-1])
+    class_name = spec.source_class.split(".")[-1]
+    import_name = adk_import_name(spec)
+    if import_name != class_name:
+        return f"from {module_path} import {class_name} as {import_name}"
+    return f"from {module_path} import {class_name}"
 
 
 def gen_optional_import(spec: BuilderSpec) -> tuple[str, str] | None:

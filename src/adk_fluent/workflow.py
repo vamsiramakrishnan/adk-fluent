@@ -6,16 +6,15 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents.loop_agent import LoopAgent
-from google.adk.agents.parallel_agent import ParallelAgent
-from google.adk.agents.sequential_agent import SequentialAgent
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
     from google.adk.agents.base_agent import BaseAgent
+    from google.adk.agents.loop_agent import LoopAgent
+    from google.adk.agents.parallel_agent import ParallelAgent
+    from google.adk.agents.sequential_agent import SequentialAgent
 
 
 class Loop(BuilderBase):
@@ -24,7 +23,6 @@ class Loop(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
-    _ADK_TARGET_CLASS = LoopAgent
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -162,6 +160,8 @@ class Loop(BuilderBase):
 
     def build(self) -> LoopAgent:
         """A shell agent that run its sub-agents in a loop. Resolve into a native ADK LoopAgent."""
+        from google.adk.agents.loop_agent import LoopAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(LoopAgent, config)
         return self._apply_native_hooks(result)
@@ -173,7 +173,6 @@ class FanOut(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
-    _ADK_TARGET_CLASS = ParallelAgent
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -305,6 +304,8 @@ class FanOut(BuilderBase):
 
     def build(self) -> ParallelAgent:
         """A shell agent that runs its sub-agents in parallel in an isolated manner. Resolve into a native ADK ParallelAgent."""
+        from google.adk.agents.parallel_agent import ParallelAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(ParallelAgent, config)
         return self._apply_native_hooks(result)
@@ -316,7 +317,6 @@ class Pipeline(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
-    _ADK_TARGET_CLASS = SequentialAgent
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -448,6 +448,8 @@ class Pipeline(BuilderBase):
 
     def build(self) -> SequentialAgent:
         """A shell agent that runs its sub-agents in sequence. Resolve into a native ADK SequentialAgent."""
+        from google.adk.agents.sequential_agent import SequentialAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(SequentialAgent, config)
         return self._apply_native_hooks(result)

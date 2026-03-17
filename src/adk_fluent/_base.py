@@ -9,52 +9,7 @@ from typing import Any, Self
 
 __all__ = [
     "BuilderBase",
-    "BuilderError",
-    "ADKFluentError",
-    "PrimitiveBuilderBase",
-    "until",
-    "tap",
-    "expect",
-    "map_over",
-    "gate",
-    "race",
-    "dispatch",
-    "join",
-    "get_execution_mode",
-    "FnAgent",
-    "TapAgent",
-    "CaptureAgent",
-    "FallbackAgent",
-    "MapOverAgent",
-    "TimeoutAgent",
-    "GateAgent",
-    "RaceAgent",
-    "DispatchAgent",
-    "JoinAgent",
 ]
-
-# ---------------------------------------------------------------------------
-# Re-exports from _primitives (runtime agents, ContextVars, get_execution_mode)
-# ---------------------------------------------------------------------------
-from adk_fluent._primitives import (
-    CaptureAgent as CaptureAgent,
-    DispatchAgent as DispatchAgent,
-    FallbackAgent as FallbackAgent,
-    FnAgent as FnAgent,
-    GateAgent as GateAgent,
-    JoinAgent as JoinAgent,
-    MapOverAgent as MapOverAgent,
-    RaceAgent as RaceAgent,
-    TapAgent as TapAgent,
-    TimeoutAgent as TimeoutAgent,
-    _DEFAULT_MAX_TASKS as _DEFAULT_MAX_TASKS,
-    _DEFAULT_TASK_BUDGET as _DEFAULT_TASK_BUDGET,
-    _dispatch_tasks as _dispatch_tasks,
-    _execution_mode as _execution_mode,
-    _global_task_budget as _global_task_budget,
-    _middleware_dispatch_hooks as _middleware_dispatch_hooks,
-    get_execution_mode as get_execution_mode,
-)
 
 # ======================================================================
 # Sentinel for "not set" — distinct from None
@@ -756,6 +711,7 @@ class BuilderBase:
         - Route (deterministic branching)
         """
         self._freeze()
+        from adk_fluent._primitive_builders import _fn_step
         from adk_fluent._routing import Route
         from adk_fluent.workflow import Pipeline
 
@@ -817,6 +773,8 @@ class BuilderBase:
     def __rrshift__(self, other) -> BuilderBase:
         """Support callable >> agent syntax."""
         if callable(other) and not isinstance(other, BuilderBase | type):
+            from adk_fluent._primitive_builders import _fn_step
+
             left = _fn_step(other)
             return left >> self
         return NotImplemented
@@ -910,10 +868,13 @@ class BuilderBase:
         Tries each agent in order. First success wins.
         """
         self._freeze()
+        from adk_fluent._primitive_builders import _FallbackBuilder
         from adk_fluent._routing import _make_fallback_builder
 
         # Callable on right side: wrap it
         if callable(other) and not isinstance(other, BuilderBase | type):
+            from adk_fluent._primitive_builders import _fn_step
+
             other = _fn_step(other)
 
         # Collect children from existing fallback chains
@@ -2027,6 +1988,8 @@ class BuilderBase:
         Usage:
             agent.tap(lambda s: print(s["draft"]))
         """
+        from adk_fluent._primitive_builders import tap
+
         return self >> tap(fn)
 
     def mock(self, responses) -> Self:
@@ -2157,6 +2120,8 @@ class BuilderBase:
         Usage:
             agent.timeout(30)
         """
+        from adk_fluent._primitive_builders import TimedAgent, _timeout_counter
+
         my_name = self._config.get("name", "")
         name = f"{my_name}_timeout_{next(_timeout_counter)}"
         return TimedAgent(name, _agent=self, _seconds=seconds)
@@ -2190,6 +2155,8 @@ class BuilderBase:
             bg_pipeline = (researcher >> analyzer).dispatch(name="analysis")
             workflow = writer >> bg_email >> bg_pipeline >> join()
         """
+        from adk_fluent._primitive_builders import BackgroundTask, _dispatch_counter
+
         if progress_key is not None:
             import warnings
 
@@ -2971,37 +2938,3 @@ class BuilderBase:
         """All events reach client with visibility metadata. Client filters."""
         self._config["_visibility_policy"] = "annotate"
         return self
-
-
-# ======================================================================
-# Re-exports from _primitive_builders (builders, factory functions)
-# ======================================================================
-from adk_fluent._primitive_builders import (
-    PrimitiveBuilderBase as PrimitiveBuilderBase,
-    _CaptureBuilder as _CaptureBuilder,
-    BackgroundTask as BackgroundTask,
-    _FallbackBuilder as _FallbackBuilder,
-    _FnStepBuilder as _FnStepBuilder,
-    _GateBuilder as _GateBuilder,
-    _JoinBuilder as _JoinBuilder,
-    _MapOverBuilder as _MapOverBuilder,
-    _RaceBuilder as _RaceBuilder,
-    _TapBuilder as _TapBuilder,
-    TimedAgent as TimedAgent,
-    _dispatch_counter as _dispatch_counter,
-    _expect_counter as _expect_counter,
-    _fn_step as _fn_step,
-    _fn_step_counter as _fn_step_counter,
-    _gate_counter as _gate_counter,
-    _join_counter as _join_counter,
-    _map_over_counter as _map_over_counter,
-    _tap_counter as _tap_counter,
-    _timeout_counter as _timeout_counter,
-    dispatch as dispatch,
-    expect as expect,
-    gate as gate,
-    join as join,
-    map_over as map_over,
-    race as race,
-    tap as tap,
-)

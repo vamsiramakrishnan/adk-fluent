@@ -1,139 +1,6 @@
 """adk-fluent: Fluent builder API for Google ADK."""
 # Auto-generated for google-adk 1.25.0
 
-from .tool import ActiveStreamingTool
-from .config import AgentConfig
-from .agent import BaseAgent
-from .config import BaseAgentConfig
-from .config import AgentRefConfig
-from .config import ArgumentConfig
-from .config import CodeConfig
-from .config import ContextCacheConfig
-from .agent import Agent
-from .config import LlmAgentConfig
-from .workflow import Loop
-from .config import LoopAgentConfig
-from .workflow import FanOut
-from .config import ParallelAgentConfig
-from .config import RunConfig
-from .config import ToolThreadPoolConfig
-from .workflow import Pipeline
-from .config import SequentialAgentConfig
-from .runtime import App
-from .config import EventsCompactionConfig
-from .config import ResumabilityConfig
-from .service import BaseArtifactService
-from .service import FileArtifactService
-from .service import GcsArtifactService
-from .service import InMemoryArtifactService
-from .plugin import RecordingsPlugin
-from .plugin import ReplayPlugin
-from .service import PerAgentDatabaseSessionService
-from .executor import AgentEngineSandboxCodeExecutor
-from .executor import BaseCodeExecutor
-from .executor import BuiltInCodeExecutor
-from .executor import UnsafeLocalCodeExecutor
-from .executor import VertexAiCodeExecutor
-from .config import FeatureConfig
-from .config import AudioCacheConfig
-from .service import BaseMemoryService
-from .service import InMemoryMemoryService
-from .service import VertexAiMemoryBankService
-from .service import VertexAiRagMemoryService
-from .config import SimplePromptOptimizerConfig
-from .planner import BasePlanner
-from .planner import BuiltInPlanner
-from .planner import PlanReActPlanner
-from .plugin import BasePlugin
-from .plugin import BigQueryAgentAnalyticsPlugin
-from .config import BigQueryLoggerConfig
-from .config import RetryConfig
-from .plugin import ContextFilterPlugin
-from .plugin import DebugLoggingPlugin
-from .plugin import GlobalInstructionPlugin
-from .plugin import LoggingPlugin
-from .plugin import MultimodalToolResultsPlugin
-from .plugin import ReflectAndRetryToolPlugin
-from .plugin import SaveFilesAsArtifactsPlugin
-from .runtime import InMemoryRunner
-from .runtime import Runner
-from .service import BaseSessionService
-from .config import GetSessionConfig
-from .service import DatabaseSessionService
-from .service import InMemorySessionService
-from .service import SqliteSessionService
-from .service import VertexAiSessionService
-from .service import ForwardingArtifactService
-from .config import BaseGoogleCredentialsConfig
-from .config import AgentSimulatorConfig
-from .config import InjectionConfig
-from .config import ToolSimulationConfig
-from .plugin import AgentSimulatorPlugin
-from .tool import AgentTool
-from .config import AgentToolConfig
-from .tool import APIHubToolset
-from .tool import ApplicationIntegrationToolset
-from .tool import IntegrationConnectorTool
-from .tool import BaseAuthenticatedTool
-from .tool import BaseTool
-from .tool import BaseToolset
-from .config import BigQueryCredentialsConfig
-from .tool import BigQueryToolset
-from .config import BigQueryToolConfig
-from .config import BigtableCredentialsConfig
-from .tool import BigtableToolset
-from .tool import ComputerUseTool
-from .tool import ComputerUseToolset
-from .config import DataAgentToolConfig
-from .config import DataAgentCredentialsConfig
-from .tool import DataAgentToolset
-from .tool import DiscoveryEngineSearchTool
-from .tool import EnterpriseWebSearchTool
-from .tool import ExampleTool
-from .config import ExampleToolConfig
-from .tool import FunctionTool
-from .tool import GoogleApiTool
-from .tool import GoogleApiToolset
-from .tool import CalendarToolset
-from .tool import DocsToolset
-from .tool import GmailToolset
-from .tool import SheetsToolset
-from .tool import SlidesToolset
-from .tool import YoutubeToolset
-from .tool import GoogleMapsGroundingTool
-from .tool import GoogleSearchAgentTool
-from .tool import GoogleSearchTool
-from .tool import GoogleTool
-from .tool import LoadArtifactsTool
-from .tool import LoadMcpResourceTool
-from .tool import LoadMemoryTool
-from .tool import LongRunningFunctionTool
-from .tool import MCPTool
-from .tool import McpTool
-from .tool import MCPToolset
-from .tool import McpToolset
-from .config import McpToolsetConfig
-from .tool import OpenAPIToolset
-from .tool import RestApiTool
-from .tool import PreloadMemoryTool
-from .config import PubSubToolConfig
-from .config import PubSubCredentialsConfig
-from .tool import PubSubToolset
-from .tool import BaseRetrievalTool
-from .tool import SetModelResponseTool
-from .tool import LoadSkillResourceTool
-from .tool import LoadSkillTool
-from .tool import SkillToolset
-from .config import SpannerCredentialsConfig
-from .tool import SpannerToolset
-from .config import BaseToolConfig
-from .config import ToolArgsConfig
-from .config import ToolConfig
-from .tool import ToolboxToolset
-from .tool import TransferToAgentTool
-from .tool import UrlContextTool
-from .tool import VertexAiSearchTool
-
 __all__ = [
     "ActiveStreamingTool",
     "AgentConfig",
@@ -273,28 +140,6 @@ __all__ = [
     "A",
     "ATransform",
     "BuilderBase",
-    "BuilderError",
-    "ADKFluentError",
-    "PrimitiveBuilderBase",
-    "until",
-    "tap",
-    "expect",
-    "map_over",
-    "gate",
-    "race",
-    "dispatch",
-    "join",
-    "get_execution_mode",
-    "FnAgent",
-    "TapAgent",
-    "CaptureAgent",
-    "FallbackAgent",
-    "MapOverAgent",
-    "TimeoutAgent",
-    "GateAgent",
-    "RaceAgent",
-    "DispatchAgent",
-    "JoinAgent",
     "CallbackSchema",
     "configure",
     "reset_config",
@@ -343,6 +188,8 @@ __all__ = [
     "EvalReport",
     "ComparisonReport",
     "EPersona",
+    "ADKFluentError",
+    "BuilderError",
     "GuardViolation",
     "PredicateError",
     "G",
@@ -398,8 +245,16 @@ __all__ = [
     "fingerprint_spec",
     "PredicateSchema",
     "evaluate_predicate",
+    "PrimitiveBuilderBase",
     "TimedAgent",
     "BackgroundTask",
+    "tap",
+    "expect",
+    "map_over",
+    "gate",
+    "race",
+    "dispatch",
+    "join",
     "P",
     "PTransform",
     "PComposite",
@@ -480,9 +335,11 @@ __all__ = [
     "ui_form_agent",
     "ui_dashboard_agent",
     "ComparisonSuite",
+    "until",
     "Source",
     "Inbox",
     "StreamRunner",
+    "get_execution_mode",
     "UI",
     "UIBinding",
     "UICheck",
@@ -552,379 +409,452 @@ __all__ = [
     "check_data_flow_contract",
 ]
 
-# --- Manual module exports (auto-discovered from __all__) ---
-from ._artifact_schema import ArtifactSchema
-from ._artifact_schema import Consumes
-from ._artifact_schema import Produces
-from ._artifacts import A
-from ._artifacts import ATransform
-from ._base import BuilderBase
-from ._base import BuilderError
-from ._base import ADKFluentError
-from ._base import PrimitiveBuilderBase
-from ._base import until
-from ._base import tap
-from ._base import expect
-from ._base import map_over
-from ._base import gate
-from ._base import race
-from ._base import dispatch
-from ._base import join
-from ._base import get_execution_mode
-from ._base import FnAgent
-from ._base import TapAgent
-from ._base import CaptureAgent
-from ._base import FallbackAgent
-from ._base import MapOverAgent
-from ._base import TimeoutAgent
-from ._base import GateAgent
-from ._base import RaceAgent
-from ._base import DispatchAgent
-from ._base import JoinAgent
-from ._callback_schema import CallbackSchema
-from ._config_global import configure
-from ._config_global import reset_config
-from ._config_global import get_config
-from ._context import C
-from ._context import CTransform
-from ._context import CComposite
-from ._context import CPipe
-from ._context import CFromState
-from ._context import CWindow
-from ._context import CUserOnly
-from ._context import CFromAgents
-from ._context import CExcludeAgents
-from ._context import CTemplate
-from ._context import CSelect
-from ._context import CRecent
-from ._context import CCompact
-from ._context import CDedup
-from ._context import CTruncate
-from ._context import CProject
-from ._context import CBudget
-from ._context import CPriority
-from ._context import CFit
-from ._context import CFresh
-from ._context import CRedact
-from ._context import CSummarize
-from ._context import CRelevant
-from ._context import CExtract
-from ._context import CDistill
-from ._context import CValidate
-from ._context import CNotes
-from ._context import CWriteNotes
-from ._context import CRolling
-from ._context import CFromAgentsWindowed
-from ._context import CUser
-from ._context import CManusCascade
-from ._context import CWhen
-from ._context import CPipelineAware
-from ._enums import SessionStrategy
-from ._enums import ExecutionMode
-from ._eval import E
-from ._eval import EComposite
-from ._eval import ECriterion
-from ._eval import ECase
-from ._eval import EvalSuite
-from ._eval import EvalReport
-from ._eval import ComparisonReport
-from ._eval import EPersona
-from ._exceptions import ADKFluentError
-from ._exceptions import BuilderError
-from ._exceptions import GuardViolation
-from ._exceptions import PredicateError
-from ._guards import G
-from ._guards import GComposite
-from ._guards import GGuard
-from ._guards import GuardViolation
-from ._guards import PIIDetector
-from ._guards import PIIFinding
-from ._guards import ContentJudge
-from ._guards import JudgmentResult
-from ._helpers import deep_clone_builder
-from ._helpers import add_agent_tool
-from ._helpers import run_one_shot
-from ._helpers import run_one_shot_async
-from ._helpers import run_stream
-from ._helpers import run_events
-from ._helpers import run_inline_test
-from ._helpers import ChatSession
-from ._helpers import create_session
-from ._helpers import run_map
-from ._helpers import run_map_async
-from ._helpers import StateKey
-from ._helpers import Artifact
-from ._ir import TransformNode
-from ._ir import TapNode
-from ._ir import FallbackNode
-from ._ir import RaceNode
-from ._ir import GateNode
-from ._ir import MapOverNode
-from ._ir import TimeoutNode
-from ._ir import RouteNode
-from ._ir import TransferNode
-from ._ir import CaptureNode
-from ._ir import ArtifactNode
-from ._ir import DispatchNode
-from ._ir import JoinNode
-from ._ir import UINode
-from ._ir import ExecutionConfig
-from ._ir import CompactionConfig
-from ._ir import AgentEvent
-from ._ir import ToolCallInfo
-from ._ir import ToolResponseInfo
-from ._ir import Node
-from ._ir_generated import AgentNode
-from ._ir_generated import SequenceNode
-from ._ir_generated import ParallelNode
-from ._ir_generated import LoopNode
-from ._ir_generated import FullNode
-from ._middleware import M
-from ._middleware import MComposite
-from ._middleware_schema import MiddlewareSchema
-from ._namespace_protocol import NamespaceSpec
-from ._namespace_protocol import merge_keysets
-from ._namespace_protocol import fingerprint_spec
-from ._predicate_schema import PredicateSchema
-from ._predicate_utils import evaluate_predicate
-from ._primitive_builders import PrimitiveBuilderBase
-from ._primitive_builders import TimedAgent
-from ._primitive_builders import BackgroundTask
-from ._primitive_builders import tap
-from ._primitive_builders import expect
-from ._primitive_builders import map_over
-from ._primitive_builders import gate
-from ._primitive_builders import race
-from ._primitive_builders import dispatch
-from ._primitive_builders import join
-from ._prompt import P
-from ._prompt import PTransform
-from ._prompt import PComposite
-from ._prompt import PPipe
-from ._prompt import PRole
-from ._prompt import PContext
-from ._prompt import PTask
-from ._prompt import PConstraint
-from ._prompt import PFormat
-from ._prompt import PExample
-from ._prompt import PSection
-from ._prompt import PWhen
-from ._prompt import PFromState
-from ._prompt import PTemplate
-from ._prompt import PReorder
-from ._prompt import POnly
-from ._prompt import PWithout
-from ._prompt import PCompress
-from ._prompt import PAdapt
-from ._prompt import PScaffolded
-from ._prompt import PVersioned
-from ._prompt_schema import PromptSchema
-from ._routing import Route
-from ._routing import Fallback
-from ._schema_base import DeclarativeField
-from ._schema_base import DeclarativeMetaclass
-from ._schema_base import DeclarativeSchema
-from ._schema_base import Reads
-from ._schema_base import Writes
-from ._schema_base import Param
-from ._schema_base import Confirms
-from ._schema_base import Timeout
-from ._state_schema import StateSchema
-from ._state_schema import CapturedBy
-from ._state_schema import Scoped
-from ._state_schema import check_state_schema_contracts
-from ._tool_registry import ToolRegistry
-from ._tool_registry import SearchToolset
-from ._tool_registry import search_aware_after_tool
-from ._tool_registry import compress_large_result
-from ._tool_schema import ToolSchema
-from ._tools import T
-from ._tools import TComposite
-from ._transforms import S
-from ._transforms import STransform
-from ._transforms import StateDelta
-from ._transforms import StateReplacement
-from .a2a import A2AServer
-from .a2a import AgentRegistry
-from .a2a import RemoteAgent
-from .a2a import SkillDeclaration
-from .decorators import agent
-from .middleware import TraceContext
-from .middleware import DispatchDirective
-from .middleware import LoopDirective
-from .middleware import Middleware
-from .middleware import TopologyHooks
-from .middleware import RetryMiddleware
-from .middleware import StructuredLogMiddleware
-from .middleware import DispatchLogMiddleware
-from .middleware import TopologyLogMiddleware
-from .middleware import LatencyMiddleware
-from .middleware import CostTracker
-from .middleware import A2ARetryMiddleware
-from .middleware import A2ACircuitBreakerMiddleware
-from .middleware import A2ACircuitOpenError
-from .middleware import A2ATimeoutMiddleware
-from .patterns import review_loop
-from .patterns import map_reduce
-from .patterns import cascade
-from .patterns import fan_out_merge
-from .patterns import chain
-from .patterns import conditional
-from .patterns import supervised
-from .patterns import a2a_cascade
-from .patterns import a2a_fanout
-from .patterns import a2a_delegate
-from .patterns import ui_form_agent
-from .patterns import ui_dashboard_agent
-from .prelude import RemoteAgent
-from .prelude import A2AServer
-from .prelude import AgentRegistry
-from .prelude import Agent
-from .prelude import Pipeline
-from .prelude import FanOut
-from .prelude import Loop
-from .prelude import Fallback
-from .prelude import A
-from .prelude import G
-from .prelude import GComposite
-from .prelude import GuardViolation
-from .prelude import ATransform
-from .prelude import C
-from .prelude import E
-from .prelude import EComposite
-from .prelude import ECase
-from .prelude import ECriterion
-from .prelude import EvalSuite
-from .prelude import EvalReport
-from .prelude import ComparisonReport
-from .prelude import ComparisonSuite
-from .prelude import EPersona
-from .prelude import P
-from .prelude import S
-from .prelude import M
-from .prelude import T
-from .prelude import TComposite
-from .prelude import Route
-from .prelude import until
-from .prelude import tap
-from .prelude import map_over
-from .prelude import gate
-from .prelude import race
-from .prelude import expect
-from .prelude import dispatch
-from .prelude import join
-from .prelude import STransform
-from .prelude import review_loop
-from .prelude import cascade
-from .prelude import chain
-from .prelude import fan_out_merge
-from .prelude import map_reduce
-from .prelude import conditional
-from .prelude import supervised
-from .prelude import a2a_cascade
-from .prelude import a2a_fanout
-from .prelude import a2a_delegate
-from .prelude import Source
-from .prelude import Inbox
-from .prelude import StreamRunner
-from .prelude import DispatchLogMiddleware
-from .prelude import get_execution_mode
-from .prelude import SessionStrategy
-from .prelude import ExecutionMode
-from .prelude import MiddlewareSchema
-from .prelude import ArtifactSchema
-from .prelude import Produces
-from .prelude import Consumes
-from .prelude import ToolRegistry
-from .prelude import SearchToolset
-from .prelude import search_aware_after_tool
-from .prelude import UI
-from .prelude import UIBinding
-from .prelude import UICheck
-from .prelude import UIComponent
-from .prelude import UISurface
-from .presets import Preset
-from .runtime_default import DefaultRuntime
-from .runtime_protocol import Runtime
-from .runtime_protocol import ExecutionResult
-from .runtime_protocol import SessionHandle
-from .source import Source
-from .source import Inbox
-from .stream import StreamRunner
-from .stream import StreamStats
-from .backends import Backend
-from .backends import final_text
-from .backends import register_backend
-from .backends import get_backend
-from .backends import available_backends
-from .backends.asyncio_backend import AsyncioBackend
-from .backends.dbos_backend import DBOSBackend
-from .backends.dbos_backend import DBOSRunnable
-from .backends.dbos_worker import DBOSWorkerConfig
-from .backends.dbos_worker import generate_app_code
-from .backends.prefect_backend import PrefectBackend
-from .backends.prefect_backend import PrefectRunnable
-from .backends.prefect_worker import PrefectWorkerConfig
-from .backends.prefect_worker import generate_flow_code
-from .backends.temporal import TemporalBackend
-from .backends.temporal import TemporalRunnable
-from .backends.temporal_worker import TemporalWorkerConfig
-from .backends.temporal_worker import generate_worker_code
-from .backends.temporal_worker import create_activities
-from .backends.temporal_worker import create_workflow_class
-from .backends.temporal_worker import create_worker
-from .compile import CompilationResult
-from .compile import EngineCapabilities
-from .compile import compile
-from .compile.passes import run_passes
-from .compile.passes import fuse_transforms
-from .compile.passes import validate_contracts
-from .compile.passes import annotate_checkpoints
-from .compute import ModelProvider
-from .compute import StateStore
-from .compute import ToolRuntime
-from .compute import ArtifactStore
-from .compute import Message
-from .compute import ToolDef
-from .compute import GenerateConfig
-from .compute import GenerateResult
-from .compute import Chunk
-from .compute import ComputeConfig
-from .compute import InMemoryStateStore
-from .compute import InMemoryArtifactStore
-from .compute._protocol import ModelProvider
-from .compute._protocol import StateStore
-from .compute._protocol import ToolRuntime
-from .compute._protocol import ArtifactStore
-from .compute._protocol import Message
-from .compute._protocol import ToolDef
-from .compute._protocol import GenerateConfig
-from .compute._protocol import GenerateResult
-from .compute._protocol import Chunk
-from .compute.memory import InMemoryStateStore
-from .compute.memory import InMemoryArtifactStore
-from .compute.memory import LocalToolRuntime
-from .testing import check_contracts
-from .testing import infer_data_flow
-from .testing import DataFlowSuggestion
-from .testing import mock_backend
-from .testing import MockBackend
-from .testing import AgentHarness
-from .testing import HarnessResponse
-from .testing import diagnose
-from .testing import format_diagnosis
-from .testing import Diagnosis
-from .testing import AgentSummary
-from .testing import KeyFlow
-from .testing import ContractIssue
-from .testing import E
-from .testing import EComposite
-from .testing import ECriterion
-from .testing import ECase
-from .testing import EvalSuite
-from .testing import EvalReport
-from .testing import ComparisonReport
-from .testing import ComparisonSuite
-from .testing import EPersona
-from .testing import DataFlowContract
-from .testing import check_data_flow_contract
+_LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "ActiveStreamingTool": (".tool", "ActiveStreamingTool"),
+    "AgentConfig": (".config", "AgentConfig"),
+    "BaseAgent": (".agent", "BaseAgent"),
+    "BaseAgentConfig": (".config", "BaseAgentConfig"),
+    "AgentRefConfig": (".config", "AgentRefConfig"),
+    "ArgumentConfig": (".config", "ArgumentConfig"),
+    "CodeConfig": (".config", "CodeConfig"),
+    "ContextCacheConfig": (".config", "ContextCacheConfig"),
+    "Agent": (".agent", "Agent"),
+    "LlmAgentConfig": (".config", "LlmAgentConfig"),
+    "Loop": (".workflow", "Loop"),
+    "LoopAgentConfig": (".config", "LoopAgentConfig"),
+    "FanOut": (".workflow", "FanOut"),
+    "ParallelAgentConfig": (".config", "ParallelAgentConfig"),
+    "RunConfig": (".config", "RunConfig"),
+    "ToolThreadPoolConfig": (".config", "ToolThreadPoolConfig"),
+    "Pipeline": (".workflow", "Pipeline"),
+    "SequentialAgentConfig": (".config", "SequentialAgentConfig"),
+    "App": (".runtime", "App"),
+    "EventsCompactionConfig": (".config", "EventsCompactionConfig"),
+    "ResumabilityConfig": (".config", "ResumabilityConfig"),
+    "BaseArtifactService": (".service", "BaseArtifactService"),
+    "FileArtifactService": (".service", "FileArtifactService"),
+    "GcsArtifactService": (".service", "GcsArtifactService"),
+    "InMemoryArtifactService": (".service", "InMemoryArtifactService"),
+    "RecordingsPlugin": (".plugin", "RecordingsPlugin"),
+    "ReplayPlugin": (".plugin", "ReplayPlugin"),
+    "PerAgentDatabaseSessionService": (".service", "PerAgentDatabaseSessionService"),
+    "AgentEngineSandboxCodeExecutor": (".executor", "AgentEngineSandboxCodeExecutor"),
+    "BaseCodeExecutor": (".executor", "BaseCodeExecutor"),
+    "BuiltInCodeExecutor": (".executor", "BuiltInCodeExecutor"),
+    "UnsafeLocalCodeExecutor": (".executor", "UnsafeLocalCodeExecutor"),
+    "VertexAiCodeExecutor": (".executor", "VertexAiCodeExecutor"),
+    "FeatureConfig": (".config", "FeatureConfig"),
+    "AudioCacheConfig": (".config", "AudioCacheConfig"),
+    "BaseMemoryService": (".service", "BaseMemoryService"),
+    "InMemoryMemoryService": (".service", "InMemoryMemoryService"),
+    "VertexAiMemoryBankService": (".service", "VertexAiMemoryBankService"),
+    "VertexAiRagMemoryService": (".service", "VertexAiRagMemoryService"),
+    "SimplePromptOptimizerConfig": (".config", "SimplePromptOptimizerConfig"),
+    "BasePlanner": (".planner", "BasePlanner"),
+    "BuiltInPlanner": (".planner", "BuiltInPlanner"),
+    "PlanReActPlanner": (".planner", "PlanReActPlanner"),
+    "BasePlugin": (".plugin", "BasePlugin"),
+    "BigQueryAgentAnalyticsPlugin": (".plugin", "BigQueryAgentAnalyticsPlugin"),
+    "BigQueryLoggerConfig": (".config", "BigQueryLoggerConfig"),
+    "RetryConfig": (".config", "RetryConfig"),
+    "ContextFilterPlugin": (".plugin", "ContextFilterPlugin"),
+    "DebugLoggingPlugin": (".plugin", "DebugLoggingPlugin"),
+    "GlobalInstructionPlugin": (".plugin", "GlobalInstructionPlugin"),
+    "LoggingPlugin": (".plugin", "LoggingPlugin"),
+    "MultimodalToolResultsPlugin": (".plugin", "MultimodalToolResultsPlugin"),
+    "ReflectAndRetryToolPlugin": (".plugin", "ReflectAndRetryToolPlugin"),
+    "SaveFilesAsArtifactsPlugin": (".plugin", "SaveFilesAsArtifactsPlugin"),
+    "InMemoryRunner": (".runtime", "InMemoryRunner"),
+    "Runner": (".runtime", "Runner"),
+    "BaseSessionService": (".service", "BaseSessionService"),
+    "GetSessionConfig": (".config", "GetSessionConfig"),
+    "DatabaseSessionService": (".service", "DatabaseSessionService"),
+    "InMemorySessionService": (".service", "InMemorySessionService"),
+    "SqliteSessionService": (".service", "SqliteSessionService"),
+    "VertexAiSessionService": (".service", "VertexAiSessionService"),
+    "ForwardingArtifactService": (".service", "ForwardingArtifactService"),
+    "BaseGoogleCredentialsConfig": (".config", "BaseGoogleCredentialsConfig"),
+    "AgentSimulatorConfig": (".config", "AgentSimulatorConfig"),
+    "InjectionConfig": (".config", "InjectionConfig"),
+    "ToolSimulationConfig": (".config", "ToolSimulationConfig"),
+    "AgentSimulatorPlugin": (".plugin", "AgentSimulatorPlugin"),
+    "AgentTool": (".tool", "AgentTool"),
+    "AgentToolConfig": (".config", "AgentToolConfig"),
+    "APIHubToolset": (".tool", "APIHubToolset"),
+    "ApplicationIntegrationToolset": (".tool", "ApplicationIntegrationToolset"),
+    "IntegrationConnectorTool": (".tool", "IntegrationConnectorTool"),
+    "BaseAuthenticatedTool": (".tool", "BaseAuthenticatedTool"),
+    "BaseTool": (".tool", "BaseTool"),
+    "BaseToolset": (".tool", "BaseToolset"),
+    "BigQueryCredentialsConfig": (".config", "BigQueryCredentialsConfig"),
+    "BigQueryToolset": (".tool", "BigQueryToolset"),
+    "BigQueryToolConfig": (".config", "BigQueryToolConfig"),
+    "BigtableCredentialsConfig": (".config", "BigtableCredentialsConfig"),
+    "BigtableToolset": (".tool", "BigtableToolset"),
+    "ComputerUseTool": (".tool", "ComputerUseTool"),
+    "ComputerUseToolset": (".tool", "ComputerUseToolset"),
+    "DataAgentToolConfig": (".config", "DataAgentToolConfig"),
+    "DataAgentCredentialsConfig": (".config", "DataAgentCredentialsConfig"),
+    "DataAgentToolset": (".tool", "DataAgentToolset"),
+    "DiscoveryEngineSearchTool": (".tool", "DiscoveryEngineSearchTool"),
+    "EnterpriseWebSearchTool": (".tool", "EnterpriseWebSearchTool"),
+    "ExampleTool": (".tool", "ExampleTool"),
+    "ExampleToolConfig": (".config", "ExampleToolConfig"),
+    "FunctionTool": (".tool", "FunctionTool"),
+    "GoogleApiTool": (".tool", "GoogleApiTool"),
+    "GoogleApiToolset": (".tool", "GoogleApiToolset"),
+    "CalendarToolset": (".tool", "CalendarToolset"),
+    "DocsToolset": (".tool", "DocsToolset"),
+    "GmailToolset": (".tool", "GmailToolset"),
+    "SheetsToolset": (".tool", "SheetsToolset"),
+    "SlidesToolset": (".tool", "SlidesToolset"),
+    "YoutubeToolset": (".tool", "YoutubeToolset"),
+    "GoogleMapsGroundingTool": (".tool", "GoogleMapsGroundingTool"),
+    "GoogleSearchAgentTool": (".tool", "GoogleSearchAgentTool"),
+    "GoogleSearchTool": (".tool", "GoogleSearchTool"),
+    "GoogleTool": (".tool", "GoogleTool"),
+    "LoadArtifactsTool": (".tool", "LoadArtifactsTool"),
+    "LoadMcpResourceTool": (".tool", "LoadMcpResourceTool"),
+    "LoadMemoryTool": (".tool", "LoadMemoryTool"),
+    "LongRunningFunctionTool": (".tool", "LongRunningFunctionTool"),
+    "MCPTool": (".tool", "MCPTool"),
+    "McpTool": (".tool", "McpTool"),
+    "MCPToolset": (".tool", "MCPToolset"),
+    "McpToolset": (".tool", "McpToolset"),
+    "McpToolsetConfig": (".config", "McpToolsetConfig"),
+    "OpenAPIToolset": (".tool", "OpenAPIToolset"),
+    "RestApiTool": (".tool", "RestApiTool"),
+    "PreloadMemoryTool": (".tool", "PreloadMemoryTool"),
+    "PubSubToolConfig": (".config", "PubSubToolConfig"),
+    "PubSubCredentialsConfig": (".config", "PubSubCredentialsConfig"),
+    "PubSubToolset": (".tool", "PubSubToolset"),
+    "BaseRetrievalTool": (".tool", "BaseRetrievalTool"),
+    "SetModelResponseTool": (".tool", "SetModelResponseTool"),
+    "LoadSkillResourceTool": (".tool", "LoadSkillResourceTool"),
+    "LoadSkillTool": (".tool", "LoadSkillTool"),
+    "SkillToolset": (".tool", "SkillToolset"),
+    "SpannerCredentialsConfig": (".config", "SpannerCredentialsConfig"),
+    "SpannerToolset": (".tool", "SpannerToolset"),
+    "BaseToolConfig": (".config", "BaseToolConfig"),
+    "ToolArgsConfig": (".config", "ToolArgsConfig"),
+    "ToolConfig": (".config", "ToolConfig"),
+    "ToolboxToolset": (".tool", "ToolboxToolset"),
+    "TransferToAgentTool": (".tool", "TransferToAgentTool"),
+    "UrlContextTool": (".tool", "UrlContextTool"),
+    "VertexAiSearchTool": (".tool", "VertexAiSearchTool"),
+    "ArtifactSchema": ("._artifact_schema", "ArtifactSchema"),
+    "Consumes": ("._artifact_schema", "Consumes"),
+    "Produces": ("._artifact_schema", "Produces"),
+    "A": ("._artifacts", "A"),
+    "ATransform": ("._artifacts", "ATransform"),
+    "BuilderBase": ("._base", "BuilderBase"),
+    "CallbackSchema": ("._callback_schema", "CallbackSchema"),
+    "configure": ("._config_global", "configure"),
+    "reset_config": ("._config_global", "reset_config"),
+    "get_config": ("._config_global", "get_config"),
+    "C": ("._context", "C"),
+    "CTransform": ("._context", "CTransform"),
+    "CComposite": ("._context", "CComposite"),
+    "CPipe": ("._context", "CPipe"),
+    "CFromState": ("._context", "CFromState"),
+    "CWindow": ("._context", "CWindow"),
+    "CUserOnly": ("._context", "CUserOnly"),
+    "CFromAgents": ("._context", "CFromAgents"),
+    "CExcludeAgents": ("._context", "CExcludeAgents"),
+    "CTemplate": ("._context", "CTemplate"),
+    "CSelect": ("._context", "CSelect"),
+    "CRecent": ("._context", "CRecent"),
+    "CCompact": ("._context", "CCompact"),
+    "CDedup": ("._context", "CDedup"),
+    "CTruncate": ("._context", "CTruncate"),
+    "CProject": ("._context", "CProject"),
+    "CBudget": ("._context", "CBudget"),
+    "CPriority": ("._context", "CPriority"),
+    "CFit": ("._context", "CFit"),
+    "CFresh": ("._context", "CFresh"),
+    "CRedact": ("._context", "CRedact"),
+    "CSummarize": ("._context", "CSummarize"),
+    "CRelevant": ("._context", "CRelevant"),
+    "CExtract": ("._context", "CExtract"),
+    "CDistill": ("._context", "CDistill"),
+    "CValidate": ("._context", "CValidate"),
+    "CNotes": ("._context", "CNotes"),
+    "CWriteNotes": ("._context", "CWriteNotes"),
+    "CRolling": ("._context", "CRolling"),
+    "CFromAgentsWindowed": ("._context", "CFromAgentsWindowed"),
+    "CUser": ("._context", "CUser"),
+    "CManusCascade": ("._context", "CManusCascade"),
+    "CWhen": ("._context", "CWhen"),
+    "CPipelineAware": ("._context", "CPipelineAware"),
+    "SessionStrategy": ("._enums", "SessionStrategy"),
+    "ExecutionMode": ("._enums", "ExecutionMode"),
+    "E": ("._eval", "E"),
+    "EComposite": ("._eval", "EComposite"),
+    "ECriterion": ("._eval", "ECriterion"),
+    "ECase": ("._eval", "ECase"),
+    "EvalSuite": ("._eval", "EvalSuite"),
+    "EvalReport": ("._eval", "EvalReport"),
+    "ComparisonReport": ("._eval", "ComparisonReport"),
+    "EPersona": ("._eval", "EPersona"),
+    "ADKFluentError": ("._exceptions", "ADKFluentError"),
+    "BuilderError": ("._exceptions", "BuilderError"),
+    "GuardViolation": ("._exceptions", "GuardViolation"),
+    "PredicateError": ("._exceptions", "PredicateError"),
+    "G": ("._guards", "G"),
+    "GComposite": ("._guards", "GComposite"),
+    "GGuard": ("._guards", "GGuard"),
+    "PIIDetector": ("._guards", "PIIDetector"),
+    "PIIFinding": ("._guards", "PIIFinding"),
+    "ContentJudge": ("._guards", "ContentJudge"),
+    "JudgmentResult": ("._guards", "JudgmentResult"),
+    "deep_clone_builder": ("._helpers", "deep_clone_builder"),
+    "add_agent_tool": ("._helpers", "add_agent_tool"),
+    "run_one_shot": ("._helpers", "run_one_shot"),
+    "run_one_shot_async": ("._helpers", "run_one_shot_async"),
+    "run_stream": ("._helpers", "run_stream"),
+    "run_events": ("._helpers", "run_events"),
+    "run_inline_test": ("._helpers", "run_inline_test"),
+    "ChatSession": ("._helpers", "ChatSession"),
+    "create_session": ("._helpers", "create_session"),
+    "run_map": ("._helpers", "run_map"),
+    "run_map_async": ("._helpers", "run_map_async"),
+    "StateKey": ("._helpers", "StateKey"),
+    "Artifact": ("._helpers", "Artifact"),
+    "TransformNode": ("._ir", "TransformNode"),
+    "TapNode": ("._ir", "TapNode"),
+    "FallbackNode": ("._ir", "FallbackNode"),
+    "RaceNode": ("._ir", "RaceNode"),
+    "GateNode": ("._ir", "GateNode"),
+    "MapOverNode": ("._ir", "MapOverNode"),
+    "TimeoutNode": ("._ir", "TimeoutNode"),
+    "RouteNode": ("._ir", "RouteNode"),
+    "TransferNode": ("._ir", "TransferNode"),
+    "CaptureNode": ("._ir", "CaptureNode"),
+    "ArtifactNode": ("._ir", "ArtifactNode"),
+    "DispatchNode": ("._ir", "DispatchNode"),
+    "JoinNode": ("._ir", "JoinNode"),
+    "UINode": ("._ir", "UINode"),
+    "ExecutionConfig": ("._ir", "ExecutionConfig"),
+    "CompactionConfig": ("._ir", "CompactionConfig"),
+    "AgentEvent": ("._ir", "AgentEvent"),
+    "ToolCallInfo": ("._ir", "ToolCallInfo"),
+    "ToolResponseInfo": ("._ir", "ToolResponseInfo"),
+    "Node": ("._ir", "Node"),
+    "AgentNode": ("._ir_generated", "AgentNode"),
+    "SequenceNode": ("._ir_generated", "SequenceNode"),
+    "ParallelNode": ("._ir_generated", "ParallelNode"),
+    "LoopNode": ("._ir_generated", "LoopNode"),
+    "FullNode": ("._ir_generated", "FullNode"),
+    "M": ("._middleware", "M"),
+    "MComposite": ("._middleware", "MComposite"),
+    "MiddlewareSchema": ("._middleware_schema", "MiddlewareSchema"),
+    "NamespaceSpec": ("._namespace_protocol", "NamespaceSpec"),
+    "merge_keysets": ("._namespace_protocol", "merge_keysets"),
+    "fingerprint_spec": ("._namespace_protocol", "fingerprint_spec"),
+    "PredicateSchema": ("._predicate_schema", "PredicateSchema"),
+    "evaluate_predicate": ("._predicate_utils", "evaluate_predicate"),
+    "PrimitiveBuilderBase": ("._primitive_builders", "PrimitiveBuilderBase"),
+    "TimedAgent": ("._primitive_builders", "TimedAgent"),
+    "BackgroundTask": ("._primitive_builders", "BackgroundTask"),
+    "tap": ("._primitive_builders", "tap"),
+    "expect": ("._primitive_builders", "expect"),
+    "map_over": ("._primitive_builders", "map_over"),
+    "gate": ("._primitive_builders", "gate"),
+    "race": ("._primitive_builders", "race"),
+    "dispatch": ("._primitive_builders", "dispatch"),
+    "join": ("._primitive_builders", "join"),
+    "P": ("._prompt", "P"),
+    "PTransform": ("._prompt", "PTransform"),
+    "PComposite": ("._prompt", "PComposite"),
+    "PPipe": ("._prompt", "PPipe"),
+    "PRole": ("._prompt", "PRole"),
+    "PContext": ("._prompt", "PContext"),
+    "PTask": ("._prompt", "PTask"),
+    "PConstraint": ("._prompt", "PConstraint"),
+    "PFormat": ("._prompt", "PFormat"),
+    "PExample": ("._prompt", "PExample"),
+    "PSection": ("._prompt", "PSection"),
+    "PWhen": ("._prompt", "PWhen"),
+    "PFromState": ("._prompt", "PFromState"),
+    "PTemplate": ("._prompt", "PTemplate"),
+    "PReorder": ("._prompt", "PReorder"),
+    "POnly": ("._prompt", "POnly"),
+    "PWithout": ("._prompt", "PWithout"),
+    "PCompress": ("._prompt", "PCompress"),
+    "PAdapt": ("._prompt", "PAdapt"),
+    "PScaffolded": ("._prompt", "PScaffolded"),
+    "PVersioned": ("._prompt", "PVersioned"),
+    "PromptSchema": ("._prompt_schema", "PromptSchema"),
+    "Route": ("._routing", "Route"),
+    "Fallback": ("._routing", "Fallback"),
+    "DeclarativeField": ("._schema_base", "DeclarativeField"),
+    "DeclarativeMetaclass": ("._schema_base", "DeclarativeMetaclass"),
+    "DeclarativeSchema": ("._schema_base", "DeclarativeSchema"),
+    "Reads": ("._schema_base", "Reads"),
+    "Writes": ("._schema_base", "Writes"),
+    "Param": ("._schema_base", "Param"),
+    "Confirms": ("._schema_base", "Confirms"),
+    "Timeout": ("._schema_base", "Timeout"),
+    "StateSchema": ("._state_schema", "StateSchema"),
+    "CapturedBy": ("._state_schema", "CapturedBy"),
+    "Scoped": ("._state_schema", "Scoped"),
+    "check_state_schema_contracts": ("._state_schema", "check_state_schema_contracts"),
+    "ToolRegistry": ("._tool_registry", "ToolRegistry"),
+    "SearchToolset": ("._tool_registry", "SearchToolset"),
+    "search_aware_after_tool": ("._tool_registry", "search_aware_after_tool"),
+    "compress_large_result": ("._tool_registry", "compress_large_result"),
+    "ToolSchema": ("._tool_schema", "ToolSchema"),
+    "T": ("._tools", "T"),
+    "TComposite": ("._tools", "TComposite"),
+    "S": ("._transforms", "S"),
+    "STransform": ("._transforms", "STransform"),
+    "StateDelta": ("._transforms", "StateDelta"),
+    "StateReplacement": ("._transforms", "StateReplacement"),
+    "A2AServer": (".a2a", "A2AServer"),
+    "AgentRegistry": (".a2a", "AgentRegistry"),
+    "RemoteAgent": (".a2a", "RemoteAgent"),
+    "SkillDeclaration": (".a2a", "SkillDeclaration"),
+    "agent": (".decorators", "agent"),
+    "TraceContext": (".middleware", "TraceContext"),
+    "DispatchDirective": (".middleware", "DispatchDirective"),
+    "LoopDirective": (".middleware", "LoopDirective"),
+    "Middleware": (".middleware", "Middleware"),
+    "TopologyHooks": (".middleware", "TopologyHooks"),
+    "RetryMiddleware": (".middleware", "RetryMiddleware"),
+    "StructuredLogMiddleware": (".middleware", "StructuredLogMiddleware"),
+    "DispatchLogMiddleware": (".middleware", "DispatchLogMiddleware"),
+    "TopologyLogMiddleware": (".middleware", "TopologyLogMiddleware"),
+    "LatencyMiddleware": (".middleware", "LatencyMiddleware"),
+    "CostTracker": (".middleware", "CostTracker"),
+    "A2ARetryMiddleware": (".middleware", "A2ARetryMiddleware"),
+    "A2ACircuitBreakerMiddleware": (".middleware", "A2ACircuitBreakerMiddleware"),
+    "A2ACircuitOpenError": (".middleware", "A2ACircuitOpenError"),
+    "A2ATimeoutMiddleware": (".middleware", "A2ATimeoutMiddleware"),
+    "review_loop": (".patterns", "review_loop"),
+    "map_reduce": (".patterns", "map_reduce"),
+    "cascade": (".patterns", "cascade"),
+    "fan_out_merge": (".patterns", "fan_out_merge"),
+    "chain": (".patterns", "chain"),
+    "conditional": (".patterns", "conditional"),
+    "supervised": (".patterns", "supervised"),
+    "a2a_cascade": (".patterns", "a2a_cascade"),
+    "a2a_fanout": (".patterns", "a2a_fanout"),
+    "a2a_delegate": (".patterns", "a2a_delegate"),
+    "ui_form_agent": (".patterns", "ui_form_agent"),
+    "ui_dashboard_agent": (".patterns", "ui_dashboard_agent"),
+    "ComparisonSuite": (".prelude", "ComparisonSuite"),
+    "until": (".prelude", "until"),
+    "Source": (".prelude", "Source"),
+    "Inbox": (".prelude", "Inbox"),
+    "StreamRunner": (".prelude", "StreamRunner"),
+    "get_execution_mode": (".prelude", "get_execution_mode"),
+    "UI": (".prelude", "UI"),
+    "UIBinding": (".prelude", "UIBinding"),
+    "UICheck": (".prelude", "UICheck"),
+    "UIComponent": (".prelude", "UIComponent"),
+    "UISurface": (".prelude", "UISurface"),
+    "Preset": (".presets", "Preset"),
+    "DefaultRuntime": (".runtime_default", "DefaultRuntime"),
+    "Runtime": (".runtime_protocol", "Runtime"),
+    "ExecutionResult": (".runtime_protocol", "ExecutionResult"),
+    "SessionHandle": (".runtime_protocol", "SessionHandle"),
+    "StreamStats": (".stream", "StreamStats"),
+    "Backend": (".backends", "Backend"),
+    "final_text": (".backends", "final_text"),
+    "register_backend": (".backends", "register_backend"),
+    "get_backend": (".backends", "get_backend"),
+    "available_backends": (".backends", "available_backends"),
+    "AsyncioBackend": (".backends.asyncio_backend", "AsyncioBackend"),
+    "DBOSBackend": (".backends.dbos_backend", "DBOSBackend"),
+    "DBOSRunnable": (".backends.dbos_backend", "DBOSRunnable"),
+    "DBOSWorkerConfig": (".backends.dbos_worker", "DBOSWorkerConfig"),
+    "generate_app_code": (".backends.dbos_worker", "generate_app_code"),
+    "PrefectBackend": (".backends.prefect_backend", "PrefectBackend"),
+    "PrefectRunnable": (".backends.prefect_backend", "PrefectRunnable"),
+    "PrefectWorkerConfig": (".backends.prefect_worker", "PrefectWorkerConfig"),
+    "generate_flow_code": (".backends.prefect_worker", "generate_flow_code"),
+    "TemporalBackend": (".backends.temporal", "TemporalBackend"),
+    "TemporalRunnable": (".backends.temporal", "TemporalRunnable"),
+    "TemporalWorkerConfig": (".backends.temporal_worker", "TemporalWorkerConfig"),
+    "generate_worker_code": (".backends.temporal_worker", "generate_worker_code"),
+    "create_activities": (".backends.temporal_worker", "create_activities"),
+    "create_workflow_class": (".backends.temporal_worker", "create_workflow_class"),
+    "create_worker": (".backends.temporal_worker", "create_worker"),
+    "CompilationResult": (".compile", "CompilationResult"),
+    "EngineCapabilities": (".compile", "EngineCapabilities"),
+    "compile": (".compile", "compile"),
+    "run_passes": (".compile.passes", "run_passes"),
+    "fuse_transforms": (".compile.passes", "fuse_transforms"),
+    "validate_contracts": (".compile.passes", "validate_contracts"),
+    "annotate_checkpoints": (".compile.passes", "annotate_checkpoints"),
+    "ModelProvider": (".compute", "ModelProvider"),
+    "StateStore": (".compute", "StateStore"),
+    "ToolRuntime": (".compute", "ToolRuntime"),
+    "ArtifactStore": (".compute", "ArtifactStore"),
+    "Message": (".compute", "Message"),
+    "ToolDef": (".compute", "ToolDef"),
+    "GenerateConfig": (".compute", "GenerateConfig"),
+    "GenerateResult": (".compute", "GenerateResult"),
+    "Chunk": (".compute", "Chunk"),
+    "ComputeConfig": (".compute", "ComputeConfig"),
+    "InMemoryStateStore": (".compute", "InMemoryStateStore"),
+    "InMemoryArtifactStore": (".compute", "InMemoryArtifactStore"),
+    "LocalToolRuntime": (".compute.memory", "LocalToolRuntime"),
+    "check_contracts": (".testing", "check_contracts"),
+    "infer_data_flow": (".testing", "infer_data_flow"),
+    "DataFlowSuggestion": (".testing", "DataFlowSuggestion"),
+    "mock_backend": (".testing", "mock_backend"),
+    "MockBackend": (".testing", "MockBackend"),
+    "AgentHarness": (".testing", "AgentHarness"),
+    "HarnessResponse": (".testing", "HarnessResponse"),
+    "diagnose": (".testing", "diagnose"),
+    "format_diagnosis": (".testing", "format_diagnosis"),
+    "Diagnosis": (".testing", "Diagnosis"),
+    "AgentSummary": (".testing", "AgentSummary"),
+    "KeyFlow": (".testing", "KeyFlow"),
+    "ContractIssue": (".testing", "ContractIssue"),
+    "DataFlowContract": (".testing", "DataFlowContract"),
+    "check_data_flow_contract": (".testing", "check_data_flow_contract"),
+}
+
+# Names that conflict with subpackage names — need special resolution
+_SUBPACKAGE_EXPORTS: dict[str, tuple[str, str]] = {
+    "compile": (".compile", "compile"),
+}
+
+
+def _fix_subpackage_shadows():
+    """Fix attributes shadowed by subpackage auto-imports.
+
+    Python's import system auto-sets parent.child = <module>
+    when importing parent.child. This can shadow our lazy
+    function/class exports when a subpackage name matches
+    an exported name (e.g. 'compile' is both a subpackage
+    and an exported function).
+    """
+    import types
+
+    _spx = globals().get("_SUBPACKAGE_EXPORTS", {})
+    for _name, (_mod, _attr) in _spx.items():
+        _val = globals().get(_name)
+        if isinstance(_val, types.ModuleType):
+            globals()[_name] = getattr(_val, _attr)
+
+
+def __getattr__(name: str):
+    if name in _LAZY_IMPORTS:
+        import importlib
+
+        _mod, _attr = _LAZY_IMPORTS[name]
+        module = importlib.import_module(_mod, __name__)
+        value = getattr(module, _attr)
+        globals()[name] = value
+        # Importing a submodule may auto-set subpackage names
+        # in our namespace — fix any that got shadowed.
+        _fix_subpackage_shadows()
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return __all__

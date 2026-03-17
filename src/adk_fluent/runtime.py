@@ -6,20 +6,19 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.apps.app import App as _ADK_App
-from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
-from google.adk.runners import Runner as _ADK_Runner
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from google.adk.agents.base_agent import BaseAgent
     from google.adk.agents.context_cache_config import ContextCacheConfig
+    from google.adk.apps.app import App as _ADK_App
     from google.adk.apps.app import EventsCompactionConfig, ResumabilityConfig
     from google.adk.artifacts.base_artifact_service import BaseArtifactService
     from google.adk.auth.credential_service.base_credential_service import BaseCredentialService
     from google.adk.memory.base_memory_service import BaseMemoryService
     from google.adk.plugins.base_plugin import BasePlugin
+    from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
+    from google.adk.runners import Runner as _ADK_Runner
 
 
 class App(BuilderBase):
@@ -28,7 +27,6 @@ class App(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_App
 
     def __init__(self, name: str, root_agent: str) -> None:
         self._config: dict[str, Any] = {"name": name, "root_agent": root_agent}
@@ -68,6 +66,8 @@ class App(BuilderBase):
 
     def build(self) -> _ADK_App:
         """Represents an LLM-backed agentic application. Resolve into a native ADK _ADK_App."""
+        from google.adk.apps.app import App as _ADK_App
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_App, config)
         return self._apply_native_hooks(result)
@@ -119,6 +119,8 @@ class InMemoryRunner(BuilderBase):
 
     def build(self) -> _ADK_InMemoryRunner:
         """An in-memory Runner for testing and development. Resolve into a native ADK _ADK_InMemoryRunner."""
+        from google.adk.runners import InMemoryRunner as _ADK_InMemoryRunner
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_InMemoryRunner, config)
         return self._apply_native_hooks(result)
@@ -205,6 +207,8 @@ class Runner(BuilderBase):
 
     def build(self) -> _ADK_Runner:
         """The Runner class is used to run agents. Resolve into a native ADK _ADK_Runner."""
+        from google.adk.runners import Runner as _ADK_Runner
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_Runner, config)
         return self._apply_native_hooks(result)

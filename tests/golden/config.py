@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
-
-from google.adk.agents import RunConfig as _ADK_RunConfig
+from typing import TYPE_CHECKING, Any, Self
 
 from adk_fluent._base import BuilderBase
+
+if TYPE_CHECKING:
+    from google.adk.agents import RunConfig as _ADK_RunConfig
 
 
 class RunConfig(BuilderBase):
@@ -17,7 +18,6 @@ class RunConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_RunConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -39,6 +39,8 @@ class RunConfig(BuilderBase):
 
     def build(self) -> _ADK_RunConfig:
         """Configuration for agent runs. Resolve into a native ADK _ADK_RunConfig."""
+        from google.adk.agents import RunConfig as _ADK_RunConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RunConfig, config)
         return self._apply_native_hooks(result)

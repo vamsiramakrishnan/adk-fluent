@@ -6,15 +6,14 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
-from google.adk.agents.llm_agent import LlmAgent
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable
     from typing import Literal
 
+    from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
+    from google.adk.agents.llm_agent import LlmAgent
     from google.adk.agents.readonly_context import ReadonlyContext
     from google.adk.code_executors.base_code_executor import BaseCodeExecutor
     from google.adk.models.base_llm import BaseLlm
@@ -29,7 +28,6 @@ class BaseAgent(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
-    _ADK_TARGET_CLASS = _ADK_BaseAgent
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -85,6 +83,8 @@ class BaseAgent(BuilderBase):
 
     def build(self) -> _ADK_BaseAgent:
         """Base class for all agents in Agent Development Kit. Resolve into a native ADK _ADK_BaseAgent."""
+        from google.adk.agents.base_agent import BaseAgent as _ADK_BaseAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseAgent, config)
         return self._apply_native_hooks(result)
@@ -119,7 +119,6 @@ class Agent(BuilderBase):
         "on_model_error_callback",
         "on_tool_error_callback",
     }
-    _ADK_TARGET_CLASS = LlmAgent
 
     def __init__(self, name: str, model: str | None = None) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -686,6 +685,8 @@ class Agent(BuilderBase):
 
     def build(self) -> LlmAgent:
         """LLM-based Agent. Resolve into a native ADK LlmAgent."""
+        from google.adk.agents.llm_agent import LlmAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(LlmAgent, config)
         return self._apply_native_hooks(result)

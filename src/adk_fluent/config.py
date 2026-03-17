@@ -6,64 +6,71 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
-from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
-from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
-from google.adk.agents.common_configs import ArgumentConfig as _ADK_ArgumentConfig
-from google.adk.agents.common_configs import CodeConfig as _ADK_CodeConfig
-from google.adk.agents.context_cache_config import ContextCacheConfig as _ADK_ContextCacheConfig
-from google.adk.agents.llm_agent_config import LlmAgentConfig as _ADK_LlmAgentConfig
-from google.adk.agents.loop_agent_config import LoopAgentConfig as _ADK_LoopAgentConfig
-from google.adk.agents.parallel_agent_config import ParallelAgentConfig as _ADK_ParallelAgentConfig
-from google.adk.agents.run_config import RunConfig as _ADK_RunConfig
-from google.adk.agents.run_config import ToolThreadPoolConfig as _ADK_ToolThreadPoolConfig
-from google.adk.agents.sequential_agent_config import SequentialAgentConfig as _ADK_SequentialAgentConfig
-from google.adk.apps.app import EventsCompactionConfig as _ADK_EventsCompactionConfig
-from google.adk.apps.app import ResumabilityConfig as _ADK_ResumabilityConfig
-from google.adk.features._feature_registry import FeatureConfig as _ADK_FeatureConfig
-from google.adk.flows.llm_flows.audio_cache_manager import AudioCacheConfig as _ADK_AudioCacheConfig
-from google.adk.optimization.simple_prompt_optimizer import (
-    SimplePromptOptimizerConfig as _ADK_SimplePromptOptimizerConfig,
-)
-from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig as _ADK_BigQueryLoggerConfig
-from google.adk.plugins.bigquery_agent_analytics_plugin import RetryConfig as _ADK_RetryConfig
-from google.adk.sessions.base_session_service import GetSessionConfig as _ADK_GetSessionConfig
-from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig as _ADK_BaseGoogleCredentialsConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import AgentSimulatorConfig as _ADK_AgentSimulatorConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import InjectionConfig as _ADK_InjectionConfig
-from google.adk.tools.agent_simulator.agent_simulator_config import ToolSimulationConfig as _ADK_ToolSimulationConfig
-from google.adk.tools.agent_tool import AgentToolConfig as _ADK_AgentToolConfig
-from google.adk.tools.bigquery.bigquery_credentials import BigQueryCredentialsConfig as _ADK_BigQueryCredentialsConfig
-from google.adk.tools.bigquery.config import BigQueryToolConfig as _ADK_BigQueryToolConfig
-from google.adk.tools.bigtable.bigtable_credentials import BigtableCredentialsConfig as _ADK_BigtableCredentialsConfig
-from google.adk.tools.data_agent.config import DataAgentToolConfig as _ADK_DataAgentToolConfig
-from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig as _ADK_DataAgentCredentialsConfig
-from google.adk.tools.example_tool import ExampleToolConfig as _ADK_ExampleToolConfig
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolsetConfig as _ADK_McpToolsetConfig
-from google.adk.tools.pubsub.config import PubSubToolConfig as _ADK_PubSubToolConfig
-from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig as _ADK_PubSubCredentialsConfig
-from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig as _ADK_SpannerCredentialsConfig
-from google.adk.tools.tool_configs import BaseToolConfig as _ADK_BaseToolConfig
-from google.adk.tools.tool_configs import ToolArgsConfig as _ADK_ToolArgsConfig
-from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from typing import Literal
 
     from fastapi.openapi.models import APIKey, HTTPBase, HTTPBearer, OAuth2, OpenIdConnect
+    from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
+    from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
+    from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
+    from google.adk.agents.common_configs import ArgumentConfig as _ADK_ArgumentConfig
+    from google.adk.agents.common_configs import CodeConfig as _ADK_CodeConfig
+    from google.adk.agents.context_cache_config import ContextCacheConfig as _ADK_ContextCacheConfig
+    from google.adk.agents.llm_agent_config import LlmAgentConfig as _ADK_LlmAgentConfig
+    from google.adk.agents.loop_agent_config import LoopAgentConfig as _ADK_LoopAgentConfig
+    from google.adk.agents.parallel_agent_config import ParallelAgentConfig as _ADK_ParallelAgentConfig
+    from google.adk.agents.run_config import RunConfig as _ADK_RunConfig
     from google.adk.agents.run_config import StreamingMode
+    from google.adk.agents.run_config import ToolThreadPoolConfig as _ADK_ToolThreadPoolConfig
+    from google.adk.agents.sequential_agent_config import SequentialAgentConfig as _ADK_SequentialAgentConfig
+    from google.adk.apps.app import EventsCompactionConfig as _ADK_EventsCompactionConfig
+    from google.adk.apps.app import ResumabilityConfig as _ADK_ResumabilityConfig
     from google.adk.apps.base_events_summarizer import BaseEventsSummarizer
     from google.adk.auth.auth_credential import AuthCredential
     from google.adk.auth.auth_schemes import OpenIdConnectWithConfig
+    from google.adk.features._feature_registry import FeatureConfig as _ADK_FeatureConfig
+    from google.adk.flows.llm_flows.audio_cache_manager import AudioCacheConfig as _ADK_AudioCacheConfig
+    from google.adk.optimization.simple_prompt_optimizer import (
+        SimplePromptOptimizerConfig as _ADK_SimplePromptOptimizerConfig,
+    )
+    from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig as _ADK_BigQueryLoggerConfig
+    from google.adk.plugins.bigquery_agent_analytics_plugin import RetryConfig as _ADK_RetryConfig
+    from google.adk.sessions.base_session_service import GetSessionConfig as _ADK_GetSessionConfig
+    from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig as _ADK_BaseGoogleCredentialsConfig
+    from google.adk.tools.agent_simulator.agent_simulator_config import (
+        AgentSimulatorConfig as _ADK_AgentSimulatorConfig,
+    )
     from google.adk.tools.agent_simulator.agent_simulator_config import InjectedError, MockStrategy
+    from google.adk.tools.agent_simulator.agent_simulator_config import InjectionConfig as _ADK_InjectionConfig
+    from google.adk.tools.agent_simulator.agent_simulator_config import (
+        ToolSimulationConfig as _ADK_ToolSimulationConfig,
+    )
+    from google.adk.tools.agent_tool import AgentToolConfig as _ADK_AgentToolConfig
+    from google.adk.tools.bigquery.bigquery_credentials import (
+        BigQueryCredentialsConfig as _ADK_BigQueryCredentialsConfig,
+    )
+    from google.adk.tools.bigquery.config import BigQueryToolConfig as _ADK_BigQueryToolConfig
     from google.adk.tools.bigquery.config import WriteMode
+    from google.adk.tools.bigtable.bigtable_credentials import (
+        BigtableCredentialsConfig as _ADK_BigtableCredentialsConfig,
+    )
+    from google.adk.tools.data_agent.config import DataAgentToolConfig as _ADK_DataAgentToolConfig
+    from google.adk.tools.data_agent.credentials import DataAgentCredentialsConfig as _ADK_DataAgentCredentialsConfig
+    from google.adk.tools.example_tool import ExampleToolConfig as _ADK_ExampleToolConfig
     from google.adk.tools.mcp_tool.mcp_session_manager import (
         SseConnectionParams,
         StdioConnectionParams,
         StreamableHTTPConnectionParams,
     )
+    from google.adk.tools.mcp_tool.mcp_toolset import McpToolsetConfig as _ADK_McpToolsetConfig
+    from google.adk.tools.pubsub.config import PubSubToolConfig as _ADK_PubSubToolConfig
+    from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig as _ADK_PubSubCredentialsConfig
+    from google.adk.tools.spanner.spanner_credentials import SpannerCredentialsConfig as _ADK_SpannerCredentialsConfig
+    from google.adk.tools.tool_configs import BaseToolConfig as _ADK_BaseToolConfig
+    from google.adk.tools.tool_configs import ToolArgsConfig as _ADK_ToolArgsConfig
+    from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
     from google.auth.credentials import Credentials
     from google.genai.types import (
         AudioTranscriptionConfig,
@@ -86,7 +93,6 @@ class AgentConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_AgentConfig
 
     def __init__(self, root: str) -> None:
         self._config: dict[str, Any] = {"root": root}
@@ -96,6 +102,8 @@ class AgentConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentConfig:
         """The config for the YAML schema to create an agent. Resolve into a native ADK _ADK_AgentConfig."""
+        from google.adk.agents.agent_config import AgentConfig as _ADK_AgentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentConfig, config)
         return self._apply_native_hooks(result)
@@ -107,7 +115,6 @@ class BaseAgentConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BaseAgentConfig
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -172,6 +179,8 @@ class BaseAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_BaseAgentConfig:
         """The config for the YAML schema of a BaseAgent. Resolve into a native ADK _ADK_BaseAgentConfig."""
+        from google.adk.agents.base_agent_config import BaseAgentConfig as _ADK_BaseAgentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseAgentConfig, config)
         return self._apply_native_hooks(result)
@@ -183,7 +192,6 @@ class AgentRefConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_AgentRefConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -205,6 +213,8 @@ class AgentRefConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentRefConfig:
         """The config for the reference to another agent. Resolve into a native ADK _ADK_AgentRefConfig."""
+        from google.adk.agents.common_configs import AgentRefConfig as _ADK_AgentRefConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentRefConfig, config)
         return self._apply_native_hooks(result)
@@ -216,7 +226,6 @@ class ArgumentConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ArgumentConfig
 
     def __init__(self, value: str) -> None:
         self._config: dict[str, Any] = {"value": value}
@@ -232,6 +241,8 @@ class ArgumentConfig(BuilderBase):
 
     def build(self) -> _ADK_ArgumentConfig:
         """An argument passed to a function or a class's constructor. Resolve into a native ADK _ADK_ArgumentConfig."""
+        from google.adk.agents.common_configs import ArgumentConfig as _ADK_ArgumentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ArgumentConfig, config)
         return self._apply_native_hooks(result)
@@ -243,7 +254,6 @@ class CodeConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_CodeConfig
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -265,6 +275,8 @@ class CodeConfig(BuilderBase):
 
     def build(self) -> _ADK_CodeConfig:
         """Code reference config for a variable, a function, or a class. Resolve into a native ADK _ADK_CodeConfig."""
+        from google.adk.agents.common_configs import CodeConfig as _ADK_CodeConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_CodeConfig, config)
         return self._apply_native_hooks(result)
@@ -276,7 +288,6 @@ class ContextCacheConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ContextCacheConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -304,6 +315,8 @@ class ContextCacheConfig(BuilderBase):
 
     def build(self) -> _ADK_ContextCacheConfig:
         """Configuration for context caching across all agents in an app. Resolve into a native ADK _ADK_ContextCacheConfig."""
+        from google.adk.agents.context_cache_config import ContextCacheConfig as _ADK_ContextCacheConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ContextCacheConfig, config)
         return self._apply_native_hooks(result)
@@ -323,7 +336,6 @@ class LlmAgentConfig(BuilderBase):
     }
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_LlmAgentConfig
 
     def __init__(self, name: str, instruction: str) -> None:
         self._config: dict[str, Any] = {"name": name, "instruction": instruction}
@@ -614,6 +626,8 @@ class LlmAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_LlmAgentConfig:
         """The config for the YAML schema of a LlmAgent. Resolve into a native ADK _ADK_LlmAgentConfig."""
+        from google.adk.agents.llm_agent_config import LlmAgentConfig as _ADK_LlmAgentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LlmAgentConfig, config)
         return self._apply_native_hooks(result)
@@ -625,7 +639,6 @@ class LoopAgentConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_LoopAgentConfig
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -696,6 +709,8 @@ class LoopAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_LoopAgentConfig:
         """The config for the YAML schema of a LoopAgent. Resolve into a native ADK _ADK_LoopAgentConfig."""
+        from google.adk.agents.loop_agent_config import LoopAgentConfig as _ADK_LoopAgentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoopAgentConfig, config)
         return self._apply_native_hooks(result)
@@ -707,7 +722,6 @@ class ParallelAgentConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ParallelAgentConfig
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -772,6 +786,8 @@ class ParallelAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_ParallelAgentConfig:
         """The config for the YAML schema of a ParallelAgent. Resolve into a native ADK _ADK_ParallelAgentConfig."""
+        from google.adk.agents.parallel_agent_config import ParallelAgentConfig as _ADK_ParallelAgentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ParallelAgentConfig, config)
         return self._apply_native_hooks(result)
@@ -786,7 +802,6 @@ class RunConfig(BuilderBase):
     }
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_RunConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -898,6 +913,8 @@ class RunConfig(BuilderBase):
 
     def build(self) -> _ADK_RunConfig:
         """Configs for runtime behavior of agents. Resolve into a native ADK _ADK_RunConfig."""
+        from google.adk.agents.run_config import RunConfig as _ADK_RunConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RunConfig, config)
         return self._apply_native_hooks(result)
@@ -909,7 +926,6 @@ class ToolThreadPoolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ToolThreadPoolConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -925,6 +941,8 @@ class ToolThreadPoolConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolThreadPoolConfig:
         """Configuration for the tool thread pool executor. Resolve into a native ADK _ADK_ToolThreadPoolConfig."""
+        from google.adk.agents.run_config import ToolThreadPoolConfig as _ADK_ToolThreadPoolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ToolThreadPoolConfig, config)
         return self._apply_native_hooks(result)
@@ -936,7 +954,6 @@ class SequentialAgentConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_SequentialAgentConfig
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -1001,6 +1018,8 @@ class SequentialAgentConfig(BuilderBase):
 
     def build(self) -> _ADK_SequentialAgentConfig:
         """The config for the YAML schema of a SequentialAgent. Resolve into a native ADK _ADK_SequentialAgentConfig."""
+        from google.adk.agents.sequential_agent_config import SequentialAgentConfig as _ADK_SequentialAgentConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SequentialAgentConfig, config)
         return self._apply_native_hooks(result)
@@ -1012,7 +1031,6 @@ class EventsCompactionConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_EventsCompactionConfig
 
     def __init__(self, compaction_interval: str, overlap_size: str) -> None:
         self._config: dict[str, Any] = {"compaction_interval": compaction_interval, "overlap_size": overlap_size}
@@ -1040,6 +1058,8 @@ class EventsCompactionConfig(BuilderBase):
 
     def build(self) -> _ADK_EventsCompactionConfig:
         """The config of event compaction for an application. Resolve into a native ADK _ADK_EventsCompactionConfig."""
+        from google.adk.apps.app import EventsCompactionConfig as _ADK_EventsCompactionConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_EventsCompactionConfig, config)
         return self._apply_native_hooks(result)
@@ -1051,7 +1071,6 @@ class ResumabilityConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ResumabilityConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1067,6 +1086,8 @@ class ResumabilityConfig(BuilderBase):
 
     def build(self) -> _ADK_ResumabilityConfig:
         """The config of the resumability for an application. Resolve into a native ADK _ADK_ResumabilityConfig."""
+        from google.adk.apps.app import ResumabilityConfig as _ADK_ResumabilityConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ResumabilityConfig, config)
         return self._apply_native_hooks(result)
@@ -1094,6 +1115,8 @@ class FeatureConfig(BuilderBase):
 
     def build(self) -> _ADK_FeatureConfig:
         """Feature configuration. Resolve into a native ADK _ADK_FeatureConfig."""
+        from google.adk.features._feature_registry import FeatureConfig as _ADK_FeatureConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_FeatureConfig, config)
         return self._apply_native_hooks(result)
@@ -1133,6 +1156,8 @@ class AudioCacheConfig(BuilderBase):
 
     def build(self) -> _ADK_AudioCacheConfig:
         """Configuration for audio caching behavior. Resolve into a native ADK _ADK_AudioCacheConfig."""
+        from google.adk.flows.llm_flows.audio_cache_manager import AudioCacheConfig as _ADK_AudioCacheConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AudioCacheConfig, config)
         return self._apply_native_hooks(result)
@@ -1144,7 +1169,6 @@ class SimplePromptOptimizerConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"model_configure": "model_configuration"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_SimplePromptOptimizerConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1178,6 +1202,10 @@ class SimplePromptOptimizerConfig(BuilderBase):
 
     def build(self) -> _ADK_SimplePromptOptimizerConfig:
         """Configuration for the IterativePromptOptimizer. Resolve into a native ADK _ADK_SimplePromptOptimizerConfig."""
+        from google.adk.optimization.simple_prompt_optimizer import (
+            SimplePromptOptimizerConfig as _ADK_SimplePromptOptimizerConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SimplePromptOptimizerConfig, config)
         return self._apply_native_hooks(result)
@@ -1319,6 +1347,8 @@ class BigQueryLoggerConfig(BuilderBase):
 
     def build(self) -> _ADK_BigQueryLoggerConfig:
         """Configuration for the BigQueryAgentAnalyticsPlugin. Resolve into a native ADK _ADK_BigQueryLoggerConfig."""
+        from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig as _ADK_BigQueryLoggerConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigQueryLoggerConfig, config)
         return self._apply_native_hooks(result)
@@ -1364,6 +1394,8 @@ class RetryConfig(BuilderBase):
 
     def build(self) -> _ADK_RetryConfig:
         """Configuration for retrying failed BigQuery write operations. Resolve into a native ADK _ADK_RetryConfig."""
+        from google.adk.plugins.bigquery_agent_analytics_plugin import RetryConfig as _ADK_RetryConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RetryConfig, config)
         return self._apply_native_hooks(result)
@@ -1375,7 +1407,6 @@ class GetSessionConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_GetSessionConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1397,6 +1428,8 @@ class GetSessionConfig(BuilderBase):
 
     def build(self) -> _ADK_GetSessionConfig:
         """The configuration of getting a session. Resolve into a native ADK _ADK_GetSessionConfig."""
+        from google.adk.sessions.base_session_service import GetSessionConfig as _ADK_GetSessionConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GetSessionConfig, config)
         return self._apply_native_hooks(result)
@@ -1408,7 +1441,6 @@ class BaseGoogleCredentialsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BaseGoogleCredentialsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1448,6 +1480,8 @@ class BaseGoogleCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_BaseGoogleCredentialsConfig:
         """Base Google Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BaseGoogleCredentialsConfig."""
+        from google.adk.tools._google_credentials import BaseGoogleCredentialsConfig as _ADK_BaseGoogleCredentialsConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseGoogleCredentialsConfig, config)
         return self._apply_native_hooks(result)
@@ -1459,7 +1493,6 @@ class AgentSimulatorConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"simulation_model_configure": "simulation_model_configuration"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_AgentSimulatorConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1505,6 +1538,10 @@ class AgentSimulatorConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentSimulatorConfig:
         """Configuration for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorConfig."""
+        from google.adk.tools.agent_simulator.agent_simulator_config import (
+            AgentSimulatorConfig as _ADK_AgentSimulatorConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentSimulatorConfig, config)
         return self._apply_native_hooks(result)
@@ -1516,7 +1553,6 @@ class InjectionConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_InjectionConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1562,6 +1598,8 @@ class InjectionConfig(BuilderBase):
 
     def build(self) -> _ADK_InjectionConfig:
         """Injection configuration for a tool. Resolve into a native ADK _ADK_InjectionConfig."""
+        from google.adk.tools.agent_simulator.agent_simulator_config import InjectionConfig as _ADK_InjectionConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_InjectionConfig, config)
         return self._apply_native_hooks(result)
@@ -1573,7 +1611,6 @@ class ToolSimulationConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ToolSimulationConfig
 
     def __init__(self, tool_name: str) -> None:
         self._config: dict[str, Any] = {"tool_name": tool_name}
@@ -1601,6 +1638,10 @@ class ToolSimulationConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolSimulationConfig:
         """Simulation configuration for a single tool. Resolve into a native ADK _ADK_ToolSimulationConfig."""
+        from google.adk.tools.agent_simulator.agent_simulator_config import (
+            ToolSimulationConfig as _ADK_ToolSimulationConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ToolSimulationConfig, config)
         return self._apply_native_hooks(result)
@@ -1612,7 +1653,6 @@ class AgentToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"skip_summarizate": "skip_summarization"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_AgentToolConfig
 
     def __init__(self, agent: str) -> None:
         self._config: dict[str, Any] = {"agent": agent}
@@ -1634,6 +1674,8 @@ class AgentToolConfig(BuilderBase):
 
     def build(self) -> _ADK_AgentToolConfig:
         """The config for the AgentTool. Resolve into a native ADK _ADK_AgentToolConfig."""
+        from google.adk.tools.agent_tool import AgentToolConfig as _ADK_AgentToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentToolConfig, config)
         return self._apply_native_hooks(result)
@@ -1645,7 +1687,6 @@ class BigQueryCredentialsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BigQueryCredentialsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1685,6 +1726,10 @@ class BigQueryCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_BigQueryCredentialsConfig:
         """BigQuery Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigQueryCredentialsConfig."""
+        from google.adk.tools.bigquery.bigquery_credentials import (
+            BigQueryCredentialsConfig as _ADK_BigQueryCredentialsConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigQueryCredentialsConfig, config)
         return self._apply_native_hooks(result)
@@ -1696,7 +1741,6 @@ class BigQueryToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {"locate": "location"}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BigQueryToolConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1748,6 +1792,8 @@ class BigQueryToolConfig(BuilderBase):
 
     def build(self) -> _ADK_BigQueryToolConfig:
         """Configuration for BigQuery tools. Resolve into a native ADK _ADK_BigQueryToolConfig."""
+        from google.adk.tools.bigquery.config import BigQueryToolConfig as _ADK_BigQueryToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigQueryToolConfig, config)
         return self._apply_native_hooks(result)
@@ -1759,7 +1805,6 @@ class BigtableCredentialsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BigtableCredentialsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1799,6 +1844,10 @@ class BigtableCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_BigtableCredentialsConfig:
         """Bigtable Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_BigtableCredentialsConfig."""
+        from google.adk.tools.bigtable.bigtable_credentials import (
+            BigtableCredentialsConfig as _ADK_BigtableCredentialsConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigtableCredentialsConfig, config)
         return self._apply_native_hooks(result)
@@ -1810,7 +1859,6 @@ class DataAgentToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_DataAgentToolConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1826,6 +1874,8 @@ class DataAgentToolConfig(BuilderBase):
 
     def build(self) -> _ADK_DataAgentToolConfig:
         """Configuration for Data Agent tools. Resolve into a native ADK _ADK_DataAgentToolConfig."""
+        from google.adk.tools.data_agent.config import DataAgentToolConfig as _ADK_DataAgentToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DataAgentToolConfig, config)
         return self._apply_native_hooks(result)
@@ -1837,7 +1887,6 @@ class DataAgentCredentialsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_DataAgentCredentialsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1877,6 +1926,10 @@ class DataAgentCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_DataAgentCredentialsConfig:
         """Data Agent Credentials Configuration for Google API tools. Resolve into a native ADK _ADK_DataAgentCredentialsConfig."""
+        from google.adk.tools.data_agent.credentials import (
+            DataAgentCredentialsConfig as _ADK_DataAgentCredentialsConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DataAgentCredentialsConfig, config)
         return self._apply_native_hooks(result)
@@ -1888,7 +1941,6 @@ class ExampleToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ExampleToolConfig
 
     def __init__(self, examples: str) -> None:
         self._config: dict[str, Any] = {"examples": examples}
@@ -1898,6 +1950,8 @@ class ExampleToolConfig(BuilderBase):
 
     def build(self) -> _ADK_ExampleToolConfig:
         """Fluent builder for ExampleToolConfig. Resolve into a native ADK _ADK_ExampleToolConfig."""
+        from google.adk.tools.example_tool import ExampleToolConfig as _ADK_ExampleToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ExampleToolConfig, config)
         return self._apply_native_hooks(result)
@@ -1909,7 +1963,6 @@ class McpToolsetConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_McpToolsetConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -1975,6 +2028,8 @@ class McpToolsetConfig(BuilderBase):
 
     def build(self) -> _ADK_McpToolsetConfig:
         """The config for McpToolset. Resolve into a native ADK _ADK_McpToolsetConfig."""
+        from google.adk.tools.mcp_tool.mcp_toolset import McpToolsetConfig as _ADK_McpToolsetConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_McpToolsetConfig, config)
         return self._apply_native_hooks(result)
@@ -1986,7 +2041,6 @@ class PubSubToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_PubSubToolConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2002,6 +2056,8 @@ class PubSubToolConfig(BuilderBase):
 
     def build(self) -> _ADK_PubSubToolConfig:
         """Configuration for Pub/Sub tools. Resolve into a native ADK _ADK_PubSubToolConfig."""
+        from google.adk.tools.pubsub.config import PubSubToolConfig as _ADK_PubSubToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_PubSubToolConfig, config)
         return self._apply_native_hooks(result)
@@ -2013,7 +2069,6 @@ class PubSubCredentialsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_PubSubCredentialsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2053,6 +2108,8 @@ class PubSubCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_PubSubCredentialsConfig:
         """Pub/Sub Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_PubSubCredentialsConfig."""
+        from google.adk.tools.pubsub.pubsub_credentials import PubSubCredentialsConfig as _ADK_PubSubCredentialsConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_PubSubCredentialsConfig, config)
         return self._apply_native_hooks(result)
@@ -2064,7 +2121,6 @@ class SpannerCredentialsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_SpannerCredentialsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2104,6 +2160,10 @@ class SpannerCredentialsConfig(BuilderBase):
 
     def build(self) -> _ADK_SpannerCredentialsConfig:
         """Spanner Credentials Configuration for Google API tools (Experimental). Resolve into a native ADK _ADK_SpannerCredentialsConfig."""
+        from google.adk.tools.spanner.spanner_credentials import (
+            SpannerCredentialsConfig as _ADK_SpannerCredentialsConfig,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SpannerCredentialsConfig, config)
         return self._apply_native_hooks(result)
@@ -2115,7 +2175,6 @@ class BaseToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BaseToolConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2125,6 +2184,8 @@ class BaseToolConfig(BuilderBase):
 
     def build(self) -> _ADK_BaseToolConfig:
         """The base class for all tool configs. Resolve into a native ADK _ADK_BaseToolConfig."""
+        from google.adk.tools.tool_configs import BaseToolConfig as _ADK_BaseToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseToolConfig, config)
         return self._apply_native_hooks(result)
@@ -2136,7 +2197,6 @@ class ToolArgsConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ToolArgsConfig
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -2146,6 +2206,8 @@ class ToolArgsConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolArgsConfig:
         """Config to host free key-value pairs for the args in ToolConfig. Resolve into a native ADK _ADK_ToolArgsConfig."""
+        from google.adk.tools.tool_configs import ToolArgsConfig as _ADK_ToolArgsConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ToolArgsConfig, config)
         return self._apply_native_hooks(result)
@@ -2157,7 +2219,6 @@ class ToolConfig(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_ToolConfig
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -2173,6 +2234,8 @@ class ToolConfig(BuilderBase):
 
     def build(self) -> _ADK_ToolConfig:
         """The configuration for a tool. Resolve into a native ADK _ADK_ToolConfig."""
+        from google.adk.tools.tool_configs import ToolConfig as _ADK_ToolConfig
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ToolConfig, config)
         return self._apply_native_hooks(result)

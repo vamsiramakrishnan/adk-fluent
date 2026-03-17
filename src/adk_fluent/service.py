@@ -6,26 +6,30 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
-from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
-from google.adk.artifacts.gcs_artifact_service import GcsArtifactService as _ADK_GcsArtifactService
-from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService as _ADK_InMemoryArtifactService
-from google.adk.cli.utils.local_storage import PerAgentDatabaseSessionService as _ADK_PerAgentDatabaseSessionService
-from google.adk.memory.base_memory_service import BaseMemoryService as _ADK_BaseMemoryService
-from google.adk.memory.in_memory_memory_service import InMemoryMemoryService as _ADK_InMemoryMemoryService
-from google.adk.memory.vertex_ai_memory_bank_service import VertexAiMemoryBankService as _ADK_VertexAiMemoryBankService
-from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService as _ADK_VertexAiRagMemoryService
-from google.adk.sessions.base_session_service import BaseSessionService as _ADK_BaseSessionService
-from google.adk.sessions.database_session_service import DatabaseSessionService as _ADK_DatabaseSessionService
-from google.adk.sessions.in_memory_session_service import InMemorySessionService as _ADK_InMemorySessionService
-from google.adk.sessions.sqlite_session_service import SqliteSessionService as _ADK_SqliteSessionService
-from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService as _ADK_VertexAiSessionService
-from google.adk.tools._forwarding_artifact_service import ForwardingArtifactService as _ADK_ForwardingArtifactService
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
+    from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
+    from google.adk.artifacts.gcs_artifact_service import GcsArtifactService as _ADK_GcsArtifactService
+    from google.adk.artifacts.in_memory_artifact_service import InMemoryArtifactService as _ADK_InMemoryArtifactService
+    from google.adk.cli.utils.local_storage import PerAgentDatabaseSessionService as _ADK_PerAgentDatabaseSessionService
+    from google.adk.memory.base_memory_service import BaseMemoryService as _ADK_BaseMemoryService
+    from google.adk.memory.in_memory_memory_service import InMemoryMemoryService as _ADK_InMemoryMemoryService
+    from google.adk.memory.vertex_ai_memory_bank_service import (
+        VertexAiMemoryBankService as _ADK_VertexAiMemoryBankService,
+    )
+    from google.adk.memory.vertex_ai_rag_memory_service import VertexAiRagMemoryService as _ADK_VertexAiRagMemoryService
+    from google.adk.sessions.base_session_service import BaseSessionService as _ADK_BaseSessionService
+    from google.adk.sessions.database_session_service import DatabaseSessionService as _ADK_DatabaseSessionService
+    from google.adk.sessions.in_memory_session_service import InMemorySessionService as _ADK_InMemorySessionService
+    from google.adk.sessions.sqlite_session_service import SqliteSessionService as _ADK_SqliteSessionService
+    from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService as _ADK_VertexAiSessionService
+    from google.adk.tools._forwarding_artifact_service import (
+        ForwardingArtifactService as _ADK_ForwardingArtifactService,
+    )
 
 
 class BaseArtifactService(BuilderBase):
@@ -44,6 +48,8 @@ class BaseArtifactService(BuilderBase):
 
     def build(self) -> _ADK_BaseArtifactService:
         """Abstract base class for artifact services. Resolve into a native ADK _ADK_BaseArtifactService."""
+        from google.adk.artifacts.base_artifact_service import BaseArtifactService as _ADK_BaseArtifactService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseArtifactService, config)
         return self._apply_native_hooks(result)
@@ -65,6 +71,8 @@ class FileArtifactService(BuilderBase):
 
     def build(self) -> _ADK_FileArtifactService:
         """Stores filesystem-backed artifacts beneath a configurable root directory. Resolve into a native ADK _ADK_FileArtifactService."""
+        from google.adk.artifacts.file_artifact_service import FileArtifactService as _ADK_FileArtifactService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_FileArtifactService, config)
         return self._apply_native_hooks(result)
@@ -86,6 +94,8 @@ class GcsArtifactService(BuilderBase):
 
     def build(self) -> _ADK_GcsArtifactService:
         """An artifact service implementation using Google Cloud Storage (GCS). Resolve into a native ADK _ADK_GcsArtifactService."""
+        from google.adk.artifacts.gcs_artifact_service import GcsArtifactService as _ADK_GcsArtifactService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GcsArtifactService, config)
         return self._apply_native_hooks(result)
@@ -97,7 +107,6 @@ class InMemoryArtifactService(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_InMemoryArtifactService
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -113,6 +122,10 @@ class InMemoryArtifactService(BuilderBase):
 
     def build(self) -> _ADK_InMemoryArtifactService:
         """An in-memory implementation of the artifact service. Resolve into a native ADK _ADK_InMemoryArtifactService."""
+        from google.adk.artifacts.in_memory_artifact_service import (
+            InMemoryArtifactService as _ADK_InMemoryArtifactService,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_InMemoryArtifactService, config)
         return self._apply_native_hooks(result)
@@ -140,6 +153,10 @@ class PerAgentDatabaseSessionService(BuilderBase):
 
     def build(self) -> _ADK_PerAgentDatabaseSessionService:
         """Routes session storage to per-agent `.adk/session.db` files. Resolve into a native ADK _ADK_PerAgentDatabaseSessionService."""
+        from google.adk.cli.utils.local_storage import (
+            PerAgentDatabaseSessionService as _ADK_PerAgentDatabaseSessionService,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_PerAgentDatabaseSessionService, config)
         return self._apply_native_hooks(result)
@@ -161,6 +178,8 @@ class BaseMemoryService(BuilderBase):
 
     def build(self) -> _ADK_BaseMemoryService:
         """Base class for memory services. Resolve into a native ADK _ADK_BaseMemoryService."""
+        from google.adk.memory.base_memory_service import BaseMemoryService as _ADK_BaseMemoryService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseMemoryService, config)
         return self._apply_native_hooks(result)
@@ -182,6 +201,8 @@ class InMemoryMemoryService(BuilderBase):
 
     def build(self) -> _ADK_InMemoryMemoryService:
         """An in-memory memory service for prototyping purpose only. Resolve into a native ADK _ADK_InMemoryMemoryService."""
+        from google.adk.memory.in_memory_memory_service import InMemoryMemoryService as _ADK_InMemoryMemoryService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_InMemoryMemoryService, config)
         return self._apply_native_hooks(result)
@@ -227,6 +248,10 @@ class VertexAiMemoryBankService(BuilderBase):
 
     def build(self) -> _ADK_VertexAiMemoryBankService:
         """Implementation of the BaseMemoryService using Vertex AI Memory Bank. Resolve into a native ADK _ADK_VertexAiMemoryBankService."""
+        from google.adk.memory.vertex_ai_memory_bank_service import (
+            VertexAiMemoryBankService as _ADK_VertexAiMemoryBankService,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_VertexAiMemoryBankService, config)
         return self._apply_native_hooks(result)
@@ -266,6 +291,10 @@ class VertexAiRagMemoryService(BuilderBase):
 
     def build(self) -> _ADK_VertexAiRagMemoryService:
         """A memory service that uses Vertex AI RAG for storage and retrieval. Resolve into a native ADK _ADK_VertexAiRagMemoryService."""
+        from google.adk.memory.vertex_ai_rag_memory_service import (
+            VertexAiRagMemoryService as _ADK_VertexAiRagMemoryService,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_VertexAiRagMemoryService, config)
         return self._apply_native_hooks(result)
@@ -287,6 +316,8 @@ class BaseSessionService(BuilderBase):
 
     def build(self) -> _ADK_BaseSessionService:
         """Base class for session services. Resolve into a native ADK _ADK_BaseSessionService."""
+        from google.adk.sessions.base_session_service import BaseSessionService as _ADK_BaseSessionService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseSessionService, config)
         return self._apply_native_hooks(result)
@@ -308,6 +339,8 @@ class DatabaseSessionService(BuilderBase):
 
     def build(self) -> _ADK_DatabaseSessionService:
         """A session service that uses a database for storage. Resolve into a native ADK _ADK_DatabaseSessionService."""
+        from google.adk.sessions.database_session_service import DatabaseSessionService as _ADK_DatabaseSessionService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DatabaseSessionService, config)
         return self._apply_native_hooks(result)
@@ -329,6 +362,8 @@ class InMemorySessionService(BuilderBase):
 
     def build(self) -> _ADK_InMemorySessionService:
         """An in-memory implementation of the session service. Resolve into a native ADK _ADK_InMemorySessionService."""
+        from google.adk.sessions.in_memory_session_service import InMemorySessionService as _ADK_InMemorySessionService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_InMemorySessionService, config)
         return self._apply_native_hooks(result)
@@ -350,6 +385,8 @@ class SqliteSessionService(BuilderBase):
 
     def build(self) -> _ADK_SqliteSessionService:
         """A session service that uses an SQLite database for storage via aiosqlite. Resolve into a native ADK _ADK_SqliteSessionService."""
+        from google.adk.sessions.sqlite_session_service import SqliteSessionService as _ADK_SqliteSessionService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SqliteSessionService, config)
         return self._apply_native_hooks(result)
@@ -395,6 +432,8 @@ class VertexAiSessionService(BuilderBase):
 
     def build(self) -> _ADK_VertexAiSessionService:
         """Connects to the Vertex AI Agent Engine Session Service using Agent Engine SDK. Resolve into a native ADK _ADK_VertexAiSessionService."""
+        from google.adk.sessions.vertex_ai_session_service import VertexAiSessionService as _ADK_VertexAiSessionService
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_VertexAiSessionService, config)
         return self._apply_native_hooks(result)
@@ -416,6 +455,10 @@ class ForwardingArtifactService(BuilderBase):
 
     def build(self) -> _ADK_ForwardingArtifactService:
         """Artifact service that forwards to the parent tool context. Resolve into a native ADK _ADK_ForwardingArtifactService."""
+        from google.adk.tools._forwarding_artifact_service import (
+            ForwardingArtifactService as _ADK_ForwardingArtifactService,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ForwardingArtifactService, config)
         return self._apply_native_hooks(result)

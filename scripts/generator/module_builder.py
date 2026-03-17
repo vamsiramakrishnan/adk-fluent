@@ -13,6 +13,7 @@ from .imports import (
     TYPING_NAMES,
     adk_import_name,
     build_type_import_map,
+    gen_deferred_import_line,
     gen_optional_import,
     gen_runtime_imports,
 )
@@ -51,11 +52,10 @@ def specs_to_ir_module(specs: list[BuilderSpec], *, manifest: dict | None = None
     refs = collect_stub_type_refs(classes)
 
     # Build set of already-imported names
+    # ADK classes are deferred to build() time, but still need TYPE_CHECKING imports
+    # for type checkers to resolve return types.
     already_imported: set[str] = {"BuilderBase"}
     builder_names = {cls.name for cls in classes}
-    for spec in specs:
-        if not spec.is_composite and not spec.is_standalone:
-            already_imported.add(adk_import_name(spec))
 
     # Collect TYPE_CHECKING-guarded imports for type annotations
     tc_import_lines: list[str] = []
@@ -72,12 +72,25 @@ def specs_to_ir_module(specs: list[BuilderSpec], *, manifest: dict | None = None
     for module, names in sorted(typing_needed.items()):
         tc_import_lines.append(f"from {module} import {', '.join(sorted(names))}")
 
+    # Add deferred ADK imports to TYPE_CHECKING FIRST so pyright can resolve
+    # the return type annotations in build() methods. These use aliases
+    # (e.g. _ADK_BaseAgent) when the ADK class name collides with a builder name.
+    for spec in specs:
+        deferred_line = gen_deferred_import_line(spec)
+        if deferred_line:
+            import_name = adk_import_name(spec)
+            if import_name not in already_imported:
+                tc_import_lines.append(deferred_line)
+                already_imported.add(import_name)
+
     # 2. Domain type imports (ADK/genai types) from manifest
     if manifest:
         type_map = build_type_import_map(manifest)
         for name in sorted(refs):
             if name in already_imported:
                 continue
+            # Skip if this name collides with a builder class AND
+            # the aliased version is already imported
             if name in builder_names and f"_ADK_{name}" in already_imported:
                 continue
             if name in type_map:

@@ -6,31 +6,32 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
-from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
-from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
-from google.adk.plugins.bigquery_agent_analytics_plugin import (
-    BigQueryAgentAnalyticsPlugin as _ADK_BigQueryAgentAnalyticsPlugin,
-)
-from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
-from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
-from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
-from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
-from google.adk.plugins.multimodal_tool_results_plugin import (
-    MultimodalToolResultsPlugin as _ADK_MultimodalToolResultsPlugin,
-)
-from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin
-from google.adk.plugins.save_files_as_artifacts_plugin import (
-    SaveFilesAsArtifactsPlugin as _ADK_SaveFilesAsArtifactsPlugin,
-)
-from google.adk.tools.agent_simulator.agent_simulator_plugin import AgentSimulatorPlugin as _ADK_AgentSimulatorPlugin
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from google.adk.agents.llm_agent import InstructionProvider
+    from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
+    from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
+    from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
+    from google.adk.plugins.bigquery_agent_analytics_plugin import (
+        BigQueryAgentAnalyticsPlugin as _ADK_BigQueryAgentAnalyticsPlugin,
+    )
     from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig
+    from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
+    from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
+    from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
+    from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
+    from google.adk.plugins.multimodal_tool_results_plugin import (
+        MultimodalToolResultsPlugin as _ADK_MultimodalToolResultsPlugin,
+    )
+    from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin
     from google.adk.plugins.reflect_retry_tool_plugin import TrackingScope
+    from google.adk.plugins.save_files_as_artifacts_plugin import (
+        SaveFilesAsArtifactsPlugin as _ADK_SaveFilesAsArtifactsPlugin,
+    )
+    from google.adk.tools.agent_simulator.agent_simulator_plugin import (
+        AgentSimulatorPlugin as _ADK_AgentSimulatorPlugin,
+    )
     from google.genai.types import Content
 
 
@@ -56,6 +57,8 @@ class RecordingsPlugin(BuilderBase):
 
     def build(self) -> _ADK_RecordingsPlugin:
         """Plugin for recording ADK agent interactions. Resolve into a native ADK _ADK_RecordingsPlugin."""
+        from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RecordingsPlugin, config)
         return self._apply_native_hooks(result)
@@ -83,6 +86,8 @@ class ReplayPlugin(BuilderBase):
 
     def build(self) -> _ADK_ReplayPlugin:
         """Plugin for replaying ADK agent interactions from recordings. Resolve into a native ADK _ADK_ReplayPlugin."""
+        from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ReplayPlugin, config)
         return self._apply_native_hooks(result)
@@ -104,6 +109,8 @@ class BasePlugin(BuilderBase):
 
     def build(self) -> _ADK_BasePlugin:
         """Base class for creating plugins. Resolve into a native ADK _ADK_BasePlugin."""
+        from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BasePlugin, config)
         return self._apply_native_hooks(result)
@@ -143,6 +150,10 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
 
     def build(self) -> _ADK_BigQueryAgentAnalyticsPlugin:
         """BigQuery Agent Analytics Plugin (v2.0 using Write API). Resolve into a native ADK _ADK_BigQueryAgentAnalyticsPlugin."""
+        from google.adk.plugins.bigquery_agent_analytics_plugin import (
+            BigQueryAgentAnalyticsPlugin as _ADK_BigQueryAgentAnalyticsPlugin,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BigQueryAgentAnalyticsPlugin, config)
         return self._apply_native_hooks(result)
@@ -182,6 +193,8 @@ class ContextFilterPlugin(BuilderBase):
 
     def build(self) -> _ADK_ContextFilterPlugin:
         """A plugin that filters the LLM context to reduce its size. Resolve into a native ADK _ADK_ContextFilterPlugin."""
+        from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ContextFilterPlugin, config)
         return self._apply_native_hooks(result)
@@ -227,6 +240,8 @@ class DebugLoggingPlugin(BuilderBase):
 
     def build(self) -> _ADK_DebugLoggingPlugin:
         """A plugin that captures complete debug information to a file. Resolve into a native ADK _ADK_DebugLoggingPlugin."""
+        from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DebugLoggingPlugin, config)
         return self._apply_native_hooks(result)
@@ -260,6 +275,8 @@ class GlobalInstructionPlugin(BuilderBase):
 
     def build(self) -> _ADK_GlobalInstructionPlugin:
         """Plugin that provides global instructions functionality at the App level. Resolve into a native ADK _ADK_GlobalInstructionPlugin."""
+        from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GlobalInstructionPlugin, config)
         return self._apply_native_hooks(result)
@@ -287,6 +304,8 @@ class LoggingPlugin(BuilderBase):
 
     def build(self) -> _ADK_LoggingPlugin:
         """A plugin that logs important information at each callback point. Resolve into a native ADK _ADK_LoggingPlugin."""
+        from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoggingPlugin, config)
         return self._apply_native_hooks(result)
@@ -314,6 +333,10 @@ class MultimodalToolResultsPlugin(BuilderBase):
 
     def build(self) -> _ADK_MultimodalToolResultsPlugin:
         """A plugin that modifies function tool responses to support returning list of parts directly. Resolve into a native ADK _ADK_MultimodalToolResultsPlugin."""
+        from google.adk.plugins.multimodal_tool_results_plugin import (
+            MultimodalToolResultsPlugin as _ADK_MultimodalToolResultsPlugin,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_MultimodalToolResultsPlugin, config)
         return self._apply_native_hooks(result)
@@ -359,6 +382,10 @@ class ReflectAndRetryToolPlugin(BuilderBase):
 
     def build(self) -> _ADK_ReflectAndRetryToolPlugin:
         """Provides self-healing, concurrent-safe error recovery for tool failures. Resolve into a native ADK _ADK_ReflectAndRetryToolPlugin."""
+        from google.adk.plugins.reflect_retry_tool_plugin import (
+            ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ReflectAndRetryToolPlugin, config)
         return self._apply_native_hooks(result)
@@ -386,6 +413,10 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
 
     def build(self) -> _ADK_SaveFilesAsArtifactsPlugin:
         """A plugin that saves files embedded in user messages as artifacts. Resolve into a native ADK _ADK_SaveFilesAsArtifactsPlugin."""
+        from google.adk.plugins.save_files_as_artifacts_plugin import (
+            SaveFilesAsArtifactsPlugin as _ADK_SaveFilesAsArtifactsPlugin,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_SaveFilesAsArtifactsPlugin, config)
         return self._apply_native_hooks(result)
@@ -407,6 +438,10 @@ class AgentSimulatorPlugin(BuilderBase):
 
     def build(self) -> _ADK_AgentSimulatorPlugin:
         """ADK Plugin for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorPlugin."""
+        from google.adk.tools.agent_simulator.agent_simulator_plugin import (
+            AgentSimulatorPlugin as _ADK_AgentSimulatorPlugin,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentSimulatorPlugin, config)
         return self._apply_native_hooks(result)

@@ -3,7 +3,8 @@
 import pytest
 from pydantic import BaseModel
 
-from adk_fluent._base import BuilderBase, _FallbackBuilder, _UntilSpec, until
+from adk_fluent._base import BuilderBase, _UntilSpec, until
+from adk_fluent._primitive_builders import _FallbackBuilder
 from adk_fluent.agent import Agent
 from adk_fluent.workflow import FanOut, Loop, Pipeline
 
@@ -137,14 +138,14 @@ class TestRshiftCallable:
     def test_fn_step_builds_to_base_agent(self):
         from google.adk.agents.base_agent import BaseAgent
 
-        from adk_fluent._base import _fn_step
+        from adk_fluent._primitive_builders import _fn_step
 
         step = _fn_step(lambda s: {"x": 1})
         built = step.build()
         assert isinstance(built, BaseAgent)
 
     def test_fn_step_is_builder_base(self):
-        from adk_fluent._base import _fn_step
+        from adk_fluent._primitive_builders import _fn_step
 
         step = _fn_step(lambda s: {})
         assert isinstance(step, BuilderBase)

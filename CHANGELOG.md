@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-03-17
+
+### Added
+
+- **Lazy import loading**: `import adk_fluent` now loads 1 module instead of ~1,468. ADK dependencies are deferred to `build()` time, reducing import-time memory from ~181 MB to near zero
+- **`__init__.pyi` stub**: Generated type stub ensures pyright resolves all lazy exports correctly
+- **Import budget CI test**: `tests/test_import_budget.py` guards against import-time regressions (module count < 200, no `google.adk.agents` at import time)
+- **Subpackage shadow resolution**: `_fix_subpackage_shadows()` handles Python's auto-set of `parent.child = <module>` when a subpackage name matches an exported name (e.g. `compile`)
+
+### Changed
+
+- **`_base.py`**: Removed 37 primitive re-exports (`tap`, `gate`, `race`, `Route`, `Fallback`, etc.) that forced the full ADK import chain. Primitives now use deferred local imports in method bodies
+- **Generated builder modules**: ADK class imports moved from module-level to inside `build()` methods. TYPE\_CHECKING blocks provide type resolution for pyright
+- **`__init__.py`**: Replaced eager `from .module import Name` with `__getattr__`-based lazy loading and `_LAZY_IMPORTS` dict
+- **Generator pipeline**: `orchestrator.py`, `imports.py`, `ir_builders.py`, `module_builder.py` updated to emit deferred imports and lazy `__init__.py`
+
 ## [0.13.1] - 2026-03-16
 
 ### Fixed

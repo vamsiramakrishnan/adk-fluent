@@ -126,7 +126,7 @@ def map_reduce(
             items_key="topics",
         )
     """
-    from adk_fluent._base import map_over
+    from adk_fluent._primitive_builders import map_over
 
     return map_over(items_key, mapper, item_key=item_key, output_key=result_key) >> reducer
 

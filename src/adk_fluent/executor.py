@@ -4,17 +4,20 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import Any, Self
-
-from google.adk.code_executors.agent_engine_sandbox_code_executor import (
-    AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
-)
-from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
-from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
-from google.adk.code_executors.unsafe_local_code_executor import UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor
-from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
+from typing import TYPE_CHECKING, Any, Self
 
 from adk_fluent._base import BuilderBase
+
+if TYPE_CHECKING:
+    from google.adk.code_executors.agent_engine_sandbox_code_executor import (
+        AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
+    )
+    from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
+    from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
+    from google.adk.code_executors.unsafe_local_code_executor import (
+        UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor,
+    )
+    from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
 
 
 class AgentEngineSandboxCodeExecutor(BuilderBase):
@@ -23,7 +26,6 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_AgentEngineSandboxCodeExecutor
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -75,6 +77,10 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_AgentEngineSandboxCodeExecutor:
         """A code executor that uses Agent Engine Code Execution Sandbox to execute code. Resolve into a native ADK _ADK_AgentEngineSandboxCodeExecutor."""
+        from google.adk.code_executors.agent_engine_sandbox_code_executor import (
+            AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_AgentEngineSandboxCodeExecutor, config)
         return self._apply_native_hooks(result)
@@ -86,7 +92,6 @@ class BaseCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BaseCodeExecutor
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -132,6 +137,8 @@ class BaseCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_BaseCodeExecutor:
         """Abstract base class for all code executors. Resolve into a native ADK _ADK_BaseCodeExecutor."""
+        from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseCodeExecutor, config)
         return self._apply_native_hooks(result)
@@ -143,7 +150,6 @@ class BuiltInCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_BuiltInCodeExecutor
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -189,6 +195,8 @@ class BuiltInCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_BuiltInCodeExecutor:
         """A code executor that uses the Model's built-in code executor. Resolve into a native ADK _ADK_BuiltInCodeExecutor."""
+        from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BuiltInCodeExecutor, config)
         return self._apply_native_hooks(result)
@@ -200,7 +208,6 @@ class UnsafeLocalCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_UnsafeLocalCodeExecutor
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -246,6 +253,10 @@ class UnsafeLocalCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_UnsafeLocalCodeExecutor:
         """A code executor that unsafely execute code in the current local context. Resolve into a native ADK _ADK_UnsafeLocalCodeExecutor."""
+        from google.adk.code_executors.unsafe_local_code_executor import (
+            UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor,
+        )
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_UnsafeLocalCodeExecutor, config)
         return self._apply_native_hooks(result)
@@ -257,7 +268,6 @@ class VertexAiCodeExecutor(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = _ADK_VertexAiCodeExecutor
 
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
@@ -303,6 +313,8 @@ class VertexAiCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_VertexAiCodeExecutor:
         """A code executor that uses Vertex Code Interpreter Extension to execute code. Resolve into a native ADK _ADK_VertexAiCodeExecutor."""
+        from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
+
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_VertexAiCodeExecutor, config)
         return self._apply_native_hooks(result)

@@ -6,11 +6,10 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents import SequentialAgent
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
+    from google.adk.agents import SequentialAgent
     from google.adk.agents.base_agent import BaseAgent
 
 
@@ -20,7 +19,6 @@ class Pipeline(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _ADK_TARGET_CLASS = SequentialAgent
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -48,6 +46,8 @@ class Pipeline(BuilderBase):
 
     def build(self) -> SequentialAgent:
         """Run sub-agents sequentially. Resolve into a native ADK SequentialAgent."""
+        from google.adk.agents import SequentialAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(SequentialAgent, config)
         return self._apply_native_hooks(result)

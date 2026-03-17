@@ -10,7 +10,7 @@ __all__ = ["Route", "Fallback"]
 
 def _make_fallback_builder(children: list):
     """Create a _FallbackBuilder from a list of children."""
-    from adk_fluent._base import _FallbackBuilder
+    from adk_fluent._primitive_builders import _FallbackBuilder
 
     names = []
     for c in children:

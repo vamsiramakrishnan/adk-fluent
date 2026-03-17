@@ -190,7 +190,8 @@ class STransform:
             return _chain_transforms(self, other)
 
         # Agent/Pipeline/FanOut/Loop — wrap self as builder step, then >>
-        from adk_fluent._base import BuilderBase, _fn_step
+        from adk_fluent._base import BuilderBase
+        from adk_fluent._primitive_builders import _fn_step
         from adk_fluent._routing import Route
 
         if isinstance(other, BuilderBase | Route):

@@ -33,7 +33,7 @@ from code_ir import (
     split_at_commas,
 )
 
-from .imports import _is_optional_source, adk_import_name
+from .imports import _is_optional_source, adk_import_name, gen_deferred_import_line
 from .sig_parser import parse_signature
 from .spec import BuilderSpec
 
@@ -56,8 +56,9 @@ def ir_class_attrs(spec: BuilderSpec) -> list[ClassAttr]:
     attrs.append(ClassAttr("_ADDITIVE_FIELDS", "set[str]", additive_repr))
 
     if not spec.is_composite and not spec.is_standalone and spec.inspection_mode != "init_signature":
-        import_name = adk_import_name(spec)
-        attrs.append(ClassAttr("_ADK_TARGET_CLASS", "", import_name))
+        # ADK class is deferred — _ADK_TARGET_CLASS is None at class level.
+        # Typo detection falls back to _KNOWN_PARAMS when None.
+        pass
 
     if spec.inspection_mode == "init_signature" and spec.init_params:
         param_names = sorted(
@@ -499,6 +500,11 @@ def ir_build_method(spec: BuilderSpec) -> MethodNode | None:
     class_short = adk_import_name(spec)
 
     body: list = []
+
+    # Deferred ADK import: load the ADK class at build time, not import time
+    deferred_line = gen_deferred_import_line(spec)
+    if deferred_line:
+        body.append(RawStmt(deferred_line))
 
     # Guard against missing optional dependency at build time
     if _is_optional_source(spec.source_class):

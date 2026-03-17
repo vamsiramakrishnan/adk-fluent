@@ -15,7 +15,7 @@ from adk_fluent._ir import (
 
 
 def test_fn_step_to_ir():
-    from adk_fluent._base import _fn_step
+    from adk_fluent._primitive_builders import _fn_step
 
     fn = lambda s: {"x": 1}
     ir = _fn_step(fn).to_ir()
@@ -35,7 +35,7 @@ def test_tap_to_ir():
 
 def test_fallback_to_ir():
     from adk_fluent import Agent
-    from adk_fluent._base import _FallbackBuilder
+    from adk_fluent._primitive_builders import _FallbackBuilder
 
     a = Agent("a")
     b = Agent("b")
@@ -92,7 +92,7 @@ def test_route_to_ir():
 def test_nested_to_ir_recursion():
     """to_ir() should recursively convert child builders."""
     from adk_fluent import Agent
-    from adk_fluent._base import _FallbackBuilder
+    from adk_fluent._primitive_builders import _FallbackBuilder
 
     a = Agent("a")
     b = Agent("b")

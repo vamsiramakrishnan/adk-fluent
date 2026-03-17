@@ -69,7 +69,7 @@ def test_compile_loop_node(backend):
 
 
 def test_compile_transform_node(backend):
-    from adk_fluent._base import FnAgent
+    from adk_fluent._primitives import FnAgent
 
     fn = lambda s: {"x": 1}
     node = TransformNode(name="t", fn=fn)
@@ -79,7 +79,7 @@ def test_compile_transform_node(backend):
 
 
 def test_compile_tap_node(backend):
-    from adk_fluent._base import TapAgent
+    from adk_fluent._primitives import TapAgent
 
     fn = lambda s: None
     node = TapNode(name="tap", fn=fn)
@@ -124,7 +124,7 @@ def test_round_trip_builder_to_ir_to_adk(backend):
 
 
 def test_compile_fallback_node(backend):
-    from adk_fluent._base import FallbackAgent
+    from adk_fluent._primitives import FallbackAgent
 
     children = (AgentNode(name="primary"), AgentNode(name="backup"))
     node = FallbackNode(name="fb", children=children)
@@ -135,8 +135,8 @@ def test_compile_fallback_node(backend):
 
 
 def test_compile_gate_node(backend):
-    from adk_fluent._base import GateAgent
     from adk_fluent._ir import GateNode
+    from adk_fluent._primitives import GateAgent
 
     pred = lambda s: s.get("risk") == "high"
     node = GateNode(name="gate", predicate=pred, message="Approve?", gate_key="_gate")
@@ -146,8 +146,8 @@ def test_compile_gate_node(backend):
 
 
 def test_compile_mapover_node(backend):
-    from adk_fluent._base import MapOverAgent
     from adk_fluent._ir import MapOverNode
+    from adk_fluent._primitives import MapOverAgent
 
     body = AgentNode(name="summarizer")
     node = MapOverNode(name="mapper", list_key="items", body=body, item_key="_item", output_key="results")
@@ -157,8 +157,8 @@ def test_compile_mapover_node(backend):
 
 
 def test_compile_timeout_node(backend):
-    from adk_fluent._base import TimeoutAgent
     from adk_fluent._ir import TimeoutNode
+    from adk_fluent._primitives import TimeoutAgent
 
     body = AgentNode(name="slow")
     node = TimeoutNode(name="timed", body=body, seconds=30.0)
@@ -168,8 +168,8 @@ def test_compile_timeout_node(backend):
 
 
 def test_compile_race_node(backend):
-    from adk_fluent._base import RaceAgent
     from adk_fluent._ir import RaceNode
+    from adk_fluent._primitives import RaceAgent
 
     children = (AgentNode(name="fast"), AgentNode(name="slow"))
     node = RaceNode(name="racer", children=children)

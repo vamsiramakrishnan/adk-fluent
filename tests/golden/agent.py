@@ -6,11 +6,10 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
-from google.adk.agents import LlmAgent
-
 from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
+    from google.adk.agents import LlmAgent
     from google.adk.agents.base_agent import BaseAgent
     from google.adk.tools.base_tool import BaseTool
 
@@ -21,7 +20,6 @@ class Agent(BuilderBase):
     _ALIASES: dict[str, str] = {"describe": "description", "instruct": "instruction"}
     _CALLBACK_ALIASES: dict[str, str] = {"before_model": "before_model_callback"}
     _ADDITIVE_FIELDS: set[str] = {"before_model_callback"}
-    _ADK_TARGET_CLASS = LlmAgent
 
     def __init__(self, name: str) -> None:
         self._config: dict[str, Any] = {"name": name}
@@ -87,6 +85,8 @@ class Agent(BuilderBase):
 
     def build(self) -> LlmAgent:
         """An agent powered by a large language model. Resolve into a native ADK LlmAgent."""
+        from google.adk.agents import LlmAgent
+
         config = self._prepare_build_config()
         result = self._safe_build(LlmAgent, config)
         return self._apply_native_hooks(result)

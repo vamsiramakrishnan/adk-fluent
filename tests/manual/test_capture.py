@@ -3,8 +3,9 @@
 import pytest
 
 from adk_fluent import Agent, S
-from adk_fluent._base import CaptureAgent, _CaptureBuilder
 from adk_fluent._ir import CaptureNode, Node
+from adk_fluent._primitive_builders import _CaptureBuilder
+from adk_fluent._primitives import CaptureAgent
 from adk_fluent._transforms import StateDelta
 from adk_fluent.backends.adk import ADKBackend
 from adk_fluent.workflow import Pipeline
@@ -88,7 +89,7 @@ class TestCaptureBuilder:
         assert node.key == "query"
 
     def test_fn_step_detects_capture_key(self):
-        from adk_fluent._base import _fn_step
+        from adk_fluent._primitive_builders import _fn_step
 
         fn = S.capture("user_input")
         builder = _fn_step(fn)
