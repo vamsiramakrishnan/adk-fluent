@@ -9,6 +9,8 @@ warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated",
 warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=PendingDeprecationWarning)
 
 project = "adk-fluent"
+version = "0.13.2"
+release = "0.13.2"
 copyright = "2025, adk-fluent contributors"
 author = "adk-fluent contributors"
 
@@ -56,13 +58,13 @@ mermaid_init_config = {
     "startOnLoad": False,
     "theme": "base",
     "themeVariables": {
-        "primaryColor": "#eef2ff",
-        "primaryTextColor": "#1e293b",
-        "primaryBorderColor": "#4f46e5",
-        "lineColor": "#64748b",
-        "secondaryColor": "#f0f9ff",
+        "primaryColor": "#FFF3E0",
+        "primaryTextColor": "#1A1A1A",
+        "primaryBorderColor": "#E65100",
+        "lineColor": "#757575",
+        "secondaryColor": "#FFF8E1",
         "tertiaryColor": "#ecfdf5",
-        "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+        "fontFamily": "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif",
         "fontSize": "14px",
     },
 }
@@ -92,11 +94,11 @@ html_theme_options = {
     "source_branch": "master",
     "source_directory": "docs/",
     "announcement": (
-        "adk-fluent is in active development &mdash; "
+        "adk-fluent v0.13.2 is out &mdash; "
         '<a href="https://pypi.org/project/adk-fluent/">Install from PyPI</a> '
         'or <a href="https://github.com/vamsiramakrishnan/adk-fluent">star on GitHub</a>'
     ),
-    "sidebar_hide_name": True,
+    "sidebar_hide_name": False,
     "navigation_with_keys": True,
     "footer_icons": [
         {
@@ -113,29 +115,41 @@ html_theme_options = {
         },
     ],
     "light_css_variables": {
-        "color-brand-primary": "#4f46e5",
-        "color-brand-content": "#4338ca",
-        "font-stack": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-        "font-stack--monospace": "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace",
-        "font-stack--headings": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+        "color-brand-primary": "#E65100",
+        "color-brand-content": "#D84315",
+        "color-admonition-background": "#FFF3E0",
+        "font-stack": "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+        "font-stack--monospace": "'IBM Plex Mono', 'SFMono-Regular', Consolas, ui-monospace, monospace",
+        "font-stack--headings": "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
         "font-size--normal": "15px",
         "font-size--small": "13px",
         "font-size--small--2": "12px",
         "content-padding": "3.5em",
         "sidebar-width": "17rem",
         "sidebar-width--mobile": "80vw",
-        "color-background-primary": "#ffffff",
-        "color-background-secondary": "#f8fafc",
-        "color-background-border": "#e2e8f0",
+        "color-background-primary": "#FFFFFF",
+        "color-background-secondary": "#FAFAFA",
+        "color-background-border": "#E0E0E0",
+        "color-foreground-primary": "#1A1A1A",
+        "color-foreground-secondary": "#424242",
+        "color-sidebar-background": "#FAFAFA",
+        "color-sidebar-link-text--top-level": "#1A1A1A",
+        "color-highlighted-background": "#FFF8E1",
+        "color-code-background": "#F5F5F5",
     },
     "dark_css_variables": {
-        "color-brand-primary": "#818cf8",
-        "color-brand-content": "#6366f1",
-        "color-background-primary": "#0c1222",
-        "color-background-secondary": "#151f35",
-        "color-background-border": "#1c2b47",
-        "color-foreground-secondary": "#94a3b8",
-        "color-foreground-muted": "#64748b",
+        "color-brand-primary": "#FFB74D",
+        "color-brand-content": "#FFCC80",
+        "color-admonition-background": "#2E2E2E",
+        "color-background-primary": "#171717",
+        "color-background-secondary": "#1E1E1E",
+        "color-background-border": "#333333",
+        "color-foreground-primary": "#E0E0E0",
+        "color-foreground-secondary": "#BDBDBD",
+        "color-foreground-muted": "#9E9E9E",
+        "color-sidebar-background": "#1A1A1A",
+        "color-highlighted-background": "#2E2200",
+        "color-code-background": "#1E1E1E",
     },
     "top_of_page_buttons": ["view", "edit"],
 }
@@ -144,19 +158,19 @@ html_favicon = "_static/favicon.svg"
 html_logo = "_static/logo.svg"
 html_baseurl = "https://vamsiramakrishnan.github.io/adk-fluent/"
 
-pygments_style = "github-light"
-pygments_dark_style = "one-dark"
+pygments_style = "friendly"
+pygments_dark_style = "monokai"
 
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d+\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
 
 html_static_path = ["_static"]
 html_css_files = [
-    # Load Inter and JetBrains Mono from Google Fonts CDN
+    # Load IBM Plex Sans and IBM Plex Mono from Google Fonts CDN
     (
         "https://fonts.googleapis.com/css2?"
-        "family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900"
-        "&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800"
+        "family=IBM+Plex+Sans:wght@400;500;600;700"
+        "&family=IBM+Plex+Mono:wght@400;500;600"
         "&display=swap"
     ),
     "custom.css",

@@ -557,18 +557,6 @@ How to compose agents into a sequential pipeline.
 
 How to compose agents into a sequential pipeline.
 ```
-```{grid-item-card} Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
-:link: 27_delegate_pattern
-:link-type: doc
-
-How to delegate tasks between agents.
-```
-```{grid-item-card} Retry If: API Integration Agent That Retries on Transient Failures
-:link: 38_retry_if
-:link-type: doc
-
-How to use retry if: api integration agent that retries on transient failures with the fluent API.
-```
 ````
 
 ```{toctree}
@@ -597,8 +585,6 @@ How to use retry if: api integration agent that retries on transient failures wi
 41_gate_approval
 42_race
 43_primitives_showcase
-27_delegate_pattern
-38_retry_if
 ```
 
 ## v4 Features
