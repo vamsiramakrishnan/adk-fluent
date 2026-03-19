@@ -403,7 +403,7 @@ Consider this a last resort if Mechanisms 1-3 are insufficient.
 
 **What:** File a feature request / RFC with the google-adk team proposing:
 
-```toml
+```text
 # Proposed google-adk extras
 [project.optional-dependencies]
 bigquery = ["google-cloud-bigquery", "google-cloud-bigquery-storage", "pyarrow"]
