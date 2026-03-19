@@ -218,12 +218,6 @@ How to attach guardrails to agent model calls.
 
 How to manage interactive sessions with agents.
 ```
-```{grid-item-card} Medical Advice Safety Guards -- Guards with .guard()
-:link: 12_guardrails
-:link-type: doc
-
-How to attach guardrails to agent model calls.
-```
 ````
 
 ```{toctree}
@@ -235,7 +229,6 @@ How to attach guardrails to agent model calls.
 11_inline_testing
 12_guards
 13_interactive_session
-12_guardrails
 ```
 
 ## Advanced

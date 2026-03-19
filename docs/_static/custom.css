@@ -2134,3 +2134,51 @@ input:focus-visible,
   text-decoration: none;
   opacity: 0.85;
 }
+
+
+/* ==========================================================================
+   31. VERSION INDICATOR
+   ========================================================================== */
+
+.sidebar-brand-text {
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   32. FEATURE CARDS (landing page inline HTML)
+   ========================================================================== */
+
+/* Hover lift for the inline feature cards on the landing page */
+.content div[style*="grid-template-columns"] > div:hover {
+  border-color: var(--adk-accent-light) !important;
+  box-shadow: var(--adk-shadow-lg), var(--adk-shadow-glow);
+  transform: translateY(-3px);
+}
+
+/* Octicon icons in grid cards (sphinx-design) */
+.sd-card .sd-card-title .sd-octicon {
+  color: var(--adk-accent);
+  vertical-align: middle;
+}
+
+
+/* ==========================================================================
+   33. LANDING PAGE FOOTER LINKS
+   ========================================================================== */
+
+.content hr + p {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--adk-text-muted);
+}
+
+.content hr + p a {
+  color: var(--adk-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.content hr + p a:hover {
+  text-decoration: underline;
+}

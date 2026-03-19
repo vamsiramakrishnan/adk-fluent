@@ -6,7 +6,7 @@
 <title>adk-fluent · Data Flow Reference</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a0f;
@@ -33,17 +33,17 @@
     --storage-bg: #10b98115;
     --storage-border: #10b98140;
 
-    --contract-color: #a78bfa;
-    --contract-bg: #a78bfa15;
-    --contract-border: #a78bfa40;
+    --contract-color: #FFB74D;
+    --contract-bg: #FFB74D15;
+    --contract-border: #FFB74D40;
 
-    --brand: #818cf8;
+    --brand: #FFB74D;
     --nav-bg: rgba(10, 10, 15, 0.85);
     --code-bg: #12121a;
     --shadow-hover: rgba(0, 0, 0, 0.4);
 
     --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -456,14 +456,14 @@
     --text: #334155;
     --text-dim: #64748b;
     --text-bright: #0f172a;
-    --brand: #4f46e5;
+    --brand: #E65100;
     --nav-bg: rgba(255, 255, 255, 0.85);
     --code-bg: #f8fafc;
     --shadow-hover: rgba(0, 0, 0, 0.08);
   }
 
   :root[data-theme="dark"], :root:not([data-theme]) {
-    --brand: #818cf8;
+    --brand: #FFB74D;
     --nav-bg: rgba(10, 10, 15, 0.85);
     --code-bg: #12121a;
     --shadow-hover: rgba(0, 0, 0, 0.4);
@@ -478,7 +478,7 @@
       --text: #334155;
       --text-dim: #64748b;
       --text-bright: #0f172a;
-      --brand: #4f46e5;
+      --brand: #E65100;
       --nav-bg: rgba(255, 255, 255, 0.85);
       --code-bg: #f8fafc;
       --shadow-hover: rgba(0, 0, 0, 0.08);
@@ -769,7 +769,7 @@
       <div class="legend-item"><div class="legend-swatch" style="background:#f59e0b"></div>Input</div>
       <div class="legend-item"><div class="legend-swatch" style="background:#e94560"></div>Output</div>
       <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Storage</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#a78bfa"></div>Contract</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#FFB74D"></div>Contract</div>
     </div>
 
     <div class="svg-container">
@@ -841,8 +841,8 @@
         <text x="885" y="133" text-anchor="middle" fill="#8888a0" font-family="JetBrains Mono, monospace" font-size="10">state[key] = resp</text>
 
         <!-- .produces / .consumes annotations (floating) -->
-        <rect x="340" y="195" width="280" height="46" rx="8" fill="#a78bfa12" stroke="#a78bfa35" stroke-width="1" stroke-dasharray="4,3"/>
-        <text x="480" y="215" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="10">.produces(Schema)  .consumes(Schema)</text>
+        <rect x="340" y="195" width="280" height="46" rx="8" fill="#FFB74D12" stroke="#FFB74D35" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="480" y="215" text-anchor="middle" fill="#FFB74D" font-family="JetBrains Mono, monospace" font-size="10">.produces(Schema)  .consumes(Schema)</text>
         <text x="480" y="232" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="9">static annotations only &mdash; no runtime effect</text>
       </svg>
     </div>
@@ -999,8 +999,8 @@
         <text x="230" y="476" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">validate AgentTool input</text>
 
         <!-- Answer: .produces / .consumes -->
-        <rect x="470" y="448" width="260" height="52" rx="10" fill="#a78bfa12" stroke="#a78bfa35" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <text x="600" y="470" text-anchor="middle" fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">.produces()  /  .consumes()</text>
+        <rect x="470" y="448" width="260" height="52" rx="10" fill="#FFB74D12" stroke="#FFB74D35" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="600" y="470" text-anchor="middle" fill="#FFB74D" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">.produces()  /  .consumes()</text>
         <text x="600" y="489" text-anchor="middle" fill="#8888a0" font-family="Inter, sans-serif" font-size="10">documentation annotations only</text>
       </svg>
     </div>

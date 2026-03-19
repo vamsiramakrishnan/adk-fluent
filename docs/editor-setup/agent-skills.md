@@ -353,8 +353,8 @@ graph TD
     CR --> |on-demand references| Agent
     CS --> |runnable checks| Agent
 
-    style SG fill:#4f46e5,color:#fff
-    style SK1 fill:#7c3aed,color:#fff
+    style SG fill:#E65100,color:#fff
+    style SK1 fill:#F57C00,color:#fff
     style Agent fill:#059669,color:#fff
     style PUB fill:#d97706,color:#fff
 ```
