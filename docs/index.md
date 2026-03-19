@@ -211,19 +211,16 @@ gutter: 3
 :link-type: doc
 Install and build your first agent in 5 minutes.
 ```
-
 ```{grid-item-card} {octicon}`book;1.5em;sd-text-warning` User Guide
 :link: user-guide/index
 :link-type: doc
 Builders, operators, context engineering, prompts, callbacks, middleware.
 ```
-
 ```{grid-item-card} {octicon}`code-square;1.5em;sd-text-warning` API Reference
 :link: generated/api/index
 :link-type: doc
 Complete reference for all 135 builders.
 ```
-
 ```{grid-item-card} {octicon}`beaker;1.5em;sd-text-warning` Cookbook
 :link: cookbook/index
 :link-type: doc
@@ -328,6 +325,14 @@ research/dx-appendix-c-scaffolding-codegen
 research/dx-appendix-d-local-dev-infra
 research/dx-appendix-e-adk-web-lessons
 research/tech-debt-audit
+```
+
+```{toctree}
+---
+maxdepth: 1
+caption: Reports
+---
+reports/dependency-bloat-analysis
 ```
 
 ```{toctree}
