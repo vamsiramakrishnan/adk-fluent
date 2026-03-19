@@ -202,31 +202,31 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 
 ## Quick Navigation
 
-````{grid} 1 2 2 4
+::::::{grid} 1 2 2 4
 ---
 gutter: 3
 ---
-```{grid-item-card} {octicon}`rocket;1.5em;sd-text-warning` Getting Started
+:::{grid-item-card} {octicon}`rocket;1.5em;sd-text-warning` Getting Started
 :link: getting-started
 :link-type: doc
 Install and build your first agent in 5 minutes.
-```
-```{grid-item-card} {octicon}`book;1.5em;sd-text-warning` User Guide
+:::
+:::{grid-item-card} {octicon}`book;1.5em;sd-text-warning` User Guide
 :link: user-guide/index
 :link-type: doc
 Builders, operators, context engineering, prompts, callbacks, middleware.
-```
-```{grid-item-card} {octicon}`code-square;1.5em;sd-text-warning` API Reference
+:::
+:::{grid-item-card} {octicon}`code-square;1.5em;sd-text-warning` API Reference
 :link: generated/api/index
 :link-type: doc
 Complete reference for all 135 builders.
-```
-```{grid-item-card} {octicon}`beaker;1.5em;sd-text-warning` Cookbook
+:::
+:::{grid-item-card} {octicon}`beaker;1.5em;sd-text-warning` Cookbook
 :link: cookbook/index
 :link-type: doc
 74 recipes from fundamentals to hero workflows.
-```
-````
+:::
+::::
 
 ## Common Starting Points
 
