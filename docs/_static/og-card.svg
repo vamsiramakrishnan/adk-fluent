@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0b1120"/>
-      <stop offset="50%" stop-color="#131c31"/>
-      <stop offset="100%" stop-color="#0b1120"/>
+      <stop offset="0%" stop-color="#1A1A1A"/>
+      <stop offset="50%" stop-color="#212121"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
     </linearGradient>
     <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#4f46e5"/>
-      <stop offset="50%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#a855f7"/>
+      <stop offset="0%" stop-color="#E65100"/>
+      <stop offset="50%" stop-color="#F57C00"/>
+      <stop offset="100%" stop-color="#FFB74D"/>
     </linearGradient>
     <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.05"/>
+      <stop offset="0%" stop-color="#E65100" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#FFB74D" stop-opacity="0.05"/>
     </linearGradient>
   </defs>
 
@@ -21,7 +21,7 @@
 
   <!-- Subtle grid -->
   <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e2d4a" stroke-width="0.5" opacity="0.4"/>
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#333333" stroke-width="0.5" opacity="0.4"/>
   </pattern>
   <rect width="1200" height="630" fill="url(#grid)"/>
 
@@ -30,12 +30,12 @@
 
   <!-- Flow arrows decoration -->
   <g opacity="0.12">
-    <path d="M100 500 Q200 450 300 500 Q400 550 500 500" stroke="#4f46e5" stroke-width="2" fill="none"/>
-    <path d="M700 130 Q800 80 900 130 Q1000 180 1100 130" stroke="#a855f7" stroke-width="2" fill="none"/>
-    <circle cx="150" cy="480" r="4" fill="#4f46e5"/>
-    <circle cx="350" cy="520" r="4" fill="#7c3aed"/>
-    <circle cx="850" cy="100" r="4" fill="#a855f7"/>
-    <circle cx="1050" cy="140" r="4" fill="#7c3aed"/>
+    <path d="M100 500 Q200 450 300 500 Q400 550 500 500" stroke="#E65100" stroke-width="2" fill="none"/>
+    <path d="M700 130 Q800 80 900 130 Q1000 180 1100 130" stroke="#FFB74D" stroke-width="2" fill="none"/>
+    <circle cx="150" cy="480" r="4" fill="#E65100"/>
+    <circle cx="350" cy="520" r="4" fill="#F57C00"/>
+    <circle cx="850" cy="100" r="4" fill="#FFB74D"/>
+    <circle cx="1050" cy="140" r="4" fill="#F57C00"/>
   </g>
 
   <!-- Logo mark -->
@@ -46,28 +46,28 @@
   </g>
 
   <!-- Title -->
-  <text x="600" y="360" text-anchor="middle" font-family="Inter, -apple-system, system-ui, sans-serif" font-size="64" font-weight="800" fill="url(#brand)">adk-fluent</text>
+  <text x="600" y="360" text-anchor="middle" font-family="'IBM Plex Sans', -apple-system, system-ui, sans-serif" font-size="64" font-weight="800" fill="url(#brand)">adk-fluent</text>
 
   <!-- Tagline -->
-  <text x="600" y="410" text-anchor="middle" font-family="Inter, -apple-system, system-ui, sans-serif" font-size="22" fill="#94a3b8" font-weight="400">The fluent builder API for Google's Agent Development Kit</text>
+  <text x="600" y="410" text-anchor="middle" font-family="'IBM Plex Sans', -apple-system, system-ui, sans-serif" font-size="22" fill="#9E9E9E" font-weight="400">The fluent builder API for Google's Agent Development Kit</text>
 
   <!-- Stats bar -->
   <g transform="translate(300, 460)">
     <g>
-      <text x="0" y="0" font-family="Inter, sans-serif" font-size="36" font-weight="800" fill="#818cf8">132</text>
-      <text x="0" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#64748b" letter-spacing="0.1em">BUILDERS</text>
+      <text x="0" y="0" font-family="'IBM Plex Sans', sans-serif" font-size="36" font-weight="800" fill="#FFB74D">135</text>
+      <text x="0" y="24" font-family="'IBM Plex Sans', sans-serif" font-size="12" font-weight="600" fill="#757575" letter-spacing="0.1em">BUILDERS</text>
     </g>
     <g transform="translate(170, 0)">
-      <text x="0" y="0" font-family="Inter, sans-serif" font-size="36" font-weight="800" fill="#818cf8">9</text>
-      <text x="0" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#64748b" letter-spacing="0.1em">MODULES</text>
+      <text x="0" y="0" font-family="'IBM Plex Sans', sans-serif" font-size="36" font-weight="800" fill="#FFB74D">9</text>
+      <text x="0" y="24" font-family="'IBM Plex Sans', sans-serif" font-size="12" font-weight="600" fill="#757575" letter-spacing="0.1em">MODULES</text>
     </g>
     <g transform="translate(300, 0)">
-      <text x="0" y="0" font-family="Inter, sans-serif" font-size="36" font-weight="800" fill="#818cf8">67</text>
-      <text x="0" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#64748b" letter-spacing="0.1em">RECIPES</text>
+      <text x="0" y="0" font-family="'IBM Plex Sans', sans-serif" font-size="36" font-weight="800" fill="#FFB74D">74</text>
+      <text x="0" y="24" font-family="'IBM Plex Sans', sans-serif" font-size="12" font-weight="600" fill="#757575" letter-spacing="0.1em">RECIPES</text>
     </g>
     <g transform="translate(440, 0)">
-      <text x="0" y="0" font-family="Inter, sans-serif" font-size="36" font-weight="800" fill="#818cf8">100%</text>
-      <text x="0" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="600" fill="#64748b" letter-spacing="0.1em">NATIVE ADK</text>
+      <text x="0" y="0" font-family="'IBM Plex Sans', sans-serif" font-size="36" font-weight="800" fill="#FFB74D">100%</text>
+      <text x="0" y="24" font-family="'IBM Plex Sans', sans-serif" font-size="12" font-weight="600" fill="#757575" letter-spacing="0.1em">NATIVE ADK</text>
     </g>
   </g>
 

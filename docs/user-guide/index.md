@@ -149,8 +149,8 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <line x1="4" y1="16" x2="44" y2="16" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
         <line x1="4" y1="24" x2="44" y2="24" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
         <line x1="4" y1="32" x2="44" y2="32" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-        <circle cx="12" cy="20" r="3" fill="#6366f1"/>
-        <rect x="18" y="18" width="16" height="4" rx="2" fill="#6366f1" opacity="0.3"/>
+        <circle cx="12" cy="20" r="3" fill="#E65100"/>
+        <rect x="18" y="18" width="16" height="4" rx="2" fill="#E65100" opacity="0.3"/>
         <circle cx="12" cy="28" r="3" fill="#0ea5e9"/>
         <rect x="18" y="26" width="12" height="4" rx="2" fill="#0ea5e9" opacity="0.3"/>
         <circle cx="12" cy="36" r="3" fill="#10b981"/>
@@ -161,7 +161,7 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
       <h4><a href="../module-lifecycle-reference.html" target="_blank" rel="noopener">Module Lifecycle Reference ↗</a></h4>
       <p>Where each module (S, C, P, A, M, T, E, G) fires during execution. Swim-lane timeline, interaction grid, and step-through walkthrough.</p>
       <div class="visual-ref-tags">
-        <span class="vr-tag" style="--tag-color: #6366f1">BUILD</span>
+        <span class="vr-tag" style="--tag-color: #E65100">BUILD</span>
         <span class="vr-tag" style="--tag-color: #0ea5e9">PRE</span>
         <span class="vr-tag" style="--tag-color: #f59e0b">LLM</span>
         <span class="vr-tag" style="--tag-color: #10b981">POST</span>
@@ -179,9 +179,9 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <text x="24" y="15" text-anchor="middle" fill="#0ea5e9" font-size="9" font-weight="700" font-family="sans-serif">C</text>
         <rect x="32" y="6" width="12" height="12" rx="3" stroke="#10b981" stroke-width="2" fill="none"/>
         <text x="38" y="15" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700" font-family="sans-serif">S</text>
-        <path d="M10 22 L10 30 Q10 34 14 34 L34 34 Q38 34 38 30 L38 22" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
-        <rect x="8" y="34" width="32" height="10" rx="3" stroke="#a78bfa" stroke-width="2" fill="none"/>
-        <text x="24" y="42" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="600" font-family="sans-serif">LLM Assembly</text>
+        <path d="M10 22 L10 30 Q10 34 14 34 L34 34 Q38 34 38 30 L38 22" stroke="#FFB74D" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+        <rect x="8" y="34" width="32" height="10" rx="3" stroke="#FFB74D" stroke-width="2" fill="none"/>
+        <text x="24" y="42" text-anchor="middle" fill="#FFB74D" font-size="7" font-weight="600" font-family="sans-serif">LLM Assembly</text>
       </svg>
     </div>
     <div class="visual-ref-content">
@@ -207,9 +207,9 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <text x="24" y="20" text-anchor="middle" fill="#f59e0b" font-size="8" font-weight="700" font-family="monospace">&gt;&gt;</text>
         <circle cx="24" cy="38" r="5" stroke="#10b981" stroke-width="1.5" fill="none"/>
         <text x="24" y="41" text-anchor="middle" fill="#10b981" font-size="7" font-weight="700" font-family="sans-serif">C</text>
-        <line x1="10" y1="30" x2="24" y2="33" stroke="#a78bfa" stroke-width="1.5"/>
-        <line x1="38" y1="30" x2="24" y2="33" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="7" y="38" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700" font-family="monospace">|</text>
+        <line x1="10" y1="30" x2="24" y2="33" stroke="#FFB74D" stroke-width="1.5"/>
+        <line x1="38" y1="30" x2="24" y2="33" stroke="#FFB74D" stroke-width="1.5"/>
+        <text x="7" y="38" text-anchor="middle" fill="#FFB74D" font-size="7" font-weight="700" font-family="monospace">|</text>
       </svg>
     </div>
     <div class="visual-ref-content">
@@ -220,7 +220,7 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <span class="vr-tag" style="--tag-color: #0ea5e9">Parallel</span>
         <span class="vr-tag" style="--tag-color: #10b981">Loop</span>
         <span class="vr-tag" style="--tag-color: #f59e0b">Schema</span>
-        <span class="vr-tag" style="--tag-color: #a78bfa">Fallback</span>
+        <span class="vr-tag" style="--tag-color: #FFB74D">Fallback</span>
       </div>
     </div>
   </div>
@@ -236,8 +236,8 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <text x="24" y="35" text-anchor="middle" fill="#10b981" font-size="6" font-weight="700" font-family="sans-serif">W</text>
         <rect x="32" y="14" width="10" height="12" rx="2" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
         <text x="37" y="23" text-anchor="middle" fill="#f59e0b" font-size="6" font-weight="700" font-family="sans-serif">I</text>
-        <rect x="32" y="30" width="10" height="12" rx="2" stroke="#a78bfa" stroke-width="1.5" fill="none"/>
-        <text x="37" y="39" text-anchor="middle" fill="#a78bfa" font-size="6" font-weight="700" font-family="sans-serif">C</text>
+        <rect x="32" y="30" width="10" height="12" rx="2" stroke="#FFB74D" stroke-width="1.5" fill="none"/>
+        <text x="37" y="39" text-anchor="middle" fill="#FFB74D" font-size="6" font-weight="700" font-family="sans-serif">C</text>
         <path d="M16 24 L19 16" stroke="#0ea5e9" stroke-width="1" opacity="0.5"/>
         <path d="M16 24 L19 32" stroke="#10b981" stroke-width="1" opacity="0.5"/>
       </svg>
@@ -250,7 +250,7 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <span class="vr-tag" style="--tag-color: #e94560">Output</span>
         <span class="vr-tag" style="--tag-color: #10b981">Storage</span>
         <span class="vr-tag" style="--tag-color: #f59e0b">Input</span>
-        <span class="vr-tag" style="--tag-color: #a78bfa">Contract</span>
+        <span class="vr-tag" style="--tag-color: #FFB74D">Contract</span>
       </div>
     </div>
   </div>
@@ -288,8 +288,8 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <text x="12" y="27" text-anchor="middle" fill="#e94560" font-size="7" font-weight="700" font-family="sans-serif">S</text>
         <circle cx="36" cy="24" r="8" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
         <text x="36" y="27" text-anchor="middle" fill="#0ea5e9" font-size="7" font-weight="700" font-family="sans-serif">A</text>
-        <line x1="20" y1="24" x2="28" y2="24" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="24" y="20" text-anchor="middle" fill="#a78bfa" font-size="6" font-weight="600" font-family="sans-serif">vs</text>
+        <line x1="20" y1="24" x2="28" y2="24" stroke="#FFB74D" stroke-width="1.5"/>
+        <text x="24" y="20" text-anchor="middle" fill="#FFB74D" font-size="6" font-weight="600" font-family="sans-serif">vs</text>
         <line x1="12" y1="36" x2="12" y2="44" stroke="#e94560" stroke-width="1" opacity="0.4"/>
         <line x1="36" y1="36" x2="36" y2="44" stroke="#0ea5e9" stroke-width="1" opacity="0.4"/>
         <text x="12" y="48" text-anchor="middle" fill="#e94560" font-size="5" font-family="monospace">sync</text>
@@ -308,7 +308,7 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
     </div>
   </div>
 
-  <div class="visual-ref-card" data-accent="#a78bfa">
+  <div class="visual-ref-card" data-accent="#FFB74D">
     <div class="visual-ref-icon">
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
         <circle cx="14" cy="14" r="5" stroke="#10b981" stroke-width="1.5" fill="none"/>
@@ -316,11 +316,11 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
         <circle cx="14" cy="34" r="5" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
         <circle cx="34" cy="34" r="5" stroke="#0ea5e9" stroke-width="1.5" fill="none"/>
         <line x1="19" y1="14" x2="29" y2="14" stroke="#10b981" stroke-width="1"/>
-        <line x1="14" y1="19" x2="14" y2="29" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
-        <line x1="34" y1="19" x2="34" y2="29" stroke="#a78bfa" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="14" y1="19" x2="14" y2="29" stroke="#FFB74D" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="34" y1="19" x2="34" y2="29" stroke="#FFB74D" stroke-width="1" stroke-dasharray="3,2"/>
         <line x1="19" y1="34" x2="29" y2="34" stroke="#0ea5e9" stroke-width="1"/>
-        <line x1="19" y1="17" x2="29" y2="31" stroke="#a78bfa" stroke-width="0.8" stroke-dasharray="2,2" opacity="0.5"/>
-        <text x="24" y="27" text-anchor="middle" fill="#a78bfa" font-size="6" font-weight="600" font-family="sans-serif">A2A</text>
+        <line x1="19" y1="17" x2="29" y2="31" stroke="#FFB74D" stroke-width="0.8" stroke-dasharray="2,2" opacity="0.5"/>
+        <text x="24" y="27" text-anchor="middle" fill="#FFB74D" font-size="6" font-weight="600" font-family="sans-serif">A2A</text>
       </svg>
     </div>
     <div class="visual-ref-content">
@@ -329,7 +329,7 @@ Rich interactive diagrams — open in a new tab for the full experience, or expl
       <div class="visual-ref-tags">
         <span class="vr-tag" style="--tag-color: #10b981">Local</span>
         <span class="vr-tag" style="--tag-color: #0ea5e9">Remote</span>
-        <span class="vr-tag" style="--tag-color: #a78bfa">A2A</span>
+        <span class="vr-tag" style="--tag-color: #FFB74D">A2A</span>
         <span class="vr-tag" style="--tag-color: #f59e0b">Resilience</span>
       </div>
     </div>

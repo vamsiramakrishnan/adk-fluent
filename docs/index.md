@@ -1,60 +1,68 @@
+---
+hide-toc: true
+---
+
 # adk-fluent
 
 ```{raw} html
 <div class="hero-section">
   <h1>adk-fluent</h1>
   <p class="hero-tagline">
-    The fluent builder API for Google's Agent Development Kit.<br>
-    Go from idea to production agent in lines, not pages.
+    Fluent builder API for Google ADK. 22 lines &rarr; 3 lines. Same native objects.
   </p>
+
+  <div class="badges">
+    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/v/adk-fluent?color=E65100&style=flat-square" alt="PyPI version"></a>
+    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/dm/adk-fluent?color=F57C00&style=flat-square" alt="Downloads"></a>
+    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/pyversions/adk-fluent?color=FFB74D&style=flat-square" alt="Python versions"></a>
+    <a href="https://github.com/vamsiramakrishnan/adk-fluent/blob/master/LICENSE"><img src="https://img.shields.io/github/license/vamsiramakrishnan/adk-fluent?color=424242&style=flat-square" alt="License"></a>
+    <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions"><img src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/ci.yml?style=flat-square&label=CI" alt="CI status"></a>
+    <a href="https://vamsiramakrishnan.github.io/adk-fluent/"><img src="https://img.shields.io/badge/docs-latest-E65100?style=flat-square" alt="Docs"></a>
+  </div>
 
   <!-- Architecture flow diagram -->
   <div class="hero-diagram">
     <svg viewBox="0 0 720 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-flow-svg" aria-label="adk-fluent builder flow: Builder → IR → Native ADK → Deploy">
       <defs>
         <linearGradient id="hero-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#4f46e5"/>
-          <stop offset="50%" stop-color="#7c3aed"/>
-          <stop offset="100%" stop-color="#a855f7"/>
+          <stop offset="0%" stop-color="#E65100"/>
+          <stop offset="50%" stop-color="#F57C00"/>
+          <stop offset="100%" stop-color="#FFB74D"/>
         </linearGradient>
-        <filter id="hero-glow">
-          <feGaussianBlur stdDeviation="4" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
         <marker id="arrow-hero" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
-          <path d="M0 0 L10 4 L0 8Z" fill="#7c3aed"/>
+          <path d="M0 0 L10 4 L0 8Z" fill="#F57C00"/>
         </marker>
       </defs>
 
       <!-- Builder node -->
       <g class="hero-node" style="--delay: 0s">
-        <rect x="16" y="24" width="140" height="72" rx="14" fill="#4f46e508" stroke="#4f46e5" stroke-width="1.5"/>
-        <text x="86" y="53" text-anchor="middle" fill="#818cf8" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">FLUENT BUILDER</text>
-        <text x="86" y="72" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="10">Agent("name")</text>
-        <text x="86" y="85" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="9">.instruct().tool()</text>
+        <rect x="16" y="24" width="140" height="72" rx="14" fill="#E6510008" stroke="#E65100" stroke-width="1.5"/>
+        <text x="86" y="53" text-anchor="middle" fill="#F57C00" font-family="'IBM Plex Sans', sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">FLUENT BUILDER</text>
+        <text x="86" y="72" text-anchor="middle" fill="#9E9E9E" font-family="'IBM Plex Mono', monospace" font-size="10">Agent("name")</text>
+        <text x="86" y="85" text-anchor="middle" fill="#757575" font-family="'IBM Plex Mono', monospace" font-size="9">.instruct().tool()</text>
       </g>
 
       <!-- Arrow 1 -->
-      <line x1="166" y1="60" x2="220" y2="60" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrow-hero)" class="hero-arrow" style="--delay: 0.3s"/>
-      <text x="193" y="52" text-anchor="middle" fill="#7c3aed" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" class="hero-label" style="--delay: 0.3s">.build()</text>
+      <line x1="166" y1="60" x2="220" y2="60" stroke="#F57C00" stroke-width="1.5" marker-end="url(#arrow-hero)" class="hero-arrow" style="--delay: 0.3s"/>
+      <text x="193" y="52" text-anchor="middle" fill="#F57C00" font-family="'IBM Plex Mono', monospace" font-size="8" font-weight="600" class="hero-label" style="--delay: 0.3s">.build()</text>
 
       <!-- IR node -->
       <g class="hero-node" style="--delay: 0.5s">
-        <rect x="228" y="30" width="110" height="60" rx="14" fill="#7c3aed08" stroke="#7c3aed" stroke-width="1.5"/>
-        <text x="283" y="55" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">IR TREE</text>
-        <text x="283" y="72" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="9">Validated &amp; Typed</text>
+        <rect x="228" y="30" width="110" height="60" rx="14" fill="#F57C0008" stroke="#F57C00" stroke-width="1.5"/>
+        <text x="283" y="55" text-anchor="middle" fill="#FFB74D" font-family="'IBM Plex Sans', sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">IR TREE</text>
+        <text x="283" y="72" text-anchor="middle" fill="#757575" font-family="'IBM Plex Sans', sans-serif" font-size="9">Validated &amp; Typed</text>
       </g>
 
       <!-- Arrow 2 -->
-      <line x1="348" y1="60" x2="402" y2="60" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrow-hero)" class="hero-arrow" style="--delay: 0.8s"/>
-      <text x="375" y="52" text-anchor="middle" fill="#7c3aed" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600" class="hero-label" style="--delay: 0.8s">compile</text>
+      <line x1="348" y1="60" x2="402" y2="60" stroke="#F57C00" stroke-width="1.5" marker-end="url(#arrow-hero)" class="hero-arrow" style="--delay: 0.8s"/>
+      <text x="375" y="52" text-anchor="middle" fill="#F57C00" font-family="'IBM Plex Mono', monospace" font-size="8" font-weight="600" class="hero-label" style="--delay: 0.8s">compile</text>
 
       <!-- Native ADK node -->
       <g class="hero-node" style="--delay: 1s">
         <rect x="410" y="24" width="140" height="72" rx="14" fill="#10b98108" stroke="#10b981" stroke-width="1.5"/>
-        <text x="480" y="53" text-anchor="middle" fill="#34d399" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">NATIVE ADK</text>
-        <text x="480" y="72" text-anchor="middle" fill="#94a3b8" font-family="'JetBrains Mono', monospace" font-size="10">LlmAgent</text>
-        <text x="480" y="85" text-anchor="middle" fill="#64748b" font-family="'JetBrains Mono', monospace" font-size="9">SequentialAgent</text>
+        <text x="480" y="53" text-anchor="middle" fill="#34d399" font-family="'IBM Plex Sans', sans-serif" font-size="11" font-weight="700" letter-spacing="0.05em">NATIVE ADK</text>
+        <text x="480" y="72" text-anchor="middle" fill="#9E9E9E" font-family="'IBM Plex Mono', monospace" font-size="10">LlmAgent</text>
+        <text x="480" y="85" text-anchor="middle" fill="#757575" font-family="'IBM Plex Mono', monospace" font-size="9">SequentialAgent</text>
       </g>
 
       <!-- Arrow 3 -->
@@ -63,8 +71,8 @@
       <!-- Deploy node -->
       <g class="hero-node" style="--delay: 1.5s">
         <rect x="622" y="30" width="82" height="60" rx="14" fill="#f59e0b06" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
-        <text x="663" y="56" text-anchor="middle" fill="#fbbf24" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="0.05em">DEPLOY</text>
-        <text x="663" y="72" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="8">web · run · cloud</text>
+        <text x="663" y="56" text-anchor="middle" fill="#fbbf24" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="700" letter-spacing="0.05em">DEPLOY</text>
+        <text x="663" y="72" text-anchor="middle" fill="#757575" font-family="'IBM Plex Sans', sans-serif" font-size="8">web · run · cloud</text>
       </g>
     </svg>
   </div>
@@ -83,7 +91,7 @@
       <span class="stat-label">Modules</span>
     </div>
     <div class="hero-stat">
-      <span class="stat-number">67</span>
+      <span class="stat-number">74</span>
       <span class="stat-label">Recipes</span>
     </div>
     <div class="hero-stat">
@@ -94,12 +102,7 @@
 </div>
 ```
 
-## The Problem
-
-Building agents with native ADK means writing 15-25 lines of constructor
-boilerplate per agent, manually wiring `SequentialAgent`, `ParallelAgent`,
-and `LoopAgent` hierarchies, and hoping you didn't misspell a keyword argument
-that gets silently ignored. adk-fluent fixes this.
+## Before / After
 
 ::::{tab-set}
 :::{tab-item} adk-fluent (5 lines)
@@ -144,127 +147,87 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 
 ## Why adk-fluent?
 
-:::{admonition} For the skeptic
-:class: tip
-
-adk-fluent doesn't replace ADK. It **is** ADK. Every builder produces an
-identical native object -- same classes, same runtime, same deployment targets.
-You get type-safe method chaining, typo detection at definition time, and
-composable operators. You lose nothing.
-:::
-
-| Pain point | Native ADK | adk-fluent |
-|---|---|---|
-| Typo in `instruction` kwarg | Silently ignored | `AttributeError` with "Did you mean?" |
-| Pipeline composition | Manual `sub_agents=[]` wiring | `a >> b >> c` |
-| Parallel execution | `ParallelAgent(sub_agents=[...])` | `a \| b \| c` |
-| Conditional loops | Custom `BaseAgent` subclass | `(a >> b) * until(pred)` |
-| Typed output | `output_schema=Model` | `agent @ Model` |
-| Context isolation | `include_contents="none"` | `C.none()` |
-| Testing without LLM | Not built-in | `.mock()`, `.test()`, `check_contracts()` |
-| Visualization | Not built-in | `.explain()`, `.to_mermaid()`, `.diagnose()` |
-
-## Install
-
-```bash
-pip install adk-fluent
-```
-
-Autocomplete works immediately -- the package ships `.pyi` stubs for every builder.
-
-## Your Learning Path
-
 ```{raw} html
-<div class="journey-step" data-step="1">
-  <div class="journey-content">
-    <h4><a href="getting-started.html">Getting Started</a></h4>
-    <p>Install, configure your IDE, and build your first agent in 5 minutes. Learn the builder pattern and expression operators.</p>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+
+  <div style="border: 1px solid var(--adk-border); border-radius: 14px; padding: 1.5rem; background: var(--adk-surface-raised); transition: all 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect x="2" y="2" width="28" height="28" rx="6" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
+        <path d="M10 10 h4 a2 2 0 0 1 2 2 v2 h-4 a2 2 0 0 1-2-2z" fill="#E65100" opacity="0.8"/>
+        <path d="M12 14 h4 a2 2 0 0 1 2 2 v2 h-4 a2 2 0 0 1-2-2z" fill="#F57C00" opacity="0.5"/>
+        <rect x="19" y="10" width="5" height="1.5" rx="0.75" fill="#FFB74D" opacity="0.6"/>
+        <rect x="19" y="13" width="3" height="1.5" rx="0.75" fill="#FFB74D" opacity="0.4"/>
+        <rect x="19" y="16" width="4" height="1.5" rx="0.75" fill="#FFB74D" opacity="0.3"/>
+        <rect x="8" y="20" width="16" height="1" rx="0.5" fill="#E0E0E0" opacity="0.3"/>
+        <rect x="8" y="22.5" width="12" height="1" rx="0.5" fill="#E0E0E0" opacity="0.2"/>
+      </svg>
+      <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">135 Builders, Full Autocomplete</h3>
+    </div>
+    <p style="margin: 0; font-size: 0.9rem; color: var(--adk-text-muted); line-height: 1.6;">Every builder ships with <code>.pyi</code> stubs. Type <code>Agent("name").</code> and your IDE shows all methods with type hints, parameter docs, and ADK mapping.</p>
   </div>
-</div>
-<div class="journey-step" data-step="2">
-  <div class="journey-content">
-    <h4><a href="user-guide/index.html">User Guide</a></h4>
-    <p>Deep dive into builders, data flow, context engineering, prompts, callbacks, middleware, and testing. Master the 9 namespace modules (S, C, P, A, M, T, E, G).</p>
+
+  <div style="border: 1px solid var(--adk-border); border-radius: 14px; padding: 1.5rem; background: var(--adk-surface-raised); transition: all 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="8" cy="16" r="5" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
+        <circle cx="24" cy="10" r="4" stroke="#F57C00" stroke-width="1.5" fill="#F57C0010"/>
+        <circle cx="24" cy="22" r="4" stroke="#FFB74D" stroke-width="1.5" fill="#FFB74D10"/>
+        <line x1="13" y1="14" x2="20" y2="11" stroke="#F57C00" stroke-width="1.2"/>
+        <line x1="13" y1="18" x2="20" y2="21" stroke="#FFB74D" stroke-width="1.2"/>
+        <text x="8" y="18.5" text-anchor="middle" fill="#E65100" font-size="6" font-weight="700" font-family="monospace">&gt;&gt;</text>
+        <text x="24" y="12.5" text-anchor="middle" fill="#F57C00" font-size="5" font-weight="700" font-family="monospace">|</text>
+        <text x="24" y="24.5" text-anchor="middle" fill="#FFB74D" font-size="5" font-weight="700" font-family="monospace">*</text>
+      </svg>
+      <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">Expression Algebra</h3>
+    </div>
+    <p style="margin: 0; font-size: 0.9rem; color: var(--adk-text-muted); line-height: 1.6;"><code>&gt;&gt;</code> sequential, <code>|</code> parallel, <code>*</code> loops, <code>@</code> typed output, <code>//</code> fallback. Compose any topology in a single expression.</p>
   </div>
-</div>
-<div class="journey-step" data-step="3">
-  <div class="journey-content">
-    <h4><a href="cookbook/index.html">Cookbook &mdash; Zero to Symphony</a></h4>
-    <p>68 copy-pasteable recipes progressing from fundamentals through hero workflows. Every recipe shows adk-fluent and native ADK side by side.</p>
+
+  <div style="border: 1px solid var(--adk-border); border-radius: 14px; padding: 1.5rem; background: var(--adk-surface-raised); transition: all 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect x="4" y="6" width="24" height="20" rx="4" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
+        <path d="M10 14 l3 3 l7-7" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="24" cy="8" r="4" fill="#F57C00"/>
+        <path d="M22.5 8 l1.5 1.5 l2.5-2.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">Always in Sync</h3>
+    </div>
+    <p style="margin: 0; font-size: 0.9rem; color: var(--adk-text-muted); line-height: 1.6;">Builders are auto-generated from installed ADK. When ADK updates, regenerate and get new features immediately. Zero maintenance.</p>
   </div>
-</div>
-<div class="journey-step" data-step="4">
-  <div class="journey-content">
-    <h4><a href="generated/api/index.html">API Reference</a></h4>
-    <p>Complete method reference for all 135 builders across 9 modules. Every method includes type signature, ADK mapping, and code example.</p>
-  </div>
+
 </div>
 ```
 
 ## Quick Navigation
 
-````{grid} 1 2 2 3
+````{grid} 1 2 2 4
 ---
 gutter: 3
 ---
-```{grid-item-card} Getting Started
+```{grid-item-card} {octicon}`rocket;1.5em;sd-text-warning` Getting Started
 :link: getting-started
 :link-type: doc
 Install and build your first agent in 5 minutes.
 ```
 
-```{grid-item-card} Editor & AI Agent Setup
-:link: editor-setup/index
-:link-type: doc
-Configure Claude Code, Cursor, Copilot, and other AI coding agents.
-```
-
-```{grid-item-card} User Guide
+```{grid-item-card} {octicon}`book;1.5em;sd-text-warning` User Guide
 :link: user-guide/index
 :link-type: doc
 Builders, operators, context engineering, prompts, callbacks, middleware.
 ```
 
-```{grid-item-card} Cookbook
-:link: cookbook/index
-:link-type: doc
-68 recipes from fundamentals to hero workflows.
-```
-
-```{grid-item-card} API Reference
+```{grid-item-card} {octicon}`code-square;1.5em;sd-text-warning` API Reference
 :link: generated/api/index
 :link-type: doc
 Complete reference for all 135 builders.
 ```
 
-```{grid-item-card} Framework Comparison
-:link: user-guide/comparison
+```{grid-item-card} {octicon}`beaker;1.5em;sd-text-warning` Cookbook
+:link: cookbook/index
 :link-type: doc
-Side-by-side with LangGraph, CrewAI, and native ADK.
-```
-
-```{grid-item-card} Migration Guide
-:link: generated/migration/from-native-adk
-:link-type: doc
-Migrate existing native ADK code incrementally.
-```
-
-```{grid-item-card} Error Reference
-:link: user-guide/error-reference
-:link-type: doc
-Every error explained with fix-it examples.
-```
-
-```{grid-item-card} Decision Guide
-:link: decision-guide
-:link-type: doc
-"Which pattern should I use?" — flowchart for common decisions.
-```
-
-```{grid-item-card} Agent Skills
-:link: editor-setup/agent-skills
-:link-type: doc
-14 portable skills for AI coding agents — develop, test, deploy, evaluate, debug, and review adk-fluent projects.
+74 recipes from fundamentals to hero workflows.
 ```
 ````
 
@@ -276,11 +239,11 @@ Every error explained with fix-it examples.
 
 **"I need a specific pattern (routing, loops, parallel)"** -- Jump to [Patterns](user-guide/patterns.md) or search the [Cookbook by use case](generated/cookbook/recipes-by-use-case.md).
 
-**"I want to understand what the LLM actually sees"** -- Read [Context Engineering](user-guide/context-engineering.md) and [Prompts](user-guide/prompts.md).
+**"I want my AI coding agent to know adk-fluent"** -- Set up [Editor & AI Agent Setup](editor-setup/index.md) for rules files and MCP servers.
 
-**"I need to test my agents without API calls"** -- Read [Testing](user-guide/testing.md) for `.mock()`, `.test()`, and `check_contracts()`.
+---
 
-**"I want my AI coding agent to know adk-fluent"** -- Set up [Editor & AI Agent Setup](editor-setup/index.md) for rules files and MCP servers, then install [Agent Skills](editor-setup/agent-skills.md) for step-by-step procedures.
+[PyPI](https://pypi.org/project/adk-fluent/) · [GitHub](https://github.com/vamsiramakrishnan/adk-fluent) · [Changelog](changelog.md) · [Contributing](contributing/index.md)
 
 ```{toctree}
 ---
@@ -310,7 +273,7 @@ generated/api/index
 ```{toctree}
 ---
 maxdepth: 2
-caption: Cookbook — Zero to Symphony
+caption: Cookbook
 ---
 cookbook/index
 ```

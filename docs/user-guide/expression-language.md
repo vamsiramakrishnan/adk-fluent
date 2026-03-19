@@ -24,98 +24,98 @@ Nine operators compose any agent topology. All operators are **immutable** -- su
     </defs>
 
     <!-- Title -->
-    <text x="370" y="20" text-anchor="middle" fill="#64748b" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="0.12em">OPERATOR VISUAL REFERENCE</text>
+    <text x="370" y="20" text-anchor="middle" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="700" letter-spacing="0.12em">OPERATOR VISUAL REFERENCE</text>
     <line x1="60" y1="28" x2="680" y2="28" stroke="#1e2d4a" stroke-width="0.5"/>
 
     <!-- >> Sequence -->
     <g transform="translate(20, 48)">
       <text x="0" y="12" fill="#e94560" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700">&gt;&gt;</text>
-      <text x="30" y="12" fill="#94a3b8" font-family="Inter, sans-serif" font-size="10" font-weight="600">Sequence</text>
+      <text x="30" y="12" fill="#94a3b8" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="600">Sequence</text>
       <rect x="110" y="0" width="44" height="20" rx="6" fill="#e9456018" stroke="#e94560" stroke-width="1"/>
-      <text x="132" y="14" text-anchor="middle" fill="#e94560" font-family="Inter, sans-serif" font-size="9" font-weight="600">a</text>
+      <text x="132" y="14" text-anchor="middle" fill="#e94560" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">a</text>
       <line x1="160" y1="10" x2="188" y2="10" stroke="#e94560" stroke-width="1.2" marker-end="url(#el-arr)"/>
       <rect x="196" y="0" width="44" height="20" rx="6" fill="#e9456018" stroke="#e94560" stroke-width="1"/>
-      <text x="218" y="14" text-anchor="middle" fill="#e94560" font-family="Inter, sans-serif" font-size="9" font-weight="600">b</text>
+      <text x="218" y="14" text-anchor="middle" fill="#e94560" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">b</text>
       <line x1="246" y1="10" x2="274" y2="10" stroke="#e94560" stroke-width="1.2" marker-end="url(#el-arr)"/>
       <rect x="282" y="0" width="44" height="20" rx="6" fill="#e9456018" stroke="#e94560" stroke-width="1"/>
-      <text x="304" y="14" text-anchor="middle" fill="#e94560" font-family="Inter, sans-serif" font-size="9" font-weight="600">c</text>
-      <text x="360" y="13" fill="#64748b" font-family="Inter, sans-serif" font-size="8">SequentialAgent</text>
+      <text x="304" y="14" text-anchor="middle" fill="#e94560" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">c</text>
+      <text x="360" y="13" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="8">SequentialAgent</text>
     </g>
 
     <!-- | Parallel -->
     <g transform="translate(20, 88)">
       <text x="0" y="22" fill="#0ea5e9" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700">|</text>
-      <text x="30" y="22" fill="#94a3b8" font-family="Inter, sans-serif" font-size="10" font-weight="600">Parallel</text>
+      <text x="30" y="22" fill="#94a3b8" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="600">Parallel</text>
       <line x1="120" y1="22" x2="148" y2="2" stroke="#0ea5e9" stroke-width="1.2"/>
       <line x1="120" y1="22" x2="148" y2="22" stroke="#0ea5e9" stroke-width="1.2"/>
       <line x1="120" y1="22" x2="148" y2="42" stroke="#0ea5e9" stroke-width="1.2"/>
       <rect x="152" y="-6" width="44" height="18" rx="5" fill="#0ea5e918" stroke="#0ea5e9" stroke-width="1"/>
-      <text x="174" y="8" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="9" font-weight="600">a</text>
+      <text x="174" y="8" text-anchor="middle" fill="#0ea5e9" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">a</text>
       <rect x="152" y="14" width="44" height="18" rx="5" fill="#0ea5e918" stroke="#0ea5e9" stroke-width="1"/>
-      <text x="174" y="28" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="9" font-weight="600">b</text>
+      <text x="174" y="28" text-anchor="middle" fill="#0ea5e9" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">b</text>
       <rect x="152" y="34" width="44" height="18" rx="5" fill="#0ea5e918" stroke="#0ea5e9" stroke-width="1"/>
-      <text x="174" y="48" text-anchor="middle" fill="#0ea5e9" font-family="Inter, sans-serif" font-size="9" font-weight="600">c</text>
+      <text x="174" y="48" text-anchor="middle" fill="#0ea5e9" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">c</text>
       <line x1="200" y1="2" x2="228" y2="22" stroke="#0ea5e9" stroke-width="1.2"/>
       <line x1="200" y1="22" x2="228" y2="22" stroke="#0ea5e9" stroke-width="1.2"/>
       <line x1="200" y1="42" x2="228" y2="22" stroke="#0ea5e9" stroke-width="1.2"/>
       <circle cx="120" cy="22" r="3" fill="#0ea5e9"/>
       <circle cx="228" cy="22" r="3" fill="#0ea5e9"/>
-      <text x="360" y="25" fill="#64748b" font-family="Inter, sans-serif" font-size="8">ParallelAgent</text>
+      <text x="360" y="25" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="8">ParallelAgent</text>
     </g>
 
     <!-- * Loop -->
     <g transform="translate(20, 156)">
       <text x="0" y="14" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700">*</text>
-      <text x="30" y="14" fill="#94a3b8" font-family="Inter, sans-serif" font-size="10" font-weight="600">Loop</text>
+      <text x="30" y="14" fill="#94a3b8" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="600">Loop</text>
       <rect x="110" y="2" width="80" height="20" rx="6" fill="#10b98118" stroke="#10b981" stroke-width="1"/>
-      <text x="150" y="16" text-anchor="middle" fill="#10b981" font-family="Inter, sans-serif" font-size="9" font-weight="600">body</text>
+      <text x="150" y="16" text-anchor="middle" fill="#10b981" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">body</text>
       <path d="M195 12 Q220 12 220 -2 Q220 -12 150 -12 Q105 -12 105 -2 Q105 2 110 5" stroke="#10b981" stroke-width="1" fill="none" stroke-dasharray="3,2"/>
       <text x="158" y="-5" text-anchor="middle" fill="#10b981" font-family="'JetBrains Mono', monospace" font-size="7" font-weight="600">n times</text>
-      <text x="360" y="15" fill="#64748b" font-family="Inter, sans-serif" font-size="8">LoopAgent</text>
+      <text x="360" y="15" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="8">LoopAgent</text>
     </g>
 
     <!-- @ Schema -->
     <g transform="translate(20, 196)">
       <text x="0" y="14" fill="#f59e0b" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700">@</text>
-      <text x="30" y="14" fill="#94a3b8" font-family="Inter, sans-serif" font-size="10" font-weight="600">Typed</text>
+      <text x="30" y="14" fill="#94a3b8" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="600">Typed</text>
       <rect x="110" y="2" width="50" height="20" rx="6" fill="#f59e0b18" stroke="#f59e0b" stroke-width="1"/>
-      <text x="135" y="16" text-anchor="middle" fill="#f59e0b" font-family="Inter, sans-serif" font-size="9" font-weight="600">agent</text>
+      <text x="135" y="16" text-anchor="middle" fill="#f59e0b" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">agent</text>
       <text x="172" y="16" fill="#f59e0b" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="700">→</text>
       <rect x="186" y="0" width="80" height="24" rx="6" fill="#f59e0b10" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,2"/>
       <text x="226" y="16" text-anchor="middle" fill="#f59e0b" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600">Schema{}</text>
-      <text x="360" y="15" fill="#64748b" font-family="Inter, sans-serif" font-size="8">output_schema</text>
+      <text x="360" y="15" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="8">output_schema</text>
     </g>
 
     <!-- // Fallback -->
     <g transform="translate(20, 236)">
       <text x="0" y="14" fill="#a78bfa" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700">//</text>
-      <text x="30" y="14" fill="#94a3b8" font-family="Inter, sans-serif" font-size="10" font-weight="600">Fallback</text>
+      <text x="30" y="14" fill="#94a3b8" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="600">Fallback</text>
       <rect x="110" y="2" width="44" height="20" rx="6" fill="#a78bfa18" stroke="#a78bfa" stroke-width="1"/>
-      <text x="132" y="16" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="9" font-weight="600">a</text>
+      <text x="132" y="16" text-anchor="middle" fill="#a78bfa" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">a</text>
       <line x1="158" y1="12" x2="170" y2="12" stroke="#e94560" stroke-width="1.2"/>
-      <text x="174" y="16" fill="#e94560" font-family="Inter, sans-serif" font-size="10" font-weight="700">✗</text>
+      <text x="174" y="16" fill="#e94560" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="700">✗</text>
       <line x1="182" y1="12" x2="194" y2="12" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#el-arr-purple)"/>
       <rect x="202" y="2" width="44" height="20" rx="6" fill="#a78bfa18" stroke="#a78bfa" stroke-width="1"/>
-      <text x="224" y="16" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="9" font-weight="600">b</text>
+      <text x="224" y="16" text-anchor="middle" fill="#a78bfa" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">b</text>
       <line x1="250" y1="12" x2="262" y2="12" stroke="#e94560" stroke-width="1.2"/>
-      <text x="266" y="16" fill="#e94560" font-family="Inter, sans-serif" font-size="10" font-weight="700">✗</text>
+      <text x="266" y="16" fill="#e94560" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="700">✗</text>
       <line x1="274" y1="12" x2="286" y2="12" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#el-arr-purple)"/>
       <rect x="294" y="2" width="44" height="20" rx="6" fill="#a78bfa18" stroke="#a78bfa" stroke-width="1"/>
-      <text x="316" y="16" text-anchor="middle" fill="#a78bfa" font-family="Inter, sans-serif" font-size="9" font-weight="600">c</text>
-      <text x="360" y="15" fill="#64748b" font-family="Inter, sans-serif" font-size="8">first success</text>
+      <text x="316" y="16" text-anchor="middle" fill="#a78bfa" font-family="'IBM Plex Sans', sans-serif" font-size="9" font-weight="600">c</text>
+      <text x="360" y="15" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="8">first success</text>
     </g>
 
     <!-- Route -->
     <g transform="translate(20, 278)">
       <text x="0" y="18" fill="#f472b6" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700">Route</text>
-      <text x="46" y="18" fill="#94a3b8" font-family="Inter, sans-serif" font-size="10" font-weight="600">Branch</text>
+      <text x="46" y="18" fill="#94a3b8" font-family="'IBM Plex Sans', sans-serif" font-size="10" font-weight="600">Branch</text>
       <rect x="110" y="4" width="64" height="24" rx="6" fill="#f472b618" stroke="#f472b6" stroke-width="1"/>
       <text x="142" y="20" text-anchor="middle" fill="#f472b6" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="600">state[key]</text>
       <line x1="178" y1="10" x2="220" y2="0" stroke="#f472b6" stroke-width="1" marker-end="url(#el-arr-pink)"/>
       <line x1="178" y1="22" x2="220" y2="32" stroke="#f472b6" stroke-width="1" marker-end="url(#el-arr-pink)"/>
       <text x="230" y="4" fill="#f472b6" font-family="'JetBrains Mono', monospace" font-size="8">"a" → handler_a</text>
       <text x="230" y="38" fill="#f472b6" font-family="'JetBrains Mono', monospace" font-size="8">"b" → handler_b</text>
-      <text x="360" y="20" fill="#64748b" font-family="Inter, sans-serif" font-size="8">deterministic routing</text>
+      <text x="360" y="20" fill="#64748b" font-family="'IBM Plex Sans', sans-serif" font-size="8">deterministic routing</text>
     </g>
   </svg>
 </div>

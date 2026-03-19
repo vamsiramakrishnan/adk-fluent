@@ -6,7 +6,7 @@
 <title>adk-fluent · Delegation & Transfer Control Reference</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a0f;
@@ -19,15 +19,15 @@
     --red: #e94560;
     --blue: #0ea5e9;
     --green: #10b981;
-    --purple: #a78bfa;
+    --purple: #FFB74D;
     --amber: #f59e0b;
-    --brand: #818cf8;
+    --brand: #FFB74D;
     --nav-bg: rgba(10, 10, 15, 0.85);
     --code-bg: #12121a;
     --shadow-hover: rgba(0, 0, 0, 0.4);
 
     --mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
-    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -140,7 +140,7 @@
   .badge-red { background: #e9456020; color: var(--red); border: 1px solid #e9456040; }
   .badge-blue { background: #0ea5e920; color: var(--blue); border: 1px solid #0ea5e940; }
   .badge-green { background: #10b98120; color: var(--green); border: 1px solid #10b98140; }
-  .badge-purple { background: #a78bfa20; color: var(--purple); border: 1px solid #a78bfa40; }
+  .badge-purple { background: #FFB74D20; color: var(--purple); border: 1px solid #FFB74D40; }
   .badge-amber { background: #f59e0b20; color: var(--amber); border: 1px solid #f59e0b40; }
 
   .card-header .label {
@@ -297,14 +297,14 @@
     --text: #334155;
     --text-dim: #64748b;
     --text-bright: #0f172a;
-    --brand: #4f46e5;
+    --brand: #E65100;
     --nav-bg: rgba(255, 255, 255, 0.85);
     --code-bg: #f8fafc;
     --shadow-hover: rgba(0, 0, 0, 0.08);
   }
 
   :root[data-theme="dark"], :root:not([data-theme]) {
-    --brand: #818cf8;
+    --brand: #FFB74D;
     --nav-bg: rgba(10, 10, 15, 0.85);
     --code-bg: #12121a;
     --shadow-hover: rgba(0, 0, 0, 0.4);
@@ -319,7 +319,7 @@
       --text: #334155;
       --text-dim: #64748b;
       --text-bright: #0f172a;
-      --brand: #4f46e5;
+      --brand: #E65100;
       --nav-bg: rgba(255, 255, 255, 0.85);
       --code-bg: #f8fafc;
       --shadow-hover: rgba(0, 0, 0, 0.08);
@@ -713,8 +713,8 @@
         <div class="svg-container">
           <svg width="180" height="140" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Agent center -->
-            <rect x="60" y="50" width="60" height="36" rx="6" fill="#a78bfa15" stroke="#a78bfa" stroke-width="1.5"/>
-            <text x="90" y="73" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a78bfa" font-weight="600">Agent</text>
+            <rect x="60" y="50" width="60" height="36" rx="6" fill="#FFB74D15" stroke="#FFB74D" stroke-width="1.5"/>
+            <text x="90" y="73" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#FFB74D" font-weight="600">Agent</text>
             <!-- Parent above -->
             <rect x="55" y="6" width="70" height="26" rx="5" fill="#1a1a28" stroke="#2a2a3a" stroke-width="1"/>
             <text x="90" y="23" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#8888a0">Parent</text>
@@ -729,7 +729,7 @@
             <text x="156" y="74" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#8888a0">Peer</text>
             <line x1="124" y1="64" x2="132" y2="72" stroke="#e94560" stroke-width="2"/>
             <line x1="132" y1="64" x2="124" y2="72" stroke="#e94560" stroke-width="2"/>
-            <text x="90" y="112" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#a78bfa">Handle and return</text>
+            <text x="90" y="112" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#FFB74D">Handle and return</text>
             <defs>
               <marker id="arrG3" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
                 <path d="M0,0 L7,2.5 L0,5" fill="#10b981"/>
@@ -796,9 +796,9 @@
     <div class="decision-tree-container">
       <svg width="720" height="420" viewBox="0 0 720 420" fill="none" xmlns="http://www.w3.org/2000/svg">
         <!-- Root question -->
-        <rect x="220" y="10" width="280" height="44" rx="8" fill="#1a1a28" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="360" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#a78bfa" font-weight="600">Does the parent need to stay</text>
-        <text x="360" y="44" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#a78bfa" font-weight="600">in control?</text>
+        <rect x="220" y="10" width="280" height="44" rx="8" fill="#1a1a28" stroke="#FFB74D" stroke-width="1.5"/>
+        <text x="360" y="28" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">Does the parent need to stay</text>
+        <text x="360" y="44" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">in control?</text>
 
         <!-- Yes branch (left) -> .agent_tool() -->
         <line x1="290" y1="54" x2="140" y2="100" stroke="#10b981" stroke-width="1.5"/>
@@ -815,10 +815,10 @@
         <text x="530" y="133" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#8888a0">child takes over</text>
 
         <!-- Second question -->
-        <line x1="530" y1="140" x2="530" y2="175" stroke="#a78bfa" stroke-width="1"/>
-        <rect x="380" y="175" width="300" height="44" rx="8" fill="#1a1a28" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="530" y="193" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#a78bfa" font-weight="600">Should the specialist return</text>
-        <text x="530" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#a78bfa" font-weight="600">when done?</text>
+        <line x1="530" y1="140" x2="530" y2="175" stroke="#FFB74D" stroke-width="1"/>
+        <rect x="380" y="175" width="300" height="44" rx="8" fill="#1a1a28" stroke="#FFB74D" stroke-width="1.5"/>
+        <text x="530" y="193" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">Should the specialist return</text>
+        <text x="530" y="209" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">when done?</text>
 
         <!-- Yes -> .isolate() -->
         <line x1="440" y1="219" x2="320" y2="265" stroke="#10b981" stroke-width="1.5"/>
@@ -832,9 +832,9 @@
         <text x="632" y="245" font-family="Inter, sans-serif" font-size="10" fill="#e94560" font-weight="600">No</text>
 
         <!-- Third question -->
-        <rect x="490" y="265" width="260" height="44" rx="8" fill="#1a1a28" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="620" y="283" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#a78bfa" font-weight="600">Should it hand off to</text>
-        <text x="620" y="299" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#a78bfa" font-weight="600">siblings?</text>
+        <rect x="490" y="265" width="260" height="44" rx="8" fill="#1a1a28" stroke="#FFB74D" stroke-width="1.5"/>
+        <text x="620" y="283" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">Should it hand off to</text>
+        <text x="620" y="299" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#FFB74D" font-weight="600">siblings?</text>
 
         <!-- Yes -> .stay() -->
         <line x1="550" y1="309" x2="460" y2="360" stroke="#10b981" stroke-width="1.5"/>
@@ -846,8 +846,8 @@
         <!-- No -> .no_peers() -->
         <line x1="690" y1="309" x2="690" y2="360" stroke="#e94560" stroke-width="1.5"/>
         <text x="700" y="338" font-family="Inter, sans-serif" font-size="10" fill="#e94560" font-weight="600">No</text>
-        <rect x="600" y="360" width="180" height="40" rx="8" fill="#a78bfa15" stroke="#a78bfa" stroke-width="1.5"/>
-        <text x="690" y="378" text-anchor="middle" font-family="SF Mono, monospace" font-size="12" fill="#a78bfa" font-weight="600">.no_peers()</text>
+        <rect x="600" y="360" width="180" height="40" rx="8" fill="#FFB74D15" stroke="#FFB74D" stroke-width="1.5"/>
+        <text x="690" y="378" text-anchor="middle" font-family="SF Mono, monospace" font-size="12" fill="#FFB74D" font-weight="600">.no_peers()</text>
         <text x="690" y="393" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#8888a0">handle and return</text>
       </svg>
     </div>
@@ -991,8 +991,8 @@ chain = (
         <div class="svg-container">
           <svg width="220" height="180" viewBox="0 0 220 180" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Root hub -->
-            <rect x="75" y="5" width="70" height="30" rx="6" fill="#a78bfa15" stroke="#a78bfa" stroke-width="1.5"/>
-            <text x="110" y="24" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#a78bfa" font-weight="600">Root</text>
+            <rect x="75" y="5" width="70" height="30" rx="6" fill="#FFB74D15" stroke="#FFB74D" stroke-width="1.5"/>
+            <text x="110" y="24" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#FFB74D" font-weight="600">Root</text>
 
             <!-- Left sub-hub -->
             <line x1="90" y1="35" x2="55" y2="60" stroke="#2a2a3a" stroke-width="1"/>
@@ -1025,7 +1025,7 @@ chain = (
             <!-- Labels -->
             <text x="55" y="150" text-anchor="middle" font-family="SF Mono, monospace" font-size="7.5" fill="#8888a0">.isolate()</text>
             <text x="165" y="150" text-anchor="middle" font-family="SF Mono, monospace" font-size="7.5" fill="#8888a0">.isolate()</text>
-            <text x="110" y="170" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#a78bfa">hierarchical delegation</text>
+            <text x="110" y="170" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" fill="#FFB74D">hierarchical delegation</text>
           </svg>
         </div>
         <div class="code-block"><span class="cm"># Nested: sub-coordinators with leaves</span>

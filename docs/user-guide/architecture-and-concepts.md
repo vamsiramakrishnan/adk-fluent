@@ -129,9 +129,40 @@ The 100x team doesn't add more S transforms. The S module is already complete fo
 The `>>` operator should respect this:
 
 ```python
+# When classifier writes "intent", the >> operator knows
+# that downstream agents can read it from state
+classifier = Agent("classify").instruct("Classify intent.").writes("intent")
+resolver = Agent("resolve").instruct("Resolve the {intent} issue.")
+
+pipeline = classifier >> resolver
+# adk-fluent infers: classifier needs output_key="intent"
+# adk-fluent infers: resolver needs include_contents behavior
+```
+
+### 2. Infer output_key from topology
+
+If an agent has `.writes("intent")` and appears before a `Route("intent")`, the library can verify at build time that the data contract is satisfiable. If the developer forgets `.writes()`, the contract checker flags it before any LLM call.
+
+### 3. Provide topology-aware context filtering
+
+The C module (`C.none()`, `C.from_state()`, `C.user_only()`, `C.window()`) gives developers fine-grained control over what each agent sees — without relying on ADK's binary `include_contents` switch. See [Context Engineering](context-engineering.md) for the full catalog.
 
 ---
 
 ## Context Engineering: The Five Operations
 
 Context engineering is not just overflow handling. It is the *continuous discipline* of assembling the smallest, highest-signal token set that maximizes an agent's likelihood of producing the desired outcome.
+
+The five operations that adk-fluent exposes on every agent builder correspond to five orthogonal concerns:
+
+| Operation | Builder method | What it controls |
+|-----------|---------------|-----------------|
+| **Context** | `.reads()`, `.context()` | What history/state the agent sees |
+| **Input** | `.accepts()` | What schema is expected when invoked as a tool |
+| **Output** | `.returns()` | What schema the LLM must produce |
+| **Storage** | `.writes()` | Where the agent's response is stored in state |
+| **Contract** | `.produces()`, `.consumes()` | Static annotations for build-time validation |
+
+These five concerns are independent. Setting `.writes("intent")` does not affect what the agent *sees* (context), and setting `.context(C.none())` does not affect where the agent *stores* its output (storage). This orthogonality is what makes pipelines predictable.
+
+For a deep dive into each concern with diagrams and examples, see [Data Flow](data-flow.md).

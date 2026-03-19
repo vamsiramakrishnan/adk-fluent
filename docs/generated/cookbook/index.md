@@ -218,12 +218,6 @@ How to attach guardrails to agent model calls.
 
 How to manage interactive sessions with agents.
 ```
-```{grid-item-card} Medical Advice Safety Guards -- Guards with .guard()
-:link: 12_guardrails
-:link-type: doc
-
-How to attach guardrails to agent model calls.
-```
 ````
 
 ```{toctree}
@@ -235,7 +229,6 @@ How to attach guardrails to agent model calls.
 11_inline_testing
 12_guards
 13_interactive_session
-12_guardrails
 ```
 
 ## Advanced
@@ -557,18 +550,6 @@ How to compose agents into a sequential pipeline.
 
 How to compose agents into a sequential pipeline.
 ```
-```{grid-item-card} Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
-:link: 27_delegate_pattern
-:link-type: doc
-
-How to delegate tasks between agents.
-```
-```{grid-item-card} Retry If: API Integration Agent That Retries on Transient Failures
-:link: 38_retry_if
-:link-type: doc
-
-How to use retry if: api integration agent that retries on transient failures with the fluent API.
-```
 ````
 
 ```{toctree}
@@ -597,8 +578,6 @@ How to use retry if: api integration agent that retries on transient failures wi
 41_gate_approval
 42_race
 43_primitives_showcase
-27_delegate_pattern
-38_retry_if
 ```
 
 ## v4 Features
