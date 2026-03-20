@@ -206,25 +206,26 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 ---
 gutter: 3
 ---
-```{grid-item-card} {octicon}`rocket;1.5em;sd-text-warning` Getting Started
+
+```{grid-item-card} Getting Started
 :link: getting-started
 :link-type: doc
 Install and build your first agent in 5 minutes.
 ```
 
-```{grid-item-card} {octicon}`book;1.5em;sd-text-warning` User Guide
+```{grid-item-card} User Guide
 :link: user-guide/index
 :link-type: doc
 Builders, operators, context engineering, prompts, callbacks, middleware.
 ```
 
-```{grid-item-card} {octicon}`code-square;1.5em;sd-text-warning` API Reference
+```{grid-item-card} API Reference
 :link: generated/api/index
 :link-type: doc
 Complete reference for all 135 builders.
 ```
 
-```{grid-item-card} {octicon}`beaker;1.5em;sd-text-warning` Cookbook
+```{grid-item-card} Cookbook
 :link: cookbook/index
 :link-type: doc
 74 recipes from fundamentals to hero workflows.
@@ -309,25 +310,6 @@ maxdepth: 2
 caption: Contributing
 ---
 contributing/index
-```
-
-```{toctree}
----
-maxdepth: 1
-caption: Research
----
-research/a2a-fluent-integration
-research/a2a-spec-audit
-research/durable-execution-five-layer-decoupling
-research/execution-backend-compatibility-matrix
-research/execution-backend-devex-audit
-research/packaging-deployment-dx-radical-improvement
-research/dx-appendix-a-self-critique
-research/dx-appendix-b-deployment-targets
-research/dx-appendix-c-scaffolding-codegen
-research/dx-appendix-d-local-dev-infra
-research/dx-appendix-e-adk-web-lessons
-research/tech-debt-audit
 ```
 
 ```{toctree}
