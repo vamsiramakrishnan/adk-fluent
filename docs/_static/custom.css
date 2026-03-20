@@ -189,7 +189,6 @@
   --adk-shadow-glow-lg: 0 0 48px rgba(255, 183, 77, 0.2);
 }
 
-
 /* ==========================================================================
    2. THEME TRANSITIONS & DARK MODE
    ========================================================================== */
@@ -2265,4 +2264,324 @@ input:focus-visible,
 
 .content hr + p a:hover {
   text-decoration: underline;
+}
+
+
+/* ==========================================================================
+   AUTO DARK MODE — System preference support
+   Mirrors all [data-theme="dark"] rules for when Furo theme is "auto"
+   and the OS prefers dark. Without this, custom dark-mode styles only
+   apply when the user explicitly clicks the dark toggle.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Dark tokens for auto-theme system preference */
+  :root:not([data-theme="light"]) {
+    --adk-accent: #FFB74D;
+    --adk-accent-hover: #FFCC80;
+    --adk-accent-light: #FFCC80;
+    --adk-accent-lighter: #FFE0B2;
+    --adk-accent-lightest: #FFF3E0;
+    --adk-accent-bg: rgba(255, 183, 77, 0.12);
+    --adk-accent-bg-hover: rgba(255, 183, 77, 0.2);
+    --adk-success: #34d399;
+    --adk-success-bg: rgba(52, 211, 153, 0.12);
+    --adk-success-border: rgba(52, 211, 153, 0.28);
+    --adk-warning: #fbbf24;
+    --adk-warning-bg: rgba(251, 191, 36, 0.12);
+    --adk-warning-border: rgba(251, 191, 36, 0.28);
+    --adk-danger: #f87171;
+    --adk-danger-bg: rgba(248, 113, 113, 0.12);
+    --adk-danger-border: rgba(248, 113, 113, 0.28);
+    --adk-info: #38bdf8;
+    --adk-info-bg: rgba(56, 189, 248, 0.12);
+    --adk-info-border: rgba(56, 189, 248, 0.28);
+    --adk-surface: #171717;
+    --adk-surface-raised: #1E1E1E;
+    --adk-surface-sunken: #121212;
+    --adk-border: #333333;
+    --adk-border-hover: #4A4A4A;
+    --adk-border-subtle: #252525;
+    --adk-text-primary: #E0E0E0;
+    --adk-text-secondary: #BDBDBD;
+    --adk-text-muted: #9E9E9E;
+    --adk-text-faint: #757575;
+    --adk-gradient-start: #FFB74D;
+    --adk-gradient-mid: #FFCC80;
+    --adk-gradient-end: #FFE0B2;
+    --adk-gradient-brand: linear-gradient(135deg, #FFB74D, #FFCC80, #FFE0B2);
+    --adk-gradient-subtle: linear-gradient(135deg, rgba(255, 183, 77, 0.08) 0%, rgba(255, 204, 128, 0.05) 50%, rgba(255, 224, 178, 0.03) 100%);
+    --adk-hero-bg: linear-gradient(135deg, rgba(255, 183, 77, 0.1) 0%, rgba(255, 152, 0, 0.06) 50%, rgba(255, 183, 77, 0.03) 100%);
+    --adk-glass-bg: rgba(23, 23, 23, 0.8);
+    --adk-glass-border: rgba(255, 183, 77, 0.12);
+    --adk-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --adk-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+    --adk-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --adk-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.35);
+    --adk-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
+    --adk-shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.5);
+    --adk-shadow-glow: 0 0 24px rgba(255, 183, 77, 0.15);
+    --adk-shadow-glow-lg: 0 0 48px rgba(255, 183, 77, 0.2);
+  }
+
+  body:not([data-theme="light"]) .mermaid {
+    filter: none;
+  }
+
+  body:not([data-theme="light"]) .content code:not(pre code):not(h1 code):not(h2 code):not(h3 code):not(h4 code) {
+    background: rgba(255, 183, 77, 0.1);
+    color: var(--adk-accent-lighter);
+    border-color: rgba(255, 183, 77, 0.15);
+  }
+
+  body:not([data-theme="light"]) .content code:not(pre code):not(h1 code):not(h2 code):not(h3 code):not(h4 code):hover {
+    background: rgba(255, 183, 77, 0.18);
+    border-color: rgba(255, 183, 77, 0.3);
+  }
+
+  body:not([data-theme="light"]) .content table thead th {
+    background: rgba(255, 183, 77, 0.06);
+  }
+
+  body:not([data-theme="light"]) .hero-section::before {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(255, 183, 77, 0.06) 1px,
+      transparent 0
+    );
+  }
+
+  body:not([data-theme="light"]) .hero-flow-svg text[fill="#9E9E9E"] { fill: #BDBDBD; }
+
+  body:not([data-theme="light"]) .hero-flow-svg text[fill="#757575"] { fill: #9E9E9E; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[stroke="#E65100"] { stroke: #FFB74D; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[fill="#E6510008"] { fill: rgba(255, 183, 77, 0.06); }
+
+  body:not([data-theme="light"]) .hero-flow-svg text[fill="#F57C00"] { fill: #FFCC80; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[stroke="#F57C00"] { stroke: #FFCC80; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[fill="#F57C0008"] { fill: rgba(255, 204, 128, 0.06); }
+
+  body:not([data-theme="light"]) .hero-flow-svg text[fill="#FFB74D"] { fill: #FFE0B2; }
+
+  body:not([data-theme="light"]) .hero-flow-svg line[stroke="#F57C00"] { stroke: #FFCC80; }
+
+  body:not([data-theme="light"]) .hero-flow-svg line[stroke="#10b981"] { stroke: #34d399; }
+
+  body:not([data-theme="light"]) .hero-flow-svg text[fill="#34d399"] { fill: #6ee7b7; }
+
+  body:not([data-theme="light"]) .hero-flow-svg text[fill="#fbbf24"] { fill: #fde68a; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[stroke="#10b981"] { stroke: #34d399; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[fill="#10b98108"] { fill: rgba(52, 211, 153, 0.06); }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[stroke="#f59e0b"] { stroke: #fbbf24; }
+
+  body:not([data-theme="light"]) .hero-flow-svg rect[fill="#f59e0b06"] { fill: rgba(251, 191, 36, 0.06); }
+
+  body:not([data-theme="light"]) .hero-flow-svg path[fill="#F57C00"] { fill: #FFCC80; }
+
+  body:not([data-theme="light"]) .journey-step::before {
+    box-shadow: 0 4px 12px rgba(255, 183, 77, 0.2);
+  }
+
+  body:not([data-theme="light"]) .highlighted {
+    background: rgba(251, 191, 36, 0.15);
+  }
+
+  body:not([data-theme="light"]) .content blockquote p,
+
+  body:not([data-theme="light"]) .journey-step .journey-content p {
+    color: var(--adk-text-muted);
+  }
+
+  body:not([data-theme="light"]) .hero-section {
+    border-color: var(--adk-border);
+    box-shadow: var(--adk-shadow-lg), inset 0 1px 0 rgba(255, 183, 77, 0.05);
+  }
+
+  body:not([data-theme="light"]) .mermaid {
+    filter: none;
+    background: transparent;
+  }
+
+  body:not([data-theme="light"]) .announcement {
+    background: linear-gradient(90deg, #BF360C, #E65100);
+  }
+
+  body:not([data-theme="light"]) .sd-card {
+    background: var(--adk-surface-raised);
+    border-color: var(--adk-border);
+  }
+
+  body:not([data-theme="light"]) .sd-card:hover {
+    border-color: rgba(255, 183, 77, 0.3);
+    box-shadow: var(--adk-shadow-lg), 0 0 0 1px rgba(255, 183, 77, 0.08), var(--adk-shadow-glow);
+  }
+
+  body:not([data-theme="light"]) .content pre {
+    border-color: var(--adk-border);
+    background: var(--adk-surface-sunken);
+  }
+
+  body:not([data-theme="light"]) .sd-tab-set {
+    border-color: var(--adk-border);
+    background: var(--adk-surface-raised);
+  }
+
+  body:not([data-theme="light"]) .journey-step {
+    background: var(--adk-surface-raised);
+    border-color: var(--adk-border);
+  }
+
+  body:not([data-theme="light"]) .journey-step:hover {
+    box-shadow: var(--adk-shadow-lg), var(--adk-shadow-glow);
+  }
+
+  body:not([data-theme="light"]) .related-pages a {
+    background: var(--adk-surface-raised);
+    border-color: var(--adk-border);
+  }
+
+  body:not([data-theme="light"]) .related-pages a:hover {
+    border-color: rgba(255, 183, 77, 0.3);
+    box-shadow: var(--adk-shadow-lg), var(--adk-shadow-glow);
+  }
+
+  body:not([data-theme="light"]) .content blockquote {
+    background: var(--adk-surface-raised);
+    border-left-color: var(--adk-accent);
+  }
+
+  body:not([data-theme="light"]) .admonition {
+    border-color: var(--adk-border);
+  }
+
+  body:not([data-theme="light"]) .admonition.important,
+
+  body:not([data-theme="light"]) .admonition.note {
+    background: var(--adk-accent-bg);
+    border-color: rgba(255, 183, 77, 0.2);
+  }
+
+  body:not([data-theme="light"]) .admonition.tip,
+
+  body:not([data-theme="light"]) .admonition.hint {
+    background: var(--adk-success-bg);
+    border-color: var(--adk-success-border);
+  }
+
+  body:not([data-theme="light"]) .admonition.warning,
+
+  body:not([data-theme="light"]) .admonition.caution {
+    background: var(--adk-warning-bg);
+    border-color: var(--adk-warning-border);
+  }
+
+  body:not([data-theme="light"]) .admonition.danger,
+
+  body:not([data-theme="light"]) .admonition.error {
+    background: var(--adk-danger-bg);
+    border-color: var(--adk-danger-border);
+  }
+
+  body:not([data-theme="light"]) .content table tbody tr:nth-child(even) {
+    background: var(--adk-surface-raised);
+  }
+
+  body:not([data-theme="light"]) .content table tbody tr:hover {
+    background: var(--adk-accent-bg);
+  }
+
+  body:not([data-theme="light"]) .content table thead th {
+    background: var(--adk-surface-sunken);
+    border-bottom-color: var(--adk-accent);
+    color: var(--adk-text-secondary);
+  }
+
+  body:not([data-theme="light"]) .content a:not(.sd-card):not(.headerlink) {
+    text-decoration-color: rgba(255, 183, 77, 0.3);
+  }
+
+  body:not([data-theme="light"]) .content a:not(.sd-card):not(.headerlink):hover {
+    text-decoration-color: var(--adk-accent);
+  }
+
+  body:not([data-theme="light"]) .sd-tab-set > label:hover {
+    background: var(--adk-accent-bg);
+  }
+
+  body:not([data-theme="light"]) .sd-tab-set > input:checked + label {
+    background: var(--adk-accent-bg);
+    border-bottom-color: var(--adk-accent);
+    color: var(--adk-accent);
+  }
+
+  body:not([data-theme="light"]) .visual-ref-card {
+    background: var(--adk-surface-raised);
+  }
+
+  body:not([data-theme="light"]) .visual-ref-card:hover {
+    border-color: rgba(255, 183, 77, 0.3);
+    box-shadow: var(--adk-shadow-lg), var(--adk-shadow-glow);
+  }
+
+  body:not([data-theme="light"]) .arch-diagram-wrapper {
+    background: var(--adk-surface-sunken);
+    border-color: var(--adk-border);
+  }
+
+  body:not([data-theme="light"]) .sd-card::after {
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 183, 77, 0.03) 45%,
+      rgba(255, 183, 77, 0.06) 50%,
+      rgba(255, 183, 77, 0.03) 55%,
+      transparent 60%
+    );
+  }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg rect[stroke="#E65100"] { stroke: #FFB74D; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg rect[fill="#E6510010"] { fill: rgba(255, 183, 77, 0.08); }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg path[fill="#E65100"] { fill: #FFB74D; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg path[fill="#F57C00"] { fill: #FFCC80; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[stroke="#E65100"] { stroke: #FFB74D; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[fill="#E6510010"] { fill: rgba(255, 183, 77, 0.08); }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[stroke="#F57C00"] { stroke: #FFCC80; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[fill="#F57C0010"] { fill: rgba(255, 204, 128, 0.08); }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[stroke="#FFB74D"] { stroke: #FFE0B2; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[fill="#FFB74D10"] { fill: rgba(255, 224, 178, 0.08); }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg line[stroke="#F57C00"] { stroke: #FFCC80; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg line[stroke="#FFB74D"] { stroke: #FFE0B2; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg text[fill="#E65100"] { fill: #FFB74D; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg text[fill="#F57C00"] { fill: #FFCC80; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg text[fill="#FFB74D"] { fill: #FFE0B2; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg rect[fill="#E0E0E0"] { fill: #4A4A4A; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg path[stroke="#10b981"] { stroke: #34d399; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg circle[fill="#F57C00"] { fill: #FFCC80; }
+
+  body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg path[stroke="#E65100"] { stroke: #FFB74D; }
+
 }
