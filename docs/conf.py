@@ -140,7 +140,7 @@ html_theme_options = {
     "dark_css_variables": {
         "color-brand-primary": "#FFB74D",
         "color-brand-content": "#FFCC80",
-        "color-admonition-background": "#2E2E2E",
+        "color-admonition-background": "#1E1E1E",
         "color-background-primary": "#171717",
         "color-background-secondary": "#1E1E1E",
         "color-background-border": "#333333",
@@ -148,6 +148,7 @@ html_theme_options = {
         "color-foreground-secondary": "#BDBDBD",
         "color-foreground-muted": "#9E9E9E",
         "color-sidebar-background": "#1A1A1A",
+        "color-sidebar-link-text--top-level": "#E0E0E0",
         "color-highlighted-background": "#2E2200",
         "color-code-background": "#1E1E1E",
     },
@@ -155,7 +156,8 @@ html_theme_options = {
 }
 
 html_favicon = "_static/favicon.svg"
-html_logo = "_static/logo.svg"
+html_theme_options["light_logo"] = "logo.svg"
+html_theme_options["dark_logo"] = "logo-dark.svg"
 html_baseurl = "https://vamsiramakrishnan.github.io/adk-fluent/"
 
 pygments_style = "friendly"
