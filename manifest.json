@@ -1,11 +1,361 @@
 {
   "adk_version": "1.25.0",
-  "scan_timestamp": "2026-03-16T07:52:39.131122+00:00",
-  "python_version": "3.11.14",
-  "total_classes": 443,
-  "total_fields": 779,
-  "total_callbacks": 19,
+  "scan_timestamp": "2026-03-23T08:26:49.371255+00:00",
+  "python_version": "3.12.3",
+  "total_classes": 451,
+  "total_fields": 795,
+  "total_callbacks": 25,
   "classes": [
+    {
+      "name": "AgentRunRequest",
+      "qualname": "google.adk.a2a.converters.request_converter.AgentRunRequest",
+      "module": "google.adk.a2a.converters.request_converter",
+      "is_pydantic": true,
+      "bases": [
+        "BaseModel"
+      ],
+      "mro_chain": [
+        "AgentRunRequest",
+        "BaseModel"
+      ],
+      "fields": [
+        {
+          "name": "user_id",
+          "type_str": "str | None",
+          "type_raw": "typing.Optional[str]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "session_id",
+          "type_str": "str | None",
+          "type_raw": "typing.Optional[str]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "invocation_id",
+          "type_str": "str | None",
+          "type_raw": "typing.Optional[str]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "new_message",
+          "type_str": "Content | None",
+          "type_raw": "typing.Optional[google.genai.types.Content]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "state_delta",
+          "type_str": "dict[str, Any] | None",
+          "type_raw": "typing.Optional[dict[str, typing.Any]]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "run_config",
+          "type_str": "RunConfig | None",
+          "type_raw": "typing.Optional[google.adk.agents.run_config.RunConfig]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        }
+      ],
+      "own_fields": [
+        "user_id",
+        "session_id",
+        "invocation_id",
+        "new_message",
+        "state_delta",
+        "run_config"
+      ],
+      "methods": [
+        "construct",
+        "copy",
+        "dict",
+        "from_orm",
+        "json",
+        "model_construct",
+        "model_copy",
+        "model_dump",
+        "model_dump_json",
+        "model_extra",
+        "model_fields_set",
+        "model_json_schema",
+        "model_parametrized_name",
+        "model_post_init",
+        "model_rebuild",
+        "model_validate",
+        "model_validate_json",
+        "model_validate_strings",
+        "parse_file",
+        "parse_obj",
+        "parse_raw",
+        "schema",
+        "schema_json",
+        "update_forward_refs",
+        "validate"
+      ],
+      "doc": "Data model for arguments passed to the ADK runner.",
+      "inspection_mode": "pydantic",
+      "init_params": []
+    },
+    {
+      "name": "A2aAgentExecutor",
+      "qualname": "google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutor",
+      "module": "google.adk.a2a.executor.a2a_agent_executor",
+      "is_pydantic": false,
+      "bases": [
+        "AgentExecutor"
+      ],
+      "mro_chain": [
+        "A2aAgentExecutor",
+        "AgentExecutor",
+        "ABC"
+      ],
+      "fields": [],
+      "own_fields": [],
+      "methods": [
+        "cancel",
+        "execute"
+      ],
+      "doc": "An AgentExecutor that runs an ADK Agent against an A2A request and",
+      "inspection_mode": "init_signature",
+      "init_params": [
+        {
+          "name": "runner",
+          "type_str": "Runner | Callable[..., Runner | Awaitable[Runner]]",
+          "default": null,
+          "required": true,
+          "position": 0
+        },
+        {
+          "name": "config",
+          "type_str": "A2aAgentExecutorConfig | None",
+          "default": "None",
+          "required": false,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "name": "A2aAgentExecutorConfig",
+      "qualname": "google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutorConfig",
+      "module": "google.adk.a2a.executor.a2a_agent_executor",
+      "is_pydantic": true,
+      "bases": [
+        "BaseModel"
+      ],
+      "mro_chain": [
+        "A2aAgentExecutorConfig",
+        "BaseModel"
+      ],
+      "fields": [
+        {
+          "name": "a2a_part_converter",
+          "type_str": "Callable[[Part], Part | None | list[Part]]",
+          "type_raw": "collections.abc.Callable[[a2a.types.Part], typing.Union[google.genai.types.Part, NoneType, typing.List[google.genai.types.Part]]]",
+          "default": "<function convert_a2a_part_to_genai_part at 0x7f6aa4ca4d60>",
+          "required": false,
+          "is_callback": true,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "gen_ai_part_converter",
+          "type_str": "Callable[[Part], Part | None | list[Part]]",
+          "type_raw": "collections.abc.Callable[[google.genai.types.Part], typing.Union[a2a.types.Part, NoneType, typing.List[a2a.types.Part]]]",
+          "default": "<function convert_genai_part_to_a2a_part at 0x7f6aa4ca4ea0>",
+          "required": false,
+          "is_callback": true,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "request_converter",
+          "type_str": "Callable[[RequestContext, Callable[[Part], Part | None | list[Part]]], AgentRunRequest]",
+          "type_raw": "collections.abc.Callable[[a2a.server.agent_execution.context.RequestContext, collections.abc.Callable[[a2a.types.Part], typing.Union[google.genai.types.Part, NoneType, typing.List[google.genai.types.Part]]]], google.adk.a2a.converters.request_converter.AgentRunRequest]",
+          "default": "<function convert_a2a_request_to_agent_run_request at 0x7f6aa4ca5760>",
+          "required": false,
+          "is_callback": true,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        },
+        {
+          "name": "event_converter",
+          "type_str": "Callable[[Event, InvocationContext, str | None, str | None, Callable[[Part], Part | None | list[Part]]], list[a2a.types.Message | a2a.types.Task | a2a.types.TaskStatusUpdateEvent | a2a.types.TaskArtifactUpdateEvent]]",
+          "type_raw": "collections.abc.Callable[[google.adk.events.event.Event, google.adk.agents.invocation_context.InvocationContext, typing.Optional[str], typing.Optional[str], collections.abc.Callable[[google.genai.types.Part], typing.Union[a2a.types.Part, NoneType, typing.List[a2a.types.Part]]]], typing.List[a2a.types.Message | a2a.types.Task | a2a.types.TaskStatusUpdateEvent | a2a.types.TaskArtifactUpdateEvent]]",
+          "default": "<function convert_event_to_a2a_events at 0x7f6aa4ca5580>",
+          "required": false,
+          "is_callback": true,
+          "is_list": false,
+          "description": "",
+          "inherited_from": null,
+          "validators": []
+        }
+      ],
+      "own_fields": [
+        "a2a_part_converter",
+        "gen_ai_part_converter",
+        "request_converter",
+        "event_converter"
+      ],
+      "methods": [
+        "construct",
+        "copy",
+        "dict",
+        "from_orm",
+        "json",
+        "model_construct",
+        "model_copy",
+        "model_dump",
+        "model_dump_json",
+        "model_extra",
+        "model_fields_set",
+        "model_json_schema",
+        "model_parametrized_name",
+        "model_post_init",
+        "model_rebuild",
+        "model_validate",
+        "model_validate_json",
+        "model_validate_strings",
+        "parse_file",
+        "parse_obj",
+        "parse_raw",
+        "schema",
+        "schema_json",
+        "update_forward_refs",
+        "validate"
+      ],
+      "doc": "Configuration for the A2aAgentExecutor.",
+      "inspection_mode": "pydantic",
+      "init_params": []
+    },
+    {
+      "name": "TaskResultAggregator",
+      "qualname": "google.adk.a2a.executor.task_result_aggregator.TaskResultAggregator",
+      "module": "google.adk.a2a.executor.task_result_aggregator",
+      "is_pydantic": false,
+      "bases": [],
+      "mro_chain": [
+        "TaskResultAggregator"
+      ],
+      "fields": [],
+      "own_fields": [],
+      "methods": [
+        "process_event",
+        "task_state",
+        "task_status_message"
+      ],
+      "doc": "Aggregates the task status updates and provides the final task state.",
+      "inspection_mode": "init_signature",
+      "init_params": []
+    },
+    {
+      "name": "AgentCardBuilder",
+      "qualname": "google.adk.a2a.utils.agent_card_builder.AgentCardBuilder",
+      "module": "google.adk.a2a.utils.agent_card_builder",
+      "is_pydantic": false,
+      "bases": [],
+      "mro_chain": [
+        "AgentCardBuilder"
+      ],
+      "fields": [],
+      "own_fields": [],
+      "methods": [
+        "build"
+      ],
+      "doc": "Builder class for creating agent cards from ADK agents.",
+      "inspection_mode": "init_signature",
+      "init_params": [
+        {
+          "name": "agent",
+          "type_str": "BaseAgent",
+          "default": null,
+          "required": true,
+          "position": 0
+        },
+        {
+          "name": "rpc_url",
+          "type_str": "str | None",
+          "default": "None",
+          "required": false,
+          "position": 1
+        },
+        {
+          "name": "capabilities",
+          "type_str": "AgentCapabilities | None",
+          "default": "None",
+          "required": false,
+          "position": 2
+        },
+        {
+          "name": "doc_url",
+          "type_str": "str | None",
+          "default": "None",
+          "required": false,
+          "position": 3
+        },
+        {
+          "name": "provider",
+          "type_str": "AgentProvider | None",
+          "default": "None",
+          "required": false,
+          "position": 4
+        },
+        {
+          "name": "agent_version",
+          "type_str": "str | None",
+          "default": "None",
+          "required": false,
+          "position": 5
+        },
+        {
+          "name": "security_schemes",
+          "type_str": "dict[str, SecurityScheme] | None",
+          "default": "None",
+          "required": false,
+          "position": 6
+        }
+      ]
+    },
     {
       "name": "ActiveStreamingTool",
       "qualname": "google.adk.agents.active_streaming_tool.ActiveStreamingTool",
@@ -2827,6 +3177,214 @@
           "position": 0
         }
       ]
+    },
+    {
+      "name": "A2AClientError",
+      "qualname": "google.adk.agents.remote_a2a_agent.A2AClientError",
+      "module": "google.adk.agents.remote_a2a_agent",
+      "is_pydantic": false,
+      "bases": [
+        "Exception"
+      ],
+      "mro_chain": [
+        "A2AClientError",
+        "Exception",
+        "BaseException"
+      ],
+      "fields": [],
+      "own_fields": [],
+      "methods": [
+        "add_note",
+        "with_traceback"
+      ],
+      "doc": "Raised when A2A client operations fail.",
+      "inspection_mode": "init_signature",
+      "init_params": [
+        {
+          "name": "args",
+          "type_str": "Any",
+          "default": null,
+          "required": true,
+          "position": 0
+        },
+        {
+          "name": "kwargs",
+          "type_str": "Any",
+          "default": null,
+          "required": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "name": "AgentCardResolutionError",
+      "qualname": "google.adk.agents.remote_a2a_agent.AgentCardResolutionError",
+      "module": "google.adk.agents.remote_a2a_agent",
+      "is_pydantic": false,
+      "bases": [
+        "Exception"
+      ],
+      "mro_chain": [
+        "AgentCardResolutionError",
+        "Exception",
+        "BaseException"
+      ],
+      "fields": [],
+      "own_fields": [],
+      "methods": [
+        "add_note",
+        "with_traceback"
+      ],
+      "doc": "Raised when agent card resolution fails.",
+      "inspection_mode": "init_signature",
+      "init_params": [
+        {
+          "name": "args",
+          "type_str": "Any",
+          "default": null,
+          "required": true,
+          "position": 0
+        },
+        {
+          "name": "kwargs",
+          "type_str": "Any",
+          "default": null,
+          "required": true,
+          "position": 1
+        }
+      ]
+    },
+    {
+      "name": "RemoteA2aAgent",
+      "qualname": "google.adk.agents.remote_a2a_agent.RemoteA2aAgent",
+      "module": "google.adk.agents.remote_a2a_agent",
+      "is_pydantic": true,
+      "bases": [
+        "BaseAgent"
+      ],
+      "mro_chain": [
+        "RemoteA2aAgent",
+        "BaseAgent",
+        "BaseModel"
+      ],
+      "fields": [
+        {
+          "name": "name",
+          "type_str": "str",
+          "type_raw": "<class 'str'>",
+          "default": null,
+          "required": true,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": "BaseAgent",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_str": "str",
+          "type_raw": "<class 'str'>",
+          "default": "''",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": "BaseAgent",
+          "validators": []
+        },
+        {
+          "name": "parent_agent",
+          "type_str": "BaseAgent | None",
+          "type_raw": "typing.Optional[google.adk.agents.base_agent.BaseAgent]",
+          "default": "None",
+          "required": false,
+          "is_callback": false,
+          "is_list": false,
+          "description": "",
+          "inherited_from": "BaseAgent",
+          "validators": []
+        },
+        {
+          "name": "sub_agents",
+          "type_str": "list[BaseAgent]",
+          "type_raw": "list[google.adk.agents.base_agent.BaseAgent]",
+          "default": "list()",
+          "required": false,
+          "is_callback": false,
+          "is_list": true,
+          "description": "",
+          "inherited_from": "BaseAgent",
+          "validators": []
+        },
+        {
+          "name": "before_agent_callback",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
+          "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
+          "default": "None",
+          "required": false,
+          "is_callback": true,
+          "is_list": false,
+          "description": "",
+          "inherited_from": "BaseAgent",
+          "validators": []
+        },
+        {
+          "name": "after_agent_callback",
+          "type_str": "Callable[[CallbackContext], Awaitable[Content | None] | Content | None] | list[Callable[[CallbackContext], Awaitable[Content | None] | Content | None]] | None",
+          "type_raw": "typing.Union[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]], list[typing.Callable[[google.adk.agents.callback_context.CallbackContext], typing.Union[typing.Awaitable[typing.Optional[google.genai.types.Content]], google.genai.types.Content, NoneType]]], NoneType]",
+          "default": "None",
+          "required": false,
+          "is_callback": true,
+          "is_list": false,
+          "description": "",
+          "inherited_from": "BaseAgent",
+          "validators": []
+        }
+      ],
+      "own_fields": [],
+      "methods": [
+        "canonical_after_agent_callbacks",
+        "canonical_before_agent_callbacks",
+        "cleanup",
+        "clone",
+        "config_type",
+        "construct",
+        "copy",
+        "dict",
+        "find_agent",
+        "find_sub_agent",
+        "from_config",
+        "from_orm",
+        "json",
+        "model_construct",
+        "model_copy",
+        "model_dump",
+        "model_dump_json",
+        "model_extra",
+        "model_fields_set",
+        "model_json_schema",
+        "model_parametrized_name",
+        "model_post_init",
+        "model_rebuild",
+        "model_validate",
+        "model_validate_json",
+        "model_validate_strings",
+        "parse_file",
+        "parse_obj",
+        "parse_raw",
+        "root_agent",
+        "run_async",
+        "run_live",
+        "schema",
+        "schema_json",
+        "update_forward_refs",
+        "validate",
+        "validate_name",
+        "validate_sub_agents_unique_names"
+      ],
+      "doc": "Agent that communicates with a remote A2A agent via A2A client.",
+      "inspection_mode": "pydantic",
+      "init_params": []
     },
     {
       "name": "RunConfig",
@@ -15467,21 +16025,21 @@
         {
           "name": "auto_rater_response_parser",
           "type_str": "AutoRaterResponseParser",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7f2343f82650>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.DefaultAutoRaterResponseParser object at 0x7f6a9d2de2a0>",
           "required": false,
           "position": 2
         },
         {
           "name": "per_invocation_results_aggregator",
           "type_str": "PerInvocationResultsAggregator",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7f2343f82690>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MajorityVotePerInvocationResultsAggregator object at 0x7f6a9d2de420>",
           "required": false,
           "position": 3
         },
         {
           "name": "invocation_results_summarizer",
           "type_str": "InvocationResultsSummarizer",
-          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7f2343f826d0>",
+          "default": "<google.adk.evaluation.rubric_based_evaluator.MeanInvocationResultsSummarizer object at 0x7f6a9d2de240>",
           "required": false,
           "position": 4
         },
@@ -26135,7 +26693,7 @@
           "name": "httpx_client_factory",
           "type_str": "CheckableMcpHttpClientFactory",
           "type_raw": "<class 'google.adk.tools.mcp_tool.mcp_session_manager.CheckableMcpHttpClientFactory'>",
-          "default": "<function create_mcp_http_client at 0x7f234da75ee0>",
+          "default": "<function create_mcp_http_client at 0x7f6aa829dc60>",
           "required": false,
           "is_callback": false,
           "is_list": false,
