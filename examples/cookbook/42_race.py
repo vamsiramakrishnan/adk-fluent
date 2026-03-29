@@ -69,7 +69,8 @@ research_pipeline = (
 )
 
 # --- ASSERT ---
-from adk_fluent._base import _RaceBuilder, BuilderBase
+from adk_fluent._primitive_builders import _RaceBuilder
+from adk_fluent._base import BuilderBase
 
 # race() creates a _RaceBuilder
 assert isinstance(fastest_result, _RaceBuilder)

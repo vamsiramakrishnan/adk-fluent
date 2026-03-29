@@ -73,7 +73,8 @@ multi_stage_review = (
 )
 
 # --- ASSERT ---
-from adk_fluent._base import _GateBuilder, BuilderBase
+from adk_fluent._primitive_builders import _GateBuilder
+from adk_fluent._base import BuilderBase
 
 # gate() creates a _GateBuilder
 g = gate(lambda s: True, message="Test")

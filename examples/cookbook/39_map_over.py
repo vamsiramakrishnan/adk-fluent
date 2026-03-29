@@ -72,7 +72,8 @@ feedback_pipeline = (
 )
 
 # --- ASSERT ---
-from adk_fluent._base import _MapOverBuilder, BuilderBase
+from adk_fluent._primitive_builders import _MapOverBuilder
+from adk_fluent._base import BuilderBase
 
 # map_over returns a _MapOverBuilder
 assert isinstance(feedback_mapper, _MapOverBuilder)

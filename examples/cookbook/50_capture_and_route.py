@@ -83,7 +83,7 @@ built = helpdesk.build()
 assert len(contract_errors) == 0
 
 # Pipeline builds with capture agent first
-from adk_fluent._base import CaptureAgent
+from adk_fluent._primitives import CaptureAgent
 
 assert isinstance(built.sub_agents[0], CaptureAgent)
 assert built.sub_agents[0].name == "capture_ticket"

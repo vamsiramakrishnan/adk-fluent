@@ -15,17 +15,18 @@ agent_native = LlmAgent(
 )
 
 # --- FLUENT ---
-from adk_fluent import Agent
+from adk_fluent import Agent, C
 
-# Fields not explicitly aliased (like output_key, include_contents) still
-# work via __getattr__ dynamic forwarding. The builder validates field names
-# against the ADK LlmAgent class, catching typos at build time.
+# Fields not explicitly aliased (like output_key) still work via __getattr__
+# dynamic forwarding. The builder validates field names against the ADK
+# LlmAgent class, catching typos at build time.
+# For include_contents, use the C (context) module: .context(C.none()).
 agent_fluent = (
     Agent("ticket_router")
     .model("gemini-2.5-flash")
     .instruct("Classify incoming support tickets by department.")
     .writes("department")
-    .include_contents("none")
+    .context(C.none())
     .build()
 )
 
