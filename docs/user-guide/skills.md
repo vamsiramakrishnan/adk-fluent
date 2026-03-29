@@ -469,14 +469,9 @@ skill.topology_expr()
 skill.contract()
 # → {"input": {"topic": "str"}, "output": {"report": "str"}}
 
-# Print configuration summary
+# Print configuration summary (inherited from BuilderBase)
 skill.explain()
-# Skill: research_pipeline
-#   Description: Multi-step research with fact-checking and synthesis.
-#   Version: 1.0.0
-#   Tags: research, synthesis, citations
-#   Agents: researcher, fact_checker, synthesizer
-#   Topology: researcher >> fact_checker >> synthesizer
+# Returns a multi-line summary of builder state
 ```
 
 ## Skill Builder API Reference

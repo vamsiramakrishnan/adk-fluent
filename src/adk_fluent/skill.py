@@ -171,31 +171,6 @@ class Skill(BuilderBase):
         sd = self._config["_skill_def"]
         return {"input": dict(sd.input_schema), "output": dict(sd.output_schema)}
 
-    def explain(self) -> None:
-        """Print a summary of the skill's configuration."""
-        import sys
-
-        sd = self._config["_skill_def"]
-        lines = [
-            f"Skill: {sd.name}",
-            f"  Description: {sd.description}" if sd.description else None,
-            f"  Version: {sd.version}" if sd.version else None,
-            f"  Tags: {', '.join(sd.tags)}" if sd.tags else None,
-            f"  Agents: {', '.join(a.name for a in sd.agents)}"
-            if sd.agents
-            else "  Agents: (none — documentation only)",
-            f"  Topology: {sd.topology}" if sd.topology else None,
-        ]
-        model_override = self._config.get("_model_override")
-        if model_override:
-            lines.append(f"  Model override: {model_override}")
-        injections = self._config.get("_injections", {})
-        if injections:
-            lines.append(f"  Injected tools: {', '.join(injections.keys())}")
-        for line in lines:
-            if line is not None:
-                print(line, file=sys.stderr)
-
     # ------------------------------------------------------------------
     # Execution helpers (same delegation pattern as Pipeline/Loop)
     # ------------------------------------------------------------------
@@ -312,7 +287,7 @@ class Skill(BuilderBase):
                 for key, val in overrides[agent_def.name].items():
                     setter = getattr(builder, key, None)
                     if setter and callable(setter):
-                        builder = setter(val)
+                        builder = setter(val)  # type: ignore[assignment]
 
             builders[agent_def.name] = builder
 
@@ -344,6 +319,7 @@ class Skill(BuilderBase):
         builders = self._create_agent_builders()
 
         # Wire topology
+        root: Any
         if len(builders) == 1:
             root = next(iter(builders.values()))
         elif skill_def.topology:

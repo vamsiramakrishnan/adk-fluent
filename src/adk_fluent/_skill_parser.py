@@ -282,9 +282,11 @@ def parse_topology(expr: str, agent_names: list[str]) -> Any:
         """fanout → pipeline ( "|" pipeline )*"""
         left = parse_pipeline()
         branches = [left]
-        while peek() and peek()[0] == "FANOUT":
+        tok = peek()
+        while tok is not None and tok[0] == "FANOUT":
             consume("FANOUT")
             branches.append(parse_pipeline())
+            tok = peek()
         if len(branches) == 1:
             return branches[0]
         # Return a factory that creates FanOut
@@ -294,9 +296,11 @@ def parse_topology(expr: str, agent_names: list[str]) -> Any:
         """pipeline → loop ( ">>" loop )*"""
         left = parse_loop()
         steps = [left]
-        while peek() and peek()[0] == "PIPE":
+        tok = peek()
+        while tok is not None and tok[0] == "PIPE":
             consume("PIPE")
             steps.append(parse_loop())
+            tok = peek()
         if len(steps) == 1:
             return steps[0]
         return ("pipeline", steps)
@@ -304,7 +308,8 @@ def parse_topology(expr: str, agent_names: list[str]) -> Any:
     def parse_loop():
         """loop → atom ( "*" INT )?"""
         node = parse_atom()
-        if peek() and peek()[0] == "LOOP":
+        tok = peek()
+        if tok is not None and tok[0] == "LOOP":
             consume("LOOP")
             _, count_str = consume("INT")
             return ("loop", node, int(count_str))
