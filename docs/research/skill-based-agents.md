@@ -6,6 +6,77 @@
 
 ---
 
+## 0. Industry Landscape: Skills Across Frameworks
+
+### Skills vs Tools — The Critical Distinction
+
+| Aspect | Tools | Skills |
+|--------|-------|--------|
+| **Nature** | Atomic functions (API calls) | Knowledge + workflow packages |
+| **Mechanism** | Function calling (JSON-RPC) | Prompt/context injection |
+| **Loading** | Always registered | On-demand (progressive disclosure) |
+| **Token cost** | Schema always in context | Metadata only (~100 tokens); body on demand |
+| **Reusability** | Per-framework | Cross-platform (agentskills.io standard) |
+| **Composition** | Chain/parallel via orchestrator | Patterns compose patterns |
+| **Analogy** | "What the agent **can do**" | "What the agent **knows how to do**" |
+
+> "MCP gives your agent access to external tools and data. Skills teach your agent what to do with those tools and data."
+
+### How Other Frameworks Handle Skills
+
+| Framework | Unit Name | Key Pattern | Composition Model |
+|-----------|-----------|-------------|-------------------|
+| **Google ADK** | `SkillToolset` | Progressive disclosure (L1→L2→L3) | Dynamic tool gating via `adk_additional_tools` |
+| **Semantic Kernel** | Plugins | `@kernel_function` on class methods | Planner auto-decomposes into multi-plugin plans |
+| **LangChain** | Skills (agentskills.io) | MD files + subagent isolation | `create_deep_agent(skills=[...])` |
+| **CrewAI** | Roles (agents) | Role-based metaphor with delegation | `Process.hierarchical` with manager agent |
+| **AutoGen → MS Agent Framework** | `@ai_function` | Actor model, agent-as-tool | Graph-based workflows + MCP/A2A native |
+| **A2A Protocol** | `AgentSkill` in AgentCard | JSON metadata for discovery | Per-skill auth, input/output modes |
+
+### Google ADK SkillToolset — The Native Pattern
+
+ADK's `SkillToolset` implements three-level progressive disclosure:
+
+```
+L1 — Metadata (~100 tokens)     Always in system prompt as XML index
+L2 — Instructions (<5K tokens)  Loaded via load_skill(name) tool call
+L3 — Resources (on demand)      Loaded via load_skill_resource(name, path)
+```
+
+The critical innovation: **skill-gated tool access**. Skills declare needed tools:
+```yaml
+metadata:
+  adk_additional_tools: ["google_search", "code_interpreter"]
+```
+When a skill is activated, its tools become visible to the LLM. Deactivated → tools disappear. This means **skills control their own tool surface area**.
+
+### Five Skill Design Patterns (ADK Community)
+
+| # | Pattern | Description | Example |
+|---|---------|-------------|---------|
+| 1 | **Tool Wrapper** | Package library conventions as on-demand expertise | "How to use BigQuery best practices" |
+| 2 | **Generator** | Produce structured output using reusable templates | "Generate Terraform config from spec" |
+| 3 | **Reviewer** | Evaluate artifacts against a checklist with severity ratings | "Review PR against 12-point checklist" |
+| 4 | **Inversion** | Agent interviews user through structured phases before acting | "Gather requirements → then design" |
+| 5 | **Pipeline** | Sequential multi-step workflow with validation gates | "Research → Write → Review → Publish" |
+
+Production systems typically combine 2-3 patterns.
+
+### The agentskills.io Standard
+
+Open standard (released Dec 2025), adopted by 30+ tools including Claude Code, Gemini CLI, GitHub Copilot, Cursor, OpenAI Codex, Windsurf, and more. Key fields:
+
+| Field | Required | Constraints |
+|-------|----------|-------------|
+| `name` | Yes | Max 64 chars, lowercase + hyphens |
+| `description` | Yes | Max 1024 chars |
+| `allowed-tools` | No | Space-delimited pre-approved tools |
+| `metadata` | No | Arbitrary key-value (including `adk_additional_tools`) |
+
+**Cross-platform guarantee**: A skill authored for Claude Code works in ADK via `load_skill_from_dir()`, works in Gemini CLI, works in Cursor — same file, zero changes.
+
+---
+
 ## 1. What Are Agent Skills Today?
 
 Agent Skills (per [agentskills.io](https://agentskills.io)) are **portable knowledge packages** — Markdown files with YAML frontmatter that teach AI coding agents *how* to do things. They are consumed by tools like Claude Code, Gemini CLI, Cursor, Copilot, and Amp.
@@ -599,7 +670,137 @@ The compound effect: a **marketplace of composable agent skills** where the unit
 
 ---
 
-## 12. Open Questions
+## 12. Bridging ADK SkillToolset — The Native Path
+
+adk-fluent already has generated builders for `SkillToolset`, `LoadSkillTool`, and `LoadSkillResourceTool`. The fluent bridge makes these composable:
+
+### T.skill() — Skill as Tool Composition
+
+```python
+from adk_fluent import Agent, T
+
+# Load skills from directory (uses ADK's native SkillToolset)
+agent = (
+    Agent("assistant", "gemini-2.5-pro")
+    .instruct("Help the user with any task. Load skills as needed.")
+    .tools(T.skill("skills/"))                # All skills in directory
+    .tools(T.skill("skills/deep-research/"))  # Single skill
+)
+```
+
+`T.skill()` would wrap `SkillToolset` with fluent ergonomics:
+
+```python
+class T:
+    @staticmethod
+    def skill(
+        path: str | Path | list[str],
+        *,
+        additional_tools: list | None = None,
+        code_executor: Any | None = None,
+    ) -> TComposite:
+        """Wrap ADK SkillToolset as composable tool."""
+        from google.adk.skills import load_skill_from_dir
+        skills = [load_skill_from_dir(Path(p)) for p in _normalize(path)]
+        toolset = SkillToolset(
+            skills=skills,
+            additional_tools=additional_tools or [],
+            code_executor=code_executor,
+        )
+        return TComposite([toolset], kind="skill_toolset")
+```
+
+### Skill-Gated Tools in Fluent API
+
+```python
+# Skills that dynamically gate which tools are visible
+research = Skill("skills/deep-research/SKILL.md")  # declares adk_additional_tools: [web_search]
+coding = Skill("skills/code-gen/SKILL.md")          # declares adk_additional_tools: [code_interpreter]
+
+agent = (
+    Agent("assistant", "gemini-2.5-pro")
+    .instruct("Use skills to help the user.")
+    .tools(
+        T.skill([research, coding],
+                additional_tools=[web_search, code_interpreter])
+    )
+)
+# web_search only visible when research skill is active
+# code_interpreter only visible when coding skill is active
+```
+
+### Skill Presets from Native Skills
+
+```python
+# A skill file that only has configuration (no agents block)
+# e.g., skills/safety-guardrails/SKILL.md with guards, middleware, constraints
+safety = Skill("skills/safety-guardrails/SKILL.md").as_preset()
+
+agent = Agent("assistant").use(safety)
+# Applies: guards, middleware, constraints declared in the skill
+```
+
+---
+
+## 13. Relationship Between Layers
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        SKILL ECOSYSTEM                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌──────────────────┐  │
+│  │  agentskills.io │   │  ADK SkillToolset│   │  adk-fluent      │  │
+│  │  Standard       │   │  (Native)        │   │  Skill() Builder │  │
+│  │                 │   │                  │   │                  │  │
+│  │  MD + YAML      │──▶│  L1/L2/L3       │──▶│  Fluent API      │  │
+│  │  Cross-platform │   │  Progressive    │   │  Composable      │  │
+│  │  30+ tools      │   │  disclosure     │   │  >> | * // @     │  │
+│  └────────┬────────┘   └────────┬────────┘   └────────┬─────────┘  │
+│           │                     │                      │            │
+│           ▼                     ▼                      ▼            │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │                    SKILL FILE (SKILL.md)                     │    │
+│  │                                                              │    │
+│  │  Consumed by:                                                │    │
+│  │  1. Coding agents (Claude Code, Gemini CLI) → as docs       │    │
+│  │  2. ADK SkillToolset → as progressive disclosure tools      │    │
+│  │  3. adk-fluent Skill() → as executable agent graph          │    │
+│  │  4. A2AServer → as publishable remote capability            │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                   COMPOSITION LAYER                           │   │
+│  │                                                               │   │
+│  │  Skill >> Skill          Pipeline of skills                   │   │
+│  │  Skill | Skill           Parallel skills                      │   │
+│  │  Skill * 3               Iterative skill                      │   │
+│  │  Skill // Skill          Fallback skills                      │   │
+│  │  Agent >> Skill >> Agent  Mixed pipelines                     │   │
+│  │  .agent_tool(Skill)      Skill as tool                        │   │
+│  │  SkillRegistry.find()    Discovery                            │   │
+│  │  Meta-Skill(skills: {})  Skills that compose skills           │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### The Same File, Four Consumers
+
+A single `SKILL.md` file serves four purposes simultaneously:
+
+| Consumer | What It Reads | What It Gets |
+|----------|--------------|-------------|
+| **Claude Code / Gemini CLI** | Frontmatter + markdown body | Documentation for coding agent |
+| **ADK SkillToolset** | Frontmatter + body + resources | Progressive disclosure tools |
+| **adk-fluent `Skill()`** | Frontmatter + `agents:` block + topology | Executable agent graph |
+| **`A2AServer(Skill())`** | Everything above + network config | Remote-callable service |
+
+The `agents:` block is the only extension. Without it, the file degrades gracefully to its other three roles.
+
+---
+
+## 14. Open Questions
 
 1. **Schema inference**: Can we auto-infer input/output contracts from `reads`/`writes` in the agents block?
 2. **Tool sandboxing**: Should skills run tools in a sandbox by default?
