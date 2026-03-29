@@ -88,6 +88,7 @@ Production-grade architectures combining many features.
 | 57  | [Code Review Agent](57_code_review_agent.py)           | FanOut + typed output + conditional gating               |
 | 58  | [Multi-Tool Task Agent](58_multi_tool_agent.py)        | Tools + guardrails + DI + context                        |
 | 67  | [G Module Guards](67_g_module_guards.py)               | `G.json()`, `G.pii()`, `G.budget()`, `\|` composition   |
+| 77  | [Skill-Based Agents](77_skill_based_agents.py)         | `Skill()`, `SkillRegistry`, `T.skill()`, YAML topology   |
 
 ______________________________________________________________________
 
@@ -198,6 +199,12 @@ ______________________________________________________________________
 | 27  | Delegate Pattern    | `.delegate()`                 |
 | 53  | Structured Schemas  | Pydantic in multi-agent       |
 
+### Skills — Composable Agent Packages
+
+| #   | Example              | Key Methods                                          |
+| --- | -------------------- | ---------------------------------------------------- |
+| 77  | Skill-Based Agents   | `Skill()`, `.inject()`, `.configure()`, `SkillRegistry` |
+
 ### Capstones — Real-World Systems
 
 | #   | Example                      | Inspired By                      |
@@ -238,7 +245,7 @@ ______________________________________________________________________
 
 ### Multi-Pattern Composition
 
-28, 43, 49, 55, 57, 58
+28, 43, 49, 55, 57, 58, 77
 
 ______________________________________________________________________
 
@@ -264,3 +271,6 @@ ______________________________________________________________________
 
 **Week 7 — Capstones:**
 28 → 34 → 55 → 56 → 57 → 58
+
+**Week 8 — Skills:**
+77 (Skill-Based Agents — YAML topologies, registry, composition)
