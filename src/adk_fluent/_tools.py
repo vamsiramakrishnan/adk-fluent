@@ -296,35 +296,44 @@ class T:
     @staticmethod
     def skill(
         path: Any,
-        *,
-        additional_tools: list[Any] | None = None,
-        code_executor: Any | None = None,
     ) -> TComposite:
         """Wrap ADK ``SkillToolset`` for progressive disclosure.
 
-        Loads skills from directory path(s) using ADK's native
-        ``load_skill_from_dir``.  The resulting ``SkillToolset`` provides
-        L1/L2/L3 progressive disclosure — skill metadata is always in
-        the system prompt, instructions loaded on demand by the LLM.
+        Parses SKILL.md files from directory path(s) and creates a
+        ``SkillToolset``.  The toolset provides L1/L2/L3 progressive
+        disclosure — skill metadata is always in the system prompt,
+        instructions loaded on demand by the LLM.
 
         Args:
-            path: Directory path or list of paths containing skill files.
-            additional_tools: Tools that skills can gate via
-                ``adk_additional_tools`` in their frontmatter.
-            code_executor: Optional code executor for skill scripts.
+            path: Directory path, list of paths, or list of
+                ``google.adk.skills.Skill`` objects.
         """
         from pathlib import Path as _Path
 
-        from google.adk.skills import load_skill_from_dir
+        from google.adk.skills.models import Frontmatter
+        from google.adk.skills.models import Skill as _ADKSkill
         from google.adk.tools.skill_toolset import SkillToolset
 
-        paths = [path] if isinstance(path, (str, _Path)) else list(path)
-        skills = [load_skill_from_dir(_Path(p)) for p in paths]
-        toolset = SkillToolset(
-            skills=skills,
-            additional_tools=additional_tools or [],
-            code_executor=code_executor,
-        )
+        from adk_fluent._skill_parser import parse_skill_file
+
+        if isinstance(path, (str, _Path)):
+            path = [path]
+        skills: list[_ADKSkill] = []
+        for p in path:
+            if isinstance(p, _ADKSkill):
+                skills.append(p)
+            else:
+                sd = parse_skill_file(p)
+                skills.append(
+                    _ADKSkill(
+                        frontmatter=Frontmatter(
+                            name=sd.name,
+                            description=sd.description,
+                        ),
+                        instructions=sd.body,
+                    )
+                )
+        toolset = SkillToolset(skills=skills)
         return TComposite([toolset], kind="skill_toolset")
 
     # --- OpenAPI ---

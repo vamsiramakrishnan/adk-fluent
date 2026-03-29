@@ -436,7 +436,7 @@ from adk_fluent import Agent, T
 agent = (
     Agent("assistant", "gemini-2.5-pro")
     .instruct("Help the user. Load skills as needed.")
-    .tools(T.skill("skills/"))
+    .tools(T.skill("skills/research_pipeline/"))
 )
 ```
 
