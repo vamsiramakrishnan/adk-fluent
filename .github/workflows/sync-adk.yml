@@ -41,7 +41,7 @@ jobs:
       is_breaking: ${{ steps.check_changes.outputs.is_breaking }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup-env
         with:
@@ -124,7 +124,7 @@ jobs:
     needs: scan-and-generate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup-env
         with:
@@ -154,7 +154,7 @@ jobs:
           - "1.23.0"
           - "1.22.1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup-env
         with:
@@ -179,7 +179,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/download-artifact@v4
         with:
