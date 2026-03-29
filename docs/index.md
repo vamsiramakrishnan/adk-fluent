@@ -319,3 +319,12 @@ caption: Project
 ---
 changelog
 ```
+
+```{toctree}
+---
+maxdepth: 1
+caption: Research
+hidden: true
+---
+research/skill-based-agents
+```
