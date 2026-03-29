@@ -291,6 +291,51 @@ class T:
         built = builder.build()
         return TComposite([AgentTool(agent=built)], kind="a2a")
 
+    # --- Skills ---
+
+    @staticmethod
+    def skill(
+        path: Any,
+    ) -> TComposite:
+        """Wrap ADK ``SkillToolset`` for progressive disclosure.
+
+        Parses SKILL.md files from directory path(s) and creates a
+        ``SkillToolset``.  The toolset provides L1/L2/L3 progressive
+        disclosure — skill metadata is always in the system prompt,
+        instructions loaded on demand by the LLM.
+
+        Args:
+            path: Directory path, list of paths, or list of
+                ``google.adk.skills.Skill`` objects.
+        """
+        from pathlib import Path as _Path
+
+        from google.adk.skills.models import Frontmatter
+        from google.adk.skills.models import Skill as _ADKSkill
+        from google.adk.tools.skill_toolset import SkillToolset
+
+        from adk_fluent._skill_parser import parse_skill_file
+
+        if isinstance(path, (str, _Path)):
+            path = [path]
+        skills: list[_ADKSkill] = []
+        for p in path:
+            if isinstance(p, _ADKSkill):
+                skills.append(p)
+            else:
+                sd = parse_skill_file(p)
+                skills.append(
+                    _ADKSkill(
+                        frontmatter=Frontmatter(
+                            name=sd.name,
+                            description=sd.description,
+                        ),
+                        instructions=sd.body,
+                    )
+                )
+        toolset = SkillToolset(skills=skills)
+        return TComposite([toolset], kind="skill_toolset")
+
     # --- OpenAPI ---
 
     @staticmethod

@@ -78,6 +78,7 @@ Production concerns.
 | [Testing](testing.md) | `.mock()`, `.test()`, `check_contracts()`, `AgentHarness`, pytest integration |
 | [A2A](a2a.md) | Remote agent-to-agent communication: `RemoteAgent`, `A2AServer`, discovery, resilience |
 | [A2UI](a2ui.md) | Declarative agent UIs: `UI` namespace, components, operators, surfaces, presets |
+| [Skills](skills.md) | Composable agent packages from SKILL.md files: `Skill`, `SkillRegistry`, `T.skill()` |
 
 :::{admonition} Backend maturity at a glance
 :class: tip
@@ -131,6 +132,7 @@ evaluation
 testing
 a2a
 a2ui
+skills
 error-reference
 adk-samples/index
 ```

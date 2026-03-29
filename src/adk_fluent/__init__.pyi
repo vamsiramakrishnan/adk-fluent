@@ -287,6 +287,11 @@ from ._schema_base import Writes as Writes
 from ._schema_base import Param as Param
 from ._schema_base import Confirms as Confirms
 from ._schema_base import Timeout as Timeout
+from ._skill_parser import AgentDefinition as AgentDefinition
+from ._skill_parser import SkillDefinition as SkillDefinition
+from ._skill_parser import parse_skill_file as parse_skill_file
+from ._skill_parser import parse_topology as parse_topology
+from ._skill_registry import SkillRegistry as SkillRegistry
 from ._state_schema import StateSchema as StateSchema
 from ._state_schema import CapturedBy as CapturedBy
 from ._state_schema import Scoped as Scoped
@@ -406,6 +411,7 @@ from .runtime_default import DefaultRuntime as DefaultRuntime
 from .runtime_protocol import Runtime as Runtime
 from .runtime_protocol import ExecutionResult as ExecutionResult
 from .runtime_protocol import SessionHandle as SessionHandle
+from .skill import Skill as Skill
 from .source import Source as Source
 from .source import Inbox as Inbox
 from .stream import StreamRunner as StreamRunner
@@ -773,6 +779,11 @@ __all__ = [
     "Param",
     "Confirms",
     "Timeout",
+    "AgentDefinition",
+    "SkillDefinition",
+    "parse_skill_file",
+    "parse_topology",
+    "SkillRegistry",
     "StateSchema",
     "CapturedBy",
     "Scoped",
@@ -836,6 +847,7 @@ __all__ = [
     "Runtime",
     "ExecutionResult",
     "SessionHandle",
+    "Skill",
     "StreamStats",
     "Backend",
     "final_text",
@@ -894,4 +906,3 @@ __all__ = [
     "DataFlowContract",
     "check_data_flow_contract",
 ]
-

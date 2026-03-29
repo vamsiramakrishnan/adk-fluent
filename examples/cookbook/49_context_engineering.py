@@ -78,6 +78,6 @@ classifier = built.sub_agents[1]  # After capture agent
 assert classifier.include_contents == "none"
 
 # The capture agent is first
-from adk_fluent._base import CaptureAgent
+from adk_fluent._primitives import CaptureAgent
 
 assert isinstance(built.sub_agents[0], CaptureAgent)

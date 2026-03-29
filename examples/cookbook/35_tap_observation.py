@@ -68,7 +68,7 @@ pipeline_method = (
 )
 
 # --- ASSERT ---
-from adk_fluent._base import _TapBuilder
+from adk_fluent._primitive_builders import _TapBuilder
 
 # tap() creates a _TapBuilder
 t = tap(lambda s: None)

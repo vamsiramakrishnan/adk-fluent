@@ -143,7 +143,7 @@ built = support_system.build()
 assert len(built.sub_agents) == 5
 
 # First agent is CaptureAgent for S.capture()
-from adk_fluent._base import CaptureAgent
+from adk_fluent._primitives import CaptureAgent
 
 assert isinstance(built.sub_agents[0], CaptureAgent)
 

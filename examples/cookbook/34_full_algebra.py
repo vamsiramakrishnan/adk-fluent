@@ -81,7 +81,7 @@ review_pipeline = (
 
 # --- ASSERT ---
 from adk_fluent import Pipeline
-from adk_fluent._base import _FallbackBuilder
+from adk_fluent._primitive_builders import _FallbackBuilder
 
 # Pipeline builds correctly
 assert isinstance(review_pipeline, Pipeline)

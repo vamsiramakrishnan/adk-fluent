@@ -17,7 +17,7 @@ Pipeline topologies:
 
 # --- FLUENT ---
 from adk_fluent import Agent, Pipeline
-from adk_fluent._base import _FallbackBuilder
+from adk_fluent._primitive_builders import _FallbackBuilder
 
 # // creates a fallback chain — first success wins.
 # In a knowledge retrieval system: try the fast vector DB first,
