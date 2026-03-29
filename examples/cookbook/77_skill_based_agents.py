@@ -185,10 +185,7 @@ def test_skill_introspection():
 
 def test_skill_configure_agent():
     """Override settings for a specific agent in the skill."""
-    skill = (
-        Skill("examples/skills/research_pipeline/")
-        .configure("synthesizer", model="gemini-2.5-pro")
-    )
+    skill = Skill("examples/skills/research_pipeline/").configure("synthesizer", model="gemini-2.5-pro")
     built = skill.build()
     assert built.sub_agents[2].model == "gemini-2.5-pro"
 

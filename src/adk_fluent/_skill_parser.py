@@ -256,8 +256,7 @@ def parse_topology(expr: str, agent_names: list[str]) -> Any:
     for ttype, tval in tokens:
         if ttype == "NAME" and tval not in name_set:
             raise ValueError(
-                f"Unknown agent '{tval}' in topology expression. "
-                f"Available agents: {', '.join(sorted(name_set))}"
+                f"Unknown agent '{tval}' in topology expression. Available agents: {', '.join(sorted(name_set))}"
             )
 
     pos = 0
@@ -272,10 +271,7 @@ def parse_topology(expr: str, agent_names: list[str]) -> Any:
             raise ValueError(f"Unexpected end of topology expression: {expr!r}")
         tok = tokens[pos]
         if expected_type and tok[0] != expected_type:
-            raise ValueError(
-                f"Expected {expected_type} but got {tok[0]}({tok[1]!r}) "
-                f"at position {pos} in: {expr!r}"
-            )
+            raise ValueError(f"Expected {expected_type} but got {tok[0]}({tok[1]!r}) at position {pos} in: {expr!r}")
         pos += 1
         return tok
 
@@ -327,15 +323,11 @@ def parse_topology(expr: str, agent_names: list[str]) -> Any:
             inner = parse_expr()
             consume("RPAREN")
             return inner
-        raise ValueError(
-            f"Unexpected token {tok[0]}({tok[1]!r}) in topology: {expr!r}"
-        )
+        raise ValueError(f"Unexpected token {tok[0]}({tok[1]!r}) in topology: {expr!r}")
 
     tree = parse_expr()
     if pos < len(tokens):
-        raise ValueError(
-            f"Unexpected token {tokens[pos][1]!r} after complete expression in: {expr!r}"
-        )
+        raise ValueError(f"Unexpected token {tokens[pos][1]!r} after complete expression in: {expr!r}")
 
     def _build_from_tree(node, builders):
         """Recursively build adk-fluent builders from the parse tree."""

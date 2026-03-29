@@ -50,9 +50,9 @@ def _get_builtin_tool(name: str) -> Any | None:
     """Resolve a well-known tool name to an ADK tool instance."""
     # Lazy populate on first call
     if not _BUILTIN_TOOLS:
-        _BUILTIN_TOOLS["google_search"] = lambda: __import__(
-            "google.adk.tools.google_search_tool", fromlist=["google_search"]
-        ).google_search
+        _BUILTIN_TOOLS["google_search"] = lambda: (
+            __import__("google.adk.tools.google_search_tool", fromlist=["google_search"]).google_search
+        )
     factory = _BUILTIN_TOOLS.get(name)
     return factory() if factory else None
 
@@ -181,7 +181,9 @@ class Skill(BuilderBase):
             f"  Description: {sd.description}" if sd.description else None,
             f"  Version: {sd.version}" if sd.version else None,
             f"  Tags: {', '.join(sd.tags)}" if sd.tags else None,
-            f"  Agents: {', '.join(a.name for a in sd.agents)}" if sd.agents else "  Agents: (none — documentation only)",
+            f"  Agents: {', '.join(a.name for a in sd.agents)}"
+            if sd.agents
+            else "  Agents: (none — documentation only)",
             f"  Topology: {sd.topology}" if sd.topology else None,
         ]
         model_override = self._config.get("_model_override")
