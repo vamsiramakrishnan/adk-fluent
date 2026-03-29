@@ -327,4 +327,6 @@ caption: Research
 hidden: true
 ---
 research/skill-based-agents
+research/missing-verbs-and-idioms
+research/new-structural-types
 ```
