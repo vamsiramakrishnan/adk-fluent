@@ -2,16 +2,126 @@
 
 **Skills** turn YAML + Markdown into executable agent graphs. Instead of writing Python code for every agent topology, you declare agents and their wiring in a `SKILL.md` file and load it with `Skill("path/")`. The same file that documents your agent system for humans and coding agents also runs as a live adk-fluent pipeline.
 
-## Why Skills?
+## When Skills Make Life Easy
 
-| Without Skills | With Skills |
-|---------------|-------------|
-| Write Python for each agent topology | Declare topology in YAML, load with one line |
-| Agent logic locked in code | Portable across frameworks (agentskills.io) |
-| Non-developers can't author agents | Anyone who writes YAML can author a skill |
-| Documentation separate from implementation | The skill file IS the documentation |
-| Share via PyPI packages | Share via `npx skills add` or Git |
-| Discover by reading source code | `SkillRegistry.find(tags=["research"])` |
+Skills aren't always the right tool. Here are the five scenarios where they provide a step change — and the anti-patterns where you should stick with Python.
+
+### 1. Your team has domain experts who aren't Python developers
+
+A product manager, researcher, or domain specialist can author this:
+
+```yaml
+agents:
+  classifier:
+    instruct: |
+      Classify the customer issue into: billing, technical, account.
+      Be precise — routing depends on your classification.
+    writes: category
+  billing_handler:
+    instruct: Handle billing issues with empathy. Offer refund if appropriate.
+  technical_handler:
+    instruct: Diagnose the technical problem step by step.
+topology: classifier >> (billing_handler | technical_handler)
+```
+
+They don't need to know what `BuilderBase` is, what `.reads()` vs `.writes()` means in Python, or how `SequentialAgent` wiring works. They write instructions and topology in a format they already understand from config files. An engineer reviews the YAML and deploys it.
+
+**Without skills**, the domain expert writes a requirements doc, an engineer translates it to Python, the domain expert reviews the Python they can't fully read, and every prompt tweak requires an engineer round-trip.
+
+### 2. You're building a library of reusable capabilities
+
+You have 15 agent topologies across your organization. Without skills:
+
+```python
+# team_a/agents/research.py — 45 lines
+# team_b/agents/research.py — 52 lines (slightly different copy)
+# team_c/research_utils.py  — 38 lines (yet another copy)
+```
+
+With skills:
+
+```python
+# One shared skill file, three consumers
+research = Skill("shared_skills/research_pipeline/")
+
+# Team A: use as-is
+team_a = research.ask("Research quantum computing")
+
+# Team B: stronger model
+team_b = research.model("gemini-2.5-pro").ask("Research quantum computing")
+
+# Team C: custom search tool
+team_c = research.inject(web_search=internal_search).ask("Research quantum computing")
+```
+
+The skill is the **single source of truth**. Teams customize at load time with `.model()`, `.inject()`, `.configure()` — without forking the code.
+
+### 3. You're composing agent systems from existing pieces
+
+This is where the multiplier is largest. You have working skills and want to assemble them into larger systems:
+
+```python
+# Without skills: 80+ lines of Python wiring
+researcher = Agent("researcher", "gemini-2.5-flash").instruct("...").writes("findings")
+fact_checker = Agent("fact_checker", "gemini-2.5-flash").instruct("...").reads("findings").writes("verified")
+writer = Agent("writer", "gemini-2.5-pro").instruct("...").reads("verified").writes("draft")
+critic = Agent("critic", "gemini-2.5-flash").instruct("...").reads("draft").writes("quality")
+editor = Agent("editor", "gemini-2.5-pro").instruct("...").reads("draft")
+
+pipeline = researcher >> fact_checker >> writer >> (writer >> critic) * 3 >> editor
+```
+
+```python
+# With skills: 3 lines
+pipeline = (
+    Skill("skills/research_pipeline/")
+    >> (Skill("skills/writing/") >> Skill("skills/critique/")) * 3
+    >> Skill("skills/editing/")
+)
+```
+
+Each skill is a tested, documented black box. You compose at the skill level — not the agent level.
+
+### 4. You want the same file to be docs AND runtime
+
+A `SKILL.md` file is simultaneously consumed by:
+
+| Consumer | What happens |
+|----------|-------------|
+| **Claude Code / Gemini CLI** | Coding agent reads the prose and learns how to use the skill |
+| **ADK SkillToolset** | Progressive disclosure — LLM loads instructions on demand |
+| **adk-fluent `Skill()`** | Parses `agents:` block into executable agent graph |
+| **Humans reading GitHub** | Markdown renders as documentation |
+
+Without skills, you maintain two artifacts: a Python file and a separate README explaining it. They drift apart. With skills, there is one file and it cannot drift from itself.
+
+### 5. You need rapid prototyping with instant feedback
+
+When you're iterating on prompt design, skills let you edit YAML and re-run without touching Python:
+
+```bash
+# Edit the YAML
+vim skills/research_pipeline/SKILL.md
+
+# Re-run immediately — no code changes
+python -c "from adk_fluent import Skill; print(Skill('skills/research_pipeline/').ask('test'))"
+```
+
+Compare this to editing Python files, re-importing modules, dealing with class definitions — skills collapse the edit-run loop.
+
+### When NOT to use skills
+
+Skills are the wrong choice when:
+
+| Scenario | Use instead |
+|----------|-------------|
+| **Complex conditional logic** in agent wiring (if/else, dynamic routing beyond `Route`) | Python with `conditional()`, `gate()`, custom predicates |
+| **Dynamic tool registration** that changes per request | Python with runtime `.tool()` calls |
+| **Agents that need deep callback customization** (custom `before_model`, `after_tool` with complex state) | Python with explicit callback functions |
+| **Single-use, one-off agents** that won't be reused | Inline `Agent()` builder — no file needed |
+| **Performance-critical inner loops** where parsing YAML adds overhead | Pre-built Python agents |
+
+**Rule of thumb**: If the topology is stable and the main variation is in prompts, models, and tools — use a skill. If the topology itself changes dynamically — use Python.
 
 ## Architecture
 
