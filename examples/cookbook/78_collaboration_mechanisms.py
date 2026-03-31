@@ -64,9 +64,8 @@ assert built_router.name == "route_department"
 # 2. TOOL-CALL — Agent A calls Agent B, stays in control
 # ======================================================================
 
-researcher = (
-    Agent("fact_checker", "gemini-2.5-flash")
-    .instruct("Check facts. Return verified information with sources.")
+researcher = Agent("fact_checker", "gemini-2.5-flash").instruct(
+    "Check facts. Return verified information with sources."
 )
 
 analyst = (
@@ -85,9 +84,7 @@ assert len(built_analyst.tools) > 0
 # ======================================================================
 
 pipeline = (
-    Agent("researcher", "gemini-2.5-flash")
-    .instruct("Research {topic}. Be thorough.")
-    .writes("findings")
+    Agent("researcher", "gemini-2.5-flash").instruct("Research {topic}. Be thorough.").writes("findings")
     >> Agent("writer", "gemini-2.5-flash")
     .reads("findings")
     .instruct("Write a summary based on: {findings}")
@@ -110,18 +107,11 @@ assert built_pipeline.sub_agents[0].name == "researcher"
 from adk_fluent import G
 
 # 4a. Timeout interrupt
-slow_agent = (
-    Agent("deep_thinker", "gemini-2.5-flash")
-    .instruct("Analyze in extreme detail.")
-    .timeout(30)
-)
+slow_agent = Agent("deep_thinker", "gemini-2.5-flash").instruct("Analyze in extreme detail.").timeout(30)
 
 # 4b. Guard interrupt (block bad output)
-guarded_agent = (
-    Agent("writer", "gemini-2.5-flash")
-    .instruct("Write a customer response.")
-    .guard(G.length(max=500))
-)
+guarded_agent = Agent("writer", "gemini-2.5-flash").instruct("Write a customer response.").guard(G.length(max=500))
+
 
 # 4c. Before-model interrupt (budget gate)
 def budget_gate(callback_context, llm_request):
@@ -130,29 +120,21 @@ def budget_gate(callback_context, llm_request):
         return {"role": "model", "parts": [{"text": "Budget exceeded."}]}
     return None
 
-budget_agent = (
-    Agent("worker", "gemini-2.5-flash")
-    .instruct("Do the work.")
-    .before_model(budget_gate)
-)
+
+budget_agent = Agent("worker", "gemini-2.5-flash").instruct("Do the work.").before_model(budget_gate)
 
 # 4d. Human-in-the-loop gate
 from adk_fluent import gate
 
 gated_pipeline = (
-    Agent("drafter", "gemini-2.5-flash")
-    .instruct("Draft a response.")
-    .writes("draft")
+    Agent("drafter", "gemini-2.5-flash").instruct("Draft a response.").writes("draft")
     >> gate(lambda s: s.get("risk") == "high", message="Approve high-risk action?")
-    >> Agent("sender", "gemini-2.5-flash")
-    .reads("draft")
-    .instruct("Send the approved draft.")
+    >> Agent("sender", "gemini-2.5-flash").reads("draft").instruct("Send the approved draft.")
 )
 
 # 4e. Fallback on failure
-safe_agent = (
-    Agent("fast", "gemini-2.5-flash").instruct("Quick answer.")
-    // Agent("strong", "gemini-2.5-pro").instruct("Thorough answer.")
+safe_agent = Agent("fast", "gemini-2.5-flash").instruct("Quick answer.") // Agent("strong", "gemini-2.5-pro").instruct(
+    "Thorough answer."
 )
 
 # --- ASSERT ---
@@ -172,13 +154,9 @@ audit_logger = Agent("audit", "gemini-2.5-flash").instruct("Log this interaction
 email_sender = Agent("emailer", "gemini-2.5-flash").instruct("Send confirmation email.")
 
 notify_pipeline = (
-    Agent("worker", "gemini-2.5-flash")
-    .instruct("Handle the customer request.")
-    .writes("result")
+    Agent("worker", "gemini-2.5-flash").instruct("Handle the customer request.").writes("result")
     >> notify(audit_logger, email_sender)  # Fire both, don't wait
-    >> Agent("formatter", "gemini-2.5-flash")
-    .reads("result")
-    .instruct("Format the result.")
+    >> Agent("formatter", "gemini-2.5-flash").reads("result").instruct("Format the result.")
 )
 
 # 5b. dispatch() + join() — fire and collect later
@@ -214,20 +192,14 @@ observed_pipeline = (
 notifier = Agent("slack_notifier", "gemini-2.5-flash").instruct("Notify team about draft.")
 
 reactive_pipeline = (
-    Agent("writer", "gemini-2.5-flash")
-    .instruct("Write a draft.")
-    .writes("draft")
+    Agent("writer", "gemini-2.5-flash").instruct("Write a draft.").writes("draft")
     >> watch("draft", notifier)  # When draft changes, trigger notifier
-    >> Agent("reviewer", "gemini-2.5-flash")
-    .reads("draft")
-    .instruct("Review the draft.")
+    >> Agent("reviewer", "gemini-2.5-flash").reads("draft").instruct("Review the draft.")
 )
 
 # 6c. watch() with a function handler
 watch_fn_pipeline = (
-    Agent("scorer", "gemini-2.5-flash")
-    .instruct("Score the submission.")
-    .writes("score")
+    Agent("scorer", "gemini-2.5-flash").instruct("Score the submission.").writes("score")
     >> watch("score", lambda old, new, state: {"score_changed": True})
     >> Agent("reporter", "gemini-2.5-flash").instruct("Report results.")
 )

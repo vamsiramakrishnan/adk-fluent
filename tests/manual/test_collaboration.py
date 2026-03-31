@@ -41,11 +41,7 @@ class TestNotify:
         from adk_fluent import notify
 
         logger = Agent("logger").instruct("Log.")
-        pipe = (
-            Agent("worker").instruct("Work.")
-            >> notify(logger)
-            >> Agent("formatter").instruct("Format.")
-        )
+        pipe = Agent("worker").instruct("Work.") >> notify(logger) >> Agent("formatter").instruct("Format.")
         assert isinstance(pipe, Pipeline)
         built = pipe.build()
         assert len(built.sub_agents) == 3
@@ -164,11 +160,7 @@ class TestSharedThread:
         assert combined is not None
 
     def test_shared_thread_on_agent(self):
-        agent = (
-            Agent("writer", "gemini-2.5-flash")
-            .instruct("Write about the topic.")
-            .context(C.shared_thread())
-        )
+        agent = Agent("writer", "gemini-2.5-flash").instruct("Write about the topic.").context(C.shared_thread())
         built = agent.build()
         # With shared_thread, include_contents should be "none"
         assert built.include_contents == "none"
