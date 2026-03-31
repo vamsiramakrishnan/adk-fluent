@@ -29,6 +29,7 @@ __all__ = [
     "ArtifactNode",
     "DispatchNode",
     "JoinNode",
+    "WatchNode",
     "UINode",
     # Config
     "ExecutionConfig",
@@ -185,6 +186,19 @@ class JoinNode:
     name: str
     target_names: tuple[str, ...] | None = None
     timeout: float | None = None
+
+
+@dataclass(frozen=True)
+class WatchNode:
+    """Reactive state trigger.
+
+    Fires handler when ``state[key]`` changes (or matches trigger condition).
+    """
+
+    name: str
+    key: str
+    handler: Any = None
+    trigger: str = "change"
 
 
 @dataclass(frozen=True)

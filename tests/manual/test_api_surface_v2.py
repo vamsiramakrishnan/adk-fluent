@@ -176,6 +176,8 @@ class TestPrelude:
             "expect",
             "dispatch",
             "join",
+            "notify",
+            "watch",
             "STransform",
             # Tier 4: Patterns
             "review_loop",
@@ -185,6 +187,7 @@ class TestPrelude:
             "map_reduce",
             "conditional",
             "supervised",
+            "group_chat",
             # Tier 5: Stream execution
             "Source",
             "Inbox",
@@ -224,7 +227,7 @@ class TestPrelude:
     def test_prelude_all_count(self):
         import adk_fluent.prelude as prelude
 
-        assert len(prelude.__all__) == 67
+        assert len(prelude.__all__) == 70
 
     def test_prelude_names_are_importable(self):
         """Every name in __all__ is actually accessible on the module."""
