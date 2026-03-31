@@ -28,6 +28,8 @@ __all__ = [
     "_RaceBuilder",
     "BackgroundTask",
     "_JoinBuilder",
+    "_NotifyBuilder",
+    "_WatchBuilder",
     # Factory functions
     "tap",
     "expect",
@@ -36,6 +38,8 @@ __all__ = [
     "race",
     "dispatch",
     "join",
+    "notify",
+    "watch",
     # Internal helpers
     "_fn_step",
 ]
@@ -610,4 +614,152 @@ class _JoinBuilder(PrimitiveBuilderBase):
             name=self._config.get("name", "join"),
             target_names=self._target_names,
             timeout=self._timeout,
+        )
+
+
+# ======================================================================
+# Primitive: notify (fire-and-forget, simpler than dispatch)
+# ======================================================================
+
+_notify_counter = itertools.count(1)
+
+
+def notify(
+    *agents: Any,
+    on_complete: Callable | None = None,
+    on_error: Callable | None = None,
+) -> BuilderBase:
+    """Fire-and-forget: launch agents in background, don't wait for results.
+
+    A simpler alternative to ``dispatch()`` for when you don't need ``join()``.
+    Results are written to ``state["_dispatch_results"]`` automatically.
+
+    Usage::
+
+        pipeline = worker >> notify(audit_logger, email_sender) >> formatter
+
+    Args:
+        agents: Builders to run as fire-and-forget background tasks.
+        on_complete: Optional callback ``fn(task_name, result_text)`` on success.
+        on_error: Optional callback ``fn(task_name, exception)`` on failure.
+    """
+    task_names = []
+    for i, a in enumerate(agents):
+        if hasattr(a, "_config"):
+            task_names.append(a._config.get("name", f"notify_{i}"))
+        else:
+            task_names.append(f"notify_{i}")
+    name = f"notify_{next(_notify_counter)}"
+    return _NotifyBuilder(
+        name,
+        _agents=list(agents),
+        _task_names=tuple(task_names),
+        _on_complete=on_complete,
+        _on_error=on_error,
+    )
+
+
+class _NotifyBuilder(PrimitiveBuilderBase):
+    """Builder for fire-and-forget notification dispatch."""
+
+    _CUSTOM_ATTRS = ("_agents", "_task_names", "_on_complete", "_on_error")
+
+    def build(self):
+        from adk_fluent._primitives import DispatchAgent
+
+        built_agents = []
+        for a in self._agents:
+            if isinstance(a, BuilderBase):
+                built_agents.append(a.build())
+            else:
+                built_agents.append(a)
+
+        return DispatchAgent(
+            name=self._config["name"],
+            sub_agents=built_agents,
+            task_names=self._task_names,
+            on_complete=self._on_complete,
+            on_error=self._on_error,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import DispatchNode
+
+        children = tuple(a.to_ir() if isinstance(a, BuilderBase) else a for a in self._agents)
+        return DispatchNode(
+            name=self._config.get("name", "notify"),
+            children=children,
+            task_names=self._task_names,
+        )
+
+
+# ======================================================================
+# Primitive: watch (reactive state trigger)
+# ======================================================================
+
+_watch_counter = itertools.count(1)
+
+
+def watch(
+    key: str,
+    handler: Any,
+    *,
+    trigger: str = "change",
+) -> BuilderBase:
+    """React to state changes: when ``state[key]`` changes, run handler.
+
+    Unlike ``tap()`` (passive observation), ``watch()`` is reactive — it
+    triggers an agent or function when a specific state key is written.
+
+    Args:
+        key: State key to observe.
+        handler: Agent builder or callable to run when key changes.
+            If callable, receives ``(old_value, new_value, state)`` and
+            returns a dict of state updates.
+        trigger: When to fire: ``"change"`` (value differs from previous),
+            ``"write"`` (any write, even same value), ``"truthy"``
+            (key becomes truthy).
+
+    Usage::
+
+        pipeline = (
+            writer.writes("draft")
+            >> watch("draft", slack_notifier)
+            >> reviewer.reads("draft")
+        )
+    """
+    name = f"watch_{key}_{next(_watch_counter)}"
+    return _WatchBuilder(name, _key=key, _handler=handler, _trigger=trigger)
+
+
+class _WatchBuilder(PrimitiveBuilderBase):
+    """Builder for reactive state observation."""
+
+    _CUSTOM_ATTRS = ("_key", "_handler", "_trigger")
+
+    def build(self):
+        from adk_fluent._primitives import WatchAgent
+
+        sub_agent = self._handler
+        is_agent = isinstance(sub_agent, BuilderBase)
+        if is_agent:
+            sub_agent = sub_agent.build()
+
+        return WatchAgent(
+            name=self._config["name"],
+            watch_key=self._key,
+            handler=sub_agent,
+            handler_is_agent=is_agent or hasattr(sub_agent, "run_async"),
+            trigger=self._trigger,
+        )
+
+    def to_ir(self):
+        from adk_fluent._ir import WatchNode
+
+        handler_ir = self._handler.to_ir() if isinstance(self._handler, BuilderBase) else self._handler
+        return WatchNode(
+            name=self._config.get("name", f"watch_{self._key}"),
+            key=self._key,
+            handler=handler_ir,
+            trigger=self._trigger,
         )

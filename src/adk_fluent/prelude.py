@@ -34,7 +34,7 @@ from adk_fluent._eval import (
 from adk_fluent._guards import G, GComposite, GuardViolation
 from adk_fluent._middleware import M
 from adk_fluent._middleware_schema import MiddlewareSchema
-from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, race, tap
+from adk_fluent._primitive_builders import dispatch, expect, gate, join, map_over, notify, race, tap, watch
 from adk_fluent._primitives import get_execution_mode
 from adk_fluent._routing import Fallback
 from adk_fluent._tool_registry import SearchToolset, ToolRegistry, search_aware_after_tool
@@ -51,6 +51,7 @@ from adk_fluent.patterns import (
     chain,
     conditional,
     fan_out_merge,
+    group_chat,
     map_reduce,
     review_loop,
     supervised,
@@ -100,6 +101,8 @@ __all__ = [
     "expect",
     "dispatch",
     "join",
+    "notify",
+    "watch",
     "STransform",
     # Tier 4: Patterns
     "review_loop",
@@ -109,6 +112,7 @@ __all__ = [
     "map_reduce",
     "conditional",
     "supervised",
+    "group_chat",
     "a2a_cascade",
     "a2a_fanout",
     "a2a_delegate",

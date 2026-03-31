@@ -105,6 +105,7 @@ __all__ = [
     "CManusCascade",
     "CWhen",
     "CPipelineAware",
+    "CSharedThread",
     "_compile_context_spec",
 ]
 
@@ -848,6 +849,54 @@ class CPipelineAware(CTransform):
         return frozenset(self.keys)
 
 
+@dataclass(frozen=True)
+class CSharedThread(CTransform):
+    """Shared conversational thread for multi-agent loops.
+
+    Every agent in the loop sees the full transcript of what all other
+    agents said — like a group chat. No explicit ``.reads()`` / ``.writes()``
+    wiring required.
+
+    Under the hood: collects all agent events from the session and presents
+    them as a formatted conversation transcript. Each agent sees who said
+    what, enabling natural multi-agent discussion.
+
+    Usage::
+
+        loop = (
+            (researcher >> writer >> critic)
+            * until(lambda s: s.get("approved"), max=4)
+        ).context(C.shared_thread())
+    """
+
+    include_contents: Literal["default", "none"] = "none"
+    _kind: str = "shared_thread"
+
+    def __post_init__(self) -> None:
+        async def _shared_thread_provider(ctx: Any) -> str:
+            events = list(ctx.session.events)
+            agent_events = [
+                e
+                for e in events
+                if getattr(e, "author", None) and getattr(e, "author", None) != "user" and getattr(e, "content", None)
+            ]
+            if not agent_events:
+                return ""
+            parts: list[str] = []
+            for e in agent_events:
+                author = getattr(e, "author", "unknown")
+                content = getattr(e, "content", None)
+                if content and hasattr(content, "parts"):
+                    text_parts = [p.text for p in content.parts if hasattr(p, "text") and p.text]
+                    if text_parts:
+                        parts.append(f"[{author}]: {' '.join(text_parts)}")
+            if not parts:
+                return ""
+            return "<shared_thread>\n" + "\n\n".join(parts) + "\n</shared_thread>"
+
+        object.__setattr__(self, "instruction_provider", _shared_thread_provider)
+
+
 # ======================================================================
 # C — public API namespace
 # ======================================================================
@@ -1102,6 +1151,22 @@ class C:
             *keys: State key names to include alongside user messages.
         """
         return CPipelineAware(keys=keys)
+
+    @staticmethod
+    def shared_thread() -> CSharedThread:
+        """Shared conversational context for multi-agent loops.
+
+        Every agent sees the full transcript of what all other agents said.
+        Like a group chat — no explicit state wiring needed.
+
+        Usage::
+
+            loop = (
+                (researcher >> writer >> critic)
+                * until(lambda s: s.get("approved"), max=4)
+            ).context(C.shared_thread())
+        """
+        return CSharedThread()
 
     @staticmethod
     def with_ui(surface_id: str | None = None) -> CTransform:

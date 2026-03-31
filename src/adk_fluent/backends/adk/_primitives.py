@@ -31,6 +31,7 @@ __all__ = [
     "RaceAgent",
     "DispatchAgent",
     "JoinAgent",
+    "WatchAgent",
     "_LoopHookAgent",
     "_FanOutHookAgent",
     "get_execution_mode",
@@ -801,3 +802,62 @@ class JoinAgent(BaseAgent):
             # Always remove joined tasks from registry to prevent memory leaks
             for name in to_wait:
                 tasks.pop(name, None)
+
+
+class WatchAgent(BaseAgent):
+    """Reactive state trigger: runs handler when a watched key changes.
+
+    Checks ``state[watch_key]`` against a snapshot taken at init. Fires
+    the handler (agent or callable) only when the trigger condition is met.
+    """
+
+    _watch_key: str
+    _handler: Any
+    _handler_is_agent: bool
+    _trigger: str
+
+    def __init__(
+        self,
+        *,
+        watch_key: str,
+        handler: Any,
+        handler_is_agent: bool = False,
+        trigger: str = "change",
+        **kwargs: Any,
+    ):
+        sub_agents = [handler] if handler_is_agent else []
+        super().__init__(sub_agents=sub_agents, **kwargs)
+        object.__setattr__(self, "_watch_key", watch_key)
+        object.__setattr__(self, "_handler", handler)
+        object.__setattr__(self, "_handler_is_agent", handler_is_agent)
+        object.__setattr__(self, "_trigger", trigger)
+
+    async def _run_async_impl(self, ctx):
+        state = ctx.session.state
+        current = state.get(self._watch_key)
+        snapshot_key = f"_watch_snapshot_{self._watch_key}"
+        previous = state.get(snapshot_key)
+
+        # Determine whether to fire
+        should_fire = False
+        if self._trigger == "write":
+            should_fire = self._watch_key in state
+        elif self._trigger == "truthy":
+            should_fire = bool(current)
+        else:  # "change"
+            should_fire = current != previous
+
+        # Save snapshot for next evaluation
+        state[snapshot_key] = current
+
+        if not should_fire:
+            return
+
+        if self._handler_is_agent:
+            async for event in self._handler.run_async(ctx):
+                yield event
+        elif callable(self._handler):
+            result = self._handler(previous, current, dict(state))
+            if isinstance(result, dict):
+                for k, v in result.items():
+                    state[k] = v

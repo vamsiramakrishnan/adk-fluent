@@ -47,6 +47,7 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
+    "group_chat",
     "a2a_cascade",
     "a2a_fanout",
     "a2a_delegate",
@@ -331,6 +332,62 @@ def supervised(
         return bool(val)
 
     return (worker >> supervisor) * until(_is_approved, max=max_revisions)
+
+
+def group_chat(
+    *agents: Any,
+    max_rounds: int = 5,
+    stop_key: str = "done",
+) -> Any:
+    """Round-robin group chat: agents take turns with shared context.
+
+    All agents see the full transcript of what every other agent said,
+    like a group conversation. Each agent speaks in order, cycling for
+    ``max_rounds`` iterations. The loop exits early if ``state[stop_key]``
+    becomes truthy.
+
+    This is the adk-fluent equivalent of AutoGen's ``GroupChat`` with
+    ``speaker_selection_method="round_robin"``.
+
+    Args:
+        *agents: Two or more agent builders to participate in the discussion.
+        max_rounds: Maximum discussion rounds before the chat ends.
+        stop_key: State key that, when truthy, stops the conversation early.
+
+    Returns:
+        A Loop builder ready for ``.build()`` or further composition.
+
+    Usage::
+
+        discussion = group_chat(
+            Agent("researcher", "gemini-2.5-flash").instruct("Provide research and facts."),
+            Agent("writer", "gemini-2.5-flash").instruct("Draft based on discussion."),
+            Agent("critic", "gemini-2.5-flash").instruct("Critique. Set done=true when satisfied."),
+            max_rounds=4,
+            stop_key="done",
+        )
+    """
+    from adk_fluent._base import until
+    from adk_fluent._context import C
+
+    if len(agents) < 2:
+        raise ValueError("group_chat() requires at least 2 agents")
+
+    # Apply shared thread context to all agents
+    contextualized = []
+    for a in agents:
+        if hasattr(a, "context"):
+            contextualized.append(a.context(C.shared_thread()))
+        else:
+            contextualized.append(a)
+
+    # Build sequential pipeline from agents
+    pipeline = contextualized[0]
+    for a in contextualized[1:]:
+        pipeline = pipeline >> a
+
+    # Wrap in loop with stop condition
+    return pipeline * until(lambda s, k=stop_key: bool(s.get(k)), max=max_rounds)
 
 
 # ---------------------------------------------------------------------------

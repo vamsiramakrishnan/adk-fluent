@@ -177,6 +177,7 @@ from ._context import CUser as CUser
 from ._context import CManusCascade as CManusCascade
 from ._context import CWhen as CWhen
 from ._context import CPipelineAware as CPipelineAware
+from ._context import CSharedThread as CSharedThread
 from ._enums import SessionStrategy as SessionStrategy
 from ._enums import ExecutionMode as ExecutionMode
 from ._eval import E as E
@@ -255,6 +256,8 @@ from ._primitive_builders import gate as gate
 from ._primitive_builders import race as race
 from ._primitive_builders import dispatch as dispatch
 from ._primitive_builders import join as join
+from ._primitive_builders import notify as notify
+from ._primitive_builders import watch as watch
 from ._prompt import P as P
 from ._prompt import PTransform as PTransform
 from ._prompt import PComposite as PComposite
@@ -334,6 +337,7 @@ from .patterns import fan_out_merge as fan_out_merge
 from .patterns import chain as chain
 from .patterns import conditional as conditional
 from .patterns import supervised as supervised
+from .patterns import group_chat as group_chat
 from .patterns import a2a_cascade as a2a_cascade
 from .patterns import a2a_fanout as a2a_fanout
 from .patterns import a2a_delegate as a2a_delegate
@@ -376,6 +380,8 @@ from .prelude import race as race
 from .prelude import expect as expect
 from .prelude import dispatch as dispatch
 from .prelude import join as join
+from .prelude import notify as notify
+from .prelude import watch as watch
 from .prelude import STransform as STransform
 from .prelude import review_loop as review_loop
 from .prelude import cascade as cascade
@@ -384,6 +390,7 @@ from .prelude import fan_out_merge as fan_out_merge
 from .prelude import map_reduce as map_reduce
 from .prelude import conditional as conditional
 from .prelude import supervised as supervised
+from .prelude import group_chat as group_chat
 from .prelude import a2a_cascade as a2a_cascade
 from .prelude import a2a_fanout as a2a_fanout
 from .prelude import a2a_delegate as a2a_delegate
@@ -670,6 +677,7 @@ __all__ = [
     "CManusCascade",
     "CWhen",
     "CPipelineAware",
+    "CSharedThread",
     "SessionStrategy",
     "ExecutionMode",
     "E",
@@ -747,6 +755,8 @@ __all__ = [
     "race",
     "dispatch",
     "join",
+    "notify",
+    "watch",
     "P",
     "PTransform",
     "PComposite",
@@ -826,6 +836,7 @@ __all__ = [
     "chain",
     "conditional",
     "supervised",
+    "group_chat",
     "a2a_cascade",
     "a2a_fanout",
     "a2a_delegate",
