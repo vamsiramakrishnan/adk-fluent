@@ -1,5 +1,13 @@
 # Presets
 
+:::{admonition} At a Glance
+:class: tip
+
+- Presets bundle multiple builder settings (model, instruction, tools, callbacks) into reusable objects
+- Apply with `.use(preset)` --- settings are merged into the builder
+- Use presets for team-wide standards (production model config, observability, safety)
+:::
+
 Presets are reusable configuration bundles that can be applied to any builder via `.use()`. They solve a specific problem: when 10 agents in a pipeline all need the same model, the same logging callbacks, and the same safety checks, you shouldn't repeat that configuration 10 times.
 
 ## When to Use Presets vs. Middleware vs. Callbacks

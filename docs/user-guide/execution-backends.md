@@ -1,5 +1,13 @@
 # Execution Backends
 
+:::{admonition} At a Glance
+:class: tip
+
+- Three backends: ADK (stable, production), Temporal (in dev, durable), asyncio (in dev, zero-dep)
+- Same builder code works across all backends --- only `.engine()` call changes
+- Default is ADK --- you don't need to choose a backend to get started
+:::
+
 adk-fluent decouples **what** your agent does (builders, operators, namespaces) from **how** it runs (the execution engine). The same builder definition can compile to different backends with different durability, scheduling, and deployment characteristics.
 
 :::{admonition} Backend maturity

@@ -1,5 +1,13 @@
 # Evaluation
 
+:::{admonition} At a Glance
+:class: tip
+
+- E module provides three tiers: inline `.eval()`, `EvalSuite` for batch, `ComparisonReport` for A/B testing
+- Custom criteria with `E.criterion()`, LLM-as-judge scoring, tool trajectory checks
+- Use eval to catch quality regressions before they reach production
+:::
+
 adk-fluent wraps Google ADK's evaluation framework with a fluent `E` module, consistent with the other namespace modules (P, C, S, M, T, A). It provides three tiers of evaluation — inline, suite, and comparison — all composable with the `|` operator.
 
 ## Quick Start

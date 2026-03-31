@@ -93,6 +93,43 @@ Production concerns.
 Start with ADK. If you need durability, see [Execution Backends](execution-backends.md).
 :::
 
+## Quick Reference
+
+New to adk-fluent? Use this flowchart to find the right page:
+
+```mermaid
+flowchart TD
+    START{"What do you need?"} -->|"Understand the system"| ARCH["Architecture & Concepts"]
+    START -->|"Build my first agent"| BUILD["Builders"]
+    START -->|"Compose agents into workflows"| EXPR["Expression Language"]
+    START -->|"Pass data between agents"| DATA["Data Flow"]
+    START -->|"Quick API lookup"| CHEAT["Cheat Sheet"]
+    START -->|"Fix an error"| TROUBLE["Troubleshooting"]
+    START -->|"See all concepts"| MAP["Concept Map"]
+    START -->|"Find a term"| GLOSS["Glossary"]
+
+    click ARCH "architecture-and-concepts.html"
+    click BUILD "builders.html"
+    click EXPR "expression-language.html"
+    click DATA "data-flow.html"
+    click CHEAT "cheat-sheet.html"
+    click TROUBLE "troubleshooting.html"
+    click MAP "concept-map.html"
+    click GLOSS "glossary.html"
+
+    style START fill:#e94560,color:#fff
+```
+
+| Resource | Description |
+|---|---|
+| [Concept Map](concept-map.md) | Visual map of ALL concepts and how they relate |
+| [Cheat Sheet](cheat-sheet.md) | One-page quick reference for all operators, modules, and methods |
+| [Glossary](glossary.md) | Term definitions |
+| [FAQ](faq.md) | Top 20 questions with direct answers |
+| [Troubleshooting](troubleshooting.md) | Error → cause → fix lookup table |
+| [Performance](performance.md) | Token budgets, model selection, pipeline optimization |
+| [Design Philosophy](design-philosophy.md) | Why fluent? Why immutable? Why auto-generated? |
+
 ## Reference
 
 | Resource | Description |
@@ -134,6 +171,13 @@ a2a
 a2ui
 skills
 error-reference
+concept-map
+cheat-sheet
+glossary
+faq
+troubleshooting
+performance
+design-philosophy
 adk-samples/index
 ```
 

@@ -1,5 +1,13 @@
 # Error Reference
 
+:::{admonition} At a Glance
+:class: tip
+
+- Complete catalog of adk-fluent errors with causes, examples, and fixes
+- Every error includes a code, message, and suggested resolution
+- Use `.validate()` and `check_contracts()` to catch errors early at build time
+:::
+
 This page documents every error you may encounter when using adk-fluent,
 explains why it happens, and shows how to fix it.
 

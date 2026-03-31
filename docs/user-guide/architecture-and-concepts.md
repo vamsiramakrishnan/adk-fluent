@@ -1,168 +1,538 @@
 # Architecture & Core Concepts
 
-Before diving into builders and operators, it's crucial to understand the underlying mechanics of ADK and how `adk-fluent` interacts with them. This conceptual foundation will help you design robust, predictable agent systems.
+:::{admonition} At a Glance
+:class: tip
 
-## The Three Channels
+- **adk-fluent** is a thin builder layer on top of Google ADK --- every `.build()` returns a real ADK object
+- Builders are typed configuration objects that compile to native ADK at build time
+- Nine modules (S, C, P, A, M, T, E, G, UI) provide composable, orthogonal concerns
+:::
 
-ADK has three independent mechanisms for agents to communicate. Every confusion about state traces back to developers not realizing they're coordinating three systems manually.
+## System Architecture
 
-**Channel 1: Conversation History**
-All events (user messages, agent responses, tool calls) are appended to `session.events`. When the next agent runs, `contents.py` assembles these events into the LLM prompt. Every agent sees every prior agent's raw text output by default. Controlled by `include_contents`: `'default'` (everything) or `'none'` (current turn only). Binary switch. No middle ground.
+adk-fluent sits between your code and Google ADK. It adds zero runtime overhead --- builders exist only at definition time.
 
-**Channel 2: Session State (key-value store)**
-Flat dictionary at `session.state`. Written via `output_key` (LlmAgent writes its text here automatically), `ctx.session.state[k] = v` (manual), or `event.actions.state_delta` (event-carried). Read via `session.state[k]` in code. Scoped: unprefixed (session), `app:`, `user:`, `temp:`.
+```mermaid
+graph LR
+    subgraph "Your Code"
+        A["Agent('helper')
+        .instruct(...)
+        .tool(...)"]
+    end
 
-**Channel 3: Instruction Templating**
-`inject_session_state()` replaces `{key}` placeholders in instruction strings with `session.state[key]` values. Runs every invocation, just before the LLM call. This is the bridge: state values appear inside the system prompt.
+    subgraph "adk-fluent Layer"
+        B["Builder API"] --> C["IR Tree"]
+        C --> D{"Backend?"}
+    end
 
-These three channels are configured independently but deeply entangled at runtime. In `classifier >> booker`:
+    subgraph "ADK Layer"
+        D -->|"default"| E["Native ADK Objects"]
+        D -->|"temporal"| F["Temporal Workflow"]
+        D -->|"asyncio"| G["Asyncio Interpreter"]
+    end
 
-```
-classifier (output_key="intent") produces "booking"
-  → Channel 1: "booking" appended to session.events
-  → Channel 2: session.state["intent"] = "booking" (via state_delta on event)
+    subgraph "Deployment"
+        E --> H["adk web / run / deploy"]
+        F --> I["Temporal Server"]
+        G --> J["Python asyncio"]
+    end
 
-booker (instruction="Help book. The intent is: {intent}") runs
-  → Channel 1: LLM context includes classifier's "booking" text
-  → Channel 3: instruction becomes "Help book. The intent is: booking"
-  → booker's LLM sees "booking" TWICE: once in conversation, once in instruction
-```
+    A --> B
 
-This duplication is not a bug. It's the natural consequence of three independent channels converging on one LLM prompt. The developer is expected to manage this. Most don't realize it's happening.
-
-## What include_contents Actually Does
-
-The source (`contents.py`) reveals `include_contents='none'` finds the most recent user message or other-agent reply and only includes events from that point forward. In a pipeline:
-
-```
-User: "I want to fly to London"          ← turn start
-Classifier: "booking"                     ← agent reply
-
-Booker runs with include_contents='none':
-  → Looks backward, finds classifier's reply as "other agent reply"
-  → Only includes events from classifier's reply onward
-  → Booker sees: "booking"
-  → Booker does NOT see: "I want to fly to London"
-```
-
-The user's original message is lost. `include_contents='none'` was designed for stateless utility agents that get all their context from state variables in the instruction template. It was not designed for pipeline composition where a downstream agent needs the conversation *and* structured data from an upstream agent.
-
-There is no `include_contents='user_only'` or `include_contents='exclude_agents'`. The switch is binary: everything, or current turn. ADK has no mechanism for topology-aware content filtering.
-
-## What output_key Actually Does
-
-`__maybe_save_output_to_state` runs inside `LlmAgent._run_async_impl`:
-
-```python
-async for event in self._llm_flow.run_async(ctx):
-    self.__maybe_save_output_to_state(event)  # mutates event.actions.state_delta
-    yield event                                # yields event WITH content AND state_delta
+    style A fill:#1a1a2e,stroke:#e94560,color:#fff
+    style B fill:#16213e,stroke:#e94560,color:#fff
+    style C fill:#16213e,stroke:#0ea5e9,color:#fff
+    style D fill:#0f3460,stroke:#f59e0b,color:#fff
+    style E fill:#0f3460,stroke:#10b981,color:#fff
+    style F fill:#0f3460,stroke:#a78bfa,color:#fff
+    style G fill:#0f3460,stroke:#a78bfa,color:#fff
 ```
 
-It mutates the event's `state_delta` field in-place. It does not suppress, replace, or redirect the content. The event still carries full text. `append_event` in the Runner then: (1) appends the event to `session.events`, and (2) applies `state_delta` to `session.state`. Both writes happen atomically from the same event.
+:::{tip}
+**Mental model:** Think of builders as typed configuration objects that compile to ADK at `.build()` time. After `.build()`, adk-fluent is gone --- you have a pure ADK object.
+:::
 
-`output_key` is therefore a *duplication* mechanism, not a *routing* mechanism. It copies the LLM's text response into state under a named key. The original text still exists in conversation history. Downstream agents get it through both channels.
+## Lifecycle of an Agent
 
-## What the S Module Does Today
+Every agent follows the same path: configure with fluent methods, then compile to a native ADK object.
 
-The S module provides pure state transforms that compile to `FnAgent` — a zero-cost agent that mutates `ctx.session.state` directly and yields no events:
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant B as Builder
+    participant IR as IR Tree
+    participant ADK as Native ADK
 
-```python
-pipeline = (
-    Agent("researcher").instruct("Find data.").writes("findings")
-    >> S.pick("findings", "sources")
-    >> S.rename(findings="input")
-    >> Agent("writer").instruct("Write report using {input}.")
-)
+    Dev->>B: Agent("helper", "gemini-2.5-flash")
+    Dev->>B: .instruct("You are helpful.")
+    Dev->>B: .tool(search_fn)
+    Dev->>B: .writes("response")
+    Dev->>B: .build()
+    B->>IR: Compile builder state
+    IR->>IR: Validate contracts
+    IR->>ADK: Emit LlmAgent(...)
+    Note over ADK: Pure ADK object ---<br/>works with adk web/run/deploy
 ```
 
-`S.pick` → keeps only named keys, nulls everything else (session-scoped)
-`S.drop` → removes named keys
-`S.rename` → renames keys
-`S.default` → fills missing keys
-`S.merge` → combines keys
-`S.transform` → applies function to single key
-`S.compute` → derives new keys from full state
-`S.set` → sets explicit values
-`S.guard` → asserts invariant
-`S.log` → debug print
+## adk-fluent Concepts vs ADK Concepts
 
-These operate exclusively on Channel 2 (session state). They don't touch Channel 1 (conversation history) or Channel 3 (instruction templating). FnAgent writes directly to `ctx.session.state` and yields nothing — no events, no state_delta, no conversation history entry.
+Every adk-fluent concept maps directly to an ADK concept. Nothing is invented --- everything compiles down.
 
-## What's Actually Missing
+| adk-fluent | ADK Equivalent | Relationship |
+|---|---|---|
+| `Agent` builder | `LlmAgent` | 1:1 --- identical object after `.build()` |
+| `Pipeline` / `>>` | `SequentialAgent` | Sequential execution |
+| `FanOut` / `\|` | `ParallelAgent` | Concurrent execution |
+| `Loop` / `*` | `LoopAgent` | Iterative execution |
+| `.instruct()` | `instruction` kwarg | System prompt |
+| `.writes()` | `output_key` kwarg | State storage |
+| `.returns()` | `output_schema` kwarg | Structured output |
+| `.tool()` | `tools` list | Tool registration |
+| `.sub_agent()` | `sub_agents` list | Transfer targets |
+| S transforms | `FnAgent` (zero-cost) | State dict manipulation |
+| IR Tree | _(no equivalent)_ | adk-fluent's compile step |
 
-The S module is fine for what it does. It's a clean set of state transforms. The problem isn't the transforms — it's that the developer has to manually coordinate all three channels, and the common patterns require getting the coordination exactly right.
+## The Nine Modules
 
-### Missing: The >> operator doesn't encode data flow
+adk-fluent organizes capabilities into nine composable modules. Each controls one concern.
 
-When a developer writes `a >> b`, they mean "a's output feeds b." But `>>` in adk-fluent compiles to `SequentialAgent`, which just runs agents in order within the same session. The operator implies data flow but implements sequential execution. The gap between these is where every state management mistake lives.
+```mermaid
+graph TB
+    subgraph "Prompt & Context"
+        P["P — Prompt<br/>What the LLM is told"]
+        C["C — Context<br/>What the agent sees"]
+    end
 
-Unix pipes work because `|` means "stdout of left connects to stdin of right." The shell handles the plumbing. Programs don't think about it. `>>` should carry that same weight: the developer declares the relationship, the library figures out the wiring.
+    subgraph "Data Flow"
+        S["S — State<br/>Transforms between agents"]
+        A_["A — Artifacts<br/>File publish/load"]
+    end
 
-### Missing: output_key should be inferred from topology, not manually assigned
+    subgraph "Quality & Safety"
+        G["G — Guards<br/>Output validation"]
+        E["E — Evaluation<br/>Testing & scoring"]
+    end
 
-If an agent has a successor in a pipeline and the successor reads from state, the intermediate agent needs an `output_key`. Today the developer has to know this. There's no signal from the library that says "you put classifier before a Route that reads 'intent', but classifier has no output_key — its output won't be in state."
+    subgraph "Infrastructure"
+        M["M — Middleware<br/>Retry, logging, cost"]
+        T["T — Tools<br/>Tool composition"]
+    end
 
-### Missing: include_contents should have a topology-aware mode
+    subgraph "Interface"
+        UI["UI — Agent-to-UI<br/>Declarative UI"]
+    end
 
-The binary choice (everything / current turn) is insufficient for pipelines. A downstream agent often needs: the user's original message (conversational context) + structured data from state (routing info, extracted entities) — but NOT the raw text of intermediate agents (noise, duplication).
-
-This isn't something adk-fluent can fix at the ADK level. But it could provide a mechanism: a custom `InstructionProvider` that assembles context from state rather than relying on ADK's conversation history. Agents with `include_contents='none'` plus a carefully constructed instruction that includes `{user_message}` from state — where `{user_message}` was captured by an earlier agent or S transform.
-
-### Missing: Contract validation across all three channels
-
-The build-time check the developer actually needs isn't "does key X exist in state." It's a coherence analysis across channels:
-
-- Agent B's instruction template references `{intent}`. Does any upstream agent produce `intent` via `output_key`?
-- Agent A has `output_key="intent"` but agent B has `include_contents='default'`. B will see "booking" twice (state + conversation). Is this intentional?
-- Agent A has no `output_key` and B has `include_contents='none'`. A's output reaches B through neither channel. Data is lost.
-- Route reads `state["intent"]` but classifier has no `output_key`. Route will read stale or missing state.
-
-## What the Thoughtful Library Does
-
-The 100x team doesn't add more S transforms. The S module is already complete for explicit state manipulation. They focus on three things:
-
-### 1. Make >> aware of data contracts
-
-`output_key` is not just a storage mechanism — it's a declaration of agent role. An agent with `output_key` is saying "my text is data, not conversation." An agent without `output_key` is saying "my text IS the conversation."
-
-The `>>` operator should respect this:
-
-```python
-# When classifier writes "intent", the >> operator knows
-# that downstream agents can read it from state
-classifier = Agent("classify").instruct("Classify intent.").writes("intent")
-resolver = Agent("resolve").instruct("Resolve the {intent} issue.")
-
-pipeline = classifier >> resolver
-# adk-fluent infers: classifier needs output_key="intent"
-# adk-fluent infers: resolver needs include_contents behavior
+    style P fill:#e94560,color:#fff
+    style C fill:#0ea5e9,color:#fff
+    style S fill:#10b981,color:#fff
+    style A_ fill:#f59e0b,color:#fff
+    style G fill:#f472b6,color:#fff
+    style E fill:#a78bfa,color:#fff
+    style M fill:#64748b,color:#fff
+    style T fill:#06b6d4,color:#fff
+    style UI fill:#8b5cf6,color:#fff
 ```
 
-### 2. Infer output_key from topology
-
-If an agent has `.writes("intent")` and appears before a `Route("intent")`, the library can verify at build time that the data contract is satisfiable. If the developer forgets `.writes()`, the contract checker flags it before any LLM call.
-
-### 3. Provide topology-aware context filtering
-
-The C module (`C.none()`, `C.from_state()`, `C.user_only()`, `C.window()`) gives developers fine-grained control over what each agent sees — without relying on ADK's binary `include_contents` switch. See [Context Engineering](context-engineering.md) for the full catalog.
+| Module | Import | Used With | Compose With |
+|--------|--------|-----------|-------------|
+| **S** — State | `from adk_fluent import S` | `>>` operator | `>>` (chain), `+` (combine) |
+| **C** — Context | `from adk_fluent import C` | `.context()` | `+` (union), `\|` (pipe) |
+| **P** — Prompt | `from adk_fluent import P` | `.instruct()` | `+` (union), `\|` (pipe) |
+| **A** — Artifacts | `from adk_fluent import A` | `.artifacts()`, `>>` | `>>` (chain) |
+| **M** — Middleware | `from adk_fluent import M` | `.middleware()` | `\|` (chain) |
+| **T** — Tools | `from adk_fluent import T` | `.tools()` | `\|` (chain) |
+| **E** — Evaluation | `from adk_fluent import E` | `.eval()` | builder pattern |
+| **G** — Guards | `from adk_fluent import G` | `.guard()` | `\|` (chain) |
+| **UI** — Agent-to-UI | `from adk_fluent import UI` | `.ui()` | `\|` (row), `>>` (column) |
 
 ---
 
-## Context Engineering: The Five Operations
+## The Three Channels of ADK Communication
 
-Context engineering is not just overflow handling. It is the *continuous discipline* of assembling the smallest, highest-signal token set that maximizes an agent's likelihood of producing the desired outcome.
+ADK has three independent mechanisms for agents to communicate. Every confusion about state traces back to not realizing they're three separate systems.
 
-The five operations that adk-fluent exposes on every agent builder correspond to five orthogonal concerns:
+```mermaid
+graph TB
+    subgraph "Channel 1: Conversation History"
+        CH1["All events appended to session.events<br/>Every agent sees prior agents' text by default<br/>Controlled by include_contents: 'default' or 'none'"]
+    end
 
-| Operation | Builder method | What it controls |
-|-----------|---------------|-----------------|
-| **Context** | `.reads()`, `.context()` | What history/state the agent sees |
-| **Input** | `.accepts()` | What schema is expected when invoked as a tool |
-| **Output** | `.returns()` | What schema the LLM must produce |
-| **Storage** | `.writes()` | Where the agent's response is stored in state |
-| **Contract** | `.produces()`, `.consumes()` | Static annotations for build-time validation |
+    subgraph "Channel 2: Session State"
+        CH2["Flat dict at session.state<br/>Written via output_key or ctx.session.state<br/>Scoped: unprefixed, app:, user:, temp:"]
+    end
 
-These five concerns are independent. Setting `.writes("intent")` does not affect what the agent *sees* (context), and setting `.context(C.none())` does not affect where the agent *stores* its output (storage). This orthogonality is what makes pipelines predictable.
+    subgraph "Channel 3: Instruction Templating"
+        CH3["{key} placeholders in instructions<br/>Replaced with state values before LLM call<br/>Bridge between state and prompt"]
+    end
 
-For a deep dive into each concern with diagrams and examples, see [Data Flow](data-flow.md).
+    CH1 -.->|"converge on"| LLM["LLM Prompt"]
+    CH2 -.->|"converge on"| LLM
+    CH3 -.->|"converge on"| LLM
+
+    style CH1 fill:#0ea5e9,color:#fff
+    style CH2 fill:#10b981,color:#fff
+    style CH3 fill:#f59e0b,color:#fff
+    style LLM fill:#e94560,color:#fff
+```
+
+:::{warning}
+These three channels are configured independently but deeply entangled at runtime. A single agent response flows through **all three** simultaneously --- it becomes a conversation event, may be stored in state, and state values may appear in downstream instructions. This duplication is the source of most multi-agent debugging confusion.
+:::
+
+### Example: How Channels Converge
+
+```python
+classifier = Agent("classify").instruct("Classify intent.").writes("intent")
+booker = Agent("booker").instruct("Help book. The intent is: {intent}")
+
+pipeline = classifier >> booker
+```
+
+When `classifier` produces `"booking"`:
+
+| Channel | What Happens | Result |
+|---------|-------------|--------|
+| **1. History** | `"booking"` appended to `session.events` | `booker` sees it in conversation |
+| **2. State** | `state["intent"] = "booking"` via `output_key` | Available for `{intent}` template |
+| **3. Template** | `{intent}` in `booker`'s instruction replaced | Instruction becomes `"Help book. The intent is: booking"` |
+
+The booker's LLM sees `"booking"` **twice**: once in conversation history, once in the instruction. This isn't a bug --- it's three channels converging. adk-fluent's context engineering (C module) helps you control this.
+
+---
+
+## What `include_contents` Actually Does
+
+The binary switch that controls conversation history visibility:
+
+| Value | Behavior | Use Case |
+|-------|----------|----------|
+| `"default"` | Full conversation history (filtered, rearranged) | Conversational agents |
+| `"none"` | Current turn only (latest user/agent message forward) | Stateless utility agents |
+
+:::{warning}
+`include_contents="none"` was designed for stateless utility agents that get all context from state variables. In a pipeline, a downstream agent with `"none"` **loses the user's original message**. Use `.reads()` or `.context(C.from_state(...))` to inject exactly the state keys you need.
+:::
+
+```mermaid
+flowchart LR
+    subgraph "include_contents = 'default'"
+        D1["User msg"] --> D2["Agent A reply"] --> D3["Agent B reply"] --> D4["Agent C sees ALL"]
+    end
+
+    subgraph "include_contents = 'none'"
+        N1["User msg"] --> N2["Agent A reply"] --> N3["Agent B reply"]
+        N3 --> N4["Agent C sees ONLY<br/>Agent B's reply onward"]
+    end
+```
+
+There is no `"user_only"` or `"exclude_agents"` in native ADK. adk-fluent bridges this gap with the **C module**: `C.user_only()`, `C.from_agents()`, `C.window()`, and more. See [Context Engineering](context-engineering.md).
+
+---
+
+## What `output_key` Actually Does
+
+:::{note}
+`output_key` is a **duplication** mechanism, not a **routing** mechanism. It copies the LLM's text response into state under a named key. The original text still exists in conversation history.
+:::
+
+```mermaid
+sequenceDiagram
+    participant LLM as LLM
+    participant E as Event
+    participant H as Conversation History
+    participant St as Session State
+
+    LLM->>E: Response text: "booking"
+    Note over E: event.actions.state_delta<br/>mutated in-place
+    E->>H: Append to session.events<br/>(text in conversation)
+    E->>St: state["intent"] = "booking"<br/>(text in state)
+    Note over H,St: Both writes happen<br/>atomically from same event
+```
+
+Downstream agents get the response through **both** channels. Use `.context(C.none())` or `.reads()` on downstream agents to suppress the conversation channel when you only want structured state data.
+
+---
+
+## The Five Orthogonal Data Flow Concerns
+
+Every data-flow method in adk-fluent maps to exactly one of five concerns. They are fully independent of each other.
+
+| Concern | Method | Controls | When |
+|---------|--------|----------|------|
+| **Context** | `.reads()`, `.context()` | What the agent SEES | Before LLM call |
+| **Input** | `.accepts()` | Schema for tool-mode invocation | At tool-call time |
+| **Output** | `.returns()`, `@ Schema` | Response shape (structured JSON) | During LLM call |
+| **Storage** | `.writes()` | Where response is saved in state | After LLM call |
+| **Contract** | `.produces()`, `.consumes()` | Static annotations for validation | Build time only |
+
+```python
+classifier = (
+    Agent("classifier", "gemini-2.0-flash")
+    .instruct("Classify the user query: {query}")
+    .reads("query")              # CONTEXT: sees state["query"] only
+    .accepts(SearchQuery)        # INPUT:   tool-mode validation
+    .returns(Intent)             # OUTPUT:  structured JSON response
+    .writes("intent")            # STORAGE: save to state["intent"]
+    .produces(Intent)            # CONTRACT: static annotation
+)
+```
+
+:::{seealso}
+[Data Flow](data-flow.md) for detailed diagrams and examples of each concern.
+:::
+
+---
+
+## What the S Module Does
+
+The S module provides pure state transforms that compile to zero-cost `FnAgent` nodes --- no LLM calls, no events, just dict manipulation.
+
+```mermaid
+graph LR
+    A1["Agent A<br/>.writes('findings')"] -->|state| S1["S.pick('findings')"]
+    S1 -->|state| S2["S.rename(findings='input')"]
+    S2 -->|state| A2["Agent B<br/>.reads('input')"]
+
+    style S1 fill:#10b981,color:#fff
+    style S2 fill:#10b981,color:#fff
+```
+
+S transforms operate exclusively on **Channel 2** (session state). They don't touch conversation history or instruction templating. This makes them predictable and composable.
+
+| Transform | Effect | Type |
+|-----------|--------|------|
+| `S.pick(*keys)` | Keep only named keys | Replacement |
+| `S.drop(*keys)` | Remove named keys | Replacement |
+| `S.rename(**mapping)` | Rename keys | Replacement |
+| `S.merge(*keys, into=)` | Combine keys | Delta |
+| `S.transform(key, fn)` | Apply function to value | Delta |
+| `S.compute(**factories)` | Derive new keys | Delta |
+| `S.set(**kv)` | Set explicit values | Delta |
+| `S.default(**kv)` | Fill missing keys | Delta |
+| `S.guard(pred, msg=)` | Assert state invariant | Inspection |
+| `S.log(*keys)` | Debug print | Inspection |
+
+:::{seealso}
+[State Transforms](state-transforms.md) for visual before/after diagrams of each transform.
+:::
+
+---
+
+## What adk-fluent Infers From Topology
+
+The library doesn't just wrap ADK --- it performs three kinds of inference that native ADK requires you to do manually:
+
+### 1. Data contract verification
+
+When you write `.writes("intent")` upstream and `Route("intent")` downstream, the contract checker verifies at build time that the data flow is satisfiable. If you forget `.writes()`, it flags the issue before any LLM call.
+
+### 2. Topology-aware context filtering
+
+The C module provides fine-grained control that ADK's binary `include_contents` switch cannot:
+
+```python
+# Agent sees only the user's messages + last 3 turns
+agent.context(C.user_only() + C.window(n=3))
+
+# Agent sees only state keys, no conversation history
+agent.reads("topic", "constraints")
+```
+
+### 3. Cross-channel coherence analysis
+
+The contract checker warns about common pitfalls:
+
+| Pitfall | What Happens | How to Fix |
+|---------|-------------|------------|
+| Agent B references `{intent}` but no upstream writes `"intent"` | Template resolves to empty string | Add `.writes("intent")` to upstream agent |
+| Agent A has `.writes("intent")` but B has full history | B sees `"booking"` twice (state + conversation) | Add `.reads("intent")` to B |
+| Agent A has no `.writes()` and B has `.context(C.none())` | A's output reaches B through neither channel | Add `.writes()` to A or change B's context |
+
+---
+
+## Native ADK vs adk-fluent
+
+::::{tab-set}
+:::{tab-item} Native ADK
+```python
+from google.adk.agents import LlmAgent, SequentialAgent
+from google.adk.tools import FunctionTool
+
+classifier = LlmAgent(
+    name="classifier",
+    model="gemini-2.5-flash",
+    instruction="Classify the intent.",
+    output_key="intent",
+)
+
+handler = LlmAgent(
+    name="handler",
+    model="gemini-2.5-flash",
+    instruction="Handle the {intent} query.",
+    include_contents="none",
+)
+
+pipeline = SequentialAgent(
+    name="pipeline",
+    sub_agents=[classifier, handler],
+)
+```
+:::
+:::{tab-item} adk-fluent
+```python
+from adk_fluent import Agent
+
+pipeline = (
+    Agent("classifier", "gemini-2.5-flash")
+    .instruct("Classify the intent.")
+    .writes("intent")
+    >> Agent("handler", "gemini-2.5-flash")
+    .instruct("Handle the {intent} query.")
+    .reads("intent")
+).build()
+```
+:::
+::::
+
+Both produce identical ADK objects. The fluent version is shorter, catches typos at definition time, and makes data flow explicit.
+
+---
+
+## When to Use What
+
+```mermaid
+flowchart TD
+    START{What are you building?} -->|"Single agent"| SINGLE["Agent builder<br/><code>Agent('name', 'model')</code>"]
+    START -->|"Multiple agents"| MULTI{How do they interact?}
+
+    MULTI -->|"Run in sequence"| SEQ["Pipeline / >><br/><code>a >> b >> c</code>"]
+    MULTI -->|"Run in parallel"| PAR["FanOut / |<br/><code>a | b | c</code>"]
+    MULTI -->|"Iterate until done"| LOOP["Loop / *<br/><code>(a >> b) * 3</code>"]
+    MULTI -->|"LLM picks the agent"| TRANSFER[".sub_agent()<br/>Transfer routing"]
+    MULTI -->|"Route by state value"| ROUTE["Route<br/><code>Route('key').eq(...)</code>"]
+    MULTI -->|"Try cheaper first"| FALL["Fallback / //<br/><code>fast // strong</code>"]
+
+    style START fill:#e94560,color:#fff
+    style SINGLE fill:#0ea5e9,color:#fff
+    style SEQ fill:#10b981,color:#fff
+    style PAR fill:#0ea5e9,color:#fff
+    style LOOP fill:#f59e0b,color:#fff
+    style TRANSFER fill:#a78bfa,color:#fff
+    style ROUTE fill:#f472b6,color:#fff
+    style FALL fill:#a78bfa,color:#fff
+```
+
+---
+
+## Common Mistakes
+
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} Forgetting `.writes()` before a Route
+:class-card: sd-border-danger
+
+```python
+# ❌ Wrong — Route reads state["intent"] but nobody writes it
+classifier = Agent("classify").instruct("Classify.")
+pipeline = classifier >> Route("intent").eq("booking", booker)
+```
+
+```python
+# ✅ Correct — classifier writes to state
+classifier = Agent("classify").instruct("Classify.").writes("intent")
+pipeline = classifier >> Route("intent").eq("booking", booker)
+```
+:::
+
+:::{grid-item-card} Using full history when you only need state
+:class-card: sd-border-danger
+
+```python
+# ❌ Wrong — handler sees "booking" twice (history + template)
+handler = Agent("handler").instruct("Handle {intent}.")
+```
+
+```python
+# ✅ Correct — suppress history, use only state
+handler = Agent("handler").instruct("Handle {intent}.").reads("intent")
+```
+:::
+
+:::{grid-item-card} Calling `.build()` on sub-builders
+:class-card: sd-border-danger
+
+```python
+# ❌ Wrong — don't build sub-builders manually
+Pipeline("flow")
+    .step(Agent("a").instruct("...").build())  # NO!
+    .build()
+```
+
+```python
+# ✅ Correct — let the parent auto-build children
+Pipeline("flow")
+    .step(Agent("a").instruct("..."))
+    .build()
+```
+:::
+::::
+
+---
+
+## Interplay With Other Concepts
+
+```mermaid
+graph TB
+    ARCH[["Architecture &<br/>Core Concepts"]]
+    EXPR["Expression Language"]
+    DATA["Data Flow"]
+    BUILD["Builders"]
+    PATT["Patterns"]
+    CTX["Context Engineering"]
+    ST["State Transforms"]
+
+    ARCH --> EXPR
+    ARCH --> DATA
+    ARCH --> BUILD
+    EXPR --> PATT
+    DATA --> CTX
+    DATA --> ST
+
+    style ARCH fill:#e65100,color:#fff
+```
+
+| Concept | Relationship |
+|---------|-------------|
+| [Expression Language](expression-language.md) | Operators that compose builders into topologies |
+| [Data Flow](data-flow.md) | The five concerns that control agent I/O |
+| [Builders](builders.md) | The fluent API for configuring agents |
+| [Context Engineering](context-engineering.md) | Fine-grained control over what agents see |
+| [State Transforms](state-transforms.md) | Data manipulation between pipeline steps |
+| [Patterns](patterns.md) | Higher-order constructors for common architectures |
+
+---
+
+## API Quick Reference
+
+| Method | Purpose | Details |
+|--------|---------|---------|
+| `.model(str)` | Set LLM model | [Builders](builders.md) |
+| `.instruct(str \| P)` | System prompt | [Prompts](prompts.md) |
+| `.tool(fn)` | Add tool | [Builders](builders.md) |
+| `.writes(key)` | Store output in state | [Data Flow](data-flow.md) |
+| `.reads(*keys)` | Inject state keys | [Data Flow](data-flow.md) |
+| `.returns(Schema)` | Structured output | [Structured Data](structured-data.md) |
+| `.context(C)` | Context control | [Context Engineering](context-engineering.md) |
+| `.sub_agent(agent)` | Transfer target | [Transfer Control](transfer-control.md) |
+| `.build()` | Compile to ADK | [Builders](builders.md) |
+
+---
+
+:::{seealso}
+- {doc}`expression-language` --- compose agents with operators
+- {doc}`data-flow` --- the five orthogonal data flow concerns
+- {doc}`builders` --- full builder method reference
+- {doc}`../getting-started` --- 5-minute quickstart
+- [ADK Documentation](https://google.github.io/adk-docs/) --- upstream Google ADK docs
+:::

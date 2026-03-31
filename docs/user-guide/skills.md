@@ -1,5 +1,13 @@
 # Skills -- Composable Agent Packages
 
+:::{admonition} At a Glance
+:class: tip
+
+- Skills are composable agent packages defined by SKILL.md files
+- Load with `T.skill()` or `SkillRegistry` for dynamic discovery
+- Use skills to package domain expertise, reusable tools, and complete agent capabilities
+:::
+
 **Skills** turn YAML + Markdown into executable agent graphs. Instead of writing Python code for every agent topology, you declare agents and their wiring in a `SKILL.md` file and load it with `Skill("path/")`. The same file that documents your agent system for humans and coding agents also runs as a live adk-fluent pipeline.
 
 ## When Skills Make Life Easy

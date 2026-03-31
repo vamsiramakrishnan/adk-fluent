@@ -1,5 +1,13 @@
 # IR and Backends
 
+:::{admonition} At a Glance
+:class: tip
+
+- The IR tree is a frozen dataclass representation of your agent topology
+- Backends compile IR to engine-specific runnables (ADK, Temporal, asyncio)
+- `.to_ir()` for inspection, `.to_app()` for compilation, `.to_mermaid()` for visualization
+:::
+
 The Intermediate Representation (IR) decouples the fluent builder API from execution engines. Builders compile to a tree of frozen dataclasses, which backends then compile to engine-specific runnables.
 
 :::{admonition} Multiple execution backends

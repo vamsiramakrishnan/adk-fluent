@@ -1,5 +1,13 @@
 # Temporal Guide
 
+:::{admonition} At a Glance
+:class: tip
+
+- Temporal backend provides durable execution with crash recovery and checkpointing
+- Deterministic operators (`>>`, `Route`, `S.*`) become replay-safe workflow code
+- Non-deterministic operators (LLM calls) become cached Temporal activities
+:::
+
 :::{admonition} In Development
 :class: warning
 

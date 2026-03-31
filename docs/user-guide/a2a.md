@@ -1,5 +1,13 @@
 # A2A -- Agent-to-Agent Communication
 
+:::{admonition} At a Glance
+:class: tip
+
+- A2A enables remote agent-to-agent communication over HTTP using the A2A protocol
+- `RemoteAgent` consumes remote agents; `A2AServer` publishes local agents
+- All operators (`>>`, `|`, `//`, `*`) work with remote agents --- same composition as local
+:::
+
 The **A2A (Agent-to-Agent)** protocol enables agents to communicate across process boundaries, machines, and organizations. adk-fluent wraps Google's A2A protocol with the same fluent builder API used for local agents.
 
 :::{admonition} Install

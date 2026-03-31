@@ -1,6 +1,29 @@
 # Guards (G Module)
 
-The G module provides a declarative composition surface for safety, validation, and policy guards. Guards compile into ADK `before_model_callback` and `after_model_callback` hooks automatically — you declare *what* to enforce, not *where* to enforce it.
+:::{admonition} At a Glance
+:class: tip
+
+- Guards validate and transform LLM output --- PII detection, length limits, schema validation
+- Compose with `|`: `G.pii("redact") | G.length(max=500) | G.schema(Model)`
+- Compile to `before_model` / `after_model` callbacks automatically
+:::
+
+```mermaid
+flowchart LR
+    LLM["LLM Response"] --> G1["G.pii()"]
+    G1 -->|pass| G2["G.length()"]
+    G2 -->|pass| G3["G.schema()"]
+    G3 -->|pass| OUT["Output"]
+    G1 -->|"fail"| BLOCK["GuardViolation"]
+    G2 -->|"fail"| BLOCK
+    G3 -->|"fail"| BLOCK
+
+    style LLM fill:#a78bfa,color:#fff
+    style OUT fill:#10b981,color:#fff
+    style BLOCK fill:#e94560,color:#fff
+```
+
+The G module provides a declarative composition surface for safety, validation, and policy guards. Guards compile into ADK `before_model_callback` and `after_model_callback` hooks automatically --- you declare *what* to enforce, not *where* to enforce it.
 
 ## Quick Start
 
@@ -142,9 +165,54 @@ ir = agent.to_ir()
 print(ir.guard_specs)  # Tuple of GGuard instances
 ```
 
-## See Also
+## Common Mistakes
 
-- [Cookbook: Guards](../../examples/cookbook/12_guards.py) — Legacy + G namespace examples
-- [Cookbook: G Module](../../examples/cookbook/67_g_module_guards.py) — Comprehensive G namespace examples
-- [Middleware](middleware.md) — M module for resilience (retry, circuit breaker)
-- [Callbacks](callbacks.md) — Low-level before/after hooks
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} Using guards for retry logic
+:class-card: sd-border-danger
+
+```python
+# ❌ Guards are for safety/validation, not resilience
+agent.guard(my_retry_logic)
+```
+
+```python
+# ✅ Use middleware for retry
+pipeline.middleware(M.retry(3))
+```
+:::
+
+:::{grid-item-card} Mixing guard and callback for the same concern
+:class-card: sd-border-danger
+
+```python
+# ❌ Redundant --- guard already compiles to after_model
+agent.guard(G.length(max=500)).after_model(check_length)
+```
+
+```python
+# ✅ Use guard alone for validation
+agent.guard(G.length(max=500))
+```
+:::
+::::
+
+## Interplay With Other Concepts
+
+| Combines With | To Achieve | Example |
+|--------------|-----------|---------|
+| [Callbacks](callbacks.md) | Guards compile to callbacks | `.guard(G.pii())` → `after_model_callback` |
+| [Middleware](middleware.md) | Guards are per-agent; middleware is pipeline-wide | Guard for PII, middleware for retry |
+| [Testing](testing.md) | Verify guards are attached in IR | `assert ir.guard_specs` |
+| [Structured Data](structured-data.md) | Schema validation | `G.schema(MyModel)` |
+
+---
+
+:::{seealso}
+- {doc}`callbacks` --- low-level before/after hooks
+- {doc}`middleware` --- pipeline-wide resilience (retry, circuit breaker)
+- {doc}`testing` --- verifying guards in IR
+:::
+

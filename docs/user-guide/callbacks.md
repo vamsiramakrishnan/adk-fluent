@@ -1,46 +1,110 @@
 # Callbacks
 
-adk-fluent provides a fluent API for attaching callbacks to agents. All callback methods are **additive** -- multiple calls accumulate handlers, never replace.
+:::{admonition} At a Glance
+:class: tip
 
-## Callback Methods
+- Eight callback methods for hooking into the agent lifecycle (before/after model, agent, tool + error handlers)
+- All callback methods are **additive** --- multiple calls accumulate handlers, never replace
+- Use callbacks for per-agent behavior; use middleware for pipeline-wide concerns
+:::
 
-| Method                | Alias for                 | Description                                                           |
-| --------------------- | ------------------------- | --------------------------------------------------------------------- |
-| `.before_model(fn)`   | `before_model_callback`   | Runs before each LLM call. Receives `(callback_context, llm_request)` |
-| `.after_model(fn)`    | `after_model_callback`    | Runs after each LLM call. Receives `(callback_context, llm_response)` |
-| `.before_agent(fn)`   | `before_agent_callback`   | Runs before agent execution                                           |
-| `.after_agent(fn)`    | `after_agent_callback`    | Runs after agent execution                                            |
-| `.before_tool(fn)`    | `before_tool_callback`    | Runs before each tool call                                            |
-| `.after_tool(fn)`     | `after_tool_callback`     | Runs after each tool call                                             |
-| `.on_model_error(fn)` | `on_model_error_callback` | Handles LLM errors                                                    |
-| `.on_tool_error(fn)`  | `on_tool_error_callback`  | Handles tool errors                                                   |
+## Callback Execution Order
 
-## Additive Semantics
+```mermaid
+sequenceDiagram
+    participant BA as before_agent
+    participant BM as before_model
+    participant LLM as LLM Call
+    participant AM as after_model
+    participant BT as before_tool
+    participant Tool as Tool Call
+    participant AT as after_tool
+    participant AA as after_agent
 
-Each call appends to the list of handlers for that callback type. This is different from native ADK where setting a callback replaces the previous one:
+    BA->>BM: Agent starts
+    BM->>LLM: Pre-process request
+    LLM->>AM: Response received
+    Note over AM: Guards run here<br/>(via .guard())
+    AM->>BT: Tool call needed?
+    BT->>Tool: Execute tool
+    Tool->>AT: Tool result
+    AT->>BM: Another LLM call?
+    BM->>LLM: (loop continues)
+    LLM->>AM: Final response
+    AM->>AA: Agent completes
+```
+
+---
+
+## All Eight Callback Methods
+
+| Method | ADK Field | Timing | Receives |
+|--------|----------|--------|----------|
+| `.before_agent(fn)` | `before_agent_callback` | Before agent execution | `(callback_context,)` |
+| `.after_agent(fn)` | `after_agent_callback` | After agent execution | `(callback_context,)` |
+| `.before_model(fn)` | `before_model_callback` | Before each LLM call | `(callback_context, llm_request)` |
+| `.after_model(fn)` | `after_model_callback` | After each LLM call | `(callback_context, llm_response)` |
+| `.before_tool(fn)` | `before_tool_callback` | Before each tool call | `(callback_context, tool_call)` |
+| `.after_tool(fn)` | `after_tool_callback` | After each tool call | `(callback_context, tool_result)` |
+| `.on_model_error(fn)` | `on_model_error_callback` | On LLM failure | `(callback_context, error)` |
+| `.on_tool_error(fn)` | `on_tool_error_callback` | On tool failure | `(callback_context, error)` |
+
+---
+
+## Quick Start
 
 ```python
 from adk_fluent import Agent
 
-def log_fn(ctx, req):
-    print(f"Request: {req}")
+def log_request(ctx, req):
+    print(f"[LOG] LLM request for {ctx.agent_name}")
 
-def metrics_fn(ctx, req):
-    print(f"Metrics: {req}")
-
-# Both handlers run before every LLM call
 agent = (
-    Agent("service", "gemini-2.5-flash")
-    .instruct("Handle requests.")
-    .before_model(log_fn)
-    .before_model(metrics_fn)
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("Help the user.")
+    .before_model(log_request)
     .build()
 )
 ```
 
+---
+
+## Additive Semantics
+
+Each call **appends** to the handler list. This differs from native ADK where setting a callback replaces the previous one:
+
+```mermaid
+graph LR
+    subgraph "adk-fluent (additive)"
+        A1[".before_model(log)"] --> A2[".before_model(metrics)"]
+        A2 --> A3["Both run"]
+    end
+
+    subgraph "Native ADK (replacement)"
+        N1["before_model = log"] --> N2["before_model = metrics"]
+        N2 --> N3["Only metrics runs"]
+    end
+
+    style A3 fill:#10b981,color:#fff
+    style N3 fill:#e94560,color:#fff
+```
+
+```python
+# Both handlers run before every LLM call
+agent = (
+    Agent("service", "gemini-2.5-flash")
+    .instruct("Handle requests.")
+    .before_model(log_fn)       # Handler 1
+    .before_model(metrics_fn)   # Handler 2 (stacks, doesn't replace)
+    .build()
+)
+```
+
+---
+
 ## Conditional Callbacks
 
-Conditional variants append only when the condition is true:
+Append only when a condition is true:
 
 ```python
 debug_mode = True
@@ -55,52 +119,29 @@ agent = (
 )
 ```
 
-This is useful for toggling callbacks based on environment variables or feature flags without cluttering your code with if-else blocks.
+---
 
-## Guards
+## Guards as Callbacks
 
-`.guard(fn)` is a shorthand that registers the function as both `before_model` and `after_model`:
-
-```python
-def safety_check(ctx, data):
-    # Runs both before and after model calls
-    if "dangerous" in str(data):
-        raise ValueError("Safety violation detected")
-
-agent = (
-    Agent("service", "gemini-2.5-flash")
-    .instruct("Handle requests.")
-    .guard(safety_check)
-    .build()
-)
-```
-
-## Middleware Stacks with `.apply()`
-
-For agents that need multiple layers of callbacks, use Presets to bundle them into reusable middleware stacks:
+`.guard(fn)` registers a function as an `after_model` callback for output validation. The G module provides structured, composable guards:
 
 ```python
-from adk_fluent.presets import Preset
+from adk_fluent import Agent, G
 
-# Define reusable middleware
-logging_preset = Preset(before_model=log_fn, after_model=log_response_fn)
-security_preset = Preset(before_model=safety_check, after_model=audit_fn)
+# G module: declarative, composable
+agent = Agent("safe").guard(G.pii("redact") | G.length(max=500))
 
-# Apply multiple presets
-agent = (
-    Agent("service", "gemini-2.5-flash")
-    .instruct("Handle requests.")
-    .use(logging_preset)
-    .use(security_preset)
-    .build()
-)
+# Raw callback: custom validation logic
+agent = Agent("custom").after_model(my_validation_fn)
 ```
 
-See [Presets](presets.md) for more on reusable configuration bundles.
+:::{seealso}
+{doc}`guards` for the full G module reference.
+:::
+
+---
 
 ## Error Handling
-
-Error callbacks handle failures in LLM calls and tool executions:
 
 ```python
 def handle_model_error(ctx, error):
@@ -109,18 +150,18 @@ def handle_model_error(ctx, error):
 
 def handle_tool_error(ctx, error):
     print(f"Tool error: {error}")
-    # Optionally return a fallback result
 
 agent = (
     Agent("service", "gemini-2.5-flash")
-    .instruct("Handle requests.")
     .on_model_error(handle_model_error)
     .on_tool_error(handle_tool_error)
     .build()
 )
 ```
 
-## Complete Example
+---
+
+## Full Example: Production Agent
 
 ```python
 from adk_fluent import Agent
@@ -141,109 +182,146 @@ def audit_tool(ctx, result):
 agent = (
     Agent("production_agent", "gemini-2.5-flash")
     .instruct("You are a production service.")
-    .before_model(log_request)
-    .after_model(log_response)
-    .after_model(validate_output)
-    .before_tool(lambda ctx, tool: print(f"Calling tool: {tool}"))
-    .after_tool(audit_tool)
+    .before_model(log_request)              # Logging
+    .after_model(log_response)              # Logging
+    .after_model(validate_output)           # Validation (stacks with above)
+    .before_tool(lambda ctx, tool: print(f"Calling: {tool}"))
+    .after_tool(audit_tool)                 # Audit
     .on_model_error(lambda ctx, e: print(f"Error: {e}"))
     .build()
 )
 ```
 
-## Callbacks vs. Middleware
+---
 
-Callbacks are **per-agent** -- they apply only to the agent they're attached to. For cross-cutting concerns that should apply to the entire execution (all agents in a pipeline), use **middleware** instead.
+## Callbacks vs Middleware vs Guards
 
-| Aspect       | Callbacks           | Middleware                      |
-| ------------ | ------------------- | ------------------------------- |
-| Scope        | Single agent        | Entire execution                |
-| Attachment   | `.before_model(fn)` | `.middleware(mw)`               |
-| Multiplicity | Multiple per agent  | Stack of middleware on pipeline |
-| Compilation  | Stored on IR node   | Stored in ExecutionConfig       |
+```mermaid
+flowchart TD
+    Q1{"What's the scope?"} -->|"One agent"| Q2{"What kind of logic?"}
+    Q1 -->|"All agents in pipeline"| MW["Middleware<br/>M.retry() | M.log()"]
+    Q2 -->|"Validate/block output"| GUARD["Guard<br/>G.pii() | G.length()"]
+    Q2 -->|"Log, transform, audit"| CB["Callback<br/>.before_model(fn)"]
 
-```python
-# Per-agent callback: only affects this agent
-agent = Agent("a").before_model(log_fn)
-
-# App-global middleware: affects all agents in the pipeline
-from adk_fluent import RetryMiddleware
-pipeline = (Agent("a") >> Agent("b")).middleware(RetryMiddleware())
+    style MW fill:#64748b,color:#fff
+    style GUARD fill:#f472b6,color:#fff
+    style CB fill:#0ea5e9,color:#fff
 ```
 
-See [Middleware](middleware.md) for the full middleware guide.
+| Aspect | Callbacks | Middleware | Guards |
+|--------|-----------|-----------|--------|
+| **Scope** | Single agent | Entire pipeline | Single agent (output) |
+| **Attachment** | `.before_model(fn)` | `.middleware(mw)` | `.guard(G.xxx())` |
+| **Purpose** | Logging, transforms, audit | Retry, cost tracking, circuit breaker | Safety, validation, PII |
+| **Multiplicity** | Multiple per agent | Stack on pipeline | Chain with `\|` |
+| **Compilation** | Stored on IR node | Stored in ExecutionConfig | Compiles to `after_model` |
 
-## Interplay with Other Modules
+---
 
-### Callbacks + Guards
+## Reusable Callback Bundles with Presets
 
-`.guard(fn)` registers a function as both `before_model` and `after_model`. The G module provides structured guards that compile to callbacks automatically. Prefer G for safety/validation, raw callbacks for custom logic:
-
-```python
-from adk_fluent import Agent, G
-
-# G module: declarative, composable, phase-aware
-agent = Agent("safe").guard(G.pii("redact") | G.length(max=500))
-
-# Raw callback: custom logic that doesn't fit G
-agent = Agent("custom").before_model(my_custom_check)
-```
-
-See [Guards](guards.md).
-
-### Callbacks + Presets
-
-Bundle callbacks into reusable Presets to avoid repetition across agents:
+Bundle callbacks into reusable Presets to avoid repetition:
 
 ```python
 from adk_fluent.presets import Preset
 
 observability = Preset(before_model=log_fn, after_model=metrics_fn)
-agent_a = Agent("a").use(observability)
-agent_b = Agent("b").use(observability)
+security = Preset(before_model=safety_check, after_model=audit_fn)
+
+# Apply to multiple agents
+agent_a = Agent("a").use(observability).use(security)
+agent_b = Agent("b").use(observability).use(security)
 ```
 
-See [Presets](presets.md).
+:::{seealso}
+{doc}`presets` for reusable configuration bundles.
+:::
 
-### Callbacks + Context Engineering
+---
 
-Callbacks run *after* context engineering. The LLM request that `before_model` receives already has context filtering applied:
+## Callback Timing With Context Engineering
+
+Callbacks run **after** context engineering. The LLM request that `before_model` receives already has context filtering applied:
+
+```mermaid
+graph LR
+    CTX["Context Engineering<br/>C.window(3)"] --> BM["before_model(fn)<br/>Sees filtered request"]
+    BM --> LLM["LLM Call"]
+    LLM --> AM["after_model(fn)<br/>Sees raw response"]
+
+    style CTX fill:#0ea5e9,color:#fff
+    style BM fill:#f59e0b,color:#fff
+    style AM fill:#f59e0b,color:#fff
+```
+
+---
+
+## Common Mistakes
+
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} Using callbacks for pipeline-wide concerns
+:class-card: sd-border-danger
 
 ```python
-from adk_fluent import Agent, C
-
-agent = (
-    Agent("classifier")
-    .context(C.none())            # Context filtered first
-    .before_model(log_request)    # Sees the filtered request
-)
+# ❌ Repeating the same callback on every agent
+agent_a = Agent("a").before_model(log_fn)
+agent_b = Agent("b").before_model(log_fn)
+agent_c = Agent("c").before_model(log_fn)
 ```
-
-See [Context Engineering](context-engineering.md).
-
-### Callbacks + Testing
-
-Test that callbacks are attached correctly by inspecting the IR:
 
 ```python
-ir = agent.to_ir()
-assert ir.before_model_callbacks  # Callbacks preserved in IR
+# ✅ Use middleware for pipeline-wide concerns
+pipeline = (Agent("a") >> Agent("b") >> Agent("c")).middleware(M.log())
+```
+:::
+
+:::{grid-item-card} Side effects in callbacks
+:class-card: sd-border-danger
+
+```python
+# ❌ Heavy side effects make testing hard
+def before_model(ctx, req):
+    db.insert(req)                 # DB write in callback
+    external_api.notify(req)       # API call in callback
 ```
 
-See [Testing](testing.md).
+```python
+# ✅ Keep callbacks light: log, validate, transform
+def before_model(ctx, req):
+    logger.info(f"Request: {req}")  # Log only
+```
+:::
+::::
+
+---
+
+## Interplay With Other Concepts
+
+| Combines With | To Achieve | Example |
+|--------------|-----------|---------|
+| [Guards](guards.md) | Structured output validation | `.guard(G.pii() \| G.length(max=500))` |
+| [Middleware](middleware.md) | Pipeline-wide concerns | `.middleware(M.retry() \| M.log())` |
+| [Presets](presets.md) | Reusable callback bundles | `.use(observability_preset)` |
+| [Context Engineering](context-engineering.md) | Context runs before callbacks | `.context(C.none()).before_model(fn)` |
+| [Testing](testing.md) | Verify callbacks in IR | `assert ir.before_model_callbacks` |
+
+---
 
 ## Best Practices
 
-1. **Use callbacks for agent-specific behavior.** Logging one agent's requests? Callback. Logging all agents? Middleware
-2. **Use additive semantics intentionally.** Multiple `.before_model()` calls accumulate. If you want to replace, build a new agent
-3. **Use `.guard()` for safety, not `.before_model()`.** Guards are semantically clearer and compose with the G module
-4. **Use Presets for shared callbacks.** Don't repeat the same `.before_model().after_model()` chain on 10 agents
-5. **Keep callbacks pure.** Side effects (DB writes, API calls) in callbacks make testing hard. Log, validate, or transform -- don't orchestrate
+1. **Callbacks for per-agent behavior.** Logging one agent? Callback. Logging all? Middleware.
+2. **Use additive semantics intentionally.** Multiple `.before_model()` calls stack.
+3. **Use `.guard()` for safety.** Guards are semantically clearer than raw `after_model` callbacks.
+4. **Use Presets for shared callbacks.** Don't repeat `.before_model().after_model()` on 10 agents.
+5. **Keep callbacks pure.** Log, validate, or transform --- don't orchestrate.
+
+---
 
 :::{seealso}
-- [Middleware](middleware.md) -- pipeline-wide cross-cutting concerns
-- [Presets](presets.md) -- reusable callback bundles
-- [Guards](guards.md) -- structured safety with the G module
-- [Testing](testing.md) -- verifying callbacks are attached correctly
-- [Best Practices](best-practices.md) -- the "Callbacks vs. Middleware" decision tree
+- {doc}`middleware` --- pipeline-wide cross-cutting concerns
+- {doc}`presets` --- reusable callback bundles
+- {doc}`guards` --- structured safety with the G module
+- {doc}`testing` --- verifying callbacks are attached correctly
 :::

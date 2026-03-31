@@ -1,5 +1,13 @@
 # A2UI -- Agent-to-UI Composition
 
+:::{admonition} At a Glance
+:class: tip
+
+- UI module provides declarative UI composition for agents
+- Compose with `|` (row) and `>>` (column), attach with `.ui(spec)`
+- Three modes: declarative (you define), LLM-guided (agent decides), hybrid
+:::
+
 The **UI namespace** lets agents define rich, interactive user interfaces declaratively. Agents emit [A2UI protocol](https://github.com/google/A2UI) JSON that clients render as native widgets -- no frontend code required from the agent developer.
 
 :::{admonition} Install

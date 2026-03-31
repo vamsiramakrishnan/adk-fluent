@@ -1,5 +1,13 @@
 # Best Practices & Anti-Patterns
 
+:::{admonition} At a Glance
+:class: tip
+
+- Opinionated guidance: when to use what, anti-patterns to avoid, recommended patterns
+- Rule of thumb: deterministic routing over LLM routing, `.inject()` for infra deps, S transforms for data
+- Each practice is a do/don't pair with code examples
+:::
+
 Nine rules that separate production agents from prototypes. Each rule is shown as an anti-pattern / best-practice pair — copy the green tab, avoid the red one.
 
 :::{admonition} The one-sentence version

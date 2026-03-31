@@ -1,5 +1,13 @@
 # Framework Comparison
 
+:::{admonition} At a Glance
+:class: tip
+
+- adk-fluent vs LangGraph vs CrewAI vs native ADK --- feature matrix and pattern comparison
+- adk-fluent produces native ADK objects; other frameworks have their own runtimes
+- Key differentiator: expression operators + auto-generated builders + zero runtime overhead
+:::
+
 adk-fluent produces **native ADK objects** — not a wrapper, not a new runtime, not a competing framework. Every `.build()` returns the same `LlmAgent`, `SequentialAgent`, or `ParallelAgent` you'd create by hand. The difference is how you get there.
 
 :::{admonition} The key differentiator

@@ -1,5 +1,13 @@
 # Prompt Builder
 
+:::{admonition} At a Glance
+:class: tip
+
+- P module composes structured prompts from sections: role, task, constraint, format, example
+- Compose with `+` (union) or `|` (pipe). Section order is enforced automatically
+- Pass to `.instruct(P.role() + P.task())` --- compiles to ADK instruction string or callable
+:::
+
 The `P` namespace provides structured, composable prompt construction using frozen dataclasses and algebraic operators.
 
 ## Basic Usage
@@ -314,3 +322,26 @@ agent = (
 ```
 
 Each `.prepend()` call accumulates. The function receives the callback context and returns a string that gets prepended as content before the LLM processes the request.
+
+## Section Ordering
+
+The P module enforces a canonical section order regardless of composition order:
+
+```{mermaid}
+graph LR
+    A[role] --> B[context]
+    B --> C[task]
+    C --> D[constraint]
+    D --> E[format]
+    E --> F[example]
+    F --> G["custom sections"]
+```
+
+Sections are always emitted in this order when compiled. Use `P.reorder()` to override.
+
+:::{seealso}
+- [Agent Builder](agents.md) --- `.instruct()` method that accepts P compositions
+- [Context Engineering](context-engineering.md) --- C module for controlling conversation history
+- [State Transforms](state-transforms.md) --- S module for data flow between agents
+- [Expression Operators](expressions.md) --- using P compositions within pipelines
+:::

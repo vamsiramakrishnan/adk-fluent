@@ -1,27 +1,75 @@
 # Context Engineering
 
-`C` factories return frozen descriptors that control what conversation history and state each agent sees. They compose with `+` (union) and `|` (pipe) and are passed to `Agent.context()`.
+:::{admonition} At a Glance
+:class: tip
+
+- `C` factories control what conversation history and state each agent sees
+- Solves three problems: token budgets, irrelevant history, leaked reasoning
+- Compose with `+` (union) or `|` (pipe), pass to `.context()`
+:::
+
+## The Problem
+
+In multi-agent pipelines, every agent shares the same conversation session. Without context engineering, each agent sees **everything** --- other agents' reasoning, tool-call noise, and irrelevant turns.
+
+```mermaid
+graph LR
+    subgraph "Without Context Engineering"
+        A["Agent A output<br/>Agent B output<br/>Tool calls<br/>User messages<br/>ALL of it"] --> C_ALL["Every agent<br/>sees everything"]
+    end
+
+    subgraph "With Context Engineering"
+        U["User msgs"] --> CLASSIFIER
+        INTENT["state['intent']"] --> HANDLER
+        W3["Last 3 turns"] --> HANDLER
+        CLASSIFIER["Classifier<br/>C.none()"]
+        HANDLER["Handler<br/>C.from_state() + C.window(3)"]
+    end
+
+    style C_ALL fill:#e94560,color:#fff
+    style CLASSIFIER fill:#10b981,color:#fff
+    style HANDLER fill:#0ea5e9,color:#fff
+```
+
+| Problem | Impact | C Module Solution |
+|---------|--------|------------------|
+| **Token budgets** | Full history burns tokens on irrelevant content | `C.window(n)`, `C.budget(max_tokens=)` |
+| **Irrelevant history** | Classifier doesn't need writer's drafts | `C.none()`, `C.from_state()` |
+| **Leaked reasoning** | Agents anchor on prior conclusions | `C.user_only()`, `C.from_agents()` |
+
+---
+
+## What the LLM Actually Sees
+
+```mermaid
+graph TB
+    subgraph "LLM Input Assembly"
+        SYS["System Instruction<br/>(from .instruct() / P module)"]
+        CTX_BLOCK["Context Block<br/>(from C transform)"]
+        HIST["Conversation History<br/>(filtered by include_contents)"]
+    end
+
+    SYS --> LLM["LLM Request"]
+    CTX_BLOCK --> LLM
+    HIST --> LLM
+
+    style SYS fill:#e94560,color:#fff
+    style CTX_BLOCK fill:#0ea5e9,color:#fff
+    style HIST fill:#10b981,color:#fff
+    style LLM fill:#a78bfa,color:#fff
+```
+
+When `.reads("topic")` or `.context(C.from_state("topic"))` is set, the LLM receives:
 
 ```
-Context Visibility Matrix:
+[Your instruction text]
 
-                  ┌──────────────┬────────────────────────────────┐
-                  │  What the    │         C primitive             │
-                  │  LLM sees    │                                 │
-  ┌───────────────┼──────────────┼────────────────────────────────┤
-  │ C.default()   │ everything   │ all history + all state        │
-  │ C.none()      │ instruction  │ no history, no state injection │
-  │ C.user_only() │ user msgs    │ user turns only, no agents     │
-  │ C.window(n)   │ last N turns │ recent history slice           │
-  │ C.from_state()│ state keys   │ named keys injected            │
-  │ C.from_agents │ user + named │ selective agent outputs        │
-  │ C.template()  │ rendered str │ template from state values     │
-  └───────────────┴──────────────┴────────────────────────────────┘
-
-  Composition:
-    C.window(3) + C.from_state("topic")    union: both applied
-    C.window(5) | C.template("{history}")   pipe: output → input
+<conversation_context>
+[topic]: value from state
+</conversation_context>
 ```
+
+---
 
 ## Quick Start
 
@@ -29,230 +77,175 @@ Context Visibility Matrix:
 from adk_fluent import Agent, C
 
 # Suppress all conversation history
-clean_agent = Agent("processor").context(C.none()).instruct("Process input.").build()
+Agent("processor").context(C.none()).instruct("Process input.")
 
 # Only see last 3 turn-pairs + state keys
-focused_agent = (
-    Agent("analyst")
-    .context(C.window(n=3) + C.from_state("topic"))
-    .instruct("Analyze {topic}.")
-    .build()
-)
+Agent("analyst").context(C.window(n=3) + C.from_state("topic")).instruct("Analyze {topic}.")
+
+# Only user messages (no agent/tool noise)
+Agent("reviewer").context(C.user_only()).instruct("Review the request.")
 ```
 
-## The Problem
-
-In multi-agent pipelines, every agent shares the same conversation session. Without context engineering, each agent sees the full history -- including irrelevant turns, other agents' internal reasoning, and tool-call noise. This wastes token budget and degrades output quality.
-
-Context engineering solves three problems:
-
-1. **Token budgets.** LLMs have finite context windows. Passing the full history to every agent burns tokens on content that does not help the current task.
-1. **Irrelevant history.** A classifier agent does not need to see the drafts produced by a writer agent three steps earlier. Passing them in adds noise.
-1. **Leaked reasoning.** When agents see each other's chain-of-thought, they anchor on prior conclusions instead of reasoning independently.
-
-`C` primitives let you declare exactly what each agent should see -- and nothing more.
+---
 
 ## Primitives Reference
 
-| Factory                    | Purpose                             |
-| -------------------------- | ----------------------------------- |
-| `C.none()`                 | Suppress all conversation history   |
-| `C.default()`              | Keep default history (pass-through) |
-| `C.user_only()`            | Include only user messages          |
-| `C.from_state(*keys)`      | Inject state keys into instruction  |
-| `C.from_agents(*names)`    | Include user + named agent outputs  |
-| `C.exclude_agents(*names)` | Exclude named agent outputs         |
-| `C.window(n=)`             | Last N turn-pairs only              |
-| `C.template(str)`          | Render template from state          |
-| `S.capture(key)`           | Capture user message to state       |
-| `C.budget(max_tokens=)`    | Token budget constraint             |
-| `C.priority(tier=)`        | Priority tier for ordering          |
+### Core Primitives
 
-## `C.none()`
+| Factory | LLM Sees | `include_contents` |
+|---------|----------|-------------------|
+| `C.default()` | All history + all state | `"default"` |
+| `C.none()` | Instruction only | `"none"` |
+| `C.user_only()` | User messages only | `"none"` + provider |
+| `C.window(n=)` | Last N turn-pairs | `"none"` + provider |
+| `C.from_state(*keys)` | Named state keys | `"none"` + provider |
+| `C.from_agents(*names)` | User + named agent outputs | `"none"` + provider |
+| `C.exclude_agents(*names)` | Everything except named agents | `"none"` + provider |
+| `C.template(str)` | Rendered template from state | `"none"` + provider |
 
-Suppress all conversation history. The agent sees only its instruction:
+### Filtering & Constraints
 
-```python
-agent = Agent("classifier").context(C.none()).instruct("Classify the input.").build()
+| Factory | Purpose |
+|---------|---------|
+| `C.select(*names)` | Select specific agents |
+| `C.recent(n=)` | Recent messages only |
+| `C.compact()` | Remove redundant messages |
+| `C.dedup()` | Remove duplicate messages |
+| `C.truncate(max_turns=)` | Hard turn limit |
+| `C.budget(max_tokens=)` | Token budget constraint |
+| `C.fresh(max_age=)` | Filter by recency |
+| `C.redact(*patterns)` | Redact sensitive content |
+
+### LLM-Powered
+
+| Factory | Purpose |
+|---------|---------|
+| `C.summarize(scope=)` | LLM-powered summarization |
+| `C.relevant(query_key=)` | Semantic relevance filtering |
+| `C.extract(key=)` | Extract structured data |
+| `C.distill()` | Distill to key points |
+
+### Convenience
+
+| Factory | Purpose |
+|---------|---------|
+| `C.rolling(n=)` | Rolling window with compaction |
+| `C.from_agents_windowed(n=)` | Windowed agent output filtering |
+| `C.user()` | Alias for `C.user_only()` |
+| `C.manus_cascade()` | Manus-style cascading context |
+| `C.notes()` | Attach notes |
+| `C.when(pred, transform)` | Conditional context transform |
+
+---
+
+## `.reads()` vs `.context()` --- When to Use Which
+
+| Method | Effect | Best For |
+|--------|--------|---------|
+| `.reads("topic")` | Suppresses history, injects `state["topic"]` | Stateless utility agents that only need specific state keys |
+| `.context(C.from_state("topic"))` | Same as `.reads()` | When you want to compose with other C transforms |
+| `.context(C.window(3))` | Shows last 3 turns only | Long conversations where recent context matters |
+| `.context(C.none())` | Instruction only, no context | Pure function-like agents |
+| No `.reads()` or `.context()` | Full history (default) | Conversational agents |
+
+```mermaid
+flowchart TD
+    Q1{"Does the agent need<br/>conversation history?"} -->|No| Q2{"Does it need state keys?"}
+    Q1 -->|"Yes, all of it"| DEFAULT[".context(C.default())<br/>or don't call .context()"]
+    Q1 -->|"Yes, but only recent"| WINDOW[".context(C.window(n))"]
+
+    Q2 -->|"Yes"| READS[".reads('key1', 'key2')<br/>or .context(C.from_state('key1'))"]
+    Q2 -->|"No"| NONE[".context(C.none())"]
+
+    style DEFAULT fill:#10b981,color:#fff
+    style WINDOW fill:#0ea5e9,color:#fff
+    style READS fill:#f59e0b,color:#fff
+    style NONE fill:#64748b,color:#fff
 ```
 
-## `C.default()`
+---
 
-Keep the default conversation history. This is the pass-through -- equivalent to not calling `.context()` at all:
+## `.static()` vs `.instruct()` --- Context Caching
 
-```python
-agent = Agent("assistant").context(C.default()).instruct("Help the user.").build()
+```mermaid
+graph LR
+    subgraph "Without .static()"
+        I1["instruction<br/>(system content)<br/>Sent every call"]
+    end
+
+    subgraph "With .static()"
+        S1["static_instruction<br/>(system content, CACHED)"]
+        I2["instruction<br/>(user content, sent fresh)"]
+    end
 ```
 
-## `C.user_only()`
-
-Include only user messages, filtering out all agent and tool responses:
-
-```python
-# The reviewer sees what the user said, not what other agents produced
-agent = Agent("reviewer").context(C.user_only()).instruct("Review the request.").build()
-```
-
-## `C.from_state(*keys)`
-
-Read named keys from session state and inject them as context. Suppresses conversation history by default so the agent works purely from state:
+| Method | Goes To | Cached? | Variable Substitution |
+|--------|---------|---------|----------------------|
+| `.instruct()` alone | System content | No | Yes --- `{key}` replaced |
+| `.static()` | System content | Yes --- context cached | No --- sent as-is |
+| `.instruct()` with `.static()` | User content | No | Yes --- `{key}` replaced |
 
 ```python
-# After a prior agent writes state["topic"] and state["style"]
+# 50-page style guide cached; dynamic instruction sent fresh each turn
 agent = (
-    Agent("writer")
-    .context(C.from_state("topic", "style"))
-    .instruct("Write about {topic} in {style} style.")
-    .build()
+    Agent("editor", "gemini-2.5-flash")
+    .static("Company style guide: [50 pages of text]...")
+    .instruct("Edit this text using the style guide above: {draft}")
 )
 ```
 
-## `C.from_agents(*names)`
+:::{tip}
+Use `.static()` for large, stable prompt sections (style guides, knowledge bases, reference docs). The dynamic `.instruct()` text moves to user content, enabling model-level context caching and reducing per-call token costs.
+:::
 
-Include user messages plus outputs from specific named agents. All other agent outputs are excluded:
-
-```python
-# The editor sees only what the user said and what "writer" produced
-agent = (
-    Agent("editor")
-    .context(C.from_agents("writer"))
-    .instruct("Edit the draft for clarity.")
-    .build()
-)
-```
-
-## `C.exclude_agents(*names)`
-
-Include everything except outputs from the named agents:
-
-```python
-# The summarizer sees the full history but ignores the verbose "researcher" output
-agent = (
-    Agent("summarizer")
-    .context(C.exclude_agents("researcher"))
-    .instruct("Summarize the conversation.")
-    .build()
-)
-```
-
-## `C.window(n=)`
-
-Include only the last N turn-pairs (user message + model response). Useful for long-running conversations where only recent context matters:
-
-```python
-# Only see the last 3 exchanges
-agent = Agent("responder").context(C.window(n=3)).instruct("Continue the conversation.").build()
-```
-
-## `C.template(str)`
-
-Render a template string using state values. Supports `{key}` (required) and `{key?}` (optional, replaced with empty string if missing):
-
-```python
-agent = (
-    Agent("reporter")
-    .context(C.template("Topic: {topic}\nNotes: {notes?}"))
-    .instruct("Write a report from the context above.")
-    .build()
-)
-```
-
-## `S.capture(key)`
-
-Capture the most recent user message into a state key. Used as a pipeline step, not inside `.context()`:
-
-```python
-from adk_fluent import Agent, C, S
-
-pipeline = (
-    S.capture("user_message")
-    >> Agent("handler")
-        .context(C.from_state("user_message"))
-        .instruct("Respond to: {user_message}")
-)
-```
-
-## `C.budget(max_tokens=)`
-
-Declare a token budget constraint on the context. Defaults to 8000 tokens with `truncate_oldest` overflow:
-
-```python
-agent = (
-    Agent("analyst")
-    .context(C.budget(max_tokens=4000))
-    .instruct("Analyze the data.")
-    .build()
-)
-```
-
-## `C.priority(tier=)`
-
-Set a priority tier for context ordering. Lower tier values mean higher priority:
-
-```python
-agent = (
-    Agent("critical")
-    .context(C.priority(tier=1))
-    .instruct("Handle urgent requests.")
-    .build()
-)
-```
+---
 
 ## Composition
 
-Primitives compose with two operators:
+### `+` (union) --- Combine transforms
 
-**`+` (union)** combines transforms. Both are applied to produce the final context:
+Both transforms are applied to produce the final context:
 
 ```python
-# Window + state keys: agent sees last 3 turns AND the topic from state
+# Agent sees last 3 turns AND state["topic"]
 ctx = C.window(n=3) + C.from_state("topic", "style")
-
-agent = Agent("analyst").context(ctx).instruct("Analyze {topic}.").build()
+agent = Agent("analyst").context(ctx).instruct("Analyze {topic}.")
 ```
 
-**`|` (pipe)** feeds the output of one transform into another:
+### `|` (pipe) --- Feed output into next transform
 
 ```python
 # Window output piped through a template
 ctx = C.window(n=5) | C.template("Recent conversation:\n{history}")
-
-agent = Agent("summarizer").context(ctx).instruct("Summarize.").build()
+agent = Agent("summarizer").context(ctx).instruct("Summarize.")
 ```
 
-You can chain multiple unions:
+### Chaining multiple unions
 
 ```python
 ctx = C.window(n=3) + C.from_state("topic") + C.budget(max_tokens=4000)
 ```
 
-## Integration with Agent Builder
+---
 
-Pass any `C` transform to `.context()` on the agent builder. The transform is compiled at `.build()` time into the underlying ADK configuration:
+## Full Example: Multi-Agent Context Flow
 
-```python
-agent = Agent("writer").context(C.from_state("topic")).instruct("Write about {topic}.").build()
-```
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant CAP as S.capture
+    participant CL as Classifier<br/>C.none()
+    participant H as Handler<br/>C.from_state + C.user_only
 
-When `.context()` sets `include_contents="none"`, the agent's conversation history is suppressed and replaced by the context transform's output. The developer instruction is still templated with state variables via `{key}` placeholders.
-
-## Complete Example
-
-A realistic multi-agent pipeline where context engineering keeps each agent focused. Each agent sees only what it needs:
-
-```
-Context flow through a pipeline:
-
-  user msg ──► S.capture("user_message") ──► state["user_message"]
-                                                     │
-                ┌────────────────────────────────────┘
-                ▼
-  classifier ─── C.none() ───────────────── sees: instruction only
-       │                                    writes: state["intent"]
-       ▼
-  handler ────── C.from_state("user_message", "intent")
-              + C.user_only() ───────────── sees: user msg + intent
-                                                 + user history
+    U->>CAP: "I need to book a flight"
+    Note over CAP: state["user_msg"] = "I need to book a flight"
+    CAP->>CL: (pipeline continues)
+    Note over CL: Sees: instruction only<br/>No history, no state injection
+    CL->>CL: Classifies intent
+    Note over CL: state["intent"] = "booking"
+    CL->>H: (pipeline continues)
+    Note over H: Sees: state["user_msg"] + state["intent"]<br/>+ user-only history
+    H->>H: Handles booking request
 ```
 
 ```python
@@ -260,54 +253,128 @@ from adk_fluent import Agent, C, S
 
 pipeline = (
     S.capture("user_message")
-    >> Agent("classifier")
-        .model("gemini-2.5-flash")
+    >> Agent("classifier", "gemini-2.5-flash")
         .instruct("Classify the user's intent.")
-        .context(C.none())  # No history needed
+        .context(C.none())              # No history needed — pure classification
         .writes("intent")
-    >> Agent("handler")
-        .model("gemini-2.5-flash")
-        .instruct("Help the user.")
-        .context(C.from_state("user_message", "intent") + C.user_only())
+    >> Agent("handler", "gemini-2.5-flash")
+        .instruct("Help the user with their {intent} request.")
+        .context(
+            C.from_state("user_message", "intent")  # Structured state
+            + C.user_only()                           # + user conversation context
+        )
 )
 ```
 
-The classifier sees only its instruction -- no history, no prior agent output. The handler sees the original user message and classified intent from state, plus user-only history for conversational continuity. Each agent gets exactly the context it needs.
+The classifier sees only its instruction. The handler sees the original user message and classified intent from state, plus user-only history for conversational continuity.
 
-## What Gets Sent to the LLM
+---
 
-Understanding exactly what the LLM receives helps debug unexpected behavior.
+## Context Budget Planning
 
-### `.reads()` suppresses history
+```mermaid
+graph LR
+    subgraph "Token Budget Allocation"
+        STATIC["Static instruction<br/>(cached, ~0 per-call cost)"]
+        DYNAMIC["Dynamic instruction<br/>(sent every call)"]
+        CONTEXT["Context block<br/>(state keys, history window)"]
+        TOOLS["Tool declarations"]
+        RESPONSE["Response budget"]
+    end
 
-When you use `.reads("topic")`, the agent's `include_contents` is set to `"none"`. This means **no conversation history is sent**. The agent sees only:
+    STATIC -->|"large"| TOTAL["Model Context Window"]
+    DYNAMIC -->|"small"| TOTAL
+    CONTEXT -->|"controlled by C"| TOTAL
+    TOOLS -->|"fixed"| TOTAL
+    RESPONSE -->|"reserved"| TOTAL
 
-1. Its instruction text (with `{template}` variables resolved)
-1. The injected state values as a `<conversation_context>` block
-
-```python
-# This agent sees NO conversation history — only state["topic"]
-Agent("writer").reads("topic").instruct("Write about {topic}.")
+    style STATIC fill:#10b981,color:#fff
+    style CONTEXT fill:#0ea5e9,color:#fff
 ```
 
-### `.context()` controls what history is included
+| Strategy | Method | Token Impact |
+|----------|--------|-------------|
+| Cache large prompts | `.static()` | Near-zero per-call cost |
+| Limit history | `C.window(n=3)` | ~3 turn-pairs |
+| Only state keys | `.reads("k1", "k2")` | Only declared keys |
+| Set hard budget | `C.budget(max_tokens=4000)` | Hard limit |
+| Suppress everything | `C.none()` | Zero context tokens |
 
-Different `C` primitives set different `include_contents` values:
+---
 
-| Primitive             | `include_contents` | What the LLM sees                          |
-| --------------------- | ------------------ | ------------------------------------------ |
-| _(default)_           | `"default"`        | All conversation history                   |
-| `C.none()`            | `"none"`           | Nothing — just the instruction             |
-| `C.user_only()`       | `"none"`           | User messages only (injected via provider) |
-| `C.window(n=3)`       | `"none"`           | Last 3 turns (injected via provider)       |
-| `C.from_state("key")` | `"none"`           | State values (injected via provider)       |
+## Common Mistakes
 
-### Composing preserves the most restrictive setting
+::::{grid} 1
+:gutter: 3
 
-When composing with `+`, the result inherits `include_contents="none"` if **any** component sets it. The combined `instruction_provider` assembles all components.
+:::{grid-item-card} Using `.reads()` when you also need conversation history
+:class-card: sd-border-danger
 
-### Unreferenced state is NOT sent
+```python
+# ❌ .reads() suppresses ALL history
+agent = Agent("helper").reads("topic").instruct("Answer about {topic}.")
+# Agent can't see the user's conversation!
+```
 
-Only state keys explicitly declared in `.reads()` or `{template}` variables are sent to the LLM. All other state keys are invisible to the agent.
+```python
+# ✅ Combine state injection with history window
+agent = Agent("helper").context(
+    C.from_state("topic") + C.window(n=3)
+).instruct("Answer about {topic}.")
+```
+:::
 
-See also: [Data Flow Between Agents](data-flow.md) for the complete picture of all five data-flow concerns.
+:::{grid-item-card} Expecting `C.none()` to still show the user message
+:class-card: sd-border-danger
+
+```python
+# ❌ C.none() means NO context at all — not even the user's message
+Agent("classifier").context(C.none()).instruct("Classify.")
+# Current turn still visible, but no conversation history
+```
+
+```python
+# ✅ If you need the user message, capture it to state first
+S.capture("user_msg") >> Agent("classifier")
+    .context(C.from_state("user_msg"))
+    .instruct("Classify: {user_msg}")
+```
+:::
+
+:::{grid-item-card} Forgetting that `C.from_state()` suppresses history
+:class-card: sd-border-danger
+
+```python
+# ❌ Agent sees state["topic"] but no conversation history
+agent = Agent("helper").context(C.from_state("topic")).instruct("Help.")
+```
+
+```python
+# ✅ Add C.window() or C.user_only() if you need some history
+agent = Agent("helper").context(
+    C.from_state("topic") + C.user_only()
+).instruct("Help with {topic}.")
+```
+:::
+::::
+
+---
+
+## Interplay With Other Concepts
+
+| Combines With | To Achieve | Example |
+|--------------|-----------|---------|
+| [State Transforms](state-transforms.md) | Prepare state keys for injection | `S.rename(old="topic") >> agent.reads("topic")` |
+| [Data Flow](data-flow.md) | Control the "Context" concern | `.reads("k")` = Context concern |
+| [Prompts](prompts.md) | Structured instructions + context | `.instruct(P.role() + P.task()).context(C.window(3))` |
+| [Patterns](patterns.md) | Context isolation in review loops | `review_loop(worker.context(C.none()), ...)` |
+| [Callbacks](callbacks.md) | Dynamic context via `before_model` | `.prepend(fn)` for turn-level injection |
+
+---
+
+:::{seealso}
+- {doc}`data-flow` --- the five orthogonal data flow concerns
+- {doc}`state-transforms` --- S module for preparing state keys
+- {doc}`prompts` --- P module for structured prompt composition
+- {doc}`architecture-and-concepts` --- the three channels of ADK communication
+:::

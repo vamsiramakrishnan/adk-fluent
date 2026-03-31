@@ -1,23 +1,16 @@
 # Builders
 
-Every adk-fluent builder does one thing: it turns a chain of readable method calls into a native ADK object. No subclassing. No boilerplate. No silent misconfiguration.
+:::{admonition} At a Glance
+:class: tip
+
+- Every builder turns fluent method calls into a native ADK object via `.build()`
+- 132 builders across 9 modules, all with IDE autocomplete and typo detection
+- Sub-builders in workflows auto-build --- don't call `.build()` on children
+:::
+
+## Builder vs Native ADK
 
 ::::{tab-set}
-:::{tab-item} Native ADK (22 lines)
-```python
-from google.adk.agents import LlmAgent
-from google.adk.tools import FunctionTool
-
-agent = LlmAgent(
-    name="helper",
-    model="gemini-2.5-flash",
-    instruction="You are a helpful assistant.",
-    description="A general-purpose helper",
-    output_key="response",
-    tools=[FunctionTool(search_fn)],
-)
-```
-:::
 :::{tab-item} adk-fluent (6 lines)
 ```python
 from adk_fluent import Agent
@@ -32,25 +25,67 @@ agent = (
 )
 ```
 :::
+:::{tab-item} Native ADK (10 lines)
+```python
+from google.adk.agents import LlmAgent
+from google.adk.tools import FunctionTool
+
+agent = LlmAgent(
+    name="helper",
+    model="gemini-2.5-flash",
+    instruction="You are a helpful assistant.",
+    description="A general-purpose helper",
+    output_key="response",
+    tools=[FunctionTool(search_fn)],
+)
+```
+:::
 ::::
 
-Both produce the **exact same `LlmAgent`**. The difference: the builder catches typos at definition time, provides IDE autocomplete for every field, and chains naturally.
+Both produce the **exact same `LlmAgent`**. The builder catches typos at definition time, provides IDE autocomplete, and chains naturally.
 
-## Constructor Arguments
+---
 
-Every builder takes a required `name` as the first positional argument. Some builders accept additional optional positional arguments. For example, the `Agent` builder accepts an optional `model` as a second positional argument:
+## Builder Lifecycle
+
+```mermaid
+graph LR
+    I["Instantiate<br/>Agent('name', 'model')"] --> C["Configure<br/>.instruct() .tool() .writes()"]
+    C --> V["Validate (optional)<br/>.validate()"]
+    V --> B["Build<br/>.build()"]
+    B --> ADK["Native ADK Object<br/>LlmAgent / SequentialAgent / ..."]
+
+    style I fill:#e94560,color:#fff
+    style C fill:#0ea5e9,color:#fff
+    style V fill:#f59e0b,color:#fff
+    style B fill:#10b981,color:#fff
+    style ADK fill:#a78bfa,color:#fff
+```
+
+## Quick Start
 
 ```python
 from adk_fluent import Agent
 
+# Minimal agent --- name + model + instruction
+agent = Agent("helper", "gemini-2.5-flash").instruct("You are helpful.").build()
+```
+
+---
+
+## Constructor Arguments
+
+Every builder takes a required `name` as the first positional argument. `Agent` accepts an optional `model` as second:
+
+```python
 # These are equivalent:
 agent = Agent("helper", "gemini-2.5-flash")
 agent = Agent("helper").model("gemini-2.5-flash")
 ```
 
-## Method Chaining (Fluent API)
+## Method Chaining
 
-Every configuration method returns `self`, enabling fluent chaining:
+Every configuration method returns `self`. Methods can be called in **any order**:
 
 ```python
 agent = (
@@ -63,36 +98,80 @@ agent = (
 )
 ```
 
-Methods can be called in any order. Each call records a configuration value that is applied when `.build()` is invoked.
-
-## `.build()` -- Terminal Method
+## `.build()` --- Compile to ADK
 
 `.build()` resolves the builder into a native ADK object:
 
-```python
-from adk_fluent import Agent, Pipeline, FanOut, Loop
+| Builder | ADK Object | Example |
+|---------|-----------|---------|
+| `Agent` | `LlmAgent` | `Agent("x").build()` |
+| `Pipeline` | `SequentialAgent` | `Pipeline("p").step(...).build()` |
+| `FanOut` | `ParallelAgent` | `FanOut("f").branch(...).build()` |
+| `Loop` | `LoopAgent` | `Loop("l").step(...).build()` |
 
-agent = Agent("x", "gemini-2.5-flash").instruct("Help.").build()       # -> LlmAgent
-pipe  = Pipeline("p").step(agent).build()                               # -> SequentialAgent
-fan   = FanOut("f").branch(agent).build()                               # -> ParallelAgent
-loop  = Loop("l").step(agent).max_iterations(3).build()                 # -> LoopAgent
+:::{warning}
+Sub-builders passed to workflow builders are **auto-built**. Do NOT call `.build()` on individual steps:
+```python
+# ❌ Wrong
+Pipeline("p").step(Agent("a").build()).build()
+
+# ✅ Correct
+Pipeline("p").step(Agent("a").instruct("...")).build()
+```
+:::
+
+---
+
+## Builder Taxonomy
+
+```mermaid
+graph TB
+    subgraph "Core Builders"
+        AGENT["Agent<br/>LlmAgent"]
+        PIPE["Pipeline<br/>SequentialAgent"]
+        FAN["FanOut<br/>ParallelAgent"]
+        LOOP["Loop<br/>LoopAgent"]
+    end
+
+    subgraph "Config Builders (38)"
+        CFG["AgentConfig, RunConfig,<br/>ToolConfig, RetryConfig, ..."]
+    end
+
+    subgraph "Tool Builders (51)"
+        TOOL["FunctionTool, AgentTool,<br/>MCPToolset, GoogleSearchTool, ..."]
+    end
+
+    subgraph "Service Builders (15)"
+        SVC["InMemorySessionService,<br/>DatabaseSessionService, ..."]
+    end
+
+    subgraph "Other (28)"
+        OTHER["Executors (5), Planners (3),<br/>Plugins (12), Runtime (3)"]
+    end
+
+    style AGENT fill:#e94560,color:#fff
+    style PIPE fill:#0ea5e9,color:#fff
+    style FAN fill:#0ea5e9,color:#fff
+    style LOOP fill:#0ea5e9,color:#fff
 ```
 
-Sub-builders passed to workflow builders (Pipeline, FanOut, Loop) are automatically built at `.build()` time, so you do not need to call `.build()` on each step individually.
+| Module | Count | Key Builders |
+|--------|-------|-------------|
+| **agent** | 2 | `Agent`, `BaseAgent` |
+| **workflow** | 3 | `Pipeline`, `FanOut`, `Loop` |
+| **tool** | 51 | `FunctionTool`, `AgentTool`, `MCPToolset`, `GoogleSearchTool`, ... |
+| **config** | 38 | `AgentConfig`, `RunConfig`, `ToolConfig`, `RetryConfig`, ... |
+| **service** | 15 | `InMemorySessionService`, `DatabaseSessionService`, ... |
+| **plugin** | 12 | `LoggingPlugin`, `DebugLoggingPlugin`, ... |
+| **executor** | 5 | `BuiltInCodeExecutor`, `VertexAiCodeExecutor`, ... |
+| **planner** | 3 | `BuiltInPlanner`, `PlanReActPlanner`, ... |
+| **runtime** | 3 | `App`, `InMemoryRunner`, `Runner` |
 
-## `__getattr__` Forwarding
-
-Any ADK field that does not have an explicit builder method can still be set through dynamic attribute forwarding:
-
-```python
-agent = Agent("x").generate_content_config(my_config)  # Works via forwarding
-```
-
-The builder inspects the underlying ADK class and forwards the value to the matching field. This means every ADK field is accessible, even if adk-fluent does not define a dedicated method for it.
+---
 
 ## Typo Detection
 
-Misspelled method names raise `AttributeError` with the closest match suggestion:
+Misspelled method names raise `AttributeError` with the closest match:
 
 ```python
 agent = Agent("demo")
@@ -101,132 +180,103 @@ agent.instuction("oops")
 #    Did you mean: 'instruction'?
 ```
 
-Typos are caught at builder definition time, not at runtime, making it easy to spot mistakes early.
+## `__getattr__` Forwarding
 
-## `.explain()` -- Introspection
-
-`.explain()` returns a multi-line summary of the builder's current state:
+Any ADK field without an explicit builder method can still be set through dynamic forwarding:
 
 ```python
-print(Agent("demo").model("gemini-2.5-flash").instruct("Help.").explain())
+agent = Agent("x").generate_content_config(my_config)  # Works via forwarding
+```
+
+---
+
+## Introspection Methods
+
+| Method | Purpose | Returns |
+|--------|---------|---------|
+| `.explain()` | Full builder state summary | Multi-line string |
+| `.validate()` | Early error detection (chainable) | `self` |
+| `.data_flow()` | Five-concern snapshot | Formatted string |
+| `.llm_anatomy()` | What the LLM will see | Formatted string |
+| `.inspect()` | Plain-text state | String |
+| `.diagnose()` | Structured IR diagnosis | Dict |
+| `.doctor()` | Formatted diagnostic report | String |
+| `.to_ir()` | IR tree node | `AgentNode` / `SequenceNode` / ... |
+| `.to_mermaid()` | Mermaid diagram | String |
+
+### `.explain()` Example
+
+```python
+print(Agent("demo", "gemini-2.5-flash").instruct("Help.").writes("response").explain())
 # Agent: demo
-#   Config fields: model, instruction
+#   model: gemini-2.5-flash
+#   instruction: Help.
+#   writes: response
 ```
 
-This is useful for debugging complex builders to verify what configuration has been applied.
+---
 
-## `.validate()` -- Early Error Detection
+## Cloning and Variants
 
-`.validate()` tries to call `.build()` internally and raises a `ValueError` with a clear message if the configuration is invalid. It returns `self` so it can be chained:
+### `.clone(new_name)` --- Deep Copy
 
 ```python
-agent = (
-    Agent("demo")
-    .model("gemini-2.5-flash")
-    .instruct("Help.")
-    .validate()  # Raises ValueError if config is broken
-    .build()
-)
+base = Agent("base", "gemini-2.5-flash").instruct("Be helpful.")
+
+math_agent = base.clone("math").instruct("Solve math.")   # Independent copy
+code_agent = base.clone("code").instruct("Write code.")    # Independent copy
 ```
 
-## `.clone()` and `.with_()` -- Variants
-
-### `.clone(new_name)`
-
-Creates an independent deep copy of the builder with a new name:
+### `.with_(**overrides)` --- Immutable Variant
 
 ```python
-base = Agent("base").model("gemini-2.5-flash").instruct("Be helpful.")
-
-math_agent = base.clone("math").instruct("Solve math.")
-code_agent = base.clone("code").instruct("Write code.")
-```
-
-The cloned builders are fully independent; modifying one does not affect the other or the original.
-
-### `.with_(**overrides)`
-
-Creates an immutable variant. The original builder is not modified:
-
-```python
-base = Agent("base").model("gemini-2.5-flash").instruct("Be helpful.")
-
+base = Agent("base", "gemini-2.5-flash").instruct("Be helpful.")
 creative = base.with_(name="creative", model="gemini-2.5-pro")
 # base is unchanged
 ```
 
-## Serialization
+---
 
-Builders can be serialized to and from dictionaries and YAML:
+## Serialization
 
 ```python
 # Serialize
 data = agent.to_dict()
-yaml_str = agent.to_yaml()
+yaml_str = agent.to_yaml()   # requires adk-fluent[yaml]
 
 # Reconstruct
 agent = Agent.from_dict(data)
 agent = Agent.from_yaml(yaml_str)
 ```
 
-## IR Compilation
+---
 
-Every builder can produce an Intermediate Representation (IR) -- a frozen dataclass tree that decouples the builder from ADK:
+## Dependency Injection
 
-```python
-from adk_fluent import Agent
-
-# Inspect the IR tree
-ir = Agent("helper").model("gemini-2.5-flash").instruct("Help.").to_ir()
-print(ir)  # AgentNode(name='helper', model='gemini-2.5-flash', ...)
-```
-
-### `.to_ir()`
-
-Returns a frozen dataclass IR node. Agent builders return `AgentNode`, pipelines return `SequenceNode`, etc.:
-
-| Builder    | IR Node        |
-| ---------- | -------------- |
-| `Agent`    | `AgentNode`    |
-| `Pipeline` | `SequenceNode` |
-| `FanOut`   | `ParallelNode` |
-| `Loop`     | `LoopNode`     |
-
-### `.to_app(config=None)`
-
-Compiles through IR → ADKBackend → native ADK `App`. An alternative to `.build()` that goes through the full compilation pipeline:
+`.inject()` registers resources injected into tool functions at call time. Injected parameters are **hidden from the LLM schema**:
 
 ```python
-from adk_fluent import Agent, ExecutionConfig
-
-app = Agent("helper").instruct("Help.").to_app(
-    config=ExecutionConfig(app_name="my_app", resumable=True)
+agent = (
+    Agent("lookup")
+    .tool(search_db)       # search_db(query: str, db: Database) -> str
+    .inject(db=my_database)
 )
+# LLM sees: search_db(query: str) -> str
+# At call time: db=my_database injected automatically
 ```
 
-### `.to_mermaid()`
+:::{tip}
+Use `.inject()` for infrastructure dependencies (DB clients, API keys, config objects). Never expose these in the LLM tool schema.
+:::
 
-Generates a Mermaid graph diagram from the builder's IR tree:
-
-```python
-pipeline = Agent("a") >> Agent("b") >> Agent("c")
-print(pipeline.to_mermaid())
-# graph TD
-#     n1[["a_then_b_then_c (sequence)"]]
-#     n2["a"]
-#     n3["b"]
-#     n4["c"]
-#     n2 --> n3
-#     n3 --> n4
-```
+---
 
 ## Data Contracts
 
-`.produces()` and `.consumes()` declare the Pydantic schemas an agent writes to and reads from state:
+`.produces()` and `.consumes()` declare schemas for build-time validation:
 
 ```python
 from pydantic import BaseModel
-from adk_fluent import Agent
 
 class Intent(BaseModel):
     category: str
@@ -235,95 +285,12 @@ class Intent(BaseModel):
 classifier = Agent("classifier").produces(Intent)
 resolver = Agent("resolver").consumes(Intent)
 
-pipeline = classifier >> resolver
+pipeline = classifier >> resolver  # Contract checker verifies compatibility
 ```
 
-The contract annotations are stored on the IR nodes and can be verified with `check_contracts()`. See [Testing](testing.md) for details.
-
-## Dependency Injection
-
-`.inject()` registers resources that are injected into tool functions at call time. Injected parameters are hidden from the LLM schema:
-
-```python
-from adk_fluent import Agent
-
-agent = (
-    Agent("lookup")
-    .tool(search_db)  # search_db(query: str, db: Database) -> str
-    .inject(db=my_database)
-)
-# LLM sees: search_db(query: str) -> str
-# At call time: db=my_database is injected automatically
-```
-
-## Middleware
-
-`.middleware()` attaches app-global middleware. Unlike callbacks (which are per-agent), middleware applies to the entire execution:
-
-```python
-from adk_fluent import Agent, RetryMiddleware
-
-pipeline = (
-    Agent("a") >> Agent("b")
-).middleware(RetryMiddleware(max_iterations=3))
-
-app = pipeline.to_app()  # Middleware compiled into App plugins
-```
-
-See [Middleware](middleware.md) for the full middleware guide.
-
-## Escape Hatches
-
-When the fluent API doesn't expose an ADK feature you need, two escape hatches let you reach the underlying objects directly.
-
-### `.with_raw_config(**kwargs)` -- Declarative
-
-Sets arbitrary attributes on the built ADK object. This is the recommended approach for simple field overrides:
-
-```python
-agent = (
-    Agent("helper", "gemini-2.5-flash")
-    .instruct("You are helpful.")
-    .with_raw_config(
-        disallow_transfer_to_parent=True,
-        include_contents="none",
-    )
-    .build()
-)
-```
-
-If a field name doesn't exist on the ADK object, a warning is raised at build time with suggestions -- the same typo protection as the rest of the builder API.
-
-### `.native(fn)` -- Programmatic
-
-Registers a post-build hook that receives the raw ADK object for direct manipulation:
-
-```python
-def customize(adk_agent):
-    if len(adk_agent.sub_agents) > 3:
-        adk_agent.disallow_transfer_to_peers = True
-
-agent = (
-    Agent("router", "gemini-2.5-flash")
-    .instruct("Route requests.")
-    .sub_agent(a).sub_agent(b).sub_agent(c).sub_agent(d)
-    .native(customize)
-    .build()
-)
-```
-
-Multiple `.native()` calls chain in order. Each hook receives the same object after the previous hook has run.
-
-### When to use which
-
-| Approach | Best for |
-| --- | --- |
-| `.with_raw_config()` | Setting one or more known fields to fixed values |
-| `.native(fn)` | Conditional logic, complex mutations, or inspecting the built object |
+---
 
 ## Workflow Builders
-
-All workflow builders (Pipeline, FanOut, Loop) accept both built ADK agents and fluent builders as arguments. Builders are auto-built at `.build()` time.
 
 ### Pipeline (Sequential)
 
@@ -333,16 +300,11 @@ from adk_fluent import Pipeline, Agent
 pipeline = (
     Pipeline("data_processing")
     .step(Agent("extractor", "gemini-2.5-flash").instruct("Extract entities.").writes("entities"))
-    .step(Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}.").tool(lookup_db))
-    .step(Agent("formatter", "gemini-2.5-flash").instruct("Format output.").context(C.none()))
+    .step(Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}."))
+    .step(Agent("formatter", "gemini-2.5-flash").instruct("Format output."))
     .build()
 )
 ```
-
-| Method         | Description                                                        |
-| -------------- | ------------------------------------------------------------------ |
-| `.step(agent)` | Append an agent as the next step. Lazy -- built at `.build()` time |
-| `.build()`     | Resolve into a native ADK `SequentialAgent`                        |
 
 ### FanOut (Parallel)
 
@@ -351,16 +313,11 @@ from adk_fluent import FanOut, Agent
 
 fanout = (
     FanOut("research")
-    .branch(Agent("web", "gemini-2.5-flash").instruct("Search the web.").writes("web_results"))
-    .branch(Agent("papers", "gemini-2.5-pro").instruct("Search academic papers.").writes("paper_results"))
+    .branch(Agent("web", "gemini-2.5-flash").instruct("Search web.").writes("web_results"))
+    .branch(Agent("papers", "gemini-2.5-pro").instruct("Search papers.").writes("paper_results"))
     .build()
 )
 ```
-
-| Method           | Description                                                   |
-| ---------------- | ------------------------------------------------------------- |
-| `.branch(agent)` | Add a parallel branch agent. Lazy -- built at `.build()` time |
-| `.build()`       | Resolve into a native ADK `ParallelAgent`                     |
 
 ### Loop
 
@@ -377,53 +334,130 @@ loop = (
 )
 ```
 
-| Method               | Description                                            |
-| -------------------- | ------------------------------------------------------ |
-| `.step(agent)`       | Append a step agent. Lazy -- built at `.build()` time  |
-| `.max_iterations(n)` | Set maximum loop iterations                            |
-| `.until(pred)`       | Set exit predicate. Exits when `pred(state)` is truthy |
-| `.build()`           | Resolve into a native ADK `LoopAgent`                  |
+### Workflow Builder Methods
+
+| Builder | Key Methods | ADK Type |
+|---------|-----------|----------|
+| **Pipeline** | `.step(agent)` | `SequentialAgent` |
+| **FanOut** | `.branch(agent)` | `ParallelAgent` |
+| **Loop** | `.step(agent)`, `.max_iterations(n)`, `.until(pred)` | `LoopAgent` |
+
+---
+
+## Escape Hatches
+
+When the fluent API doesn't expose an ADK feature:
+
+### `.with_raw_config(**kwargs)` --- Declarative
+
+```python
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("Help.")
+    .with_raw_config(disallow_transfer_to_parent=True)
+    .build()
+)
+```
+
+### `.native(fn)` --- Programmatic
+
+```python
+def customize(adk_agent):
+    if len(adk_agent.sub_agents) > 3:
+        adk_agent.disallow_transfer_to_peers = True
+
+agent = Agent("router").native(customize).build()
+```
+
+| Approach | Best For |
+|----------|---------|
+| `.with_raw_config()` | Setting known fields to fixed values |
+| `.native(fn)` | Conditional logic, complex mutations |
+
+---
 
 ## Combining Builder and Operator Styles
 
-The builder and operator styles mix freely. Use builders for complex individual steps and operators for composition:
+Builders and operators mix freely:
 
 ```python
-from adk_fluent import Agent, Pipeline, FanOut, S, until, Prompt
+from adk_fluent import Agent, FanOut, S, until
 
-# Define reusable agents with full builder configuration
+# Complex agents with full builder configuration
 researcher = (
     Agent("researcher", "gemini-2.5-flash")
-    .instruct(Prompt().role("You are a research analyst.").task("Find relevant information."))
+    .instruct("Find relevant information.")
     .tool(search_tool)
-    .before_model(log_fn)
     .writes("findings")
 )
 
-writer = (
-    Agent("writer", "gemini-2.5-pro")
-    .instruct("Write a report about {findings}.")
-    .static("Company style guide: use formal tone, cite sources...")
-    .writes("draft")
-)
+writer = Agent("writer", "gemini-2.5-pro").instruct("Write about {findings}.").writes("draft")
+reviewer = Agent("reviewer", "gemini-2.5-flash").instruct("Score 1-10.").writes("score")
 
-reviewer = (
-    Agent("reviewer", "gemini-2.5-flash")
-    .instruct("Score the draft 1-10 for quality.")
-    .writes("quality_score")
-)
-
-# Compose with operators — each sub-expression is reusable
-research_phase = (
-    FanOut("gather")
-    .branch(researcher.clone("web").tool(web_search))
-    .branch(researcher.clone("papers").tool(paper_search))
-)
-
+# Compose with operators
 pipeline = (
-    research_phase
+    (researcher.clone("web").tool(web_search) | researcher.clone("papers").tool(paper_search))
     >> S.merge("web", "papers", into="findings")
     >> writer
-    >> (reviewer >> writer) * until(lambda s: int(s.get("quality_score", 0)) >= 8, max=3)
+    >> (reviewer >> writer) * until(lambda s: int(s.get("score", 0)) >= 8, max=3)
 )
 ```
+
+---
+
+## Common Mistakes
+
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} Confusing `.instruct()` with `.describe()`
+:class-card: sd-border-danger
+
+```python
+# ❌ .describe() is metadata for routing, NOT sent to the LLM
+agent = Agent("helper").describe("You are a helpful assistant.")
+```
+
+```python
+# ✅ .instruct() sets the system prompt (what the LLM sees)
+agent = Agent("helper").instruct("You are a helpful assistant.")
+# .describe() is for transfer routing metadata
+agent = Agent("helper").instruct("Help users.").describe("General-purpose helper")
+```
+:::
+
+:::{grid-item-card} Missing `.build()` when using outside a workflow
+:class-card: sd-border-danger
+
+```python
+# ❌ Passing a builder where ADK expects an agent
+runner.run(Agent("helper").instruct("Help."))  # Error!
+```
+
+```python
+# ✅ Call .build() to get the native ADK object
+runner.run(Agent("helper").instruct("Help.").build())
+```
+:::
+::::
+
+---
+
+## Interplay With Other Concepts
+
+| Combines With | To Achieve | Example |
+|--------------|-----------|---------|
+| [Expression Language](expression-language.md) | Compose into workflows | `Agent("a") >> Agent("b")` |
+| [Data Flow](data-flow.md) | Explicit I/O contracts | `.writes("k")`, `.reads("k")` |
+| [Presets](presets.md) | Reuse configuration bundles | `.use(production_preset)` |
+| [Callbacks](callbacks.md) | Lifecycle hooks | `.before_model(fn)` |
+| [Middleware](middleware.md) | Cross-cutting concerns | `.middleware(M.retry())` |
+
+---
+
+:::{seealso}
+- {doc}`expression-language` --- compose builders with operators
+- {doc}`data-flow` --- the five data flow concerns
+- {doc}`presets` --- reusable configuration bundles
+- {doc}`../generated/api/index` --- full API reference for all 132 builders
+:::

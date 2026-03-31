@@ -1,5 +1,28 @@
 # Middleware
 
+:::{admonition} At a Glance
+:class: tip
+
+- Middleware provides **pipeline-wide** cross-cutting behavior (retry, logging, cost tracking)
+- Compose with `|`: `M.retry(3) | M.log() | M.cost()`
+- Use middleware for infrastructure; use callbacks for per-agent behavior
+:::
+
+```mermaid
+graph LR
+    subgraph "Middleware Stack (onion model)"
+        direction LR
+        R["M.retry()"] --> L["M.log()"] --> C["M.cost()"]
+        C --> AGENT["Agent Execution"]
+        AGENT --> C2["M.cost()"] --> L2["M.log()"] --> R2["M.retry()"]
+    end
+
+    style R fill:#e94560,color:#fff
+    style L fill:#0ea5e9,color:#fff
+    style C fill:#10b981,color:#fff
+    style AGENT fill:#a78bfa,color:#fff
+```
+
 Middleware provides app-global cross-cutting behavior. Unlike [callbacks](callbacks.md) which are per-agent, middleware applies to the entire execution across all agents. Unlike [presets](presets.md) which share config across agents, middleware operates at the *pipeline* level.
 
 ## When to Use Middleware vs. Callbacks vs. Presets vs. Guards
@@ -255,6 +278,41 @@ See [Testing](testing.md).
 3. **Use `M.scope()` for agent-specific middleware.** Not all agents need the same middleware -- scope expensive operations (caching, circuit breaker) to agents that benefit
 4. **Use `M.when()` for environment-specific behavior.** Don't branch in your pipeline code -- let middleware handle it
 5. **Middleware is for infrastructure, not business logic.** Retry, logging, tracing, caching -- these are middleware concerns. Routing, classification, data transformation -- these are agent/function concerns
+
+## Common Mistakes
+
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} Adding retry logic to individual agents
+:class-card: sd-border-danger
+
+```python
+# ❌ Repeating retry on every agent
+agent_a = Agent("a").on_model_error(retry_fn)
+agent_b = Agent("b").on_model_error(retry_fn)
+```
+
+```python
+# ✅ Use middleware once for the pipeline
+pipeline = (Agent("a") >> Agent("b")).middleware(M.retry(3))
+```
+:::
+
+:::{grid-item-card} Wrong middleware order
+:class-card: sd-border-danger
+
+```python
+# ❌ Logging inside retry — retried calls not logged correctly
+stack = M.log() | M.retry(3)
+```
+
+```python
+# ✅ Retry outermost — wraps everything including logging
+stack = M.retry(3) | M.log()
+```
+:::
+::::
 
 ## Backend Awareness
 

@@ -1,5 +1,13 @@
 # One-Shot Execution
 
+:::{admonition} At a Glance
+:class: tip
+
+- `.ask()` / `.ask_async()` for one-shot execution, `.stream()` for streaming, `.session()` for multi-turn
+- Sync methods (`.ask`, `.map`) raise RuntimeError inside async event loops --- use async variants in Jupyter/FastAPI
+- `.mock(responses)` replaces LLM with canned responses for testing
+:::
+
 adk-fluent provides execution helpers that eliminate Runner and Session boilerplate. These methods let you go from builder to result in a single call.
 
 :::{admonition} Execution backend awareness

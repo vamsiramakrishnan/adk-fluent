@@ -1,5 +1,13 @@
 # Memory
 
+:::{admonition} At a Glance
+:class: tip
+
+- `.memory()` attaches memory tools for persistent state across sessions
+- Three modes: preload (inject at start), tool-based (agent decides), auto-save (save after execution)
+- Use for agents that need to remember previous conversations
+:::
+
 `.memory()` adds ADK memory tools to an agent for long-term recall across sessions. Without memory, each session starts fresh -- the agent has no knowledge of past interactions. With memory, the agent can retrieve relevant past conversations automatically.
 
 ## When to Use Memory

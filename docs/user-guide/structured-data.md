@@ -1,5 +1,13 @@
 # Structured Data
 
+:::{admonition} At a Glance
+:class: tip
+
+- `.returns(Schema)` or `@ Schema` constrains LLM output to structured JSON matching a Pydantic model
+- `.produces()` / `.consumes()` are static contract annotations for build-time validation
+- Use `check_contracts()` to verify data flow between agents at zero cost
+:::
+
 Agents that return free-form text are fine for chat, but production pipelines need predictable data. A classifier must emit a category string that a router can branch on. An extraction step must produce a JSON object that a downstream formatter can render. adk-fluent provides three complementary mechanisms for structured data flow: storing output in session state, enforcing typed output schemas, and declaring input schemas for tool-invoked agents.
 
 ## Storing Output in State: `.writes(key)`

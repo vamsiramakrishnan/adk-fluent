@@ -1,32 +1,62 @@
 # Testing
 
-adk-fluent provides testing utilities for verifying agent pipelines without making LLM calls. Testing agents is fundamentally different from testing regular code -- you're testing *topology*, *data flow*, and *contracts*, not just input/output.
+:::{admonition} At a Glance
+:class: tip
 
-## Why Test Agents?
+- Test agents without LLM calls using contract checks, IR assertions, and mock backends
+- Testing pyramid: contracts (free) → topology (free) → mocks (free) → smoke (LLM) → eval (LLM)
+- `check_contracts()` catches the most common bugs at zero cost
+:::
 
-Without testing, you only discover broken pipelines in production:
+## Testing Pyramid
 
-- A `.writes("intent")` typo becomes `.writes("intnt")` and the downstream agent reads `None`
-- A context strategy change (`C.none()` removed) causes a classifier to hallucinate based on conversation history
-- A new agent added to a pipeline doesn't satisfy the next step's data contract
+```mermaid
+graph TB
+    subgraph "No LLM Calls (fast, free)"
+        L1["Contracts<br/>check_contracts()"]
+        L2["Topology<br/>.to_ir() + assertions"]
+        L3["Behavior<br/>AgentHarness + mock_backend"]
+    end
 
-adk-fluent's testing tools catch these at build time, not runtime.
+    subgraph "LLM Calls (slow, costs tokens)"
+        L4["Smoke Tests<br/>.test()"]
+        L5["Evaluation<br/>.eval() / EvalSuite"]
+    end
 
-## Testing Layers
+    L1 -->|"catches"| L1_ERR["Missing .writes(), broken data flow"]
+    L2 -->|"catches"| L2_ERR["Wrong wiring, missing agents"]
+    L3 -->|"catches"| L3_ERR["Bad state propagation, wrong responses"]
+    L4 -->|"catches"| L4_ERR["LLM misunderstanding, prompt issues"]
+    L5 -->|"catches"| L5_ERR["Quality regression, consistency"]
 
-| Layer | Tool | What it catches | LLM calls? |
-|---|---|---|---|
-| **Contracts** | `check_contracts()` | Data flow mismatches between agents | No |
-| **Topology** | `.to_ir()` + assertions | Missing agents, wrong wiring | No |
-| **Behavior** | `AgentHarness` + `mock_backend` | Wrong responses, missing state | No |
-| **Smoke** | `.test()` | Basic end-to-end correctness | Yes |
-| **Evaluation** | `.eval()` / `EvalSuite` | Quality, consistency, regression | Yes |
+    style L1 fill:#10b981,color:#fff
+    style L2 fill:#0ea5e9,color:#fff
+    style L3 fill:#f59e0b,color:#fff
+    style L4 fill:#a78bfa,color:#fff
+    style L5 fill:#e94560,color:#fff
+```
 
-Start from the top and work down. Each layer catches cheaper errors before you burn API tokens.
+Start from the top. Each layer catches cheaper errors before you burn API tokens.
 
-## Contract Verification
+---
 
-`check_contracts()` is the cheapest test you can write. It inspects the IR tree -- no execution, no API calls -- and verifies that sequential agents satisfy each other's data contracts:
+## Testing Methods at a Glance
+
+| Method | LLM? | Speed | What It Tests |
+|--------|------|-------|--------------|
+| `check_contracts(ir)` | No | Instant | Data flow between agents |
+| `.to_ir()` + assertions | No | Instant | Pipeline topology and wiring |
+| `AgentHarness` + `mock_backend` | No | Fast | Behavior with canned responses |
+| `.test(prompt, contains=)` | Yes | Slow | Basic end-to-end correctness |
+| `.mock(responses)` | No | Fast | Replace LLM with canned responses |
+| `.eval(prompt, expect=)` | Yes | Slow | Quality scoring |
+| `.eval_suite()` | Yes | Slow | Multi-case quality assessment |
+
+---
+
+## Layer 1: Contract Verification
+
+`check_contracts()` inspects the IR tree --- no execution, no API calls --- and verifies that agents satisfy each other's data contracts:
 
 ```python
 from pydantic import BaseModel
@@ -37,73 +67,57 @@ class Intent(BaseModel):
     category: str
     confidence: float
 
-# Valid: classifier produces what resolver consumes
+# ✅ Valid: classifier produces what resolver consumes
 pipeline = Agent("classifier").produces(Intent) >> Agent("resolver").consumes(Intent)
 issues = check_contracts(pipeline.to_ir())
-assert issues == []  # All good
+assert issues == []
 
-# Invalid: resolver consumes Intent but nothing produces it
+# ❌ Invalid: resolver consumes Intent but nothing produces it
 bad_pipeline = Agent("a") >> Agent("resolver").consumes(Intent)
 issues = check_contracts(bad_pipeline.to_ir())
-# ["Agent 'resolver' consumes key 'category' but no prior step produces it",
-#  "Agent 'resolver' consumes key 'confidence' but no prior step produces it"]
+# ["Agent 'resolver' consumes key 'category' but no prior step produces it", ...]
 ```
 
-Contract verification is static -- it inspects the IR tree without executing anything.
-
-:::{tip} Best Practice
-Add contract checks to every pipeline test. They cost nothing and catch the most common production bugs -- renamed state keys and missing data flow.
+:::{tip}
+Add contract checks to **every** pipeline test. They cost nothing and catch the most common production bugs: renamed state keys and missing data flow.
 :::
 
-## Mock Backend
+---
 
-`mock_backend()` creates a backend that returns canned responses, letting you test pipeline behavior deterministically:
+## Layer 2: Topology Assertions
 
-```python
-from adk_fluent import Agent
-from adk_fluent.testing import mock_backend
-
-mb = mock_backend({
-    "classifier": {"intent": "billing"},      # dict -> state_delta
-    "resolver": "Ticket #1234 created.",       # str -> content
-})
-
-ir = (Agent("classifier") >> Agent("resolver")).to_ir()
-compiled = mb.compile(ir)
-events = await mb.run(compiled, "My bill is wrong")
-
-# Events contain the canned responses
-assert events[0].state_delta == {"intent": "billing"}
-assert events[1].content == "Ticket #1234 created."
-```
-
-### Response Types
-
-| Mock value | Behavior | Use case |
-|---|---|---|
-| `str` | Agent returns this text as content | Simple response assertions |
-| `dict` | Agent writes these keys to state | Data flow testing |
-| `callable` | Called with `(prompt, state)`, returns `str` or `dict` | Dynamic/conditional responses |
-
-## AgentHarness
-
-`AgentHarness` wraps a builder and mock backend for ergonomic testing:
+Verify your pipeline has the right shape by inspecting the IR tree:
 
 ```python
-from adk_fluent import Agent
-from adk_fluent.testing import AgentHarness, mock_backend
+def test_topology():
+    ir = build_my_pipeline().to_ir()
+    agent_names = [node.name for node in ir.walk()]
+    assert "classifier" in agent_names
+    assert "resolver" in agent_names
 
-harness = AgentHarness(
-    Agent("helper").instruct("Help."),
-    backend=mock_backend({"helper": "I can help!"})
-)
-
-response = await harness.send("Hi")
-assert response.final_text == "I can help!"
-assert not response.errors
+def test_classifier_context_isolation():
+    """Verify classifier doesn't see conversation history."""
+    ir = build_my_pipeline().to_ir()
+    classifier_node = next(n for n in ir.walk() if n.name == "classifier")
+    assert classifier_node.include_contents == "none"
 ```
 
-### Testing Multi-Agent Pipelines
+---
+
+## Layer 3: Mock Backend
+
+`mock_backend()` creates a backend that returns canned responses for deterministic testing:
+
+```mermaid
+graph LR
+    INPUT["Test input"] --> HARNESS["AgentHarness"]
+    HARNESS --> MOCK["mock_backend<br/>classifier → {intent: 'billing'}<br/>resolver → 'Resolved.'"]
+    MOCK --> ASSERT["Assertions<br/>state, text, errors"]
+
+    style HARNESS fill:#0ea5e9,color:#fff
+    style MOCK fill:#f59e0b,color:#fff
+    style ASSERT fill:#10b981,color:#fff
+```
 
 ```python
 from adk_fluent import Agent, C
@@ -117,18 +131,61 @@ pipeline = (
 harness = AgentHarness(
     pipeline,
     backend=mock_backend({
-        "classifier": {"intent": "billing"},
-        "resolver": "Your billing issue has been resolved.",
+        "classifier": {"intent": "billing"},          # dict → state delta
+        "resolver": "Your billing issue is resolved.", # str → content
     })
 )
 
 response = await harness.send("My bill is wrong")
-assert response.final_text == "Your billing issue has been resolved."
+assert response.final_text == "Your billing issue is resolved."
+assert response.state.get("intent") == "billing"
 ```
 
-## pytest Integration
+### Mock Response Types
 
-Use these tools in standard pytest tests:
+| Mock Value | Behavior | Use Case |
+|-----------|----------|----------|
+| `str` | Agent returns this text as content | Simple response assertions |
+| `dict` | Agent writes these keys to state | Data flow testing |
+| `callable` | Called with `(prompt, state)`, returns `str` or `dict` | Dynamic/conditional responses |
+
+---
+
+## Layer 4: Smoke Tests
+
+`.test()` runs a real LLM call and checks the response:
+
+```python
+agent = Agent("helper", "gemini-2.5-flash").instruct("Help with math.")
+
+# Inline smoke test (sync, blocking)
+agent.test("What is 2+2?", contains="4")
+```
+
+---
+
+## Layer 5: Evaluation
+
+`.eval()` and `EvalSuite` for quality assessment:
+
+```python
+# Single evaluation
+agent.eval("Summarize quantum physics", expect="mentions superposition")
+
+# Full evaluation suite
+suite = agent.eval_suite()
+suite.add(E.case("What is 2+2?", expect="4"))
+suite.add(E.case("Capital of France?", expect="Paris"))
+report = suite.run()
+```
+
+:::{seealso}
+{doc}`evaluation` for the full E module reference.
+:::
+
+---
+
+## pytest Integration
 
 ```python
 import pytest
@@ -137,7 +194,7 @@ from adk_fluent.testing import check_contracts, mock_backend, AgentHarness
 
 
 def test_contracts_satisfied():
-    """Contract checks are cheap -- run on every pipeline."""
+    """Contract checks are cheap --- run on every pipeline."""
     pipeline = build_my_pipeline()
     issues = check_contracts(pipeline.to_ir())
     assert not issues, f"Contract violations: {issues}"
@@ -152,14 +209,14 @@ def test_topology():
 
 
 @pytest.mark.asyncio
-async def test_pipeline_response():
+async def test_pipeline_behavior():
     """Behavior test with mock backend."""
     harness = AgentHarness(
         build_my_pipeline(),
-        backend=mock_backend({"step1": "data", "step2": "result"})
+        backend=mock_backend({"classifier": {"intent": "billing"}, "resolver": "Resolved."})
     )
     response = await harness.send("test input")
-    assert "result" in response.final_text
+    assert "Resolved" in response.final_text
 
 
 @pytest.mark.asyncio
@@ -169,110 +226,111 @@ async def test_state_propagation():
         build_my_pipeline(),
         backend=mock_backend({
             "classifier": {"intent": "billing"},
-            "resolver": "Resolved.",
+            "resolver": "Done.",
         })
     )
     response = await harness.send("test")
     assert response.state.get("intent") == "billing"
 ```
 
-### Test Organization
+### Recommended Test Organization
 
 ```
 tests/
-    test_contracts.py       # Contract checks for all pipelines (fast, no API)
-    test_topology.py        # IR shape assertions (fast, no API)
+    test_contracts.py       # Contract checks (instant, no API)
+    test_topology.py        # IR shape assertions (instant, no API)
     test_behavior.py        # Mock backend tests (fast, no API)
-    test_smoke.py           # .test() with real LLM (slow, requires API key)
-    test_eval.py            # .eval() quality checks (slow, requires API key)
+    test_smoke.py           # .test() with real LLM (slow, API key required)
+    test_eval.py            # .eval() quality checks (slow, API key required)
 ```
 
-## Interplay with Other Modules
+---
 
-### Testing + Contracts (`.produces()` / `.consumes()`)
+## Common Mistakes
 
-Contract annotations power `check_contracts()`. Without them, you're relying on runtime failures:
+::::{grid} 1
+:gutter: 3
+
+:::{grid-item-card} Calling real LLMs in CI
+:class-card: sd-border-danger
 
 ```python
-from pydantic import BaseModel
-from adk_fluent import Agent
-from adk_fluent.testing import check_contracts
+# ❌ Flaky, slow, costs money
+def test_agent():
+    result = agent.ask("test")  # Real LLM call in CI!
+    assert "hello" in result
+```
 
-class AnalysisResult(BaseModel):
-    summary: str
-    confidence: float
+```python
+# ✅ Mock everything in CI
+async def test_agent():
+    harness = AgentHarness(agent, backend=mock_backend({"helper": "hello"}))
+    result = await harness.send("test")
+    assert "hello" in result.final_text
+```
+:::
 
-# Annotate your agents with contracts
-pipeline = (
-    Agent("analyzer").produces(AnalysisResult).writes("analysis")
-    >> Agent("writer").consumes(AnalysisResult)
-)
+:::{grid-item-card} Testing only the final response
+:class-card: sd-border-danger
 
-# check_contracts() uses the annotations to verify data flow
+```python
+# ❌ Doesn't verify data flow --- only checks the end result
+assert response.final_text == "Success"
+```
+
+```python
+# ✅ Also verify intermediate state propagation
+assert response.state.get("intent") == "billing"    # State flows correctly
+assert response.state.get("resolved") == True         # Intermediate step ran
+assert response.final_text == "Success"               # Final output correct
+```
+:::
+
+:::{grid-item-card} Skipping contract checks
+:class-card: sd-border-danger
+
+```python
+# ❌ No contract validation --- bugs found at runtime
+pipeline = Agent("a").writes("intnt") >> Agent("b").reads("intent")
+# "intnt" typo silently causes b to read None
+```
+
+```python
+# ✅ Contract checks catch typos at build time
 issues = check_contracts(pipeline.to_ir())
-assert not issues
+# ["Agent 'b' consumes 'intent' but no prior step produces it"]
 ```
+:::
+::::
 
-See [Structured Data](structured-data.md) for contract details.
+---
 
-### Testing + Context Engineering
+## Interplay With Other Concepts
 
-Context strategy bugs are invisible without testing. A classifier with `C.none()` removed will still "work" but produce worse results because it hallucinates based on conversation history:
+| Combines With | To Achieve | Example |
+|--------------|-----------|---------|
+| [Structured Data](structured-data.md) | Contract annotations for `check_contracts()` | `.produces(Intent).consumes(Intent)` |
+| [Context Engineering](context-engineering.md) | Verify context isolation in IR | `assert node.include_contents == "none"` |
+| [Guards](guards.md) | Verify guards are attached | `assert ir.guard_specs` |
+| [Middleware](middleware.md) | Verify middleware compiled into app | `assert app.plugins` |
+| [Evaluation](evaluation.md) | Quality scoring with E module | `.eval_suite()` |
 
-```python
-def test_classifier_context_isolation():
-    """Verify the classifier doesn't see conversation history."""
-    ir = build_my_pipeline().to_ir()
-    classifier_node = next(n for n in ir.walk() if n.name == "classifier")
-    # The classifier should have context isolation
-    assert classifier_node.include_contents == "none"
-```
-
-See [Context Engineering](context-engineering.md).
-
-### Testing + Guards
-
-Guards compile to callbacks. Test that they're attached:
-
-```python
-from adk_fluent import Agent, G
-
-agent = Agent("safe").instruct("Help.").guard(G.pii("redact") | G.length(max=500))
-ir = agent.to_ir()
-assert ir.guard_specs  # Guards are attached
-```
-
-See [Guards](guards.md).
-
-### Testing + Middleware
-
-Middleware applies at the app level. Test it via `.to_app()`:
-
-```python
-from adk_fluent import Agent
-from adk_fluent._middleware import M
-
-pipeline = (Agent("a") >> Agent("b")).middleware(M.retry(3) | M.log())
-app = pipeline.to_app()
-# Verify middleware is compiled into the app
-assert app.plugins  # Middleware plugin is attached
-```
-
-See [Middleware](middleware.md).
+---
 
 ## Best Practices
 
-1. **Always test contracts first.** `check_contracts()` is free and catches the most common bugs
-2. **Mock everything in CI.** Never call real LLMs in CI -- use `mock_backend()` for deterministic tests
-3. **Test topology, not just behavior.** Assert that agents exist, are wired correctly, and have the right context strategy
-4. **Separate fast and slow tests.** Contract/topology/mock tests run in milliseconds. `.test()` and `.eval()` require API calls -- gate these behind a marker or env var
-5. **Test state propagation explicitly.** Assert that `.writes()` keys appear in downstream state, not just that the final response looks right
+1. **Always test contracts first.** `check_contracts()` is free and catches the most common bugs.
+2. **Mock everything in CI.** Never call real LLMs in CI --- use `mock_backend()`.
+3. **Test topology, not just behavior.** Assert agents exist, are wired correctly, and have the right context strategy.
+4. **Separate fast and slow tests.** Gate `.test()` and `.eval()` behind markers or env vars.
+5. **Test state propagation explicitly.** Assert `.writes()` keys appear in downstream state.
+
+---
 
 :::{seealso}
-- [Structured Data](structured-data.md) -- `.produces()`, `.consumes()`, and contract annotations
-- [Context Engineering](context-engineering.md) -- `C.none()`, `C.from_state()`, and why context isolation matters for testing
-- [Guards](guards.md) -- `G.pii()`, `G.length()`, and safety validation
-- [Middleware](middleware.md) -- `M.retry()`, `M.log()`, and app-level middleware
-- [Evaluation](evaluation.md) -- `E.case()`, `EvalSuite`, and quality assessment
-- [Error Reference](error-reference.md) -- every error with fix-it examples
+- {doc}`structured-data` --- `.produces()`, `.consumes()`, and contract annotations
+- {doc}`context-engineering` --- context isolation and why it matters for testing
+- {doc}`guards` --- safety validation with the G module
+- {doc}`evaluation` --- quality assessment with the E module
+- {doc}`error-reference` --- every error with fix-it examples
 :::

@@ -1,5 +1,13 @@
 # Transfer Control
 
+:::{admonition} At a Glance
+:class: tip
+
+- `.sub_agent()` adds transfer targets (LLM decides routing); `.agent_tool()` wraps as callable tool (parent controls)
+- `.isolate()` is the most predictable pattern --- agent completes its task, then returns to parent
+- Always set `.describe()` on sub-agents to help the coordinator pick the right specialist
+:::
+
 In multi-agent systems, the LLM decides when to hand off a conversation to another agent. Transfer control flags let you constrain which agents are valid transfer targets, shaping how conversations flow through your agent hierarchy.
 
 :::{tip}

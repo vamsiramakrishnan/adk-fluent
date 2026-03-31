@@ -1,5 +1,13 @@
 # Visibility
 
+:::{admonition} At a Glance
+:class: tip
+
+- Control which agents appear in the user-facing topology via `.show()`, `.hide()`, `.transparent()`
+- Hidden agents still execute --- visibility only affects what's reported to the user
+- Use `.hide()` for internal utility agents, `.transparent()` for pass-through coordinators
+:::
+
 In multi-agent pipelines, not every agent's output should be shown to the end-user. A 5-agent pipeline that streams all 5 responses creates a confusing, noisy experience. The visibility system lets you control which agents produce user-facing output and which remain internal.
 
 ## The Real Problem
