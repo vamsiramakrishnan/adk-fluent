@@ -228,7 +228,8 @@ Each method controls exactly one concern. See `data_flow()` for a snapshot.
                                  direct manipulation. Escape hatch for ADK features not
                                  yet exposed by the fluent API.
   .debug(enabled=True)         — debug tracing to stderr
-  .strict()                    — enable strict contract checking
+  .checked()                   — build() raises on contract errors
+  .strict()                    — build() raises on errors AND warnings
   .unchecked()                 — bypass contract checking
   .prepend(fn)                 — prepend dynamic text to the LLM's input via
                                  before_model_callback. fn(ctx) → str is injected before

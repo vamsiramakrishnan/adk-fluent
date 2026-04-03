@@ -262,9 +262,9 @@ class TestRenamedTypes:
 # ---------------------------------------------------------------------------
 
 
-class TestToolsAppend:
-    def test_tools_list_appends(self):
-        """Calling .tools([list]) should extend, not replace."""
+class TestToolsReplace:
+    def test_tools_list_replaces(self):
+        """.tools([list]) replaces — it has 'set' semantics, not append."""
 
         def tool_a(x: str) -> str:
             """Tool A."""
@@ -276,7 +276,9 @@ class TestToolsAppend:
 
         agent = Agent("a").tool(tool_a).tools([tool_b])
         tools = agent._lists.get("tools", [])
-        assert len(tools) >= 2
+        # .tools() replaces: only tool_b remains
+        assert len(tools) == 1
+        assert tools[0] is tool_b
 
     def test_tools_chain_accumulates(self):
         """Multiple .tool() calls should accumulate."""

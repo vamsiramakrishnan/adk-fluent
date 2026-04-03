@@ -462,10 +462,14 @@ class Agent(BuilderBase):
         return _add_tool(self, fn_or_tool, require_confirmation=require_confirmation)
 
     def tools(self, value: Any) -> Self:
-        """Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset."""
+        """Set / replace all tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset.
+
+        Unlike ``.tool()`` which appends, this method **replaces** any
+        previously configured tools.
+        """
         from adk_fluent._helpers import _add_tools
 
-        return _add_tools(self, value)
+        return _add_tools(self, value, replace=True)
 
     def ui(self, spec: Any) -> Self:
         """Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go')))."""

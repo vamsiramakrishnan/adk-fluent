@@ -115,8 +115,11 @@ def _guard_dispatch(builder, value):
     return builder
 
 
-def _add_tools(builder, tools_arg):
+def _add_tools(builder, tools_arg, *, replace: bool = False):
     """Set tools on the builder, handling TComposite, lists, and single items.
+
+    If ``replace`` is True, clears existing tools before adding new ones
+    (used by ``.tools()``). If False, appends (used by ``.tool()``).
 
     If ``tools_arg`` is a ``TComposite``, flattens it and extracts any
     ``_SchemaMarker`` entries to wire ``tool_schema`` on the IR node.
@@ -130,6 +133,8 @@ def _add_tools(builder, tools_arg):
             "Did you mean .middleware(...)? Use .tools() for tool functions/TComposite, "
             ".middleware() for MComposite."
         )
+    if replace:
+        builder._lists["tools"] = []
     if isinstance(tools_arg, TComposite):
         for item in tools_arg.to_tools():
             if isinstance(item, _SchemaMarker):

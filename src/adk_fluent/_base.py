@@ -1892,34 +1892,14 @@ class BuilderBase:
     # ------------------------------------------------------------------
 
     def output(self, schema: type) -> Self:
-        """Constrain LLM responses to a Pydantic model and parse them automatically.
+        """Constrain LLM responses to a Pydantic model. Delegates to ``.returns()``.
 
-        This does two things:
+        The ``@`` operator is shorthand: ``agent @ MyModel``.
 
-        1. **At build time**: sets ADK's ``output_schema``, which forces the
-           LLM to respond *only* with JSON matching this schema. The agent
-           **cannot use tools** when ``output_schema`` is set.
-        2. **At .ask() time**: parses the raw JSON response into an instance
-           of ``schema``, so ``.ask()`` returns a Pydantic model instead of
-           a string.
-
-        The ``@`` operator is shorthand for this method::
-
-            agent @ MyModel   # same as agent.output(MyModel)
-
-        .. note:: **Distinction from similar methods:**
-
-           - ``.output(Model)`` / ``@ Model``: Constrains LLM output format
-             AND parses response. Use when you need typed data back.
-           - ``.output_schema(Model)``: ADK's raw field. Same LLM constraint
-             but no automatic parsing in ``.ask()``.
-           - ``.writes(key)`` / ``.save_as(key)``: Stores the agent's *text*
-             response in a state key. Does NOT affect output format.
-           - ``.produces(Model)``: **Contract-only** annotation for the
-             data-flow checker. No runtime effect whatsoever.
+        See ``.returns()`` for full documentation and distinction from
+        ``.writes()`` and ``.produces()``.
         """
-        self._config["_output_schema"] = schema
-        return self
+        return self.returns(schema)
 
     # ------------------------------------------------------------------
     # Task 10: Retry and Fallback
@@ -2891,8 +2871,22 @@ class BuilderBase:
 
         return _build_llm_anatomy(self)
 
+    def checked(self) -> Self:
+        """Enable checked mode — build() raises ValueError on contract errors.
+
+        Contract errors are suspicious data-flow patterns (missing template
+        vars, output lost between agents, etc.) that MAY cause runtime
+        failures.  In default mode these are logged as warnings.
+        ``.checked()`` promotes them to build-time errors.
+
+        For even stricter checking (errors + warnings), use ``.strict()``.
+        To skip checking entirely, use ``.unchecked()``.
+        """
+        self._config["_check_mode"] = "checked"
+        return self
+
     def strict(self) -> Self:
-        """Enable strict contract checking — build() raises ValueError on contract errors."""
+        """Strictest contract checking — build() raises on errors AND warnings."""
         self._config["_check_mode"] = "strict"
         return self
 
@@ -2911,9 +2905,15 @@ class BuilderBase:
         patterns (e.g., .produces() without .writes(), conflicting schemas).
 
         Modes (controlled by _check_mode config):
-          True (default) — run contracts, log advisory diagnostics
-          "strict"       — raise ValueError on any contract error
-          False          — skip contract checking entirely
+          True (default)    — run contracts, log all issues as warnings
+          "checked"         — raise ValueError on "error" level issues
+          "strict"          — raise ValueError on "error" AND "warning" level issues
+          False             — skip contract checking entirely (.unchecked())
+
+        Most contract issues are suspicious patterns, not guaranteed failures
+        (template vars may come from tools or pre-populated state). The
+        default mode surfaces them as log warnings. Use ``.checked()`` or
+        ``.strict()`` to promote them to build-time errors.
         """
         check_mode = self._config.get("_check_mode", True)
         if check_mode is False:
@@ -2941,18 +2941,24 @@ class BuilderBase:
         if not all_issues:
             return
 
-        errors = [i for i in all_issues if isinstance(i, dict) and i.get("level") in ("error", "warning")]
+        errors = [i for i in all_issues if isinstance(i, dict) and i.get("level") == "error"]
+        warnings = [i for i in all_issues if isinstance(i, dict) and i.get("level") == "warning"]
 
-        if check_mode == "strict" and errors:
-            msg = "\n".join(f"  {i['agent']}: {i['message']}" for i in errors)
-            raise ValueError(f"Contract errors in pipeline:\n{msg}")
+        # Checked / strict modes: promote issues to ValueError
+        if check_mode in ("checked", "strict"):
+            raise_issues = errors[:]
+            if check_mode == "strict":
+                raise_issues.extend(warnings)
+            if raise_issues:
+                msg = "\n".join(f"  [{i.get('agent', '?')}] {i['message']}" for i in raise_issues)
+                raise ValueError(f"Contract errors in {self._config.get('name', '?')}:\n{msg}")
 
-        # Advisory mode: log warnings
-        if errors:
+        # Default mode: log all issues as warnings (never blocks build)
+        if errors or warnings:
             import logging
 
             logger = logging.getLogger("adk_fluent.contracts")
-            for issue in errors:
+            for issue in errors + warnings:
                 logger.warning(
                     "Contract issue [%s] %s: %s",
                     issue.get("level", "?"),

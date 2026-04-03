@@ -200,8 +200,8 @@ class TestTBuilderIntegration:
         for tool in ir.tools:
             assert not isinstance(tool, _SchemaMarker)
 
-    def test_tool_and_tools_combine(self):
-        """T.fn() via .tools() and .tool() via individual add both contribute."""
+    def test_tools_replaces_previous(self):
+        """.tools() replaces previously added tools — it has 'set' semantics."""
         from adk_fluent import Agent
         from adk_fluent._tools import T
 
@@ -211,9 +211,26 @@ class TestTBuilderIntegration:
         def email(to: str) -> str:
             return to
 
+        # .tools() replaces — only email remains
         a = Agent("helper").tool(search).tools(T.fn(email))
         ir = a.to_ir()
-        assert len(ir.tools) >= 2
+        assert len(ir.tools) == 1
+
+    def test_tool_after_tools_appends(self):
+        """.tool() after .tools() appends to the new set."""
+        from adk_fluent import Agent
+        from adk_fluent._tools import T
+
+        def search(query: str) -> str:
+            return query
+
+        def email(to: str) -> str:
+            return to
+
+        # .tools() sets, then .tool() appends — both present
+        a = Agent("helper").tools(T.fn(search)).tool(email)
+        ir = a.to_ir()
+        assert len(ir.tools) == 2
 
 
 class TestTSearch:
