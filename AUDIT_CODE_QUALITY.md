@@ -15,7 +15,7 @@ multiple hands (or codegen passes) without a shared style contract.
 
 **Severity distribution:**
 - **CRITICAL** (contract violations): 2
-- **HIGH** (consistency/duplication): 8  
+- **HIGH** (consistency/duplication): 8
 - **MEDIUM** (aesthetics/idiom): 20+
 - **LOW** (nits): 15+
 

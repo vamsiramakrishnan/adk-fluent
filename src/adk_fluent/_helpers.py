@@ -115,7 +115,7 @@ def _guard_dispatch(builder, value):
     return builder
 
 
-def _add_tools(builder, tools_arg, *, replace: bool = False):
+def _add_tools(builder, tools_arg, *, replace: bool = True):
     """Set tools on the builder, handling TComposite, lists, and single items.
 
     If ``replace`` is True, clears existing tools before adding new ones
