@@ -9,7 +9,6 @@ import pytest
 from adk_fluent import Agent, Skill
 from adk_fluent._harness import SkillSpec, _compile_skills_to_static
 
-
 # ======================================================================
 # SkillSpec parsing
 # ======================================================================
@@ -50,11 +49,11 @@ class TestCompileSkills:
             allowed_tools=[],
         )
         result = _compile_skills_to_static([spec])
-        assert '<skills>' in result
+        assert "<skills>" in result
         assert '<skill name="test-skill">' in result
         assert "Do things well." in result
-        assert '</skill>' in result
-        assert '</skills>' in result
+        assert "</skill>" in result
+        assert "</skills>" in result
 
     def test_multiple_skills(self):
         """Multiple skills compile into ordered XML blocks."""
@@ -111,9 +110,7 @@ class TestSkillOnAgent:
     def test_skill_preserves_instruct(self):
         """Skills go to static_instruction; .instruct() goes to instruction."""
         agent = (
-            Agent("worker", "gemini-2.5-flash")
-            .instruct("Do the task.")
-            .use_skill("examples/skills/research_pipeline/")
+            Agent("worker", "gemini-2.5-flash").instruct("Do the task.").use_skill("examples/skills/research_pipeline/")
         )
         built = agent.build()
         assert "Do the task." in (built.instruction or "")
@@ -134,15 +131,13 @@ class TestSkillOnAgent:
 
     def test_skill_without_instruct(self):
         """Skills work even without .instruct()."""
-        agent = (
-            Agent("helper", "gemini-2.5-flash")
-            .use_skill("examples/skills/research_pipeline/")
-        )
+        agent = Agent("helper", "gemini-2.5-flash").use_skill("examples/skills/research_pipeline/")
         built = agent.build()
         assert "<skills>" in (built.static_instruction or "")
 
     def test_skill_with_tools_and_context(self):
         """Skills compose with tools and context."""
+
         def my_search(query: str) -> str:
             return f"Results: {query}"
 
@@ -205,11 +200,7 @@ class TestSkillOnAgent:
             .instruct("Research.")
             .writes("findings")
         )
-        writer = (
-            Agent("writer", "gemini-2.5-flash")
-            .instruct("Write based on {findings}.")
-            .reads("findings")
-        )
+        writer = Agent("writer", "gemini-2.5-flash").instruct("Write based on {findings}.").reads("findings")
         pipeline = researcher >> writer
         built = pipeline.build()
         assert len(built.sub_agents) == 2
@@ -243,11 +234,7 @@ class TestSkillInterop:
             .instruct("Research deeply.")
             .describe("Deep research expert")
         )
-        coordinator = (
-            Agent("coordinator", "gemini-2.5-pro")
-            .instruct("Use the expert when needed.")
-            .agent_tool(expert)
-        )
+        coordinator = Agent("coordinator", "gemini-2.5-pro").instruct("Use the expert when needed.").agent_tool(expert)
         built = coordinator.build()
         assert len(built.tools) > 0
 

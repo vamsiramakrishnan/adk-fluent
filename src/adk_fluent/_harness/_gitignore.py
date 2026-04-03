@@ -21,18 +21,20 @@ from __future__ import annotations
 
 import fnmatch
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 __all__ = ["GitignoreMatcher", "load_gitignore"]
 
 # Always ignore these regardless of .gitignore content
-_ALWAYS_IGNORED = frozenset({
-    ".git",
-    "__pycache__",
-    ".DS_Store",
-    "Thumbs.db",
-})
+_ALWAYS_IGNORED = frozenset(
+    {
+        ".git",
+        "__pycache__",
+        ".DS_Store",
+        "Thumbs.db",
+    }
+)
 
 
 @dataclass
@@ -97,9 +99,7 @@ class GitignoreMatcher:
                     if fnmatch.fnmatch(part, pattern):
                         return True
             # Also try matching against full path for ** patterns
-            if "**" in pattern and fnmatch.fnmatch(rel_path, pattern):
-                return True
-            return False
+            return "**" in pattern and fnmatch.fnmatch(rel_path, pattern)
 
         # Anchored pattern: match against full path
         # Handle ** as recursive wildcard
@@ -150,12 +150,14 @@ class GitignoreMatcher:
                 line = f"{prefix}/{line}"
                 anchored = True
 
-            self._rules.append(_Rule(
-                pattern=line,
-                negated=negated,
-                dir_only=dir_only,
-                anchored=anchored,
-            ))
+            self._rules.append(
+                _Rule(
+                    pattern=line,
+                    negated=negated,
+                    dir_only=dir_only,
+                    anchored=anchored,
+                )
+            )
 
 
 def load_gitignore(root: str | Path) -> GitignoreMatcher:
@@ -186,10 +188,7 @@ def load_gitignore(root: str | Path) -> GitignoreMatcher:
     max_depth = 5
     for dirpath, dirnames, filenames in os.walk(root):
         # Prune always-ignored directories
-        dirnames[:] = [
-            d for d in dirnames
-            if d not in _ALWAYS_IGNORED and not d.startswith(".")
-        ]
+        dirnames[:] = [d for d in dirnames if d not in _ALWAYS_IGNORED and not d.startswith(".")]
 
         depth = str(dirpath).count(os.sep) - str(root).count(os.sep)
         if depth >= max_depth:

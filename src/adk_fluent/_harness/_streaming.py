@@ -18,11 +18,7 @@ Usage::
 from __future__ import annotations
 
 import asyncio
-import os
-import signal
-import subprocess
 from collections.abc import AsyncIterator, Callable
-from dataclasses import dataclass
 
 from adk_fluent._harness._sandbox import SandboxPolicy
 
@@ -78,7 +74,7 @@ class StreamingBash:
                         proc.stdout.read(4096),
                         timeout=timeout,
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     proc.kill()
                     return None
 
@@ -169,8 +165,6 @@ def make_streaming_bash(
                 )
                 return future.result(timeout=timeout + 5)
         else:
-            return asyncio.run(
-                streamer.run_collected(command, timeout=timeout, on_output=on_output)
-            )
+            return asyncio.run(streamer.run_collected(command, timeout=timeout, on_output=on_output))
 
     return bash

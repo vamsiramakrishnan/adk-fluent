@@ -426,6 +426,88 @@ from .source import Source as Source
 from .source import Inbox as Inbox
 from .stream import StreamRunner as StreamRunner
 from .stream import StreamStats as StreamStats
+from ._harness import H as H
+from ._harness import HarnessConfig as HarnessConfig
+from ._harness import HarnessEvent as HarnessEvent
+from ._harness import TextChunk as TextChunk
+from ._harness import ToolCallStart as ToolCallStart
+from ._harness import ToolCallEnd as ToolCallEnd
+from ._harness import PermissionRequest as PermissionRequest
+from ._harness import PermissionResult as PermissionResult
+from ._harness import TurnComplete as TurnComplete
+from ._harness import GitCheckpoint as GitCheckpoint
+from ._harness import CompressionTriggered as CompressionTriggered
+from ._harness import HookFired as HookFired
+from ._harness import ArtifactSaved as ArtifactSaved
+from ._harness import PermissionPolicy as PermissionPolicy
+from ._harness import ApprovalMemory as ApprovalMemory
+from ._harness import make_permission_callback as make_permission_callback
+from ._harness import SandboxPolicy as SandboxPolicy
+from ._harness import make_read_file as make_read_file
+from ._harness import make_edit_file as make_edit_file
+from ._harness import make_write_file as make_write_file
+from ._harness import make_glob_search as make_glob_search
+from ._harness import make_grep_search as make_grep_search
+from ._harness import make_bash as make_bash
+from ._harness import make_list_dir as make_list_dir
+from ._harness import workspace_tools as workspace_tools
+from ._harness import StreamingBash as StreamingBash
+from ._harness import make_streaming_bash as make_streaming_bash
+from ._harness import GitCheckpointer as GitCheckpointer
+from ._harness import GitignoreMatcher as GitignoreMatcher
+from ._harness import load_gitignore as load_gitignore
+from ._harness import HookRegistry as HookRegistry
+from ._harness import HookSpec as HookSpec
+from ._harness import ArtifactStore as ArtifactStore
+from ._harness import ArtifactRef as ArtifactRef
+from ._harness import ContextCompressor as ContextCompressor
+from ._harness import CompressionStrategy as CompressionStrategy
+from ._harness import EventDispatcher as EventDispatcher
+from ._harness import HarnessRepl as HarnessRepl
+from ._harness import ReplConfig as ReplConfig
+from ._harness import SkillSpec as SkillSpec
+from ._harness import compile_skills_to_static as compile_skills_to_static
+from ._harness._artifacts import ArtifactStore as ArtifactStore
+from ._harness._artifacts import ArtifactRef as ArtifactRef
+from ._harness._compression import ContextCompressor as ContextCompressor
+from ._harness._compression import CompressionStrategy as CompressionStrategy
+from ._harness._config import HarnessConfig as HarnessConfig
+from ._harness._dispatcher import EventDispatcher as EventDispatcher
+from ._harness._events import HarnessEvent as HarnessEvent
+from ._harness._events import TextChunk as TextChunk
+from ._harness._events import ToolCallStart as ToolCallStart
+from ._harness._events import ToolCallEnd as ToolCallEnd
+from ._harness._events import PermissionRequest as PermissionRequest
+from ._harness._events import PermissionResult as PermissionResult
+from ._harness._events import TurnComplete as TurnComplete
+from ._harness._events import GitCheckpoint as GitCheckpoint
+from ._harness._events import CompressionTriggered as CompressionTriggered
+from ._harness._events import HookFired as HookFired
+from ._harness._events import ArtifactSaved as ArtifactSaved
+from ._harness._git import GitCheckpointer as GitCheckpointer
+from ._harness._gitignore import GitignoreMatcher as GitignoreMatcher
+from ._harness._gitignore import load_gitignore as load_gitignore
+from ._harness._hooks import HookRegistry as HookRegistry
+from ._harness._hooks import HookSpec as HookSpec
+from ._harness._namespace import H as H
+from ._harness._permissions import PermissionPolicy as PermissionPolicy
+from ._harness._permissions import ApprovalMemory as ApprovalMemory
+from ._harness._permissions import make_permission_callback as make_permission_callback
+from ._harness._repl import HarnessRepl as HarnessRepl
+from ._harness._repl import ReplConfig as ReplConfig
+from ._harness._sandbox import SandboxPolicy as SandboxPolicy
+from ._harness._skills import SkillSpec as SkillSpec
+from ._harness._skills import compile_skills_to_static as compile_skills_to_static
+from ._harness._streaming import StreamingBash as StreamingBash
+from ._harness._streaming import make_streaming_bash as make_streaming_bash
+from ._harness._tools import make_read_file as make_read_file
+from ._harness._tools import make_edit_file as make_edit_file
+from ._harness._tools import make_write_file as make_write_file
+from ._harness._tools import make_glob_search as make_glob_search
+from ._harness._tools import make_grep_search as make_grep_search
+from ._harness._tools import make_bash as make_bash
+from ._harness._tools import make_list_dir as make_list_dir
+from ._harness._tools import workspace_tools as workspace_tools
 from .backends import Backend as Backend
 from .backends import final_text as final_text
 from .backends import register_backend as register_backend
@@ -866,6 +948,47 @@ __all__ = [
     "SessionHandle",
     "Skill",
     "StreamStats",
+    "H",
+    "HarnessConfig",
+    "HarnessEvent",
+    "TextChunk",
+    "ToolCallStart",
+    "ToolCallEnd",
+    "PermissionRequest",
+    "PermissionResult",
+    "TurnComplete",
+    "GitCheckpoint",
+    "CompressionTriggered",
+    "HookFired",
+    "ArtifactSaved",
+    "PermissionPolicy",
+    "ApprovalMemory",
+    "make_permission_callback",
+    "SandboxPolicy",
+    "make_read_file",
+    "make_edit_file",
+    "make_write_file",
+    "make_glob_search",
+    "make_grep_search",
+    "make_bash",
+    "make_list_dir",
+    "workspace_tools",
+    "StreamingBash",
+    "make_streaming_bash",
+    "GitCheckpointer",
+    "GitignoreMatcher",
+    "load_gitignore",
+    "HookRegistry",
+    "HookSpec",
+    "ArtifactStore",
+    "ArtifactRef",
+    "ContextCompressor",
+    "CompressionStrategy",
+    "EventDispatcher",
+    "HarnessRepl",
+    "ReplConfig",
+    "SkillSpec",
+    "compile_skills_to_static",
     "Backend",
     "final_text",
     "register_backend",
@@ -897,7 +1020,6 @@ __all__ = [
     "ModelProvider",
     "StateStore",
     "ToolRuntime",
-    "ArtifactStore",
     "Message",
     "ToolDef",
     "GenerateConfig",

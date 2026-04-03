@@ -12,14 +12,11 @@ import pytest
 from adk_fluent import Agent, H
 from adk_fluent._harness import (
     HarnessConfig,
-    PermissionPolicy,
     SandboxPolicy,
-    SkillSpec,
     TextChunk,
     ToolCallEnd,
     ToolCallStart,
     TurnComplete,
-    _compile_skills_to_static,
     _make_bash,
     _make_edit_file,
     _make_glob_search,
@@ -28,7 +25,6 @@ from adk_fluent._harness import (
     _make_read_file,
     _make_write_file,
 )
-
 
 # ======================================================================
 # Permission policies
@@ -294,11 +290,7 @@ class TestWorkspaceTools:
 class TestHarnessOnAgent:
     def test_harness_wires_permission_callback(self):
         """Calling .harness() with permissions registers before_tool callback."""
-        agent = (
-            Agent("coder", "gemini-2.5-flash")
-            .instruct("Code things.")
-            .harness(permissions=H.ask_before("bash"))
-        )
+        agent = Agent("coder", "gemini-2.5-flash").instruct("Code things.").harness(permissions=H.ask_before("bash"))
         # Check that callbacks were registered
         assert len(agent._callbacks.get("before_tool_callback", [])) > 0
 
@@ -319,11 +311,7 @@ class TestHarnessOnAgent:
 
     def test_harness_builds_successfully(self):
         """Agent with .harness() builds into a valid ADK agent."""
-        agent = (
-            Agent("coder", "gemini-2.5-flash")
-            .instruct("Code things.")
-            .harness(permissions=H.ask_before("bash"))
-        )
+        agent = Agent("coder", "gemini-2.5-flash").instruct("Code things.").harness(permissions=H.ask_before("bash"))
         built = agent.build()
         assert built.name == "coder"
 

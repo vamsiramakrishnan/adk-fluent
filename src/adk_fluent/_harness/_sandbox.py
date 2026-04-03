@@ -12,8 +12,7 @@ and configurable shell/network access::
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 
 __all__ = ["SandboxPolicy"]
 

@@ -24,6 +24,20 @@ split into focused modules:
 """
 
 # Events
+# Artifacts
+from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
+
+# Compression
+from adk_fluent._harness._compression import (
+    CompressionStrategy,
+    ContextCompressor,
+)
+
+# Config
+from adk_fluent._harness._config import HarnessConfig
+
+# Dispatcher
+from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._events import (
     ArtifactSaved,
     CompressionTriggered,
@@ -38,6 +52,18 @@ from adk_fluent._harness._events import (
     TurnComplete,
 )
 
+# Git
+from adk_fluent._harness._git import GitCheckpointer
+
+# Gitignore
+from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
+
+# Hooks
+from adk_fluent._harness._hooks import HookRegistry, HookSpec
+
+# H namespace
+from adk_fluent._harness._namespace import H
+
 # Permissions
 from adk_fluent._harness._permissions import (
     ApprovalMemory,
@@ -45,8 +71,17 @@ from adk_fluent._harness._permissions import (
     make_permission_callback,
 )
 
+# REPL
+from adk_fluent._harness._repl import HarnessRepl, ReplConfig
+
 # Sandbox
 from adk_fluent._harness._sandbox import SandboxPolicy
+
+# Skills
+from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
+
+# Streaming
+from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 
 # Tools
 from adk_fluent._harness._tools import (
@@ -59,42 +94,6 @@ from adk_fluent._harness._tools import (
     make_write_file,
     workspace_tools,
 )
-
-# Streaming
-from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
-
-# Git
-from adk_fluent._harness._git import GitCheckpointer
-
-# Gitignore
-from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-
-# Hooks
-from adk_fluent._harness._hooks import HookRegistry, HookSpec
-
-# Artifacts
-from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
-
-# Compression
-from adk_fluent._harness._compression import (
-    CompressionStrategy,
-    ContextCompressor,
-)
-
-# Dispatcher
-from adk_fluent._harness._dispatcher import EventDispatcher
-
-# REPL
-from adk_fluent._harness._repl import HarnessRepl, ReplConfig
-
-# Skills
-from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
-
-# Config
-from adk_fluent._harness._config import HarnessConfig
-
-# H namespace
-from adk_fluent._harness._namespace import H
 
 # Backward-compatible aliases for old private names
 _make_read_file = make_read_file

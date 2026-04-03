@@ -17,7 +17,7 @@ Usage::
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 __all__ = ["SkillSpec", "compile_skills_to_static"]

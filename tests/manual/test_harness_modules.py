@@ -14,7 +14,6 @@ Tests cover:
 """
 
 import asyncio
-import json
 import os
 import tempfile
 
@@ -27,22 +26,18 @@ from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._events import (
     CompressionTriggered,
     GitCheckpoint,
-    HarnessEvent,
     HookFired,
     PermissionResult,
     TextChunk,
-    ToolCallEnd,
     ToolCallStart,
-    TurnComplete,
 )
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-from adk_fluent._harness._hooks import HookRegistry, HookSpec
+from adk_fluent._harness._hooks import HookRegistry
 from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash
-
 
 # ======================================================================
 # Gitignore-aware filtering
@@ -122,7 +117,8 @@ class TestGitCheckpointer:
         subprocess.run(["git", "-C", tmp, "add", "."], capture_output=True)
         result = subprocess.run(
             ["git", "-C", tmp, "commit", "-m", "init"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         return result.returncode == 0
 
@@ -328,12 +324,7 @@ class TestHookSystem:
         assert hooks.workspace == "/tmp"
 
     def test_hook_chaining(self):
-        hooks = (
-            H.hooks()
-            .on("a", "echo a")
-            .on("b", "echo b")
-            .on("a", "echo a2")
-        )
+        hooks = H.hooks().on("a", "echo a").on("b", "echo b").on("a", "echo a2")
         assert "a" in hooks.registered_events
         assert "b" in hooks.registered_events
 
@@ -349,7 +340,7 @@ class TestArtifactStore:
             store = ArtifactStore(tmp)
             ref = store.save("output.txt", "hello world")
             assert ref.name == "output.txt"
-            assert ref.size_bytes == len("hello world".encode())
+            assert ref.size_bytes == len(b"hello world")
             content = store.load("output.txt")
             assert content == "hello world"
 

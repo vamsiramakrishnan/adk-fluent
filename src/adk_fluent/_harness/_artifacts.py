@@ -22,11 +22,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 __all__ = ["ArtifactStore", "ArtifactRef"]
 
@@ -151,7 +149,6 @@ class ArtifactStore:
     def _save_bytes(self, name: str, data: bytes, mime_type: str) -> ArtifactRef:
         sha = hashlib.sha256(data).hexdigest()
         # Use content-addressable filename for dedup
-        ext = Path(name).suffix or ".bin"
         storage_name = f"{sha[:16]}_{name}"
         storage_path = self.root / storage_name
 

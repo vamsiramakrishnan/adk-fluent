@@ -117,8 +117,9 @@ def test_permission_gated_harness():
             .tools(H.workspace(project))
             .harness(
                 permissions=(
-                    H.auto_allow("read_file", "glob_search", "grep_search", "list_dir")
-                    .merge(H.ask_before("edit_file", "write_file", "bash"))
+                    H.auto_allow("read_file", "glob_search", "grep_search", "list_dir").merge(
+                        H.ask_before("edit_file", "write_file", "bash")
+                    )
                 ),
                 sandbox=H.workspace_only(project),
             )
@@ -219,10 +220,7 @@ def test_full_harness_pattern():
             .use_skill("examples/skills/code_reviewer/")
             .use_skill("examples/skills/research_pipeline/")
             # Per-task instruction
-            .instruct(
-                "You are an expert coding assistant. "
-                "Use your skills and tools to help the user."
-            )
+            .instruct("You are an expert coding assistant. Use your skills and tools to help the user.")
             # Sandboxed workspace tools
             .tools(H.workspace(project))
             # Context engineering
@@ -230,8 +228,9 @@ def test_full_harness_pattern():
             # Harness configuration
             .harness(
                 permissions=(
-                    H.auto_allow("read_file", "glob_search", "grep_search", "list_dir")
-                    .merge(H.ask_before("edit_file", "write_file", "bash"))
+                    H.auto_allow("read_file", "glob_search", "grep_search", "list_dir").merge(
+                        H.ask_before("edit_file", "write_file", "bash")
+                    )
                 ),
                 sandbox=H.workspace_only(project),
                 auto_compress=100_000,

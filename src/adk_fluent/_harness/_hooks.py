@@ -22,11 +22,10 @@ from __future__ import annotations
 import asyncio
 import os
 import subprocess
-from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
-from adk_fluent._harness._events import HarnessEvent, HookFired
+from adk_fluent._harness._events import HookFired
 
 __all__ = ["HookRegistry", "HookSpec"]
 
@@ -129,12 +128,14 @@ class HookRegistry:
             try:
                 result = await asyncio.wait_for(task, timeout=hook.timeout)
                 results.append(result)
-            except asyncio.TimeoutError:
-                results.append(HookFired(
-                    hook_name=hook.command,
-                    trigger=hook.event,
-                    exit_code=-1,
-                ))
+            except TimeoutError:
+                results.append(
+                    HookFired(
+                        hook_name=hook.command,
+                        trigger=hook.event,
+                        exit_code=-1,
+                    )
+                )
         return results
 
     def _execute_hook(self, hook: HookSpec, context: dict[str, Any]) -> HookFired:
@@ -186,7 +187,7 @@ class HookRegistry:
                 trigger=hook.event,
                 exit_code=proc.returncode or 0,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return HookFired(hook_name=hook.command, trigger=hook.event, exit_code=-1)
         except Exception:
             return HookFired(hook_name=hook.command, trigger=hook.event, exit_code=-2)

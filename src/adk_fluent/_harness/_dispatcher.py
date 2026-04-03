@@ -22,7 +22,6 @@ Consumers can subscribe to specific event kinds::
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import Any
 
 from adk_fluent._harness._events import (
@@ -81,19 +80,17 @@ class EventDispatcher:
         Args:
             event: The event to dispatch.
         """
+        import contextlib
+
         # Kind-specific subscribers
         for handler in self._subscribers.get(event.kind, []):
-            try:
+            with contextlib.suppress(Exception):
                 handler(event)
-            except Exception:
-                pass  # Don't let subscriber errors crash the harness
 
         # Global subscribers
         for handler in self._global_subscribers:
-            try:
+            with contextlib.suppress(Exception):
                 handler(event)
-            except Exception:
-                pass
 
     def translate(self, adk_event: Any) -> list[HarnessEvent]:
         """Translate an ADK event into zero or more HarnessEvents.

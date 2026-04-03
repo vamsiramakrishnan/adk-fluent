@@ -21,7 +21,7 @@ Design:
 from __future__ import annotations
 
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 __all__ = ["GitCheckpointer"]
@@ -107,12 +107,14 @@ class GitCheckpointer:
                 method = "commit"
 
             if sha:
-                self._checkpoints.append(_Checkpoint(
-                    sha=sha,
-                    message=message,
-                    method=method,
-                    timestamp=time.time(),
-                ))
+                self._checkpoints.append(
+                    _Checkpoint(
+                        sha=sha,
+                        message=message,
+                        method=method,
+                        timestamp=time.time(),
+                    )
+                )
                 return sha
         except Exception:
             pass
@@ -170,10 +172,7 @@ class GitCheckpointer:
 
     def list_checkpoints(self) -> list[dict[str, str]]:
         """Return a list of recorded checkpoints."""
-        return [
-            {"sha": cp.sha[:8], "message": cp.message, "method": cp.method}
-            for cp in self._checkpoints
-        ]
+        return [{"sha": cp.sha[:8], "message": cp.message, "method": cp.method} for cp in self._checkpoints]
 
     def diff_since(self, sha: str | None = None) -> str:
         """Show diff since a checkpoint.
