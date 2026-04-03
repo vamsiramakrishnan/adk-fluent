@@ -67,6 +67,17 @@ class TestStrictAndUncheckedMethods:
         pipeline.strict()
         assert pipeline._config.get("_check_mode") == "strict"
 
+    def test_checked_sets_config(self):
+        pipeline = Agent("a").model("m").instruct("A.") >> Agent("b").model("m").instruct("B.")
+        pipeline.checked()
+        assert pipeline._config.get("_check_mode") == "checked"
+
+    def test_checked_raises_on_errors(self):
+        """checked().build() raises on error-level contract issues."""
+        pipeline = Agent("a").model("m").instruct("Do stuff.") >> Agent("b").model("m").instruct("Summary: {summary}")
+        with pytest.raises(ValueError, match="[Cc]ontract"):
+            pipeline.checked().build()
+
     def test_unchecked_sets_config(self):
         pipeline = Agent("a").model("m").instruct("A.") >> Agent("b").model("m").instruct("B.")
         pipeline.unchecked()

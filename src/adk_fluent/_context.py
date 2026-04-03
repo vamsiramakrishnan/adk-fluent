@@ -162,22 +162,62 @@ class CTransform:
 
 
 # ======================================================================
+# Composition helpers
+# ======================================================================
+
+
+def _derive_include_contents(
+    children: tuple[CTransform, ...] | list[CTransform],
+) -> str:
+    """Derive ``include_contents`` from child transforms.
+
+    Rule: if ANY child explicitly suppresses history (``"none"``),
+    the composite suppresses.  Only when ALL children are neutral
+    (``"default"``) does the composite keep history.  This makes
+    data-injection transforms composable with history-filtering ones.
+    """
+    for child in children:
+        if child.include_contents == "none":
+            return "none"
+    return "default"
+
+
+# ======================================================================
 # Composition types
 # ======================================================================
 
 
 @dataclass(frozen=True)
 class CComposite(CTransform):
-    """Union of multiple context blocks (via + operator)."""
+    """Union of multiple context blocks (via + operator).
+
+    The composite derives ``include_contents`` from its children:
+    if ANY child suppresses history (``"none"``), the composite
+    suppresses.  Only when ALL children are neutral (``"default"``)
+    does the composite keep history.  This makes data-injection
+    transforms (``CFromState``, ``CTemplate``, ``CNotes``) truly
+    composable with history-filtering transforms.
+    """
 
     blocks: tuple[CTransform, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "include_contents", "none")
+        derived = _derive_include_contents(self.blocks)
+        object.__setattr__(self, "include_contents", derived)
         object.__setattr__(self, "instruction_provider", _make_composite_provider(self.blocks))
 
     def _as_list(self) -> tuple[CTransform, ...]:
         return self.blocks
+
+    @property
+    def _reads_keys(self) -> frozenset[str] | None:
+        """Aggregate _reads_keys from all children."""
+        keys: set[str] = set()
+        for block in self.blocks:
+            child_keys = block._reads_keys
+            if child_keys is not None:
+                keys.update(child_keys)
+        return frozenset(keys) if keys else None
 
 
 @dataclass(frozen=True)
@@ -188,7 +228,9 @@ class CPipe(CTransform):
     transform: CTransform | None = None
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "include_contents", "none")
+        children = tuple(c for c in (self.source, self.transform) if c is not None)
+        derived = _derive_include_contents(children)
+        object.__setattr__(self, "include_contents", derived)
         object.__setattr__(self, "instruction_provider", _make_pipe_provider(self.source, self.transform))
 
 
@@ -213,7 +255,9 @@ class CWhen(CTransform):
     _kind: str = "when"
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "include_contents", "none")
+        children = (self.block,) if self.block is not None else ()
+        derived = _derive_include_contents(children)
+        object.__setattr__(self, "include_contents", derived)
         object.__setattr__(
             self,
             "instruction_provider",
@@ -228,10 +272,22 @@ class CWhen(CTransform):
 
 @dataclass(frozen=True)
 class CFromState(CTransform):
-    """Read named keys from session state and format as context."""
+    """Read named keys from session state and format as context.
+
+    This is a pure data-injection transform — it adds state values to the
+    agent's prompt without suppressing conversation history.  If you also
+    want to suppress history, compose explicitly::
+
+        C.none() + C.from_state("key")   # inject state, no history
+        C.from_state("key")              # inject state, keep history
+
+    The convenience method ``.reads()`` composes ``C.none()`` for you
+    (the common pipeline case) and accepts ``keep_history=True`` to opt
+    out of suppression.
+    """
 
     keys: tuple[str, ...] = ()
-    include_contents: Literal["default", "none"] = "none"
+    include_contents: Literal["default", "none"] = "default"
     _kind: str = "from_state"
 
     def __post_init__(self) -> None:
@@ -311,10 +367,14 @@ class CExcludeAgents(CTransform):
 
 @dataclass(frozen=True)
 class CTemplate(CTransform):
-    """Render a template string with {key} and {key?} placeholders from state."""
+    """Render a template string with {key} and {key?} placeholders from state.
+
+    Pure data-injection transform — injects templated state values into the
+    agent's prompt without suppressing conversation history.
+    """
 
     template: str = ""
-    include_contents: Literal["default", "none"] = "none"
+    include_contents: Literal["default", "none"] = "default"
     _kind: str = "template"
 
     def __post_init__(self) -> None:
@@ -637,11 +697,14 @@ class CNotes(CTransform):
     Notes are stored at ``state["_notes_{key}"]``. They are persistent
     across turns within a session. The ``format`` parameter controls
     rendering: ``"plain"`` (default), ``"checklist"``, ``"numbered"``.
+
+    Pure data-injection transform — reads scratchpad notes without
+    suppressing conversation history.
     """
 
     key: str = "default"
     format: str = "plain"
-    include_contents: Literal["default", "none"] = "none"
+    include_contents: Literal["default", "none"] = "default"
     _kind: str = "notes"
 
     def __post_init__(self) -> None:

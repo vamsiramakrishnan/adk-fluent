@@ -71,5 +71,5 @@ def test_context_spec_include_contents_matches():
     from adk_fluent import Agent, C
 
     ir = Agent("a").context(C.from_state("x")).to_ir()
-    # from_state sets include_contents='none' on the CTransform
-    assert ir.context_spec.include_contents == "none"
+    # CFromState is a pure data-injection transform — neutral on history
+    assert ir.context_spec.include_contents == "default"

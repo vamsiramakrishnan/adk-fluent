@@ -81,9 +81,14 @@ class TestCWhenDataclass:
         assert t.instruction_provider is not None
         assert callable(t.instruction_provider)
 
-    def test_include_contents_is_none(self):
+    def test_include_contents_derived_from_child(self):
+        """CWhen derives include_contents from its inner block."""
+        # CFromState is neutral → CWhen is neutral
         t = C.when("verbose", C.from_state("topic"))
-        assert t.include_contents == "none"
+        assert t.include_contents == "default"
+        # CWindow suppresses → CWhen suppresses
+        t2 = C.when("verbose", C.window(n=3))
+        assert t2.include_contents == "none"
 
     def test_kind(self):
         t = C.when("verbose", C.from_state("topic"))

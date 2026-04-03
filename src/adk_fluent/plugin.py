@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from adk_fluent._base import BuilderBase
 
@@ -44,10 +43,7 @@ class RecordingsPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -73,10 +69,7 @@ class ReplayPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -102,10 +95,7 @@ class BasePlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def build(self) -> _ADK_BasePlugin:
         """Base class for creating plugins. Resolve into a native ADK _ADK_BasePlugin."""
@@ -125,10 +115,7 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"config", "dataset_id", "location", "project_id", "table_id"}
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"project_id": project_id, "dataset_id": dataset_id, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(project_id, dataset_id=dataset_id, kwargs=kwargs)
 
     def table_id(self, value: str | None) -> Self:
         """Set the ``table_id`` field."""
@@ -168,10 +155,7 @@ class ContextFilterPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"custom_filter", "name", "num_invocations_to_keep"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def num_invocations_to_keep(self, value: int | None) -> Self:
         """Set the ``num_invocations_to_keep`` field."""
@@ -209,10 +193,7 @@ class DebugLoggingPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"include_session_state", "include_system_instruction", "name", "output_path"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -256,10 +237,7 @@ class GlobalInstructionPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"global_instruction", "name"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def global_instruction(self, value: str | InstructionProvider) -> Self:
         """Set the ``global_instruction`` field."""
@@ -291,10 +269,7 @@ class LoggingPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -320,10 +295,7 @@ class MultimodalToolResultsPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -351,10 +323,7 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"max_retries", "name", "throw_exception_if_retry_exceeded", "tracking_scope"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -400,10 +369,7 @@ class SaveFilesAsArtifactsPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"name"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def name(self, value: str) -> Self:
         """Set the ``name`` field."""
@@ -431,10 +397,7 @@ class AgentSimulatorPlugin(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"simulator_engine"}
 
     def __init__(self, simulator_engine: str) -> None:
-        self._config: dict[str, Any] = {"simulator_engine": simulator_engine}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(simulator_engine)
 
     def build(self) -> _ADK_AgentSimulatorPlugin:
         """ADK Plugin for AgentSimulator. Resolve into a native ADK _ADK_AgentSimulatorPlugin."""

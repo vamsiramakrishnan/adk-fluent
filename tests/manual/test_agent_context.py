@@ -43,7 +43,7 @@ class TestAgentContextCompilation:
     def test_c_from_state_sets_instruction_provider(self):
         a = Agent("a").model("gemini-2.5-flash").instruct("Use context.").context(C.from_state("intent", "confidence"))
         built = a.build()
-        assert built.include_contents == "none"
+        assert built.include_contents == "default"  # CFromState is neutral
         assert callable(built.instruction)
 
     def test_context_with_template(self):
@@ -54,7 +54,7 @@ class TestAgentContextCompilation:
             .context(C.template("User: {user_message}\nIntent: {intent}"))
         )
         built = a.build()
-        assert built.include_contents == "none"
+        assert built.include_contents == "default"  # CTemplate is neutral
         assert callable(built.instruction)
 
 
@@ -67,7 +67,7 @@ class TestAgentContextInPipeline:
         ).model("gemini-2.5-flash").instruct("Handle request.").context(C.from_state("intent"))
         built = pipeline.build()
         handler = built.sub_agents[1]
-        assert handler.include_contents == "none"
+        assert handler.include_contents == "default"  # C.from_state is neutral
         assert callable(handler.instruction)
 
     def test_context_with_window(self):

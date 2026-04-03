@@ -8,21 +8,27 @@ Verifies:
 - Copy-on-write semantics preserved
 """
 
-from adk_fluent._context import C, CComposite, CFromState, CWindow
+from adk_fluent._context import C, CComposite, CFromState, CTransform, CWindow
 from adk_fluent.agent import Agent
 
 # ======================================================================
-# .reads() — shorthand for .context(C.from_state(...))
+# .reads() — shorthand for .context(C.none() + C.from_state(...))
 # ======================================================================
 
 
 def test_reads_sets_context_spec():
-    """Agent.reads() sets _context_spec to CFromState."""
+    """Agent.reads() sets _context_spec to CComposite(C.none() + C.from_state(...))."""
     a = Agent("writer", "gemini-2.0-flash").reads("topic", "tone")
     spec = a._config.get("_context_spec")
     assert spec is not None
-    assert isinstance(spec, CFromState)
-    assert set(spec.keys) == {"topic", "tone"}
+    # .reads() wraps C.none() + C.from_state(...) → CComposite
+    assert isinstance(spec, CComposite)
+    blocks = spec.blocks
+    assert len(blocks) == 2
+    assert isinstance(blocks[0], CTransform)  # C.none()
+    assert blocks[0].include_contents == "none"
+    assert isinstance(blocks[1], CFromState)
+    assert set(blocks[1].keys) == {"topic", "tone"}
 
 
 def test_reads_composes_with_context():
@@ -30,12 +36,13 @@ def test_reads_composes_with_context():
     a = Agent("writer", "gemini-2.0-flash").context(C.window(n=3)).reads("topic")
     spec = a._config.get("_context_spec")
     assert spec is not None
-    # Should be CComposite (union of CWindow + CFromState)
+    # Should be CComposite (union of CWindow + C.none() + CFromState)
     assert isinstance(spec, CComposite)
     blocks = spec.blocks
-    assert len(blocks) == 2
+    assert len(blocks) == 3
     assert isinstance(blocks[0], CWindow)
-    assert isinstance(blocks[1], CFromState)
+    assert isinstance(blocks[1], CTransform)  # C.none()
+    assert isinstance(blocks[2], CFromState)
 
 
 def test_reads_multiple_calls_compose():
@@ -75,8 +82,11 @@ def test_reads_writes_chain():
     a = Agent("writer", "gemini-2.0-flash").reads("topic", "tone").writes("draft")
     assert a._config["output_key"] == "draft"
     spec = a._config.get("_context_spec")
-    assert isinstance(spec, CFromState)
-    assert set(spec.keys) == {"topic", "tone"}
+    # .reads() produces CComposite(C.none() + C.from_state(...))
+    assert isinstance(spec, CComposite)
+    from_state_block = spec.blocks[1]
+    assert isinstance(from_state_block, CFromState)
+    assert set(from_state_block.keys) == {"topic", "tone"}
 
 
 def test_pipeline_with_reads_writes():
@@ -106,6 +116,53 @@ def test_reads_preserves_cow():
     assert variant._config.get("_context_spec") is not None
     # Original should not be affected
     assert base._config.get("_context_spec") is None
+
+
+# ======================================================================
+# Composability: .reads() + .context() orthogonality
+# ======================================================================
+
+
+def test_reads_suppresses_history_by_default():
+    """.reads() suppresses history (the common pipeline case)."""
+    a = Agent("writer", "gemini-2.0-flash").reads("findings")
+    built = a.build()
+    assert built.include_contents == "none"
+
+
+def test_reads_keep_history():
+    """.reads(keep_history=True) injects state without suppressing history."""
+    a = Agent("writer", "gemini-2.0-flash").reads("findings", keep_history=True)
+    built = a.build()
+    assert built.include_contents == "default"
+
+
+def test_from_state_alone_keeps_history():
+    """C.from_state() is neutral — does not suppress history."""
+    a = Agent("writer", "gemini-2.0-flash").context(C.from_state("findings"))
+    built = a.build()
+    assert built.include_contents == "default"
+
+
+def test_from_state_composes_with_window():
+    """C.window() + C.from_state() suppresses (window's opinion wins)."""
+    a = Agent("writer", "gemini-2.0-flash").context(C.window(n=3) + C.from_state("findings"))
+    built = a.build()
+    assert built.include_contents == "none"
+
+
+def test_from_state_composes_with_none():
+    """C.none() + C.from_state() suppresses (none's opinion wins)."""
+    a = Agent("writer", "gemini-2.0-flash").context(C.none() + C.from_state("findings"))
+    built = a.build()
+    assert built.include_contents == "none"
+
+
+def test_two_neutral_transforms_keep_history():
+    """Two neutral transforms composed keep history."""
+    a = Agent("writer", "gemini-2.0-flash").context(C.from_state("x") + C.template("Hello {x}"))
+    built = a.build()
+    assert built.include_contents == "default"
 
 
 def test_writes_preserves_cow():

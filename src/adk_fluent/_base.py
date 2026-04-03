@@ -9,6 +9,7 @@ from typing import Any, Self
 
 __all__ = [
     "BuilderBase",
+    "fluent",
 ]
 
 # ======================================================================
@@ -34,6 +35,35 @@ class _UnsetType:
 
 
 _UNSET = _UnsetType()
+
+
+# ======================================================================
+# @fluent — decorator that auto-forks before mutation
+# ======================================================================
+
+
+def fluent(fn: Callable) -> Callable:
+    """Decorator for builder setter methods. Auto-calls ``_maybe_fork_for_mutation()``.
+
+    Usage in hand-written code::
+
+        @fluent
+        def max_tasks(self, n: int) -> Self:
+            self._max_tasks = n
+            return self
+
+    The codegen emits ``@fluent`` on every setter method. Forgetting
+    ``_maybe_fork_for_mutation()`` becomes structurally impossible.
+    """
+    import functools
+
+    @functools.wraps(fn)
+    def _wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
+        self = self._maybe_fork_for_mutation()
+        return fn(self, *args, **kwargs)
+
+    _wrapper._is_fluent = True  # type: ignore[attr-defined]
+    return _wrapper
 
 
 # ======================================================================
@@ -486,6 +516,19 @@ class BuilderBase:
     _config: dict[str, Any]
     _callbacks: dict[str, list[Callable]]
     _lists: dict[str, list]
+
+    def _init_storage(self, name: str, **config_extras: Any) -> None:
+        """Canonical storage initialization. Called by codegen __init__ and PrimitiveBuilderBase.
+
+        One method, one truth. Never write ``self._config = ...`` / ``self._callbacks = ...``
+        / ``self._lists = ...`` by hand — call this instead.
+        """
+        from collections import defaultdict
+
+        self._config = {"name": name, **config_extras}
+        self._callbacks = defaultdict(list)
+        self._lists = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> Any:
         """Build this builder into a native ADK object. Subclasses must override."""
@@ -1801,6 +1844,18 @@ class BuilderBase:
                 if compiled.get("instruction") is not None:
                     config["instruction"] = compiled["instruction"]
 
+        # Skill specs: compile attached skills into static_instruction
+        skills = self._config.get("_skills")
+        if skills:
+            from adk_fluent._harness import _compile_skills_to_static
+
+            compiled_skills = _compile_skills_to_static(skills)
+            existing_static = config.get("static_instruction")
+            if existing_static:
+                config["static_instruction"] = str(existing_static) + "\n\n" + compiled_skills
+            else:
+                config["static_instruction"] = compiled_skills
+
         # Prompt spec: compile P transforms into instruction string or InstructionProvider
         prompt_spec = self._config.get("_prompt_spec")
         if prompt_spec is not None:
@@ -1849,34 +1904,14 @@ class BuilderBase:
     # ------------------------------------------------------------------
 
     def output(self, schema: type) -> Self:
-        """Constrain LLM responses to a Pydantic model and parse them automatically.
+        """Constrain LLM responses to a Pydantic model. Delegates to ``.returns()``.
 
-        This does two things:
+        The ``@`` operator is shorthand: ``agent @ MyModel``.
 
-        1. **At build time**: sets ADK's ``output_schema``, which forces the
-           LLM to respond *only* with JSON matching this schema. The agent
-           **cannot use tools** when ``output_schema`` is set.
-        2. **At .ask() time**: parses the raw JSON response into an instance
-           of ``schema``, so ``.ask()`` returns a Pydantic model instead of
-           a string.
-
-        The ``@`` operator is shorthand for this method::
-
-            agent @ MyModel   # same as agent.output(MyModel)
-
-        .. note:: **Distinction from similar methods:**
-
-           - ``.output(Model)`` / ``@ Model``: Constrains LLM output format
-             AND parses response. Use when you need typed data back.
-           - ``.output_schema(Model)``: ADK's raw field. Same LLM constraint
-             but no automatic parsing in ``.ask()``.
-           - ``.writes(key)`` / ``.save_as(key)``: Stores the agent's *text*
-             response in a state key. Does NOT affect output format.
-           - ``.produces(Model)``: **Contract-only** annotation for the
-             data-flow checker. No runtime effect whatsoever.
+        See ``.returns()`` for full documentation and distinction from
+        ``.writes()`` and ``.produces()``.
         """
-        self._config["_output_schema"] = schema
-        return self
+        return self.returns(schema)
 
     # ------------------------------------------------------------------
     # Task 10: Retry and Fallback
@@ -2378,7 +2413,7 @@ class BuilderBase:
     # Interop convenience: .reads(), .writes()
     # ------------------------------------------------------------------
 
-    def reads(self, *keys: str) -> Self:
+    def reads(self, *keys: str, keep_history: bool = False) -> Self:
         """Inject named state keys into this agent's context window.
 
         At runtime, the values of the specified state keys are prepended to
@@ -2387,8 +2422,14 @@ class BuilderBase:
         an upstream agent ``.writes("findings")``, a downstream agent
         ``.reads("findings")``.
 
+        By default, ``.reads()`` also suppresses conversation history
+        (``include_contents="none"``). This is the right behavior for
+        pipeline nodes that should only see data, not chat history.
+        Pass ``keep_history=True`` to inject state **without** suppressing
+        conversation history.
+
         Composes additively: calling ``.reads()`` after ``.context()`` unions
-        the specs. Shorthand for ``.context(C.from_state(*keys))``.
+        the specs.
 
         **When NOT set (default):** The agent sees the full conversation
         history (``include_contents="default"``). It does NOT automatically
@@ -2398,26 +2439,36 @@ class BuilderBase:
 
         Args:
             *keys: State key names to make visible to this agent.
+            keep_history: If ``True``, inject state values without
+                suppressing conversation history.  Defaults to ``False``
+                (history is suppressed — the common pipeline case).
 
         Usage::
 
-            # These are equivalent:
-            Agent("writer").context(C.from_state("topic", "tone"))
-            Agent("writer").reads("topic", "tone")
-
-            # Composes with existing context spec:
-            Agent("writer").context(C.window(3)).reads("topic")
-            # equivalent to: .context(C.window(3) + C.from_state("topic"))
-
-            # Natural pipeline data flow:
+            # Pipeline data flow (history suppressed by default):
             researcher = Agent("researcher").writes("findings")
             writer = Agent("writer").reads("findings").writes("draft")
             pipeline = researcher >> writer
+
+            # Inject state AND keep conversation history:
+            Agent("chat").reads("user_prefs", keep_history=True)
+
+            # Composes with existing context spec:
+            Agent("writer").context(C.window(3)).reads("topic")
+            # window suppresses history; state values are injected alongside
+
+            # Equivalent low-level composition:
+            Agent("writer").context(C.none() + C.from_state("topic"))
         """
         self = self._maybe_fork_for_mutation()
         from adk_fluent._context import C
 
         new_spec = C.from_state(*keys)
+        if not keep_history:
+            # Explicitly suppress history — the common pipeline case.
+            # C.from_state() itself is neutral (include_contents="default"),
+            # so we compose C.none() to get the suppression behavior.
+            new_spec = C.none() + new_spec
         existing = self._config.get("_context_spec")
         if existing is not None:
             self._config["_context_spec"] = existing + new_spec
@@ -2564,6 +2615,115 @@ class BuilderBase:
         """
         existing = self._config.setdefault("_resources", {})
         existing.update(resources)
+        return self
+
+    # ------------------------------------------------------------------
+    # Skill loading: .skill() — L1 expertise layer
+    # ------------------------------------------------------------------
+
+    def use_skill(self, path: str | Any) -> Self:
+        """Attach expertise from a SKILL.md file to this agent.
+
+        The skill body is loaded and compiled into the agent's
+        ``static_instruction`` — cached, stable context that persists
+        across turns. The agent's ``.instruct()`` remains the per-task
+        instruction.
+
+        Multiple skills compose additively::
+
+            agent = (
+                Agent("analyst", "gemini-2.5-pro")
+                .use_skill("skills/research-methodology/")
+                .use_skill("skills/citation-standards/")
+                .instruct("Analyze {topic} using your expertise.")
+            )
+
+        The separation is meaningful:
+
+        - **Skills** → ``static_instruction`` (cached, stable expertise)
+        - **Instruction** → ``instruction`` (per-task, dynamic)
+
+        Skills are portable agentskills.io SKILL.md files. No ``agents:``
+        block needed — the body IS the expertise.
+
+        Args:
+            path: Path to a SKILL.md file or its parent directory.
+
+        Returns:
+            Self for chaining.
+        """
+        from pathlib import Path as _Path
+
+        from adk_fluent._harness import SkillSpec
+
+        self = self._maybe_fork_for_mutation()
+
+        spec = SkillSpec.from_path(path) if isinstance(path, (str, _Path)) else path
+        # Copy the list to avoid mutating a shared reference from fork
+        skills = list(self._config.get("_skills", []))
+        skills.append(spec)
+        self._config["_skills"] = skills
+        return self
+
+    # ------------------------------------------------------------------
+    # Harness configuration: .harness()
+    # ------------------------------------------------------------------
+
+    def harness(
+        self,
+        *,
+        permissions: Any | None = None,
+        sandbox: Any | None = None,
+        auto_compress: int = 100_000,
+        approval_handler: Any | None = None,
+    ) -> Self:
+        """Configure this agent as an interactive harness runtime.
+
+        Attaches permission enforcement, sandbox policies, and context
+        compression to produce a CodAct-style agent runtime.
+
+        Args:
+            permissions: A :class:`PermissionPolicy` from ``H.ask_before()``
+                / ``H.auto_allow()`` / ``H.deny()``.
+            sandbox: A :class:`SandboxPolicy` from ``H.workspace_only()``
+                / ``H.sandbox()``.
+            auto_compress: Token threshold for auto-compression (default 100k).
+            approval_handler: Callable ``(tool_name, args) -> bool`` for
+                interactive approval. If None, defaults to auto-allow.
+
+        Usage::
+
+            agent = (
+                Agent("coder", "gemini-2.5-pro")
+                .tools(H.workspace("/project"))
+                .harness(
+                    permissions=H.ask_before("bash", "edit_file"),
+                    sandbox=H.workspace_only("/project"),
+                )
+            )
+        """
+        from adk_fluent._harness import (
+            HarnessConfig,
+            PermissionPolicy,
+            SandboxPolicy,
+            _make_permission_callback,
+        )
+
+        self = self._maybe_fork_for_mutation()
+
+        cfg = HarnessConfig(
+            permissions=permissions or PermissionPolicy(),
+            sandbox=sandbox or SandboxPolicy(),
+            auto_compress_threshold=auto_compress,
+            approval_handler=approval_handler,
+        )
+        self._config["_harness_config"] = cfg
+
+        # Wire permission enforcement as before_tool callback
+        if permissions is not None:
+            cb = _make_permission_callback(cfg.permissions, cfg.approval_handler)
+            self._callbacks.setdefault("before_tool_callback", []).append(cb)
+
         return self
 
     def to_mermaid(
@@ -2832,8 +2992,22 @@ class BuilderBase:
 
         return _build_llm_anatomy(self)
 
+    def checked(self) -> Self:
+        """Enable checked mode — build() raises ValueError on contract errors.
+
+        Contract errors are suspicious data-flow patterns (missing template
+        vars, output lost between agents, etc.) that MAY cause runtime
+        failures.  In default mode these are logged as warnings.
+        ``.checked()`` promotes them to build-time errors.
+
+        For even stricter checking (errors + warnings), use ``.strict()``.
+        To skip checking entirely, use ``.unchecked()``.
+        """
+        self._config["_check_mode"] = "checked"
+        return self
+
     def strict(self) -> Self:
-        """Enable strict contract checking — build() raises ValueError on contract errors."""
+        """Strictest contract checking — build() raises on errors AND warnings."""
         self._config["_check_mode"] = "strict"
         return self
 
@@ -2852,9 +3026,15 @@ class BuilderBase:
         patterns (e.g., .produces() without .writes(), conflicting schemas).
 
         Modes (controlled by _check_mode config):
-          True (default) — run contracts, log advisory diagnostics
-          "strict"       — raise ValueError on any contract error
-          False          — skip contract checking entirely
+          True (default)    — run contracts, log all issues as warnings
+          "checked"         — raise ValueError on "error" level issues
+          "strict"          — raise ValueError on "error" AND "warning" level issues
+          False             — skip contract checking entirely (.unchecked())
+
+        Most contract issues are suspicious patterns, not guaranteed failures
+        (template vars may come from tools or pre-populated state). The
+        default mode surfaces them as log warnings. Use ``.checked()`` or
+        ``.strict()`` to promote them to build-time errors.
         """
         check_mode = self._config.get("_check_mode", True)
         if check_mode is False:
@@ -2882,18 +3062,24 @@ class BuilderBase:
         if not all_issues:
             return
 
-        errors = [i for i in all_issues if isinstance(i, dict) and i.get("level") in ("error", "warning")]
+        errors = [i for i in all_issues if isinstance(i, dict) and i.get("level") == "error"]
+        warnings = [i for i in all_issues if isinstance(i, dict) and i.get("level") == "warning"]
 
-        if check_mode == "strict" and errors:
-            msg = "\n".join(f"  {i['agent']}: {i['message']}" for i in errors)
-            raise ValueError(f"Contract errors in pipeline:\n{msg}")
+        # Checked / strict modes: promote issues to ValueError
+        if check_mode in ("checked", "strict"):
+            raise_issues = errors[:]
+            if check_mode == "strict":
+                raise_issues.extend(warnings)
+            if raise_issues:
+                msg = "\n".join(f"  [{i.get('agent', '?')}] {i['message']}" for i in raise_issues)
+                raise ValueError(f"Contract errors in {self._config.get('name', '?')}:\n{msg}")
 
-        # Advisory mode: log warnings
-        if errors:
+        # Default mode: log all issues as warnings (never blocks build)
+        if errors or warnings:
             import logging
 
             logger = logging.getLogger("adk_fluent.contracts")
-            for issue in errors:
+            for issue in errors + warnings:
                 logger.warning(
                     "Contract issue [%s] %s: %s",
                     issue.get("level", "?"),

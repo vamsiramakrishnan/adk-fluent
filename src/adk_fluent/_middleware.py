@@ -32,10 +32,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from adk_fluent._composite import Composite
+
 __all__ = ["M", "MComposite"]
 
 
-class MComposite:
+class MComposite(Composite, kind="middleware_chain"):
     """Composable middleware chain. The result of any ``M.xxx()`` call.
 
     Supports ``|`` for composition::
@@ -43,59 +45,9 @@ class MComposite:
         M.retry(3) | M.log() | MyMiddleware()
     """
 
-    def __init__(self, stack: list[Any] | None = None, *, kind: str = "middleware_chain"):
-        self._stack: list[Any] = list(stack or [])
-        self.__kind = kind
-
-    # ------------------------------------------------------------------
-    # NamespaceSpec protocol
-    # ------------------------------------------------------------------
-
-    @property
-    def _kind(self) -> str:
-        """Discriminator tag for IR serialization."""
-        return self.__kind
-
-    def _as_list(self) -> tuple[Any, ...]:
-        """Flatten for composite building."""
-        return tuple(self._stack)
-
-    @property
-    def _reads_keys(self) -> frozenset[str] | None:
-        """Middleware is opaque to state — always returns ``None``."""
-        return None
-
-    @property
-    def _writes_keys(self) -> frozenset[str] | None:
-        """Middleware is opaque to state — always returns ``None``."""
-        return None
-
-    # ------------------------------------------------------------------
-    # Composition: | (chain)
-    # ------------------------------------------------------------------
-
-    def __or__(self, other: MComposite | Any) -> MComposite:
-        """M.retry(3) | M.log() | MyMiddleware()"""
-        if isinstance(other, MComposite):
-            return MComposite(self._stack + other._stack)
-        return MComposite(self._stack + [other])
-
-    def __ror__(self, other: Any) -> MComposite:
-        """MyMiddleware() | M.retry(3)"""
-        if isinstance(other, MComposite):
-            return MComposite(other._stack + self._stack)
-        return MComposite([other] + self._stack)
-
     def to_stack(self) -> list[Any]:
         """Flatten to list of protocol-level middleware instances."""
-        return list(self._stack)
-
-    def __repr__(self) -> str:
-        names = [type(m).__name__ for m in self._stack]
-        return f"MComposite([{', '.join(names)}])"
-
-    def __len__(self) -> int:
-        return len(self._stack)
+        return list(self._items)
 
 
 class M:

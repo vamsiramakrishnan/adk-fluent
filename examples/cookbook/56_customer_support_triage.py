@@ -26,7 +26,11 @@ Pipeline topology:
         >> satisfaction_monitor
         >> gate(resolved == "no") -> escalate
 
-Uses: S.capture, C.none, C.from_state, Route, gate, save_as
+Uses: S.capture, C.none, C.from_state, C.user_only, Route, gate, save_as
+
+Note: C.from_state() is a pure data-injection transform — it injects state
+values without suppressing conversation history. To suppress history AND
+inject state, compose: C.none() + C.from_state("key").
 """
 
 # --- NATIVE ---
@@ -67,7 +71,7 @@ billing_handler = (
         "refunds, subscription changes, and invoice questions.\n"
         "Customer message: {customer_message}"
     )
-    .context(C.from_state("customer_message"))
+    .context(C.none() + C.from_state("customer_message"))  # state only, no history
     .writes("agent_response")
 )
 
@@ -79,7 +83,7 @@ technical_handler = (
         "suggest troubleshooting steps, and escalate if unresolvable.\n"
         "Customer message: {customer_message}"
     )
-    .context(C.from_state("customer_message"))
+    .context(C.none() + C.from_state("customer_message"))  # state only, no history
     .writes("agent_response")
 )
 
@@ -91,7 +95,7 @@ account_handler = (
         "profile updates, and security concerns.\n"
         "Customer message: {customer_message}"
     )
-    .context(C.from_state("customer_message"))
+    .context(C.none() + C.from_state("customer_message"))  # state only, no history
     .writes("agent_response")
 )
 

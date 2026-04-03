@@ -267,6 +267,10 @@ def _type_to_str(annotation: Any) -> str:
     # Handle typing constructs
     origin = getattr(annotation, "__origin__", None)
     args = getattr(annotation, "__args__", None)
+    # Guard: __args__ on some classes (e.g. types.GenericAlias as a type annotation)
+    # returns a member_descriptor rather than a tuple. Treat it as absent.
+    if not isinstance(args, tuple):
+        args = None
 
     if origin is not None:
         import collections.abc

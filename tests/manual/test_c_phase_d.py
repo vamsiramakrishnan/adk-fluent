@@ -129,9 +129,10 @@ class TestCNotes:
         assert "b" in result
         assert "c" in result
 
-    def test_notes_include_contents_none(self):
+    def test_notes_include_contents_default(self):
+        """CNotes is a pure data-injection transform — it does not suppress history."""
         spec = C.notes("x")
-        assert spec.include_contents == "none"
+        assert spec.include_contents == "default"
 
     def test_notes_compose_with_plus(self):
         combined = C.notes("obs") + C.from_state("intent")
@@ -471,7 +472,7 @@ class TestCompileContextSpec:
 
     def test_notes_compile(self):
         compiled = _compile_context_spec("Do the task.", C.notes("obs"))
-        assert compiled["include_contents"] == "none"
+        assert compiled["include_contents"] == "default"  # CNotes is neutral
         assert callable(compiled["instruction"])
 
     def test_rolling_compile(self):
@@ -487,5 +488,6 @@ class TestCompileContextSpec:
     def test_notes_plus_state(self):
         combined = C.notes("obs") + C.from_state("intent")
         compiled = _compile_context_spec("Handle.", combined)
-        assert compiled["include_contents"] == "none"
+        # Both CNotes and CFromState are neutral → composite is "default"
+        assert compiled["include_contents"] == "default"
         assert callable(compiled["instruction"])

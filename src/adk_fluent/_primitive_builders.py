@@ -12,7 +12,7 @@ import itertools
 from collections.abc import Callable
 from typing import Any, ClassVar, Self
 
-from adk_fluent._base import BuilderBase
+from adk_fluent._base import BuilderBase, fluent
 
 __all__ = [
     "PrimitiveBuilderBase",
@@ -63,9 +63,7 @@ class PrimitiveBuilderBase(BuilderBase):
     _CUSTOM_ATTRS: ClassVar[tuple[str, ...]] = ()
 
     def __init__(self, name: str, **kw: Any):
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list] = {}
-        self._lists: dict[str, list] = {}
+        self._init_storage(name)
         for attr in self._CUSTOM_ATTRS:
             setattr(self, attr, kw.get(attr))
 
@@ -551,6 +549,7 @@ class BackgroundTask(PrimitiveBuilderBase):
 
     _CUSTOM_ATTRS = ("_agents", "_task_names", "_on_complete", "_on_error", "_stream_to", "_max_tasks")
 
+    @fluent
     def max_tasks(self, n: int) -> Self:
         """Set the max concurrent tasks for this dispatch (and nested dispatches)."""
         self._max_tasks = n

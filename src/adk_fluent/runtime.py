@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from adk_fluent._base import BuilderBase
 
@@ -29,10 +27,7 @@ class App(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str, root_agent: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "root_agent": root_agent}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, root_agent=root_agent)
 
     def plugins(self, value: list[BasePlugin]) -> Self:
         """Set the ``plugins`` field."""
@@ -82,10 +77,7 @@ class InMemoryRunner(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agent", "app", "app_name", "plugin_close_timeout", "plugins"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def agent(self, value: BaseAgent | None) -> Self:
         """Set the ``agent`` field."""
@@ -146,10 +138,7 @@ class Runner(BuilderBase):
     }
 
     def __init__(self, session_service: str) -> None:
-        self._config: dict[str, Any] = {"session_service": session_service}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(session_service)
 
     def app(self, value: App | None) -> Self:
         """Set the ``app`` field."""

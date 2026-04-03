@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
@@ -30,10 +29,7 @@ class BaseAgent(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -121,10 +117,7 @@ class Agent(BuilderBase):
     }
 
     def __init__(self, name: str, model: str | None = None) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
         if model is not None:
             self._config["model"] = model
 

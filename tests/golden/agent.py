@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
@@ -22,10 +21,7 @@ class Agent(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = {"before_model_callback"}
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str | None) -> Self:
         """Set the `description` field."""

@@ -87,15 +87,17 @@ def ir_init_method(spec: BuilderSpec) -> MethodNode:
 
     body: list = []
 
+    # Single source of truth: BuilderBase._init_storage()
     if spec.constructor_args:
-        config_init = ", ".join(f'"{arg}": {arg}' for arg in spec.constructor_args)
-        body.append(AssignStmt("self._config: dict[str, Any]", f"{{{config_init}}}"))
+        name_arg = spec.constructor_args[0]
+        extra_args = spec.constructor_args[1:]
+        if extra_args:
+            kw = ", ".join(f"{a}={a}" for a in extra_args)
+            body.append(RawStmt(f"self._init_storage({name_arg}, {kw})"))
+        else:
+            body.append(RawStmt(f"self._init_storage({name_arg})"))
     else:
-        body.append(AssignStmt("self._config: dict[str, Any]", "{}"))
-
-    body.append(AssignStmt("self._callbacks: dict[str, list[Callable]]", "defaultdict(list)"))
-    body.append(AssignStmt("self._lists: dict[str, list]", "defaultdict(list)"))
-    body.append(AssignStmt("self._frozen", "False"))
+        body.append(RawStmt('self._init_storage("")'))
 
     for arg in spec.optional_constructor_args or []:
         body.append(
@@ -462,6 +464,10 @@ def ir_extra_methods(spec: BuilderSpec) -> list[MethodNode]:
                     call=f"return {helper_func}(self)",
                 )
             )
+
+        elif behavior == "delegates_to":
+            target_method = extra.get("target_method", name)
+            body.append(ReturnStmt(f"self.{target_method}({_first_param})"))
 
         elif behavior == "deprecation_alias":
             target_method = extra.get("target_method", name)

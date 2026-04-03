@@ -50,8 +50,8 @@ def generate_extras(class_name: str, tag: str, source_class: str) -> list[dict]:
                 "name": "step",
                 "signature": "(self, agent: BaseAgent | AgentBuilder) -> Self",
                 "doc": "Alias for .branch() — add a parallel branch. Consistent with Pipeline/Loop API.",
-                "behavior": "list_append",
-                "target_field": "sub_agents",
+                "behavior": "delegates_to",
+                "target_method": "branch",
             }
         )
     elif class_name == "LlmAgent":
@@ -137,10 +137,10 @@ def _inner_type_name(type_str: str) -> str:
     return s
 
 
-_CONTAINER_ALIASES: dict[str, dict[str, str]] = {
+_CONTAINER_ALIASES: dict[str, dict[str, str | list[str]]] = {
     "SequentialAgent": {"sub_agent": "step"},
     "LoopAgent": {"sub_agent": "step"},
-    "ParallelAgent": {"sub_agent": "branch"},
+    "ParallelAgent": {"sub_agent": ["branch", "step"]},  # branch is primary, step delegates to branch
 }
 
 
@@ -172,30 +172,49 @@ def infer_extras(class_name: str, tag: str, fields: list[dict]) -> list[dict]:
 
         # Check for a semantic alias override
         alias_map = _CONTAINER_ALIASES.get(class_name, {})
-        alias = alias_map.get(singular)  # e.g. "step" for sub_agent
+        alias_spec = alias_map.get(singular)  # e.g. "step" or ["branch", "step"]
 
-        if alias and alias != singular:
-            # Emit the semantic alias first
-            if alias not in seen_names:
+        if alias_spec:
+            # Normalize to list: first element is primary (gets the body), rest delegate
+            aliases = [alias_spec] if isinstance(alias_spec, str) else list(alias_spec)
+            primary = aliases[0]
+
+            # Primary alias gets the real body
+            if primary not in seen_names:
                 extras.append(
                     {
-                        "name": alias,
+                        "name": primary,
                         "signature": sig,
                         "doc": doc,
                         "behavior": "list_append",
                         "target_field": fname,
                     }
                 )
-                seen_names.add(alias)
-            # Also emit the generic singular form
+                seen_names.add(primary)
+
+            # Secondary aliases delegate to primary
+            for secondary in aliases[1:]:
+                if secondary not in seen_names:
+                    extras.append(
+                        {
+                            "name": secondary,
+                            "signature": sig,
+                            "doc": f"Alias for .{primary}() — consistent API across workflow builders.",
+                            "behavior": "delegates_to",
+                            "target_method": primary,
+                        }
+                    )
+                    seen_names.add(secondary)
+
+            # Generic singular delegates to primary
             if singular not in seen_names:
                 extras.append(
                     {
                         "name": singular,
                         "signature": sig,
                         "doc": doc,
-                        "behavior": "list_append",
-                        "target_field": fname,
+                        "behavior": "delegates_to",
+                        "target_method": primary,
                     }
                 )
                 seen_names.add(singular)
