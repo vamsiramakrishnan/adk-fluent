@@ -40,7 +40,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-__all__ = ["ProjectMemory"]
+__all__ = ["ProjectMemory", "MemoryHierarchy"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -245,3 +245,139 @@ class ProjectMemory:
 
     def __repr__(self) -> str:
         return f"ProjectMemory({str(self.path)!r})"
+
+
+class MemoryHierarchy:
+    """Multi-file memory with precedence ordering.
+
+    Claude Code loads ``CLAUDE.md`` files from multiple locations with
+    a hierarchy: global (``~/.claude/CLAUDE.md``) → repo root →
+    subdirectory → local. This class composes multiple ``ProjectMemory``
+    instances into a single merged view.
+
+    Files are loaded in order (first = lowest priority, last = highest).
+    Search spans all files. The load callback merges all content into
+    a single state key.
+
+    Usage::
+
+        hierarchy = MemoryHierarchy(
+            "~/.config/agent/memory.md",  # global defaults
+            "/project/AGENT.md",          # repo-level
+            "/project/src/AGENT.md",      # directory-level
+            state_key="project_memory",
+        )
+
+        agent = (
+            Agent("coder")
+            .before_agent(hierarchy.load_callback())
+            .reads("project_memory")
+        )
+
+    Or via H namespace::
+
+        hierarchy = H.memory_hierarchy(
+            "~/.config/agent/memory.md",
+            "/project/AGENT.md",
+        )
+
+    Args:
+        paths: Memory file paths in priority order (first = lowest).
+        state_key: State key for merged content.
+    """
+
+    def __init__(self, *paths: str | Path, state_key: str = "project_memory") -> None:
+        self._memories = [ProjectMemory(p, state_key=state_key) for p in paths]
+        self.state_key = state_key
+
+    def load(self) -> str:
+        """Load and merge all memory files.
+
+        Files are concatenated with headers indicating their source.
+        Non-existent files are silently skipped.
+
+        Returns:
+            Merged memory content.
+        """
+        sections = []
+        for mem in self._memories:
+            content = mem.load()
+            if content.strip():
+                sections.append(f"# {mem.path.name} ({mem.path.parent})\n{content}")
+        return "\n\n".join(sections)
+
+    def search(self, query: str, top_k: int = 5) -> list[str]:
+        """Search across all memory files.
+
+        Collects results from each file, deduplicates, and returns
+        the top-K most relevant entries.
+
+        Args:
+            query: Search query.
+            top_k: Maximum results.
+        """
+        all_results: list[str] = []
+        seen: set[str] = set()
+        for mem in reversed(self._memories):  # highest priority first
+            for entry in mem.search(query, top_k=top_k):
+                if entry not in seen:
+                    all_results.append(entry)
+                    seen.add(entry)
+        return all_results[:top_k]
+
+    def load_callback(self) -> Callable:
+        """Create a before_agent callback that loads merged memory.
+
+        Stores merged content in ``state[self.state_key]``.
+        """
+        hierarchy = self
+        state_key = self.state_key
+
+        def _inject_hierarchy(callback_context: Any) -> None:
+            content = hierarchy.load()
+            if content:
+                state = getattr(callback_context, "state", None)
+                if state is not None and hasattr(state, "__setitem__"):
+                    state[state_key] = content
+
+        return _inject_hierarchy
+
+    def search_callback(self) -> Callable:
+        """Create a search tool spanning all memory files."""
+        hierarchy = self
+
+        def search_memory(query: str) -> str:
+            """Search project memory hierarchy for relevant entries.
+
+            Args:
+                query: What to search for across all memory files.
+            """
+            results = hierarchy.search(query)
+            if not results:
+                return "No matching entries found in project memory."
+            return "\n".join(results)
+
+        return search_memory
+
+    def append(self, entry: str, level: int = -1) -> None:
+        """Append an entry to a specific level in the hierarchy.
+
+        Args:
+            entry: Text to append.
+            level: Index into the hierarchy (-1 = last/highest priority).
+        """
+        self._memories[level].append(entry)
+
+    @property
+    def levels(self) -> int:
+        """Number of memory files in the hierarchy."""
+        return len(self._memories)
+
+    @property
+    def paths(self) -> list[Path]:
+        """All memory file paths."""
+        return [m.path for m in self._memories]
+
+    def __repr__(self) -> str:
+        paths_str = ", ".join(str(m.path) for m in self._memories)
+        return f"MemoryHierarchy({paths_str})"

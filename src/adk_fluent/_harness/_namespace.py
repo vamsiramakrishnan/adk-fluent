@@ -303,6 +303,36 @@ class H:
         """
         return ProjectMemory(path, state_key=state_key, max_entries=max_entries)
 
+    @staticmethod
+    def memory_hierarchy(
+        *paths: str | Path,
+        state_key: str = "project_memory",
+    ) -> Any:
+        """Create a multi-file memory hierarchy.
+
+        Loads and merges memory files in priority order (first = lowest
+        priority, last = highest). Follows the CLAUDE.md convention::
+
+            hierarchy = H.memory_hierarchy(
+                "~/.config/agent/memory.md",   # global
+                "/project/AGENT.md",           # repo
+                "/project/src/AGENT.md",       # directory
+            )
+
+            agent = (
+                Agent("coder")
+                .before_agent(hierarchy.load_callback())
+                .reads("project_memory")
+            )
+
+        Args:
+            paths: Memory file paths in priority order.
+            state_key: State key for merged content.
+        """
+        from adk_fluent._harness._memory import MemoryHierarchy
+
+        return MemoryHierarchy(*paths, state_key=state_key)
+
     # =================================================================
     # Token/cost tracking
     # =================================================================
@@ -497,6 +527,60 @@ class H:
             ask=frozenset(ask or set()),
             fallback_message=fallback_message,
         )
+
+    # =================================================================
+    # Interrupt & resume
+    # =================================================================
+
+    @staticmethod
+    def cancellation_token() -> Any:
+        """Create a cooperative cancellation token.
+
+        The token is checked before each tool call. When cancelled,
+        the agent is told to stop gracefully::
+
+            token = H.cancellation_token()
+            agent = Agent("coder").before_tool(
+                make_cancellation_callback(token)
+            )
+
+            # In UI/REPL thread
+            token.cancel()  # interrupt
+            snapshot = token.snapshot  # mid-turn state
+            token.reset()  # ready for next turn
+        """
+        from adk_fluent._harness._interrupt import CancellationToken
+
+        return CancellationToken()
+
+    # =================================================================
+    # Conversation forking
+    # =================================================================
+
+    @staticmethod
+    def forks(*, max_branches: int = 20) -> Any:
+        """Create a conversation fork manager.
+
+        Manages named branches of session state for parallel
+        exploration. Fork, switch, compare, and merge::
+
+            forks = H.forks()
+
+            # Save current state
+            forks.fork("approach_a", state)
+
+            # Compare branches
+            diff = forks.diff("approach_a", "approach_b")
+
+            # Merge
+            merged = forks.merge("approach_a", "approach_b")
+
+        Args:
+            max_branches: Maximum branches (oldest auto-evicted).
+        """
+        from adk_fluent._harness._fork import ForkManager
+
+        return ForkManager(max_branches=max_branches)
 
     # =================================================================
     # Event rendering

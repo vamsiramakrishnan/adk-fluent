@@ -81,6 +81,9 @@ from adk_fluent._harness._events import (
     UsageUpdate,
 )
 
+# Fork
+from adk_fluent._harness._fork import Branch, ForkManager
+
 # Git
 from adk_fluent._harness._git import GitCheckpointer
 
@@ -92,6 +95,13 @@ from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
 
 # Hooks
 from adk_fluent._harness._hooks import HookRegistry, HookSpec
+
+# Interrupt
+from adk_fluent._harness._interrupt import (
+    CancellationToken,
+    TurnSnapshot,
+    make_cancellation_callback,
+)
 
 # Manifold
 from adk_fluent._harness._manifold import (
@@ -105,7 +115,7 @@ from adk_fluent._harness._manifold import (
 from adk_fluent._harness._mcp import load_mcp_config, load_mcp_tools
 
 # Memory
-from adk_fluent._harness._memory import ProjectMemory
+from adk_fluent._harness._memory import MemoryHierarchy, ProjectMemory
 
 # Multimodal
 from adk_fluent._harness._multimodal import make_multimodal_read_file
@@ -229,6 +239,14 @@ __all__ = [
     "web_tools",
     # Memory
     "ProjectMemory",
+    "MemoryHierarchy",
+    # Interrupt
+    "CancellationToken",
+    "TurnSnapshot",
+    "make_cancellation_callback",
+    # Fork
+    "ForkManager",
+    "Branch",
     # Usage
     "UsageTracker",
     "TurnUsage",
