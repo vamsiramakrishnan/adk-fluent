@@ -102,6 +102,10 @@ class ContextCompressor:
     def compress_messages(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Compress a message list according to the strategy.
 
+        For ``summarize`` strategy, use ``compress_messages_async()``
+        which can call an LLM. This sync version falls back to
+        ``keep_recent`` for ``summarize``.
+
         Args:
             messages: List of message dicts with 'role' and 'content'.
 
@@ -122,13 +126,98 @@ class ContextCompressor:
         elif strategy.method == "keep_recent":
             return self._keep_recent(messages, strategy.keep_turns)
         else:
-            # summarize falls back to keep_recent (LLM call would need async)
+            # summarize falls back to keep_recent in sync context
             return self._keep_recent(messages, strategy.keep_turns)
+
+    async def compress_messages_async(
+        self,
+        messages: list[dict[str, Any]],
+        *,
+        summarizer: Callable[..., Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Async compression with LLM summarization support.
+
+        When strategy is ``summarize``, older messages are summarized
+        by the ``summarizer`` callable. The summarizer receives a text
+        block and returns a summary string.
+
+        Args:
+            messages: List of message dicts.
+            summarizer: Async callable ``(text: str) -> str`` that
+                produces a summary. If None, falls back to keep_recent.
+
+        Returns:
+            Compressed message list.
+        """
+        if not messages:
+            return messages
+
+        strategy = self.strategy
+        self._compression_count += 1
+
+        if self.on_compress:
+            self.on_compress(self.estimate_tokens(messages))
+
+        if strategy.method != "summarize" or summarizer is None:
+            return self.compress_messages(messages)
+
+        # Split into system + old + recent
+        system_msgs = [m for m in messages if m.get("role") == "system"]
+        non_system = [m for m in messages if m.get("role") != "system"]
+
+        keep_count = strategy.keep_turns * 2
+        if len(non_system) <= keep_count:
+            return messages  # nothing to summarize
+
+        old_msgs = non_system[:-keep_count]
+        recent_msgs = non_system[-keep_count:]
+
+        # Build text block from old messages
+        old_text = "\n".join(f"{m.get('role', 'unknown')}: {m.get('content', '')}" for m in old_msgs)
+
+        # Call summarizer (async)
+        import asyncio
+
+        if asyncio.iscoroutinefunction(summarizer):
+            summary = await summarizer(old_text)
+        else:
+            summary = summarizer(old_text)
+
+        # Insert summary as a system-level context message
+        summary_msg = {
+            "role": "user",
+            "content": f"[Summary of earlier conversation]\n{summary}",
+        }
+
+        return system_msgs + [summary_msg] + recent_msgs
 
     @property
     def compression_count(self) -> int:
         """Number of times compression has been triggered."""
         return self._compression_count
+
+    def to_monitor(self) -> Any:
+        """Create a ``BudgetMonitor`` wired to this compressor.
+
+        The monitor tracks tokens at the model level and delegates
+        compression to this compressor when the threshold is crossed.
+        This bridges the gap between session-level monitoring
+        (BudgetMonitor) and message-level compression (ContextCompressor).
+
+        Returns:
+            A ``BudgetMonitor`` pre-configured with this threshold.
+        """
+        from adk_fluent._harness._budget_monitor import BudgetMonitor
+
+        compressor = self
+
+        def _compress_on_threshold(monitor: Any) -> None:
+            if compressor.on_compress:
+                compressor.on_compress(monitor.current_tokens)
+
+        monitor = BudgetMonitor(max_tokens=self.threshold)
+        monitor.on_threshold(0.95, _compress_on_threshold)
+        return monitor
 
     @staticmethod
     def _drop_old(messages: list[dict], keep: int) -> list[dict]:

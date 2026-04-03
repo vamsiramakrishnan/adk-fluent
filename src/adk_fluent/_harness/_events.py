@@ -25,6 +25,13 @@ __all__ = [
     "CompressionTriggered",
     "HookFired",
     "ArtifactSaved",
+    "FileEdited",
+    "ErrorOccurred",
+    "UsageUpdate",
+    "ProcessEvent",
+    "TaskEvent",
+    "CapabilityLoaded",
+    "ManifoldFinalized",
 ]
 
 
@@ -125,3 +132,68 @@ class ArtifactSaved(HarnessEvent):
     name: str = ""
     size_bytes: int = 0
     kind: str = "artifact_saved"
+
+
+@dataclass(frozen=True, slots=True)
+class FileEdited(HarnessEvent):
+    """A file was edited via the harness tools."""
+
+    file_path: str = ""
+    kind: str = "file_edited"
+
+
+@dataclass(frozen=True, slots=True)
+class ErrorOccurred(HarnessEvent):
+    """A tool or model error occurred."""
+
+    tool_name: str = ""
+    error: str = ""
+    kind: str = "error"
+
+
+@dataclass(frozen=True, slots=True)
+class UsageUpdate(HarnessEvent):
+    """Token usage data from a model call."""
+
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    model: str = ""
+    kind: str = "usage_update"
+
+
+@dataclass(frozen=True, slots=True)
+class ProcessEvent(HarnessEvent):
+    """A background process lifecycle event."""
+
+    process_name: str = ""
+    action: str = ""  # "started", "stopped", "exited"
+    kind: str = "process_event"
+
+
+@dataclass(frozen=True, slots=True)
+class TaskEvent(HarnessEvent):
+    """A background task lifecycle event."""
+
+    task_name: str = ""
+    status: str = ""  # "pending", "running", "complete", "failed"
+    kind: str = "task_event"
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityLoaded(HarnessEvent):
+    """A capability was loaded into the manifold."""
+
+    capability_name: str = ""
+    cap_type: str = ""  # "tool", "skill", "mcp_server"
+    kind: str = "capability_loaded"
+
+
+@dataclass(frozen=True, slots=True)
+class ManifoldFinalized(HarnessEvent):
+    """The manifold discovery phase completed."""
+
+    tool_count: int = 0
+    skill_count: int = 0
+    mcp_count: int = 0
+    kind: str = "manifold_finalized"

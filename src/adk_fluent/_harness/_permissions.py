@@ -13,8 +13,10 @@ same tool+args pattern isn't asked twice::
 
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 import json
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -31,20 +33,61 @@ class PermissionPolicy:
     """Declares which tools need approval and which are auto-allowed.
 
     Tools not mentioned in either list default to ``ask``.
+
+    Supports both exact names and patterns (glob or regex)::
+
+        # Exact names
+        PermissionPolicy(allow=frozenset(["read_file"]))
+
+        # Glob patterns
+        PermissionPolicy(allow_patterns=("read_*", "list_*"))
+
+        # Regex patterns
+        PermissionPolicy(deny_patterns=(".*dangerous.*",), pattern_mode="regex")
     """
 
     ask: frozenset[str] = frozenset()
     allow: frozenset[str] = frozenset()
     deny: frozenset[str] = frozenset()
+    # Pattern-based rules (glob by default, regex with pattern_mode="regex")
+    allow_patterns: tuple[str, ...] = ()
+    deny_patterns: tuple[str, ...] = ()
+    ask_patterns: tuple[str, ...] = ()
+    pattern_mode: str = "glob"  # "glob" or "regex"
+
+    def _matches_any(self, tool_name: str, patterns: tuple[str, ...]) -> bool:
+        """Check if tool_name matches any of the patterns."""
+        for pattern in patterns:
+            if self.pattern_mode == "regex":
+                if re.fullmatch(pattern, tool_name):
+                    return True
+            else:
+                if fnmatch.fnmatch(tool_name, pattern):
+                    return True
+        return False
 
     def check(self, tool_name: str) -> str:
-        """Return ``'allow'``, ``'ask'``, or ``'deny'`` for a tool."""
+        """Return ``'allow'``, ``'ask'``, or ``'deny'`` for a tool.
+
+        Exact names take priority over patterns. Deny wins over ask
+        wins over allow within each tier.
+        """
+        # Exact matches first (highest priority)
         if tool_name in self.deny:
             return "deny"
         if tool_name in self.allow:
             return "allow"
         if tool_name in self.ask:
             return "ask"
+
+        # Pattern matches (second priority)
+        if self._matches_any(tool_name, self.deny_patterns):
+            return "deny"
+        if self._matches_any(tool_name, self.allow_patterns):
+            return "allow"
+        if self._matches_any(tool_name, self.ask_patterns):
+            return "ask"
+
         return "ask"
 
     def merge(self, other: PermissionPolicy) -> PermissionPolicy:
@@ -53,6 +96,10 @@ class PermissionPolicy:
             ask=self.ask | other.ask,
             allow=(self.allow | other.allow) - other.ask - other.deny,
             deny=self.deny | other.deny,
+            allow_patterns=self.allow_patterns + other.allow_patterns,
+            deny_patterns=self.deny_patterns + other.deny_patterns,
+            ask_patterns=self.ask_patterns + other.ask_patterns,
+            pattern_mode=other.pattern_mode if other.pattern_mode != "glob" else self.pattern_mode,
         )
 
 

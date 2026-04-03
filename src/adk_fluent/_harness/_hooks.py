@@ -91,6 +91,34 @@ class HookRegistry:
         """Shorthand for ``.on("turn_complete", ...)``."""
         return self.on("turn_complete", command, **kwargs)
 
+    def on_edit(self, command: str, **kwargs: Any) -> HookRegistry:
+        """Run after any file edit.
+
+        The command can use ``{file_path}`` placeholder.
+        """
+        return self.on("file_edited", command, **kwargs)
+
+    def on_error(self, command: str, **kwargs: Any) -> HookRegistry:
+        """Run on tool or model error.
+
+        The command can use ``{tool_name}`` and ``{error}`` placeholders.
+        """
+        return self.on("error", command, **kwargs)
+
+    def on_commit(self, command: str, **kwargs: Any) -> HookRegistry:
+        """Run after a git checkpoint is created.
+
+        The command can use ``{commit_sha}`` placeholder.
+        """
+        return self.on("git_checkpoint", command, **kwargs)
+
+    def on_compress(self, command: str, **kwargs: Any) -> HookRegistry:
+        """Run after context compression is triggered.
+
+        The command can use ``{token_count}`` placeholder.
+        """
+        return self.on("compression_triggered", command, **kwargs)
+
     def fire_sync(self, event: str, **context: Any) -> list[HookFired]:
         """Fire all hooks for an event synchronously.
 
