@@ -1844,6 +1844,18 @@ class BuilderBase:
                 if compiled.get("instruction") is not None:
                     config["instruction"] = compiled["instruction"]
 
+        # Skill specs: compile attached skills into static_instruction
+        skills = self._config.get("_skills")
+        if skills:
+            from adk_fluent._harness import _compile_skills_to_static
+
+            compiled_skills = _compile_skills_to_static(skills)
+            existing_static = config.get("static_instruction")
+            if existing_static:
+                config["static_instruction"] = str(existing_static) + "\n\n" + compiled_skills
+            else:
+                config["static_instruction"] = compiled_skills
+
         # Prompt spec: compile P transforms into instruction string or InstructionProvider
         prompt_spec = self._config.get("_prompt_spec")
         if prompt_spec is not None:
@@ -2603,6 +2615,115 @@ class BuilderBase:
         """
         existing = self._config.setdefault("_resources", {})
         existing.update(resources)
+        return self
+
+    # ------------------------------------------------------------------
+    # Skill loading: .skill() — L1 expertise layer
+    # ------------------------------------------------------------------
+
+    def use_skill(self, path: str | Any) -> Self:
+        """Attach expertise from a SKILL.md file to this agent.
+
+        The skill body is loaded and compiled into the agent's
+        ``static_instruction`` — cached, stable context that persists
+        across turns. The agent's ``.instruct()`` remains the per-task
+        instruction.
+
+        Multiple skills compose additively::
+
+            agent = (
+                Agent("analyst", "gemini-2.5-pro")
+                .use_skill("skills/research-methodology/")
+                .use_skill("skills/citation-standards/")
+                .instruct("Analyze {topic} using your expertise.")
+            )
+
+        The separation is meaningful:
+
+        - **Skills** → ``static_instruction`` (cached, stable expertise)
+        - **Instruction** → ``instruction`` (per-task, dynamic)
+
+        Skills are portable agentskills.io SKILL.md files. No ``agents:``
+        block needed — the body IS the expertise.
+
+        Args:
+            path: Path to a SKILL.md file or its parent directory.
+
+        Returns:
+            Self for chaining.
+        """
+        from pathlib import Path as _Path
+
+        from adk_fluent._harness import SkillSpec
+
+        self = self._maybe_fork_for_mutation()
+
+        spec = SkillSpec.from_path(path) if isinstance(path, (str, _Path)) else path
+        # Copy the list to avoid mutating a shared reference from fork
+        skills = list(self._config.get("_skills", []))
+        skills.append(spec)
+        self._config["_skills"] = skills
+        return self
+
+    # ------------------------------------------------------------------
+    # Harness configuration: .harness()
+    # ------------------------------------------------------------------
+
+    def harness(
+        self,
+        *,
+        permissions: Any | None = None,
+        sandbox: Any | None = None,
+        auto_compress: int = 100_000,
+        approval_handler: Any | None = None,
+    ) -> Self:
+        """Configure this agent as an interactive harness runtime.
+
+        Attaches permission enforcement, sandbox policies, and context
+        compression to produce a CodAct-style agent runtime.
+
+        Args:
+            permissions: A :class:`PermissionPolicy` from ``H.ask_before()``
+                / ``H.auto_allow()`` / ``H.deny()``.
+            sandbox: A :class:`SandboxPolicy` from ``H.workspace_only()``
+                / ``H.sandbox()``.
+            auto_compress: Token threshold for auto-compression (default 100k).
+            approval_handler: Callable ``(tool_name, args) -> bool`` for
+                interactive approval. If None, defaults to auto-allow.
+
+        Usage::
+
+            agent = (
+                Agent("coder", "gemini-2.5-pro")
+                .tools(H.workspace("/project"))
+                .harness(
+                    permissions=H.ask_before("bash", "edit_file"),
+                    sandbox=H.workspace_only("/project"),
+                )
+            )
+        """
+        from adk_fluent._harness import (
+            HarnessConfig,
+            PermissionPolicy,
+            SandboxPolicy,
+            _make_permission_callback,
+        )
+
+        self = self._maybe_fork_for_mutation()
+
+        cfg = HarnessConfig(
+            permissions=permissions or PermissionPolicy(),
+            sandbox=sandbox or SandboxPolicy(),
+            auto_compress_threshold=auto_compress,
+            approval_handler=approval_handler,
+        )
+        self._config["_harness_config"] = cfg
+
+        # Wire permission enforcement as before_tool callback
+        if permissions is not None:
+            cb = _make_permission_callback(cfg.permissions, cfg.approval_handler)
+            self._callbacks.setdefault("before_tool_callback", []).append(cb)
+
         return self
 
     def to_mermaid(
