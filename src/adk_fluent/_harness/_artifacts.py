@@ -196,8 +196,9 @@ class ArtifactStore:
 
 def _human_size(size: int) -> str:
     """Convert bytes to human-readable size."""
+    fsize = float(size)
     for unit in ("B", "KB", "MB", "GB"):
-        if size < 1024:
-            return f"{size:.1f} {unit}" if unit != "B" else f"{size} {unit}"
-        size /= 1024
-    return f"{size:.1f} TB"
+        if fsize < 1024:
+            return f"{fsize:.1f} {unit}" if unit != "B" else f"{size} {unit}"
+        fsize /= 1024
+    return f"{fsize:.1f} TB"

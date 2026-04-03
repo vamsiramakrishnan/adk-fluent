@@ -67,11 +67,15 @@ class StreamingBash:
 
             total_bytes = 0
             max_bytes = self.sandbox.max_output_bytes
+            stdout = proc.stdout
+            if stdout is None:
+                yield "Error: failed to capture stdout"
+                return
 
             async def _read_with_timeout():
                 try:
                     return await asyncio.wait_for(
-                        proc.stdout.read(4096),
+                        stdout.read(4096),
                         timeout=timeout,
                     )
                 except TimeoutError:
