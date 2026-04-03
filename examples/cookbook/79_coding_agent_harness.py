@@ -99,12 +99,7 @@ def test_workspace_tools():
 def test_tool_composition():
     """Combine tool sets with + operator."""
     with tempfile.TemporaryDirectory() as project:
-        tools = (
-            H.workspace(project)
-            + H.web()
-            + H.git_tools(project)
-            + H.processes(project)
-        )
+        tools = H.workspace(project) + H.web() + H.git_tools(project) + H.processes(project)
         names = [t.__name__ if hasattr(t, "__name__") else str(t) for t in tools]
 
         # Workspace: read, edit, write, glob, grep, bash, ls = 7
@@ -156,10 +151,7 @@ def test_permission_policies():
 
 def test_pattern_permissions():
     """Pattern-based permissions for large tool sets."""
-    permissions = (
-        H.allow_patterns("read_*", "list_*", "grep_*")
-        .merge(H.deny_patterns("*_delete", "*_destroy"))
-    )
+    permissions = H.allow_patterns("read_*", "list_*", "grep_*").merge(H.deny_patterns("*_delete", "*_destroy"))
     assert permissions.allow_patterns is not None
     assert permissions.deny_patterns is not None
 
@@ -228,11 +220,7 @@ def test_tool_policy():
 
 def test_tool_policy_merge():
     """Merge policies from different sources."""
-    base = (
-        H.tool_policy()
-        .retry("bash", max_attempts=2)
-        .skip("glob_search")
-    )
+    base = H.tool_policy().retry("bash", max_attempts=2).skip("glob_search")
     override = (
         H.tool_policy()
         .retry("bash", max_attempts=5)  # override base
@@ -317,16 +305,20 @@ def test_renderer():
     """Event renderer converts events to display strings."""
     renderer = H.renderer("plain", show_timing=True, show_args=True)
 
-    text = renderer.render(ToolCallStart(
-        tool_name="edit_file",
-        args={"path": "main.py"},
-    ))
+    text = renderer.render(
+        ToolCallStart(
+            tool_name="edit_file",
+            args={"path": "main.py"},
+        )
+    )
     assert "edit_file" in text
 
-    text = renderer.render(ToolCallEnd(
-        tool_name="edit_file",
-        duration_ms=150.0,
-    ))
+    text = renderer.render(
+        ToolCallEnd(
+            tool_name="edit_file",
+            duration_ms=150.0,
+        )
+    )
     assert "edit_file" in text
     assert "150" in text
 
@@ -548,8 +540,7 @@ def test_full_coding_agent():
         agent = agent.harness(
             permissions=(
                 H.auto_allow("read_file", "glob_search", "grep_search", "list_dir")
-                .merge(H.ask_before("edit_file", "diff_edit_file", "apply_edit",
-                                    "write_file", "bash"))
+                .merge(H.ask_before("edit_file", "diff_edit_file", "apply_edit", "write_file", "bash"))
                 .merge(H.deny("rm_rf"))
             ),
             sandbox=H.workspace_only(project),
@@ -572,16 +563,11 @@ def test_full_coding_agent():
             .skip("glob_search", fallback="No matching files found.")
             .with_bus(bus)
         )
-        hooks = (
-            H.hooks(project)
-            .on_edit("echo 'lint {file_path}'")
-            .on_error("echo 'error: {error}'")
-        )
+        hooks = H.hooks(project).on_edit("echo 'lint {file_path}'").on_error("echo 'error: {error}'")
         bus.hooks(hooks)
 
         agent = (
-            agent
-            .before_tool(bus.before_tool_hook())
+            agent.before_tool(bus.before_tool_hook())
             .before_tool(make_cancellation_callback(token))
             .after_tool(bus.after_tool_hook())
             .after_tool(policy.after_tool_hook())
@@ -656,6 +642,7 @@ def test_manifold_discovery():
     When you have 100+ tools but the LLM can only handle ~30 at once,
     the manifold lets the LLM discover and load what it needs.
     """
+
     def search_code(query: str) -> str:
         """Search codebase for a pattern."""
         return f"Results for: {query}"
