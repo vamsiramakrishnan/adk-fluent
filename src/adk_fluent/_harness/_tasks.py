@@ -111,6 +111,20 @@ class TaskRegistry:
             return True
         return False
 
+    def to_ledger(self) -> Any:
+        """Convert to a ``TaskLedger`` (the foundation primitive).
+
+        Returns a ``TaskLedger`` with equivalent task metadata.
+        Use this to migrate from ``TaskRegistry`` to the composable
+        ``TaskLedger`` which supports EventBus integration.
+
+        Returns:
+            A ``TaskLedger`` instance.
+        """
+        from adk_fluent._harness._task_ledger import TaskLedger
+
+        return TaskLedger.from_registry(self)
+
 
 def task_tools(registry: TaskRegistry | None = None) -> list[Callable]:
     """Create the background task tool set.

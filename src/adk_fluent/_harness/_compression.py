@@ -196,6 +196,29 @@ class ContextCompressor:
         """Number of times compression has been triggered."""
         return self._compression_count
 
+    def to_monitor(self) -> Any:
+        """Create a ``BudgetMonitor`` wired to this compressor.
+
+        The monitor tracks tokens at the model level and delegates
+        compression to this compressor when the threshold is crossed.
+        This bridges the gap between session-level monitoring
+        (BudgetMonitor) and message-level compression (ContextCompressor).
+
+        Returns:
+            A ``BudgetMonitor`` pre-configured with this threshold.
+        """
+        from adk_fluent._harness._budget_monitor import BudgetMonitor
+
+        compressor = self
+
+        def _compress_on_threshold(monitor: Any) -> None:
+            if compressor.on_compress:
+                compressor.on_compress(monitor.current_tokens)
+
+        monitor = BudgetMonitor(max_tokens=self.threshold)
+        monitor.on_threshold(0.95, _compress_on_threshold)
+        return monitor
+
     @staticmethod
     def _drop_old(messages: list[dict], keep: int) -> list[dict]:
         """Drop oldest messages, keeping system messages and last N."""

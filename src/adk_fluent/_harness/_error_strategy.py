@@ -72,6 +72,20 @@ class ErrorStrategy:
             fallback_message=other.fallback_message or self.fallback_message,
         )
 
+    def to_policy(self) -> Any:
+        """Convert to a ``ToolPolicy`` (the foundation primitive).
+
+        Returns a ``ToolPolicy`` with equivalent rules. Use this to
+        migrate from the declarative ``ErrorStrategy`` to the
+        composable ``ToolPolicy`` builder.
+
+        Returns:
+            A ``ToolPolicy`` instance.
+        """
+        from adk_fluent._harness._tool_policy import ToolPolicy
+
+        return ToolPolicy.from_strategy(self)
+
 
 def make_error_callbacks(
     strategy: ErrorStrategy,

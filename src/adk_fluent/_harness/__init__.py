@@ -40,6 +40,9 @@ split into focused modules:
 # Artifacts
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
 
+# Budget monitor
+from adk_fluent._harness._budget_monitor import BudgetMonitor, Threshold
+
 # Commands (slash commands)
 from adk_fluent._harness._commands import CommandRegistry, CommandSpec
 
@@ -60,6 +63,9 @@ from adk_fluent._harness._dispatcher import EventDispatcher
 
 # Error strategy
 from adk_fluent._harness._error_strategy import ErrorStrategy, make_error_callbacks
+
+# Event bus
+from adk_fluent._harness._event_bus import EventBus
 from adk_fluent._harness._events import (
     ArtifactSaved,
     CapabilityLoaded,
@@ -158,8 +164,14 @@ from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 # Session tape
 from adk_fluent._harness._tape import SessionTape
 
-# Tasks
+# Task ledger
+from adk_fluent._harness._task_ledger import TaskLedger, TaskState
+
+# Tasks (legacy — prefer TaskLedger)
 from adk_fluent._harness._tasks import TaskRegistry, TaskStatus, task_tools
+
+# Tool policy
+from adk_fluent._harness._tool_policy import ToolPolicy, ToolRule
 
 # Tools
 from adk_fluent._harness._tools import (
@@ -214,6 +226,17 @@ __all__ = [
     "TaskEvent",
     "CapabilityLoaded",
     "ManifoldFinalized",
+    # Event bus
+    "EventBus",
+    # Budget monitor
+    "BudgetMonitor",
+    "Threshold",
+    # Tool policy
+    "ToolPolicy",
+    "ToolRule",
+    # Task ledger
+    "TaskLedger",
+    "TaskState",
     # Manifold
     "CapabilityType",
     "CapabilityEntry",

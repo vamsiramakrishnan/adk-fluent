@@ -17,6 +17,13 @@ Consumers can subscribe to specific event kinds::
     dispatcher.on("text", print_text)
     dispatcher.on("tool_call_start", show_spinner)
     dispatcher.on("turn_complete", log_turn)
+
+.. note::
+
+    EventDispatcher delegates its pub/sub routing to ``EventBus``.
+    The dispatcher adds ADK event *translation*; the bus provides
+    the subscriber backbone. Use ``EventBus`` directly when you
+    don't need ADK translation.
 """
 
 from __future__ import annotations
@@ -24,6 +31,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from adk_fluent._harness._event_bus import EventBus
 from adk_fluent._harness._events import (
     HarnessEvent,
     TextChunk,
@@ -38,19 +46,24 @@ __all__ = ["EventDispatcher"]
 class EventDispatcher:
     """Translates ADK events into HarnessEvents and routes them.
 
-    The dispatcher is the central event bus for a harness runtime.
-    It handles:
-        - ADK event → HarnessEvent translation
-        - Fan-out to subscribers (by kind or all)
-        - Event buffering for late subscribers
+    Delegates subscriber management to an ``EventBus``. The dispatcher
+    adds the ADK-specific ``translate()`` method that converts raw ADK
+    events into the typed ``HarnessEvent`` hierarchy.
+
+    Args:
+        bus: Optional EventBus to delegate to. Creates one if not provided.
     """
 
-    def __init__(self) -> None:
-        self._subscribers: dict[str, list[Callable[[HarnessEvent], None]]] = {}
-        self._global_subscribers: list[Callable[[HarnessEvent], None]] = []
+    def __init__(self, bus: EventBus | None = None) -> None:
+        self._bus = bus or EventBus()
+
+    @property
+    def bus(self) -> EventBus:
+        """The underlying EventBus."""
+        return self._bus
 
     def subscribe(self, handler: Callable[[HarnessEvent], None]) -> EventDispatcher:
-        """Subscribe to all events.
+        """Subscribe to all events. Delegates to EventBus.
 
         Args:
             handler: Callback receiving every HarnessEvent.
@@ -58,11 +71,11 @@ class EventDispatcher:
         Returns:
             Self for chaining.
         """
-        self._global_subscribers.append(handler)
+        self._bus.subscribe(handler)
         return self
 
     def on(self, kind: str, handler: Callable[[HarnessEvent], None]) -> EventDispatcher:
-        """Subscribe to events of a specific kind.
+        """Subscribe to events of a specific kind. Delegates to EventBus.
 
         Args:
             kind: Event kind to listen for (e.g., "text", "tool_call_start").
@@ -71,26 +84,16 @@ class EventDispatcher:
         Returns:
             Self for chaining.
         """
-        self._subscribers.setdefault(kind, []).append(handler)
+        self._bus.on(kind, handler)
         return self
 
     def emit(self, event: HarnessEvent) -> None:
-        """Emit a HarnessEvent to all matching subscribers.
+        """Emit a HarnessEvent to all matching subscribers. Delegates to EventBus.
 
         Args:
             event: The event to dispatch.
         """
-        import contextlib
-
-        # Kind-specific subscribers
-        for handler in self._subscribers.get(event.kind, []):
-            with contextlib.suppress(Exception):
-                handler(event)
-
-        # Global subscribers
-        for handler in self._global_subscribers:
-            with contextlib.suppress(Exception):
-                handler(event)
+        self._bus.emit(event)
 
     def translate(self, adk_event: Any) -> list[HarnessEvent]:
         """Translate an ADK event into zero or more HarnessEvents.

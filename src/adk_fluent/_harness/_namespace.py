@@ -933,6 +933,117 @@ class H:
         )
 
     # =================================================================
+    # EventBus — session-scoped typed event backbone
+    # =================================================================
+
+    @staticmethod
+    def event_bus(*, max_buffer: int = 0) -> Any:
+        """Create a session-scoped typed event bus.
+
+        The EventBus is the observer backbone. All harness modules
+        (dispatcher, tape, renderer, hooks) subscribe to it instead
+        of building their own observation layers::
+
+            bus = H.event_bus()
+            bus.on("tool_call_start", lambda e: print(e.tool_name))
+
+            tape = bus.tape()           # pre-subscribed SessionTape
+            agent = Agent("coder")
+                .before_tool(bus.before_tool_hook())
+                .after_tool(bus.after_tool_hook())
+
+        Args:
+            max_buffer: Events to retain in history (0 = none).
+        """
+        from adk_fluent._harness._event_bus import EventBus
+
+        return EventBus(max_buffer=max_buffer)
+
+    # =================================================================
+    # ToolPolicy — per-tool error recovery
+    # =================================================================
+
+    @staticmethod
+    def tool_policy(*, default: str = "propagate") -> Any:
+        """Create a per-tool error recovery policy.
+
+        Unlike ``H.on_error()`` (which maps tool sets to actions),
+        ToolPolicy is a fluent builder with per-tool granularity,
+        backoff support, and EventBus integration::
+
+            policy = (
+                H.tool_policy()
+                .retry("bash", max_attempts=3, backoff=1.0)
+                .skip("glob_search", fallback="No results.")
+                .ask("edit_file", handler=user_confirm)
+            )
+
+            agent = Agent("coder").after_tool(policy.after_tool_hook())
+
+        Args:
+            default: Default action for tools without rules.
+        """
+        from adk_fluent._harness._tool_policy import ToolPolicy
+
+        return ToolPolicy(default=default)
+
+    # =================================================================
+    # BudgetMonitor — token lifecycle with threshold triggers
+    # =================================================================
+
+    @staticmethod
+    def budget_monitor(
+        max_tokens: int = 200_000,
+    ) -> Any:
+        """Create a token budget lifecycle monitor.
+
+        Tracks cumulative token usage and fires callbacks when
+        configurable thresholds are crossed. Does NOT compress —
+        delegates to whatever handler you wire up::
+
+            monitor = (
+                H.budget_monitor(200_000)
+                .on_threshold(0.8, lambda m: print(f"⚠ {m.utilization:.0%}"))
+                .on_threshold(0.95, compress_handler)
+            )
+
+            agent = Agent("coder").after_model(monitor.after_model_hook())
+
+        Args:
+            max_tokens: Total token budget for the session.
+        """
+        from adk_fluent._harness._budget_monitor import BudgetMonitor
+
+        return BudgetMonitor(max_tokens=max_tokens)
+
+    # =================================================================
+    # TaskLedger — dispatch/join bridge
+    # =================================================================
+
+    @staticmethod
+    def task_ledger(*, max_tasks: int = 10) -> Any:
+        """Create a task lifecycle tracker with LLM-callable tools.
+
+        Bridges ``dispatch()``/``join()`` expression primitives to
+        tool-level task management. The LLM can launch, check,
+        list, and cancel tasks::
+
+            ledger = H.task_ledger()
+            agent = Agent("coder").tools(ledger.tools())
+
+        Wire to an EventBus for lifecycle events::
+
+            bus = H.event_bus()
+            ledger = H.task_ledger().with_bus(bus)
+
+        Args:
+            max_tasks: Maximum concurrent active tasks.
+        """
+        from adk_fluent._harness._task_ledger import TaskLedger
+
+        return TaskLedger(max_tasks=max_tasks)
+
+    # =================================================================
     # Unified config builder
     # =================================================================
 
