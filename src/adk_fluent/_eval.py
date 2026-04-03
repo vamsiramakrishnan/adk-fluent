@@ -427,7 +427,14 @@ class EPersona:
         behavior_objects = []
         if behaviors:
             for b in behaviors:
-                behavior_objects.append(UserBehavior(name=b, description=b))
+                behavior_objects.append(
+                    UserBehavior(
+                        name=b,
+                        description=b,
+                        behavior_instructions=[b],
+                        violation_rubrics=[],
+                    )
+                )
         return UserPersona(
             id=persona_id,
             description=description,

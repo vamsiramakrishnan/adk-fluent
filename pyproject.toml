@@ -157,6 +157,7 @@ typeCheckingMode = "strict"
 testpaths = ["tests"]
 pythonpath = ["."]
 norecursedirs = ["tests/golden"]
+asyncio_mode = "auto"
 markers = [
     "slow: marks tests that take >10s (deselect with '-m \"not slow\"')",
     "integration: marks tests requiring a full ADK install",
