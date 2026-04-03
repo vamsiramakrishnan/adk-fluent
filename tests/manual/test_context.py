@@ -132,9 +132,10 @@ class TestFromState:
         assert isinstance(t, CFromState)
         assert isinstance(t, CTransform)
 
-    def test_include_contents_is_none(self):
+    def test_include_contents_is_default(self):
+        """CFromState is a pure data-injection transform — it does not suppress history."""
         t = C.from_state("topic")
-        assert t.include_contents == "none"
+        assert t.include_contents == "default"
 
     def test_has_instruction_provider(self):
         t = C.from_state("topic")
@@ -272,10 +273,10 @@ class TestTemplate:
         t = C.template("Topic: {topic}")
         assert t.template == "Topic: {topic}"
 
-    def test_include_contents_is_none(self):
-        """CTemplate sets include_contents='none' — all context comes from template."""
+    def test_include_contents_is_default(self):
+        """CTemplate is a pure data-injection transform — it does not suppress history."""
         t = C.template("Hello {name}")
-        assert t.include_contents == "none"
+        assert t.include_contents == "default"
 
 
 # ======================================================================
@@ -366,7 +367,7 @@ class TestCompileContextSpec:
 
     def test_from_state_creates_provider(self):
         result = _compile_context_spec("Analyze {topic}.", C.from_state("topic"))
-        assert result["include_contents"] == "none"
+        assert result["include_contents"] == "default"  # CFromState is neutral
         assert callable(result["instruction"])
 
     def test_window_creates_provider(self):

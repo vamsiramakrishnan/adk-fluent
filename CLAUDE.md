@@ -133,11 +133,17 @@ All operators are immutable (copy-on-write). Sub-expressions can be reused.
 
 Each method controls exactly one concern. See `data_flow()` for a snapshot.
 
-  .reads(*keys)                — CONTEXT: inject state[key] values into agent's prompt.
-                                 Side-effect: sets include_contents="none" (suppresses
-                                 full conversation history; current turn is still visible).
+  .reads(*keys, keep_history=)  — CONTEXT: inject state[key] values into agent's prompt.
+                                 By default suppresses conversation history (the common
+                                 pipeline case). Pass keep_history=True to inject state
+                                 without suppressing history.
   .context(C.xxx())            — CONTEXT: fine-grained control over what the agent sees.
                                  Pass a C transform (C.window(5), C.user_only(), etc.).
+                                 Data-injection transforms (C.from_state, C.template,
+                                 C.notes) are neutral — they inject state without
+                                 suppressing history. History-filtering transforms
+                                 (C.none, C.window, C.user_only) suppress history.
+                                 Compose them: C.none() + C.from_state("key").
   .accepts(Schema)             — INPUT: validate input when this agent is invoked as a
                                  tool via .agent_tool(). No effect for top-level agents.
   .returns(Schema)             — OUTPUT: constrain LLM response to structured JSON
@@ -302,15 +308,24 @@ Used with `>>` operator. Compose with `>>` (chain) or `+` (combine).
 
 Used with `.context()`. Compose with `+` (union) or `|` (pipe).
 
+Two categories: **history-filtering** transforms suppress conversation
+history and replace it with their own view. **Data-injection** transforms
+are neutral — they inject state without touching history. When composed
+with `+`, suppression wins (if ANY child suppresses, the composite does).
+
+History-filtering (suppress history):
   C.none()                     — suppress all history
-  C.default()                  — default ADK behavior
+  C.default()                  — default ADK behavior (keep all)
   C.user_only()                — only user messages
   C.window(n=5)                — last N turn-pairs
-  C.from_state(*keys)          — inject state keys as context
   C.from_agents(*names)        — user + named agent outputs
   C.from_agents_windowed(n=)   — windowed agent output filtering
   C.exclude_agents(*names)     — exclude named agents
+
+Data-injection (neutral, keep history):
+  C.from_state(*keys)          — inject state keys as context
   C.template(text)             — template with {key} placeholders
+  C.notes(key)                 — inject scratchpad notes
   C.select(*agent_names)       — select specific agents
   C.recent(n=)                 — recent messages only
   C.compact()                  — remove redundant messages

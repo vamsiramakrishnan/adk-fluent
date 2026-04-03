@@ -314,7 +314,7 @@ When `output_schema` is set (via `.returns(Model)` or `@ Model`):
 
 ### Context Injection
 
-When `.reads("topic", "tone")` is set (or `.context(C.from_state("topic", "tone"))`), state values are injected into the instruction as a `<conversation_context>` block:
+When `.reads("topic", "tone")` is set (or `.context(C.from_state("topic", "tone"))`), state values are injected into the instruction as a `<conversation_context>` block. Note: `.reads()` suppresses conversation history by default (pass `keep_history=True` to override). `C.from_state()` is neutral — it injects state without suppressing history:
 
 ```
 [Your instruction text]

@@ -95,7 +95,7 @@ class TestContextWithPipeline:
         ).model("gemini-2.5-flash").instruct("Write a report.").context(C.from_state("findings"))
         built = pipeline.build()
         writer = built.sub_agents[1]
-        assert writer.include_contents == "none"
+        assert writer.include_contents == "default"  # C.from_state is neutral
         assert callable(writer.instruction)
 
 

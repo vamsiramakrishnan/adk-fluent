@@ -95,16 +95,30 @@ agent = Agent("reviewer").context(C.user_only()).instruct("Review the request.")
 
 ## `C.from_state(*keys)`
 
-Read named keys from session state and inject them as context. Suppresses conversation history by default so the agent works purely from state:
+Read named keys from session state and inject them as context. This is a **pure data-injection transform** — it injects state values without suppressing conversation history:
 
 ```python
-# After a prior agent writes state["topic"] and state["style"]
+# Inject state AND keep conversation history
 agent = (
     Agent("writer")
     .context(C.from_state("topic", "style"))
     .instruct("Write about {topic} in {style} style.")
     .build()
 )
+
+# Inject state, suppress history (common pipeline pattern)
+agent = (
+    Agent("writer")
+    .context(C.none() + C.from_state("topic", "style"))
+    .instruct("Write about {topic} in {style} style.")
+    .build()
+)
+
+# Or use .reads() which suppresses history by default
+agent = Agent("writer").reads("topic", "style").instruct("Write about {topic} in {style} style.").build()
+
+# .reads() with keep_history=True to inject state without suppressing
+agent = Agent("writer").reads("topic", "style", keep_history=True).instruct("Write.").build()
 ```
 
 ## `C.from_agents(*names)`
@@ -234,7 +248,7 @@ Pass any `C` transform to `.context()` on the agent builder. The transform is co
 agent = Agent("writer").context(C.from_state("topic")).instruct("Write about {topic}.").build()
 ```
 
-When `.context()` sets `include_contents="none"`, the agent's conversation history is suppressed and replaced by the context transform's output. The developer instruction is still templated with state variables via `{key}` placeholders.
+When a context transform sets `include_contents="none"`, the agent's conversation history is suppressed and replaced by the transform's output. Data-injection transforms (`C.from_state`, `C.template`, `C.notes`) are **neutral** — they do not suppress history. History-filtering transforms (`C.none`, `C.window`, `C.user_only`) suppress history and replace it with their own view. Compose them for both:
 
 ## Complete Example
 
@@ -278,7 +292,7 @@ The classifier sees only its instruction -- no history, no prior agent output. T
 
 Understanding exactly what the LLM receives helps debug unexpected behavior.
 
-### `.reads()` suppresses history
+### `.reads()` suppresses history by default
 
 When you use `.reads("topic")`, the agent's `include_contents` is set to `"none"`. This means **no conversation history is sent**. The agent sees only:
 
@@ -288,11 +302,16 @@ When you use `.reads("topic")`, the agent's `include_contents` is set to `"none"
 ```python
 # This agent sees NO conversation history — only state["topic"]
 Agent("writer").reads("topic").instruct("Write about {topic}.")
+
+# Inject state WITHOUT suppressing history
+Agent("writer").reads("topic", keep_history=True).instruct("Write about {topic}.")
 ```
 
 ### `.context()` controls what history is included
 
-Different `C` primitives set different `include_contents` values:
+Context transforms fall into two categories:
+
+**History-filtering transforms** suppress the default conversation history and replace it with their own view:
 
 | Primitive             | `include_contents` | What the LLM sees                          |
 | --------------------- | ------------------ | ------------------------------------------ |
@@ -300,11 +319,24 @@ Different `C` primitives set different `include_contents` values:
 | `C.none()`            | `"none"`           | Nothing — just the instruction             |
 | `C.user_only()`       | `"none"`           | User messages only (injected via provider) |
 | `C.window(n=3)`       | `"none"`           | Last 3 turns (injected via provider)       |
-| `C.from_state("key")` | `"none"`           | State values (injected via provider)       |
 
-### Composing preserves the most restrictive setting
+**Data-injection transforms** are neutral — they inject state without touching history:
 
-When composing with `+`, the result inherits `include_contents="none"` if **any** component sets it. The combined `instruction_provider` assembles all components.
+| Primitive             | `include_contents` | What the LLM sees                          |
+| --------------------- | ------------------ | ------------------------------------------ |
+| `C.from_state("key")` | `"default"`        | State values + full conversation history   |
+| `C.template("...")`   | `"default"`        | Templated text + full conversation history |
+| `C.notes("key")`      | `"default"`        | Scratchpad notes + full conversation history |
+
+### Composing: suppression wins
+
+When composing with `+`, the result inherits `include_contents="none"` if **any** component suppresses. This makes composition intuitive:
+
+```python
+C.window(n=3) + C.from_state("topic")   # → "none" (window suppresses)
+C.from_state("x") + C.template("...")    # → "default" (both neutral)
+C.none() + C.from_state("key")           # → "none" (none suppresses)
+```
 
 ### Unreferenced state is NOT sent
 

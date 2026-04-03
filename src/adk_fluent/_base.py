@@ -2421,7 +2421,7 @@ class BuilderBase:
     # Interop convenience: .reads(), .writes()
     # ------------------------------------------------------------------
 
-    def reads(self, *keys: str) -> Self:
+    def reads(self, *keys: str, keep_history: bool = False) -> Self:
         """Inject named state keys into this agent's context window.
 
         At runtime, the values of the specified state keys are prepended to
@@ -2430,8 +2430,14 @@ class BuilderBase:
         an upstream agent ``.writes("findings")``, a downstream agent
         ``.reads("findings")``.
 
+        By default, ``.reads()`` also suppresses conversation history
+        (``include_contents="none"``). This is the right behavior for
+        pipeline nodes that should only see data, not chat history.
+        Pass ``keep_history=True`` to inject state **without** suppressing
+        conversation history.
+
         Composes additively: calling ``.reads()`` after ``.context()`` unions
-        the specs. Shorthand for ``.context(C.from_state(*keys))``.
+        the specs.
 
         **When NOT set (default):** The agent sees the full conversation
         history (``include_contents="default"``). It does NOT automatically
@@ -2441,26 +2447,36 @@ class BuilderBase:
 
         Args:
             *keys: State key names to make visible to this agent.
+            keep_history: If ``True``, inject state values without
+                suppressing conversation history.  Defaults to ``False``
+                (history is suppressed — the common pipeline case).
 
         Usage::
 
-            # These are equivalent:
-            Agent("writer").context(C.from_state("topic", "tone"))
-            Agent("writer").reads("topic", "tone")
-
-            # Composes with existing context spec:
-            Agent("writer").context(C.window(3)).reads("topic")
-            # equivalent to: .context(C.window(3) + C.from_state("topic"))
-
-            # Natural pipeline data flow:
+            # Pipeline data flow (history suppressed by default):
             researcher = Agent("researcher").writes("findings")
             writer = Agent("writer").reads("findings").writes("draft")
             pipeline = researcher >> writer
+
+            # Inject state AND keep conversation history:
+            Agent("chat").reads("user_prefs", keep_history=True)
+
+            # Composes with existing context spec:
+            Agent("writer").context(C.window(3)).reads("topic")
+            # window suppresses history; state values are injected alongside
+
+            # Equivalent low-level composition:
+            Agent("writer").context(C.none() + C.from_state("topic"))
         """
         self = self._maybe_fork_for_mutation()
         from adk_fluent._context import C
 
         new_spec = C.from_state(*keys)
+        if not keep_history:
+            # Explicitly suppress history — the common pipeline case.
+            # C.from_state() itself is neutral (include_contents="default"),
+            # so we compose C.none() to get the suppression behavior.
+            new_spec = C.none() + new_spec
         existing = self._config.get("_context_spec")
         if existing is not None:
             self._config["_context_spec"] = existing + new_spec

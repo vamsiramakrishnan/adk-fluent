@@ -71,17 +71,17 @@ parallel_search = (
     Agent("web_searcher")
     .model(MODEL)
     .instruct("Search the web for relevant articles and blog posts. Summarize key findings.")
-    .context(C.from_state("research_plan"))
+    .context(C.none() + C.from_state("research_plan"))
     .writes("web_results")
     | Agent("academic_searcher")
     .model(MODEL)
     .instruct("Search academic databases for peer-reviewed papers. Extract methodology and conclusions.")
-    .context(C.from_state("research_plan"))
+    .context(C.none() + C.from_state("research_plan"))
     .writes("academic_results")
     | Agent("news_searcher")
     .model(MODEL)
     .instruct("Search recent news for current developments and expert commentary.")
-    .context(C.from_state("research_plan"))
+    .context(C.none() + C.from_state("research_plan"))
     .writes("news_results")
 )
 
@@ -94,7 +94,7 @@ synthesizer = (
         "Identify consensus, contradictions, and gaps. "
         "Rate confidence on a 0-1 scale."
     )
-    .context(C.from_state("web_results", "academic_results", "news_results"))
+    .context(C.none() + C.from_state("web_results", "academic_results", "news_results"))
     .writes("synthesis")
 )
 
@@ -106,12 +106,12 @@ quality_loop = (
         "Review the research synthesis for accuracy, completeness, and bias. "
         "Score quality from 0 to 1. If below 0.85, specify what needs improvement."
     )
-    .context(C.from_state("synthesis"))
+    .context(C.none() + C.from_state("synthesis"))
     .writes("quality_score")
     >> Agent("revision_agent")
     .model(MODEL)
     .instruct("Revise the synthesis based on reviewer feedback. Address gaps and improve weak sections.")
-    .context(C.from_state("synthesis", "quality_score"))
+    .context(C.none() + C.from_state("synthesis", "quality_score"))
     .writes("synthesis")
 ).loop_until(lambda s: float(s.get("quality_score", 0)) >= 0.85, max_iterations=3)
 
@@ -120,7 +120,7 @@ report_writer = (
     Agent("report_writer")
     .model(MODEL)
     .instruct("Write the final research report with executive summary, key findings, and confidence assessment.")
-    .context(C.from_state("synthesis"))
+    .context(C.none() + C.from_state("synthesis"))
     @ ResearchReport
 )
 

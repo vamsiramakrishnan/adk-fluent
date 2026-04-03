@@ -45,7 +45,7 @@ support_pipeline = (
             "You are a billing specialist. Help the customer with their billing issue.\n"
             "Customer message: {customer_message}"
         )
-        .context(C.from_state("customer_message")),
+        .context(C.none() + C.from_state("customer_message")),  # state only, no history
     )
     .eq(
         "technical",
@@ -56,7 +56,7 @@ support_pipeline = (
             "Customer message: {customer_message}\n"
             "Urgency: {urgency}"
         )
-        .context(C.from_state("customer_message", "urgency") + C.window(n=3)),
+        .context(C.window(n=3) + C.from_state("customer_message", "urgency")),  # last 3 turns + state
     )
     .otherwise(
         Agent("general_agent")
