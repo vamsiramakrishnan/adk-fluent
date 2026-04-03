@@ -55,9 +55,9 @@ def _load_single_server(
         connection_params = spec
 
     try:
-        builder = McpToolset(connection_params)
+        builder = McpToolset(connection_params)  # type: ignore[arg-type]
         if tool_filter is not None:
-            builder = builder.tool_filter(tool_filter)
+            builder = builder.tool_filter(tool_filter)  # type: ignore[arg-type]
         if prefix is not None:
             builder = builder.tool_name_prefix(prefix)
         return [builder.build()]

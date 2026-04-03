@@ -422,20 +422,16 @@ class ManifoldToolset:
 
             # Summary
             tools = [
-                n
-                for n in all_names
-                if manifold._registry.get(n) and manifold._registry.get(n).cap_type == CapabilityType.TOOL
-            ]  # type: ignore[union-attr]
+                n for n in all_names if (entry := manifold._registry.get(n)) and entry.cap_type == CapabilityType.TOOL
+            ]
             skills = [
-                n
-                for n in all_names
-                if manifold._registry.get(n) and manifold._registry.get(n).cap_type == CapabilityType.SKILL
-            ]  # type: ignore[union-attr]
+                n for n in all_names if (entry := manifold._registry.get(n)) and entry.cap_type == CapabilityType.SKILL
+            ]
             mcps = [
                 n
                 for n in all_names
-                if manifold._registry.get(n) and manifold._registry.get(n).cap_type == CapabilityType.MCP_SERVER
-            ]  # type: ignore[union-attr]
+                if (entry := manifold._registry.get(n)) and entry.cap_type == CapabilityType.MCP_SERVER
+            ]
 
             parts = [f"Manifold finalized with {len(all_names)} capabilities:"]
             if tools:

@@ -32,7 +32,7 @@ from adk_fluent._tool_registry import ToolRegistry
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    return asyncio.run(coro)
 
 
 # ======================================================================

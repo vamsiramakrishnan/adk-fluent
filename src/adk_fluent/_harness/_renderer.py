@@ -178,7 +178,7 @@ class RichRenderer:
         self.show_args = show_args
         self._fallback: PlainRenderer | None = None
         try:
-            import rich  # noqa: F401
+            import rich  # noqa: F401  # pyright: ignore[reportMissingImports]
 
             self._has_rich = True
         except ImportError:
