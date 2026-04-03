@@ -30,6 +30,8 @@ __all__ = [
     "UsageUpdate",
     "ProcessEvent",
     "TaskEvent",
+    "CapabilityLoaded",
+    "ManifoldFinalized",
 ]
 
 
@@ -176,3 +178,22 @@ class TaskEvent(HarnessEvent):
     task_name: str = ""
     status: str = ""  # "pending", "running", "complete", "failed"
     kind: str = "task_event"
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityLoaded(HarnessEvent):
+    """A capability was loaded into the manifold."""
+
+    capability_name: str = ""
+    cap_type: str = ""  # "tool", "skill", "mcp_server"
+    kind: str = "capability_loaded"
+
+
+@dataclass(frozen=True, slots=True)
+class ManifoldFinalized(HarnessEvent):
+    """The manifold discovery phase completed."""
+
+    tool_count: int = 0
+    skill_count: int = 0
+    mcp_count: int = 0
+    kind: str = "manifold_finalized"

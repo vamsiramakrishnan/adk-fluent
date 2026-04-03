@@ -59,12 +59,14 @@ from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._error_strategy import ErrorStrategy, make_error_callbacks
 from adk_fluent._harness._events import (
     ArtifactSaved,
+    CapabilityLoaded,
     CompressionTriggered,
     ErrorOccurred,
     FileEdited,
     GitCheckpoint,
     HarnessEvent,
     HookFired,
+    ManifoldFinalized,
     PermissionRequest,
     PermissionResult,
     ProcessEvent,
@@ -84,6 +86,14 @@ from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
 
 # Hooks
 from adk_fluent._harness._hooks import HookRegistry, HookSpec
+
+# Manifold
+from adk_fluent._harness._manifold import (
+    CapabilityEntry,
+    CapabilityRegistry,
+    CapabilityType,
+    ManifoldToolset,
+)
 
 # MCP
 from adk_fluent._harness._mcp import load_mcp_config, load_mcp_tools
@@ -183,6 +193,13 @@ __all__ = [
     "UsageUpdate",
     "ProcessEvent",
     "TaskEvent",
+    "CapabilityLoaded",
+    "ManifoldFinalized",
+    # Manifold
+    "CapabilityType",
+    "CapabilityEntry",
+    "CapabilityRegistry",
+    "ManifoldToolset",
     # Permissions
     "PermissionPolicy",
     "ApprovalMemory",

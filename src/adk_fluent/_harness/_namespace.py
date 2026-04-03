@@ -661,6 +661,95 @@ class H:
         )
 
     # =================================================================
+    # Manifold — unified runtime capability discovery
+    # =================================================================
+
+    @staticmethod
+    def manifold(
+        *,
+        tools: Any | None = None,
+        skills: str | Path | Any | None = None,
+        mcp: list[dict[str, Any]] | None = None,
+        mcp_config: str | Path | None = None,
+        always_loaded: list[str] | None = None,
+        max_tools: int = 30,
+    ) -> Any:
+        """Create a unified runtime capability discovery surface.
+
+        The manifold extends the two-phase ``SearchToolset`` pattern to
+        tools, skills, AND MCP servers. The LLM discovers and loads
+        capabilities at runtime through a single search interface.
+
+        Phase 1 (Discovery): ``search_capabilities`` → ``load_capability``
+        Phase 2 (Execution): ``finalize_capabilities`` → frozen tool set
+
+        Composes with existing building blocks:
+            - ``ToolRegistry`` for tool search
+            - ``SkillRegistry`` for skill scanning
+            - ``McpToolset`` for MCP server wiring
+
+        Usage::
+
+            manifold = H.manifold(
+                tools=ToolRegistry.from_tools(fn1, fn2, fn3),
+                skills="skills/",
+                mcp_config="/project/.agent/mcp.json",
+            )
+
+            agent = Agent("coder").tools(manifold)
+
+        After finalization, loaded skills are compiled to
+        ``static_instruction`` accessible via ``manifold.compiled_skills``.
+
+        Args:
+            tools: A ``ToolRegistry`` instance (for tool discovery).
+            skills: Path to skills directory (str/Path) or ``SkillRegistry``.
+            mcp: List of MCP server spec dicts.
+            mcp_config: Path to MCP JSON config file.
+            always_loaded: Capabilities to always include.
+            max_tools: Maximum active tools after finalization.
+        """
+        from adk_fluent._harness._manifold import (
+            CapabilityRegistry,
+            ManifoldToolset,
+        )
+
+        cap_registry = CapabilityRegistry()
+        tool_registry = None
+
+        # Import tools
+        if tools is not None:
+            tool_registry = tools
+            cap_registry.add_from_tool_registry(tools)
+
+        # Import skills
+        if skills is not None:
+            if isinstance(skills, (str, Path)):
+                try:
+                    from adk_fluent._skill_registry import SkillRegistry
+
+                    skill_reg = SkillRegistry(skills)
+                    cap_registry.add_from_skill_registry(skill_reg)
+                except Exception:
+                    pass  # Directory may not exist or have no SKILL.md files
+            else:
+                # Assume it's a SkillRegistry instance
+                cap_registry.add_from_skill_registry(skills)
+
+        # Import MCP servers
+        if mcp is not None:
+            cap_registry.add_mcp_servers(mcp)
+        if mcp_config is not None:
+            cap_registry.add_mcp_config(mcp_config)
+
+        return ManifoldToolset(
+            cap_registry,
+            tool_registry,
+            always_loaded=always_loaded,
+            max_tools=max_tools,
+        )
+
+    # =================================================================
     # Unified config builder
     # =================================================================
 
