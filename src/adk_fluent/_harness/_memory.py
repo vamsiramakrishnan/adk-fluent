@@ -158,6 +158,80 @@ class ProjectMemory:
 
         return _persist_memory
 
+    def search(self, query: str, top_k: int = 5) -> list[str]:
+        """Search memory entries by relevance.
+
+        Uses BM25 when ``rank_bm25`` is installed, falls back to
+        substring matching. Reuses the same optional dependency as
+        ``ToolRegistry``.
+
+        Args:
+            query: Natural language search query.
+            top_k: Maximum results to return.
+
+        Returns:
+            List of matching memory entry strings, most relevant first.
+        """
+        content = self.load()
+        if not content:
+            return []
+
+        # Split into entries (lines starting with "- [")
+        entries = []
+        for line in content.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("- ["):
+                entries.append(stripped)
+            elif stripped and entries:
+                # Continuation of previous entry
+                entries[-1] += " " + stripped
+
+        if not entries:
+            # Fall back to paragraph splitting
+            entries = [p.strip() for p in content.split("\n\n") if p.strip()]
+
+        if not entries:
+            return []
+
+        try:
+            from rank_bm25 import BM25Okapi  # type: ignore[import-untyped]
+
+            corpus = [e.lower().split() for e in entries]
+            bm25 = BM25Okapi(corpus)
+            scores = bm25.get_scores(query.lower().split())
+            ranked = sorted(zip(entries, scores), key=lambda x: x[1], reverse=True)
+            return [e for e, s in ranked[:top_k] if s > 0] or entries[:top_k]
+        except ImportError:
+            pass
+
+        # Substring fallback
+        query_lower = query.lower()
+        matches = [e for e in entries if any(w in e.lower() for w in query_lower.split())]
+        return matches[:top_k] if matches else entries[:top_k]
+
+    def search_callback(self) -> Callable:
+        """Create a tool function for LLM-driven memory search.
+
+        Returns a callable suitable for use with ``.tool()``::
+
+            mem = H.memory("/project/.agent-memory.md")
+            agent = Agent("coder").tool(mem.search_callback())
+        """
+        memory = self
+
+        def search_memory(query: str) -> str:
+            """Search project memory for relevant entries.
+
+            Args:
+                query: What to search for in project memory.
+            """
+            results = memory.search(query)
+            if not results:
+                return "No matching entries found in project memory."
+            return "\n".join(results)
+
+        return search_memory
+
     def clear(self) -> None:
         """Clear the memory file and internal entries."""
         if self.path.exists():

@@ -40,6 +40,9 @@ split into focused modules:
 # Artifacts
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
 
+# Commands (slash commands)
+from adk_fluent._harness._commands import CommandRegistry, CommandSpec
+
 # Compression
 from adk_fluent._harness._compression import (
     CompressionStrategy,
@@ -80,6 +83,9 @@ from adk_fluent._harness._events import (
 
 # Git
 from adk_fluent._harness._git import GitCheckpointer
+
+# Git tools
+from adk_fluent._harness._git_tools import git_tools
 
 # Gitignore
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
@@ -138,6 +144,9 @@ from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
 
 # Streaming
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
+
+# Session tape
+from adk_fluent._harness._tape import SessionTape
 
 # Tasks
 from adk_fluent._harness._tasks import TaskRegistry, TaskStatus, task_tools
@@ -255,6 +264,8 @@ __all__ = [
     "make_streaming_bash",
     # Git
     "GitCheckpointer",
+    # Git tools
+    "git_tools",
     # Gitignore
     "GitignoreMatcher",
     "load_gitignore",
@@ -272,6 +283,11 @@ __all__ = [
     # REPL
     "HarnessRepl",
     "ReplConfig",
+    # Session tape
+    "SessionTape",
+    # Commands
+    "CommandRegistry",
+    "CommandSpec",
     # Skills
     "SkillSpec",
     "compile_skills_to_static",

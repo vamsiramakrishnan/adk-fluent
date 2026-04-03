@@ -307,6 +307,33 @@ class ManifoldToolset:
         """Whether the manifold has been finalized."""
         return self._frozen
 
+    def unfreeze(self) -> None:
+        """Unfreeze the manifold for another discovery cycle.
+
+        Resets to discovery phase while keeping previously loaded
+        capabilities. New capabilities can be searched and loaded,
+        then ``finalize()`` freezes again. Enables hot-reload::
+
+            manifold.unfreeze()
+            manifold.load("new_mcp:server")
+            manifold.finalize()
+        """
+        self._frozen = False
+        self._meta_tools = None  # rebuild meta-tools on next get_tools
+        self._active_tools = []
+        self._compiled_skills = ""
+
+    def add_capability(self, entry: CapabilityEntry) -> None:
+        """Add a capability to the registry at runtime.
+
+        Can be called between unfreeze/finalize cycles to register
+        new capabilities discovered mid-session.
+
+        Args:
+            entry: New capability entry to register.
+        """
+        self._registry.add(entry)
+
     def _build_meta_tools(self) -> list[Any]:
         """Build the discovery meta-tools."""
         from google.adk.tools.function_tool import FunctionTool

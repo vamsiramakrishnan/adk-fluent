@@ -166,6 +166,31 @@ class H:
         return PermissionPolicy(deny=frozenset(tool_names))
 
     @staticmethod
+    def allow_patterns(*patterns: str, mode: str = "glob") -> PermissionPolicy:
+        """Auto-allow tools matching glob/regex patterns.
+
+        Examples::
+
+            H.allow_patterns("read_*", "list_*")           # glob
+            H.allow_patterns(".*_search$", mode="regex")    # regex
+
+        Args:
+            patterns: Glob or regex patterns.
+            mode: ``"glob"`` (default) or ``"regex"``.
+        """
+        return PermissionPolicy(allow_patterns=patterns, pattern_mode=mode)
+
+    @staticmethod
+    def deny_patterns(*patterns: str, mode: str = "glob") -> PermissionPolicy:
+        """Deny tools matching glob/regex patterns.
+
+        Args:
+            patterns: Glob or regex patterns.
+            mode: ``"glob"`` (default) or ``"regex"``.
+        """
+        return PermissionPolicy(deny_patterns=patterns, pattern_mode=mode)
+
+    @staticmethod
     def approval_memory() -> ApprovalMemory:
         """Create an approval memory for persistent permission decisions.
 
@@ -659,6 +684,80 @@ class H:
             compressor=compressor,
             config=config,
         )
+
+    # =================================================================
+    # Git workspace tools
+    # =================================================================
+
+    @staticmethod
+    def git_tools(
+        path: str | Path | None = None,
+        *,
+        allow_shell: bool = True,
+    ) -> list[Callable]:
+        """Create git operation tools for the LLM.
+
+        Returns [git_status, git_diff, git_log, git_commit, git_branch].
+        The LLM can commit, branch, and inspect history directly::
+
+            agent = Agent("coder").tools(
+                H.workspace("/project") + H.git_tools("/project")
+            )
+
+        Args:
+            path: Git repository path.
+            allow_shell: Allow write operations (commit, branch).
+        """
+        from adk_fluent._harness._git_tools import git_tools
+
+        return git_tools(path, allow_shell=allow_shell)
+
+    # =================================================================
+    # Session tape (recording/replay)
+    # =================================================================
+
+    @staticmethod
+    def tape(*, max_events: int = 0) -> Any:
+        """Create a session tape for event recording and replay.
+
+        Compose with ``EventDispatcher`` as a subscriber::
+
+            tape = H.tape()
+            dispatcher = H.dispatcher()
+            dispatcher.subscribe(tape.record)
+
+            # After session
+            tape.save("session.jsonl")
+
+        Args:
+            max_events: Maximum events to buffer (0 = unlimited).
+        """
+        from adk_fluent._harness._tape import SessionTape
+
+        return SessionTape(max_events=max_events)
+
+    # =================================================================
+    # Slash commands
+    # =================================================================
+
+    @staticmethod
+    def commands(*, prefix: str = "/") -> Any:
+        """Create a slash command registry for the REPL.
+
+        Register ``/command`` handlers that the user can invoke::
+
+            cmds = H.commands()
+            cmds.register("clear", lambda args: "Cleared.", description="Clear context")
+            cmds.register("model", lambda args: set_model(args), description="Switch model")
+
+        Wire into the REPL loop or check with ``cmds.is_command(text)``.
+
+        Args:
+            prefix: Command prefix (default: "/").
+        """
+        from adk_fluent._harness._commands import CommandRegistry
+
+        return CommandRegistry(prefix=prefix)
 
     # =================================================================
     # Manifold — unified runtime capability discovery

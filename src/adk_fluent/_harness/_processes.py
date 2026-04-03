@@ -161,6 +161,54 @@ class ProcessRegistry:
                     info.proc.kill()
         self._processes.clear()
 
+    def tail(self, name: str, n: int = 50) -> str:
+        """Get the last N lines of output from a process.
+
+        Non-blocking — drains any available output first, then returns
+        the tail of the buffer. Useful for log monitoring.
+
+        Args:
+            name: Process name.
+            n: Number of lines to return (default 50).
+
+        Returns:
+            Last N lines of output, or error message.
+        """
+        info = self._processes.get(name)
+        if info is None:
+            return f"Error: no process named '{name}'."
+
+        self._drain_output(info)
+        lines = info.output_buffer[-n:]
+        if not lines:
+            return "(no output)"
+        return "\n".join(lines)
+
+    def output_since(self, name: str, offset: int = 0) -> tuple[str, int]:
+        """Get output since a given offset.
+
+        Returns new output and the new offset for pagination::
+
+            output, offset = registry.output_since("server", 0)
+            # ... later ...
+            new_output, offset = registry.output_since("server", offset)
+
+        Args:
+            name: Process name.
+            offset: Line offset to start from.
+
+        Returns:
+            Tuple of (output_text, new_offset).
+        """
+        info = self._processes.get(name)
+        if info is None:
+            return f"Error: no process named '{name}'.", offset
+
+        self._drain_output(info)
+        new_lines = info.output_buffer[offset:]
+        new_offset = len(info.output_buffer)
+        return "\n".join(new_lines) if new_lines else "", new_offset
+
     def _drain_output(self, info: _ProcessInfo) -> None:
         """Read available output from process stdout (non-blocking)."""
         stdout = info.proc.stdout
