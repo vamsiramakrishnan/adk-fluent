@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from adk_fluent._base import BuilderBase
 
@@ -21,10 +19,7 @@ class Pipeline(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def sub_agents(self, value: list[BaseAgent]) -> Self:
         """Set the ``sub_agents`` field."""
@@ -40,9 +35,7 @@ class Pipeline(BuilderBase):
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        self = self._maybe_fork_for_mutation()
-        self._lists["sub_agents"].append(value)
-        return self
+        return self.step(value)
 
     def build(self) -> SequentialAgent:
         """Run sub-agents sequentially. Resolve into a native ADK SequentialAgent."""

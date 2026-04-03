@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from adk_fluent._base import BuilderBase
 
@@ -20,10 +18,7 @@ class RunConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def max_llm_calls(self, value: int) -> Self:
         """Set the ``max_llm_calls`` field."""

@@ -68,6 +68,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from adk_fluent._composite import Composite
+
 __all__ = [
     "E",
     "EComposite",
@@ -117,7 +119,7 @@ class ECriterion:
 # ======================================================================
 
 
-class EComposite:
+class EComposite(Composite, kind="eval"):
     """Composable evaluation criteria. The result of any ``E.xxx()`` call.
 
     Supports ``|`` for composition::
@@ -125,44 +127,14 @@ class EComposite:
         E.trajectory() | E.response_match() | E.safety()
     """
 
-    _kind: str = "eval"
+    _child_repr = "metric_name"
 
-    def __init__(self, criteria: list[ECriterion] | None = None):
-        self._criteria: list[ECriterion] = list(criteria or [])
-
-    # ------------------------------------------------------------------
-    # NamespaceSpec protocol: key metadata for contract tracing
-    # ------------------------------------------------------------------
-
-    @property
-    def _reads_keys(self) -> frozenset[str]:
-        """State keys this eval spec reads. Evals are opaque — return empty."""
-        return frozenset()
-
-    @property
-    def _writes_keys(self) -> frozenset[str]:
-        """State keys this eval spec writes. Evals are opaque — return empty."""
-        return frozenset()
-
-    def __or__(self, other: EComposite | ECriterion) -> EComposite:
-        """E.trajectory() | E.response_match()"""
-        if isinstance(other, EComposite):
-            return EComposite(self._criteria + other._criteria)
-        if isinstance(other, ECriterion):
-            return EComposite(self._criteria + [other])
-        return NotImplemented
-
-    def __ror__(self, other: EComposite | ECriterion) -> EComposite:
-        """criterion | E.safety()"""
-        if isinstance(other, EComposite):
-            return EComposite(other._criteria + self._criteria)
-        if isinstance(other, ECriterion):
-            return EComposite([other] + self._criteria)
-        return NotImplemented
+    def __init__(self, criteria: list[ECriterion] | None = None) -> None:
+        super().__init__(criteria)
 
     def to_criteria_dict(self) -> dict[str, Any]:
         """Flatten to ADK-compatible ``EvalConfig.criteria`` dict."""
-        return dict(c.to_adk_entry() for c in self._criteria)
+        return dict(c.to_adk_entry() for c in self._items)
 
     def to_eval_config(self) -> Any:
         """Build an ``EvalConfig`` from the criteria in this composite."""
@@ -172,14 +144,7 @@ class EComposite:
 
     @property
     def criteria(self) -> list[ECriterion]:
-        return list(self._criteria)
-
-    def __repr__(self) -> str:
-        names = [c.metric_name for c in self._criteria]
-        return f"EComposite([{', '.join(names)}])"
-
-    def __len__(self) -> int:
-        return len(self._criteria)
+        return list(self._items)
 
 
 # ======================================================================
@@ -562,7 +527,7 @@ class EvalSuite:
         """
         new_criteria = []
         found = False
-        for c in self._criteria._criteria:
+        for c in self._criteria._items:
             if c.metric_name == metric:
                 new_criteria.append(
                     ECriterion(
@@ -1300,14 +1265,14 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
                     print_detailed_results=False,
                 )
                 # If no assertion error, all passed
-                scores = {c.metric_name: 1.0 for c in suite._criteria._criteria}
-                thresholds = {c.metric_name: c.threshold for c in suite._criteria._criteria}
-                passed = {c.metric_name: True for c in suite._criteria._criteria}
+                scores = {c.metric_name: 1.0 for c in suite._criteria._items}
+                thresholds = {c.metric_name: c.threshold for c in suite._criteria._items}
+                passed = {c.metric_name: True for c in suite._criteria._items}
             except AssertionError as exc:
                 # Parse failure details from the assertion message
-                scores = {c.metric_name: 0.0 for c in suite._criteria._criteria}
-                thresholds = {c.metric_name: c.threshold for c in suite._criteria._criteria}
-                passed = {c.metric_name: False for c in suite._criteria._criteria}
+                scores = {c.metric_name: 0.0 for c in suite._criteria._items}
+                thresholds = {c.metric_name: c.threshold for c in suite._criteria._items}
+                passed = {c.metric_name: False for c in suite._criteria._items}
                 # Store raw error for debugging
                 return EvalReport(
                     scores=scores,

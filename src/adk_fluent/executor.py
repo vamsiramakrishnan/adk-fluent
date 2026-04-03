@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
 from adk_fluent._base import BuilderBase
@@ -28,10 +26,7 @@ class AgentEngineSandboxCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
@@ -94,10 +89,7 @@ class BaseCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
@@ -152,10 +144,7 @@ class BuiltInCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
@@ -210,10 +199,7 @@ class UnsafeLocalCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def optimize_data_file(self, value: bool) -> Self:
         """Set the ``optimize_data_file`` field."""
@@ -270,10 +256,7 @@ class VertexAiCodeExecutor(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def optimize_data_file(self, value: Any) -> Self:
         """Set the ``optimize_data_file`` field."""

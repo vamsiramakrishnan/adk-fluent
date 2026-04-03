@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
@@ -95,10 +94,7 @@ class AgentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, root: str) -> None:
-        self._config: dict[str, Any] = {"root": root}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(root)
 
     def build(self) -> _ADK_AgentConfig:
         """The config for the YAML schema to create an agent. Resolve into a native ADK _ADK_AgentConfig."""
@@ -117,10 +113,7 @@ class BaseAgentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -194,10 +187,7 @@ class AgentRefConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def config_path(self, value: str | None) -> Self:
         """Set the ``config_path`` field."""
@@ -228,10 +218,7 @@ class ArgumentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, value: str) -> None:
-        self._config: dict[str, Any] = {"value": value}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(value)
 
     def name(self, value: str | None) -> Self:
         """Set the ``name`` field."""
@@ -256,10 +243,7 @@ class CodeConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def args(self, value: list[ArgumentConfig] | None) -> Self:
         """Set the ``args`` field."""
@@ -290,10 +274,7 @@ class ContextCacheConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def cache_intervals(self, value: int) -> Self:
         """Maximum number of invocations to reuse the same cache before refreshing it"""
@@ -338,10 +319,7 @@ class LlmAgentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str, instruction: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "instruction": instruction}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, instruction=instruction)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -641,10 +619,7 @@ class LoopAgentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -724,10 +699,7 @@ class ParallelAgentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -804,10 +776,7 @@ class RunConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def input_audio_transcribe(self, value: AudioTranscriptionConfig | None) -> Self:
         """Set the `input_audio_transcription` field."""
@@ -928,10 +897,7 @@ class ToolThreadPoolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def max_workers(self, value: int) -> Self:
         """Maximum number of worker threads in the pool."""
@@ -956,10 +922,7 @@ class SequentialAgentConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -1033,10 +996,7 @@ class EventsCompactionConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, compaction_interval: str, overlap_size: str) -> None:
-        self._config: dict[str, Any] = {"compaction_interval": compaction_interval, "overlap_size": overlap_size}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(compaction_interval, overlap_size=overlap_size)
 
     def summarizer(self, value: BaseEventsSummarizer | None) -> Self:
         """Set the ``summarizer`` field."""
@@ -1073,10 +1033,7 @@ class ResumabilityConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def is_resumable(self, value: bool) -> Self:
         """Set the ``is_resumable`` field."""
@@ -1102,10 +1059,7 @@ class FeatureConfig(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"default_on", "stage"}
 
     def __init__(self, stage: str) -> None:
-        self._config: dict[str, Any] = {"stage": stage}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(stage)
 
     def default_on(self, value: bool) -> Self:
         """Set the ``default_on`` field."""
@@ -1131,10 +1085,7 @@ class AudioCacheConfig(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"auto_flush_threshold", "max_cache_duration_seconds", "max_cache_size_bytes"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def max_cache_size_bytes(self, value: int) -> Self:
         """Set the ``max_cache_size_bytes`` field."""
@@ -1171,10 +1122,7 @@ class SimplePromptOptimizerConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def model_configure(self, value: GenerateContentConfig) -> Self:
         """The configuration for the optimizer model."""
@@ -1238,10 +1186,7 @@ class BigQueryLoggerConfig(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def enabled(self, value: bool) -> Self:
         """Set the ``enabled`` field."""
@@ -1363,10 +1308,7 @@ class RetryConfig(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"initial_delay", "max_delay", "max_retries", "multiplier"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def max_retries(self, value: int) -> Self:
         """Set the ``max_retries`` field."""
@@ -1409,10 +1351,7 @@ class GetSessionConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def num_recent_events(self, value: int | None) -> Self:
         """Set the ``num_recent_events`` field."""
@@ -1443,10 +1382,7 @@ class BaseGoogleCredentialsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
@@ -1495,10 +1431,7 @@ class AgentSimulatorConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def simulation_model_configure(self, value: GenerateContentConfig) -> Self:
         """Set the `simulation_model_configuration` field."""
@@ -1555,10 +1488,7 @@ class InjectionConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def injection_probability(self, value: float) -> Self:
         """Set the ``injection_probability`` field."""
@@ -1613,10 +1543,7 @@ class ToolSimulationConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, tool_name: str) -> None:
-        self._config: dict[str, Any] = {"tool_name": tool_name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(tool_name)
 
     def injection_configs(self, value: list[InjectionConfig]) -> Self:
         """Set the ``injection_configs`` field."""
@@ -1655,10 +1582,7 @@ class AgentToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, agent: str) -> None:
-        self._config: dict[str, Any] = {"agent": agent}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(agent)
 
     def skip_summarizate(self, value: bool) -> Self:
         """Set the `skip_summarization` field."""
@@ -1689,10 +1613,7 @@ class BigQueryCredentialsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
@@ -1743,10 +1664,7 @@ class BigQueryToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def locate(self, value: str | None) -> Self:
         """Set the `location` field."""
@@ -1807,10 +1725,7 @@ class BigtableCredentialsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
@@ -1861,10 +1776,7 @@ class DataAgentToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def max_query_result_rows(self, value: int) -> Self:
         """Set the ``max_query_result_rows`` field."""
@@ -1889,10 +1801,7 @@ class DataAgentCredentialsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
@@ -1943,10 +1852,7 @@ class ExampleToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, examples: str) -> None:
-        self._config: dict[str, Any] = {"examples": examples}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(examples)
 
     def build(self) -> _ADK_ExampleToolConfig:
         """Fluent builder for ExampleToolConfig. Resolve into a native ADK _ADK_ExampleToolConfig."""
@@ -1965,10 +1871,7 @@ class McpToolsetConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def stdio_server_params(self, value: StdioServerParameters | None) -> Self:
         """Set the ``stdio_server_params`` field."""
@@ -2043,10 +1946,7 @@ class PubSubToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def project_id(self, value: str | None) -> Self:
         """Set the ``project_id`` field."""
@@ -2071,10 +1971,7 @@ class PubSubCredentialsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
@@ -2123,10 +2020,7 @@ class SpannerCredentialsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def credentials(self, value: Credentials | None) -> Self:
         """Set the ``credentials`` field."""
@@ -2177,10 +2071,7 @@ class BaseToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_BaseToolConfig:
         """The base class for all tool configs. Resolve into a native ADK _ADK_BaseToolConfig."""
@@ -2199,10 +2090,7 @@ class ToolArgsConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_ToolArgsConfig:
         """Config to host free key-value pairs for the args in ToolConfig. Resolve into a native ADK _ADK_ToolArgsConfig."""
@@ -2221,10 +2109,7 @@ class ToolConfig(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def args(self, value: ToolArgsConfig | None) -> Self:
         """The args for the tool."""

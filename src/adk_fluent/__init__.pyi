@@ -139,7 +139,9 @@ from ._artifact_schema import Produces as Produces
 from ._artifacts import A as A
 from ._artifacts import ATransform as ATransform
 from ._base import BuilderBase as BuilderBase
+from ._base import fluent as fluent
 from ._callback_schema import CallbackSchema as CallbackSchema
+from ._composite import Composite as Composite
 from ._config_global import configure as configure
 from ._config_global import reset_config as reset_config
 from ._config_global import get_config as get_config
@@ -226,6 +228,7 @@ from ._ir import CaptureNode as CaptureNode
 from ._ir import ArtifactNode as ArtifactNode
 from ._ir import DispatchNode as DispatchNode
 from ._ir import JoinNode as JoinNode
+from ._ir import WatchNode as WatchNode
 from ._ir import UINode as UINode
 from ._ir import ExecutionConfig as ExecutionConfig
 from ._ir import CompactionConfig as CompactionConfig
@@ -639,7 +642,9 @@ __all__ = [
     "A",
     "ATransform",
     "BuilderBase",
+    "fluent",
     "CallbackSchema",
+    "Composite",
     "configure",
     "reset_config",
     "get_config",
@@ -725,6 +730,7 @@ __all__ = [
     "ArtifactNode",
     "DispatchNode",
     "JoinNode",
+    "WatchNode",
     "UINode",
     "ExecutionConfig",
     "CompactionConfig",
@@ -917,3 +923,4 @@ __all__ = [
     "DataFlowContract",
     "check_data_flow_contract",
 ]
+

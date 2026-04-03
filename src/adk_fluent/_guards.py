@@ -18,6 +18,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
+from adk_fluent._composite import Composite
 from adk_fluent._exceptions import GuardViolation as GuardViolation
 
 __all__ = [
@@ -106,7 +107,7 @@ class GGuard:
 
     def __or__(self, other: GGuard | GComposite | Any) -> GComposite:
         if isinstance(other, GComposite):
-            return GComposite([self, *other._guards])
+            return GComposite([self, *other._items])
         if isinstance(other, GGuard):
             return GComposite([self, other])
         return NotImplemented
@@ -118,7 +119,7 @@ class GGuard:
 # ── GComposite chain ─────────────────────────────────────────────────
 
 
-class GComposite:
+class GComposite(Composite, kind="guard_chain"):
     """Composable guard chain. The result of any ``G.xxx()`` call.
 
     Supports ``|`` for composition::
@@ -126,49 +127,25 @@ class GComposite:
         G.json() | G.length(max=500) | G.pii("redact")
     """
 
-    def __init__(self, guards: list[GGuard]):
-        self._guards = list(guards)
+    def __init__(self, guards: list[GGuard]) -> None:
+        super().__init__(guards)
 
-    # ------------------------------------------------------------------
-    # Composition: | (chain)
-    # ------------------------------------------------------------------
-
-    def __or__(self, other: GGuard | GComposite | Any) -> GComposite:
-        if isinstance(other, GComposite):
-            return GComposite(self._guards + other._guards)
-        if isinstance(other, GGuard):
-            return GComposite(self._guards + [other])
-        return NotImplemented
-
-    # ------------------------------------------------------------------
-    # Builder integration
-    # ------------------------------------------------------------------
+    # -- Builder integration --------------------------------------------------
 
     def _compile_into(self, builder: Any) -> None:
         """Compile all guards into a builder's callback/config state."""
-        for guard in self._guards:
+        for guard in self._items:
             guard._compile(builder)
         existing = builder._config.get("_guard_specs", ())
-        builder._config["_guard_specs"] = existing + tuple(self._guards)
+        builder._config["_guard_specs"] = existing + tuple(self._items)
 
-    # ------------------------------------------------------------------
-    # NamespaceSpec protocol
-    # ------------------------------------------------------------------
-
-    @property
-    def _kind(self) -> str:
-        """Discriminator tag for IR serialization."""
-        return "guard_chain"
-
-    def _as_list(self) -> tuple[GGuard, ...]:
-        """Flatten for composite building."""
-        return tuple(self._guards)
+    # -- Override: guards compute _reads_keys from children -------------------
 
     @property
     def _reads_keys(self) -> frozenset[str] | None:
         """Union of all guard reads. ``None`` if any guard is opaque."""
         result: frozenset[str] = frozenset()
-        for g in self._guards:
+        for g in self._items:
             if g._reads_keys is None:
                 return None
             result = result | g._reads_keys
@@ -178,13 +155,6 @@ class GComposite:
     def _writes_keys(self) -> frozenset[str]:
         """Guards never write state."""
         return frozenset()
-
-    def __len__(self) -> int:
-        return len(self._guards)
-
-    def __repr__(self) -> str:
-        kinds = [g._kind for g in self._guards]
-        return f"GComposite([{', '.join(kinds)}])"
 
 
 # ── Built-in provider implementations ────────────────────────────────
@@ -733,7 +703,7 @@ class G:
             predicate: Callable taking state dict, returning bool.
             guard: Guard to apply when predicate is true.
         """
-        inner_guards = guard._guards if isinstance(guard, GComposite) else [guard]
+        inner_guards = guard._items if isinstance(guard, GComposite) else [guard]
 
         def _compile(builder: Any) -> None:
             for g in inner_guards:

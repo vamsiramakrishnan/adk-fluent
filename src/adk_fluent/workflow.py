@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
@@ -25,10 +24,7 @@ class Loop(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -84,9 +80,7 @@ class Loop(BuilderBase):
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        self = self._maybe_fork_for_mutation()
-        self._lists["sub_agents"].append(value)
-        return self
+        return self.step(value)
 
     def to_ir(self) -> Any:
         """Convert this Loop builder to a LoopNode IR node."""
@@ -175,10 +169,7 @@ class FanOut(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -226,11 +217,13 @@ class FanOut(BuilderBase):
         self._lists["sub_agents"].append(value)
         return self
 
+    def step(self, value: BaseAgent) -> Self:
+        """Alias for .branch() — consistent API across workflow builders."""
+        return self.branch(value)
+
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        self = self._maybe_fork_for_mutation()
-        self._lists["sub_agents"].append(value)
-        return self
+        return self.branch(value)
 
     def to_ir(self) -> Any:
         """Convert this FanOut builder to a ParallelNode IR node."""
@@ -319,10 +312,7 @@ class Pipeline(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
-        self._config: dict[str, Any] = {"name": name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name)
 
     def describe(self, value: str) -> Self:
         """Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist."""
@@ -372,9 +362,7 @@ class Pipeline(BuilderBase):
 
     def sub_agent(self, value: BaseAgent) -> Self:
         """Append to ``sub_agents`` (lazy — built at .build() time)."""
-        self = self._maybe_fork_for_mutation()
-        self._lists["sub_agents"].append(value)
-        return self
+        return self.step(value)
 
     def to_ir(self) -> Any:
         """Convert this Pipeline builder to a SequenceNode IR node."""

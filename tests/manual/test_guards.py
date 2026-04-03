@@ -23,11 +23,11 @@ class TestGComposite:
     def test_guard_or_guard(self):
         g = G.json() | G.length(max=500)
         assert isinstance(g, GComposite)
-        assert len(g._guards) == 2
+        assert len(g._items) == 2
 
     def test_guard_chain_three(self):
         g = G.json() | G.length(max=500) | G.regex(r"bad", action="block")
-        assert len(g._guards) == 3
+        assert len(g._items) == 3
 
     def test_guard_reads_keys_union(self):
         g = G.grounded(sources_key="docs") | G.json()
@@ -67,9 +67,9 @@ class TestGComposite:
         """GGuard | GComposite should work."""
         a = G.json()
         b = G.length(max=500) | G.pii("block")
-        c = a._guards[0] | b
+        c = a._items[0] | b
         assert isinstance(c, GComposite)
-        assert len(c._guards) == 3
+        assert len(c._items) == 3
 
     def test_reads_keys_none_if_any_opaque(self):
         """If any guard has None reads, composite reads is None."""
@@ -114,13 +114,13 @@ class TestJsonGuard:
 
     def test_kind(self):
         g = G.json()
-        assert g._guards[0]._kind == "json"
+        assert g._items[0]._kind == "json"
 
     def test_phase(self):
         from adk_fluent._guards import _Phase
 
         g = G.json()
-        assert g._guards[0]._phase == _Phase.POST_MODEL
+        assert g._items[0]._phase == _Phase.POST_MODEL
 
 
 # ── Length guard ──────────────────────────────────────────────────────
@@ -129,11 +129,11 @@ class TestJsonGuard:
 class TestLengthGuard:
     def test_max(self):
         g = G.length(max=100)
-        assert g._guards[0]._kind == "length"
+        assert g._items[0]._kind == "length"
 
     def test_min_max(self):
         g = G.length(min=10, max=500)
-        assert len(g._guards) == 1
+        assert len(g._items) == 1
 
 
 # ── Regex guard ───────────────────────────────────────────────────────
@@ -142,11 +142,11 @@ class TestLengthGuard:
 class TestRegexGuard:
     def test_block(self):
         g = G.regex(r"ignore previous", action="block")
-        assert g._guards[0]._kind == "regex"
+        assert g._items[0]._kind == "regex"
 
     def test_redact(self):
         g = G.regex(r"\d{3}-\d{2}-\d{4}", action="redact")
-        assert len(g._guards) == 1
+        assert len(g._items) == 1
 
 
 # ── Output guard ──────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ class TestOutputGuard:
             answer: str
 
         g = G.output(Schema)
-        assert g._guards[0]._kind == "output"
+        assert g._items[0]._kind == "output"
 
 
 # ── Input guard ───────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ class TestInputGuard:
             query: str
 
         g = G.input(Schema)
-        assert g._guards[0]._kind == "input"
+        assert g._items[0]._kind == "input"
 
     def test_phase_is_pre_model(self):
         from adk_fluent._guards import _Phase
@@ -182,7 +182,7 @@ class TestInputGuard:
             query: str
 
         g = G.input(Schema)
-        assert g._guards[0]._phase == _Phase.PRE_MODEL
+        assert g._items[0]._phase == _Phase.PRE_MODEL
 
 
 # ── Budget guard ──────────────────────────────────────────────────────
@@ -191,7 +191,7 @@ class TestInputGuard:
 class TestBudgetGuard:
     def test_creates_guard(self):
         g = G.budget(max_tokens=5000)
-        assert any(guard._kind == "budget" for guard in g._guards)
+        assert any(guard._kind == "budget" for guard in g._items)
 
 
 # ── Rate limit guard ─────────────────────────────────────────────────
@@ -200,7 +200,7 @@ class TestBudgetGuard:
 class TestRateLimitGuard:
     def test_creates_guard(self):
         g = G.rate_limit(rpm=60)
-        assert g._guards[0]._kind == "rate_limit"
+        assert g._items[0]._kind == "rate_limit"
 
 
 # ── Max turns guard ──────────────────────────────────────────────────
@@ -209,7 +209,7 @@ class TestRateLimitGuard:
 class TestMaxTurnsGuard:
     def test_creates_guard(self):
         g = G.max_turns(n=10)
-        assert g._guards[0]._kind == "max_turns"
+        assert g._items[0]._kind == "max_turns"
 
 
 # ── PII guard ─────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ class TestMaxTurnsGuard:
 class TestPiiGuard:
     def test_creates_guard(self):
         g = G.pii(action="redact")
-        assert any(guard._kind == "pii" for guard in g._guards)
+        assert any(guard._kind == "pii" for guard in g._items)
 
     def test_custom_detector(self):
         class FakeDetector:
@@ -226,7 +226,7 @@ class TestPiiGuard:
                 return [PIIFinding("TEST", 0, 4, 1.0, text[:4])]
 
         g = G.pii(action="block", detector=FakeDetector())
-        assert len(g._guards) >= 1
+        assert len(g._items) >= 1
 
     def test_regex_detector_factory(self):
         detector = G.regex_detector(patterns=[r"\d{3}-\d{2}-\d{4}"])
@@ -247,7 +247,7 @@ class TestPiiGuard:
 class TestToxicityGuard:
     def test_creates_guard(self):
         g = G.toxicity(threshold=0.8)
-        assert g._guards[0]._kind == "toxicity"
+        assert g._items[0]._kind == "toxicity"
 
 
 # ── Grounded guard ───────────────────────────────────────────────────
@@ -265,7 +265,7 @@ class TestGroundedGuard:
 class TestHallucinationGuard:
     def test_creates_guard(self):
         g = G.hallucination(threshold=0.7, sources_key="refs")
-        assert g._guards[0]._kind == "hallucination"
+        assert g._items[0]._kind == "hallucination"
 
     def test_reads_sources_key(self):
         g = G.hallucination(sources_key="refs")
@@ -278,7 +278,7 @@ class TestHallucinationGuard:
 class TestTopicGuard:
     def test_creates_guard(self):
         g = G.topic(deny=["politics"])
-        assert g._guards[0]._kind == "topic"
+        assert g._items[0]._kind == "topic"
 
 
 # ── When guard ────────────────────────────────────────────────────────
@@ -287,11 +287,11 @@ class TestTopicGuard:
 class TestWhenGuard:
     def test_wraps_guard(self):
         g = G.when(lambda s: s.get("premium"), G.budget(max_tokens=50000))
-        assert len(g._guards) >= 1
+        assert len(g._items) >= 1
 
     def test_kind(self):
         g = G.when(lambda s: True, G.json())
-        assert g._guards[0]._kind == "when"
+        assert g._items[0]._kind == "when"
 
 
 # ── Provider factories ───────────────────────────────────────────────
@@ -396,7 +396,7 @@ class TestMultiDetectorAsync:
 class TestGGuardRepr:
     def test_repr(self):
         g = G.json()
-        guard = g._guards[0]
+        guard = g._items[0]
         assert repr(guard) == "GGuard('json')"
 
 

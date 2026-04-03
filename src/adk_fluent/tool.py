@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ssl
-from collections import defaultdict
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
@@ -103,10 +102,7 @@ class ActiveStreamingTool(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def task(self, value: Any | None) -> Self:
         """Set the ``task`` field."""
@@ -138,10 +134,7 @@ class AgentTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agent", "include_plugins", "skip_summarization"}
 
     def __init__(self, agent: str) -> None:
-        self._config: dict[str, Any] = {"agent": agent}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(agent)
 
     def skip_summarization(self, value: bool) -> Self:
         """Set the ``skip_summarization`` field."""
@@ -184,10 +177,7 @@ class APIHubToolset(BuilderBase):
     }
 
     def __init__(self, apihub_resource_name: str) -> None:
-        self._config: dict[str, Any] = {"apihub_resource_name": apihub_resource_name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(apihub_resource_name)
 
     def access_token(self, value: str | None) -> Self:
         """Set the ``access_token`` field."""
@@ -276,10 +266,7 @@ class ApplicationIntegrationToolset(BuilderBase):
     }
 
     def __init__(self, project: str, location: str) -> None:
-        self._config: dict[str, Any] = {"project": project, "location": location}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(project, location=location)
 
     def connection_template_override(self, value: str | None) -> Self:
         """Set the ``connection_template_override`` field."""
@@ -385,10 +372,7 @@ class IntegrationConnectorTool(BuilderBase):
     }
 
     def __init__(self, name: str, description: str, connection_name: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "description": description, "connection_name": connection_name}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, description=description, connection_name=connection_name)
 
     def connection_host(self, value: str) -> Self:
         """Set the ``connection_host`` field."""
@@ -458,10 +442,7 @@ class BaseAuthenticatedTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"auth_config", "description", "name", "response_for_auth_required"}
 
     def __init__(self, name: str, description: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "description": description}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, description=description)
 
     def auth_config(self, value: AuthConfig) -> Self:
         """Set the ``auth_config`` field."""
@@ -493,10 +474,7 @@ class BaseTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"custom_metadata", "description", "is_long_running", "name"}
 
     def __init__(self, name: str, description: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "description": description}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, description=description)
 
     def is_long_running(self, value: bool) -> Self:
         """Set the ``is_long_running`` field."""
@@ -528,10 +506,7 @@ class BaseToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"tool_filter", "tool_name_prefix"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -563,10 +538,7 @@ class BigQueryToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"bigquery_tool_config", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -604,10 +576,7 @@ class BigtableToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"bigtable_tool_settings", "credentials_config", "tool_filter"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -645,10 +614,7 @@ class ComputerUseTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"func", "screen_size", "virtual_screen_size"}
 
     def __init__(self, func: str, screen_size: str) -> None:
-        self._config: dict[str, Any] = {"func": func, "screen_size": screen_size}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(func, screen_size=screen_size)
 
     def virtual_screen_size(self, value: tuple[int, int]) -> Self:
         """Set the ``virtual_screen_size`` field."""
@@ -674,10 +640,7 @@ class ComputerUseToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"computer"}
 
     def __init__(self, computer: str) -> None:
-        self._config: dict[str, Any] = {"computer": computer}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(computer)
 
     def build(self) -> _ADK_ComputerUseToolset:
         """Fluent builder for ComputerUseToolset. Resolve into a native ADK _ADK_ComputerUseToolset."""
@@ -697,10 +660,7 @@ class DataAgentToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"credentials_config", "data_agent_tool_config", "tool_filter"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -738,10 +698,7 @@ class DiscoveryEngineSearchTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"data_store_id", "data_store_specs", "filter", "max_results", "search_engine_id"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def data_store_id(self, value: str | None) -> Self:
         """Set the ``data_store_id`` field."""
@@ -793,10 +750,7 @@ class EnterpriseWebSearchTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_EnterpriseWebSearchTool:
         """A Gemini 2+ built-in tool using web grounding for Enterprise compliance. Resolve into a native ADK _ADK_EnterpriseWebSearchTool."""
@@ -816,10 +770,7 @@ class ExampleTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"examples"}
 
     def __init__(self, examples: str) -> None:
-        self._config: dict[str, Any] = {"examples": examples}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(examples)
 
     def build(self) -> _ADK_ExampleTool:
         """A tool that adds (few-shot) examples to the LLM request. Resolve into a native ADK _ADK_ExampleTool."""
@@ -839,10 +790,7 @@ class FunctionTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"func", "require_confirmation"}
 
     def __init__(self, func: str) -> None:
-        self._config: dict[str, Any] = {"func": func}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(func)
 
     def require_confirmation(self, value: bool | Callable[..., bool]) -> Self:
         """Set the ``require_confirmation`` field."""
@@ -874,10 +822,7 @@ class GoogleApiTool(BuilderBase):
     }
 
     def __init__(self, rest_api_tool: str) -> None:
-        self._config: dict[str, Any] = {"rest_api_tool": rest_api_tool}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(rest_api_tool)
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -930,10 +875,7 @@ class GoogleApiToolset(BuilderBase):
     }
 
     def __init__(self, api_name: str, api_version: str) -> None:
-        self._config: dict[str, Any] = {"api_name": api_name, "api_version": api_version}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(api_name, api_version=api_version)
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -995,10 +937,7 @@ class CalendarToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -1054,10 +993,7 @@ class DocsToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -1113,10 +1049,7 @@ class GmailToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -1172,10 +1105,7 @@ class SheetsToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -1231,10 +1161,7 @@ class SlidesToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -1290,10 +1217,7 @@ class YoutubeToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def client_id(self, value: str | None) -> Self:
         """Set the ``client_id`` field."""
@@ -1343,10 +1267,7 @@ class GoogleMapsGroundingTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_GoogleMapsGroundingTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to ground query results with Google Maps. Resolve into a native ADK _ADK_GoogleMapsGroundingTool."""
@@ -1366,10 +1287,7 @@ class GoogleSearchAgentTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agent"}
 
     def __init__(self, agent: str) -> None:
-        self._config: dict[str, Any] = {"agent": agent}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(agent)
 
     def build(self) -> _ADK_GoogleSearchAgentTool:
         """A tool that wraps a sub-agent that only uses google_search tool. Resolve into a native ADK _ADK_GoogleSearchAgentTool."""
@@ -1389,10 +1307,7 @@ class GoogleSearchTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"bypass_multi_tools_limit", "model"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def bypass_multi_tools_limit(self, value: bool) -> Self:
         """Set the ``bypass_multi_tools_limit`` field."""
@@ -1424,10 +1339,7 @@ class GoogleTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"credentials_config", "func", "tool_settings"}
 
     def __init__(self, func: str) -> None:
-        self._config: dict[str, Any] = {"func": func}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(func)
 
     def credentials_config(self, value: BaseGoogleCredentialsConfig | None) -> Self:
         """Set the ``credentials_config`` field."""
@@ -1459,10 +1371,7 @@ class LoadArtifactsTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_LoadArtifactsTool:
         """A tool that loads the artifacts and adds them to the session. Resolve into a native ADK _ADK_LoadArtifactsTool."""
@@ -1482,10 +1391,7 @@ class LoadMcpResourceTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"mcp_toolset"}
 
     def __init__(self, mcp_toolset: str) -> None:
-        self._config: dict[str, Any] = {"mcp_toolset": mcp_toolset}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(mcp_toolset)
 
     def build(self) -> _ADK_LoadMcpResourceTool:
         """A tool that loads the MCP resources and adds them to the session. Resolve into a native ADK _ADK_LoadMcpResourceTool."""
@@ -1505,10 +1411,7 @@ class LoadMemoryTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_LoadMemoryTool:
         """A tool that loads the memory for the current user. Resolve into a native ADK _ADK_LoadMemoryTool."""
@@ -1528,10 +1431,7 @@ class LongRunningFunctionTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"func"}
 
     def __init__(self, func: str) -> None:
-        self._config: dict[str, Any] = {"func": func}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(func)
 
     def build(self) -> _ADK_LongRunningFunctionTool:
         """A function tool that returns the result asynchronously. Resolve into a native ADK _ADK_LongRunningFunctionTool."""
@@ -1551,10 +1451,7 @@ class MCPTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_MCPTool:
         """Deprecated name, use `McpTool` instead. Resolve into a native ADK _ADK_MCPTool."""
@@ -1582,10 +1479,7 @@ class McpTool(BuilderBase):
     }
 
     def __init__(self, mcp_tool: str, mcp_session_manager: str) -> None:
-        self._config: dict[str, Any] = {"mcp_tool": mcp_tool, "mcp_session_manager": mcp_session_manager}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(mcp_tool, mcp_session_manager=mcp_session_manager)
 
     def auth_scheme(self, value: AuthScheme | None) -> Self:
         """Set the ``auth_scheme`` field."""
@@ -1635,10 +1529,7 @@ class MCPToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_MCPToolset:
         """Deprecated name, use `McpToolset` instead. Resolve into a native ADK _ADK_MCPToolset."""
@@ -1669,10 +1560,7 @@ class McpToolset(BuilderBase):
     }
 
     def __init__(self, connection_params: str) -> None:
-        self._config: dict[str, Any] = {"connection_params": connection_params}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(connection_params)
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -1757,10 +1645,7 @@ class OpenAPIToolset(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def spec_dict(self, value: dict[str, Any] | None) -> Self:
         """Set the ``spec_dict`` field."""
@@ -1853,10 +1738,7 @@ class RestApiTool(BuilderBase):
     }
 
     def __init__(self, name: str, description: str, endpoint: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "description": description, "endpoint": endpoint}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, description=description, endpoint=endpoint)
 
     def operation(self, value: Operation | str) -> Self:
         """Set the ``operation`` field."""
@@ -1918,10 +1800,7 @@ class PreloadMemoryTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_PreloadMemoryTool:
         """A tool that preloads the memory for the current user. Resolve into a native ADK _ADK_PreloadMemoryTool."""
@@ -1941,10 +1820,7 @@ class PubSubToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"credentials_config", "pubsub_tool_config", "tool_filter"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -1982,10 +1858,7 @@ class BaseRetrievalTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"custom_metadata", "description", "is_long_running", "name"}
 
     def __init__(self, name: str, description: str) -> None:
-        self._config: dict[str, Any] = {"name": name, "description": description}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(name, description=description)
 
     def is_long_running(self, value: bool) -> Self:
         """Set the ``is_long_running`` field."""
@@ -2017,10 +1890,7 @@ class SetModelResponseTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"output_schema"}
 
     def __init__(self, output_schema: str) -> None:
-        self._config: dict[str, Any] = {"output_schema": output_schema}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(output_schema)
 
     def build(self) -> _ADK_SetModelResponseTool:
         """Internal tool used for output schema workaround. Resolve into a native ADK _ADK_SetModelResponseTool."""
@@ -2040,10 +1910,7 @@ class LoadSkillResourceTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"toolset"}
 
     def __init__(self, toolset: str) -> None:
-        self._config: dict[str, Any] = {"toolset": toolset}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(toolset)
 
     def build(self) -> _ADK_LoadSkillResourceTool:
         """Tool to load resources (references or assets) from a skill. Resolve into a native ADK _ADK_LoadSkillResourceTool."""
@@ -2063,10 +1930,7 @@ class LoadSkillTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"toolset"}
 
     def __init__(self, toolset: str) -> None:
-        self._config: dict[str, Any] = {"toolset": toolset}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(toolset)
 
     def build(self) -> _ADK_LoadSkillTool:
         """Tool to load a skill's instructions. Resolve into a native ADK _ADK_LoadSkillTool."""
@@ -2086,10 +1950,7 @@ class SkillToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"skills"}
 
     def __init__(self, skills: str) -> None:
-        self._config: dict[str, Any] = {"skills": skills}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(skills)
 
     def build(self) -> _ADK_SkillToolset:
         """A toolset for managing and interacting with agent skills. Resolve into a native ADK _ADK_SkillToolset."""
@@ -2109,10 +1970,7 @@ class SpannerToolset(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"credentials_config", "spanner_tool_settings", "tool_filter"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def tool_filter(self, value: ToolPredicate | list[str] | None) -> Self:
         """Set the ``tool_filter`` field."""
@@ -2158,10 +2016,7 @@ class ToolboxToolset(BuilderBase):
     }
 
     def __init__(self, server_url: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"server_url": server_url, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(server_url, kwargs=kwargs)
 
     def toolset_name(self, value: str | None) -> Self:
         """Set the ``toolset_name`` field."""
@@ -2217,10 +2072,7 @@ class TransferToAgentTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agent_names"}
 
     def __init__(self, agent_names: str) -> None:
-        self._config: dict[str, Any] = {"agent_names": agent_names}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(agent_names)
 
     def build(self) -> _ADK_TransferToAgentTool:
         """A specialized FunctionTool for agent transfer with enum constraints. Resolve into a native ADK _ADK_TransferToAgentTool."""
@@ -2240,10 +2092,7 @@ class UrlContextTool(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_UrlContextTool:
         """A built-in tool that is automatically invoked by Gemini 2 models to retrieve content from the URLs and use that content to inform and shape its response. Resolve into a native ADK _ADK_UrlContextTool."""
@@ -2270,10 +2119,7 @@ class VertexAiSearchTool(BuilderBase):
     }
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def data_store_id(self, value: str | None) -> Self:
         """Set the ``data_store_id`` field."""

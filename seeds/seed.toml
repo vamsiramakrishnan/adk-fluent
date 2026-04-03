@@ -718,8 +718,8 @@ target_field = "sub_agents"
 name = "sub_agent"
 signature = "(self, value: BaseAgent) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
-behavior = "list_append"
-target_field = "sub_agents"
+behavior = "delegates_to"
+target_method = "step"
 
 [[builders.Loop.extras]]
 name = "to_ir"
@@ -863,11 +863,18 @@ behavior = "list_append"
 target_field = "sub_agents"
 
 [[builders.FanOut.extras]]
+name = "step"
+signature = "(self, value: BaseAgent) -> Self"
+doc = "Alias for .branch() — consistent API across workflow builders."
+behavior = "delegates_to"
+target_method = "branch"
+
+[[builders.FanOut.extras]]
 name = "sub_agent"
 signature = "(self, value: BaseAgent) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
-behavior = "list_append"
-target_field = "sub_agents"
+behavior = "delegates_to"
+target_method = "branch"
 
 [[builders.FanOut.extras]]
 name = "to_ir"
@@ -1044,8 +1051,8 @@ target_field = "sub_agents"
 name = "sub_agent"
 signature = "(self, value: BaseAgent) -> Self"
 doc = "Append to ``sub_agents`` (lazy — built at .build() time)."
-behavior = "list_append"
-target_field = "sub_agents"
+behavior = "delegates_to"
+target_method = "step"
 
 [[builders.Pipeline.extras]]
 name = "to_ir"

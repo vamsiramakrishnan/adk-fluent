@@ -9,6 +9,7 @@ from typing import Any, Self
 
 __all__ = [
     "BuilderBase",
+    "fluent",
 ]
 
 # ======================================================================
@@ -34,6 +35,35 @@ class _UnsetType:
 
 
 _UNSET = _UnsetType()
+
+
+# ======================================================================
+# @fluent — decorator that auto-forks before mutation
+# ======================================================================
+
+
+def fluent(fn: Callable) -> Callable:
+    """Decorator for builder setter methods. Auto-calls ``_maybe_fork_for_mutation()``.
+
+    Usage in hand-written code::
+
+        @fluent
+        def max_tasks(self, n: int) -> Self:
+            self._max_tasks = n
+            return self
+
+    The codegen emits ``@fluent`` on every setter method. Forgetting
+    ``_maybe_fork_for_mutation()`` becomes structurally impossible.
+    """
+    import functools
+
+    @functools.wraps(fn)
+    def _wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
+        self = self._maybe_fork_for_mutation()
+        return fn(self, *args, **kwargs)
+
+    _wrapper._is_fluent = True  # type: ignore[attr-defined]
+    return _wrapper
 
 
 # ======================================================================
@@ -486,6 +516,19 @@ class BuilderBase:
     _config: dict[str, Any]
     _callbacks: dict[str, list[Callable]]
     _lists: dict[str, list]
+
+    def _init_storage(self, name: str, **config_extras: Any) -> None:
+        """Canonical storage initialization. Called by codegen __init__ and PrimitiveBuilderBase.
+
+        One method, one truth. Never write ``self._config = ...`` / ``self._callbacks = ...``
+        / ``self._lists = ...`` by hand — call this instead.
+        """
+        from collections import defaultdict
+
+        self._config = {"name": name, **config_extras}
+        self._callbacks = defaultdict(list)
+        self._lists = defaultdict(list)
+        self._frozen = False
 
     def build(self) -> Any:
         """Build this builder into a native ADK object. Subclasses must override."""

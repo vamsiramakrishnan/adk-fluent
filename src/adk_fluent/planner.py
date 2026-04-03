@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from adk_fluent._base import BuilderBase
 
@@ -23,10 +21,7 @@ class BasePlanner(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_BasePlanner:
         """Abstract base class for all planners. Resolve into a native ADK _ADK_BasePlanner."""
@@ -46,10 +41,7 @@ class BuiltInPlanner(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"thinking_config"}
 
     def __init__(self, thinking_config: str) -> None:
-        self._config: dict[str, Any] = {"thinking_config": thinking_config}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(thinking_config)
 
     def build(self) -> _ADK_BuiltInPlanner:
         """The built-in planner that uses model's built-in thinking features. Resolve into a native ADK _ADK_BuiltInPlanner."""
@@ -69,10 +61,7 @@ class PlanReActPlanner(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_PlanReActPlanner:
         """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. Resolve into a native ADK _ADK_PlanReActPlanner."""

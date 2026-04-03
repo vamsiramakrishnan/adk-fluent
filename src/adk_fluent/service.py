@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Self
 
 from adk_fluent._base import BuilderBase
@@ -41,10 +39,7 @@ class BaseArtifactService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_BaseArtifactService:
         """Abstract base class for artifact services. Resolve into a native ADK _ADK_BaseArtifactService."""
@@ -64,10 +59,7 @@ class FileArtifactService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"root_dir"}
 
     def __init__(self, root_dir: str) -> None:
-        self._config: dict[str, Any] = {"root_dir": root_dir}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(root_dir)
 
     def build(self) -> _ADK_FileArtifactService:
         """Stores filesystem-backed artifacts beneath a configurable root directory. Resolve into a native ADK _ADK_FileArtifactService."""
@@ -87,10 +79,7 @@ class GcsArtifactService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"bucket_name"}
 
     def __init__(self, bucket_name: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"bucket_name": bucket_name, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(bucket_name, kwargs=kwargs)
 
     def build(self) -> _ADK_GcsArtifactService:
         """An artifact service implementation using Google Cloud Storage (GCS). Resolve into a native ADK _ADK_GcsArtifactService."""
@@ -109,10 +98,7 @@ class InMemoryArtifactService(BuilderBase):
     _ADDITIVE_FIELDS: set[str] = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def artifacts(self, value: dict[str, list[Any]]) -> Self:
         """Set the ``artifacts`` field."""
@@ -140,10 +126,7 @@ class PerAgentDatabaseSessionService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agents_root", "app_name_to_dir"}
 
     def __init__(self, agents_root: str) -> None:
-        self._config: dict[str, Any] = {"agents_root": agents_root}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(agents_root)
 
     def app_name_to_dir(self, value: Mapping[str, str] | None) -> Self:
         """Set the ``app_name_to_dir`` field."""
@@ -171,10 +154,7 @@ class BaseMemoryService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_BaseMemoryService:
         """Base class for memory services. Resolve into a native ADK _ADK_BaseMemoryService."""
@@ -194,10 +174,7 @@ class InMemoryMemoryService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_InMemoryMemoryService:
         """An in-memory memory service for prototyping purpose only. Resolve into a native ADK _ADK_InMemoryMemoryService."""
@@ -217,10 +194,7 @@ class VertexAiMemoryBankService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "location", "project"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def project(self, value: str | None) -> Self:
         """Set the ``project`` field."""
@@ -266,10 +240,7 @@ class VertexAiRagMemoryService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"rag_corpus", "similarity_top_k", "vector_distance_threshold"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def rag_corpus(self, value: str | None) -> Self:
         """Set the ``rag_corpus`` field."""
@@ -309,10 +280,7 @@ class BaseSessionService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self, args: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"args": args, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(args, kwargs=kwargs)
 
     def build(self) -> _ADK_BaseSessionService:
         """Base class for session services. Resolve into a native ADK _ADK_BaseSessionService."""
@@ -332,10 +300,7 @@ class DatabaseSessionService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"db_url"}
 
     def __init__(self, db_url: str, kwargs: str) -> None:
-        self._config: dict[str, Any] = {"db_url": db_url, "kwargs": kwargs}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(db_url, kwargs=kwargs)
 
     def build(self) -> _ADK_DatabaseSessionService:
         """A session service that uses a database for storage. Resolve into a native ADK _ADK_DatabaseSessionService."""
@@ -355,10 +320,7 @@ class InMemorySessionService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = set()
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def build(self) -> _ADK_InMemorySessionService:
         """An in-memory implementation of the session service. Resolve into a native ADK _ADK_InMemorySessionService."""
@@ -378,10 +340,7 @@ class SqliteSessionService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"db_path"}
 
     def __init__(self, db_path: str) -> None:
-        self._config: dict[str, Any] = {"db_path": db_path}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(db_path)
 
     def build(self) -> _ADK_SqliteSessionService:
         """A session service that uses an SQLite database for storage via aiosqlite. Resolve into a native ADK _ADK_SqliteSessionService."""
@@ -401,10 +360,7 @@ class VertexAiSessionService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"agent_engine_id", "express_mode_api_key", "location", "project"}
 
     def __init__(self) -> None:
-        self._config: dict[str, Any] = {}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage("")
 
     def project(self, value: str | None) -> Self:
         """Set the ``project`` field."""
@@ -448,10 +404,7 @@ class ForwardingArtifactService(BuilderBase):
     _KNOWN_PARAMS: set[str] | None = {"tool_context"}
 
     def __init__(self, tool_context: str) -> None:
-        self._config: dict[str, Any] = {"tool_context": tool_context}
-        self._callbacks: dict[str, list[Callable]] = defaultdict(list)
-        self._lists: dict[str, list] = defaultdict(list)
-        self._frozen = False
+        self._init_storage(tool_context)
 
     def build(self) -> _ADK_ForwardingArtifactService:
         """Artifact service that forwards to the parent tool context. Resolve into a native ADK _ADK_ForwardingArtifactService."""

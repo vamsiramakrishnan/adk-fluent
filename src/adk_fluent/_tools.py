@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from adk_fluent._composite import Composite
+
 __all__ = [
     "T",
     "TComposite",
@@ -31,7 +33,7 @@ __all__ = [
 ]
 
 
-class TComposite:
+class TComposite(Composite, kind="tool_chain"):
     """Composable tool chain. The result of any ``T.xxx()`` call.
 
     Supports ``|`` for composition::
@@ -39,62 +41,12 @@ class TComposite:
         T.fn(search) | T.fn(email) | T.google_search()
     """
 
-    def __init__(self, items: list[Any] | None = None, *, kind: str = "tool_chain"):
-        self._items: list[Any] = list(items or [])
-        self.__kind = kind
-
-    # ------------------------------------------------------------------
-    # NamespaceSpec protocol
-    # ------------------------------------------------------------------
-
-    @property
-    def _kind(self) -> str:
-        """Discriminator tag for IR serialization."""
-        return self.__kind
-
-    def _as_list(self) -> tuple[Any, ...]:
-        """Flatten for composite building."""
-        return tuple(self._items)
-
-    @property
-    def _reads_keys(self) -> frozenset[str] | None:
-        """Tools are opaque to state — always returns ``None``."""
-        return None
-
-    @property
-    def _writes_keys(self) -> frozenset[str] | None:
-        """Tools are opaque to state — always returns ``None``."""
-        return None
-
-    # ------------------------------------------------------------------
-    # Composition: | (chain)
-    # ------------------------------------------------------------------
-
-    def __or__(self, other: TComposite | Any) -> TComposite:
-        """T.fn(search) | T.fn(email)"""
-        if isinstance(other, TComposite):
-            return TComposite(self._items + other._items)
-        return TComposite(self._items + [other])
-
-    def __ror__(self, other: Any) -> TComposite:
-        """my_fn | T.google_search()"""
-        if isinstance(other, TComposite):
-            return TComposite(other._items + self._items)
-        return TComposite([other] + self._items)
-
     def to_tools(self) -> list[Any]:
         """Flatten to ADK-compatible tool/toolset list.
 
         Auto-wraps plain callables in FunctionTool.
         """
         return list(self._items)
-
-    def __repr__(self) -> str:
-        names = [type(item).__name__ for item in self._items]
-        return f"TComposite([{', '.join(names)}])"
-
-    def __len__(self) -> int:
-        return len(self._items)
 
 
 class _SchemaMarker:
