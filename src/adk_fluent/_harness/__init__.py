@@ -6,21 +6,34 @@ streaming, compression, hooks, checkpoints, and an interactive REPL.
 The ``H`` namespace provides composable primitives. This package is
 split into focused modules:
 
-    _events.py       — HarnessEvent hierarchy
-    _permissions.py  — PermissionPolicy + approval persistence
-    _sandbox.py      — SandboxPolicy + symlink-safe paths
-    _tools.py        — workspace tool factories
-    _streaming.py    — PTY-based streaming bash
-    _git.py          — git checkpoint/rollback
-    _gitignore.py    — gitignore-aware file filtering
-    _hooks.py        — user-configurable event hooks
-    _artifacts.py    — artifact/blob handling
-    _compression.py  — context auto-compression
-    _dispatcher.py   — ADK→HarnessEvent translation
-    _repl.py         — interactive REPL loop
-    _skills.py       — SkillSpec + compilation
-    _config.py       — HarnessConfig
-    _namespace.py    — H class (public API)
+    _events.py         — HarnessEvent hierarchy
+    _permissions.py    — PermissionPolicy + approval persistence
+    _sandbox.py        — SandboxPolicy + symlink-safe paths
+    _tools.py          — workspace tool factories
+    _streaming.py      — PTY-based streaming bash
+    _git.py            — git checkpoint/rollback
+    _gitignore.py      — gitignore-aware file filtering
+    _hooks.py          — user-configurable event hooks
+    _artifacts.py      — artifact/blob handling
+    _compression.py    — context auto-compression
+    _dispatcher.py     — ADK→HarnessEvent translation
+    _repl.py           — interactive REPL loop
+    _skills.py         — SkillSpec + compilation
+    _config.py         — HarnessConfig
+    _namespace.py      — H class (public API)
+
+    # New affordance modules
+    _web.py            — web fetch and search tools
+    _memory.py         — persistent project memory
+    _usage.py          — token/cost tracking
+    _diff.py           — diff-mode edit previews
+    _multimodal.py     — image/PDF reading
+    _processes.py      — background process management
+    _mcp.py            — bulk MCP server loading
+    _error_strategy.py — harness-level error recovery
+    _notebook.py       — Jupyter notebook tools
+    _tasks.py          — background task management
+    _renderer.py       — event display formatting
 """
 
 # Events
@@ -36,20 +49,31 @@ from adk_fluent._harness._compression import (
 # Config
 from adk_fluent._harness._config import HarnessConfig
 
+# Diff mode
+from adk_fluent._harness._diff import PendingEditStore, make_apply_edit, make_diff_edit_file
+
 # Dispatcher
 from adk_fluent._harness._dispatcher import EventDispatcher
+
+# Error strategy
+from adk_fluent._harness._error_strategy import ErrorStrategy, make_error_callbacks
 from adk_fluent._harness._events import (
     ArtifactSaved,
     CompressionTriggered,
+    ErrorOccurred,
+    FileEdited,
     GitCheckpoint,
     HarnessEvent,
     HookFired,
     PermissionRequest,
     PermissionResult,
+    ProcessEvent,
+    TaskEvent,
     TextChunk,
     ToolCallEnd,
     ToolCallStart,
     TurnComplete,
+    UsageUpdate,
 )
 
 # Git
@@ -61,8 +85,24 @@ from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
 # Hooks
 from adk_fluent._harness._hooks import HookRegistry, HookSpec
 
+# MCP
+from adk_fluent._harness._mcp import load_mcp_config, load_mcp_tools
+
+# Memory
+from adk_fluent._harness._memory import ProjectMemory
+
+# Multimodal
+from adk_fluent._harness._multimodal import make_multimodal_read_file
+
 # H namespace
 from adk_fluent._harness._namespace import H
+
+# Notebook
+from adk_fluent._harness._notebook import (
+    make_edit_notebook_cell,
+    make_read_notebook,
+    notebook_tools,
+)
 
 # Permissions
 from adk_fluent._harness._permissions import (
@@ -70,6 +110,12 @@ from adk_fluent._harness._permissions import (
     PermissionPolicy,
     make_permission_callback,
 )
+
+# Processes
+from adk_fluent._harness._processes import ProcessRegistry, process_tools
+
+# Renderer
+from adk_fluent._harness._renderer import JsonRenderer, PlainRenderer, RichRenderer
 
 # REPL
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
@@ -83,6 +129,9 @@ from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
 # Streaming
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 
+# Tasks
+from adk_fluent._harness._tasks import TaskRegistry, TaskStatus, task_tools
+
 # Tools
 from adk_fluent._harness._tools import (
     make_bash,
@@ -94,6 +143,12 @@ from adk_fluent._harness._tools import (
     make_write_file,
     workspace_tools,
 )
+
+# Usage tracking
+from adk_fluent._harness._usage import TurnUsage, UsageTracker
+
+# Web tools
+from adk_fluent._harness._web import make_web_fetch, web_tools
 
 # Backward-compatible aliases for old private names
 _make_read_file = make_read_file
@@ -123,6 +178,11 @@ __all__ = [
     "CompressionTriggered",
     "HookFired",
     "ArtifactSaved",
+    "FileEdited",
+    "ErrorOccurred",
+    "UsageUpdate",
+    "ProcessEvent",
+    "TaskEvent",
     # Permissions
     "PermissionPolicy",
     "ApprovalMemory",
@@ -138,6 +198,41 @@ __all__ = [
     "make_bash",
     "make_list_dir",
     "workspace_tools",
+    # Web
+    "make_web_fetch",
+    "web_tools",
+    # Memory
+    "ProjectMemory",
+    # Usage
+    "UsageTracker",
+    "TurnUsage",
+    # Diff mode
+    "PendingEditStore",
+    "make_diff_edit_file",
+    "make_apply_edit",
+    # Multimodal
+    "make_multimodal_read_file",
+    # Processes
+    "ProcessRegistry",
+    "process_tools",
+    # MCP
+    "load_mcp_tools",
+    "load_mcp_config",
+    # Error strategy
+    "ErrorStrategy",
+    "make_error_callbacks",
+    # Notebook
+    "make_read_notebook",
+    "make_edit_notebook_cell",
+    "notebook_tools",
+    # Tasks
+    "TaskRegistry",
+    "TaskStatus",
+    "task_tools",
+    # Renderer
+    "PlainRenderer",
+    "RichRenderer",
+    "JsonRenderer",
     # Streaming
     "StreamingBash",
     "make_streaming_bash",

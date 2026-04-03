@@ -2676,11 +2676,15 @@ class BuilderBase:
         sandbox: Any | None = None,
         auto_compress: int = 100_000,
         approval_handler: Any | None = None,
+        usage: Any | None = None,
+        memory: Any | None = None,
+        on_error: Any | None = None,
     ) -> Self:
         """Configure this agent as an interactive harness runtime.
 
-        Attaches permission enforcement, sandbox policies, and context
-        compression to produce a CodAct-style agent runtime.
+        Attaches permission enforcement, sandbox policies, context
+        compression, usage tracking, project memory, and error
+        strategy to produce a CodAct-style agent runtime.
 
         Args:
             permissions: A :class:`PermissionPolicy` from ``H.ask_before()``
@@ -2690,6 +2694,12 @@ class BuilderBase:
             auto_compress: Token threshold for auto-compression (default 100k).
             approval_handler: Callable ``(tool_name, args) -> bool`` for
                 interactive approval. If None, defaults to auto-allow.
+            usage: A :class:`UsageTracker` from ``H.usage()``. Wired as
+                after_model callback.
+            memory: A :class:`ProjectMemory` from ``H.memory(path)``.
+                Wired as before_agent (load) and after_agent (save) callbacks.
+            on_error: An :class:`ErrorStrategy` from ``H.on_error()``.
+                Wired as after_tool callback for error recovery.
 
         Usage::
 
@@ -2699,6 +2709,9 @@ class BuilderBase:
                 .harness(
                     permissions=H.ask_before("bash", "edit_file"),
                     sandbox=H.workspace_only("/project"),
+                    usage=H.usage(),
+                    memory=H.memory("/project/.agent-memory.md"),
+                    on_error=H.on_error(retry={"bash"}),
                 )
             )
         """
@@ -2716,6 +2729,9 @@ class BuilderBase:
             sandbox=sandbox or SandboxPolicy(),
             auto_compress_threshold=auto_compress,
             approval_handler=approval_handler,
+            usage=usage,
+            memory=memory,
+            on_error=on_error,
         )
         self._config["_harness_config"] = cfg
 
@@ -2723,6 +2739,23 @@ class BuilderBase:
         if permissions is not None:
             cb = _make_permission_callback(cfg.permissions, cfg.approval_handler)
             self._callbacks.setdefault("before_tool_callback", []).append(cb)
+
+        # Wire usage tracking as after_model callback
+        if usage is not None:
+            self._callbacks.setdefault("after_model_callback", []).append(usage.callback())
+
+        # Wire project memory as before/after agent callbacks
+        if memory is not None:
+            self._callbacks.setdefault("before_agent_callback", []).append(memory.load_callback())
+            self._callbacks.setdefault("after_agent_callback", []).append(memory.save_callback())
+
+        # Wire error strategy as after_tool callback
+        if on_error is not None:
+            from adk_fluent._harness._error_strategy import make_error_callbacks
+
+            error_cbs = make_error_callbacks(on_error)
+            for key, cb in error_cbs.items():
+                self._callbacks.setdefault(key, []).append(cb)
 
         return self
 

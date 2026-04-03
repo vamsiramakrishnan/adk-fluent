@@ -13,26 +13,29 @@ All harness primitives are accessed through the ``H`` class::
     # Sandbox policies
     sandbox = H.workspace_only("/project")
 
-    # Git checkpoints
-    checkpoint = H.git("/project")
+    # Web tools (reuses ADK UrlContextTool / GoogleSearchTool)
+    web = H.web()
 
-    # Hooks
-    hooks = H.hooks("/project").on("tool_call_start", "echo {tool_name}")
+    # Persistent project memory (composes with C.from_state / .reads)
+    mem = H.memory("/project/.agent-memory.md")
 
-    # Artifacts
-    store = H.artifacts("/project/.harness/artifacts")
+    # Token/cost tracking
+    tracker = H.usage()
 
-    # Streaming bash
-    bash = H.streaming_bash(sandbox)
+    # Process lifecycle
+    procs = H.processes()
 
-    # Event dispatcher
-    dispatcher = H.dispatcher()
+    # MCP bulk-loading (delegates to T.mcp / McpToolset)
+    mcp_tools = H.mcp([{"url": "http://localhost:3000/mcp"}])
 
-    # Context compressor
-    compressor = H.compressor(threshold=100_000)
+    # Notebook editing
+    nb_tools = H.notebook()
 
-    # REPL
-    repl = H.repl(agent, hooks=hooks, compressor=compressor)
+    # Background tasks
+    tasks = H.tasks()
+
+    # Event rendering
+    renderer = H.renderer()
 """
 
 from __future__ import annotations
@@ -43,14 +46,19 @@ from typing import Any
 
 from adk_fluent._harness._artifacts import ArtifactStore
 from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
+from adk_fluent._harness._diff import PendingEditStore, make_apply_edit, make_diff_edit_file
 from adk_fluent._harness._dispatcher import EventDispatcher
+from adk_fluent._harness._error_strategy import ErrorStrategy
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._hooks import HookRegistry
+from adk_fluent._harness._memory import ProjectMemory
+from adk_fluent._harness._multimodal import make_multimodal_read_file
 from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 from adk_fluent._harness._tools import workspace_tools
+from adk_fluent._harness._usage import UsageTracker
 
 __all__ = ["H"]
 
@@ -63,11 +71,13 @@ class H:
 
         harness = (
             Agent("coder", "gemini-2.5-pro")
-            .use_skill("skills/python/")
-            .tools(H.workspace("/project"))
+            .tools(H.workspace("/project") + H.web() + H.processes())
             .harness(
                 permissions=H.auto_allow("read_file").merge(H.ask_before("bash")),
                 sandbox=H.workspace_only("/project"),
+                usage=H.usage(),
+                memory=H.memory("/project/.agent-memory.md"),
+                on_error=H.on_error(retry={"bash"}, skip={"glob_search"}),
             )
         )
     """
@@ -86,6 +96,8 @@ class H:
         max_output_bytes: int = 100_000,
         streaming: bool = False,
         on_output: Callable[[str], None] | None = None,
+        diff_mode: bool = False,
+        multimodal: bool = False,
     ) -> list[Callable]:
         """Create a sandboxed workspace tool kit.
 
@@ -100,6 +112,10 @@ class H:
             max_output_bytes: Max bash output size.
             streaming: Use streaming bash (PTY-based, yields output).
             on_output: Callback for streaming bash output chunks.
+            diff_mode: Preview edits as diffs before applying. Replaces
+                ``edit_file`` with a two-phase diff+apply workflow.
+            multimodal: Handle images and PDFs in ``read_file``.
+                Returns base64-encoded content for binary files.
         """
         sandbox = SandboxPolicy(
             workspace=str(Path(path).resolve()),
@@ -107,7 +123,21 @@ class H:
             allow_network=allow_network,
             max_output_bytes=max_output_bytes,
         )
+
+        # Start with standard tools
         tools = workspace_tools(sandbox, read_only=read_only)
+
+        # Replace read_file with multimodal version
+        if multimodal:
+            tools = [t for t in tools if t.__name__ != "read_file"]
+            tools.insert(0, make_multimodal_read_file(sandbox))
+
+        # Replace edit_file with diff-mode version
+        if diff_mode and not read_only:
+            tools = [t for t in tools if t.__name__ != "edit_file"]
+            store = PendingEditStore()
+            tools.append(make_diff_edit_file(sandbox, store))
+            tools.append(make_apply_edit(sandbox, store))
 
         # Replace blocking bash with streaming if requested
         if streaming and allow_shell:
@@ -177,6 +207,305 @@ class H:
         )
 
     # =================================================================
+    # Web tools (reuses ADK UrlContextTool / GoogleSearchTool)
+    # =================================================================
+
+    @staticmethod
+    def web(
+        *,
+        search: bool = True,
+        search_provider: Callable | None = None,
+        allow_network: bool = True,
+        max_bytes: int = 100_000,
+        timeout: int = 30,
+    ) -> list:
+        """Create web tools: URL fetching and web search.
+
+        Prefers ADK's ``UrlContextTool`` and ``GoogleSearchTool`` when
+        available. Falls back to a standalone ``urllib``-based fetcher.
+
+        Args:
+            search: Include web search tool.
+            search_provider: Custom search tool (replaces default).
+            allow_network: Override network policy.
+            max_bytes: Max response size for standalone fetcher.
+            timeout: Request timeout for standalone fetcher.
+        """
+        from adk_fluent._harness._web import web_tools
+
+        sandbox = SandboxPolicy(allow_network=allow_network)
+        return web_tools(
+            sandbox,
+            search=search,
+            search_provider=search_provider,
+            max_bytes=max_bytes,
+            timeout=timeout,
+        )
+
+    # =================================================================
+    # Persistent project memory (composes with C.from_state / .reads)
+    # =================================================================
+
+    @staticmethod
+    def memory(
+        path: str | Path,
+        *,
+        state_key: str = "project_memory",
+        max_entries: int = 100,
+    ) -> ProjectMemory:
+        """Create a persistent project memory file.
+
+        Loads from and saves to a markdown file that survives across
+        sessions. Integrates with existing context primitives::
+
+            mem = H.memory("/project/.agent-memory.md")
+
+            agent = (
+                Agent("coder")
+                .before_agent(mem.load_callback())    # file → state
+                .reads("project_memory")               # state → prompt
+                .after_agent(mem.save_callback())      # state → file
+            )
+
+        Or with C namespace::
+
+            .context(C.from_state("project_memory"))
+
+        Args:
+            path: Path to the memory file.
+            state_key: State key for context injection.
+            max_entries: Max entries when using .append().
+        """
+        return ProjectMemory(path, state_key=state_key, max_entries=max_entries)
+
+    # =================================================================
+    # Token/cost tracking
+    # =================================================================
+
+    @staticmethod
+    def usage(
+        *,
+        cost_per_million_input: float = 0.0,
+        cost_per_million_output: float = 0.0,
+    ) -> UsageTracker:
+        """Create a token usage tracker.
+
+        Attach as an after_model callback to track token consumption::
+
+            tracker = H.usage()
+            agent = Agent("coder").after_model(tracker.callback())
+
+            # After execution
+            print(tracker.summary())
+            print(tracker.total_tokens)
+
+        Args:
+            cost_per_million_input: Cost per 1M input tokens (USD).
+            cost_per_million_output: Cost per 1M output tokens (USD).
+        """
+        return UsageTracker(
+            cost_per_million_input=cost_per_million_input,
+            cost_per_million_output=cost_per_million_output,
+        )
+
+    # =================================================================
+    # Process lifecycle management
+    # =================================================================
+
+    @staticmethod
+    def processes(
+        path: str | Path | None = None,
+        *,
+        allow_shell: bool = True,
+    ) -> list[Callable]:
+        """Create background process management tools.
+
+        Returns [start_process, check_process, stop_process] for
+        managing long-running commands (dev servers, builds, etc.)::
+
+            agent = Agent("coder").tools(
+                H.workspace("/project") + H.processes("/project")
+            )
+
+        Args:
+            path: Workspace directory for process cwd.
+            allow_shell: Allow shell execution.
+        """
+        from adk_fluent._harness._processes import process_tools
+
+        sandbox = SandboxPolicy(
+            workspace=str(Path(path).resolve()) if path else None,
+            allow_shell=allow_shell,
+        )
+        return process_tools(sandbox)
+
+    # =================================================================
+    # MCP bulk-loading (delegates to T.mcp / McpToolset builder)
+    # =================================================================
+
+    @staticmethod
+    def mcp(
+        servers: list[dict[str, Any]],
+        *,
+        tool_filter: Callable[[str], bool] | list[str] | None = None,
+        prefix: str | None = None,
+    ) -> list:
+        """Load tools from multiple MCP servers at once.
+
+        Delegates to the existing ``McpToolset`` builder for each server.
+        Each spec is a dict with ``url`` or ``command``::
+
+            tools = H.mcp([
+                {"url": "http://localhost:3000/mcp"},
+                {"command": "npx", "args": ["-y", "some-server"]},
+            ])
+
+        Args:
+            servers: List of server spec dicts.
+            tool_filter: Filter tools by name.
+            prefix: Prefix for tool names.
+        """
+        from adk_fluent._harness._mcp import load_mcp_tools
+
+        return load_mcp_tools(servers, tool_filter=tool_filter, prefix=prefix)
+
+    @staticmethod
+    def mcp_from_config(
+        config_path: str | Path,
+        *,
+        tool_filter: Callable[[str], bool] | list[str] | None = None,
+        prefix: str | None = None,
+    ) -> list:
+        """Load MCP tools from a JSON config file.
+
+        Supports Claude Code format (``mcpServers`` dict) and
+        array format::
+
+            tools = H.mcp_from_config("/project/.agent/mcp.json")
+
+        Args:
+            config_path: Path to the config file.
+            tool_filter: Filter tools by name.
+            prefix: Prefix for tool names.
+        """
+        from adk_fluent._harness._mcp import load_mcp_config
+
+        return load_mcp_config(config_path, tool_filter=tool_filter, prefix=prefix)
+
+    # =================================================================
+    # Notebook tools
+    # =================================================================
+
+    @staticmethod
+    def notebook(path: str | Path | None = None) -> list[Callable]:
+        """Create notebook (.ipynb) editing tools.
+
+        Returns [read_notebook, edit_notebook_cell] for reading and
+        editing Jupyter notebooks without a Jupyter dependency::
+
+            agent = Agent("ds").tools(
+                H.workspace("/project") + H.notebook("/project")
+            )
+
+        Args:
+            path: Workspace directory for path resolution.
+        """
+        from adk_fluent._harness._notebook import notebook_tools
+
+        sandbox = SandboxPolicy(
+            workspace=str(Path(path).resolve()) if path else None,
+        )
+        return notebook_tools(sandbox)
+
+    # =================================================================
+    # Background tasks
+    # =================================================================
+
+    @staticmethod
+    def tasks(*, max_tasks: int = 10) -> list[Callable]:
+        """Create background task management tools.
+
+        Returns [launch_task, check_task, list_tasks] for tracking
+        named background tasks::
+
+            agent = Agent("coder").tools(H.tasks())
+
+        Args:
+            max_tasks: Maximum concurrent tasks.
+        """
+        from adk_fluent._harness._tasks import TaskRegistry, task_tools
+
+        registry = TaskRegistry(max_tasks=max_tasks)
+        return task_tools(registry)
+
+    # =================================================================
+    # Error strategy
+    # =================================================================
+
+    @staticmethod
+    def on_error(
+        *,
+        retry: set[str] | frozenset[str] | None = None,
+        skip: set[str] | frozenset[str] | None = None,
+        ask: set[str] | frozenset[str] | None = None,
+        fallback_message: str = "Tool call failed and was skipped.",
+    ) -> ErrorStrategy:
+        """Create a harness-level error recovery policy.
+
+        Maps tool names to actions on failure::
+
+            strategy = H.on_error(
+                retry={"bash", "web_fetch"},
+                skip={"glob_search"},
+                ask={"edit_file"},
+            )
+
+        Args:
+            retry: Tools to retry once on failure.
+            skip: Tools to skip silently on failure.
+            ask: Tools to escalate to error handler.
+            fallback_message: Message for skipped failures.
+        """
+        return ErrorStrategy(
+            retry=frozenset(retry or set()),
+            skip=frozenset(skip or set()),
+            ask=frozenset(ask or set()),
+            fallback_message=fallback_message,
+        )
+
+    # =================================================================
+    # Event rendering
+    # =================================================================
+
+    @staticmethod
+    def renderer(
+        format: str = "plain",
+        *,
+        show_timing: bool = True,
+        show_args: bool = False,
+        verbose: bool = False,
+    ) -> Any:
+        """Create an event renderer for display formatting.
+
+        Renderers convert HarnessEvents into display strings. They
+        do NOT handle I/O — the caller writes to their output.
+
+        Args:
+            format: ``"plain"``, ``"rich"``, or ``"json"``.
+            show_timing: Include duration in tool events.
+            show_args: Include tool arguments.
+            verbose: Show all event types.
+        """
+        from adk_fluent._harness._renderer import JsonRenderer, PlainRenderer, RichRenderer
+
+        if format == "rich":
+            return RichRenderer(show_timing=show_timing, show_args=show_args)
+        elif format == "json":
+            return JsonRenderer()
+        else:
+            return PlainRenderer(show_timing=show_timing, show_args=show_args, verbose=verbose)
+
+    # =================================================================
     # Git checkpoints
     # =================================================================
 
@@ -207,6 +536,10 @@ class H:
                 H.hooks("/project")
                 .on("tool_call_start", "echo {tool_name} >> audit.log")
                 .on("turn_complete", "./scripts/post-turn.sh")
+                .on_edit("ruff check {file_path}")
+                .on_error("notify-send 'Error: {error}'")
+                .on_commit("./scripts/post-commit.sh")
+                .on_compress("echo 'Context compressed'")
             )
         """
         return HookRegistry(workspace=str(workspace) if workspace else None)
@@ -339,6 +672,9 @@ class H:
         auto_compress_threshold: int = 100_000,
         approval_handler: Callable[[str, dict], bool] | None = None,
         approval_memory: ApprovalMemory | None = None,
+        usage: UsageTracker | None = None,
+        memory: ProjectMemory | None = None,
+        on_error: ErrorStrategy | None = None,
     ) -> Any:
         """Create a unified harness configuration.
 
@@ -348,6 +684,9 @@ class H:
                 permissions=H.ask_before("bash").merge(H.auto_allow("read_file")),
                 sandbox=H.workspace_only("/project"),
                 approval_memory=H.approval_memory(),
+                usage=H.usage(),
+                memory=H.memory("/project/.agent-memory.md"),
+                on_error=H.on_error(retry={"bash"}),
             )
         """
         from adk_fluent._harness._config import HarnessConfig
@@ -358,4 +697,7 @@ class H:
             auto_compress_threshold=auto_compress_threshold,
             approval_handler=approval_handler,
             approval_memory=approval_memory,
+            usage=usage,
+            memory=memory,
+            on_error=on_error,
         )
