@@ -1165,6 +1165,46 @@ How to compose agents into a sequential pipeline.
 ```
 ````
 
+## Skills & Harness Pathways
+
+These recipes demonstrate the [Skills](../../user-guide/skills.md) and [Harness](../../user-guide/harness.md) development pathways -- two of adk-fluent's [three distinct pathways](../../user-guide/index.md#three-pathways) for building agents at different abstraction levels.
+
+````{grid} 1 2 2 2
+---
+gutter: 3
+---
+```{grid-item-card} Skill-Based Agents -- Composable Skills from SKILL.md Files
+
+11 patterns for declaring agent topologies in YAML, loading them as `Skill()` builders, composing with operators, injecting tools, and discovering skills via `SkillRegistry`.
+
+**Pathway:** Skills
+:link: 77_skill_based_agents
+:link-type: doc
+
+How to use declarative SKILL.md files for composable agent packages.
+```
+```{grid-item-card} Skill-Powered Harness -- Building a CodAct Coding Agent
+
+8 patterns combining Skills + Harness: loading domain expertise from SKILL.md into agents with sandboxed workspace tools, permission policies, and context engineering.
+
+**Pathway:** Skills + Harness
+:link: 78_harness_and_skills
+:link-type: doc
+
+How to combine skill expertise with harness runtime primitives.
+```
+```{grid-item-card} Gemini CLI / Claude Code Clone -- Production Coding Agent Harness
+
+27 tests building a complete 5-layer autonomous coding runtime: intelligence, tools, safety, observability, and runtime. Includes EventBus, budget monitor, task ledger, cancellation, and REPL.
+
+**Pathway:** Harness
+:link: 79_coding_agent_harness
+:link-type: doc
+
+How to build a production autonomous coding runtime with the H namespace.
+```
+````
+
 ```{toctree}
 :hidden:
 
@@ -1196,6 +1236,9 @@ How to compose agents into a sequential pipeline.
 72_a2ui_operators
 73_a2ui_llm_guided
 74_a2ui_pipeline
+77_skill_based_agents
+78_harness_and_skills
+79_coding_agent_harness
 ```
 
 ```{toctree}
