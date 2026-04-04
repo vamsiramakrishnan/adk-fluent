@@ -243,6 +243,11 @@ skills: _require-manifest _require-seed
     @echo "Generating agent skill references..."
     @uv run python {{SKILL_GEN}} {{MANIFEST}} {{SEED}}
 
+# --- Check skills for staleness (fails if out of date) ---
+check-skills: _require-manifest _require-seed
+    @echo "Checking skill freshness..."
+    @uv run python {{SKILL_GEN}} {{MANIFEST}} {{SEED}} --check
+
 docs-api: _require-manifest _require-seed
     @echo "Generating API reference..."
     @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
@@ -528,6 +533,7 @@ help:
     @echo "  just docs-serve     Build and serve docs with live reload"
     @echo "  just llms           Generate llms.txt + editor rules (CLAUDE.md, .cursorrules, etc.)"
     @echo "  just skills         Generate agent skill references (.claude/skills/ + .gemini/skills/ + skills/)"
+    @echo "  just check-skills   Check if skills are up to date (fails if stale)"
     @echo "  just cookbook-gen    Generate cookbook example stubs"
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"

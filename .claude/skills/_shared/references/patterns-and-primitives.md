@@ -41,6 +41,10 @@ Route to different agents based on a state predicate.
 
 Run agents in parallel, then merge their outputs into one state key.
 
+### `group_chat(*agents: 'Any', max_rounds: 'int' = 5, stop_key: 'str' = 'done') -> 'Any'`
+
+Round-robin group chat: agents take turns with shared context.
+
 ### `map_reduce(mapper: 'Any', reducer: 'Any', *, items_key: 'str', item_key: 'str' = '_item', result_key: 'str' = 'results') -> 'Any'`
 
 Fan-out a mapper agent over items in state, then reduce.
@@ -57,7 +61,7 @@ Worker-supervisor pattern: worker produces, supervisor approves or requests revi
 
 Create an agent with an attached dashboard UI surface.
 
-### `ui_form_agent(name: 'str', model: 'str', *, fields: 'dict[str, str]', on_submit: 'Callable | None' = None, instruction: 'str' = '', submit_label: 'str' = 'Submit') -> 'Any'`
+### `ui_form_agent(name: 'str', model: 'str', *, fields: 'dict[str, str | list[str]]', on_submit: 'Callable | None' = None, instruction: 'str' = '', submit_label: 'str' = 'Submit') -> 'Any'`
 
 Create an agent with an attached form UI surface.
 

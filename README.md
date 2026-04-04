@@ -1716,6 +1716,7 @@ npx skills add vamsiramakrishnan/adk-fluent -y -g
 
 | Skill | Description |
 |-------|-------------|
+| `adk-fluent-complete` | **Comprehensive reference** — all {{ BUILDER_COUNT }} builders, 9 namespaces, operators, patterns, A2A. Auto-generated, always current |
 | `adk-fluent-cheatsheet` | API quick reference — builder methods, operators, namespaces, ADK→fluent mapping |
 | `adk-fluent-dev-guide` | Development lifecycle — spec-driven workflow, phase-based development, troubleshooting |
 | `adk-fluent-eval-guide` | Evaluation methodology — E namespace, eval suites, criteria, LLM-as-judge |

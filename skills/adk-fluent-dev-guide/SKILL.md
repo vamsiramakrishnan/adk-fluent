@@ -8,7 +8,7 @@ description: >
 metadata:
   license: Apache-2.0
   author: vamsiramakrishnan
-  version: "0.12.1"
+  version: "0.13.5"
 ---
 
 # adk-fluent Development Workflow & Guidelines

@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import filecmp
 import inspect
 import re
 import shutil
@@ -999,14 +1000,162 @@ def generate_distributable_cheatsheet(specs: list[BuilderSpec], version: str) ->
     )
 
 
+def generate_distributable_complete(specs: list[BuilderSpec], version: str) -> str:
+    """Generate the adk-fluent-complete distributable skill — comprehensive library reference.
+
+    This skill is 100% auto-generated from sources of truth:
+    - llms_generator.py canonical content blocks (same as CLAUDE.md)
+    - manifest.json (builder count, ADK version)
+    - _version.py (package version)
+    - Namespace introspection (S, C, P, A, M, T, E, G methods)
+    """
+    from llms_generator import (
+        _AGENT_METHODS,
+        _A2A_SECTION,
+        _BEST_PRACTICES,
+        _COMMANDS,
+        _COMPOSITION_PATTERNS,
+        _CORE_PATTERNS,
+        _EXPRESSION_PRIMITIVES,
+        _NAMESPACE_MODULES,
+    )
+
+    builder_count = len(specs)
+    module_counts: dict[str, int] = defaultdict(int)
+    for spec in specs:
+        module_counts[spec.output_module] += 1
+    inventory_lines = []
+    for module in sorted(module_counts):
+        names = sorted(s.name for s in specs if s.output_module == module)
+        inventory_lines.append(f"### {module} module ({module_counts[module]} builders)")
+        inventory_lines.append("")
+        inventory_lines.append(", ".join(f"`{n}`" for n in names))
+        inventory_lines.append("")
+
+    body_parts = [
+        "# adk-fluent Complete Reference",
+        "",
+        "> **Auto-generated** from manifest.json, seed.toml, and source code introspection.",
+        f"> Package version: {version} | Builders: {builder_count}",
+        "> Regenerate: `just skills`",
+        "",
+        "This skill provides the full adk-fluent library reference for AI coding",
+        "assistants. It enables accurate code generation, API lookups, and",
+        "architecture guidance without hallucinating non-existent methods.",
+        "",
+        "## Install & Import",
+        "",
+        "```bash",
+        "pip install adk-fluent",
+        "```",
+        "",
+        "```python",
+        "from adk_fluent import Agent, Pipeline, FanOut, Loop, Route, Fallback",
+        "from adk_fluent import S, C, P, A, M, T, E, G, UI",
+        "from adk_fluent import until, tap, expect, map_over, gate, race",
+        "```",
+        "",
+        "Never import from internal modules (`adk_fluent._base`, `adk_fluent.agent`).",
+        "",
+        "---",
+        "",
+    ]
+
+    body_parts.append(_CORE_PATTERNS.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_AGENT_METHODS.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_NAMESPACE_MODULES.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_EXPRESSION_PRIMITIVES.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_COMPOSITION_PATTERNS.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_A2A_SECTION.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(f"## Builder Inventory ({builder_count} builders)")
+    body_parts.append("")
+    body_parts.extend(inventory_lines)
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_BEST_PRACTICES.strip())
+    body_parts.append("")
+    body_parts.append("---")
+    body_parts.append("")
+    body_parts.append(_COMMANDS.strip())
+
+    body = "\n".join(body_parts)
+
+    return _generate_distributable_skill(
+        "adk-fluent-complete",
+        "Comprehensive adk-fluent library reference for AI coding assistants.\n"
+        "Auto-generated from source code introspection — always up to date.\n"
+        f"Covers all {builder_count} builders, 9 namespace modules (S/C/P/A/M/T/E/G/UI),\n"
+        "expression operators, composition patterns, A2A, and best practices.\n"
+        "Use this skill to write accurate adk-fluent code without hallucination.",
+        body,
+        version=version,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Template variable substitution for SKILL.md files
+# ---------------------------------------------------------------------------
+
+
+def build_template_vars(specs: list[BuilderSpec], version: str) -> dict[str, str]:
+    """Build template variables from sources of truth.
+
+    SKILL.md files can use {{ VARIABLE_NAME }} placeholders that get
+    replaced at generation time. This keeps skills in sync with the
+    actual library state.
+    """
+    builder_count = len(specs)
+    module_names = sorted({s.output_module for s in specs})
+
+    return {
+        "VERSION": version,
+        "BUILDER_COUNT": str(builder_count),
+        "MODULE_COUNT": str(len(module_names)),
+        "MODULE_LIST": ", ".join(module_names),
+        "DOCS_URL": "https://vamsiramakrishnan.github.io/adk-fluent/",
+        "PYPI_URL": "https://pypi.org/project/adk-fluent/",
+        "REPO_URL": f"https://github.com/{GITHUB_REPO}",
+    }
+
+
+def apply_template_vars(content: str, template_vars: dict[str, str]) -> str:
+    """Replace {{ VARIABLE_NAME }} placeholders in SKILL.md content."""
+    for key, value in template_vars.items():
+        content = content.replace("{{ " + key + " }}", value)
+        content = content.replace("{{" + key + "}}", value)
+    return content
+
+
 def generate_distributable_skills(specs: list[BuilderSpec], version: str) -> dict[str, str]:
     """Generate all distributable skills. Returns {dir_name: content}."""
     skills: dict[str, str] = {}
+    template_vars = build_template_vars(specs, version)
 
     # 1. Cheatsheet — generated from canonical llms content
     skills["adk-fluent-cheatsheet"] = generate_distributable_cheatsheet(specs, version)
 
-    # 2-6. Copy from .claude/skills/ with project-specific refs stripped
+    # 2. Complete — comprehensive auto-generated reference
+    skills["adk-fluent-complete"] = generate_distributable_complete(specs, version)
+
+    # 3-7. Copy from .claude/skills/ with project-specific refs stripped
     # These are hand-authored but auto-packaged for distribution
     mapping = {
         "dev-guide": "adk-fluent-dev-guide",
@@ -1067,7 +1216,7 @@ def generate_distributable_skills(specs: list[BuilderSpec], version: str) -> dic
             line = line.replace("](../_shared/references/", "](")
             result.append(line)
 
-        skills[dist_name] = "".join(result)
+        skills[dist_name] = apply_template_vars("".join(result), template_vars)
 
     return skills
 
@@ -1216,6 +1365,34 @@ def write_file(path: Path, content: str) -> None:
 # ---------------------------------------------------------------------------
 
 
+def check_staleness(generated_dir: Path, committed_dir: Path) -> list[str]:
+    """Compare generated output with committed files. Returns list of stale paths."""
+    stale: list[str] = []
+    if not committed_dir.exists():
+        return stale
+
+    for gen_path in sorted(generated_dir.rglob("*")):
+        if gen_path.is_dir():
+            continue
+        rel = gen_path.relative_to(generated_dir)
+        committed_path = committed_dir / rel
+        if not committed_path.exists():
+            stale.append(f"NEW: {rel}")
+        elif not filecmp.cmp(gen_path, committed_path, shallow=False):
+            stale.append(f"STALE: {rel}")
+
+    # Check for files that were removed
+    for committed_path in sorted(committed_dir.rglob("*")):
+        if committed_path.is_dir():
+            continue
+        rel = committed_path.relative_to(committed_dir)
+        gen_path = generated_dir / rel
+        if not gen_path.exists():
+            stale.append(f"REMOVED: {rel}")
+
+    return stale
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate agent skill reference files from manifest + seed")
     parser.add_argument("manifest", help="Path to manifest.json")
@@ -1224,6 +1401,11 @@ def main():
         "--output-dir",
         default=".",
         help="Root directory for output (default: project root)",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check if generated skills match committed files (exit 1 if stale)",
     )
     args = parser.parse_args()
 
@@ -1269,6 +1451,38 @@ def main():
     # Generate distributable skills (skills/ directory for npx skills add)
     version = _get_version()
     dist_skills = generate_distributable_skills(specs, version)
+
+    if args.check:
+        # Staleness check mode — generate to temp dir and compare
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            for dir_name, content in dist_skills.items():
+                write_file(tmp_path / dir_name / "SKILL.md", content)
+            readme_content = generate_distributable_readme(dist_skills)
+            write_file(tmp_path / "README.md", readme_content)
+
+            stale = check_staleness(tmp_path, DISTRIBUTABLE_SKILLS)
+
+            # Also check references
+            tmp_refs = Path(tmpdir + "_refs")
+            tmp_refs.mkdir()
+            for filename, content in references.items():
+                write_file(tmp_refs / filename, content)
+            ref_stale = check_staleness(tmp_refs, refs_dir)
+
+            all_stale = [f"skills/{s}" for s in stale] + [f"references/{s}" for s in ref_stale]
+
+            if all_stale:
+                print(f"\nSkills are STALE ({len(all_stale)} files differ):")
+                for s in all_stale:
+                    print(f"  {s}")
+                print("\nRun `just skills` to regenerate.")
+                sys.exit(1)
+            else:
+                print("\nAll skills are up to date.")
+                sys.exit(0)
 
     # Clean and recreate distributable skills directory
     if DISTRIBUTABLE_SKILLS.exists():

@@ -18,6 +18,7 @@ npx skills update -g
 | Skill | Description |
 |-------|-------------|
 | `adk-fluent-cheatsheet` | MUST READ before writing or modifying adk-fluent agent code. |
+| `adk-fluent-complete` | Comprehensive adk-fluent library reference for AI coding assistants. |
 | `adk-fluent-deploy-guide` | MUST READ before deploying any adk-fluent agent. |
 | `adk-fluent-dev-guide` | ALWAYS ACTIVE — read at the start of any agent development session with adk-fluent. |
 | `adk-fluent-eval-guide` | MUST READ before running any agent evaluation with adk-fluent. |

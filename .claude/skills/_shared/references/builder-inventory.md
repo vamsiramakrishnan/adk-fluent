@@ -160,6 +160,6 @@
 
 ## workflow module (3 builders)
 
-- **FanOut** — `google.adk.agents.parallel_agent.ParallelAgent` (4 fields, 3 extras)
-- **Loop** — `google.adk.agents.loop_agent.LoopAgent` (5 fields, 3 extras)
-- **Pipeline** — `google.adk.agents.sequential_agent.SequentialAgent` (4 fields, 3 extras)
+- **FanOut** — `google.adk.agents.parallel_agent.ParallelAgent` (4 fields, 14 extras)
+- **Loop** — `google.adk.agents.loop_agent.LoopAgent` (5 fields, 13 extras)
+- **Pipeline** — `google.adk.agents.sequential_agent.SequentialAgent` (4 fields, 13 extras)

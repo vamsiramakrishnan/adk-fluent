@@ -1,22 +1,26 @@
 ---
-name: adk-fluent-cheatsheet
+name: adk-fluent-complete
 description: >
-  MUST READ before writing or modifying adk-fluent agent code.
-  adk-fluent API quick reference — builder methods, operators, namespaces,
-  patterns, and common idioms. Includes mappings from native ADK to fluent API.
-  Use when writing agents with adk-fluent, looking up builder methods,
-  or translating native ADK code to fluent style.
-  Do NOT use for creating new projects (use adk-fluent-scaffold).
+  Comprehensive adk-fluent library reference for AI coding assistants.
+  Auto-generated from source code introspection — always up to date.
+  Covers all 132 builders, 9 namespace modules (S/C/P/A/M/T/E/G/UI),
+  expression operators, composition patterns, A2A, and best practices.
+  Use this skill to write accurate adk-fluent code without hallucination.
 metadata:
   license: Apache-2.0
   author: vamsiramakrishnan
   version: "0.13.5"
 ---
 
-# adk-fluent Cheatsheet
+# adk-fluent Complete Reference
 
-> Quick reference for writing agents with adk-fluent.
-> For creating a new project, use `/adk-fluent-scaffold`.
+> **Auto-generated** from manifest.json, seed.toml, and source code introspection.
+> Package version: 0.13.5 | Builders: 132
+> Regenerate: `just skills`
+
+This skill provides the full adk-fluent library reference for AI coding
+assistants. It enables accurate code generation, API lookups, and
+architecture guidance without hallucinating non-existent methods.
 
 ## Install & Import
 
@@ -25,28 +29,14 @@ pip install adk-fluent
 ```
 
 ```python
-from adk_fluent import Agent, Pipeline, FanOut, Loop, Route
-from adk_fluent import S, C, P, A, M, T, E, G
+from adk_fluent import Agent, Pipeline, FanOut, Loop, Route, Fallback
+from adk_fluent import S, C, P, A, M, T, E, G, UI
+from adk_fluent import until, tap, expect, map_over, gate, race
 ```
 
 Never import from internal modules (`adk_fluent._base`, `adk_fluent.agent`).
 
 ---
-
-## Native ADK → adk-fluent Mapping
-
-| Native ADK | adk-fluent equivalent |
-|------------|----------------------|
-| `LlmAgent(name=, model=, instruction=)` | `Agent("name", "model").instruct("...")` |
-| `SequentialAgent(name=, sub_agents=[a, b])` | `Pipeline("name").step(a).step(b)` or `a >> b` |
-| `ParallelAgent(name=, sub_agents=[a, b])` | `FanOut("name").branch(a).branch(b)` or `a \| b` |
-| `LoopAgent(name=, sub_agents=, max_iterations=3)` | `Loop("name").step(a).max_iterations(3)` or `(a >> b) * 3` |
-| `AgentTool(agent=child)` | `.agent_tool(child)` |
-| `sub_agents=[child]` | `.sub_agent(child)` |
-| `output_key="key"` | `.writes("key")` |
-| `include_contents="none"` | `.reads("key")` or `.context(C.none())` |
-| `before_agent_callback=fn` | `.before_agent(fn)` |
-| `after_model_callback=fn` | `.after_model(fn)` |
 
 ## Core API patterns
 
@@ -119,6 +109,8 @@ All operators are immutable (copy-on-write). Sub-expressions can be reused.
 
     # Deterministic routing
     router = Route("tier").eq("VIP", vip_agent).otherwise(standard_agent)
+
+---
 
 ## Agent builder methods
 
@@ -277,6 +269,8 @@ Sync methods (.ask, .map) raise RuntimeError inside an async event loop
   .llm_anatomy()               — what the LLM sees
   .inspect()                   — plain-text state
   .to_dict() / .to_yaml()     — serialization
+
+---
 
 ## Namespace modules (S, C, P, A, M, T, E, G)
 
@@ -495,6 +489,8 @@ Agent integration:
   M.a2ui_log(level=)           — log A2UI surface operations
   C.with_ui(surface_id=)       — include UI state in context
 
+---
+
 ## Expression operators explained
 
     A >> B           # Sequential: A runs, then B. Returns a Pipeline.
@@ -534,6 +530,8 @@ Routing:
   Fallback(name)               — explicit fallback chain
     .attempt(agent)            — add fallback alternative
 
+---
+
 ## Composition patterns
 
 Higher-order constructors that accept builders and return builders:
@@ -552,52 +550,103 @@ A2A patterns (remote agent-to-agent):
   a2a_fanout(*endpoints, names=, timeout=)    — parallel fan-out to remote agents
   a2a_delegate(coordinator, **remotes)        — coordinator with named remote specialists
 
-## Execution
+---
 
-```python
-# One-shot (sync)
-result = agent.ask("What is 2+2?")
+## A2A (Agent-to-Agent) remote communication
 
-# One-shot (async — use in Jupyter/FastAPI)
-result = await agent.ask_async("What is 2+2?")
+Experimental support for the A2A protocol. Requires `pip install google-adk[a2a]`.
 
-# Streaming
-async for chunk in agent.stream("Tell me a story"):
-    print(chunk, end="")
+### RemoteAgent — consume a remote A2A agent
 
-# Multi-turn session
-async with agent.session() as chat:
-    r1 = await chat.send("Hello")
+    from adk_fluent import RemoteAgent
 
-# Batch
-results = agent.map(["prompt1", "prompt2"], concurrency=5)
+    remote = (
+        RemoteAgent("researcher", agent_card="http://researcher:8001/.well-known/agent.json")
+        .describe("Remote research specialist")
+        .timeout(30)
+        .sends("query")           # serialize state keys into A2A message
+        .receives("findings")     # deserialize A2A response back into state
+        .persistent_context()     # maintain contextId across calls in same session
+    )
 
-# Testing (no API key needed)
-agent.mock(["canned response"]).test("input", contains="canned")
-```
+RemoteAgent extends BuilderBase — all operators (>>, |, //, *) work:
 
-## Common Gotchas
+    pipeline = Agent("writer") >> remote >> Agent("reviewer")
+    fallback = remote // Agent("local-fallback", "gemini-2.5-flash")
 
-| Mistake | Fix |
-|---------|-----|
-| `.build()` on sub-builders inside Pipeline/FanOut/Loop | Sub-builders auto-build |
-| `.ask()` in async context | Use `.ask_async()` |
-| Missing `.writes()` upstream of `.reads()` | Every `.reads("key")` needs `.writes("key")` upstream |
-| `.instruct()` for metadata | Use `.describe()` for metadata |
-| LLM routing when rules suffice | Use `Route()` |
-| Retry logic in tools | Use `M.retry()` |
-| DB clients in tool schemas | Use `.inject(db=client)` |
+### A2AServer — publish a local agent via A2A
 
-## Introspection & Debugging
+    from adk_fluent import A2AServer
 
-```python
-agent.explain()          # Quick text summary
-agent.llm_anatomy()      # What the LLM sees
-agent.data_flow()        # Five-concern view
-agent.doctor()           # Formatted diagnostic
-agent.validate()         # Catch config errors early
-agent.to_mermaid()       # Mermaid diagram
-```
+    server = (
+        A2AServer(my_agent)
+        .port(8001)
+        .version("1.0.0")
+        .provider("Acme Corp", "https://acme.com")
+        .skill("research", "Academic Research",
+               description="Deep research with citations",
+               tags=["research", "citations"])
+        .health_check()
+        .graceful_shutdown(timeout=30)
+    )
+
+### A2A middleware (M namespace)
+
+    M.a2a_retry(max_attempts=3, backoff=2.0)   — retry with exponential backoff
+    M.a2a_circuit_breaker(threshold=5, reset_after=60)  — circuit breaker
+    M.a2a_timeout(seconds=30)                  — per-agent timeout
+
+### A2A tool composition (T namespace)
+
+    T.a2a(agent_card_url, name=, description=, timeout=)  — wrap remote agent as tool
+
+### Discovery
+
+    RemoteAgent.discover("research-agent.agents.acme.com")  — DNS well-known discovery
+    AgentRegistry("http://registry:9000").find(name="research")  — registry-based
+    RemoteAgent("code", env="CODE_AGENT_URL")  — environment variable configuration
+
+---
+
+## Builder Inventory (132 builders)
+
+### agent module (2 builders)
+
+`Agent`, `BaseAgent`
+
+### config module (38 builders)
+
+`AgentConfig`, `AgentRefConfig`, `AgentSimulatorConfig`, `AgentToolConfig`, `ArgumentConfig`, `AudioCacheConfig`, `BaseAgentConfig`, `BaseGoogleCredentialsConfig`, `BaseToolConfig`, `BigQueryCredentialsConfig`, `BigQueryLoggerConfig`, `BigQueryToolConfig`, `BigtableCredentialsConfig`, `CodeConfig`, `ContextCacheConfig`, `DataAgentCredentialsConfig`, `DataAgentToolConfig`, `EventsCompactionConfig`, `ExampleToolConfig`, `FeatureConfig`, `GetSessionConfig`, `InjectionConfig`, `LlmAgentConfig`, `LoopAgentConfig`, `McpToolsetConfig`, `ParallelAgentConfig`, `PubSubCredentialsConfig`, `PubSubToolConfig`, `ResumabilityConfig`, `RetryConfig`, `RunConfig`, `SequentialAgentConfig`, `SimplePromptOptimizerConfig`, `SpannerCredentialsConfig`, `ToolArgsConfig`, `ToolConfig`, `ToolSimulationConfig`, `ToolThreadPoolConfig`
+
+### executor module (5 builders)
+
+`AgentEngineSandboxCodeExecutor`, `BaseCodeExecutor`, `BuiltInCodeExecutor`, `UnsafeLocalCodeExecutor`, `VertexAiCodeExecutor`
+
+### planner module (3 builders)
+
+`BasePlanner`, `BuiltInPlanner`, `PlanReActPlanner`
+
+### plugin module (12 builders)
+
+`AgentSimulatorPlugin`, `BasePlugin`, `BigQueryAgentAnalyticsPlugin`, `ContextFilterPlugin`, `DebugLoggingPlugin`, `GlobalInstructionPlugin`, `LoggingPlugin`, `MultimodalToolResultsPlugin`, `RecordingsPlugin`, `ReflectAndRetryToolPlugin`, `ReplayPlugin`, `SaveFilesAsArtifactsPlugin`
+
+### runtime module (3 builders)
+
+`App`, `InMemoryRunner`, `Runner`
+
+### service module (15 builders)
+
+`BaseArtifactService`, `BaseMemoryService`, `BaseSessionService`, `DatabaseSessionService`, `FileArtifactService`, `ForwardingArtifactService`, `GcsArtifactService`, `InMemoryArtifactService`, `InMemoryMemoryService`, `InMemorySessionService`, `PerAgentDatabaseSessionService`, `SqliteSessionService`, `VertexAiMemoryBankService`, `VertexAiRagMemoryService`, `VertexAiSessionService`
+
+### tool module (51 builders)
+
+`APIHubToolset`, `ActiveStreamingTool`, `AgentTool`, `ApplicationIntegrationToolset`, `BaseAuthenticatedTool`, `BaseRetrievalTool`, `BaseTool`, `BaseToolset`, `BigQueryToolset`, `BigtableToolset`, `CalendarToolset`, `ComputerUseTool`, `ComputerUseToolset`, `DataAgentToolset`, `DiscoveryEngineSearchTool`, `DocsToolset`, `EnterpriseWebSearchTool`, `ExampleTool`, `FunctionTool`, `GmailToolset`, `GoogleApiTool`, `GoogleApiToolset`, `GoogleMapsGroundingTool`, `GoogleSearchAgentTool`, `GoogleSearchTool`, `GoogleTool`, `IntegrationConnectorTool`, `LoadArtifactsTool`, `LoadMcpResourceTool`, `LoadMemoryTool`, `LoadSkillResourceTool`, `LoadSkillTool`, `LongRunningFunctionTool`, `MCPTool`, `MCPToolset`, `McpTool`, `McpToolset`, `OpenAPIToolset`, `PreloadMemoryTool`, `PubSubToolset`, `RestApiTool`, `SetModelResponseTool`, `SheetsToolset`, `SkillToolset`, `SlidesToolset`, `SpannerToolset`, `ToolboxToolset`, `TransferToAgentTool`, `UrlContextTool`, `VertexAiSearchTool`, `YoutubeToolset`
+
+### workflow module (3 builders)
+
+`FanOut`, `Loop`, `Pipeline`
+
+---
 
 ## Best practices
 
@@ -622,3 +671,13 @@ agent.to_mermaid()       # Mermaid diagram
     pick the right specialist during transfer routing
 18. Use `.ask_async()` and `.map_async()` in async contexts (Jupyter, FastAPI).
     The sync variants (.ask, .map) raise RuntimeError inside running event loops.
+
+---
+
+## Development commands
+
+    pip install adk-fluent                  # install
+    uv run pytest tests/ -v --tb=short      # run tests
+    uv run ruff check .                     # lint
+    uv run ruff format .                    # format
+    uv run sphinx-build -b html docs/ docs/_build/html  # build docs
