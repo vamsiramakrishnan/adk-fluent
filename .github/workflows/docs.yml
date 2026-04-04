@@ -157,13 +157,13 @@ jobs:
           echo "Site assembled:"
           ls -la "$SITE_DIR/"
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         if: github.event_name != 'pull_request'
         with:
           path: docs/_build/site
 
       # PR builds: upload the raw build for review (no versioning)
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         if: github.event_name == 'pull_request'
         with:
           path: docs/_build/html
