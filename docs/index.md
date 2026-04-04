@@ -148,10 +148,10 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 ## Why adk-fluent?
 
 ```{raw} html
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+<div class="feature-grid">
 
-  <div style="border: 1px solid var(--adk-border); border-radius: 14px; padding: 1.5rem; background: var(--adk-surface-raised); transition: all 0.3s ease;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+  <div class="feature-card">
+    <div class="feature-header">
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
         <rect x="2" y="2" width="28" height="28" rx="6" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
         <path d="M10 10 h4 a2 2 0 0 1 2 2 v2 h-4 a2 2 0 0 1-2-2z" fill="#E65100" opacity="0.8"/>
@@ -162,13 +162,13 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
         <rect x="8" y="20" width="16" height="1" rx="0.5" fill="#E0E0E0" opacity="0.3"/>
         <rect x="8" y="22.5" width="12" height="1" rx="0.5" fill="#E0E0E0" opacity="0.2"/>
       </svg>
-      <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">135 Builders, Full Autocomplete</h3>
+      <h3>135 Builders, Full Autocomplete</h3>
     </div>
-    <p style="margin: 0; font-size: 0.9rem; color: var(--adk-text-muted); line-height: 1.6;">Every builder ships with <code>.pyi</code> stubs. Type <code>Agent("name").</code> and your IDE shows all methods with type hints, parameter docs, and ADK mapping.</p>
+    <p>Every builder ships with <code>.pyi</code> stubs. Type <code>Agent("name").</code> and your IDE shows all methods with type hints, parameter docs, and ADK mapping.</p>
   </div>
 
-  <div style="border: 1px solid var(--adk-border); border-radius: 14px; padding: 1.5rem; background: var(--adk-surface-raised); transition: all 0.3s ease;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+  <div class="feature-card">
+    <div class="feature-header">
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
         <circle cx="8" cy="16" r="5" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
         <circle cx="24" cy="10" r="4" stroke="#F57C00" stroke-width="1.5" fill="#F57C0010"/>
@@ -179,22 +179,22 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
         <text x="24" y="12.5" text-anchor="middle" fill="#F57C00" font-size="5" font-weight="700" font-family="monospace">|</text>
         <text x="24" y="24.5" text-anchor="middle" fill="#FFB74D" font-size="5" font-weight="700" font-family="monospace">*</text>
       </svg>
-      <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">Expression Algebra</h3>
+      <h3>Expression Algebra</h3>
     </div>
-    <p style="margin: 0; font-size: 0.9rem; color: var(--adk-text-muted); line-height: 1.6;"><code>&gt;&gt;</code> sequential, <code>|</code> parallel, <code>*</code> loops, <code>@</code> typed output, <code>//</code> fallback. Compose any topology in a single expression.</p>
+    <p><code>&gt;&gt;</code> sequential, <code>|</code> parallel, <code>*</code> loops, <code>@</code> typed output, <code>//</code> fallback. Compose any topology in a single expression.</p>
   </div>
 
-  <div style="border: 1px solid var(--adk-border); border-radius: 14px; padding: 1.5rem; background: var(--adk-surface-raised); transition: all 0.3s ease;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+  <div class="feature-card">
+    <div class="feature-header">
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
         <rect x="4" y="6" width="24" height="20" rx="4" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
         <path d="M10 14 l3 3 l7-7" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="24" cy="8" r="4" fill="#F57C00"/>
         <path d="M22.5 8 l1.5 1.5 l2.5-2.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
-      <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">Always in Sync</h3>
+      <h3>Always in Sync</h3>
     </div>
-    <p style="margin: 0; font-size: 0.9rem; color: var(--adk-text-muted); line-height: 1.6;">Builders are auto-generated from installed ADK. When ADK updates, regenerate and get new features immediately. Zero maintenance.</p>
+    <p>Builders are auto-generated from installed ADK. When ADK updates, regenerate and get new features immediately. Zero maintenance.</p>
   </div>
 
 </div>
@@ -205,51 +205,42 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 Once you know the builder basics, adk-fluent splits into three distinct development pathways -- a **fork in the road** that matches how you think about agent building.
 
 ```{raw} html
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin: 2rem 0;">
+<div class="pathway-grid">
 
-  <div style="border: 2px solid #10b981; border-radius: 14px; padding: 1.5rem; background: #10b98108;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="4" y="4" width="28" height="28" rx="6" stroke="#10b981" stroke-width="1.5" fill="#10b98110"/>
-        <text x="18" y="22" text-anchor="middle" fill="#10b981" font-size="12" font-weight="700" font-family="monospace">&gt;&gt;</text>
-      </svg>
-      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #10b981;">Pipeline Path</h3>
+  <div class="pathway-card pathway-card--pipeline">
+    <div class="pathway-header">
+      <div class="pathway-icon">&gt;&gt;</div>
+      <h3>Pipeline Path</h3>
     </div>
-    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 600;">Python-first builders</p>
-    <p style="font-size: 0.82rem; color: var(--adk-text-muted); line-height: 1.6; margin-bottom: 1rem;">Full Python control with expression operators (<code>&gt;&gt;</code> <code>|</code> <code>*</code> <code>@</code> <code>//</code>) and 9 namespace modules. Build any topology with type-checked, IDE-friendly builders.</p>
-    <code style="font-size: 0.78rem; color: #10b981;">Agent("a") >> Agent("b") | Agent("c")</code>
-    <p style="margin-top: 1rem; font-size: 0.82rem;"><strong>Best for:</strong> Custom workflows, complex routing, dynamic topologies</p>
-    <p style="margin-top: 0.5rem;"><a href="user-guide/expression-language.html" style="font-weight: 600; color: #10b981;">Expression Language &rarr;</a></p>
+    <p class="pathway-subtitle">Python-first builders</p>
+    <p class="pathway-desc">Full Python control with expression operators (<code>&gt;&gt;</code> <code>|</code> <code>*</code> <code>@</code> <code>//</code>) and 9 namespace modules. Build any topology with type-checked, IDE-friendly builders.</p>
+    <code class="pathway-code">Agent("a") >> Agent("b") | Agent("c")</code>
+    <p class="pathway-best-for"><strong>Best for:</strong> Custom workflows, complex routing, dynamic topologies</p>
+    <a href="user-guide/expression-language.html" class="pathway-link">Expression Language &rarr;</a>
   </div>
 
-  <div style="border: 2px solid #E65100; border-radius: 14px; padding: 1.5rem; background: #E6510008;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="4" y="4" width="28" height="28" rx="6" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
-        <text x="18" y="22" text-anchor="middle" fill="#E65100" font-size="14" font-weight="700" font-family="monospace">S</text>
-      </svg>
-      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #E65100;">Skills Path</h3>
+  <div class="pathway-card pathway-card--skills">
+    <div class="pathway-header">
+      <div class="pathway-icon">S</div>
+      <h3>Skills Path</h3>
     </div>
-    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 600;">Declarative agent packages</p>
-    <p style="font-size: 0.82rem; color: var(--adk-text-muted); line-height: 1.6; margin-bottom: 1rem;">YAML + Markdown &rarr; executable agent graphs. Domain experts write prompts and topology. One file is docs, coding-agent context, and a runnable pipeline.</p>
-    <code style="font-size: 0.78rem; color: #F57C00;">Skill("research/") >> Skill("writing/")</code>
-    <p style="margin-top: 1rem; font-size: 0.82rem;"><strong>Best for:</strong> Stable topologies, reusable libraries, non-Python teams</p>
-    <p style="margin-top: 0.5rem;"><a href="user-guide/skills.html" style="font-weight: 600; color: #E65100;">Skills Guide &rarr;</a></p>
+    <p class="pathway-subtitle">Declarative agent packages</p>
+    <p class="pathway-desc">YAML + Markdown &rarr; executable agent graphs. Domain experts write prompts and topology. One file is docs, coding-agent context, and a runnable pipeline.</p>
+    <code class="pathway-code">Skill("research/") >> Skill("writing/")</code>
+    <p class="pathway-best-for"><strong>Best for:</strong> Stable topologies, reusable libraries, non-Python teams</p>
+    <a href="user-guide/skills.html" class="pathway-link">Skills Guide &rarr;</a>
   </div>
 
-  <div style="border: 2px solid #0ea5e9; border-radius: 14px; padding: 1.5rem; background: #0ea5e908;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <rect x="4" y="4" width="28" height="28" rx="6" stroke="#0ea5e9" stroke-width="1.5" fill="#0ea5e910"/>
-        <text x="18" y="22" text-anchor="middle" fill="#0ea5e9" font-size="14" font-weight="700" font-family="monospace">H</text>
-      </svg>
-      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0ea5e9;">Harness Path</h3>
+  <div class="pathway-card pathway-card--harness">
+    <div class="pathway-header">
+      <div class="pathway-icon">H</div>
+      <h3>Harness Path</h3>
     </div>
-    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 600;">Autonomous coding runtimes</p>
-    <p style="font-size: 0.82rem; color: var(--adk-text-muted); line-height: 1.6; margin-bottom: 1rem;">Build Claude-Code-class agents with the H namespace. Five layers: intelligence, tools, safety, observability, runtime. Permissions, sandboxing, token budgets.</p>
-    <code style="font-size: 0.78rem; color: #0ea5e9;">H.workspace() + H.web() + H.git()</code>
-    <p style="margin-top: 1rem; font-size: 0.82rem;"><strong>Best for:</strong> Autonomous agents, file/shell access, multi-turn runtimes</p>
-    <p style="margin-top: 0.5rem;"><a href="user-guide/harness.html" style="font-weight: 600; color: #0ea5e9;">Harness Guide &rarr;</a></p>
+    <p class="pathway-subtitle">Autonomous coding runtimes</p>
+    <p class="pathway-desc">Build Claude-Code-class agents with the H namespace. Five layers: intelligence, tools, safety, observability, runtime. Permissions, sandboxing, token budgets.</p>
+    <code class="pathway-code">H.workspace() + H.web() + H.git()</code>
+    <p class="pathway-best-for"><strong>Best for:</strong> Autonomous agents, file/shell access, multi-turn runtimes</p>
+    <a href="user-guide/harness.html" class="pathway-link">Harness Guide &rarr;</a>
   </div>
 
 </div>

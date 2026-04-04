@@ -30,22 +30,22 @@ Each line maps to a concept you'll learn below. Hover over any builder method in
 adk-fluent offers three distinct development pathways. All produce native ADK objects -- they solve different problems at different abstraction levels. Pick the one that matches your use case, or combine them.
 
 ```{raw} html
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0; font-size: 0.9rem;">
+<div class="pathway-grid pathway-grid--compact">
 
-  <div style="border-left: 3px solid #10b981; padding: 0.75rem 1rem; background: #10b98108; border-radius: 0 8px 8px 0;">
-    <strong style="color: #10b981;">Pipeline Path</strong><br>
+  <div class="pathway-card pathway-card--pipeline">
+    <strong>Pipeline Path</strong><br>
     Python-first builders with <code>&gt;&gt;</code> <code>|</code> <code>*</code> operators and 9 namespace modules. Full programmatic control.<br>
     <em>Most development starts here.</em>
   </div>
 
-  <div style="border-left: 3px solid #E65100; padding: 0.75rem 1rem; background: #E6510008; border-radius: 0 8px 8px 0;">
-    <strong style="color: #E65100;">Skills Path</strong><br>
+  <div class="pathway-card pathway-card--skills">
+    <strong>Skills Path</strong><br>
     YAML + Markdown &rarr; agent graphs. Domain experts write prompts and topology. One file = docs + runtime.<br>
     <em>Reusable, cross-team, config-driven.</em>
   </div>
 
-  <div style="border-left: 3px solid #0ea5e9; padding: 0.75rem 1rem; background: #0ea5e908; border-radius: 0 8px 8px 0;">
-    <strong style="color: #0ea5e9;">Harness Path</strong><br>
+  <div class="pathway-card pathway-card--harness">
+    <strong>Harness Path</strong><br>
     Build autonomous coding runtimes with the H namespace. 5 layers: intelligence, tools, safety, observability, runtime.<br>
     <em>File/shell access, permissions, REPL.</em>
   </div>

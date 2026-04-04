@@ -9,18 +9,22 @@ want but not how to express it in adk-fluent.
 
 Before picking a topology, pick a pathway. adk-fluent has three:
 
-```
-Is the topology stable and owned by non-Python users?
-  └── Yes → SKILLS PATH: Skill("path/").ask("prompt")
-      └── YAML + Markdown → agent graph. See: Skills Guide
+```mermaid
+flowchart TD
+    START["What are you building?"] --> Q1{"Topology stable &<br>owned by non-Python users?"}
+    Q1 -->|Yes| SKILLS["<b>Skills Path</b><br>Skill('path/').ask('prompt')<br>YAML + Markdown → agent graph"]
+    Q1 -->|No| Q2{"Agent needs autonomous<br>file / shell / web access?"}
+    Q2 -->|Yes| HARNESS["<b>Harness Path</b><br>Agent('x').tools(H.workspace() + H.web())<br>5-layer architecture"]
+    Q2 -->|No| PIPELINE["<b>Pipeline Path</b><br>Agent('a') >> Agent('b') | Agent('c')<br>Full Python control, 9 namespace modules"]
 
-Does the agent need autonomous file/shell/web access?
-  └── Yes → HARNESS PATH: Agent("x").tools(H.workspace() + H.web())
-      └── 5-layer architecture (tools, safety, observability, runtime). See: Harness Guide
+    SKILLS --> COMPOSE["All three compose together"]
+    HARNESS --> COMPOSE
+    PIPELINE --> COMPOSE
 
-Everything else (most development starts here):
-  └── PIPELINE PATH: Agent("a") >> Agent("b") | Agent("c")
-      └── Full Python control, expression operators, 9 namespace modules. See: User Guide
+    style SKILLS fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
+    style HARNESS fill:#e0f2fe,stroke:#0ea5e9,color:#1A1A1A
+    style PIPELINE fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
+    style COMPOSE fill:#f5f5f5,stroke:#757575,color:#1A1A1A
 ```
 
 | | Pipeline | Skills | Harness |
@@ -36,34 +40,29 @@ Everything else (most development starts here):
 
 ## Choosing a Topology
 
-```
-Do you have ONE agent?
-  └── Yes → Agent("name", "model").instruct("...").build()
-      └── See: Getting Started
+```mermaid
+flowchart TD
+    T0["How many agents?"] --> T1{"ONE agent?"}
+    T1 -->|Yes| SINGLE["Agent('name', 'model')<br>.instruct('...').build()"]
+    T1 -->|No| T2{"Run in ORDER?"}
+    T2 -->|Yes| SEQ["a >> b >> c<br><i>Pipeline</i>"]
+    T2 -->|No| T3{"Run INDEPENDENTLY?"}
+    T3 -->|Yes| PAR["a | b | c<br><i>FanOut</i>"]
+    T3 -->|No| T4{"REPEAT until condition?"}
+    T4 -->|Yes| LOOP["(a >> b) * until(pred)<br><i>Loop</i>"]
+    T4 -->|No| T5{"ROUTE based on state?"}
+    T5 -->|Yes| ROUTE["Route('key').eq('x', agent_x)<br>.otherwise(fallback)"]
+    T5 -->|No| T6{"FALLBACK chain?"}
+    T6 -->|Yes| FALL["fast_agent // strong_agent"]
+    T6 -->|No| COMPOSE["Compose them all:<br>a >> (b | c) >> (d >> e) * until(f) >> g"]
 
-Do you have MULTIPLE agents that run in ORDER?
-  └── Yes → a >> b >> c (Pipeline)
-      └── See: Expression Language, Cookbook #04
-
-Do you have MULTIPLE agents that run INDEPENDENTLY?
-  └── Yes → a | b | c (FanOut)
-      └── See: Expression Language, Cookbook #05
-
-Do you need to REPEAT until a condition?
-  └── Yes → (a >> b) * until(pred) (Loop)
-      └── See: Expression Language, Cookbook #06
-
-Do you need to ROUTE based on a state value?
-  └── Yes → Route("key").eq("x", agent_x).otherwise(fallback)
-      └── See: Patterns, Cookbook #56
-
-Do you need a FALLBACK chain (try fast, fall back to strong)?
-  └── Yes → fast_agent // strong_agent
-      └── See: Expression Language
-
-Do you need ALL of the above?
-  └── Yes → Compose them: a >> (b | c) >> (d >> e) * until(f) >> g
-      └── See: Hero Workflows
+    style SINGLE fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
+    style SEQ fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
+    style PAR fill:#e0f2fe,stroke:#0ea5e9,color:#1A1A1A
+    style LOOP fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
+    style ROUTE fill:#fce4ec,stroke:#f472b6,color:#1A1A1A
+    style FALL fill:#f3e5f5,stroke:#a78bfa,color:#1A1A1A
+    style COMPOSE fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
 ```
 
 ## Choosing a Context Strategy
@@ -80,6 +79,31 @@ Do you need ALL of the above?
 See [Context Engineering](user-guide/context-engineering.md) for composition rules (`+` for union, `|` for pipe).
 
 ## Choosing a Data Flow Strategy
+
+```mermaid
+flowchart LR
+    subgraph write["Producing Data"]
+        W1[".writes('key')"]
+        W2["S.capture('input')"]
+        W3["S.transform('key', fn)"]
+        W4["S.merge('a','b', into='c')"]
+    end
+    subgraph read["Consuming Data"]
+        R1[".reads('key')"]
+        R2["'{key}' in instruction"]
+        R3["S.guard(pred)"]
+        R4["S.default(key='val')"]
+    end
+
+    W1 -.-> R1
+    W1 -.-> R2
+    W2 -.-> R1
+    W3 -.-> R2
+    W4 -.-> R1
+
+    style write fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
+    style read fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
+```
 
 | Situation | Use | Why |
 |---|---|---|
