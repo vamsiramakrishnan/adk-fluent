@@ -165,7 +165,7 @@ Declarative agent packages with `SKILL.md`. Autonomous coding runtimes with `H` 
 :::
 
 :::{grid-item-card} Guards (G Module)
-:link: generated/api/g-guards
+:link: user-guide/guards
 :link-type: doc
 
 Output validation with `G.pii()`, `G.toxicity()`, `G.length()`, `G.schema()`. Compose with `|` pipe operator.
@@ -176,7 +176,7 @@ Zero-cost `import adk_fluent` — loads 1 module instead of ~1,468. ADK dependen
 :::
 
 :::{grid-item-card} Eval Suite (E Module)
-:link: generated/api/e-eval
+:link: user-guide/evaluation
 :link-type: doc
 
 Fluent evaluation with `E.case()`, `E.criterion()`, `E.persona()`. `LLMJudge` for LLM-powered evaluation.
@@ -188,7 +188,7 @@ Docs now include a version switcher. Browse docs for any release, with `/latest/
 
 ::::
 
-```{button-ref} changelog
+```{button-link} changelog.html
 :color: primary
 :outline:
 :expand:
