@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # Needed to push to gh-pages branch
   pages: write
   id-token: write
 
@@ -44,7 +44,127 @@ jobs:
       - name: Build Docs
         run: just scan seed docs docs-build
 
+      # ---------- Versioned deployment assembly ----------
+      # On tagged releases: deploy to /v{version}/ and update /latest/
+      # On master push: deploy to /latest/ only
+      # The site root redirects to /latest/
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(python3 -c "exec(open('src/adk_fluent/_version.py').read()); print(__version__)")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Is this a tagged release?
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assemble versioned site
+        if: github.event_name != 'pull_request'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          IS_RELEASE="${{ steps.version.outputs.is_release }}"
+          BUILD_DIR="docs/_build/html"
+          SITE_DIR="docs/_build/site"
+
+          mkdir -p "$SITE_DIR"
+
+          # Fetch existing versioned docs from gh-pages (if any)
+          git fetch origin gh-pages --depth=1 2>/dev/null || true
+          if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
+            git worktree add "$SITE_DIR/_prev" origin/gh-pages 2>/dev/null || true
+            # Copy existing versioned directories (v0.x.y/) but NOT latest/
+            if [ -d "$SITE_DIR/_prev" ]; then
+              for dir in "$SITE_DIR/_prev"/v*/; do
+                [ -d "$dir" ] && cp -a "$dir" "$SITE_DIR/" 2>/dev/null || true
+              done
+              # Preserve versions.json if it exists
+              [ -f "$SITE_DIR/_prev/versions.json" ] && cp "$SITE_DIR/_prev/versions.json" "$SITE_DIR/"
+              rm -rf "$SITE_DIR/_prev"
+              git worktree remove "$SITE_DIR/_prev" 2>/dev/null || true
+            fi
+          fi
+
+          # Always update /latest/
+          cp -a "$BUILD_DIR" "$SITE_DIR/latest"
+
+          # On tagged releases, also create /v{version}/
+          if [ "$IS_RELEASE" = "true" ]; then
+            cp -a "$BUILD_DIR" "$SITE_DIR/v${VERSION}"
+          fi
+
+          # Generate versions.json from existing v* directories
+          python3 -c "
+          import json, os, re
+          site = '$SITE_DIR'
+          versions = []
+          latest = '$VERSION'
+          for d in sorted(os.listdir(site), reverse=True):
+              m = re.match(r'^v(\d+\.\d+\.\d+.*)$', d)
+              if m:
+                  v = m.group(1)
+                  versions.append({
+                      'version': v,
+                      'url': '/adk-fluent/' + d + '/',
+                      'preferred': v == latest,
+                  })
+          # Always include latest (dev) entry
+          versions.insert(0, {
+              'version': latest,
+              'url': '/adk-fluent/latest/',
+              'preferred': True,
+              'prerelease': '$IS_RELEASE' != 'true',
+          })
+          # Deduplicate by version
+          seen = set()
+          unique = []
+          for v in versions:
+              if v['version'] not in seen:
+                  seen.add(v['version'])
+                  unique.append(v)
+          with open(os.path.join(site, 'versions.json'), 'w') as f:
+              json.dump(unique, f, indent=2)
+          print(f'versions.json: {len(unique)} entries')
+          for v in unique:
+              tag = ' (latest)' if v.get('preferred') else ''
+              tag += ' (dev)' if v.get('prerelease') else ''
+              print(f'  v{v[\"version\"]}{tag} → {v[\"url\"]}')
+          "
+
+          # Create root index.html that redirects to /latest/
+          cat > "$SITE_DIR/index.html" << 'REDIRECT'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=latest/">
+            <link rel="canonical" href="latest/">
+            <title>Redirecting to latest docs...</title>
+          </head>
+          <body>
+            <p>Redirecting to <a href="latest/">latest documentation</a>...</p>
+          </body>
+          </html>
+          REDIRECT
+
+          # Copy versions.json into latest/ and each v*/ so the switcher can find it
+          for dir in "$SITE_DIR"/latest "$SITE_DIR"/v*/; do
+            [ -d "$dir" ] && cp "$SITE_DIR/versions.json" "$dir/../versions.json" 2>/dev/null || true
+          done
+
+          echo "Site assembled:"
+          ls -la "$SITE_DIR/"
+
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: docs/_build/site
+
+      # PR builds: upload the raw build for review (no versioning)
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'pull_request'
         with:
           path: docs/_build/html
 

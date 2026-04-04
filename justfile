@@ -22,6 +22,12 @@
 #   just preflight  → Run pre-commit hooks (mirrors CI lint exactly)
 #   just ci         → Full local CI: preflight + check-gen + test
 #
+#   --- RELEASE ENGINEERING ---
+#   just version    → Show current version
+#   just bump patch → Bump version in _version.py
+#   just release    → Full preflight: bump → test → build → next steps
+#   just release-tag → Create + push tag → triggers CI publish + docs
+#
 #   --- 100x DX COMMANDS ---
 #   just watch      → Auto-run generate+test on changes
 #   just repl       → Pre-loaded IPython playground
@@ -378,6 +384,108 @@ publish: build
     @echo "Publishing to PyPI..."
     @uv publish
 
+# ============================================================================
+# RELEASE ENGINEERING
+# ============================================================================
+#
+#   just bump patch|minor|major   → Bump version in _version.py
+#   just release                  → Full release preflight (bump → test → build → tag)
+#   just release-tag              → Create and push git tag from _version.py
+#   just version                  → Show current version
+#
+
+VERSION_FILE  := "src/adk_fluent/_version.py"
+
+# Show the current version from _version.py
+version:
+    @python3 -c "exec(open('{{VERSION_FILE}}').read()); print(__version__)"
+
+# Bump the version in _version.py. Usage: just bump patch|minor|major
+bump level:
+    #!/usr/bin/env python3
+    import re, sys
+    from pathlib import Path
+
+    level = "{{level}}"
+    if level not in ("patch", "minor", "major"):
+        print(f"ERROR: invalid level '{level}'. Use: just bump patch|minor|major")
+        sys.exit(1)
+
+    vf = Path("{{VERSION_FILE}}")
+    text = vf.read_text()
+    m = re.search(r'__version__\s*=\s*"(\d+)\.(\d+)\.(\d+)"', text)
+    if not m:
+        print("ERROR: could not parse version from _version.py")
+        sys.exit(1)
+
+    major, minor, patch = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    if level == "major":
+        major, minor, patch = major + 1, 0, 0
+    elif level == "minor":
+        major, minor, patch = major, minor + 1, 0
+    else:
+        patch += 1
+
+    new_version = f"{major}.{minor}.{patch}"
+    vf.write_text(f'"""Single source of truth for adk-fluent version."""\n\n__version__ = "{new_version}"\n')
+    print(f"Bumped: {m.group(1)}.{m.group(2)}.{m.group(3)} → {new_version}")
+    print(f"  _version.py updated (docs/conf.py auto-syncs at build time)")
+
+# Create and push a git tag from _version.py
+release-tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(python3 -c "exec(open('{{VERSION_FILE}}').read()); print(__version__)")
+    echo "Tagging v${VERSION}..."
+    if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+        echo "ERROR: Tag v${VERSION} already exists"
+        exit 1
+    fi
+    git tag "v${VERSION}"
+    git push origin "v${VERSION}"
+    echo "✓ Tag v${VERSION} pushed — CI will publish to PyPI and rebuild docs"
+
+# Full release preflight: bump, run tests, build, and show next steps
+release level="patch": (bump level)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(python3 -c "exec(open('{{VERSION_FILE}}').read()); print(__version__)")
+    echo ""
+    echo "Running release preflight for v${VERSION}..."
+    echo ""
+
+    echo "── Running tests ──"
+    uv run pytest tests/ -x -q --tb=short
+
+    echo ""
+    echo "── Running typecheck ──"
+    uv run pyright src/adk_fluent/*.pyi --pythonversion 3.12 2>/dev/null || true
+
+    echo ""
+    echo "── Building package ──"
+    uv build
+
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "  Release v${VERSION} ready!"
+    echo ""
+    echo "  Next steps:"
+    echo "    1. Update CHANGELOG.md (move [Unreleased] → [${VERSION}])"
+    echo "    2. git add -A && git commit -m 'release: v${VERSION}'"
+    echo "    3. git push origin master"
+    echo "    4. just release-tag      ← triggers PyPI publish + docs"
+    echo ""
+    echo "  What happens automatically:"
+    echo "    ✓ CI validates tag matches _version.py"
+    echo "    ✓ CI publishes to PyPI via Trusted Publishing"
+    echo "    ✓ docs/conf.py auto-syncs version at build time"
+    echo "    ✓ Announcement banner updates automatically"
+    echo "    ✓ getting-started.md version note updates automatically"
+    echo "    ✓ Versioned docs deploy to /v${VERSION}/"
+    echo "    ✓ Version switcher dropdown updates"
+    echo "    ✓ Release drafter creates GitHub Release draft"
+    echo "════════════════════════════════════════════════════════════"
+
 # --- Clean ---
 clean:
     @echo "Cleaning generated files..."
@@ -432,6 +540,12 @@ help:
     @echo "  just build          Build pip package"
     @echo "  just publish        Publish to PyPI"
     @echo "  just clean          Remove generated files"
+    @echo ""
+    @echo "Release Engineering:"
+    @echo "  just version        Show current version"
+    @echo "  just bump LEVEL     Bump version (patch|minor|major)"
+    @echo "  just release LEVEL  Full preflight: bump + test + build"
+    @echo "  just release-tag    Create and push git tag → triggers PyPI + docs"
     @echo ""
     @echo "Workflow: just setup -> just all -> just ci -> commit"
     @echo ""

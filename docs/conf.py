@@ -187,7 +187,10 @@ html_css_files = [
     ),
     "custom.css",
 ]
-html_js_files = ["custom.js"]
+html_js_files = ["custom.js", "version-switcher.js"]
+
+# Inject version meta tag so the version-switcher JS can detect the current version
+html_meta = {"adk-version": _auto_version}
 
 # Source settings
 source_suffix = {

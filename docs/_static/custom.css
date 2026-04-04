@@ -523,6 +523,104 @@ h4:hover .headerlink,
    5. NAVIGATION & WAYFINDING
    ========================================================================== */
 
+/* ---- Version switcher ---- */
+
+.version-switcher {
+  position: relative;
+  margin: 0.5rem 1rem 0.75rem;
+}
+
+.version-switcher__button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-stack--monospace);
+  color: var(--color-foreground-secondary);
+  background: var(--adk-surface, #fff);
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-sm);
+  cursor: pointer;
+  transition: all var(--adk-transition);
+}
+
+.version-switcher__button:hover {
+  border-color: var(--adk-accent-light);
+  background: var(--adk-surface-raised);
+}
+
+.version-switcher__chevron {
+  transition: transform var(--adk-transition);
+  flex-shrink: 0;
+}
+
+.version-switcher__button[aria-expanded="true"] .version-switcher__chevron {
+  transform: rotate(180deg);
+}
+
+.version-switcher__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  background: var(--adk-surface-raised, #fff);
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-sm);
+  box-shadow: var(--adk-shadow-lg);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.version-switcher__item {
+  display: block;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-family: var(--font-stack--monospace);
+  color: var(--color-foreground-secondary);
+  text-decoration: none;
+  transition: all var(--adk-transition);
+}
+
+.version-switcher__item:hover {
+  background: var(--adk-accent-bg, #FFF3E0);
+  color: var(--adk-accent);
+}
+
+.version-switcher__item--active {
+  color: var(--adk-accent);
+  font-weight: 700;
+  background: var(--adk-accent-bg, #FFF3E0);
+}
+
+.version-switcher__item--active::before {
+  content: "● ";
+  font-size: 0.6em;
+}
+
+[data-theme="dark"] .version-switcher__button {
+  background: var(--adk-surface-sunken, #141414);
+}
+
+[data-theme="dark"] .version-switcher__menu {
+  background: var(--adk-surface-raised, #1e1e1e);
+  border-color: var(--adk-border);
+}
+
+[data-theme="dark"] .version-switcher__item:hover {
+  background: rgba(255, 183, 77, 0.1);
+}
+
+[data-theme="dark"] .version-switcher__item--active {
+  background: rgba(255, 183, 77, 0.1);
+}
+
 /* ---- Active sidebar item ---- */
 
 .sidebar-tree .current-page > .reference {
