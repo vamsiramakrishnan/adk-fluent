@@ -1,7 +1,7 @@
 # Getting Started
 
 :::{note}
-This documentation is for adk-fluent **v0.13.2** ([PyPI](https://pypi.org/project/adk-fluent/)).
+This documentation is for adk-fluent **v{{version}}** ([PyPI](https://pypi.org/project/adk-fluent/)).
 :::
 
 This page gets you from zero to a working agent in 5 minutes.
