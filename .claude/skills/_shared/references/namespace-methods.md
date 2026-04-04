@@ -59,6 +59,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `C.manus_cascade()` | `(*, budget: 'int' = 8000, model: 'str' = 'gemini-2.5-flash') -> 'CManusCascade'` | Manus-inspired progressive compression cascade. |
 | `C.none()` | `() -> 'CTransform'` | Suppress all conversation history. |
 | `C.notes()` | `(key: 'str' = 'default', *, format: 'str' = 'plain') -> 'CNotes'` | Read structured notes from scratchpad at ``state["_notes_{key}"]``. |
+| `C.pipeline_aware()` | `(*keys: 'str') -> 'CPipelineAware'` | Topology-aware context: user messages + named state keys. |
 | `C.priority()` | `(*, tier: 'int' = 2) -> 'CPriority'` | Set priority tier for context ordering. |
 | `C.project()` | `(*fields: 'str') -> 'CProject'` | Keep only specified fields from event content. |
 | `C.recent()` | `(*, decay: 'str' = 'exponential', half_life: 'int' = 10, min_weight: 'float' = 0.1) -> 'CRecent'` | Importance-weighted selection based on recency with exponential decay. |
@@ -66,6 +67,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `C.relevant()` | `(*, query_key: 'str | None' = None, query: 'str | None' = None, top_k: 'int' = 5, model: 'str' = 'gemini-2.5-flash') -> 'CRelevant'` | Select events by semantic relevance to a query via LLM scoring. |
 | `C.rolling()` | `(n: 'int' = 5, *, summarize: 'bool' = False, model: 'str' = 'gemini-2.5-flash') -> 'CRolling'` | Rolling window with optional summarization of older turns. |
 | `C.select()` | `(*, author: 'str | tuple[str, ...] | None' = None, type: 'str | tuple[str, ...] | None' = None, tag: 'str | tuple[str, ...] | None' = None) -> 'CSelect'` | Filter events by metadata: author, type, and/or tag. |
+| `C.shared_thread()` | `() -> 'CSharedThread'` | Shared conversational context for multi-agent loops. |
 | `C.summarize()` | `(*, scope: 'str' = 'all', model: 'str' = 'gemini-2.5-flash', prompt: 'str | None' = None, schema: 'dict | None' = None) -> 'CSummarize'` | Summarize context via LLM. Scope: 'all', 'before_window', 'tool_results'. |
 | `C.template()` | `(text: 'str') -> 'CTemplate'` | Render a template string with {key} and {key?} state placeholders. |
 | `C.truncate()` | `(*, max_turns: 'int | None' = None, max_tokens: 'int | None' = None, strategy: 'str' = 'tail') -> 'CTruncate'` | Hard limit on context by turn count or estimated tokens. |
@@ -179,6 +181,7 @@ Compose with: `+` (union/merge) or `|` (pipe/chain)
 | `T.openapi()` | `(spec: 'Any', *, tool_filter: 'Any' = None, auth: 'Any' = None) -> 'TComposite'` | Thin factory over :class:`OpenAPIToolset` builder. |
 | `T.schema()` | `(schema_cls: 'type') -> 'TComposite'` | Attach a ToolSchema for contract checking. |
 | `T.search()` | `(registry: 'Any', *, always_loaded: 'list[str] | None' = None, max_tools: 'int' = 20) -> 'TComposite'` | BM25-indexed dynamic tool loading (two-phase pattern). |
+| `T.skill()` | `(path: 'Any') -> 'TComposite'` | Wrap ADK ``SkillToolset`` for progressive disclosure. |
 | `T.timeout()` | `(tool_or_composite: 'TComposite | Any', seconds: 'float' = 30) -> 'TComposite'` | Wrap tool(s) with a per-invocation timeout. |
 | `T.toolset()` | `(ts: 'Any') -> 'TComposite'` | Wrap any ADK toolset (MCPToolset, etc.). |
 | `T.transform()` | `(tool_or_composite: 'TComposite | Any', *, pre: 'Any' = None, post: 'Any' = None) -> 'TComposite'` | Wrap tool(s) with pre/post argument/result transforms. |

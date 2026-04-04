@@ -2,26 +2,30 @@
 
 `S` factories return dict transforms that compose with `>>` as zero-cost workflow nodes. They manipulate session state between agent steps without making LLM calls.
 
+```mermaid
+flowchart TB
+    INPUT["<b>Input state</b><br>{ web, scholar, _debug }"] --> DROP
+    DROP["S.drop('_debug')<br>→ { web, scholar }"] --> MERGE
+    MERGE["S.merge('web','scholar', into='research')<br>→ { web, scholar, research }"] --> DEFAULT
+    DEFAULT["S.default(confidence=0.0)<br>→ { web, scholar, research, confidence }"] --> RENAME
+    RENAME["S.rename(research='input')<br>→ { web, scholar, input, confidence }"] --> PICK
+    PICK["S.pick('input','confidence')<br>→ { input, confidence }"] --> OUTPUT
+    OUTPUT["<b>Output state</b><br>{ input, confidence }"]
+
+    style INPUT fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
+    style OUTPUT fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
+    style DROP fill:#fef2f2,stroke:#e94560,color:#1A1A1A
+    style MERGE fill:#e0f2fe,stroke:#0ea5e9,color:#1A1A1A
+    style DEFAULT fill:#FFF8E1,stroke:#f59e0b,color:#1A1A1A
+    style RENAME fill:#f3e5f5,stroke:#a78bfa,color:#1A1A1A
+    style PICK fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
 ```
-State Transform Pipeline:
 
-  { web: "...", scholar: "...", _debug: true }    ← input state
-       │
-  S.drop("_debug")           { web, scholar }
-       │
-  S.merge("web","scholar",   { web, scholar, research }
-         into="research")
-       │
-  S.default(confidence=0.0)  { web, scholar, research, confidence }
-       │
-  S.rename(research="input") { web, scholar, input, confidence }
-       │
-  S.pick("input",            { input, confidence }                ← output state
-         "confidence")
+**Composition operators:**
 
-  Composition:
-    S.drop() >> S.merge()         chain: run in sequence
-    S.default() + S.rename()      combine: apply to same state
+```python
+S.drop() >> S.merge()         # chain: run in sequence
+S.default() + S.rename()      # combine: apply to same state
 ```
 
 ## Basic Usage

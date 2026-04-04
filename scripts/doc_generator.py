@@ -959,7 +959,16 @@ def gen_namespace_reference(ns: NamespaceSpec, methods: list[NamespaceMethod]) -
 
 
 def process_cookbook_file(filepath: str) -> dict:
-    """Parse an annotated cookbook example into sections."""
+    """Parse an annotated cookbook example into sections.
+
+    Supports two formats:
+    1. Marker-based: files with ``# --- NATIVE ---``, ``# --- FLUENT ---``,
+       ``# --- ASSERT ---`` markers get split into tabbed comparison.
+    2. Test-based (fallback): files without markers (e.g. pytest-based
+       cookbooks like skills/harness recipes) get the full source code
+       placed into the ``fluent`` section so it renders as a single
+       code block rather than an empty page.
+    """
     text = Path(filepath).read_text()
 
     # Extract title from module docstring
@@ -967,19 +976,30 @@ def process_cookbook_file(filepath: str) -> dict:
     title = title_match.group(1).strip() if title_match else Path(filepath).stem
 
     sections = {"native": "", "fluent": "", "assertion": ""}
-    current = None
-    for line in text.split("\n"):
-        if "# --- NATIVE ---" in line:
-            current = "native"
-            continue
-        elif "# --- FLUENT ---" in line:
-            current = "fluent"
-            continue
-        elif "# --- ASSERT ---" in line:
-            current = "assertion"
-            continue
-        if current:
-            sections[current] += line + "\n"
+    has_markers = any(marker in text for marker in ("# --- NATIVE ---", "# --- FLUENT ---", "# --- ASSERT ---"))
+
+    if has_markers:
+        current = None
+        for line in text.split("\n"):
+            if "# --- NATIVE ---" in line:
+                current = "native"
+                continue
+            elif "# --- FLUENT ---" in line:
+                current = "fluent"
+                continue
+            elif "# --- ASSERT ---" in line:
+                current = "assertion"
+                continue
+            if current:
+                sections[current] += line + "\n"
+    else:
+        # Fallback for test-based cookbooks: use the full source
+        # (minus the module docstring) as the fluent section.
+        # Strip the leading docstring so it doesn't repeat the title.
+        source = text
+        if title_match:
+            source = text[title_match.end() :].strip()
+        sections["fluent"] = source
 
     return {
         "title": title,
@@ -1057,6 +1077,14 @@ def _learn_summary(title: str) -> str:
         return "How to use declarative context transforms to control what agents see."
     if "capture" in title_lower and "route" in title_lower:
         return "How to capture user input and route it to different agents."
+    if "skill" in title_lower and ("agent" in title_lower or "compos" in title_lower):
+        return "How to declare agent topologies in SKILL.md files and compose them with operators."
+    if "harness" in title_lower and "skill" in title_lower:
+        return "How to combine skill expertise with harness runtime primitives."
+    if "harness" in title_lower or "coding agent" in title_lower or "claude code" in title_lower:
+        return "How to build an autonomous coding runtime with the H namespace."
+    if "collaboration" in title_lower:
+        return "How to implement multi-agent collaboration patterns."
     if "visibility" in title_lower:
         return "How to control which agent events are shown to users."
     if "contract" in title_lower and "check" in title_lower:
@@ -1256,8 +1284,10 @@ def _categorize_cookbook(filename: str) -> str:
         return "Patterns"
     elif num <= 48:
         return "v4 Features"
-    else:
+    elif num <= 74:
         return "v5.1 Features"
+    else:
+        return "Skills & Harness"
 
 
 def gen_cookbook_index(cookbook_files: list[dict]) -> str:
@@ -1284,7 +1314,16 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
         categories[cat].append(cb)
 
     # Defined order
-    cat_order = ["Basics", "Execution", "Advanced", "Patterns", "v4 Features", "v5.1 Features", "Other"]
+    cat_order = [
+        "Basics",
+        "Execution",
+        "Advanced",
+        "Patterns",
+        "v4 Features",
+        "v5.1 Features",
+        "Skills & Harness",
+        "Other",
+    ]
     cat_descriptions = {
         "Basics": "Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.",
         "Execution": "Running agents: one-shot, streaming, cloning, testing, and sessions.",
@@ -1292,6 +1331,7 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
         "Patterns": "Real-world patterns: state management, presets, decorators, serialization, and more.",
         "v4 Features": "IR compilation, middleware, contracts, testing, dependency injection, and visualization.",
         "v5.1 Features": "Context engineering, visibility, memory, and contract verification.",
+        "Skills & Harness": "Declarative agent packages from SKILL.md files and autonomous coding runtimes with the H namespace. Two of adk-fluent's [three development pathways](../../user-guide/index.md#three-pathways).",
         "Other": "Additional examples.",
     }
 
@@ -1634,8 +1674,21 @@ def generate_docs(
                 parsed = process_cookbook_file(str(py_file))
                 all_parsed.append(parsed)
                 generated_stems.add(py_file.stem)
-                md = cookbook_to_markdown(parsed)
                 md_file = cookbook_out / f"{py_file.stem}.md"
+
+                # Preserve hand-written .md files that have been manually
+                # curated (contain sections like "## Layer" or "## Pattern"
+                # that the auto-generator doesn't produce).  This prevents
+                # `just docs` from overwriting rich, hand-crafted cookbook
+                # docs (e.g. skills/harness recipes 77-79) with the
+                # auto-generated skeleton.
+                if md_file.exists():
+                    existing = md_file.read_text()
+                    if "## Layer " in existing or "## Pattern" in existing or "Pathway:" in existing:
+                        print(f"  Preserved (hand-written): {md_file}")
+                        continue
+
+                md = cookbook_to_markdown(parsed)
                 md_file.write_text(md)
                 print(f"  Generated: {md_file}")
 

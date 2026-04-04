@@ -2,6 +2,10 @@
 
 Nine operators compose any agent topology. All operators are **immutable** -- sub-expressions can be safely reused across different pipelines.
 
+:::{tip}
+**Visual learner?** Open the [Operator Algebra Interactive Reference](../operator-algebra-reference.html){target="_blank"} for animated SVG flow diagrams, code examples, and composition rules for all 9 operators.
+:::
+
 ```{raw} html
 <div class="arch-diagram-wrapper">
   <svg viewBox="0 0 740 340" fill="none" xmlns="http://www.w3.org/2000/svg" class="arch-diagram" aria-label="Operator visual reference showing all 9 operators">

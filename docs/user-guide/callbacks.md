@@ -2,6 +2,10 @@
 
 adk-fluent provides a fluent API for attaching callbacks to agents. All callback methods are **additive** -- multiple calls accumulate handlers, never replace.
 
+:::{tip}
+**Visual learner?** Open the [Module Lifecycle Interactive Reference](../module-lifecycle-reference.html){target="_blank"} for a swim-lane timeline showing exactly when each callback fires during agent execution.
+:::
+
 ## Callback Methods
 
 | Method                | Alias for                 | Description                                                           |

@@ -1,16 +1,23 @@
 """Sphinx configuration for adk-fluent documentation."""
 
 import datetime
+import re
 import warnings
+from pathlib import Path
 
 # sphinx-hoverxref 1.4.x uses deprecated Sphinx _Opt tuple interface;
 # suppress until upstream ships a fix.
 warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=PendingDeprecationWarning)
 
+# ---------- Version: auto-read from _version.py (single source of truth) ----------
+_version_file = Path(__file__).resolve().parent.parent / "src" / "adk_fluent" / "_version.py"
+_version_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', _version_file.read_text())
+_auto_version = _version_match.group(1) if _version_match else "0.0.0"
+
 project = "adk-fluent"
-version = "0.13.2"
-release = "0.13.2"
+version = _auto_version
+release = _auto_version
 copyright = "2025, adk-fluent contributors"
 author = "adk-fluent contributors"
 
@@ -79,6 +86,9 @@ myst_enable_extensions = [
     "tasklist",
 ]
 myst_heading_anchors = 4
+myst_substitutions = {
+    "version": _auto_version,
+}
 myst_fence_as_directive = ["mermaid"]
 
 # Intersphinx — cross-reference to Python stdlib docs
@@ -94,7 +104,7 @@ html_theme_options = {
     "source_branch": "master",
     "source_directory": "docs/",
     "announcement": (
-        "adk-fluent v0.13.2 is out &mdash; "
+        f"adk-fluent v{_auto_version} is out &mdash; "
         '<a href="https://pypi.org/project/adk-fluent/">Install from PyPI</a> '
         'or <a href="https://github.com/vamsiramakrishnan/adk-fluent">star on GitHub</a>'
     ),
@@ -177,7 +187,10 @@ html_css_files = [
     ),
     "custom.css",
 ]
-html_js_files = ["custom.js"]
+html_js_files = ["custom.js", "version-switcher.js"]
+
+# Inject version meta tag so the version-switcher JS can detect the current version
+html_meta = {"adk-version": _auto_version}
 
 # Source settings
 source_suffix = {

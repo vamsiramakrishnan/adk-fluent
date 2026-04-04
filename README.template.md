@@ -44,6 +44,8 @@ pip install adk-fluent
 
 Autocomplete works immediately -- the package ships with `.pyi` type stubs for every builder. Type `Agent("name").` and your IDE shows all available methods with type hints.
 
+> **Full walkthrough:** [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) covers install, credentials, first agent, and IDE setup.
+
 ### Optional Extras
 
 Install additional capabilities as needed:
@@ -61,7 +63,7 @@ pip install adk-fluent[docs]           # Documentation build (Sphinx, Furo)
 
 Combine extras: `pip install adk-fluent[a2a,yaml,rich]`
 
-**A2UI (Agent-to-UI):** The UI namespace for declarative agent UIs ships with the core package -- no extra install needed. The full A2UI toolset (`SendA2uiToClientToolset`) will be available via `pip install adk-fluent[a2ui]` when the `a2ui-agent` package is published. Until then, all UI composition, compilation, and presets work out of the box.
+**A2UI (Agent-to-UI):** The UI namespace for declarative agent UIs ships with the core package -- no extra install needed. See the [A2UI guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2ui/) for component reference and examples. The full A2UI toolset (`SendA2uiToClientToolset`) will be available via `pip install adk-fluent[a2ui]` when the `a2ui-agent` package is published. Until then, all UI composition, compilation, and presets work out of the box.
 
 ### IDE Setup
 
@@ -70,6 +72,8 @@ Combine extras: `pip install adk-fluent[a2a,yaml,rich]`
 **PyCharm** -- works automatically. The `.pyi` stubs are bundled in the package and PyCharm discovers them on install.
 
 **Neovim (LSP)** -- use [pyright](https://github.com/microsoft/pyright) as your language server. Stubs are picked up automatically.
+
+See the [Editor & AI Agent Setup](https://vamsiramakrishnan.github.io/adk-fluent/editor-setup/) guide for Claude Code, Cursor, Gemini CLI, and Copilot integration.
 
 ### Discover the API
 
@@ -103,7 +107,7 @@ print(agent.ask("What is the capital of France?"))
 # => The capital of France is Paris.
 ```
 
-`.ask()` handles Runner, Session, and cleanup internally. One line to define, one line to run.
+`.ask()` handles Runner, Session, and cleanup internally. One line to define, one line to run. See the [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) for credentials setup and more examples.
 
 **Try without an API key** — verify the library works using `.mock()`:
 
@@ -212,7 +216,7 @@ escalation_pipeline = classify >> Agent("escalate", "gemini-2.5-flash").instruct
 
 ## Three Pathways
 
-Once you know the builder basics, adk-fluent offers three distinct development pathways -- a fork in the road where each branch produces native ADK objects but solves different problems at different abstraction levels.
+Once you know the builder basics, adk-fluent offers three distinct development pathways -- a fork in the road where each branch produces native ADK objects but solves different problems at different abstraction levels. See the [Decision Guide](https://vamsiramakrishnan.github.io/adk-fluent/decision-guide/) for interactive flowcharts to pick the right path.
 
 ```
                               adk-fluent
@@ -258,7 +262,7 @@ safe = fast_model // strong_model  # Fallback chain
 
 **Best for:** Custom workflows with complex routing, dynamic topologies, callback-heavy agents, full programmatic control. This is where most development starts.
 
-[User Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/) -- [Expression Language](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/expression-language/) -- [74 Cookbook Recipes](https://vamsiramakrishnan.github.io/adk-fluent/cookbook/)
+[User Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/) · [Expression Language](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/expression-language/) · [Context Engineering](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/context-engineering/) · [State Transforms](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/state-transforms/) · [Patterns](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/patterns/) · [74 Cookbook Recipes](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/)
 
 ### Skills Path -- Declarative Agent Packages
 
@@ -279,7 +283,7 @@ fast = research.model("gemini-2.5-flash").inject(web_search=my_search_fn)
 
 **Best for:** Stable topologies where the main variation is prompts, models, and tools. Teams with non-Python domain experts. Reusable capability libraries.
 
-[Skills Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/skills/) -- [Example SKILL.md files](examples/skills/)
+[Skills Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/skills/) · [Example SKILL.md files](examples/skills/)
 
 ### Harness Path -- Autonomous Coding Runtimes
 
@@ -308,7 +312,7 @@ await repl.run()
 
 **Best for:** Agents that act autonomously -- reading codebases, editing files, running tests, managing processes. When you need permissions, sandboxing, token budgets, and observability.
 
-[Harness Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/harness/) -- [Full harness example](examples/cookbook/79_coding_agent_harness.py)
+[Harness Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/harness/) · [Full harness example](examples/cookbook/79_coding_agent_harness.py)
 
 ### Which Path?
 
@@ -524,6 +528,8 @@ For a detailed comparison including CrewAI and native ADK code, see the [Framewo
 
 ## Expression Language
 
+> **Deep dive:** [Expression Language guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/expression-language/) · [Operator Algebra visual reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/operator-algebra-reference.html)
+
 Nine operators compose any agent topology:
 
 | Operator                       | Meaning             | ADK Type                 |
@@ -651,6 +657,8 @@ loop = (
 
 ### State Transforms
 
+> **Deep dive:** [State Transforms guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/state-transforms/)
+
 `S` factories return dict transforms that compose with `>>`:
 
 ```python
@@ -678,6 +686,8 @@ pipeline = (
 | `S.log(*keys)`          | Debug-print              |
 
 ### Context Engineering (C Module)
+
+> **Deep dive:** [Context Engineering guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/context-engineering/) · [P·C·S visual reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/pcs-visual-reference.html)
 
 Control exactly what conversation history each agent sees. Prevents prompt pollution in complex DAGs:
 
@@ -743,6 +753,8 @@ Use `.outputs("topic")` on a prior agent, or pass initial state via `.session()`
 Full error reference: [Error Reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/error-reference/)
 
 ### IR, Backends, and Middleware (v4)
+
+> **Deep dive:** [IR & Backends guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/ir-and-backends/) · [Middleware guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/middleware/) · [Data Flow visual reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/data-flow-reference.html)
 
 Builders can compile to an intermediate representation (IR) for inspection, testing, and alternative backends:
 
@@ -962,6 +974,8 @@ pipeline = (
 
 ## Fluent API Reference
 
+> **Full API docs:** [API Reference](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/) · [Agent](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/agent/) · [Workflow](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/workflow/) · [Tool](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/tool/) · [Config](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/config/)
+
 ### Agent Builder
 
 The `Agent` builder wraps ADK's `LlmAgent`. Every method returns `self` for chaining.
@@ -1008,6 +1022,8 @@ pipeline = (
 Optional variables use `?` suffix (`{maybe_key?}` returns empty string if missing). Namespaced keys: `{app:setting}`, `{user:pref}`, `{temp:scratch}`.
 
 #### Prompt Builder
+
+> **Deep dive:** [Prompt Composition guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/prompts/)
 
 For multi-section prompts, the `Prompt` builder provides structured composition:
 
@@ -1083,6 +1099,8 @@ Each `.inject_context()` call accumulates. The function receives the callback co
 
 #### Callbacks
 
+> **Deep dive:** [Callbacks guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/callbacks/) · [Module Lifecycle visual reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/module-lifecycle-reference.html)
+
 All callback methods are **additive** -- multiple calls accumulate handlers, never replace:
 
 | Method                | Alias for                 | Description                                                           |
@@ -1120,6 +1138,8 @@ agent = (
 
 #### Delegation (LLM-Driven Routing)
 
+> **Deep dive:** [Transfer Control guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/transfer-control/) · [Delegation visual reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/delegation-reference.html)
+
 ```python
 # The coordinator's LLM decides when to delegate
 coordinator = (
@@ -1135,6 +1155,8 @@ coordinator = (
 `.delegate(agent)` wraps the sub-agent in an `AgentTool` so the coordinator's LLM can invoke it by name.
 
 #### One-Shot Execution
+
+> **Deep dive:** [Execution guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/execution/) · [Execution Modes visual reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/execution-modes-reference.html)
 
 | Method                                        | Description                                                     |
 | --------------------------------------------- | --------------------------------------------------------------- |
@@ -1310,6 +1332,8 @@ pipeline = (
 
 ### Presets
 
+> **Deep dive:** [Presets guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/presets/)
+
 Reusable configuration bundles:
 
 ```python
@@ -1349,6 +1373,8 @@ call_count.increment(ctx)
 ```
 
 ## When to Use adk-fluent
+
+> **See also:** [Decision Guide](https://vamsiramakrishnan.github.io/adk-fluent/decision-guide/) · [Framework Comparison](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/comparison/) · [Best Practices](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/best-practices/)
 
 **Use adk-fluent when you want to:**
 
@@ -1418,6 +1444,8 @@ adk web race                  # race() first-to-finish
 68 runnable examples covering all features. See [`examples/`](examples/) for the full list.
 
 ## Cookbook
+
+> **Browse online:** [Cookbook by topic](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/) · [Recipes by use case](https://vamsiramakrishnan.github.io/adk-fluent/generated/cookbook/recipes-by-use-case/) · [Runnable Examples](https://vamsiramakrishnan.github.io/adk-fluent/runnable-examples/)
 
 68 annotated examples in [`examples/cookbook/`](examples/cookbook/) with side-by-side Native ADK vs Fluent comparisons. Each file is also a runnable test: `pytest examples/cookbook/ -v`
 
@@ -1591,6 +1619,8 @@ A [weekly sync workflow](.github/workflows/sync-adk.yml) scans for new ADK relea
 
 ## How It Works
 
+> **Deep dive:** [Architecture & Concepts](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/architecture-and-concepts/) · [IR & Backends](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/ir-and-backends/)
+
 adk-fluent is **auto-generated** from the installed ADK package:
 
 ```
@@ -1614,19 +1644,29 @@ just test  # Verify
 
 ## API Reference
 
-Generated API docs are in [`docs/generated/api/`](docs/generated/api/):
+Browse the full API docs online: **[API Reference](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/)**
 
-- [`agent.md`](docs/generated/api/agent.md) -- Agent, BaseAgent builders
-- [`workflow.md`](docs/generated/api/workflow.md) -- Pipeline, FanOut, Loop
-- [`tool.md`](docs/generated/api/tool.md) -- 40+ tool builders
-- [`service.md`](docs/generated/api/service.md) -- Session, artifact, memory services
-- [`config.md`](docs/generated/api/config.md) -- Configuration builders
-- [`plugin.md`](docs/generated/api/plugin.md) -- Plugin builders
-- [`runtime.md`](docs/generated/api/runtime.md) -- Runner, App builders
+| Module | What's Inside |
+|--------|--------------|
+| [Agent](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/agent/) | Agent, BaseAgent builders |
+| [Workflow](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/workflow/) | Pipeline, FanOut, Loop |
+| [Tool](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/tool/) | 40+ tool builders (FunctionTool, MCPToolset, AgentTool, ...) |
+| [Service](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/service/) | Session, artifact, memory services |
+| [Config](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/config/) | Configuration builders |
+| [Plugin](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/plugin/) | Plugin builders |
+| [Runtime](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/runtime/) | Runner, App builders |
+| [Prompt (P)](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/prompt/) | Prompt composition namespace |
+| [Context (C)](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/context/) | Context engineering namespace |
+| [Transforms (S)](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/transforms/) | State transform namespace |
+| [Middleware (M)](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/middleware/) | Middleware namespace |
+| [Artifacts (A)](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/artifacts/) | Artifact management namespace |
+| [Eval (E)](https://vamsiramakrishnan.github.io/adk-fluent/generated/api/eval/) | Evaluation namespace |
 
-Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/migration/from-native-adk.md)
+Migration guide: [From Native ADK](https://vamsiramakrishnan.github.io/adk-fluent/generated/migration/from-native-adk/)
 
 ## Features
+
+> **Explore:** [User Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/) covers every feature in depth with examples and visual references.
 
 - **130+ builders** covering agents, tools, configs, services, plugins, planners, executors
 - **Expression algebra**: `>>` (sequence), `|` (parallel), `*` (loop), `@` (typed output), `//` (fallback), `>> fn` (transforms), `S` (state ops), `Route` (branch)
@@ -1639,7 +1679,10 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 - **Zero-maintenance** `__getattr__` forwarding for any ADK field
 - **Callback accumulation**: multiple `.before_model()` calls append, not replace
 - **Typo detection**: misspelled methods raise `AttributeError` with suggestions
-- **A2UI (Agent-to-UI)**: declarative UI composition via `UI` namespace -- `UI.form()`, `UI.dashboard()`, `|` (Row), `>>` (Column) operators, `compile_surface()` to A2UI JSON
+- **A2UI (Agent-to-UI)**: declarative UI composition via `UI` namespace -- `UI.form()`, `UI.dashboard()`, `|` (Row), `>>` (Column) operators, `compile_surface()` to A2UI JSON ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2ui/))
+- **Guards**: output validation with `G.pii()`, `G.toxicity()`, `G.length()`, `G.schema()` ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/guards/))
+- **A2A**: remote agent-to-agent communication via A2A protocol ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2a/), [topology reference](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/a2a-topology-reference.html))
+- **Evaluation**: fluent eval suites with `E.case()`, `E.criterion()`, LLM-as-judge ([guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/evaluation/))
 - **Deterministic routing**: `Route` evaluates predicates against session state (zero LLM calls)
 - **One-shot execution**: `.ask()`, `.stream()`, `.session()`, `.map()` without Runner boilerplate
 - **Presets**: reusable config bundles via `Preset` + `.use()`
@@ -1651,6 +1694,8 @@ Migration guide: [`docs/generated/migration/from-native-adk.md`](docs/generated/
 
 ## AI Coding Skills
 
+> **Setup guide:** [Editor & AI Agent Setup](https://vamsiramakrishnan.github.io/adk-fluent/editor-setup/) · [Agent Skills reference](https://vamsiramakrishnan.github.io/adk-fluent/editor-setup/agent-skills/)
+
 adk-fluent ships with [Agent Skills](https://agentskills.io) that teach AI coding assistants how to use the library. Install them into any compatible tool:
 
 ```bash
@@ -1659,6 +1704,7 @@ npx skills add vamsiramakrishnan/adk-fluent -y -g
 
 | Skill | Description |
 |-------|-------------|
+| `adk-fluent-complete` | **Comprehensive reference** — all {{ BUILDER_COUNT }} builders, 9 namespaces, operators, patterns, A2A. Auto-generated, always current |
 | `adk-fluent-cheatsheet` | API quick reference — builder methods, operators, namespaces, ADK→fluent mapping |
 | `adk-fluent-dev-guide` | Development lifecycle — spec-driven workflow, phase-based development, troubleshooting |
 | `adk-fluent-eval-guide` | Evaluation methodology — E namespace, eval suites, criteria, LLM-as-judge |
@@ -1692,30 +1738,28 @@ just typecheck-core
 just ci
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development guide.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Contributing guide](https://vamsiramakrishnan.github.io/adk-fluent/contributing/) for the full development guide.
 
-## Latest Changes
+## What's New
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release history. Recent highlights:
+<!-- INJECT_CHANGELOG_HIGHLIGHTS -->
 
-- **v0.11.0** -- `A` module Phase 2+3 (batch ops, LLM tools, content transforms, ArtifactSchema), auto-generated namespace API docs, DevEx overhaul
-- **v0.10.0** -- `A` module Phase 1 (artifact lifecycle), `Fallback` builder, verb harmonization (`agent_tool`, `guard`, `loop_while`, `prepend`)
-- **v0.9.6** -- `T` module for tool composition, `ToolRegistry` with BM25-indexed discovery
-- **v0.9.5** -- Middleware v2 (`TraceContext`, per-agent scoping, topology hooks), `M` module, `P` module, `MiddlewareSchema`
+See [CHANGELOG.md](CHANGELOG.md) for the full release history, or browse it on the [docs site](https://vamsiramakrishnan.github.io/adk-fluent/changelog/).
 
-## Publishing
+## Releases
 
-Releases are published automatically to PyPI when a version tag is pushed:
+Only one file to edit: `src/adk_fluent/_version.py`. Everything else auto-syncs.
 
 ```bash
-# 1. Bump version in pyproject.toml
-# 2. Commit and tag
-git tag v0.2.0
-git push origin v0.2.0
-# 3. CI runs tests -> builds -> publishes to PyPI automatically
+just release patch   # or: minor, major
+# → bumps _version.py, runs tests + typecheck, builds wheel
+# → prints next steps: review, commit, tag, push
+
+just release-tag     # creates and pushes the git tag
+# → CI auto-publishes to PyPI + rebuilds versioned docs
 ```
 
-TestPyPI publishing is available manually via the GitLab CI web interface.
+The version in `_version.py` is the single source of truth — `pyproject.toml`, `docs/conf.py`, and the announcement banner all read from it automatically.
 
 ## License
 

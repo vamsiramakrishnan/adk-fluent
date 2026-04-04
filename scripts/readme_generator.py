@@ -4,6 +4,7 @@ README GENERATOR
 ================
 Reads README.template.md and dynamically injects:
 1. Mermaid diagram of a sample complex pipeline.
+2. Changelog highlights (latest N releases from CHANGELOG.md).
 
 Usage:
     python scripts/readme_generator.py
@@ -11,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -57,10 +59,66 @@ def build_sample_pipeline():
     return pipeline
 
 
+def extract_changelog_highlights(changelog_path: Path, max_releases: int = 5) -> str:
+    """Extract one-line summaries for the latest N releases from CHANGELOG.md."""
+    if not changelog_path.exists():
+        return ""
+
+    text = changelog_path.read_text()
+    # Match version headers like: ## [0.13.2] - 2026-03-17
+    release_pattern = re.compile(r"^## \[(\d+\.\d+\.\d+[^\]]*)\]\s*-\s*(\d{4}-\d{2}-\d{2})", re.MULTILINE)
+    releases = list(release_pattern.finditer(text))
+
+    if not releases:
+        return ""
+
+    lines = []
+    for match in releases[:max_releases]:
+        version = match.group(1)
+        # Extract the content between this header and the next
+        start = match.end()
+        # Find next release header or end of file
+        next_match = release_pattern.search(text, start)
+        end = next_match.start() if next_match else len(text)
+        section = text[start:end]
+
+        # Collect top-level bullet points from ### Added section (most interesting)
+        highlights = []
+        in_added = False
+        for line in section.splitlines():
+            if line.startswith("### Added"):
+                in_added = True
+                continue
+            if line.startswith("### "):
+                in_added = False
+                continue
+            if in_added and line.startswith("- **"):
+                # Extract the bold title
+                bold_match = re.match(r"- \*\*(.+?)\*\*", line)
+                if bold_match:
+                    highlights.append(bold_match.group(1))
+
+        if not highlights:
+            # Fallback: grab from any section
+            for line in section.splitlines():
+                if line.startswith("- **"):
+                    bold_match = re.match(r"- \*\*(.+?)\*\*", line)
+                    if bold_match:
+                        highlights.append(bold_match.group(1))
+                        if len(highlights) >= 3:
+                            break
+
+        summary = ", ".join(highlights[:3]) if highlights else "see changelog"
+        lines.append(f"- **v{version}** -- {summary}")
+
+    return "\n".join(lines)
+
+
 def main():
     repo_root = Path(__file__).parent.parent
     template_path = repo_root / "README.template.md"
     readme_path = repo_root / "README.md"
+    changelog_path = repo_root / "CHANGELOG.md"
 
     if not template_path.exists():
         print("Error: README.template.md not found.", file=sys.stderr)
@@ -79,11 +137,18 @@ def main():
 ```
 """
 
-    # Inject it
+    # Generate changelog highlights
+    changelog_highlights = extract_changelog_highlights(changelog_path)
+
+    # Inject dynamic content
     new_content = template_content.replace("<!-- INJECT_MERMAID_DIAGRAM -->", mermaid_block)
+    new_content = new_content.replace("<!-- INJECT_CHANGELOG_HIGHLIGHTS -->", changelog_highlights)
 
     readme_path.write_text(new_content)
     print("README.md successfully generated with dynamic content.")
+    if changelog_highlights:
+        count = changelog_highlights.count("\n") + 1
+        print(f"  Changelog highlights: {count} releases injected.")
 
 
 if __name__ == "__main__":

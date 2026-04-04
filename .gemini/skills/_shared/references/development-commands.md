@@ -35,14 +35,23 @@ Extracted from `justfile`. Always use `uv run` for Python commands.
 | `just docs-serve` | Build and serve docs with live reload |
 | `just llms` | Generate llms.txt + editor rules (CLAUDE.md, .cursorrules, etc.) |
 | `just skills` | Generate agent skill references (.claude/skills/ + .gemini/skills/ + skills/) |
+| `just check-skills` | Check if skills are up to date (fails if stale) |
 | `just cookbook-gen` | Generate cookbook example stubs |
 | `just cookbook-gen-dry` | Preview cookbook stubs (dry-run) |
 | `just agents` | Convert cookbook -> adk web folders |
+| `just a2ui-preview` | Static A2UI gallery (no server, no LLM) |
+| `just visual` | Full visual runner (requires API key) |
+| `just visual-export` | Export A2UI surfaces to JSON |
+| `just test-visual` | Run visual regression tests |
 | `just diff` | Show changes since last scan (JSON) |
 | `just diff-md` | Generate API diff as docs/generated/api-diff.md |
 | `just build` | Build pip package |
 | `just publish` | Publish to PyPI |
 | `just clean` | Remove generated files |
+| `just version` | Show current version |
+| `just bump` | LEVEL     Bump version (patch|minor|major) |
+| `just release` | LEVEL  Full preflight: bump + test + build |
+| `just release-tag` | Create and push git tag → triggers PyPI + docs |
 
 ## Common workflows
 

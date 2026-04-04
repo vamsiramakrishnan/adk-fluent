@@ -24,16 +24,19 @@ body:
     id: checklist
     attributes:
       label: Steps
+      description: |
+        Only `_version.py` needs a version update — docs/conf.py, the
+        announcement banner, and getting-started.md read it automatically.
       options:
-        - label: "Update `src/adk_fluent/_version.py` to the target version"
+        - label: "Update `src/adk_fluent/_version.py` to the target version (this is the **only** version file to edit — docs auto-sync from it)"
         - label: "Run `just scan seed generate` against the target ADK version"
         - label: "Run `just test` — all tests pass"
         - label: "Run `just typecheck` and `just typecheck-core` — no errors"
-        - label: "Update `ADK_VERSION` in `.github/workflows/ci.yml`"
+        - label: "Update `ADK_VERSION` in `.github/workflows/ci.yml` (only if ADK version changed)"
         - label: "Update `CHANGELOG.md` — move `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD`"
-        - label: "Update `SECURITY.md` supported versions table"
         - label: "Create PR, get approval, merge to master"
         - label: "Tag: `git tag vX.Y.Z && git push origin vX.Y.Z`"
         - label: "Verify CI publishes to PyPI successfully"
         - label: "Verify `pip install adk-fluent==X.Y.Z` works"
+        - label: "Verify docs rebuild with correct version at https://vamsiramakrishnan.github.io/adk-fluent/"
         - label: "Create GitHub Release from the tag (release-drafter draft)"

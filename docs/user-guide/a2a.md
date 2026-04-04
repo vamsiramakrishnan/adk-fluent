@@ -2,6 +2,10 @@
 
 The **A2A (Agent-to-Agent)** protocol enables agents to communicate across process boundaries, machines, and organizations. adk-fluent wraps Google's A2A protocol with the same fluent builder API used for local agents.
 
+:::{tip}
+**Visual learner?** Open the [A2A Topology Interactive Reference](../a2a-topology-reference.html){target="_blank"} for mesh topology diagrams, state bridging flows, resilience patterns, and discovery methods.
+:::
+
 :::{admonition} Install
 :class: tip
 

@@ -7,6 +7,24 @@ adk-fluent produces **native ADK objects** — not a wrapper, not a new runtime,
 LangGraph, CrewAI, and AutoGen all create **their own runtime objects**. adk-fluent creates **Google ADK objects**. This means adk-fluent agents work with `adk web`, `adk run`, `adk deploy`, Agent Engine, and every ADK integration — with zero adaptation layer.
 :::
 
+```mermaid
+flowchart LR
+    subgraph others["Other frameworks"]
+        LG["LangGraph"] --> LGR["LangGraph<br>Runnable"]
+        CA["CrewAI"] --> CAR["CrewOutput"]
+    end
+    subgraph fluent["adk-fluent"]
+        AF["Agent('name')<br>.build()"] --> ADK["Native ADK<br>LlmAgent"]
+    end
+    ADK --> D1["adk web"]
+    ADK --> D2["adk run"]
+    ADK --> D3["adk deploy"]
+    ADK --> D4["Agent Engine"]
+
+    style others fill:#fef2f2,stroke:#e94560,color:#1A1A1A
+    style fluent fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
+```
+
 Below, three real patterns are implemented in all four frameworks. Count the lines, but more importantly, count the concepts you need to learn.
 
 ## Feature Matrix

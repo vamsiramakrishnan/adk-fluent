@@ -2,6 +2,10 @@
 
 The `P` namespace provides structured, composable prompt construction using frozen dataclasses and algebraic operators.
 
+:::{tip}
+**Visual learner?** Open the [P·C·S Visual Reference](../pcs-visual-reference.html){target="_blank"} to see how Prompt, Context, and State modules compose to assemble what the LLM sees.
+:::
+
 ## Basic Usage
 
 ```python

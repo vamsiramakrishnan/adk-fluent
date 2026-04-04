@@ -205,9 +205,27 @@ body,
     border-color 0.3s var(--adk-ease);
 }
 
-/* Mermaid diagrams: use Furo's built-in dark awareness */
+/* Mermaid diagrams: polished rendering with consistent styling */
+.mermaid {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-lg, 14px);
+  background: var(--adk-surface, #fff);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mermaid svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
 [data-theme="dark"] .mermaid {
   filter: none;
+  background: var(--adk-surface-sunken, #141414);
+  border-color: var(--adk-border);
 }
 
 /* Smooth scrolling */
@@ -442,6 +460,9 @@ h4:hover .headerlink,
 
 .content .highlight[class*="highlight-"] {
   position: relative;
+  /* Ensure the highlight wrapper creates a positioning context even inside
+     sphinx-design tabs, grid cards, and other layout containers. */
+  isolation: isolate;
 }
 
 .content .highlight[class*="highlight-"]::before {
@@ -461,6 +482,10 @@ h4:hover .headerlink,
   z-index: 2;
   pointer-events: none;
   line-height: 1;
+  /* Prevent label from appearing as inline text if absolute positioning fails */
+  display: block;
+  width: fit-content;
+  margin-left: auto;
 }
 
 .content .highlight-python::before { content: "python"; }
@@ -479,11 +504,122 @@ h4:hover .headerlink,
 .content .highlight-md::before { content: "md"; }
 .content .highlight-ini::before { content: "ini"; }
 .content .highlight-diff::before { content: "diff"; }
+.content .highlight-mermaid::before { content: "mermaid"; }
+
+/* Fix language labels inside sphinx-design tabs — the tab panel's overflow
+   and transform context can break absolute positioning of the ::before label */
+.sd-tab-content .highlight[class*="highlight-"] {
+  position: relative;
+  overflow: visible;
+}
+
+/* Ensure copy buttons are always accessible inside tab panels */
+.sd-tab-content .copybtn {
+  z-index: 3;
+}
 
 
 /* ==========================================================================
    5. NAVIGATION & WAYFINDING
    ========================================================================== */
+
+/* ---- Version switcher ---- */
+
+.version-switcher {
+  position: relative;
+  margin: 0.5rem 1rem 0.75rem;
+}
+
+.version-switcher__button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-stack--monospace);
+  color: var(--color-foreground-secondary);
+  background: var(--adk-surface, #fff);
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-sm);
+  cursor: pointer;
+  transition: all var(--adk-transition);
+}
+
+.version-switcher__button:hover {
+  border-color: var(--adk-accent-light);
+  background: var(--adk-surface-raised);
+}
+
+.version-switcher__chevron {
+  transition: transform var(--adk-transition);
+  flex-shrink: 0;
+}
+
+.version-switcher__button[aria-expanded="true"] .version-switcher__chevron {
+  transform: rotate(180deg);
+}
+
+.version-switcher__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  background: var(--adk-surface-raised, #fff);
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-sm);
+  box-shadow: var(--adk-shadow-lg);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.version-switcher__item {
+  display: block;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-family: var(--font-stack--monospace);
+  color: var(--color-foreground-secondary);
+  text-decoration: none;
+  transition: all var(--adk-transition);
+}
+
+.version-switcher__item:hover {
+  background: var(--adk-accent-bg, #FFF3E0);
+  color: var(--adk-accent);
+}
+
+.version-switcher__item--active {
+  color: var(--adk-accent);
+  font-weight: 700;
+  background: var(--adk-accent-bg, #FFF3E0);
+}
+
+.version-switcher__item--active::before {
+  content: "● ";
+  font-size: 0.6em;
+}
+
+[data-theme="dark"] .version-switcher__button {
+  background: var(--adk-surface-sunken, #141414);
+}
+
+[data-theme="dark"] .version-switcher__menu {
+  background: var(--adk-surface-raised, #1e1e1e);
+  border-color: var(--adk-border);
+}
+
+[data-theme="dark"] .version-switcher__item:hover {
+  background: rgba(255, 183, 77, 0.1);
+}
+
+[data-theme="dark"] .version-switcher__item--active {
+  background: rgba(255, 183, 77, 0.1);
+}
 
 /* ---- Active sidebar item ---- */
 
@@ -1500,8 +1636,14 @@ h4:hover .headerlink,
     display: none;
   }
 
-  .content pre .copybtn {
+  /* Hide language labels on mobile to avoid layout overflow */
+  .content .highlight[class*="highlight-"]::before {
     display: none;
+  }
+
+  /* Keep copy button visible on mobile (touch-friendly) but always show it */
+  .content pre .copybtn {
+    opacity: 0.6;
   }
 
   .related-pages a {
@@ -1877,21 +2019,31 @@ input:focus-visible,
   box-shadow: var(--adk-shadow-md);
 }
 
-/* Diagram entrance animation (triggered by IntersectionObserver) */
+/* Diagram entrance animation (triggered by IntersectionObserver in custom.js).
+   Fallback: if JS fails or observer doesn't fire, diagrams become visible
+   after a short CSS-only delay so content is never permanently hidden. */
 .arch-diagram-wrapper {
   opacity: 0;
   transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  animation: diagram-fallback-reveal 0s 1.5s forwards;
+}
+
+@keyframes diagram-fallback-reveal {
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .arch-diagram-wrapper.diagram-visible {
   opacity: 1;
   transform: translateY(0);
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .arch-diagram-wrapper {
     opacity: 1;
     transform: none;
+    animation: none;
   }
 }
 
@@ -2584,4 +2736,234 @@ input:focus-visible,
 
   body:not([data-theme="light"]) .content div[style*="grid-template-columns"] svg path[stroke="#E65100"] { stroke: #FFB74D; }
 
+}
+
+
+/* ==========================================================================
+   28. PATHWAY CARDS — Three Pathways (Pipeline / Skills / Harness)
+   ========================================================================== */
+
+.pathway-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.pathway-card {
+  border: 2px solid var(--pw-color, var(--adk-border));
+  border-radius: var(--adk-radius-lg, 14px);
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--pw-color, #888) 3%, transparent);
+  transition: all 0.3s ease;
+}
+
+.pathway-card:hover {
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--pw-color) 15%, transparent);
+  transform: translateY(-2px);
+}
+
+.pathway-card--pipeline { --pw-color: #10b981; }
+.pathway-card--skills   { --pw-color: #E65100; }
+.pathway-card--harness  { --pw-color: #0ea5e9; }
+
+.pathway-card .pathway-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pathway-card .pathway-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--pw-color);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--pw-color) 6%, transparent);
+  color: var(--pw-color);
+  font-family: var(--font-stack--monospace, monospace);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pathway-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pw-color);
+}
+
+.pathway-card .pathway-subtitle {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.pathway-card .pathway-desc {
+  font-size: 0.82rem;
+  color: var(--adk-text-muted, #757575);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.pathway-card .pathway-code {
+  font-size: 0.78rem;
+  color: var(--pw-color);
+  font-family: var(--font-stack--monospace, monospace);
+}
+
+.pathway-card .pathway-best-for {
+  margin-top: 1rem;
+  font-size: 0.82rem;
+}
+
+.pathway-card .pathway-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--pw-color);
+  text-decoration: none;
+}
+
+.pathway-card .pathway-link:hover {
+  text-decoration: underline;
+}
+
+/* Compact variant for user-guide/index.md */
+.pathway-grid--compact {
+  gap: 1rem;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+
+.pathway-grid--compact .pathway-card {
+  border-width: 0;
+  border-left: 3px solid var(--pw-color);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+}
+
+/* Feature cards — "Why adk-fluent?" section */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.feature-card {
+  border: 1px solid var(--adk-border, #e0e0e0);
+  border-radius: var(--adk-radius-lg, 14px);
+  padding: 1.5rem;
+  background: var(--adk-surface-raised, #fafafa);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: var(--adk-accent-light, #FFB74D);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.feature-card .feature-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.feature-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.feature-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--adk-text-muted, #757575);
+  line-height: 1.6;
+}
+
+/* Dark mode adjustments for pathway & feature cards */
+[data-theme="dark"] .pathway-card {
+  background: color-mix(in srgb, var(--pw-color) 5%, #171717);
+}
+
+[data-theme="dark"] .feature-card {
+  background: var(--adk-surface-raised, #1e1e1e);
+}
+
+/* Responsive: stack on tablet and mobile */
+@media (max-width: 900px) {
+  .pathway-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================================
+   29. CONCEPT DIAGRAMS — Architecture & Concepts page
+   ========================================================================== */
+
+.concept-diagram {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--adk-border, #e0e0e0);
+  border-radius: var(--adk-radius-lg, 14px);
+  background: var(--adk-surface, #fff);
+}
+
+[data-theme="dark"] .concept-diagram {
+  background: var(--adk-surface-sunken, #141414);
+}
+
+.channel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.channel-card {
+  padding: 1.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--ch-color, var(--adk-border));
+  background: color-mix(in srgb, var(--ch-color, #888) 4%, transparent);
+}
+
+.channel-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.92rem;
+  color: var(--ch-color);
+}
+
+.channel-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--adk-text-muted, #757575);
+}
+
+.channel-card code {
+  font-size: 0.8em;
+}
+
+.channel-card--history  { --ch-color: #e94560; }
+.channel-card--state    { --ch-color: #0ea5e9; }
+.channel-card--template { --ch-color: #10b981; }
+
+@media (max-width: 900px) {
+  .channel-grid {
+    grid-template-columns: 1fr;
+  }
 }

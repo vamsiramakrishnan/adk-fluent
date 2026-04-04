@@ -67,6 +67,21 @@ jobs:
         run: just check-gen
 
   # ---------------------------------------------------------------------------
+  # CHECK-SKILLS — verify skills match generator output (anti-staleness)
+  # ---------------------------------------------------------------------------
+  check-skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-env
+        with:
+          uv-version: ${{ env.UV_VERSION }}
+
+      - name: Check skills freshness
+        run: just check-skills
+
+  # ---------------------------------------------------------------------------
   # TYPECHECK — validates generated stubs and hand-written code
   # ---------------------------------------------------------------------------
   typecheck:
@@ -169,7 +184,7 @@ jobs:
   # BUILD — produce wheel/sdist + smoke test
   # ---------------------------------------------------------------------------
   build:
-    needs: [lint, check-gen, typecheck, test, compat]
+    needs: [lint, check-gen, check-skills, typecheck, test, compat]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
