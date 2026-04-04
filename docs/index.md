@@ -145,6 +145,57 @@ research = SequentialAgent(
 
 Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `adk run`, and `adk deploy`.
 
+## What's New in v{{version}}
+
+::::{grid} 1 1 2 3
+:gutter: 3
+
+:::{grid-item-card} A2UI (Agent-to-UI)
+:link: user-guide/a2ui
+:link-type: doc
+
+Declarative UI composition with `UI.text()`, `UI.button()`, `UI.form()`. Expression operators `|` and `>>` for layouts. Data binding and validation built in.
+:::
+
+:::{grid-item-card} Skills & Harness
+:link: user-guide/skills
+:link-type: doc
+
+Declarative agent packages with `SKILL.md`. Autonomous coding runtimes with `H` namespace. Five layers from tools to REPL.
+:::
+
+:::{grid-item-card} Guards (G Module)
+:link: generated/api/g-guards
+:link-type: doc
+
+Output validation with `G.pii()`, `G.toxicity()`, `G.length()`, `G.schema()`. Compose with `|` pipe operator.
+:::
+
+:::{grid-item-card} Lazy Imports
+Zero-cost `import adk_fluent` — loads 1 module instead of ~1,468. ADK dependencies deferred to `.build()` time.
+:::
+
+:::{grid-item-card} Eval Suite (E Module)
+:link: generated/api/e-eval
+:link-type: doc
+
+Fluent evaluation with `E.case()`, `E.criterion()`, `E.persona()`. `LLMJudge` for LLM-powered evaluation.
+:::
+
+:::{grid-item-card} Version Dropdown
+Docs now include a version switcher. Browse docs for any release, with `/latest/` always pointing to the most recent build.
+:::
+
+::::
+
+```{button-ref} changelog
+:color: primary
+:outline:
+:expand:
+
+Full Changelog
+```
+
 ## Why adk-fluent?
 
 ```{raw} html

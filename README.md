@@ -1706,28 +1706,30 @@ just ci
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development guide.
 
-## Latest Changes
+## What's New
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release history. Recent highlights:
+- **v0.13.2** -- Lazy import loading, `__init__.pyi` stub, Import budget CI test
+- **v0.13.1** -- Namespace composition operator symmetry, Parallel merge conflict detection, E namespace protocol properties
+- **v0.13.0** -- A2UI (Agent-to-UI) integration, A2UI composition patterns, Agent skills
+- **v0.12.1** -- A2A protocol integration, `G` (Guards) module, `E` (Eval) module
+- **v0.11.0** -- `A` module Phase 2+3, Auto-generated API docs, DevEx improvements
 
-- **v0.11.0** -- `A` module Phase 2+3 (batch ops, LLM tools, content transforms, ArtifactSchema), auto-generated namespace API docs, DevEx overhaul
-- **v0.10.0** -- `A` module Phase 1 (artifact lifecycle), `Fallback` builder, verb harmonization (`agent_tool`, `guard`, `loop_while`, `prepend`)
-- **v0.9.6** -- `T` module for tool composition, `ToolRegistry` with BM25-indexed discovery
-- **v0.9.5** -- Middleware v2 (`TraceContext`, per-agent scoping, topology hooks), `M` module, `P` module, `MiddlewareSchema`
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
-## Publishing
+## Releases
 
-Releases are published automatically to PyPI when a version tag is pushed:
+Only one file to edit: `src/adk_fluent/_version.py`. Everything else auto-syncs.
 
 ```bash
-# 1. Bump version in pyproject.toml
-# 2. Commit and tag
-git tag v0.2.0
-git push origin v0.2.0
-# 3. CI runs tests -> builds -> publishes to PyPI automatically
+just release patch   # or: minor, major
+# → bumps _version.py, runs tests + typecheck, builds wheel
+# → prints next steps: review, commit, tag, push
+
+just release-tag     # creates and pushes the git tag
+# → CI auto-publishes to PyPI + rebuilds versioned docs
 ```
 
-TestPyPI publishing is available manually via the GitLab CI web interface.
+The version in `_version.py` is the single source of truth — `pyproject.toml`, `docs/conf.py`, and the announcement banner all read from it automatically.
 
 ## License
 
