@@ -205,9 +205,27 @@ body,
     border-color 0.3s var(--adk-ease);
 }
 
-/* Mermaid diagrams: use Furo's built-in dark awareness */
+/* Mermaid diagrams: polished rendering with consistent styling */
+.mermaid {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--adk-border);
+  border-radius: var(--adk-radius-lg, 14px);
+  background: var(--adk-surface, #fff);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mermaid svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
 [data-theme="dark"] .mermaid {
   filter: none;
+  background: var(--adk-surface-sunken, #141414);
+  border-color: var(--adk-border);
 }
 
 /* Smooth scrolling */

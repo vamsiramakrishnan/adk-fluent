@@ -2,25 +2,45 @@
 
 `C` factories return frozen descriptors that control what conversation history and state each agent sees. They compose with `+` (union) and `|` (pipe) and are passed to `Agent.context()`.
 
+:::{tip}
+**Visual learner?** Open the [P·C·S Visual Reference](../pcs-visual-reference.html){target="_blank"} for interactive diagrams showing how Prompt, Context, and State modules compose to assemble what the LLM sees.
+:::
+
+```mermaid
+flowchart LR
+    subgraph visibility["Context Visibility Spectrum"]
+        direction LR
+        NONE["C.none()<br><b>Instruction only</b>"]
+        USER["C.user_only()<br><b>User messages</b>"]
+        WINDOW["C.window(n)<br><b>Last N turns</b>"]
+        AGENTS["C.from_agents()<br><b>User + named</b>"]
+        DEFAULT["C.default()<br><b>Everything</b>"]
+    end
+
+    NONE --- USER --- WINDOW --- AGENTS --- DEFAULT
+
+    style NONE fill:#fef2f2,stroke:#e94560,color:#1A1A1A
+    style USER fill:#FFF3E0,stroke:#E65100,color:#1A1A1A
+    style WINDOW fill:#FFF8E1,stroke:#f59e0b,color:#1A1A1A
+    style AGENTS fill:#e0f2fe,stroke:#0ea5e9,color:#1A1A1A
+    style DEFAULT fill:#ecfdf5,stroke:#10b981,color:#1A1A1A
 ```
-Context Visibility Matrix:
 
-                  ┌──────────────┬────────────────────────────────┐
-                  │  What the    │         C primitive             │
-                  │  LLM sees    │                                 │
-  ┌───────────────┼──────────────┼────────────────────────────────┤
-  │ C.default()   │ everything   │ all history + all state        │
-  │ C.none()      │ instruction  │ no history, no state injection │
-  │ C.user_only() │ user msgs    │ user turns only, no agents     │
-  │ C.window(n)   │ last N turns │ recent history slice           │
-  │ C.from_state()│ state keys   │ named keys injected            │
-  │ C.from_agents │ user + named │ selective agent outputs        │
-  │ C.template()  │ rendered str │ template from state values     │
-  └───────────────┴──────────────┴────────────────────────────────┘
+| Factory | LLM sees | Effect |
+|---|---|---|
+| `C.none()` | Instruction only | No history, no state injection |
+| `C.user_only()` | User messages | User turns only, no agent outputs |
+| `C.window(n)` | Last N turns | Recent history slice |
+| `C.from_state(*keys)` | State keys | Named keys injected into prompt |
+| `C.from_agents(*names)` | User + named agents | Selective agent outputs |
+| `C.template(str)` | Rendered string | Template filled from state values |
+| `C.default()` | Everything | All history + all state (pass-through) |
 
-  Composition:
-    C.window(3) + C.from_state("topic")    union: both applied
-    C.window(5) | C.template("{history}")   pipe: output → input
+**Composition operators:**
+
+```python
+C.window(3) + C.from_state("topic")    # union: both applied
+C.window(5) | C.template("{history}")   # pipe: output → input
 ```
 
 ## Quick Start
