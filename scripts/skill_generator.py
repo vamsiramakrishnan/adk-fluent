@@ -1010,8 +1010,8 @@ def generate_distributable_complete(specs: list[BuilderSpec], version: str) -> s
     - Namespace introspection (S, C, P, A, M, T, E, G methods)
     """
     from llms_generator import (
-        _AGENT_METHODS,
         _A2A_SECTION,
+        _AGENT_METHODS,
         _BEST_PRACTICES,
         _COMMANDS,
         _COMPOSITION_PATTERNS,

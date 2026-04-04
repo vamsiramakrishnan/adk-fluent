@@ -976,10 +976,7 @@ def process_cookbook_file(filepath: str) -> dict:
     title = title_match.group(1).strip() if title_match else Path(filepath).stem
 
     sections = {"native": "", "fluent": "", "assertion": ""}
-    has_markers = any(
-        marker in text
-        for marker in ("# --- NATIVE ---", "# --- FLUENT ---", "# --- ASSERT ---")
-    )
+    has_markers = any(marker in text for marker in ("# --- NATIVE ---", "# --- FLUENT ---", "# --- ASSERT ---"))
 
     if has_markers:
         current = None
@@ -1317,7 +1314,16 @@ def gen_cookbook_index(cookbook_files: list[dict]) -> str:
         categories[cat].append(cb)
 
     # Defined order
-    cat_order = ["Basics", "Execution", "Advanced", "Patterns", "v4 Features", "v5.1 Features", "Skills & Harness", "Other"]
+    cat_order = [
+        "Basics",
+        "Execution",
+        "Advanced",
+        "Patterns",
+        "v4 Features",
+        "v5.1 Features",
+        "Skills & Harness",
+        "Other",
+    ]
     cat_descriptions = {
         "Basics": "Foundational patterns: creating agents, adding tools, callbacks, and simple workflows.",
         "Execution": "Running agents: one-shot, streaming, cloning, testing, and sessions.",
