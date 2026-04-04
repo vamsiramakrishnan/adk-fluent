@@ -5,6 +5,35 @@ This page answers the question every developer asks: **"Which pattern should I u
 Use it as a flowchart when you're staring at a blank file and know what you
 want but not how to express it in adk-fluent.
 
+## Choosing a Pathway
+
+Before picking a topology, pick a pathway. adk-fluent has three:
+
+```
+Is the topology stable and owned by non-Python users?
+  └── Yes → SKILLS PATH: Skill("path/").ask("prompt")
+      └── YAML + Markdown → agent graph. See: Skills Guide
+
+Does the agent need autonomous file/shell/web access?
+  └── Yes → HARNESS PATH: Agent("x").tools(H.workspace() + H.web())
+      └── 5-layer architecture (tools, safety, observability, runtime). See: Harness Guide
+
+Everything else (most development starts here):
+  └── PIPELINE PATH: Agent("a") >> Agent("b") | Agent("c")
+      └── Full Python control, expression operators, 9 namespace modules. See: User Guide
+```
+
+| | Pipeline | Skills | Harness |
+|---|---|---|---|
+| **Abstraction** | Low -- full Python control | High -- YAML config | Medium -- composable layers |
+| **Topology** | Any (unlimited) | Fixed per skill file | Agent + toolset |
+| **Who writes it** | Engineers | Domain experts + engineers | Engineers |
+| **File/shell access** | Optional | No | Yes (sandboxed) |
+| **Multi-turn runtime** | No | No | Yes (REPL, memory) |
+| **Reusability** | Code sharing | SKILL.md sharing (30+ platforms) | Per-domain |
+
+**All three compose.** A harness loads skills, skills wire agents as pipelines, pipelines use the full expression algebra.
+
 ## Choosing a Topology
 
 ```

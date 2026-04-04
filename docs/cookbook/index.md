@@ -93,9 +93,48 @@ hero-workflows/dispatch-join-pipeline
 
 ---
 
+## Skills & Harness Pathways
+
+These recipes demonstrate adk-fluent's [three development pathways](../user-guide/index.md#three-pathways) beyond the core Pipeline path. Skills turn YAML into agent graphs; harnesses build autonomous coding runtimes.
+
+````{grid} 1 2 3 3
+---
+gutter: 3
+---
+
+```{grid-item-card} Skill-Based Agents
+:link: ../generated/cookbook/77_skill_based_agents
+:link-type: doc
+
+11 patterns: load, compose, inject, discover, and introspect skills from SKILL.md files.
+
+**Pathway:** Skills
+```
+
+```{grid-item-card} Skill-Powered Harness
+:link: ../generated/cookbook/78_harness_and_skills
+:link-type: doc
+
+8 patterns combining skill expertise with sandboxed workspace tools, permissions, and context.
+
+**Pathway:** Skills + Harness
+```
+
+```{grid-item-card} Production Coding Agent
+:link: ../generated/cookbook/79_coding_agent_harness
+:link-type: doc
+
+27-test proof: a Claude-Code-class autonomous runtime built from 5 composable layers.
+
+**Pathway:** Harness
+```
+````
+
+---
+
 ## All Recipes
 
-For the complete flat listing of all 68 recipes with side-by-side native ADK
+For the complete flat listing of all recipes with side-by-side native ADK
 comparisons, see the [auto-generated cookbook](../generated/cookbook/index.md).
 
 For recipes organized by use case (support, e-commerce, research, etc.), see
