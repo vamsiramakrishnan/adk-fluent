@@ -163,6 +163,22 @@ assert policy.rule_for("glob_search").action == "skip"
 assert policy.rule_for("unknown_tool").action == "propagate"
 ```
 
+### Merging tool policies from different sources
+
+```python
+base = H.tool_policy().retry("bash", max_attempts=2).skip("glob_search")
+override = (
+    H.tool_policy()
+    .retry("bash", max_attempts=5)    # override base
+    .retry("web_fetch", max_attempts=3)  # new rule
+)
+merged = base.merge(override)
+
+assert merged.rule_for("bash").max_attempts == 5   # override wins
+assert merged.rule_for("glob_search").action == "skip"  # kept from base
+assert merged.rule_for("web_fetch").action == "retry"   # added from override
+```
+
 ## Layer 4: Observability
 
 ### EventBus backbone
@@ -267,15 +283,42 @@ token.record_tool_call("grep_search", {"pattern": "authenticate"})
 
 # User hits Ctrl-C
 token.cancel()
+assert token.is_cancelled
 
 # Snapshot captures mid-turn state
 snapshot = token.snapshot
+assert snapshot is not None
+assert "Fix the bug" in snapshot.prompt
+assert len(snapshot.tool_calls_completed) == 2
+
+# Resume prompt includes context of what was done
 resume = snapshot.resume_prompt()
 assert "Resuming" in resume
 assert "read_file" in resume
+assert "grep_search" in resume
 
 # Reset for next turn
 token.reset()
+assert not token.is_cancelled
+```
+
+### Cancellation callback (blocks tools when cancelled)
+
+```python
+from adk_fluent._harness._interrupt import CancellationToken, make_cancellation_callback
+
+token = CancellationToken()
+callback = make_cancellation_callback(token)
+
+# Normal operation: callback returns None (allow execution)
+result = callback(None, type("T", (), {"name": "read_file"})(), {}, None)
+assert result is None
+
+# After cancellation: callback returns error dict
+token.cancel()
+result = callback(None, type("T", (), {"name": "bash"})(), {}, None)
+assert isinstance(result, dict)
+assert "cancelled" in result["error"].lower()
 ```
 
 ### Task ledger (LLM-callable background tasks)
@@ -283,16 +326,61 @@ token.reset()
 ```python
 ledger = H.task_ledger(max_tasks=5).with_bus(bus)
 tools = ledger.tools()
-# [launch_task, check_task, list_tasks, cancel_task]
+tool_names = [t.__name__ for t in tools]
+assert tool_names == ["launch_task", "check_task", "list_tasks", "cancel_task"]
 
+# LLM launches a task
 launch, check, list_tasks, cancel = tools
 result = launch("run-tests", "Execute pytest suite")
 assert "registered" in result
 
+# LLM checks status
+result = check("run-tests")
+assert "pending" in result
+
+# Simulate completion
 ledger.start("run-tests")
 ledger.complete("run-tests", "All 47 tests passed")
+
 result = check("run-tests")
+assert "complete" in result
 assert "47 tests passed" in result
+
+# Lifecycle events emitted through bus
+assert len(events) >= 3  # pending, running, complete
+```
+
+### Git checkpoint (undo support)
+
+```python
+cp = H.git(project)
+# GitCheckpointer wraps git stash/tag operations
+assert cp is not None
+assert hasattr(cp, "create")
+assert hasattr(cp, "restore")
+```
+
+### REPL configuration
+
+```python
+from adk_fluent._harness._repl import ReplConfig
+
+config = ReplConfig(
+    prompt_prefix="coder> ",
+    welcome_message="Ready. Type /help for commands.",
+    max_turns=100,
+    auto_checkpoint=True,
+)
+assert config.prompt_prefix == "coder> "
+assert "/exit" in config.exit_commands
+```
+
+### Context compressor
+
+```python
+compressor = H.compressor(threshold=100_000)
+assert compressor.should_compress(150_000) is True
+assert compressor.should_compress(50_000) is False
 ```
 
 ---
@@ -378,6 +466,41 @@ repl = H.repl(
     ),
 )
 # await repl.run()  # Start the interactive loop
+
+# ---- Verify the complete assembly ----
+
+# Intelligence: skills loaded
+assert "<skills>" in (built.static_instruction or "")
+
+# Tools: workspace + web + git + processes + tasks
+tool_count = len(built.tools)
+assert tool_count >= 20, f"Expected 20+ tools, got {tool_count}"
+
+# Safety: permission callback wired
+assert built.before_tool_callback is not None
+
+# Observability: bus has subscribers
+assert bus.subscriber_count >= 2
+
+# Runtime: commands registered
+assert cmds.size == 5
+assert cmds.dispatch("/help") is not None
+
+# Runtime: cancellation token ready
+assert not token.is_cancelled
+
+# Runtime: budget monitor tracks usage
+monitor.record_usage(input_tokens=5000, output_tokens=2000)
+assert monitor.current_tokens == 7000
+
+# Runtime: task ledger functional
+ledger.register("test-run", "pytest execution")
+ledger.start("test-run")
+assert ledger.active_count == 1
+
+# Runtime: REPL can be constructed
+assert isinstance(repl, HarnessRepl)
+assert repl.config.prompt_prefix == "coder> "
 ```
 
 ## Manifold: Runtime Capability Discovery
@@ -394,6 +517,50 @@ manifold = H.manifold(
 # Provides meta-tools: search_capabilities, load_capability, finalize_capabilities
 result = manifold.search("code review")
 ```
+
+## Composition Proof: Foundation Primitives Working Together
+
+All four foundation primitives compose through EventBus. One subscription point, one observation layer, zero duplication:
+
+```python
+bus = H.event_bus(max_buffer=100)
+all_events = []
+bus.subscribe(lambda e: all_events.append(e.kind))
+
+# ToolPolicy -> emits errors
+_policy = H.tool_policy().retry("bash").with_bus(bus)
+
+# BudgetMonitor -> emits compression triggers
+monitor = H.budget_monitor(100).on_threshold(0.9, lambda m: None).with_bus(bus)
+
+# TaskLedger -> emits task lifecycle
+ledger = H.task_ledger().with_bus(bus)
+
+# Simulate activity
+monitor.record_usage(95, 0)  # triggers 0.95 threshold
+ledger.register("build", "npm run build")
+ledger.start("build")
+ledger.complete("build", "success")
+
+# All events flow through the single bus
+assert "compression_triggered" in all_events
+assert "task_event" in all_events
+assert all_events.count("task_event") == 3  # pending, running, complete
+```
+
+---
+
+## Complete Source Code
+
+The full source with all 26 test functions is at [`examples/cookbook/79_coding_agent_harness.py`](../../../examples/cookbook/79_coding_agent_harness.py).
+
+Run all tests:
+
+```bash
+uv run pytest examples/cookbook/79_coding_agent_harness.py -v
+```
+
+---
 
 ## Design Philosophy
 
