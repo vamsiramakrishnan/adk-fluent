@@ -200,6 +200,63 @@ Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `
 </div>
 ```
 
+## Three Pathways
+
+Once you know the builder basics, adk-fluent splits into three distinct development pathways -- a **fork in the road** that matches how you think about agent building.
+
+```{raw} html
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin: 2rem 0;">
+
+  <div style="border: 2px solid #10b981; border-radius: 14px; padding: 1.5rem; background: #10b98108;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <rect x="4" y="4" width="28" height="28" rx="6" stroke="#10b981" stroke-width="1.5" fill="#10b98110"/>
+        <text x="18" y="22" text-anchor="middle" fill="#10b981" font-size="12" font-weight="700" font-family="monospace">&gt;&gt;</text>
+      </svg>
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #10b981;">Pipeline Path</h3>
+    </div>
+    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 600;">Python-first builders</p>
+    <p style="font-size: 0.82rem; color: var(--adk-text-muted); line-height: 1.6; margin-bottom: 1rem;">Full Python control with expression operators (<code>&gt;&gt;</code> <code>|</code> <code>*</code> <code>@</code> <code>//</code>) and 9 namespace modules. Build any topology with type-checked, IDE-friendly builders.</p>
+    <code style="font-size: 0.78rem; color: #10b981;">Agent("a") >> Agent("b") | Agent("c")</code>
+    <p style="margin-top: 1rem; font-size: 0.82rem;"><strong>Best for:</strong> Custom workflows, complex routing, dynamic topologies</p>
+    <p style="margin-top: 0.5rem;"><a href="user-guide/expression-language.html" style="font-weight: 600; color: #10b981;">Expression Language &rarr;</a></p>
+  </div>
+
+  <div style="border: 2px solid #E65100; border-radius: 14px; padding: 1.5rem; background: #E6510008;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <rect x="4" y="4" width="28" height="28" rx="6" stroke="#E65100" stroke-width="1.5" fill="#E6510010"/>
+        <text x="18" y="22" text-anchor="middle" fill="#E65100" font-size="14" font-weight="700" font-family="monospace">S</text>
+      </svg>
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #E65100;">Skills Path</h3>
+    </div>
+    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 600;">Declarative agent packages</p>
+    <p style="font-size: 0.82rem; color: var(--adk-text-muted); line-height: 1.6; margin-bottom: 1rem;">YAML + Markdown &rarr; executable agent graphs. Domain experts write prompts and topology. One file is docs, coding-agent context, and a runnable pipeline.</p>
+    <code style="font-size: 0.78rem; color: #F57C00;">Skill("research/") >> Skill("writing/")</code>
+    <p style="margin-top: 1rem; font-size: 0.82rem;"><strong>Best for:</strong> Stable topologies, reusable libraries, non-Python teams</p>
+    <p style="margin-top: 0.5rem;"><a href="user-guide/skills.html" style="font-weight: 600; color: #E65100;">Skills Guide &rarr;</a></p>
+  </div>
+
+  <div style="border: 2px solid #0ea5e9; border-radius: 14px; padding: 1.5rem; background: #0ea5e908;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <rect x="4" y="4" width="28" height="28" rx="6" stroke="#0ea5e9" stroke-width="1.5" fill="#0ea5e910"/>
+        <text x="18" y="22" text-anchor="middle" fill="#0ea5e9" font-size="14" font-weight="700" font-family="monospace">H</text>
+      </svg>
+      <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0ea5e9;">Harness Path</h3>
+    </div>
+    <p style="font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 600;">Autonomous coding runtimes</p>
+    <p style="font-size: 0.82rem; color: var(--adk-text-muted); line-height: 1.6; margin-bottom: 1rem;">Build Claude-Code-class agents with the H namespace. Five layers: intelligence, tools, safety, observability, runtime. Permissions, sandboxing, token budgets.</p>
+    <code style="font-size: 0.78rem; color: #0ea5e9;">H.workspace() + H.web() + H.git()</code>
+    <p style="margin-top: 1rem; font-size: 0.82rem;"><strong>Best for:</strong> Autonomous agents, file/shell access, multi-turn runtimes</p>
+    <p style="margin-top: 0.5rem;"><a href="user-guide/harness.html" style="font-weight: 600; color: #0ea5e9;">Harness Guide &rarr;</a></p>
+  </div>
+
+</div>
+```
+
+**All three compose together** -- a harness loads skills for domain expertise, skills wire agents as pipelines internally, and pipelines use the full expression algebra. See the [Decision Guide](decision-guide.md) for a flowchart.
+
 ## Quick Navigation
 
 ````{grid} 1 2 2 4
@@ -234,13 +291,19 @@ Complete reference for all 135 builders.
 
 ## Common Starting Points
 
-**"I have native ADK code and want to simplify it"** -- Start with the [Migration Guide](generated/migration/from-native-adk.md), then browse the [Cookbook](cookbook/index.md) for your pattern.
+**"I'm building agents from scratch"** -- Start with [Getting Started](getting-started.md), then [choose your path](#three-pathways).
 
-**"I'm building agents from scratch"** -- Start with [Getting Started](getting-started.md), then follow the [User Guide](user-guide/index.md) sequentially.
+**"I want full Python control with operators"** -- Take the [Pipeline Path](user-guide/expression-language.md). `>>` `|` `*` `@` `//` compose any topology.
+
+**"I want declarative, reusable agent packages"** -- Take the [Skills Path](user-guide/skills.md). YAML + Markdown = docs + runtime.
+
+**"I want an autonomous coding agent"** -- Take the [Harness Path](user-guide/harness.md). Five layers from tools to REPL.
+
+**"I have native ADK code and want to simplify it"** -- Start with the [Migration Guide](generated/migration/from-native-adk.md), then browse the [Cookbook](cookbook/index.md) for your pattern.
 
 **"I need a specific pattern (routing, loops, parallel)"** -- Jump to [Patterns](user-guide/patterns.md) or search the [Cookbook by use case](generated/cookbook/recipes-by-use-case.md).
 
-**"I want my AI coding agent to know adk-fluent"** -- Set up [Editor & AI Agent Setup](editor-setup/index.md) for rules files and MCP servers.
+**"I want my AI coding agent to know adk-fluent"** -- Set up [Editor & AI Agent Setup](editor-setup/index.md) for rules files, skills, and MCP servers.
 
 ---
 

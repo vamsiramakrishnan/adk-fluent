@@ -70,6 +70,18 @@ Both approaches can be used independently, but combining them gives the best res
 All rules files (`CLAUDE.md`, `.cursor/rules/adk-fluent.mdc`, `.windsurfrules`, etc.) are **auto-generated** from the same source of truth by `scripts/llms_generator.py`. They update automatically when the API changes, so they never go stale. Run `just llms` to regenerate them locally, or let CI handle it.
 :::
 
+## Connection to the three pathways
+
+AI coding agents benefit from understanding which [development pathway](../user-guide/index.md#three-pathways) you're using:
+
+| Pathway | What the AI agent needs to know | Key rules/skills |
+|---|---|---|
+| **Pipeline** | Expression operators, namespace modules, builder methods | Rules files (auto-generated), `/cheatsheet` skill |
+| **Skills** | SKILL.md format, topology expressions, `.inject()` | `/scaffold-project` skill, `/dev-guide` skill |
+| **Harness** | H namespace, 5-layer architecture, safety patterns | `/architect-agents` skill, `/deploy-agent` skill |
+
+The rules files cover all three pathways. The [Agent Skills](#agent-skills) provide deeper procedural guidance for each.
+
 ```{toctree}
 ---
 hidden: true

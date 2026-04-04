@@ -18,6 +18,7 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 
 - [Install](#install)
 - [Quick Start](#quick-start)
+- [Three Pathways](#three-pathways)
 - [Zero to Running](#zero-to-running)
 - [Why adk-fluent](#why-adk-fluent)
 - [Expression Language](#expression-language)
@@ -220,6 +221,130 @@ graph TD
     n2 -. "intent" .-> n3
 ```
 
+
+## Three Pathways
+
+Once you know the builder basics, adk-fluent offers three distinct development pathways -- a fork in the road where each branch produces native ADK objects but solves different problems at different abstraction levels.
+
+```
+                              adk-fluent
+                                  |
+              ┌───────────────────┼───────────────────┐
+              |                   |                    |
+       PIPELINE PATH        SKILLS PATH          HARNESS PATH
+      Python builders      Declarative YAML     Autonomous runtimes
+              |                   |                    |
+    ┌─────────┴─────────┐ ┌──────┴───────┐ ┌──────────┴──────────┐
+    | Agent >> Agent     | | SKILL.md     | | H namespace (Python) |
+    | >> | * // @        | | Topology in  | | 5-layer architecture |
+    | S, C, P, M, T, G  | | config, not  | | EventBus, sandbox    |
+    | Full Python control| | code         | | Permissions, budgets |
+    └─────────┬─────────┘ └──────┬───────┘ └──────────┬──────────┘
+              |                   |                    |
+     Custom workflows      Reusable agent       Coding agents
+     Complex routing       libraries             DevOps runtimes
+     Dynamic topologies    Cross-team sharing    Research harnesses
+```
+
+### Pipeline Path -- Python-First Builders
+
+The core path. Full Python control with expression operators and 9 namespace modules. Build any topology -- sequential, parallel, loops, routing, fallbacks -- with type-checked, IDE-friendly builders.
+
+```python
+from adk_fluent import Agent, S, C, until
+
+# Compose any topology with operators
+research = (
+    S.capture("query")
+    >> Agent("planner", "gemini-2.5-flash").instruct("Decompose the query.").writes("plan")
+    >> (Agent("web", "gemini-2.5-flash").instruct("Search web.").writes("web")
+        | Agent("papers", "gemini-2.5-flash").instruct("Search papers.").writes("papers"))
+    >> Agent("writer", "gemini-2.5-pro").instruct("Synthesize {web} and {papers}.")
+)
+
+# Loops, routing, fallbacks, typed output -- all composable
+loop = (writer >> critic) * until(lambda s: s.get("score", 0) >= 0.8, max=3)
+routed = classifier >> Route("intent").eq("billing", billing).otherwise(general)
+safe = fast_model // strong_model  # Fallback chain
+```
+
+**Best for:** Custom workflows with complex routing, dynamic topologies, callback-heavy agents, full programmatic control. This is where most development starts.
+
+[User Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/) -- [Expression Language](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/expression-language/) -- [74 Cookbook Recipes](https://vamsiramakrishnan.github.io/adk-fluent/cookbook/)
+
+### Skills Path -- Declarative Agent Packages
+
+Turn YAML + Markdown into executable agent graphs. Domain experts write prompts and topology; engineers inject tools and deploy. One file is simultaneously documentation, coding-agent context, and a runnable pipeline.
+
+```python
+from adk_fluent import Skill
+
+# Load a skill -- parses YAML into an agent graph
+research = Skill("skills/research_pipeline/")
+
+# Compose skills with the same operators as agents
+pipeline = Skill("skills/research/") >> Skill("skills/writing/") >> Skill("skills/review/")
+
+# Override models, inject tools
+fast = research.model("gemini-2.5-flash").inject(web_search=my_search_fn)
+```
+
+**Best for:** Stable topologies where the main variation is prompts, models, and tools. Teams with non-Python domain experts. Reusable capability libraries.
+
+[Skills Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/skills/) -- [Example SKILL.md files](examples/skills/)
+
+### Harness Path -- Autonomous Coding Runtimes
+
+Build Claude-Code-class autonomous agents with the `H` namespace. Five composable layers: intelligence, tools, safety, observability, and runtime.
+
+```python
+from adk_fluent import Agent, H, C
+
+# Intelligence + Tools
+agent = (
+    Agent("coder", "gemini-2.5-pro")
+    .instruct("You are an expert coding assistant.")
+    .tools(H.workspace("/project", diff_mode=True) + H.web() + H.git_tools("/project"))
+)
+
+# Safety + Observability + Runtime
+agent = agent.harness(
+    permissions=H.auto_allow("read_file", "grep_search").merge(H.ask_before("edit_file", "bash")),
+    sandbox=H.workspace_only("/project"),
+)
+
+bus = H.event_bus()
+repl = H.repl(agent.build(), hooks=H.hooks("/project").on_edit("ruff check {file_path}"))
+await repl.run()
+```
+
+**Best for:** Agents that act autonomously -- reading codebases, editing files, running tests, managing processes. When you need permissions, sandboxing, token budgets, and observability.
+
+[Harness Guide](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/harness/) -- [Full harness example](examples/cookbook/79_coding_agent_harness.py)
+
+### Which Path?
+
+| Question | Pipeline | Skills | Harness |
+|----------|----------|--------|---------|
+| Who writes the agent logic? | Engineers (Python) | Domain experts (YAML) | Engineers (Python) |
+| Abstraction level | Low -- full control | High -- config-driven | Medium -- composable layers |
+| Topology flexibility | Unlimited | Fixed per skill | Agent + tools |
+| Does the agent need file/shell access? | Optional | No | Yes |
+| Does the agent need permissions/sandbox? | No | No | Yes |
+| Is reusability across teams important? | Moderate -- share code | High -- share SKILL.md files | Low -- custom per-domain |
+| Is it a multi-turn autonomous runtime? | No -- pipeline execution | No -- pipeline execution | Yes -- REPL with memory |
+
+**All three compose together.** A harness can load skills for domain expertise, while pipelines define the internal agent topology:
+
+```python
+agent = (
+    Agent("coder", "gemini-2.5-pro")
+    .use_skill("skills/code_review/")          # Skills for domain knowledge
+    .use_skill("skills/python_best_practices/")
+    .tools(H.workspace("/project") + H.web())  # Harness for autonomous capability
+)
+# Inside a skill, the agents are wired as pipelines with >> | * operators
+```
 
 ## Zero to Running
 

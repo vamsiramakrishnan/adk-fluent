@@ -369,6 +369,54 @@ async with agent.session() as chat:
 ```
 :::
 
+## Choose Your Path
+
+Now that you know the basics, adk-fluent offers three distinct pathways for agent building. All produce native ADK objects -- they solve different problems at different abstraction levels.
+
+````{grid} 1 2 3 3
+---
+gutter: 3
+---
+
+```{grid-item-card} Pipeline Path -- Python-First Builders
+:link: user-guide/expression-language
+:link-type: doc
+
+Full Python control with expression operators (`>>` `|` `*` `@` `//`) and 9 namespace modules. Build any topology with type-checked, IDE-friendly builders.
+
+**Best for:** Custom workflows, complex routing, dynamic topologies, callback-heavy agents.
+
++++
+`Agent("a") >> (Agent("b") | Agent("c")) * 3`
+```
+
+```{grid-item-card} Skills Path -- Declarative Agent Packages
+:link: user-guide/skills
+:link-type: doc
+
+Turn YAML + Markdown into executable agent graphs. Domain experts write prompts and topology; engineers inject tools and deploy. One file is docs AND runtime.
+
+**Best for:** Stable topologies, reusable capability libraries, teams with non-Python domain experts.
+
++++
+`Skill("skills/research/") >> Skill("skills/writing/")`
+```
+
+```{grid-item-card} Harness Path -- Autonomous Coding Runtimes
+:link: user-guide/harness
+:link-type: doc
+
+Build Claude-Code-class autonomous agents with the `H` namespace. Five composable layers: intelligence, tools, safety, observability, and runtime.
+
+**Best for:** Agents that need file/shell access, permissions, sandboxing, token budgets, multi-turn REPL.
+
++++
+`H.workspace() + H.web() + H.git_tools()`
+```
+````
+
+**Not sure which?** See the [Decision Guide](decision-guide.md) for a flowchart. All three compose together -- a harness can load skills for domain expertise, and skills wire agents as pipelines internally.
+
 ## What's Next
 
 ````{grid} 1 2 2 2

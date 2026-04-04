@@ -25,6 +25,36 @@ support = (
 Each line maps to a concept you'll learn below. Hover over any builder method in your IDE to see its type signature.
 :::
 
+## Three Pathways
+
+adk-fluent offers three distinct development pathways. All produce native ADK objects -- they solve different problems at different abstraction levels. Pick the one that matches your use case, or combine them.
+
+```{raw} html
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0; font-size: 0.9rem;">
+
+  <div style="border-left: 3px solid #10b981; padding: 0.75rem 1rem; background: #10b98108; border-radius: 0 8px 8px 0;">
+    <strong style="color: #10b981;">Pipeline Path</strong><br>
+    Python-first builders with <code>&gt;&gt;</code> <code>|</code> <code>*</code> operators and 9 namespace modules. Full programmatic control.<br>
+    <em>Most development starts here.</em>
+  </div>
+
+  <div style="border-left: 3px solid #E65100; padding: 0.75rem 1rem; background: #E6510008; border-radius: 0 8px 8px 0;">
+    <strong style="color: #E65100;">Skills Path</strong><br>
+    YAML + Markdown &rarr; agent graphs. Domain experts write prompts and topology. One file = docs + runtime.<br>
+    <em>Reusable, cross-team, config-driven.</em>
+  </div>
+
+  <div style="border-left: 3px solid #0ea5e9; padding: 0.75rem 1rem; background: #0ea5e908; border-radius: 0 8px 8px 0;">
+    <strong style="color: #0ea5e9;">Harness Path</strong><br>
+    Build autonomous coding runtimes with the H namespace. 5 layers: intelligence, tools, safety, observability, runtime.<br>
+    <em>File/shell access, permissions, REPL.</em>
+  </div>
+
+</div>
+```
+
+**Not sure which?** See the [Decision Guide](../decision-guide.md). All three compose: harnesses load skills, skills wire pipelines, pipelines use the full expression algebra.
+
 ## Foundations
 
 Start here if you're new to adk-fluent.
@@ -35,9 +65,9 @@ Start here if you're new to adk-fluent.
 | [Best Practices](best-practices.md) | Opinionated guidance on when to use what |
 | [Framework Comparison](comparison.md) | Side-by-side with LangGraph, CrewAI, and native ADK |
 
-## Building Agents
+## Pipeline Path -- Building Agents in Python
 
-The core of the library.
+The core of the library. Full programmatic control with expression operators, namespace modules, and type-checked builders.
 
 | Chapter | What you'll learn |
 |---|---|
@@ -47,9 +77,7 @@ The core of the library.
 | [Prompts](prompts.md) | The P module: `P.role()`, `P.task()`, `P.constraint()`, section ordering, composition |
 | [Execution](execution.md) | `.ask()`, `.stream()`, `.session()`, `.map()`, `.events()` |
 
-## Advanced Capabilities
-
-Where adk-fluent's power shows.
+### Advanced Pipeline Capabilities
 
 | Chapter | What you'll learn |
 |---|---|
@@ -60,9 +88,25 @@ Where adk-fluent's power shows.
 | [Context Engineering](context-engineering.md) | The C module: `C.none()`, `C.from_state()`, `C.window()`, token budgets |
 | [Patterns](patterns.md) | `review_loop`, `map_reduce`, `cascade`, `fan_out_merge`, `conditional`, `supervised` |
 
+## Skills Path -- Declarative Agent Packages
+
+Turn YAML + Markdown into executable agent graphs. One file is simultaneously documentation, coding-agent context, and a runnable pipeline.
+
+| Chapter | What you'll learn |
+|---|---|
+| [Skills](skills.md) | `Skill()`, `SkillRegistry`, `T.skill()`, SKILL.md format, composition with operators, tool injection |
+
+## Harness Path -- Autonomous Coding Runtimes
+
+Build Claude-Code-class autonomous agents. Five composable layers: intelligence, tools, safety, observability, and runtime.
+
+| Chapter | What you'll learn |
+|---|---|
+| [Harness](harness.md) | The `H` namespace, 5-layer architecture, EventBus, permissions, sandbox, budgets, REPL |
+
 ## Infrastructure
 
-Production concerns.
+Production concerns that apply across all three pathways.
 
 | Chapter | What you'll learn |
 |---|---|
@@ -78,8 +122,6 @@ Production concerns.
 | [Testing](testing.md) | `.mock()`, `.test()`, `check_contracts()`, `AgentHarness`, pytest integration |
 | [A2A](a2a.md) | Remote agent-to-agent communication: `RemoteAgent`, `A2AServer`, discovery, resilience |
 | [A2UI](a2ui.md) | Declarative agent UIs: `UI` namespace, components, operators, surfaces, presets |
-| [Skills](skills.md) | Composable agent packages from SKILL.md files: `Skill`, `SkillRegistry`, `T.skill()` |
-| [Harness](harness.md) | Building autonomous coding runtimes: the `H` namespace, 5-layer architecture, foundation primitives |
 
 :::{admonition} Backend maturity at a glance
 :class: tip
