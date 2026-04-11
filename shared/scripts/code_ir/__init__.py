@@ -16,6 +16,7 @@ if "scripts.code_ir" in _sys.modules and _sys.modules["scripts.code_ir"] is not 
     _sys.modules.setdefault("scripts.code_ir", _sys.modules[__name__])
 
 from .emitters import emit_python, emit_stub
+from .ts_emitter import emit_dts, emit_typescript
 from .nodes import (
     AppendStmt,
     AssignStmt,
@@ -55,7 +56,9 @@ __all__ = [
     "ReturnStmt",
     "Stmt",
     "SubscriptAssign",
+    "emit_dts",
     "emit_python",
     "emit_stub",
+    "emit_typescript",
     "split_at_commas",
 ]

@@ -55,30 +55,35 @@ setup:
     @echo "Setup complete. Pre-commit hooks will auto-format on every commit."
     @echo "Run 'just all' to generate code, or 'just fmt' to format existing files."
 
-SEED          := "seeds/seed.toml"
-MANIFEST      := "manifest.json"
-PREV_MANIFEST := "manifest.previous.json"
-OUTPUT_DIR    := "src/adk_fluent"
-TEST_DIR      := "tests/generated"
-SCANNER       := "scripts/scanner.py"
-SEED_GEN      := "scripts/seed_generator.py"
-GENERATOR     := "scripts/generator.py"
+# --- Monorepo layout ---
+PYTHON_DIR    := "python"
+TS_DIR        := "ts"
+SHARED_DIR    := "shared"
+
+SEED          := SHARED_DIR / "seeds/seed.toml"
+MANIFEST      := SHARED_DIR / "manifest.json"
+PREV_MANIFEST := SHARED_DIR / "manifest.previous.json"
+OUTPUT_DIR    := PYTHON_DIR / "src/adk_fluent"
+TEST_DIR      := PYTHON_DIR / "tests/generated"
+SCANNER       := SHARED_DIR / "scripts/scanner.py"
+SEED_GEN      := SHARED_DIR / "scripts/seed_generator.py"
+GENERATOR     := SHARED_DIR / "scripts/generator.py"
 A2UI_SPEC_DIR := "specification/v0_10/json"
-A2UI_MANIFEST := "a2ui_manifest.json"
-A2UI_SEED     := "seeds/a2ui_seed.toml"
-A2UI_MANUAL   := "seeds/a2ui_seed.manual.toml"
-IR_GEN        := "scripts/ir_generator.py"
-DOC_GEN       := "scripts/doc_generator.py"
-LLMS_GEN      := "scripts/llms_generator.py"
-COOKBOOK_GEN   := "scripts/cookbook_generator.py"
-SKILL_GEN     := "scripts/skill_generator.py"
+A2UI_MANIFEST := SHARED_DIR / "a2ui_manifest.json"
+A2UI_SEED     := SHARED_DIR / "seeds/a2ui_seed.toml"
+A2UI_MANUAL   := SHARED_DIR / "seeds/a2ui_seed.manual.toml"
+IR_GEN        := SHARED_DIR / "scripts/ir_generator.py"
+DOC_GEN       := SHARED_DIR / "scripts/doc_generator.py"
+LLMS_GEN      := SHARED_DIR / "scripts/llms_generator.py"
+COOKBOOK_GEN   := SHARED_DIR / "scripts/cookbook_generator.py"
+SKILL_GEN     := SHARED_DIR / "scripts/skill_generator.py"
 DOC_DIR       := "docs/generated"
 SPHINX_OUT    := "docs/_build/html"
-COOKBOOK_DIR   := "examples/cookbook"
+COOKBOOK_DIR   := PYTHON_DIR / "examples/cookbook"
 
 # Generated files — owned by `just generate`, not by formatters or pre-commit.
 # This is the single source of truth; .pre-commit-config.yaml and .gitattributes mirror it.
-GENERATED_PY  := "src/adk_fluent/agent.py src/adk_fluent/config.py src/adk_fluent/executor.py src/adk_fluent/planner.py src/adk_fluent/plugin.py src/adk_fluent/runtime.py src/adk_fluent/service.py src/adk_fluent/tool.py src/adk_fluent/workflow.py src/adk_fluent/_ir_generated.py"
+GENERATED_PY  := PYTHON_DIR / "src/adk_fluent/agent.py" + " " + PYTHON_DIR / "src/adk_fluent/config.py" + " " + PYTHON_DIR / "src/adk_fluent/executor.py" + " " + PYTHON_DIR / "src/adk_fluent/planner.py" + " " + PYTHON_DIR / "src/adk_fluent/plugin.py" + " " + PYTHON_DIR / "src/adk_fluent/runtime.py" + " " + PYTHON_DIR / "src/adk_fluent/service.py" + " " + PYTHON_DIR / "src/adk_fluent/tool.py" + " " + PYTHON_DIR / "src/adk_fluent/workflow.py" + " " + PYTHON_DIR / "src/adk_fluent/_ir_generated.py"
 
 # --- Full pipeline ---
 all: scan seed generate a2ui docs skills docs-build
@@ -184,7 +189,7 @@ check-gen: _require-manifest _require-seed
 # --- Tests ---
 test:
     @echo "Running tests..."
-    @uv run pytest tests/ -v --tb=short
+    @uv run pytest {{PYTHON_DIR}}/tests/ -v --tb=short
 
 # --- Pipeline tests only (fast inner loop) ---
 test-pipeline:
@@ -575,3 +580,40 @@ _require-a2ui-manifest:
 [private]
 _require-a2ui-seed:
     @test -f {{A2UI_SEED}} || (echo "ERROR: {{A2UI_SEED}} not found. Run 'just a2ui-seed' first." && exit 1)
+
+# ============================================================================
+# TYPESCRIPT (ts/ package)
+# ============================================================================
+
+# --- TypeScript: install dependencies ---
+ts-setup:
+    @echo "Installing TypeScript dependencies..."
+    @cd {{TS_DIR}} && npm install
+
+# --- TypeScript: build ---
+ts-build:
+    @echo "Building TypeScript package..."
+    @cd {{TS_DIR}} && npm run build
+
+# --- TypeScript: test ---
+ts-test:
+    @echo "Running TypeScript tests..."
+    @cd {{TS_DIR}} && npm test
+
+# --- TypeScript: typecheck ---
+ts-typecheck:
+    @echo "Running TypeScript type checks..."
+    @cd {{TS_DIR}} && npm run typecheck
+
+# --- TypeScript: lint ---
+ts-lint:
+    @echo "Running TypeScript linter..."
+    @cd {{TS_DIR}} && npm run lint
+
+# --- Monorepo: run all tests ---
+test-all: test ts-test
+    @echo "\nAll Python and TypeScript tests passed."
+
+# --- Monorepo: build everything ---
+build-all: generate ts-build
+    @echo "\nAll packages built successfully."
