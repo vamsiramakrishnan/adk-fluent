@@ -33,7 +33,7 @@ from adk_fluent._harness._events import (
 )
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
+from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash

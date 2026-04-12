@@ -34,20 +34,20 @@ from adk_fluent._harness import (
 class TestPermissionPolicy:
     def test_ask_before(self):
         policy = H.ask_before("bash", "edit_file")
-        assert policy.check("bash") == "ask"
-        assert policy.check("edit_file") == "ask"
-        assert policy.check("read_file") == "ask"  # default is ask
+        assert policy.check("bash").behavior == "ask"
+        assert policy.check("edit_file").behavior == "ask"
+        assert policy.check("read_file").behavior == "ask"  # default is ask
 
     def test_auto_allow(self):
         policy = H.auto_allow("read_file", "glob_search")
-        assert policy.check("read_file") == "allow"
-        assert policy.check("glob_search") == "allow"
-        assert policy.check("bash") == "ask"  # unlisted defaults to ask
+        assert policy.check("read_file").behavior == "allow"
+        assert policy.check("glob_search").behavior == "allow"
+        assert policy.check("bash").behavior == "ask"  # unlisted defaults to ask
 
     def test_deny(self):
         policy = H.deny("bash")
-        assert policy.check("bash") == "deny"
-        assert policy.check("read_file") == "ask"
+        assert policy.check("bash").behavior == "deny"
+        assert policy.check("read_file").behavior == "ask"
 
     def test_merge_policies(self):
         """Merge combines policies; deny wins over ask wins over allow."""
@@ -56,14 +56,14 @@ class TestPermissionPolicy:
         deny_shell = H.deny("bash")
 
         merged = allow_reads.merge(ask_writes).merge(deny_shell)
-        assert merged.check("read_file") == "allow"
-        assert merged.check("edit_file") == "ask"
-        assert merged.check("bash") == "deny"
+        assert merged.check("read_file").behavior == "allow"
+        assert merged.check("edit_file").behavior == "ask"
+        assert merged.check("bash").behavior == "deny"
 
     def test_deny_overrides_allow(self):
         """If a tool is in both allow and deny, deny wins."""
         policy = H.auto_allow("bash").merge(H.deny("bash"))
-        assert policy.check("bash") == "deny"
+        assert policy.check("bash").behavior == "deny"
 
 
 # ======================================================================

@@ -53,7 +53,14 @@ from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._hooks import HookDecision, HookMatcher, HookRegistry
 from adk_fluent._harness._memory import ProjectMemory
 from adk_fluent._harness._multimodal import make_multimodal_read_file
-from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
+from adk_fluent._permissions import (
+    ApprovalMemory,
+    PermissionDecision,
+    PermissionHandler,
+    PermissionMode,
+    PermissionPlugin,
+    PermissionPolicy,
+)
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
@@ -147,22 +154,62 @@ class H:
         return tools
 
     # =================================================================
-    # Permission policies
+    # Permission policies (adk_fluent._permissions)
     # =================================================================
 
     @staticmethod
+    def permissions(
+        *,
+        mode: str = PermissionMode.DEFAULT,
+        allow: list[str] | tuple[str, ...] | None = None,
+        deny: list[str] | tuple[str, ...] | None = None,
+        ask: list[str] | tuple[str, ...] | None = None,
+        allow_patterns: tuple[str, ...] = (),
+        deny_patterns: tuple[str, ...] = (),
+        ask_patterns: tuple[str, ...] = (),
+        pattern_mode: str = "glob",
+    ) -> PermissionPolicy:
+        """Build a :class:`PermissionPolicy` — the decision-based permission layer.
+
+        The canonical factory. Accepts every field of the policy and returns a
+        frozen, composable policy object.
+
+        Install via ``.harness(permissions=policy)`` or
+        ``App(...).plugin(PermissionPlugin(policy))``.
+
+        Usage::
+
+            perms = H.permissions(
+                mode=PermissionMode.ACCEPT_EDITS,
+                allow=["read_file", "list_files"],
+                deny=["shell_exec"],
+                ask=["bash"],
+            )
+        """
+        return PermissionPolicy(
+            mode=mode,
+            allow=frozenset(allow or ()),
+            deny=frozenset(deny or ()),
+            ask=frozenset(ask or ()),
+            allow_patterns=tuple(allow_patterns),
+            deny_patterns=tuple(deny_patterns),
+            ask_patterns=tuple(ask_patterns),
+            pattern_mode=pattern_mode,
+        )
+
+    @staticmethod
     def ask_before(*tool_names: str) -> PermissionPolicy:
-        """Require user approval before running these tools."""
+        """Shortcut: require user approval before running these tools."""
         return PermissionPolicy(ask=frozenset(tool_names))
 
     @staticmethod
     def auto_allow(*tool_names: str) -> PermissionPolicy:
-        """Auto-approve these tools without asking."""
+        """Shortcut: auto-approve these tools without asking."""
         return PermissionPolicy(allow=frozenset(tool_names))
 
     @staticmethod
     def deny(*tool_names: str) -> PermissionPolicy:
-        """Block these tools entirely."""
+        """Shortcut: block these tools entirely."""
         return PermissionPolicy(deny=frozenset(tool_names))
 
     @staticmethod
@@ -172,30 +219,95 @@ class H:
         Examples::
 
             H.allow_patterns("read_*", "list_*")           # glob
-            H.allow_patterns(".*_search$", mode="regex")    # regex
-
-        Args:
-            patterns: Glob or regex patterns.
-            mode: ``"glob"`` (default) or ``"regex"``.
+            H.allow_patterns(".*_search$", mode="regex")   # regex
         """
         return PermissionPolicy(allow_patterns=patterns, pattern_mode=mode)
 
     @staticmethod
     def deny_patterns(*patterns: str, mode: str = "glob") -> PermissionPolicy:
-        """Deny tools matching glob/regex patterns.
-
-        Args:
-            patterns: Glob or regex patterns.
-            mode: ``"glob"`` (default) or ``"regex"``.
-        """
+        """Deny tools matching glob/regex patterns."""
         return PermissionPolicy(deny_patterns=patterns, pattern_mode=mode)
 
     @staticmethod
-    def approval_memory() -> ApprovalMemory:
-        """Create an approval memory for persistent permission decisions.
+    def permissions_plan(
+        *,
+        allow: list[str] | tuple[str, ...] | None = None,
+    ) -> PermissionPolicy:
+        """Shortcut: return a policy in ``plan`` mode.
 
-        The memory remembers user decisions so the same tool+args
-        pattern isn't asked twice in a session::
+        In plan mode the agent may read the workspace freely but every
+        mutating tool is denied. Use as a safety net while the agent drafts
+        its approach before executing.
+        """
+        return PermissionPolicy(
+            mode=PermissionMode.PLAN,
+            allow=frozenset(allow or ()),
+        )
+
+    @staticmethod
+    def permissions_bypass() -> PermissionPolicy:
+        """Shortcut: allow every tool. Intended for trusted automation only."""
+        return PermissionPolicy(mode=PermissionMode.BYPASS)
+
+    @staticmethod
+    def permissions_accept_edits(
+        *,
+        ask: list[str] | tuple[str, ...] | None = None,
+    ) -> PermissionPolicy:
+        """Shortcut: auto-allow mutating file ops, ask for everything else.
+
+        Mirrors Claude Agent SDK's ``acceptEdits`` mode. Use for trusted
+        coding assistants where you still want a prompt before shell access.
+        """
+        return PermissionPolicy(
+            mode=PermissionMode.ACCEPT_EDITS,
+            ask=frozenset(ask or ()),
+        )
+
+    @staticmethod
+    def permissions_dont_ask(
+        *,
+        allow: list[str] | tuple[str, ...] | None = None,
+    ) -> PermissionPolicy:
+        """Shortcut: never prompt — allow the allowlist and deny everything else.
+
+        For CI or batch runners where there is no human to answer a prompt.
+        """
+        return PermissionPolicy(
+            mode=PermissionMode.DONT_ASK,
+            allow=frozenset(allow or ()),
+        )
+
+    @staticmethod
+    def permission_decision() -> type[PermissionDecision]:
+        """Return the :class:`PermissionDecision` class for use inside handlers.
+
+        Shorthand so handlers can write ``H.permission_decision().allow()``
+        without a separate import.
+        """
+        return PermissionDecision
+
+    @staticmethod
+    def permission_plugin(
+        policy: PermissionPolicy,
+        *,
+        handler: PermissionHandler | None = None,
+        memory: ApprovalMemory | None = None,
+    ) -> PermissionPlugin:
+        """Create the ADK :class:`PermissionPlugin` for ``policy``.
+
+        Usually not needed directly — ``.harness(permissions=...)`` builds
+        and installs the plugin automatically. Exposed for users who manage
+        the ADK ``App`` / ``Runner`` themselves.
+        """
+        return PermissionPlugin(policy, handler=handler, memory=memory)
+
+    @staticmethod
+    def approval_memory() -> ApprovalMemory:
+        """Create an :class:`ApprovalMemory` for persistent permission decisions.
+
+        The memory remembers user decisions so the same tool+args pattern
+        isn't asked twice in a session::
 
             memory = H.approval_memory()
             agent.harness(permissions=..., approval_memory=memory)

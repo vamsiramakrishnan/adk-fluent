@@ -161,11 +161,18 @@ from adk_fluent._harness._notebook import (
     notebook_tools,
 )
 
-# Permissions
-from adk_fluent._harness._permissions import (
+# Permissions (adk_fluent._permissions — decision-based layer with modes)
+from adk_fluent._permissions import (
+    ALL_MODES,
     ApprovalMemory,
+    DEFAULT_MUTATING_TOOLS,
+    DEFAULT_READ_ONLY_TOOLS,
+    PermissionBehavior,
+    PermissionDecision,
+    PermissionHandler,
+    PermissionMode,
+    PermissionPlugin,
     PermissionPolicy,
-    make_permission_callback,
 )
 
 # Processes
@@ -224,7 +231,6 @@ _make_glob_search = make_glob_search
 _make_grep_search = make_grep_search
 _make_bash = make_bash
 _make_list_dir = make_list_dir
-_make_permission_callback = make_permission_callback
 _compile_skills_to_static = compile_skills_to_static
 
 __all__ = [
@@ -268,9 +274,16 @@ __all__ = [
     "CapabilityRegistry",
     "ManifoldToolset",
     # Permissions
-    "PermissionPolicy",
+    "ALL_MODES",
     "ApprovalMemory",
-    "make_permission_callback",
+    "DEFAULT_MUTATING_TOOLS",
+    "DEFAULT_READ_ONLY_TOOLS",
+    "PermissionBehavior",
+    "PermissionDecision",
+    "PermissionHandler",
+    "PermissionMode",
+    "PermissionPlugin",
+    "PermissionPolicy",
     # Sandbox
     "SandboxPolicy",
     # Tools

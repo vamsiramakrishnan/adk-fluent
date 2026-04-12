@@ -112,6 +112,7 @@ Build Claude-Code-class autonomous agents. Five composable layers: intelligence,
 |---|---|
 | [Harness](harness.md) | The `H` namespace, 5-layer architecture, EventBus, permissions, sandbox, budgets, REPL |
 | [Hooks](hooks.md) | `H.hooks()`, `HookDecision`, `HookEvent`, `HookMatcher`, session-scoped intervention at 12 ADK lifecycle points |
+| [Permissions](permissions.md) | `PermissionPolicy`, `PermissionDecision`, five modes (default/accept_edits/plan/bypass/dont_ask), `PermissionPlugin`, approval memory |
 
 ## Infrastructure
 

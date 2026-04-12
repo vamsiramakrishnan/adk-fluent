@@ -460,9 +460,16 @@ from ._harness import CapabilityType as CapabilityType
 from ._harness import CapabilityEntry as CapabilityEntry
 from ._harness import CapabilityRegistry as CapabilityRegistry
 from ._harness import ManifoldToolset as ManifoldToolset
-from ._harness import PermissionPolicy as PermissionPolicy
-from ._harness import ApprovalMemory as ApprovalMemory
-from ._harness import make_permission_callback as make_permission_callback
+from ._permissions import ALL_MODES as ALL_MODES
+from ._permissions import ApprovalMemory as ApprovalMemory
+from ._permissions import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
+from ._permissions import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
+from ._permissions import PermissionBehavior as PermissionBehavior
+from ._permissions import PermissionDecision as PermissionDecision
+from ._permissions import PermissionHandler as PermissionHandler
+from ._permissions import PermissionMode as PermissionMode
+from ._permissions import PermissionPlugin as PermissionPlugin
+from ._permissions import PermissionPolicy as PermissionPolicy
 from ._harness import SandboxPolicy as SandboxPolicy
 from ._harness import make_read_file as make_read_file
 from ._harness import make_edit_file as make_edit_file
@@ -594,9 +601,6 @@ from ._harness._namespace import H as H
 from ._harness._notebook import make_read_notebook as make_read_notebook
 from ._harness._notebook import make_edit_notebook_cell as make_edit_notebook_cell
 from ._harness._notebook import notebook_tools as notebook_tools
-from ._harness._permissions import PermissionPolicy as PermissionPolicy
-from ._harness._permissions import ApprovalMemory as ApprovalMemory
-from ._harness._permissions import make_permission_callback as make_permission_callback
 from ._harness._processes import ProcessRegistry as ProcessRegistry
 from ._harness._processes import make_process_tools as make_process_tools
 from ._harness._processes import process_tools as process_tools
@@ -1107,8 +1111,15 @@ __all__ = [
     "CapabilityRegistry",
     "ManifoldToolset",
     "PermissionPolicy",
+    "PermissionDecision",
+    "PermissionBehavior",
+    "PermissionMode",
+    "PermissionPlugin",
+    "PermissionHandler",
     "ApprovalMemory",
-    "make_permission_callback",
+    "ALL_MODES",
+    "DEFAULT_MUTATING_TOOLS",
+    "DEFAULT_READ_ONLY_TOOLS",
     "SandboxPolicy",
     "make_read_file",
     "make_edit_file",
