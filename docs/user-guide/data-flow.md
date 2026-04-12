@@ -90,6 +90,10 @@ Every data-flow method in adk-fluent maps to exactly one of **five orthogonal co
 
 ### Recommended builder chain
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent
 from pydantic import BaseModel
@@ -111,6 +115,44 @@ classifier = (
     .writes("intent")            # STORAGE: Save to state["intent"]
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const SearchQuerySchema = {
+  type: "object",
+  properties: {
+    query: { type: "string" },
+    max_results: { type: "number" },
+  },
+  required: ["query"],
+} as const;
+
+const IntentSchema = {
+  type: "object",
+  properties: {
+    category: { type: "string" },
+    confidence: { type: "number" },
+  },
+  required: ["category", "confidence"],
+} as const;
+
+const classifier = new Agent("classifier", "gemini-2.0-flash")
+  .instruct("Classify the user query: {query}")
+  .reads("query")              // CONTEXT: I see state["query"]
+  .accepts(SearchQuerySchema)  // INPUT:   Tool-mode validation
+  .outputAs(IntentSchema)      // OUTPUT:  Structured JSON response
+  .writes("intent");           // STORAGE: Save to state["intent"]
+```
+:::
+::::
+
+:::{note} TypeScript naming
+TypeScript uses `.outputAs(schema)` for structured output (Python's `.returns()` / `@` operator). Reads / writes / accepts map one-to-one. All five concerns (Context, Input, Output, Storage, Contract) are available via the same method names.
+:::
 
 Each line maps to exactly one ADK field. Each verb is unambiguous.
 
@@ -163,6 +205,10 @@ All three modules support composition, but with different operators:
 | `\|`     | Pipe (transform) | Pipe (transform) | —                  |
 | `>>`     | —                | —                | Chain (sequential) |
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 # P: compose prompt sections
 prompt = P.role("Expert coder") + P.task("Review code") + P.constraint("Be brief")
@@ -173,6 +219,22 @@ context = C.window(n=3) + C.from_state("topic")
 # S: chain state transforms
 transform = S.pick("a", "b") >> S.rename(a="x") >> S.default(y=1)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+// P: compose prompt sections (use .add() instead of +)
+const prompt = P.role("Expert coder").add(P.task("Review code")).add(P.constraint("Be brief"));
+
+// C: compose context specs (use .add() instead of +)
+const context = C.window(3).add(C.fromState("topic"));
+
+// S: chain state transforms (use .pipe() instead of >>)
+const transform = S.pick("a", "b").pipe(S.rename({ a: "x" })).pipe(S.default_({ y: 1 }));
+```
+:::
+::::
 
 ______________________________________________________________________
 
@@ -449,6 +511,10 @@ Multiple sections of the same kind are concatenated. Custom sections appear afte
 
 ### Usage
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, P
 
@@ -480,6 +546,28 @@ agent = Agent("reviewer").instruct(
 # Input: x = eval(user_input)
 # Output: - Security: injection risk via eval()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, P } from "adk-fluent-ts";
+
+const agent = new Agent("reviewer", "gemini-2.5-flash").instruct(
+  P.role("You are a senior code reviewer.")
+    .add(P.task("Review the provided code for bugs and style issues."))
+    .add(P.constraint("Be concise.", "Focus on correctness."))
+    .add(P.format("Return a bulleted list of findings."))
+    .add(
+      P.example({
+        input: "x = eval(user_input)",
+        output: "- Security: injection risk via eval()",
+      }),
+    ),
+);
+```
+:::
+::::
 
 ______________________________________________________________________
 
@@ -537,9 +625,22 @@ By default, an agent sees the entire conversation history from all agents. No `.
 
 ### `.reads()`: Selective state injection
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 Agent("writer").reads("topic", "tone")
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+new Agent("writer", "gemini-2.5-flash").reads("topic", "tone");
+```
+:::
+::::
 
 This does two things:
 
@@ -548,23 +649,55 @@ This does two things:
 
 ### `.context()`: Advanced context control
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import C
+from adk_fluent import Agent, C
 
 Agent("writer").context(C.window(n=3))      # Last 3 turns only
 Agent("writer").context(C.user_only())       # User messages only
 Agent("writer").context(C.none())            # No context at all
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, C } from "adk-fluent-ts";
+
+new Agent("writer", "gemini-2.5-flash").context(C.window(3));      // Last 3 turns only
+new Agent("writer", "gemini-2.5-flash").context(C.userOnly());     // User messages only
+new Agent("writer", "gemini-2.5-flash").context(C.none());         // No context at all
+```
+:::
+::::
 
 ### Composing context
 
-`.context()` and `.reads()` compose additively with the `+` operator:
+`.context()` and `.reads()` compose additively with the `+` / `.add()` operator:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 Agent("writer")
     .context(C.window(n=3))   # Include last 3 turns
     .reads("topic")           # AND inject state["topic"]
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+new Agent("writer", "gemini-2.5-flash")
+  .context(C.window(3))       // Include last 3 turns
+  .reads("topic");            // AND inject state["topic"]
+```
+:::
+::::
 
 ______________________________________________________________________
 
@@ -602,7 +735,11 @@ The S module transforms session state between pipeline steps using callable `STr
 
 ### Usage in pipelines
 
-S transforms appear as steps between agents using the `>>` operator:
+S transforms appear as steps between agents using the `>>` / `.then()` operator:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, S
@@ -615,6 +752,22 @@ pipeline = (
     >> Agent("writer").reads("input")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, S } from "adk-fluent-ts";
+
+const pipeline = new Agent("researcher", "gemini-2.5-flash")
+  .writes("findings")
+  .then(S.pick("findings"))                        // Keep only "findings"
+  .then(S.rename({ findings: "input" }))           // Rename for next agent
+  .then(S.default_({ depth: "comprehensive" }))    // Add default value
+  .then(new Agent("writer", "gemini-2.5-flash").reads("input"));
+```
+:::
+::::
 
 ______________________________________________________________________
 
@@ -622,12 +775,31 @@ ______________________________________________________________________
 
 ### `.accepts(Model)`: Schema validation at tool-call time
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 class SearchQuery(BaseModel):
     query: str
 
 Agent("searcher").accepts(SearchQuery)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const SearchQuerySchema = {
+  type: "object",
+  properties: { query: { type: "string" } },
+  required: ["query"],
+} as const;
+
+new Agent("searcher", "gemini-2.5-flash").accepts(SearchQuerySchema);
+```
+:::
+::::
 
 When another agent invokes this agent via `AgentTool`, the input is validated against this schema. **This has no effect for top-level agents** — only for agents used as tools.
 
@@ -639,7 +811,11 @@ ______________________________________________________________________
 
 Without `.returns()`, the agent responds in free-form text and **can use tools**.
 
-### `.returns(Model)`: Structured JSON
+### `.returns(Model)` / `.outputAs(schema)`: Structured JSON
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 class Intent(BaseModel):
@@ -650,15 +826,51 @@ Agent("classifier").returns(Intent)
 ```
 
 Forces the LLM to respond with JSON matching the schema. The `@` operator is shorthand: `Agent("classifier") @ Intent`
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const IntentSchema = {
+  type: "object",
+  properties: {
+    category: { type: "string" },
+    confidence: { type: "number" },
+  },
+  required: ["category", "confidence"],
+} as const;
+
+new Agent("classifier", "gemini-2.5-flash").outputAs(IntentSchema);
+```
+
+The `@` operator shorthand is Python-only; in TypeScript, use `.outputAs()` explicitly.
+:::
+::::
 
 **Tool interaction:** When `output_schema` is set, whether tools remain available depends on model capabilities. For models that don't natively support both, ADK injects a `set_model_response` workaround tool so the agent can still reason with tools but must deliver its final answer as structured JSON.
 
 ### Using `.ask()` with structured output
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 result = await Agent("classifier").returns(Intent).ask_async("Classify this query")
 # result is an Intent instance (automatically parsed)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const result = await new Agent("classifier", "gemini-2.5-flash")
+  .outputAs(IntentSchema)
+  .askAsync("Classify this query");
+// result is a parsed object matching IntentSchema
+```
+:::
+::::
 
 ______________________________________________________________________
 
@@ -666,9 +878,22 @@ ______________________________________________________________________
 
 ### `.writes(key)`: Store raw text in state
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 Agent("researcher").writes("findings")
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+new Agent("researcher", "gemini-2.5-flash").writes("findings");
+```
+:::
+::::
 
 After the agent runs, `state["findings"]` holds the **raw text response** (not a parsed Pydantic model).
 
@@ -676,12 +901,27 @@ After the agent runs, `state["findings"]` holds the **raw text response** (not a
 
 Downstream agents reference stored values with `{key}` placeholders:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = (
     Agent("researcher").writes("findings")
     >> Agent("writer").instruct("Summarize: {findings}")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = new Agent("researcher", "gemini-2.5-flash")
+  .writes("findings")
+  .then(new Agent("writer", "gemini-2.5-flash").instruct("Summarize: {findings}"));
+```
+:::
+::::
 
 ______________________________________________________________________
 
@@ -691,9 +931,24 @@ ______________________________________________________________________
 
 These have **no runtime effect**. They are annotations for the contract checker:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 Agent("classifier").produces(Intent).consumes(SearchQuery)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+new Agent("classifier", "gemini-2.5-flash")
+  .produces(IntentSchema)
+  .consumes(SearchQuerySchema);
+```
+:::
+::::
 
 The contract checker uses these to verify data flow between agents at build time.
 
@@ -810,6 +1065,10 @@ ______________________________________________________________________
 
 ### Classify then route
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = (
     Agent("classifier")
@@ -822,8 +1081,30 @@ pipeline = (
     .writes("response")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = new Agent("classifier", "gemini-2.5-flash")
+  .instruct("Classify the query.")
+  .outputAs(IntentSchema)
+  .writes("intent")
+  .then(
+    new Agent("handler", "gemini-2.5-flash")
+      .reads("intent")
+      .instruct("Handle the {intent} query.")
+      .writes("response"),
+  );
+```
+:::
+::::
 
 ### Fan-out research with merge
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, FanOut, S
@@ -836,8 +1117,27 @@ research = (
     >> Agent("synthesizer").reads("all_results").writes("synthesis")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, S } from "adk-fluent-ts";
+
+const research = new Agent("web", "gemini-2.5-flash")
+  .writes("web_results")
+  .parallel(new Agent("docs", "gemini-2.5-flash").writes("doc_results"))
+  .then(S.merge_(["web_results", "doc_results"], "all_results"))
+  .then(new Agent("synthesizer", "gemini-2.5-flash").reads("all_results").writes("synthesis"));
+```
+:::
+::::
 
 ### Review loop
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent.patterns import review_loop
@@ -850,12 +1150,31 @@ pipeline = review_loop(
     max_rounds=3,
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, reviewLoop } from "adk-fluent-ts";
+
+const pipeline = reviewLoop(
+  new Agent("writer", "gemini-2.5-flash").instruct("Write a draft."),
+  new Agent("reviewer", "gemini-2.5-flash").instruct("Review the draft."),
+  { qualityKey: "review_score", target: 0.8, maxRounds: 3 },
+);
+```
+:::
+::::
 
 ______________________________________________________________________
 
 ## T Module: Tool Composition
 
 The T module provides a compositional namespace for tool construction. Compose with `|` (chain).
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, T
@@ -866,6 +1185,19 @@ agent = Agent("assistant").tools(
     | T.agent(specialist_agent)
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, T } from "adk-fluent-ts";
+
+const agent = new Agent("assistant", "gemini-2.5-flash").tools(
+  T.googleSearch().pipe(T.fn(myFunc)).pipe(T.agent(specialistAgent)),
+);
+```
+:::
+::::
 
 See the [CLAUDE.md T namespace reference](../../CLAUDE.md) for all T factories.
 
@@ -874,6 +1206,10 @@ ______________________________________________________________________
 ## A Module: Artifact Operations
 
 The A module handles artifact publishing, snapshotting, and transformations. Used with `.artifacts()` or `>>`.
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, A
@@ -884,5 +1220,18 @@ agent = (
     .artifacts(A.publish("report.md", from_key="report_text"))
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, A } from "adk-fluent-ts";
+
+const agent = new Agent("generator", "gemini-2.5-flash")
+  .writes("report_text")
+  .artifacts(A.publish("report.md", { fromKey: "report_text" }));
+```
+:::
+::::
 
 See the [CLAUDE.md A namespace reference](../../CLAUDE.md) for all A factories.

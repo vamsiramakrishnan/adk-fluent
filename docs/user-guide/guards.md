@@ -4,6 +4,10 @@ The G module provides a declarative composition surface for safety, validation, 
 
 ## Quick Start
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, G
 
@@ -14,6 +18,24 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, G } from "adk-fluent-ts";
+
+const agent = new Agent("safe_agent", "gemini-2.5-flash")
+  .instruct("Answer user questions helpfully.")
+  .guard(G.json().pipe(G.length({ max: 500 })).pipe(G.pii({ action: "redact" })))
+  .build();
+```
+:::
+::::
+
+:::{note} TypeScript naming
+TypeScript uses camelCase: `G.rateLimit`, `G.maxTurns`, `G.regexDetector`. Composition uses `.pipe()` instead of Python's `|` operator. Most factories take an options object: `G.length({ max: 500 })`, `G.pii({ action: "redact" })`, `G.toxicity({ threshold: 0.8 })`.
+:::
 
 ## Design Principle
 
@@ -62,12 +84,28 @@ Each guard answers: **"What must this agent *never* do?"** If you remove the gua
 
 ## Composition
 
-Guards compose with the `|` operator:
+Guards compose with the `|` operator (Python) or `.pipe()` method (TypeScript):
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 safety = G.pii("redact") | G.toxicity(threshold=0.8) | G.budget(max_tokens=5000)
 agent.guard(safety)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const safety = G.pii({ action: "redact" })
+  .pipe(G.toxicity({ threshold: 0.8 }))
+  .pipe(G.budget({ maxTokens: 5000 }));
+agent.guard(safety);
+```
+:::
+::::
 
 Each guard in the chain runs independently. The first violation aborts.
 
@@ -76,6 +114,10 @@ Each guard in the chain runs independently. The first violation aborts.
 Guards that perform detection or judgment delegate to pluggable providers.
 
 ### PIIDetector
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent._guards import PIIDetector, PIIFinding
@@ -87,15 +129,36 @@ class MyDetector:
 
 agent.guard(G.pii("redact", detector=MyDetector()))
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { G, type PIIDetector, type PIIFinding } from "adk-fluent-ts";
+
+const myDetector: PIIDetector = {
+  async detect(text: string): Promise<PIIFinding[]> {
+    return [{ kind: "EMAIL", start: 0, end: 10, confidence: 0.95, text: "..." }];
+  },
+};
+
+agent.guard(G.pii({ action: "redact", detector: myDetector }));
+```
+:::
+::::
 
 Built-in detector factories:
 
-- `G.regex_detector(patterns)` — Lightweight regex (dev/test)
-- `G.dlp(project)` — Google Cloud DLP (production, requires `google-cloud-dlp`)
-- `G.multi(*detectors)` — Union of findings from multiple detectors
+- `G.regex_detector(patterns)` / `G.regexDetector(patterns)` — Lightweight regex (dev/test)
+- `G.dlp(project)` / `G.dlp({ project, infoTypes, location })` — Google Cloud DLP (production)
+- `G.multi(*detectors)` / `G.multi(...detectors)` — Union of findings from multiple detectors
 - `G.custom(async_fn)` — Wrap any async callable
 
 ### ContentJudge
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent._guards import ContentJudge, JudgmentResult
@@ -106,6 +169,23 @@ class MyJudge:
 
 agent.guard(G.toxicity(threshold=0.8, judge=MyJudge()))
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { G, type ContentJudge, type JudgmentResult } from "adk-fluent-ts";
+
+const myJudge: ContentJudge = {
+  async judge(text: string, context?: Record<string, unknown>): Promise<JudgmentResult> {
+    return { passed: true, score: 0.1, reason: "Clean" };
+  },
+};
+
+agent.guard(G.toxicity({ threshold: 0.8, judge: myJudge }));
+```
+:::
+::::
 
 Built-in judge factories:
 
@@ -116,6 +196,10 @@ Built-in judge factories:
 
 The legacy callable guard pattern still works:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 def my_guard(callback_context, llm_request):
     # Legacy guard function
@@ -123,6 +207,20 @@ def my_guard(callback_context, llm_request):
 
 agent.guard(my_guard)  # Registers as both before_model and after_model callback
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const myGuard = (ctx: unknown, llmRequest: unknown) => {
+  // Legacy guard function
+  return null;
+};
+
+agent.guard(myGuard); // Registers as both beforeModel and afterModel callback
+```
+:::
+::::
 
 ## How Guards Compile
 

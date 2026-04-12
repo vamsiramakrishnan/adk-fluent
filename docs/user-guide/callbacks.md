@@ -23,6 +23,10 @@ adk-fluent provides a fluent API for attaching callbacks to agents. All callback
 
 Each call appends to the list of handlers for that callback type. This is different from native ADK where setting a callback replaces the previous one:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent
 
@@ -41,10 +45,42 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const logFn = (ctx: unknown, req: unknown) => {
+  console.log(`Request: ${JSON.stringify(req)}`);
+};
+
+const metricsFn = (ctx: unknown, req: unknown) => {
+  console.log(`Metrics: ${JSON.stringify(req)}`);
+};
+
+// Both handlers run before every LLM call
+const agent = new Agent("service", "gemini-2.5-flash")
+  .instruct("Handle requests.")
+  .beforeModel(logFn)
+  .beforeModel(metricsFn)
+  .build();
+```
+:::
+::::
+
+:::{note} TypeScript naming
+TypeScript uses camelCase for all callback methods: `beforeModel`, `afterModel`, `beforeAgent`, `afterAgent`, `beforeTool`, `afterTool`, `onModelError`, `onToolError`. Semantics and additive behavior are identical to Python.
+:::
 
 ## Conditional Callbacks
 
 Conditional variants append only when the condition is true:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 debug_mode = True
@@ -58,12 +94,32 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const debugMode = true;
+const auditEnabled = false;
+
+const agent = new Agent("service", "gemini-2.5-flash")
+  .instruct("Handle requests.")
+  .beforeModelIf(debugMode, logFn)        // Added (debugMode is true)
+  .afterModelIf(auditEnabled, auditFn)    // Skipped (auditEnabled is false)
+  .build();
+```
+:::
+::::
 
 This is useful for toggling callbacks based on environment variables or feature flags without cluttering your code with if-else blocks.
 
 ## Guards
 
 `.guard(fn)` is a shorthand that registers the function as both `before_model` and `after_model`:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 def safety_check(ctx, data):
@@ -78,10 +134,33 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const safetyCheck = (ctx: unknown, data: unknown) => {
+  // Runs both before and after model calls
+  if (JSON.stringify(data).includes("dangerous")) {
+    throw new Error("Safety violation detected");
+  }
+};
+
+const agent = new Agent("service", "gemini-2.5-flash")
+  .instruct("Handle requests.")
+  .guard(safetyCheck)
+  .build();
+```
+:::
+::::
 
 ## Middleware Stacks with `.apply()`
 
 For agents that need multiple layers of callbacks, use Presets to bundle them into reusable middleware stacks:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent.presets import Preset
@@ -99,12 +178,36 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Preset } from "adk-fluent-ts";
+
+// Define reusable middleware
+const loggingPreset = new Preset({ beforeModel: logFn, afterModel: logResponseFn });
+const securityPreset = new Preset({ beforeModel: safetyCheck, afterModel: auditFn });
+
+// Apply multiple presets
+const agent = new Agent("service", "gemini-2.5-flash")
+  .instruct("Handle requests.")
+  .use(loggingPreset)
+  .use(securityPreset)
+  .build();
+```
+:::
+::::
 
 See [Presets](presets.md) for more on reusable configuration bundles.
 
 ## Error Handling
 
 Error callbacks handle failures in LLM calls and tool executions:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 def handle_model_error(ctx, error):
@@ -123,8 +226,35 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const handleModelError = (ctx: unknown, error: Error) => {
+  console.log(`Model error: ${error.message}`);
+  // Optionally return a fallback response
+};
+
+const handleToolError = (ctx: unknown, error: Error) => {
+  console.log(`Tool error: ${error.message}`);
+  // Optionally return a fallback result
+};
+
+const agent = new Agent("service", "gemini-2.5-flash")
+  .instruct("Handle requests.")
+  .onModelError(handleModelError)
+  .onToolError(handleToolError)
+  .build();
+```
+:::
+::::
 
 ## Complete Example
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent
@@ -154,6 +284,38 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const logRequest = (ctx: { agentName: string }, req: unknown) =>
+  console.log(`[LOG] Model request at ${ctx.agentName}`);
+
+const logResponse = (ctx: { agentName: string }, resp: unknown) =>
+  console.log(`[LOG] Model response at ${ctx.agentName}`);
+
+const validateOutput = (ctx: unknown, resp: unknown) => {
+  if (!resp) throw new Error("Empty response");
+};
+
+const auditTool = (ctx: unknown, result: unknown) =>
+  console.log(`[AUDIT] Tool result: ${JSON.stringify(result)}`);
+
+const agent = new Agent("production_agent", "gemini-2.5-flash")
+  .instruct("You are a production service.")
+  .beforeModel(logRequest)
+  .afterModel(logResponse)
+  .afterModel(validateOutput)
+  .beforeTool((ctx, tool) => console.log(`Calling tool: ${String(tool)}`))
+  .afterTool(auditTool)
+  .onModelError((ctx, e) => console.log(`Error: ${(e as Error).message}`))
+  .build();
+```
+:::
+::::
 
 ## Callbacks vs. Middleware
 
@@ -166,14 +328,36 @@ Callbacks are **per-agent** -- they apply only to the agent they're attached to.
 | Multiplicity | Multiple per agent  | Stack of middleware on pipeline |
 | Compilation  | Stored on IR node   | Stored in ExecutionConfig       |
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
+from adk_fluent import Agent, M
+
 # Per-agent callback: only affects this agent
 agent = Agent("a").before_model(log_fn)
 
 # App-global middleware: affects all agents in the pipeline
-from adk_fluent import RetryMiddleware
-pipeline = (Agent("a") >> Agent("b")).middleware(RetryMiddleware())
+pipeline = (Agent("a") >> Agent("b")).middleware(M.retry(3))
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, M } from "adk-fluent-ts";
+
+// Per-agent callback: only affects this agent
+const agent = new Agent("a", "gemini-2.5-flash").beforeModel(logFn);
+
+// App-global middleware: affects all agents in the pipeline
+const pipeline = new Agent("a", "gemini-2.5-flash")
+  .then(new Agent("b", "gemini-2.5-flash"))
+  .middleware(M.retry({ maxAttempts: 3 }));
+```
+:::
+::::
 
 See [Middleware](middleware.md) for the full middleware guide.
 
@@ -182,6 +366,10 @@ See [Middleware](middleware.md) for the full middleware guide.
 ### Callbacks + Guards
 
 `.guard(fn)` registers a function as both `before_model` and `after_model`. The G module provides structured guards that compile to callbacks automatically. Prefer G for safety/validation, raw callbacks for custom logic:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, G
@@ -192,12 +380,32 @@ agent = Agent("safe").guard(G.pii("redact") | G.length(max=500))
 # Raw callback: custom logic that doesn't fit G
 agent = Agent("custom").before_model(my_custom_check)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, G } from "adk-fluent-ts";
+
+// G module: declarative, composable, phase-aware
+const safe = new Agent("safe", "gemini-2.5-flash")
+  .guard(G.pii({ action: "redact" }).pipe(G.length({ max: 500 })));
+
+// Raw callback: custom logic that doesn't fit G
+const custom = new Agent("custom", "gemini-2.5-flash").beforeModel(myCustomCheck);
+```
+:::
+::::
 
 See [Guards](guards.md).
 
 ### Callbacks + Presets
 
 Bundle callbacks into reusable Presets to avoid repetition across agents:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent.presets import Preset
@@ -206,12 +414,29 @@ observability = Preset(before_model=log_fn, after_model=metrics_fn)
 agent_a = Agent("a").use(observability)
 agent_b = Agent("b").use(observability)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, Preset } from "adk-fluent-ts";
+
+const observability = new Preset({ beforeModel: logFn, afterModel: metricsFn });
+const agentA = new Agent("a", "gemini-2.5-flash").use(observability);
+const agentB = new Agent("b", "gemini-2.5-flash").use(observability);
+```
+:::
+::::
 
 See [Presets](presets.md).
 
 ### Callbacks + Context Engineering
 
 Callbacks run *after* context engineering. The LLM request that `before_model` receives already has context filtering applied:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, C
@@ -222,6 +447,19 @@ agent = (
     .before_model(log_request)    # Sees the filtered request
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, C } from "adk-fluent-ts";
+
+const agent = new Agent("classifier", "gemini-2.5-flash")
+  .context(C.none())            // Context filtered first
+  .beforeModel(logRequest);     // Sees the filtered request
+```
+:::
+::::
 
 See [Context Engineering](context-engineering.md).
 

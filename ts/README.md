@@ -2,22 +2,19 @@
 
 TypeScript fluent builder API for Google's [Agent Development Kit (ADK)](https://github.com/google/adk). Mirrors the Python [`adk-fluent`](https://pypi.org/project/adk-fluent/) API surface with TypeScript idioms — immutable clones, method-chained operators, and camelCase.
 
-> **Monorepo:** This is the TypeScript package in the [`adk-fluent` monorepo](../README.md). The Python package (the current reference implementation) lives in [`python/`](../python/). Shared manifests, seeds, and code generators live in [`shared/`](../shared/). Both packages are regenerated from the same ADK scan.
+Every `.build()` returns a real [`@google/adk`](https://www.npmjs.com/package/@google/adk) object, so anything built with `adk-fluent-ts` is fully compatible with ADK's runtime, deployment, and tooling.
 
 ## Status
 
-Beta. The TypeScript port tracks the Python API surface feature-by-feature and is regenerated from `shared/manifest.json` via `just ts-generate`. The package is not yet published to npm — consume it from the monorepo during beta.
+Beta. The TypeScript port tracks the Python API surface feature-by-feature and is regenerated from a shared manifest via `just ts-generate`. The API surface is stable enough to build real agents, but minor breakages may still land before `1.0`.
 
 ## Install
 
 ```bash
-# From inside the monorepo
-cd ts
-npm install
-npm run build
+npm install adk-fluent-ts @google/adk
 ```
 
-`adk-fluent-ts` peer-depends on [`@google/adk`](https://www.npmjs.com/package/@google/adk) (the JavaScript port of Google ADK). Install it alongside `adk-fluent-ts` in your consumer project.
+`adk-fluent-ts` declares [`@google/adk`](https://www.npmjs.com/package/@google/adk) as a peer dependency — install it alongside in your consumer project.
 
 ## Quick Start
 
@@ -28,8 +25,6 @@ const agent = new Agent("helper", "gemini-2.5-flash")
   .instruct("You are a helpful assistant.")
   .build();
 ```
-
-Every `.build()` returns a real `@google/adk` object — fully compatible with ADK's runtime, deployment, and tooling.
 
 ### Pipeline, FanOut, Loop
 
@@ -60,19 +55,19 @@ const loop = new Loop("refine")
 
 JavaScript has no operator overloading, so `adk-fluent-ts` uses method calls. The mapping from the Python operator algebra is:
 
-| Python      | TypeScript                            | Returns    |
-| ----------- | ------------------------------------- | ---------- |
-| `a >> b`    | `a.then(b)`                           | `Pipeline` |
-| `a \| b`    | `a.parallel(b)`                       | `FanOut`   |
-| `a * 3`    | `a.times(3)`                          | `Loop`     |
-| `a * until` | `a.timesUntil(pred, { max })`         | `Loop`     |
-| `a // b`    | `a.fallback(b)`                       | `Fallback` |
-| `a @ Schema`| `a.outputAs(Schema)`                  | `Agent`    |
+| Python       | TypeScript                     | Returns    |
+| ------------ | ------------------------------ | ---------- |
+| `a >> b`     | `a.then(b)`                    | `Pipeline` |
+| `a \| b`     | `a.parallel(b)`                | `FanOut`   |
+| `a * 3`      | `a.times(3)`                   | `Loop`     |
+| `a * until`  | `a.timesUntil(pred, { max })`  | `Loop`     |
+| `a // b`     | `a.fallback(b)`                | `Fallback` |
+| `a @ Schema` | `a.outputAs(Schema)`           | `Agent`    |
 
 Sub-builders passed into workflow builders are auto-built — do **not** call `.build()` on individual steps.
 
 ```ts
-import { Agent } from "adk-fluent-ts";
+import { Agent, Pipeline } from "adk-fluent-ts";
 
 const writer = new Agent("writer", "gemini-2.5-flash")
   .instruct("Write a draft about {topic}.")
@@ -89,7 +84,7 @@ const pipeline2 = writer.then(reviewer).build();
 
 ## Namespaces
 
-All nine Python namespaces are available:
+All nine namespaces from the Python API are available with TypeScript idioms — camelCase method names, method-chained composition (`.pipe()` / `.add()`), and options-object arguments:
 
 ```ts
 import { S, C, P, T, G, M, A, E, UI } from "adk-fluent-ts";
@@ -109,52 +104,33 @@ import { RemoteAgent, A2AServer, AgentRegistry } from "adk-fluent-ts";
 | `A`       | Artifacts (`A.publish`, `A.snapshot`, ...)                |
 | `E`       | Evaluation (`E.case`, `E.criterion`, `E.persona`, ...)    |
 | `UI`      | A2UI — declarative agent UI composition                   |
-| `H`       | Harness — build-your-own coding agent runtime             |
 
-See [`CLAUDE.md`](CLAUDE.md) for the TypeScript-specific LLM context (operator mapping, namespace reference) and the [root `CLAUDE.md`](../CLAUDE.md) for the shared API reference — both are regenerated from the same manifest as the code.
+JavaScript reserved words use a trailing underscore — `S.default_`, `C.default_`, `A.delete_`. See [`CLAUDE.md`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/CLAUDE.md) for the full TypeScript namespace reference.
 
 ## Examples
 
-Runnable recipes live in [`examples/cookbook/`](examples/cookbook). Highlights:
+Runnable recipes live in [`ts/examples/cookbook/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/main/ts/examples/cookbook). Highlights:
 
-- [`01_simple_agent.ts`](examples/cookbook/01_simple_agent.ts) — minimal agent
-- [`04_sequential_pipeline.ts`](examples/cookbook/04_sequential_pipeline.ts) — `Pipeline` + `.then()`
-- [`05_parallel_fanout.ts`](examples/cookbook/05_parallel_fanout.ts) — `FanOut` + `.parallel()`
-- [`08_operator_composition.ts`](examples/cookbook/08_operator_composition.ts) — method-chain operator algebra
-- [`12_guards.ts`](examples/cookbook/12_guards.ts) — `G.pii()`, `G.length()`, `G.schema()`
-- [`18_review_loop_pattern.ts`](examples/cookbook/18_review_loop_pattern.ts) — `reviewLoop()` higher-order pattern
+- [`01_simple_agent.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/01_simple_agent.ts) — minimal agent
+- [`04_sequential_pipeline.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/04_sequential_pipeline.ts) — `Pipeline` + `.then()`
+- [`05_parallel_fanout.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/05_parallel_fanout.ts) — `FanOut` + `.parallel()`
+- [`08_operator_composition.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/08_operator_composition.ts) — method-chain operator algebra
+- [`12_guards.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/12_guards.ts) — `G.pii()`, `G.length()`, `G.schema()`
+- [`18_review_loop_pattern.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/18_review_loop_pattern.ts) — `reviewLoop()` higher-order pattern
 
-Run any example with `npx tsx examples/cookbook/01_simple_agent.ts`.
+Clone the repo and run any example with `npx tsx ts/examples/cookbook/01_simple_agent.ts`.
 
-## Development
+## Documentation
 
-From the monorepo root, use the `just` recipes:
+The canonical docs site covers both Python and TypeScript — every guide has synchronized `:::{tab-item} :sync: python` / `:sync: ts` code blocks, so switching language once persists across the whole site.
 
-```bash
-just ts-setup        # npm install inside ts/
-just ts-generate     # Regenerate TS builders from shared/manifest.json + seeds
-just ts-build        # tsc build
-just ts-typecheck    # tsc --noEmit
-just ts-lint         # eslint
-just ts-test         # vitest run
-```
-
-Or work inside `ts/` directly:
-
-```bash
-cd ts
-npm run build
-npm run test
-npm run lint
-npm run typecheck
-npm run docs        # typedoc → docs/api
-```
-
-Generated files (`ts/src/builders/*.ts`) are owned by `just ts-generate` and should not be hand-edited — changes there will be overwritten on the next regeneration. Hand-written code lives under `ts/src/core/`, `ts/src/namespaces/`, `ts/src/patterns/`, `ts/src/primitives/`, `ts/src/routing/`, and `ts/src/a2a/`.
+- **Docs site:** <https://vamsiramakrishnan.github.io/adk-fluent/>
+- **Getting started (TS):** <https://vamsiramakrishnan.github.io/adk-fluent/typescript.html>
+- **LLM context (camelCase reference):** [`ts/CLAUDE.md`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/CLAUDE.md)
 
 ## How It Works
 
-`adk-fluent-ts` is **auto-generated** from the installed Google ADK via the shared generator:
+`adk-fluent-ts` is **auto-generated** from the installed Google ADK via a shared scanner. The same manifest drives the Python builders — API parity between languages is enforced by construction, not by hand.
 
 ```
 shared/scripts/scanner.py  ─►  shared/manifest.json
@@ -166,15 +142,27 @@ shared/scripts/scanner.py  ─►  shared/manifest.json
                                ts/src/builders/*.ts
 ```
 
-The same manifest drives the Python builders — API parity between languages is enforced by construction.
+## Contributing
+
+Contributions are welcome. The repo is a monorepo with Python (`python/`), TypeScript (`ts/`), and the shared codegen (`shared/`). To hack on the TS package:
+
+```bash
+git clone https://github.com/vamsiramakrishnan/adk-fluent
+cd adk-fluent/ts
+npm install
+npm run build
+npm test
+```
+
+Generated files (`ts/src/builders/*.ts`) are owned by `just ts-generate` and should not be hand-edited. Hand-written code lives under `ts/src/core/`, `ts/src/namespaces/`, `ts/src/patterns/`, `ts/src/primitives/`, `ts/src/routing/`, and `ts/src/a2a/`. See [`CONTRIBUTING.md`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/CONTRIBUTING.md) for the full workflow.
 
 ## Links
 
-- Monorepo README: [`../README.md`](../README.md)
-- Python package: [`../python/README.md`](../python/README.md) — reference implementation
-- LLM context (shared API reference): [`../CLAUDE.md`](../CLAUDE.md)
-- Python docs site (most guides apply to both languages): <https://vamsiramakrishnan.github.io/adk-fluent/>
-- Changelog: [`../CHANGELOG.md`](../CHANGELOG.md)
+- **Repository:** <https://github.com/vamsiramakrishnan/adk-fluent>
+- **Docs site:** <https://vamsiramakrishnan.github.io/adk-fluent/>
+- **Python package (reference implementation):** [`adk-fluent` on PyPI](https://pypi.org/project/adk-fluent/)
+- **Changelog:** <https://github.com/vamsiramakrishnan/adk-fluent/blob/main/CHANGELOG.md>
+- **Issues:** <https://github.com/vamsiramakrishnan/adk-fluent/issues>
 
 ## License
 

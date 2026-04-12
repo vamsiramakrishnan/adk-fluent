@@ -8,6 +8,10 @@ Agents that return free-form text are fine for chat, but production pipelines ne
 
 ### Basic usage
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent
 
@@ -17,6 +21,19 @@ classifier = (
     .writes("category")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const classifier = new Agent("classifier", "gemini-2.5-flash")
+  .instruct("Classify the customer inquiry as one of: billing, technical, account, general.")
+  .writes("category");
+```
+:::
+::::
 
 After `classifier` runs, `state["category"]` holds the response text (e.g., `"billing"`).
 
@@ -24,16 +41,34 @@ After `classifier` runs, `state["category"]` holds the response text (e.g., `"bi
 
 Downstream agents reference state keys with `{key}` placeholders. ADK resolves these at runtime:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 handler = (
     Agent("handler", "gemini-2.5-flash")
     .instruct("The customer's issue is categorized as: {category}. Resolve it.")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const handler = new Agent("handler", "gemini-2.5-flash")
+  .instruct("The customer's issue is categorized as: {category}. Resolve it.");
+```
+:::
+::::
 
 When `handler` runs, `{category}` is replaced by whatever `classifier` stored.
 
 ### Pipeline example: classify then route
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent
@@ -52,6 +87,31 @@ pipeline = (
     .instruct("Summarize the resolution for the customer: {resolution}")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const pipeline = new Agent("classifier", "gemini-2.5-flash")
+  .instruct("Classify the support ticket as: billing, technical, or account.")
+  .writes("category")
+  .then(
+    new Agent("resolver", "gemini-2.5-flash")
+      .instruct(
+        "You handle {category} issues. " +
+        "Investigate the customer's problem and provide a resolution.",
+      )
+      .writes("resolution"),
+  )
+  .then(
+    new Agent("summarizer", "gemini-2.5-flash")
+      .instruct("Summarize the resolution for the customer: {resolution}"),
+  );
+```
+:::
+::::
 
 Each agent writes to a distinct key. The pipeline reads like a data flow: `category` feeds `resolver`, whose `resolution` feeds `summarizer`.
 
@@ -100,7 +160,11 @@ When you need the LLM to return structured JSON rather than free text, use `.ret
 When `output_schema` is set, the agent **cannot use tools**. ADK enforces this because structured output mode changes how the model generates responses. If you need both tool use and structured output, split them into separate agents in a pipeline.
 ```
 
-### Defining a Pydantic model
+### Defining a schema
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from pydantic import BaseModel, Field
@@ -111,10 +175,46 @@ class Invoice(BaseModel):
     due_date: str = Field(description="Due date in YYYY-MM-DD format")
     line_items: list[str] = Field(description="List of items or services billed")
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+// Option 1: Plain JSON Schema (as const)
+const InvoiceSchema = {
+  type: "object",
+  properties: {
+    vendor: { type: "string", description: "Company or person who issued the invoice" },
+    amount: { type: "number", description: "Total amount in USD" },
+    due_date: { type: "string", description: "Due date in YYYY-MM-DD format" },
+    line_items: {
+      type: "array",
+      items: { type: "string" },
+      description: "List of items or services billed",
+    },
+  },
+  required: ["vendor", "amount", "due_date", "line_items"],
+} as const;
+
+// Option 2: Zod (if you prefer runtime validation)
+// import { z } from "zod";
+// const Invoice = z.object({
+//   vendor: z.string().describe("Company or person who issued the invoice"),
+//   amount: z.number().describe("Total amount in USD"),
+//   due_date: z.string().describe("Due date in YYYY-MM-DD format"),
+//   line_items: z.array(z.string()),
+// });
+```
+:::
+::::
 
 Field descriptions are passed to the LLM as part of the schema, helping it fill fields accurately.
 
-### Builder style: `.returns()`
+### Builder style: `.returns()` / `.outputAs()`
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 extractor = (
@@ -124,6 +224,22 @@ extractor = (
     .writes("invoice_data")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const extractor = new Agent("invoice_extractor", "gemini-2.5-flash")
+  .instruct("Extract invoice details from the provided document text.")
+  .outputAs(InvoiceSchema)
+  .writes("invoice_data");
+```
+:::
+::::
+
+:::{note} TypeScript naming
+TypeScript uses `.outputAs(schema)` where Python uses `.returns(Model)`. It accepts any JSON schema descriptor (plain `as const` objects, Zod schemas, or native JSON schema). The `@` operator shorthand is Python-only.
+:::
 
 The agent will respond with a JSON object like:
 
@@ -152,7 +268,11 @@ Both forms produce identical results. Use `@` in operator expressions where brev
 
 ### Combining with `.writes(key)`
 
-When both `.returns()` and `.writes(key)` are set, the structured JSON response is stored in session state under the given key. This is the recommended pattern for structured pipelines:
+When both `.returns()` / `.outputAs()` and `.writes(key)` are set, the structured JSON response is stored in session state under the given key. This is the recommended pattern for structured pipelines:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from pydantic import BaseModel, Field
@@ -170,6 +290,30 @@ analyzer = (
     .writes("sentiment")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const SentimentResultSchema = {
+  type: "object",
+  properties: {
+    sentiment: { type: "string", description: "positive, negative, or neutral" },
+    confidence: { type: "number", description: "Confidence score between 0.0 and 1.0" },
+    reasoning: { type: "string", description: "Brief explanation of the classification" },
+  },
+  required: ["sentiment", "confidence", "reasoning"],
+} as const;
+
+const analyzer = new Agent("sentiment_analyzer", "gemini-2.5-flash")
+  .instruct("Analyze the sentiment of the provided customer review.")
+  .outputAs(SentimentResultSchema)
+  .writes("sentiment");
+```
+:::
+::::
 
 After this agent runs, `state["sentiment"]` contains the JSON string. Downstream agents can reference `{sentiment}` in their instructions.
 
@@ -190,6 +334,10 @@ extractor = LlmAgent(
 ## Input Schema: `.accepts()`
 
 `.accepts()` defines the expected input structure when an agent is invoked as a tool by another agent. This is less commonly used than `returns`, but it matters in coordinator/agent_tool patterns where one agent calls another as a tool.
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from pydantic import BaseModel, Field
@@ -212,6 +360,40 @@ lookup_agent = (
     .returns(CompanyInfo)
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const LookupRequestSchema = {
+  type: "object",
+  properties: {
+    company_name: { type: "string", description: "Name of the company to look up" },
+    fields: { type: "array", items: { type: "string" } },
+  },
+  required: ["company_name", "fields"],
+} as const;
+
+const CompanyInfoSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    industry: { type: "string" },
+    revenue: { type: "string" },
+    employee_count: { type: "number" },
+  },
+  required: ["name", "industry", "revenue", "employee_count"],
+} as const;
+
+const lookupAgent = new Agent("company_lookup", "gemini-2.5-flash")
+  .instruct("Look up the requested company information and return structured data.")
+  .accepts(LookupRequestSchema)
+  .outputAs(CompanyInfoSchema);
+```
+:::
+::::
 
 When a coordinator agent invokes `lookup_agent` as an agent_tool, it knows what arguments to provide (`LookupRequest`) and what structured response to expect (`CompanyInfo`).
 
@@ -220,6 +402,10 @@ When a coordinator agent invokes `lookup_agent` as an agent_tool, it knows what 
 ### Reading structured data in instructions
 
 The simplest pattern is `{key}` substitution. The entire value stored at that key is interpolated into the instruction string:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 pipeline = (
@@ -231,6 +417,22 @@ pipeline = (
     .instruct("Process this order for fulfillment: {order}")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = new Agent("extractor", "gemini-2.5-flash")
+  .instruct("Extract the order details.")
+  .outputAs(OrderDetailsSchema)
+  .writes("order")
+  .then(
+    new Agent("fulfillment", "gemini-2.5-flash")
+      .instruct("Process this order for fulfillment: {order}"),
+  );
+```
+:::
+::::
 
 The fulfillment agent receives the full JSON string in its instruction, which it can reason about.
 
@@ -280,9 +482,12 @@ fulfillment = (
 
 A common architecture pairs `.writes()` with deterministic routing. The classifier stores its result, and a `Route` (or dict shorthand) branches without any additional LLM call:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Agent
-from adk_fluent._routing import Route
+from adk_fluent import Agent, Route
 
 classifier = (
     Agent("classifier", "gemini-2.5-flash")
@@ -310,12 +515,41 @@ pipeline = classifier >> {
     "inquiry": inquiry_agent,
 }
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, Route } from "adk-fluent-ts";
+
+const classifier = new Agent("classifier", "gemini-2.5-flash")
+  .instruct("Classify the request as: refund, exchange, or inquiry.")
+  .writes("request_type");
+
+const refundAgent = new Agent("refund", "gemini-2.5-flash").instruct("Process the refund request.");
+const exchangeAgent = new Agent("exchange", "gemini-2.5-flash").instruct("Process the exchange request.");
+const inquiryAgent = new Agent("inquiry", "gemini-2.5-flash").instruct("Answer the customer inquiry.");
+
+// Route on exact match -- zero LLM calls for routing
+const pipeline = classifier.then(
+  new Route("request_type")
+    .eq("refund", refundAgent)
+    .eq("exchange", exchangeAgent)
+    .eq("inquiry", inquiryAgent),
+);
+```
+:::
+::::
 
 ## Complete Example
 
 This example demonstrates a realistic document processing pipeline that combines all three mechanisms. An extractor agent parses contract documents into structured data. A risk assessor reads that data and produces a risk evaluation. A final agent summarizes everything for a human reviewer.
 
 ### Fluent version
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from pydantic import BaseModel, Field
@@ -369,6 +603,70 @@ pipeline = (
     )
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+// --- Schemas ---
+
+const ContractDetailsSchema = {
+  type: "object",
+  properties: {
+    parties: { type: "array", items: { type: "string" }, description: "Names of all contracting parties" },
+    effective_date: { type: "string", description: "Contract start date, YYYY-MM-DD" },
+    termination_date: { type: "string", description: "Contract end date, YYYY-MM-DD" },
+    total_value: { type: "number", description: "Total contract value in USD" },
+    key_obligations: { type: "array", items: { type: "string" } },
+    governing_law: { type: "string", description: "Jurisdiction governing the contract" },
+  },
+  required: ["parties", "effective_date", "termination_date", "total_value", "key_obligations", "governing_law"],
+} as const;
+
+const RiskAssessmentSchema = {
+  type: "object",
+  properties: {
+    risk_level: { type: "string", description: "low, medium, or high" },
+    risk_factors: { type: "array", items: { type: "string" } },
+    recommendation: { type: "string", description: "Action recommendation for legal review" },
+  },
+  required: ["risk_level", "risk_factors", "recommendation"],
+} as const;
+
+// --- Pipeline ---
+
+const pipeline = new Agent("extractor", "gemini-2.5-flash")
+  .instruct(
+    "Extract the key details from the provided contract document. " +
+    "Identify all parties, dates, financial terms, obligations, and jurisdiction.",
+  )
+  .outputAs(ContractDetailsSchema)
+  .writes("contract")
+  .then(
+    new Agent("risk_assessor", "gemini-2.5-flash")
+      .instruct(
+        "Review the following contract details and assess the risk level.\n\n" +
+        "Contract: {contract}\n\n" +
+        "Consider: value concentration, termination clauses, jurisdiction risks, " +
+        "and obligation imbalances.",
+      )
+      .outputAs(RiskAssessmentSchema)
+      .writes("risk"),
+  )
+  .then(
+    new Agent("summarizer", "gemini-2.5-flash")
+      .instruct(
+        "Write a concise executive summary for the legal team.\n\n" +
+        "Contract details: {contract}\n" +
+        "Risk assessment: {risk}\n\n" +
+        "Include the risk level, key concerns, and recommended next steps.",
+      ),
+  );
+```
+:::
+::::
 
 ### Native ADK equivalent
 

@@ -915,6 +915,282 @@ _TS_COMMANDS = """\
     just ts-test                             # run tests via just
 """
 
+# TypeScript-flavored namespace reference.  The TS package mirrors the Python
+# API but uses camelCase identifiers (e.g. ``C.fromState`` not
+# ``C.from_state``) and method-chain composition (``.pipe()`` / ``.add()``)
+# instead of the Python ``|`` / ``+`` operators.  JS reserved words like
+# ``default`` require a trailing underscore (``S.default_``, ``C.default_``).
+_TS_NAMESPACE_MODULES = """
+## Namespace modules (S, C, P, A, M, T, E, G)
+
+All namespaces mirror the Python API with TypeScript idioms: camelCase
+method names, method-chained composition via ``.pipe()`` / ``.add()``, and
+options-object arguments instead of keyword arguments.  JavaScript reserved
+words (``default``) use a trailing underscore (``S.default_``, ``C.default_``).
+
+### S — State transforms
+
+Used in pipelines via ``.then()``.  Compose with ``.pipe()`` (chain) or
+``.add()`` (combine).
+
+  S.pick(...keys)              — keep only named keys
+  S.drop(...keys)              — remove named keys
+  S.rename({old: "new"})       — rename keys
+  S.merge_([keys], "into")     — combine keys (note trailing underscore)
+  S.transform(key, fn)         — apply function to value
+  S.compute({key: fn, ...})    — derive new keys from state
+  S.set({k: v})                — set explicit key-value pairs
+  S.default_({k: v})           — fill missing keys with defaults
+  S.guard(pred, msg?)          — assert state invariant
+  S.when(pred, transform)      — conditional transform
+  S.branch(key, {match: tr})   — route to different transforms
+  S.capture(...keys)           — capture function args into state
+  S.identity()                 — pass-through (no-op)
+  S.accumulate(key)            — append to list in state
+  S.counter(key)               — increment counter in state
+  S.history(key)               — maintain history list
+  S.validate({k: schema})      — validate state keys against schemas
+  S.require(...keys)           — assert keys exist
+  S.flatten(key)               — flatten nested dict
+  S.unflatten(key, {sep})      — unflatten dotted keys
+  S.zip(...keys, "into")       — zip parallel lists
+  S.groupBy(key, {by})         — group items by field
+  S.log(...keys)               — log state keys
+
+### C — Context engineering
+
+Used with ``.context()``.  Compose with ``.add()`` (union) or ``.pipe()``.
+
+  C.none()                     — suppress all history
+  C.default_()                 — default ADK behavior
+  C.userOnly()                 — only user messages
+  C.window(n)                  — last N turn-pairs
+  C.fromState(...keys)         — inject state keys as context
+  C.fromAgents(...names)       — user + named agent outputs
+  C.fromAgentsWindowed({n})    — windowed agent output filtering
+  C.excludeAgents(...names)    — exclude named agents
+  C.template(text)             — template with {key} placeholders
+  C.select(...agentNames)      — select specific agents
+  C.recent({n})                — recent messages only
+  C.compact()                  — remove redundant messages
+  C.dedup()                    — remove duplicate messages
+  C.truncate({maxTurns})       — hard limit
+  C.project(...fields)         — project specific fields
+  C.budget({maxTokens})        — token budget constraint
+  C.priority(...keys)          — prioritize certain context
+  C.fit({maxTokens})           — fit within token limit
+  C.fresh({maxAge})            — filter by recency
+  C.redact(...patterns)        — redact sensitive content
+  C.summarize({scope})         — LLM-powered summarization
+  C.relevant({queryKey})       — semantic relevance filtering
+  C.extract({key})             — extract structured data
+  C.distill()                  — distill to key points
+  C.validate()                 — validate context integrity
+  C.notes()                    — attach notes
+  C.writeNotes()               — persist notes to state
+  C.rolling({n})               — rolling window with compaction
+  C.user()                     — user messages only (alias)
+  C.manusCascade()             — Manus-style cascading context
+  C.when(pred, transform)      — conditional context transform
+
+### P — Prompt composition
+
+Used with ``.instruct()``.  Compose with ``.add()`` (union) or ``.pipe()``.
+Section order: role → context → task → constraint → format → example.
+
+  P.role(text)                 — agent persona
+  P.context(text)              — background context
+  P.task(text)                 — primary objective
+  P.constraint(...rules)       — constraints/rules
+  P.format(text)               — output format spec
+  P.example({input, output})   — few-shot examples (options object)
+  P.section(name, text)        — custom named section
+  P.when(pred, block)          — conditional inclusion
+  P.fromState(...keys)         — dynamic state injection
+  P.template(text)             — {key}, {key?}, {ns:key} placeholders
+  P.reorder(...sections)       — reorder sections
+  P.only(...sections)          — include only named sections
+  P.without(...sections)       — exclude named sections
+  P.compress()                 — compress verbose prompts
+  P.adapt(fn)                  — transform prompt dynamically
+  P.scaffolded(structure)      — structured prompt scaffold
+  P.versioned(v, text)         — versioned prompt variants
+
+### A — Artifacts
+
+Used with ``.artifacts()`` or ``.then()``.  Compose with ``.pipe()``.
+
+  A.publish(filename, {fromKey}) — state → artifact
+  A.snapshot(filename, {intoKey}) — artifact → state
+  A.save(filename, {content})   — content → artifact
+  A.load(filename)              — artifact → pipeline
+  A.list()                      — list available artifacts
+  A.version(filename)           — get artifact version
+  A.delete_(filename)           — delete artifact (reserved word)
+  A.publishMany({mapping})      — batch publish multiple artifacts
+  A.snapshotMany({mapping})     — batch snapshot multiple artifacts
+  A.forLlm()                    — context transform for LLM-aware loading
+  A.when(pred, transform)       — conditional artifact operation
+  A.fromJson() / A.fromCsv() / A.fromMarkdown() — content transforms (pre-publish)
+  A.asJson() / A.asCsv() / A.asText() — content transforms (post-snapshot)
+
+### M — Middleware
+
+Used with ``.middleware()``.  Compose with ``.pipe()`` (chain).
+Most factories take an options object.
+
+  M.retry({maxAttempts})       — retry with exponential backoff
+  M.log()                      — structured event logging
+  M.cost()                     — token usage tracking
+  M.latency()                  — per-agent latency tracking
+  M.scope([agents], mw)        — restrict middleware to agents
+  M.when(condition, mw)        — conditional middleware
+  M.circuitBreaker({maxFails}) — circuit breaker pattern
+  M.timeout({seconds})         — per-agent timeout
+  M.cache({ttl})               — response caching
+  M.fallbackModel(model)       — fallback to different model
+  M.dedup()                    — deduplicate requests
+  M.sample({rate})             — probabilistic sampling
+  M.trace()                    — distributed tracing
+  M.metrics()                  — metrics collection
+  M.beforeAgent(fn)            — pre-agent hook
+  M.afterAgent(fn)             — post-agent hook
+  M.beforeModel(fn)            — pre-model hook
+  M.afterModel(fn)             — post-model hook
+  M.onLoop(fn)                 — loop iteration hook
+  M.onTimeout(fn)              — timeout event hook
+  M.onRoute(fn)                — routing event hook
+  M.onFallback(fn)             — fallback event hook
+
+### T — Tool composition
+
+Used with ``.tools()``.  Compose with ``.pipe()`` (chain).
+
+  T.fn(callable)               — wrap callable as FunctionTool
+  T.agent(agent)               — wrap agent as AgentTool
+  T.googleSearch()             — built-in Google Search
+  T.search(registry)           — BM25-indexed dynamic loading
+  T.toolset(toolset)           — wrap MCPToolset or similar
+  T.schema(schema)             — attach ToolSchema
+  T.mock(responses)            — mock tool for testing
+  T.confirm({prompt})          — human confirmation wrapper
+  T.timeout({seconds})         — tool timeout wrapper
+  T.cache({ttl})               — tool response caching
+  T.mcp(server)                — MCP server tool
+  T.openapi(spec)              — OpenAPI spec tool
+  T.transform(fn)              — transform tool output
+
+### E — Evaluation
+
+Used with ``.eval()`` / ``.evalSuite()``.  Build evaluation criteria and
+test suites.
+
+  E.case(prompt, {expect})     — single evaluation case
+  E.criterion(name, fn)        — custom evaluation criterion
+  E.persona(name, {style})     — persona for evaluation
+  EvalSuite                    — collection of eval cases
+  EvalReport                   — evaluation results
+  ComparisonReport             — compare multiple agents/models
+
+### G — Guards (output validation)
+
+Used with ``.guard()``.  Guards validate/transform the LLM response
+(afterModel).  Compose with ``.pipe()`` (chain).  Throws ``GuardViolation``
+on failure.
+
+  G.guard(fn)                  — custom guard function
+  G.pii({action, detector})    — detect and block/redact PII in output
+  G.toxicity({threshold, judge}) — block toxic content above threshold
+  G.length({min, max})         — enforce length bounds
+  G.regex(pattern, {action})   — block or redact pattern matches
+  G.schema(schema)             — validate output against schema
+  G.output(schema)             — post-model schema validation
+  G.input(schema)              — pre-model input schema validation
+  G.budget({maxTokens})        — token budget constraint
+  G.rateLimit({rpm})           — requests-per-minute limit
+  G.maxTurns(n)                — cap conversation turns
+  G.topic({deny})              — block specific topics
+  G.grounded({sourcesKey})     — verify output is grounded in sources
+  G.hallucination({threshold}) — detect hallucinated content
+  G.when(pred, guard)          — conditional guard
+  G.dlp({project, infoTypes, location}) — Google Cloud DLP detector
+  G.regexDetector([patterns])  — lightweight regex-based PII detector
+  G.multi(...detectors)        — union of multiple detectors
+  GuardViolation               — raised when a guard check fails
+  PIIDetector                  — PII detection provider type
+  ContentJudge                 — content judgment provider type
+
+### UI — Agent-to-UI composition (A2UI)
+
+Declarative UI composition for agents.  Compose with ``.pipe()`` / ``.add()``.
+Import: ``import { UI } from "adk-fluent-ts";``
+
+Component factories:
+  UI.text(content, {variant})  — text content (h1-h5, caption, body)
+  UI.button(label, {action})   — clickable button
+  UI.textField(label, {bind})  — text input with optional data binding
+  UI.image(src, {alt, fit})    — display an image
+  UI.row(...children)          — horizontal layout
+  UI.column(...children)       — vertical layout
+  UI.component(kind, props)    — generic escape hatch
+
+Data binding & validation:
+  UI.bind(path)                — create data binding to JSON Pointer path
+  UI.required({msg})           — required field validation
+  UI.email({msg})              — email format validation
+
+Surface lifecycle:
+  UI.surface(name, ...children) — create named surface (compilation root)
+  UI.auto({catalog})           — LLM-guided mode (agent decides UI)
+
+Presets:
+  UI.form(title, {fields})     — form surface from field spec
+  UI.dashboard(title, {cards}) — dashboard with metric cards
+  UI.wizard(title, {steps})    — multi-step wizard
+  UI.confirm(message)          — confirmation dialog
+  UI.table({columns, dataBind}) — data table
+
+Agent integration:
+  Agent.ui(spec)               — attach UI surface to agent
+  T.a2ui()                     — A2UI toolset for LLM-guided mode
+  G.a2ui({maxComponents})      — validate LLM-generated UI
+  P.uiSchema()                 — inject catalog schema into prompt
+  S.toUi(...keys, {surface})   — bridge state → A2UI data model
+  S.fromUi(...keys, {surface}) — bridge A2UI data model → state
+  M.a2uiLog({level})           — log A2UI surface operations
+  C.withUi({surfaceId})        — include UI state in context
+"""
+
+# TypeScript-flavored best practices.  Mirrors ``_BEST_PRACTICES`` but uses
+# camelCase method names where they differ from Python (e.g. ``subAgent``,
+# ``agentTool``, ``loopWhile``, ``askAsync``/``mapAsync``).
+_TS_BEST_PRACTICES = """
+## Best practices
+
+1. Use deterministic routing (Route) over LLM routing when the decision is rule-based
+2. Use ``.inject()`` for infrastructure deps — never expose DB clients in tool schemas
+3. Use S.transform() or plain functions for data transforms, not custom BaseAgent
+4. Use C.none() to hide conversation history from background/utility agents
+5. Use M.retry() middleware instead of retry logic inside tool functions
+6. Use ``.writes()`` not deprecated ``.outputKey()`` / ``.outputs()``
+7. Use ``.outputAs()`` not deprecated ``.outputSchema()``
+8. Use ``.context()`` not deprecated ``.history()`` / ``.includeHistory()``
+9. Use ``.agentTool()`` not deprecated ``.delegate()``
+10. Use ``.guard()`` not deprecated ``.guardrail()``
+11. Use ``.loopWhile()`` not deprecated ``.retryIf()``
+12. Use ``.prepend()`` not deprecated ``.injectContext()``
+13. All builders are immutable — sub-expressions can be safely reused
+14. Workflow sub-builders passed to ``.then()`` / ``.parallel()`` / ``.step()``
+    are auto-built; do not call ``.build()`` on individual steps
+15. Use ``.subAgent()`` for transfer-based delegation (LLM decides routing);
+    use ``.agentTool()`` for tool-based invocation (parent stays in control)
+16. Use ``.isolate()`` on specialist agents by default — it is the most predictable pattern
+17. Always set ``.describe()`` on sub-agents — the description helps the coordinator LLM
+    pick the right specialist during transfer routing
+18. Use ``.askAsync()`` / ``.mapAsync()`` in async code paths;
+    the sync ``.ask()`` / ``.map()`` variants throw inside running event loops
+"""
+
 
 def generate_llms_txt_ts(specs: list[BuilderSpec]) -> str:
     """Generate the TypeScript-flavored llms.txt content."""
@@ -926,9 +1202,9 @@ def generate_llms_txt_ts(specs: list[BuilderSpec]) -> str:
         _TS_IMPORTS,
         _TS_OPERATORS,
         _TS_EXAMPLE,
-        _NAMESPACE_MODULES,  # namespaces are identical apart from import path
+        _TS_NAMESPACE_MODULES,
         _format_builder_section(groups),
-        _BEST_PRACTICES,
+        _TS_BEST_PRACTICES,
         _TS_COMMANDS,
     ]
     return "\n".join(s.strip() for s in sections) + "\n"
