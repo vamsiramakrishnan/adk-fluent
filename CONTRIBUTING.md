@@ -30,43 +30,61 @@ Run 'just all' to generate code, or 'just fmt' to format existing files.
 ### Prerequisites
 
 - Python 3.11+
+- Node.js 20+ (only if you're touching the TypeScript package under `ts/`)
 - [just](https://github.com/casey/just) command runner
 - [uv](https://github.com/astral-sh/uv) (recommended) or pip
 
 ## How the Codebase Works
 
-adk-fluent is **auto-generated** from the installed `google-adk` package:
+adk-fluent is a **dual-language monorepo**: the Python package (`adk-fluent`) lives under `python/`, the TypeScript package (`adk-fluent-ts`) lives under `ts/`, and a single shared pipeline under `shared/` drives code generation for both from one ADK scan.
 
 ```
-scanner.py --> manifest.json --> seed_generator.py --> seed.toml --> generator.py --> Python code
+shared/scripts/scanner.py ─► shared/manifest.json ─► shared/scripts/seed_generator.py
+                                                                │
+                                                     shared/seeds/seed.toml
+                                                                │
+                                  ┌─────────────────────────────┴─────────────────────────────┐
+                                  ▼                                                           ▼
+                    shared/scripts/generator.py                                shared/scripts/generator.py
+                      --target python                                            --target typescript
+                                  ▼                                                           ▼
+                    python/src/adk_fluent/*.py (+ .pyi stubs)                     ts/src/builders/*.ts
 ```
 
 ### Key directories
 
-| Path                            | What it is                        | Hand-written?                     |
-| ------------------------------- | --------------------------------- | --------------------------------- |
-| `src/adk_fluent/agent.py`       | Agent builder                     | Auto-generated                    |
-| `src/adk_fluent/workflow.py`    | Pipeline/FanOut/Loop builders     | Auto-generated                    |
-| `src/adk_fluent/_base.py`       | Operators, primitives             | Hand-written                      |
-| `src/adk_fluent/_routing.py`    | Route builder                     | Hand-written                      |
-| `src/adk_fluent/_transforms.py` | S.\* state transforms             | Hand-written                      |
-| `src/adk_fluent/_prompt.py`     | Prompt builder                    | Hand-written                      |
-| `scripts/`                      | Codegen pipeline                  | Hand-written                      |
-| `seeds/seed.toml`               | Generator configuration           | Auto-generated + manual overrides |
-| `seeds/seed.manual.toml`        | Manual overrides merged into seed | Hand-written                      |
-| `examples/cookbook/`            | 68 runnable examples              | Hand-written                      |
-| `tests/generated/`              | Auto-generated tests              | Auto-generated                    |
-| `tests/manual/`                 | Hand-written tests                | Hand-written                      |
+| Path                                    | What it is                        | Hand-written?                     |
+| --------------------------------------- | --------------------------------- | --------------------------------- |
+| `python/src/adk_fluent/agent.py`        | Agent builder (Python)            | Auto-generated                    |
+| `python/src/adk_fluent/workflow.py`     | Pipeline/FanOut/Loop (Python)     | Auto-generated                    |
+| `python/src/adk_fluent/_base.py`        | Operators, primitives             | Hand-written                      |
+| `python/src/adk_fluent/_routing.py`     | Route builder                     | Hand-written                      |
+| `python/src/adk_fluent/_transforms.py`  | S.\* state transforms             | Hand-written                      |
+| `python/src/adk_fluent/_prompt.py`      | Prompt builder                    | Hand-written                      |
+| `python/examples/cookbook/`             | Python runnable examples          | Hand-written                      |
+| `python/tests/generated/`               | Auto-generated Python tests       | Auto-generated                    |
+| `python/tests/manual/`                  | Hand-written Python tests         | Hand-written                      |
+| `ts/src/builders/`                      | Agent/workflow builders (TS)      | Auto-generated                    |
+| `ts/src/core/`                          | TS builder base, types, runtime   | Hand-written                      |
+| `ts/src/namespaces/`                    | S/C/P/T/G/M/A/E/UI for TS         | Hand-written                      |
+| `ts/src/patterns/`, `primitives/`, etc. | Hand-written TS extras            | Hand-written                      |
+| `ts/examples/cookbook/`                 | TS runnable examples              | Hand-written                      |
+| `ts/tests/`                             | TS test suites (vitest)           | Hand-written                      |
+| `shared/scripts/`                       | Codegen pipeline (scan/seed/gen)  | Hand-written                      |
+| `shared/manifest.json`                  | ADK scan (canonical source)       | Auto-generated                    |
+| `shared/seeds/seed.toml`                | Generator configuration           | Auto-generated + manual overrides |
+| `shared/seeds/seed.manual.toml`         | Manual overrides merged into seed | Hand-written                      |
+| `docs/`                                 | Sphinx docs site                  | Hand-written + `docs/generated/`  |
 
 ### Important: editing generated files
 
-Files in `src/adk_fluent/agent.py`, `workflow.py`, and other generated modules will be **overwritten** when the generator runs. To make persistent changes:
+Files listed as "Auto-generated" above will be **overwritten** when the generator runs. To make persistent changes:
 
-1. Update `scripts/seed_generator.py` (for extras, aliases, docstrings)
-1. Update `seeds/seed.toml` or `seeds/seed.manual.toml` (for config)
-1. Update `scripts/generator.py` (for new behavior types)
-1. Regenerate: `just generate`
-1. Verify the generated output matches your intent
+1. Update `shared/scripts/seed_generator.py` (for extras, aliases, docstrings)
+1. Update `shared/seeds/seed.toml` or `shared/seeds/seed.manual.toml` (for config)
+1. Update `shared/scripts/generator.py` (for new behavior types)
+1. Regenerate Python: `just generate` — or regenerate both languages: `just generate-all`
+1. Verify the generated output matches your intent: `git diff python/src/adk_fluent ts/src/builders`
 
 ## Making Changes
 
@@ -82,18 +100,18 @@ Files in `src/adk_fluent/agent.py`, `workflow.py`, and other generated modules w
 
 1. Open an issue first to discuss the approach
 1. Fork and branch: `git checkout -b feat/description`
-1. Add tests in `tests/manual/` for hand-written code
-1. Add a cookbook example in `examples/cookbook/` if applicable
-1. Run the full suite: `just test`
+1. Add tests in `python/tests/manual/` (and/or `ts/tests/` if the feature touches TypeScript)
+1. Add a cookbook example in `python/examples/cookbook/` — and the mirrored TS version in `ts/examples/cookbook/` when applicable
+1. Run the full suite: `just test` (Python) and `just ts-test` (TypeScript), or `just test-all` for both
 1. Open a PR
 
 ### Adding a new primitive or operator
 
-1. Implement in `src/adk_fluent/_base.py`
-1. Export from `src/adk_fluent/__init__.py`
-1. Add tests in `tests/manual/`
-1. Add a cookbook example
-1. Update the README expression language tables
+1. Implement in `python/src/adk_fluent/_base.py` (Python) and `ts/src/core/builder-base.ts` + `ts/src/primitives/` (TypeScript)
+1. Export from `python/src/adk_fluent/__init__.py` and `ts/src/index.ts`
+1. Add tests in `python/tests/manual/` and `ts/tests/`
+1. Add matching cookbook examples in both `python/examples/cookbook/` and `ts/examples/cookbook/`
+1. Update the README expression language tables **and** the operator mapping in `docs/user-guide/typescript.md`
 
 ### When Google releases a new ADK version
 
@@ -103,12 +121,13 @@ For manual upgrades or to prepare a PR yourself:
 
 ```bash
 just archive                              # Save current manifest state
-uv pip install --upgrade google-adk       # Install new ADK version
-just scan                                 # Introspect new ADK → manifest.json
+cd python && uv pip install --upgrade google-adk && cd ..   # Install new ADK version
+just scan                                 # Introspect new ADK → shared/manifest.json
 just diff                                 # Review what changed (JSON diff)
-# Edit seeds/seed.manual.toml if needed   # e.g. new aliases, custom extras
-just all                                  # Regenerate code, stubs, tests, docs
-just test && just typecheck               # Verify everything passes
+# Edit shared/seeds/seed.manual.toml if needed   # e.g. new aliases, custom extras
+just all                                  # Regenerate Python code, stubs, tests, docs
+just ts-generate                          # Regenerate TypeScript builders from the same manifest
+just test-all && just typecheck           # Verify Python + TypeScript pass
 git diff --stat                           # Review generated diff
 ```
 
@@ -145,27 +164,70 @@ Skills are already installed in `.claude/skills/` and `.gemini/skills/`. See [Ag
 
 ## Code Style
 
-- We use [ruff](https://docs.astral.sh/ruff/) for linting and formatting
-- Run `uv run ruff check .` and `uv run ruff format .` before committing
-- Pre-commit hooks handle this automatically
+- **Python:** we use [ruff](https://docs.astral.sh/ruff/) for linting and formatting. Run `just lint` / `just fmt` before committing (both operate inside `python/`). Pre-commit hooks handle formatting automatically on hand-written files only — generated files are owned by `just generate`.
+- **TypeScript:** we use [eslint](https://eslint.org/) and [prettier](https://prettier.io/). Run `just ts-lint` / `cd ts && npm run format` before committing. Generated TS files under `ts/src/builders/` are owned by `just ts-generate` and should never be hand-edited.
+
+### Dual-language documentation
+
+The docs site (`docs/`) is Python-first but ships dual-language code samples for almost everything. When you add or update a code block in `docs/`, use synced `sphinx-design` tabs so readers see their chosen language across the entire site:
+
+````md
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
+```python
+from adk_fluent import Agent
+
+agent = Agent("helper", "gemini-2.5-flash").instruct("...").build()
+```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const agent = new Agent("helper", "gemini-2.5-flash").instruct("...").build();
+```
+:::
+::::
+````
+
+**Rules:**
+
+1. Use the sync keys **`python`** and **`ts`** exactly — anything else breaks the site-wide toggle.
+2. Pair every `:sync: python` block with a `:sync: ts` block in the same `tab-set`. Never leave a tab-set with only one language.
+3. If a feature exists only in Python, put a short callout in the TypeScript tab (e.g. "Not yet available in `adk-fluent-ts` — track in [`ts/README.md`](../../ts/README.md).") instead of omitting the tab.
+4. Shared prose lives outside the tab-set. Only *code* and language-specific callouts go inside tabs.
+5. Auto-generated pages (`docs/generated/**`) are emitted by `shared/scripts/` and don't need manual tab-set conversion — the generator will grow dual-language support separately.
 
 ## Testing
 
 ```bash
-# All tests
+# Python — everything
 just test
 
-# Specific test file
-uv run pytest tests/manual/test_operators.py -v
+# Python — specific test file
+cd python && uv run pytest tests/manual/test_operators.py -v
 
-# Cookbook examples (each is a runnable test)
-uv run pytest examples/cookbook/ -v
+# Python — cookbook examples (each is a runnable test)
+cd python && uv run pytest examples/cookbook/ -v
 
-# Type checking
-just typecheck
+# TypeScript — everything
+just ts-test
 
-# Full local CI (mirrors GitHub Actions exactly)
+# Type checking (Python stubs + hand-written)
+just typecheck && just typecheck-core
+
+# Type checking (TypeScript)
+just ts-typecheck
+
+# Full local CI (mirrors GitHub Actions exactly — Python side)
 just ci
+
+# Both languages at once
+just test-all
 ```
 
 ## Commit Messages

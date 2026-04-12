@@ -8,13 +8,38 @@ This page gets you from zero to a working agent in 5 minutes.
 By the end, you'll understand the builder pattern, the expression operators,
 and when to use each.
 
+:::{note} Python and TypeScript — click a tab once
+Most code samples on this page come with a **Python** / **TypeScript** tab. Click either — every other synced tab across the docs follows your choice, and the preference sticks as you navigate. The conceptual content is the same in both languages; only the operator syntax differs (Python uses `>>` / `|` / `*` / `//` / `@`, TypeScript uses `.then()` / `.parallel()` / `.times()` / `.fallback()` / `.outputAs()`).
+
+If you picked **TypeScript**, also read the {doc}`user-guide/typescript` landing page for install, imports, and the full operator-mapping reference. Both packages are regenerated from the same `shared/manifest.json` in [`shared/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/shared), so the API surface stays in sync by construction.
+:::
+
 ## Install
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```bash
 pip install adk-fluent
 ```
 
 Autocomplete works immediately -- the package ships with `.pyi` type stubs for every builder. Type `Agent("name").` and your IDE shows all available methods with type hints.
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```bash
+# adk-fluent-ts lives in the monorepo (not yet on npm)
+git clone https://github.com/vamsiramakrishnan/adk-fluent.git
+cd adk-fluent/ts
+npm install
+npm run build
+```
+
+Autocomplete works out of the box — the package is written in TypeScript, so hover-docs and type inference light up immediately in VS Code, JetBrains, Neovim (with `tsserver`), and any LSP-aware editor. See {doc}`user-guide/typescript` for install, imports, and the operator-mapping reference.
+:::
+::::
 
 ## IDE Setup
 
@@ -58,17 +83,38 @@ In native ADK, `LlmAgent(instuction="...")` silently ignores the misspelled keyw
 
 ## Your First Agent
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent
 
 agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-That's it. `agent` is a real `google.adk.agents.llm_agent.LlmAgent` -- use it with `adk web`, `adk run`, or pass it to any ADK API.
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const agent = new Agent("helper", "gemini-2.5-flash")
+  .instruct("You are a helpful assistant.")
+  .build();
+```
+:::
+::::
+
+That's it. `agent` is a real native ADK `LlmAgent` object — use it with `adk web`, `adk run`, or pass it to any ADK API. The TypeScript build returns an `@google/adk` `LlmAgent`; the Python build returns a `google.adk.agents.llm_agent.LlmAgent`. Same semantics, same field names, different runtime.
 
 ## Your First Pipeline
 
-Chain agents sequentially with `.step()` or the `>>` operator:
+Chain agents sequentially with the `Pipeline` builder or the sequential operator — `>>` in Python, `.then()` in TypeScript.
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, Pipeline
@@ -87,12 +133,37 @@ pipeline = (
     >> Agent("writer", "gemini-2.5-flash").instruct("Write a summary.")
 ).build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-Both produce an identical `SequentialAgent`. The builder style shines when each step needs callbacks, tools, and context engineering. The operator style excels at composing reusable sub-expressions.
+```ts
+import { Agent, Pipeline } from "adk-fluent-ts";
+
+// Builder style -- explicit, great for complex configurations
+const pipeline = new Pipeline("research")
+  .step(new Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
+  .step(new Agent("writer", "gemini-2.5-flash").instruct("Write a summary."))
+  .build();
+
+// Method-chain style -- concise, great for composing reusable parts
+const pipeline2 = new Agent("searcher", "gemini-2.5-flash")
+  .instruct("Search for information.")
+  .then(new Agent("writer", "gemini-2.5-flash").instruct("Write a summary."))
+  .build();
+```
+:::
+::::
+
+Both produce an identical `SequentialAgent`. The builder style shines when each step needs callbacks, tools, and context engineering. The operator / method-chain style excels at composing reusable sub-expressions.
 
 ## Parallel Execution
 
-Run agents concurrently with `.branch()` or the `|` operator:
+Run agents concurrently with `FanOut` or the parallel operator — `|` in Python, `.parallel()` in TypeScript.
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, FanOut
@@ -110,10 +181,34 @@ fanout = (
     | Agent("papers", "gemini-2.5-flash").instruct("Search papers.")
 ).build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, FanOut } from "adk-fluent-ts";
+
+const fanout = new FanOut("parallel_research")
+  .branch(new Agent("web", "gemini-2.5-flash").instruct("Search the web."))
+  .branch(new Agent("papers", "gemini-2.5-flash").instruct("Search papers."))
+  .build();
+
+// Or with the method-chain operator:
+const fanout2 = new Agent("web", "gemini-2.5-flash")
+  .instruct("Search the web.")
+  .parallel(new Agent("papers", "gemini-2.5-flash").instruct("Search papers."))
+  .build();
+```
+:::
+::::
 
 ## Loops
 
-Iterate until a condition is met:
+Iterate a fixed number of times — `* 3` in Python, `.times(3)` in TypeScript. Use `Loop` / `loop_until` / `timesUntil` when you need a predicate-driven exit.
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, Loop
@@ -132,28 +227,73 @@ loop = (
     >> Agent("critic", "gemini-2.5-flash").instruct("Critique.")
 ) * 3
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, Loop } from "adk-fluent-ts";
+
+const loop = new Loop("refine")
+  .step(new Agent("writer", "gemini-2.5-flash").instruct("Write draft."))
+  .step(new Agent("critic", "gemini-2.5-flash").instruct("Critique."))
+  .maxIterations(3)
+  .build();
+
+// Or with the method-chain operator:
+const loop2 = new Agent("writer", "gemini-2.5-flash")
+  .instruct("Write draft.")
+  .then(new Agent("critic", "gemini-2.5-flash").instruct("Critique."))
+  .times(3)
+  .build();
+```
+:::
+::::
 
 ## Two Styles, Same Result
 
 Every workflow can be expressed two ways. Both produce identical ADK objects:
 
 ::::{tab-set}
-:::{tab-item} Builder Style
+:::{tab-item} Python
+:sync: python
+
 ```python
+# Builder style
 pipeline = (
     Pipeline("research")
     .step(Agent("web", "gemini-2.5-flash").instruct("Search web.").writes("web_data"))
     .step(Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}."))
     .build()
 )
-```
-:::
-:::{tab-item} Operator Style
-```python
+
+# Operator style
 pipeline = (
     Agent("web", "gemini-2.5-flash").instruct("Search web.").writes("web_data")
     >> Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}.")
 ).build()
+```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+// Builder style
+const pipeline = new Pipeline("research")
+  .step(
+    new Agent("web", "gemini-2.5-flash")
+      .instruct("Search web.")
+      .writes("web_data"),
+  )
+  .step(new Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}."))
+  .build();
+
+// Method-chain style
+const pipeline2 = new Agent("web", "gemini-2.5-flash")
+  .instruct("Search web.")
+  .writes("web_data")
+  .then(new Agent("analyst", "gemini-2.5-flash").instruct("Analyze {web_data}."))
+  .build();
 ```
 :::
 ::::

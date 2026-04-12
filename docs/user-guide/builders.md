@@ -3,7 +3,37 @@
 Every adk-fluent builder does one thing: it turns a chain of readable method calls into a native ADK object. No subclassing. No boilerplate. No silent misconfiguration.
 
 ::::{tab-set}
-:::{tab-item} Native ADK (22 lines)
+:::{tab-item} Python
+:sync: python
+
+```python
+from adk_fluent import Agent
+
+agent = (
+    Agent("helper", "gemini-2.5-flash")
+    .instruct("You are a helpful assistant.")
+    .describe("A general-purpose helper")
+    .writes("response")
+    .tool(search_fn)
+    .build()
+)
+```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const agent = new Agent("helper", "gemini-2.5-flash")
+  .instruct("You are a helpful assistant.")
+  .describe("A general-purpose helper")
+  .writes("response")
+  .tool(searchFn)
+  .build();
+```
+:::
+:::{tab-item} Native ADK (Python, 22 lines)
 ```python
 from google.adk.agents import LlmAgent
 from google.adk.tools import FunctionTool
@@ -18,20 +48,6 @@ agent = LlmAgent(
 )
 ```
 :::
-:::{tab-item} adk-fluent (6 lines)
-```python
-from adk_fluent import Agent
-
-agent = (
-    Agent("helper", "gemini-2.5-flash")
-    .instruct("You are a helpful assistant.")
-    .describe("A general-purpose helper")
-    .writes("response")
-    .tool(search_fn)
-    .build()
-)
-```
-:::
 ::::
 
 Both produce the **exact same `LlmAgent`**. The difference: the builder catches typos at definition time, provides IDE autocomplete for every field, and chains naturally.
@@ -40,6 +56,10 @@ Both produce the **exact same `LlmAgent`**. The difference: the builder catches 
 
 Every builder takes a required `name` as the first positional argument. Some builders accept additional optional positional arguments. For example, the `Agent` builder accepts an optional `model` as a second positional argument:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent
 
@@ -47,10 +67,27 @@ from adk_fluent import Agent
 agent = Agent("helper", "gemini-2.5-flash")
 agent = Agent("helper").model("gemini-2.5-flash")
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+// These are equivalent:
+const a = new Agent("helper", "gemini-2.5-flash");
+const b = new Agent("helper").model("gemini-2.5-flash");
+```
+:::
+::::
 
 ## Method Chaining (Fluent API)
 
-Every configuration method returns `self`, enabling fluent chaining:
+Every configuration method returns the builder, enabling fluent chaining. Methods can be called in any order:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 agent = (
@@ -62,12 +99,28 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-Methods can be called in any order. Each call records a configuration value that is applied when `.build()` is invoked.
+```ts
+const agent = new Agent("helper", "gemini-2.5-flash")
+  .instruct("You are a helpful assistant.")
+  .describe("A general-purpose helper agent")
+  .writes("response")
+  .tool(searchFn)
+  .build();
+```
+:::
+::::
 
 ## `.build()` -- Terminal Method
 
 `.build()` resolves the builder into a native ADK object:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
@@ -77,6 +130,20 @@ pipe  = Pipeline("p").step(agent).build()                               # -> Seq
 fan   = FanOut("f").branch(agent).build()                               # -> ParallelAgent
 loop  = Loop("l").step(agent).max_iterations(3).build()                 # -> LoopAgent
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, Pipeline, FanOut, Loop } from "adk-fluent-ts";
+
+const agent = new Agent("x", "gemini-2.5-flash").instruct("Help.").build(); // -> LlmAgent
+const pipe = new Pipeline("p").step(agent).build();                          // -> SequentialAgent
+const fan = new FanOut("f").branch(agent).build();                           // -> ParallelAgent
+const loop = new Loop("l").step(agent).maxIterations(3).build();             // -> LoopAgent
+```
+:::
+::::
 
 Sub-builders passed to workflow builders (Pipeline, FanOut, Loop) are automatically built at `.build()` time, so you do not need to call `.build()` on each step individually.
 
@@ -327,8 +394,12 @@ All workflow builders (Pipeline, FanOut, Loop) accept both built ADK agents and 
 
 ### Pipeline (Sequential)
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Pipeline, Agent
+from adk_fluent import Pipeline, Agent, C
 
 pipeline = (
     Pipeline("data_processing")
@@ -338,6 +409,33 @@ pipeline = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Pipeline, Agent, C } from "adk-fluent-ts";
+
+const pipeline = new Pipeline("data_processing")
+  .step(
+    new Agent("extractor", "gemini-2.5-flash")
+      .instruct("Extract entities.")
+      .writes("entities"),
+  )
+  .step(
+    new Agent("enricher", "gemini-2.5-flash")
+      .instruct("Enrich {entities}.")
+      .tool(lookupDb),
+  )
+  .step(
+    new Agent("formatter", "gemini-2.5-flash")
+      .instruct("Format output.")
+      .context(C.none()),
+  )
+  .build();
+```
+:::
+::::
 
 | Method         | Description                                                        |
 | -------------- | ------------------------------------------------------------------ |
@@ -345,6 +443,10 @@ pipeline = (
 | `.build()`     | Resolve into a native ADK `SequentialAgent`                        |
 
 ### FanOut (Parallel)
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import FanOut, Agent
@@ -356,6 +458,28 @@ fanout = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { FanOut, Agent } from "adk-fluent-ts";
+
+const fanout = new FanOut("research")
+  .branch(
+    new Agent("web", "gemini-2.5-flash")
+      .instruct("Search the web.")
+      .writes("web_results"),
+  )
+  .branch(
+    new Agent("papers", "gemini-2.5-pro")
+      .instruct("Search academic papers.")
+      .writes("paper_results"),
+  )
+  .build();
+```
+:::
+::::
 
 | Method           | Description                                                   |
 | ---------------- | ------------------------------------------------------------- |
@@ -363,6 +487,10 @@ fanout = (
 | `.build()`       | Resolve into a native ADK `ParallelAgent`                     |
 
 ### Loop
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Loop, Agent
@@ -376,6 +504,24 @@ loop = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Loop, Agent } from "adk-fluent-ts";
+
+const loop = new Loop("quality_loop")
+  .step(
+    new Agent("writer", "gemini-2.5-flash").instruct("Write draft.").writes("quality"),
+  )
+  .step(new Agent("reviewer", "gemini-2.5-flash").instruct("Review and score."))
+  .maxIterations(5)
+  .until((s) => s.quality === "good")
+  .build();
+```
+:::
+::::
 
 | Method               | Description                                            |
 | -------------------- | ------------------------------------------------------ |
@@ -386,7 +532,11 @@ loop = (
 
 ## Combining Builder and Operator Styles
 
-The builder and operator styles mix freely. Use builders for complex individual steps and operators for composition:
+The builder and operator styles mix freely. Use builders for complex individual steps and operators (Python `>>`/`|`/`*` or TypeScript `.then()`/`.parallel()`/`.times()`) for composition:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, S, until, Prompt
@@ -427,3 +577,42 @@ pipeline = (
     >> (reviewer >> writer) * until(lambda s: int(s.get("quality_score", 0)) >= 8, max=3)
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, FanOut, S, P } from "adk-fluent-ts";
+
+const researcher = new Agent("researcher", "gemini-2.5-flash")
+  .instruct(
+    P.role("You are a research analyst.").add(P.task("Find relevant information.")),
+  )
+  .tool(searchTool)
+  .beforeModel(logFn)
+  .writes("findings");
+
+const writer = new Agent("writer", "gemini-2.5-pro")
+  .instruct("Write a report about {findings}.")
+  .static("Company style guide: use formal tone, cite sources...")
+  .writes("draft");
+
+const reviewer = new Agent("reviewer", "gemini-2.5-flash")
+  .instruct("Score the draft 1-10 for quality.")
+  .writes("quality_score");
+
+const researchPhase = new FanOut("gather")
+  .branch(researcher.clone("web").tool(webSearch))
+  .branch(researcher.clone("papers").tool(paperSearch));
+
+const pipeline = researchPhase
+  .then(S.merge_(["web", "papers"], "findings"))
+  .then(writer)
+  .then(
+    reviewer
+      .then(writer)
+      .timesUntil((s) => Number(s.quality_score ?? 0) >= 8, { max: 3 }),
+  );
+```
+:::
+::::

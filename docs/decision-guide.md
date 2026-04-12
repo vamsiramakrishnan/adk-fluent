@@ -156,17 +156,42 @@ See [Middleware](user-guide/middleware.md).
 
 ### "I want to classify and route"
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Agent, S, C
-from adk_fluent._routing import Route
+from adk_fluent import Agent, S, C, Route
 
 classifier = Agent("classifier", MODEL).instruct("Classify: a, b, or c").context(C.none()).writes("category")
 pipeline = S.capture("input") >> classifier >> Route("category").eq("a", agent_a).eq("b", agent_b).otherwise(agent_c)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, S, C, Route } from "adk-fluent-ts";
+
+const classifier = new Agent("classifier", MODEL)
+  .instruct("Classify: a, b, or c")
+  .context(C.none())
+  .writes("category");
+
+const pipeline = S.capture("input")
+  .then(classifier)
+  .then(new Route("category").eq("a", agentA).eq("b", agentB).otherwise(agentC));
+```
+:::
+::::
 
 See [Cookbook: Customer Support Triage](cookbook/hero-workflows/customer-support-triage.md)
 
 ### "I want parallel search then synthesis"
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, C
@@ -177,10 +202,32 @@ results = (
 )
 pipeline = results >> Agent("synth", MODEL).instruct("Synthesize {web} and {papers}.")
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const results = new Agent("web", MODEL)
+  .instruct("Search web.")
+  .writes("web")
+  .parallel(new Agent("papers", MODEL).instruct("Search papers.").writes("papers"));
+
+const pipeline = results.then(
+  new Agent("synth", MODEL).instruct("Synthesize {web} and {papers}."),
+);
+```
+:::
+::::
 
 See [Cookbook: Deep Research](cookbook/hero-workflows/deep-research.md)
 
 ### "I want write-review-revise loop"
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent
@@ -190,10 +237,29 @@ loop = (
     >> Agent("critic", MODEL).instruct("Score 0-1.").writes("score")
 ).loop_until(lambda s: float(s.get("score", 0)) >= 0.8, max_iterations=3)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const loop = new Agent("writer", MODEL)
+  .instruct("Write.")
+  .writes("draft")
+  .then(new Agent("critic", MODEL).instruct("Score 0-1.").writes("score"))
+  .timesUntil((s) => Number(s.score ?? 0) >= 0.8, { max: 3 });
+```
+:::
+::::
 
 See [Patterns: review_loop](user-guide/patterns.md)
 
 ### "I want to test without API calls"
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent
@@ -206,6 +272,21 @@ harness = AgentHarness(
 response = await harness.send("Hi")
 assert response.final_text == "I can help!"
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const helper = new Agent("helper", "gemini-2.5-flash")
+  .instruct("Help.")
+  .mock({ helper: "I can help!" });
+
+const response = await helper.askAsync("Hi");
+```
+:::
+::::
 
 See [Testing](user-guide/testing.md)
 

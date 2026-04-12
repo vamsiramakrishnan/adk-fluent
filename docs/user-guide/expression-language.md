@@ -6,6 +6,19 @@ Nine operators compose any agent topology. All operators are **immutable** -- su
 **Visual learner?** Open the [Operator Algebra Interactive Reference](../operator-algebra-reference.html){target="_blank"} for animated SVG flow diagrams, code examples, and composition rules for all 9 operators.
 :::
 
+:::{note} Python uses operators, TypeScript uses method chains
+JavaScript has no operator overloading, so the TypeScript package replaces every operator with an explicit method call. Pick your language with the tabs on each example.
+
+| Python | TypeScript | Returns |
+| --- | --- | --- |
+| `a >> b` | `a.then(b)` | `Pipeline` |
+| `a \| b` | `a.parallel(b)` | `FanOut` |
+| `a * 3` | `a.times(3)` | `Loop` |
+| `a * until(pred, max=5)` | `a.timesUntil(pred, { max: 5 })` | `Loop` |
+| `a // b` | `a.fallback(b)` | `Fallback` |
+| `a @ Schema` | `a.outputAs(schema)` | `Agent` |
+:::
+
 ```{raw} html
 <div class="arch-diagram-wrapper">
   <svg viewBox="0 0 740 340" fill="none" xmlns="http://www.w3.org/2000/svg" class="arch-diagram" aria-label="Operator visual reference showing all 9 operators">
@@ -143,15 +156,34 @@ Nine operators compose any agent topology. All operators are **immutable** -- su
 
 All operators produce new expression objects. Sub-expressions can be safely reused:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 review = agent_a >> agent_b
 pipeline_1 = review >> agent_c  # Independent
 pipeline_2 = review >> agent_d  # Independent
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const review = agentA.then(agentB);
+const pipeline1 = review.then(agentC); // Independent
+const pipeline2 = review.then(agentD); // Independent
+```
+:::
+::::
 
 ## `>>` -- Pipeline (Sequential)
 
-The `>>` operator chains agents into a sequential pipeline. Each agent runs after the previous one completes:
+The `>>` operator (Python) / `.then()` method (TypeScript) chains agents into a sequential pipeline. Each agent runs after the previous one completes:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent
@@ -162,12 +194,32 @@ pipeline = (
     >> Agent("formatter", "gemini-2.5-flash").instruct("Format output.")
 ).build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const pipeline = new Agent("extractor", "gemini-2.5-flash")
+  .instruct("Extract entities.")
+  .writes("entities")
+  .then(new Agent("enricher", "gemini-2.5-flash").instruct("Enrich {entities}."))
+  .then(new Agent("formatter", "gemini-2.5-flash").instruct("Format output."))
+  .build();
+```
+:::
+::::
 
 This produces the same `SequentialAgent` as the builder-style `Pipeline("name").step(...).step(...).build()`.
 
-## `>> fn` -- Function Steps
+## Function Steps
 
-Plain Python functions compose with `>>` as zero-cost workflow nodes (no LLM call):
+Plain functions compose as zero-cost workflow nodes (no LLM call):
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 def merge_research(state):
@@ -175,12 +227,31 @@ def merge_research(state):
 
 pipeline = web_agent >> merge_research >> writer_agent
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-Functions receive the session state dict and return a dict of state updates. They are useful for data transformations between agent steps.
+```ts
+import { tap } from "adk-fluent-ts";
 
-## `|` -- Parallel (Fan-Out)
+const mergeResearch = tap((state) => {
+  state.research = `${state.web}\n${state.papers}`;
+});
 
-The `|` operator runs agents in parallel:
+const pipeline = webAgent.then(mergeResearch).then(writerAgent);
+```
+:::
+::::
+
+Function steps receive the session state and can mutate it (TypeScript) or return a dict of updates (Python). They are useful for data transformations between agent steps.
+
+## `|` / `.parallel()` -- Parallel (Fan-Out)
+
+Run agents concurrently:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent
@@ -191,14 +262,40 @@ fanout = (
     | Agent("internal", "gemini-2.5-flash").instruct("Search internal docs.").writes("internal_results")
 ).build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const fanout = new Agent("web", "gemini-2.5-flash")
+  .instruct("Search web.")
+  .writes("web_results")
+  .parallel(
+    new Agent("papers", "gemini-2.5-pro").instruct("Search papers.").writes("paper_results"),
+  )
+  .parallel(
+    new Agent("internal", "gemini-2.5-flash")
+      .instruct("Search internal docs.")
+      .writes("internal_results"),
+  )
+  .build();
+```
+:::
+::::
 
 This produces the same `ParallelAgent` as the builder-style `FanOut("name").branch(...).branch(...).build()`.
 
-## `*` -- Loop
+## `*` / `.times()` -- Loop
 
 ### Fixed Count
 
-Multiply an expression by an integer to loop a fixed number of times:
+Repeat an expression a fixed number of times:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 loop = (
@@ -206,10 +303,26 @@ loop = (
     >> Agent("reviewer", "gemini-2.5-flash").instruct("Review.")
 ) * 3
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const loop = new Agent("writer", "gemini-2.5-flash")
+  .instruct("Write draft.")
+  .then(new Agent("reviewer", "gemini-2.5-flash").instruct("Review."))
+  .times(3);
+```
+:::
+::::
 
 ### Conditional Loop with `until()`
 
-`* until(pred)` loops until a predicate on session state is satisfied:
+Loop until a predicate on session state is satisfied:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import until
@@ -219,12 +332,29 @@ loop = (
     >> Agent("reviewer").model("gemini-2.5-flash").instruct("Review.")
 ) * until(lambda s: s.get("quality") == "good", max=5)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const loop = new Agent("writer", "gemini-2.5-flash")
+  .instruct("Write.")
+  .writes("quality")
+  .then(new Agent("reviewer", "gemini-2.5-flash").instruct("Review."))
+  .timesUntil((s) => s.quality === "good", { max: 5 });
+```
+:::
+::::
 
 The `max` parameter sets a safety limit on the number of iterations.
 
-## `@` -- Typed Output
+## `@` / `.outputAs()` -- Typed Output
 
-`@` binds a Pydantic schema as the agent's output contract:
+Bind a structured-output schema as the agent's response contract:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from pydantic import BaseModel
@@ -235,12 +365,37 @@ class Report(BaseModel):
 
 agent = Agent("writer").model("gemini-2.5-flash").instruct("Write.") @ Report
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+// Use any opaque schema descriptor — Zod, JSON Schema, or a plain object.
+const ReportSchema = {
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    body: { type: "string" },
+  },
+  required: ["title", "body"],
+} as const;
+
+const agent = new Agent("writer", "gemini-2.5-flash")
+  .instruct("Write.")
+  .outputAs(ReportSchema);
+```
+:::
+::::
 
 The agent's output is validated against the schema, ensuring structured, typed responses.
 
-## `//` -- Fallback Chain
+## `//` / `.fallback()` -- Fallback Chain
 
-`//` tries each agent in order. The first agent to succeed wins:
+Try each agent in order. The first agent to succeed wins:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 answer = (
@@ -248,6 +403,17 @@ answer = (
     // Agent("thorough").model("gemini-2.5-pro").instruct("Detailed answer.")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const answer = new Agent("fast", "gemini-2.0-flash")
+  .instruct("Quick answer.")
+  .fallback(new Agent("thorough", "gemini-2.5-pro").instruct("Detailed answer."));
+```
+:::
+::::
 
 This is useful for cost optimization: try a cheaper, faster model first and fall back to a more capable model only if needed.
 
@@ -255,9 +421,12 @@ This is useful for cost optimization: try a cheaper, faster model first and fall
 
 Route on session state without LLM calls:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Agent
-from adk_fluent._routing import Route
+from adk_fluent import Agent, Route
 
 classifier = Agent("classify").model("gemini-2.5-flash").instruct("Classify intent.").writes("intent")
 booker = Agent("booker").model("gemini-2.5-flash").instruct("Book flights.")
@@ -269,12 +438,33 @@ pipeline = classifier >> Route("intent").eq("booking", booker).eq("info", info)
 # Dict shorthand
 pipeline = classifier >> {"booking": booker, "info": info}
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-The dict shorthand `>> {"key": agent}` is equivalent to `Route` with `.eq()` for each key-value pair.
+```ts
+import { Agent, Route } from "adk-fluent-ts";
+
+const classifier = new Agent("classify", "gemini-2.5-flash")
+  .instruct("Classify intent.")
+  .writes("intent");
+const booker = new Agent("booker", "gemini-2.5-flash").instruct("Book flights.");
+const info = new Agent("info", "gemini-2.5-flash").instruct("Provide info.");
+
+const pipeline = classifier.then(
+  new Route("intent").eq("booking", booker).eq("info", info),
+);
+```
+:::
+::::
 
 ## Conditional Gating
 
-`.proceed_if()` gates an agent's execution based on a state predicate:
+`.proceedIf()` / `.proceed_if()` gates an agent's execution based on a state predicate:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 enricher = (
@@ -284,6 +474,20 @@ enricher = (
     .proceed_if(lambda s: s.get("valid") == "yes")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, gate } from "adk-fluent-ts";
+
+const enricher = gate(
+  (s) => s.valid === "yes",
+  new Agent("enricher", "gemini-2.5-flash").instruct("Enrich the data."),
+);
+```
+:::
+::::
 
 The agent only runs if the predicate returns a truthy value.
 
@@ -304,6 +508,10 @@ Full composition topology:
   ┌──► critic ──► reviser ──┐
   └── until(confidence≥0.85) ┘  (*)
 ```
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from pydantic import BaseModel
@@ -327,6 +535,45 @@ pipeline = (
     ) * until(lambda s: s.get("confidence", 0) >= 0.85, max=4)
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, S } from "adk-fluent-ts";
+
+const ReportSchema = {
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    body: { type: "string" },
+    confidence: { type: "number" },
+  },
+  required: ["title", "body", "confidence"],
+} as const;
+
+const pipeline = new Agent("web", "gemini-2.5-flash")
+  .instruct("Search web.")
+  .parallel(new Agent("scholar", "gemini-2.5-flash").instruct("Search papers."))
+  .then(S.merge_(["web", "scholar"], "research"))
+  .then(
+    new Agent("writer", "gemini-2.5-flash")
+      .instruct("Write.")
+      .outputAs(ReportSchema)
+      .fallback(
+        new Agent("writer_b", "gemini-2.5-pro").instruct("Write.").outputAs(ReportSchema),
+      ),
+  )
+  .then(
+    new Agent("critic", "gemini-2.5-flash")
+      .instruct("Score.")
+      .writes("confidence")
+      .then(new Agent("reviser", "gemini-2.5-flash").instruct("Improve."))
+      .timesUntil((s) => Number(s.confidence ?? 0) >= 0.85, { max: 4 }),
+  );
+```
+:::
+::::
 
 This expression combines parallel fan-out (`|`), state transforms (`S.merge`), typed output (`@ Report`), fallback (`//`), and conditional loops (`* until`).
 

@@ -17,9 +17,12 @@ Middleware provides app-global cross-cutting behavior. Unlike [callbacks](callba
 
 Use `.middleware()` on any builder, then `.to_app()` to compile:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Agent
-from adk_fluent._middleware import M
+from adk_fluent import Agent, M
 
 pipeline = (
     Agent("a") >> Agent("b")
@@ -27,20 +30,62 @@ pipeline = (
 
 app = pipeline.to_app()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-Multiple `.middleware()` calls accumulate. When combined with `>>` or `|`, middleware from all operands is merged.
+```ts
+import { Agent, M } from "adk-fluent-ts";
+
+const pipeline = new Agent("a", "gemini-2.5-flash")
+  .then(new Agent("b", "gemini-2.5-flash"))
+  .middleware(M.retry({ maxAttempts: 3 }).pipe(M.log()));
+
+const app = pipeline.toApp();
+```
+:::
+::::
+
+Multiple `.middleware()` calls accumulate. When combined with `>>` / `.then()` or `|` / `.parallel()`, middleware from all operands is merged.
+
+:::{note} TypeScript naming
+TypeScript uses camelCase and options objects: `M.retry({ maxAttempts: 3 })`, `M.circuitBreaker({ maxFails: 5 })`, `M.fallbackModel("gemini-2.5-pro")`. Composition uses `.pipe()` instead of Python's `|`.
+:::
 
 ## The M Module
 
-The M module provides composable middleware factories. Compose with `|` (chain):
+The M module provides composable middleware factories. Compose with `|` / `.pipe()` (chain):
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
-from adk_fluent._middleware import M
+from adk_fluent import Agent, M
 
 # Compose a middleware stack
 stack = M.retry(3) | M.log() | M.latency() | M.cost()
 pipeline = (Agent("a") >> Agent("b")).middleware(stack)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, M } from "adk-fluent-ts";
+
+// Compose a middleware stack
+const stack = M.retry({ maxAttempts: 3 })
+  .pipe(M.log())
+  .pipe(M.latency())
+  .pipe(M.cost());
+
+const pipeline = new Agent("a", "gemini-2.5-flash")
+  .then(new Agent("b", "gemini-2.5-flash"))
+  .middleware(stack);
+```
+:::
+::::
 
 ### Built-in Middleware
 
@@ -66,7 +111,7 @@ pipeline = (Agent("a") >> Agent("b")).middleware(stack)
 Middleware runs in the order you compose it. For non-void hooks (`before_model`, `before_tool`), the first middleware to return a non-None value short-circuits the rest:
 
 ```python
-# Retry wraps logging wraps cost tracking
+# Retry wraps logging wraps cost tracking (Python: |, TypeScript: .pipe())
 stack = M.retry(3) | M.log() | M.cost()
 
 # Execution order for before_model:
@@ -89,15 +134,36 @@ Put **retry** first (outermost), **logging** next, then specific concerns (cost,
 
 Apply middleware to specific agents only:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 # Only retry the LLM-calling agents, not the state transforms
 stack = M.scope(["classifier", "resolver"], M.retry(3)) | M.log()
 pipeline = (Agent("classifier") >> Agent("resolver")).middleware(stack)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+// Only retry the LLM-calling agents, not the state transforms
+const stack = M.scope(["classifier", "resolver"], M.retry({ maxAttempts: 3 })).pipe(M.log());
+const pipeline = new Agent("classifier", "gemini-2.5-flash")
+  .then(new Agent("resolver", "gemini-2.5-flash"))
+  .middleware(stack);
+```
+:::
+::::
 
 ### Conditional Middleware
 
 Apply middleware based on runtime conditions:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 import os
@@ -105,6 +171,16 @@ import os
 # Only enable cost tracking in production
 stack = M.log() | M.when(os.getenv("ENV") == "production", M.cost())
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+// Only enable cost tracking in production
+const stack = M.log().pipe(M.when(process.env.ENV === "production", M.cost()));
+```
+:::
+::::
 
 ## Middleware Protocol
 
@@ -138,6 +214,10 @@ All methods are optional. Implement only what you need.
 
 ## Writing Custom Middleware
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 import time
 
@@ -154,6 +234,26 @@ class TimingMiddleware:
         elapsed = time.time() - context.state.get("_start", time.time())
         self.timings[agent.name] = elapsed
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+class TimingMiddleware {
+  timings: Record<string, number> = {};
+
+  async beforeAgent({ agent, context }: { agent: { name: string }; context: { state: Record<string, unknown> } }) {
+    context.state._start = Date.now();
+  }
+
+  async afterAgent({ agent, context }: { agent: { name: string }; context: { state: Record<string, unknown> } }) {
+    const start = (context.state._start as number) ?? Date.now();
+    this.timings[agent.name] = Date.now() - start;
+  }
+}
+```
+:::
+::::
 
 ## How Middleware Works
 
@@ -191,15 +291,37 @@ Middleware Lifecycle (execution order):
 
 Guards are per-agent safety checks. Middleware is pipeline-wide infrastructure. Use both:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Agent, G
-from adk_fluent._middleware import M
+from adk_fluent import Agent, G, M
 
 agent = Agent("service").instruct("Help.").guard(G.pii("redact") | G.length(max=500))
 pipeline = (agent >> Agent("auditor")).middleware(M.retry(3) | M.log())
 # Guards: PII redaction on the service agent only
 # Middleware: retry + logging on the entire pipeline
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, G, M } from "adk-fluent-ts";
+
+const agent = new Agent("service", "gemini-2.5-flash")
+  .instruct("Help.")
+  .guard(G.pii({ action: "redact" }).pipe(G.length({ max: 500 })));
+
+const pipeline = agent
+  .then(new Agent("auditor", "gemini-2.5-flash"))
+  .middleware(M.retry({ maxAttempts: 3 }).pipe(M.log()));
+// Guards: PII redaction on the service agent only
+// Middleware: retry + logging on the entire pipeline
+```
+:::
+::::
 
 See [Guards](guards.md).
 
@@ -221,9 +343,12 @@ See [Visibility](visibility.md).
 
 Middleware and context engineering don't interact directly, but they complement each other. Context engineering controls what the LLM sees; middleware controls how the pipeline behaves:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent import Agent, C
-from adk_fluent._middleware import M
+from adk_fluent import Agent, C, M
 
 pipeline = (
     Agent("classifier").context(C.none()).writes("intent")
@@ -232,19 +357,56 @@ pipeline = (
 # Context: each agent sees only what it needs
 # Middleware: retry, logging, cost tracking across all agents
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, C, M } from "adk-fluent-ts";
+
+const pipeline = new Agent("classifier", "gemini-2.5-flash")
+  .context(C.none())
+  .writes("intent")
+  .then(new Agent("resolver", "gemini-2.5-flash").context(C.fromState("intent")))
+  .middleware(M.retry({ maxAttempts: 3 }).pipe(M.log()).pipe(M.cost()));
+// Context: each agent sees only what it needs
+// Middleware: retry, logging, cost tracking across all agents
+```
+:::
+::::
 
 ### Middleware + Testing
 
 Use `M.log()` in tests to capture events for assertions:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
-from adk_fluent._middleware import M
+from adk_fluent import Agent, M
 
 logger = M.log()
 pipeline = (Agent("a") >> Agent("b")).middleware(logger)
 app = pipeline.to_app()
 # After execution: inspect logger.events for assertions
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, M } from "adk-fluent-ts";
+
+const logger = M.log();
+const pipeline = new Agent("a", "gemini-2.5-flash")
+  .then(new Agent("b", "gemini-2.5-flash"))
+  .middleware(logger);
+const app = pipeline.toApp();
+// After execution: inspect logger events for assertions
+```
+:::
+::::
 
 See [Testing](testing.md).
 

@@ -14,8 +14,11 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 [![Coverage](https://codecov.io/gh/vamsiramakrishnan/adk-fluent/branch/master/graph/badge.svg)](https://codecov.io/gh/vamsiramakrishnan/adk-fluent)
 [![Status](https://img.shields.io/badge/status-beta-yellow)](https://github.com/vamsiramakrishnan/adk-fluent)
 
+> **Monorepo:** This repository is a dual-language monorepo. The Python package (`adk-fluent`) lives in [`python/`](python/) and the TypeScript package (`adk-fluent-ts`) lives in [`ts/`](ts/). Shared generation tooling, manifests, and seeds live in [`shared/`](shared/). Both packages are generated from the same manifest and expose the same surface area.
+
 ## Table of Contents
 
+- [Packages](#packages)
 - [Install](#install)
 - [Quick Start](#quick-start)
 - [Three Pathways](#three-pathways)
@@ -36,13 +39,63 @@ Fluent builder API for Google's [Agent Development Kit (ADK)](https://google.git
 - [AI Coding Skills](#ai-coding-skills)
 - [Development](#development)
 
+## Packages
+
+adk-fluent is released as two sibling packages driven by a single shared manifest. Pick the language you ship in — both expose the same builders, operators, and namespaces.
+
+| Package              | Language   | Source      | Registry                                                      | Entry README                              |
+| -------------------- | ---------- | ----------- | ------------------------------------------------------------- | ----------------------------------------- |
+| `adk-fluent`         | Python 3.11+ | [`python/`](python/) | [PyPI](https://pypi.org/project/adk-fluent/)                  | [`python/README.md`](python/README.md)    |
+| `adk-fluent-ts`      | TypeScript | [`ts/`](ts/) | npm (coming soon)                                             | [`ts/README.md`](ts/README.md)            |
+
+Shared generator scripts, ADK scan manifests, and seed files live in [`shared/`](shared/). The Python and TypeScript builders are both regenerated from `shared/manifest.json` + `shared/seeds/seed.toml`, so API parity is enforced at generation time.
+
+```text
+adk-fluent/
+├── python/      # adk-fluent (PyPI) — builders, namespaces, tests, docs fixtures
+├── ts/          # adk-fluent-ts (npm) — TypeScript port with method-chained operators
+├── shared/      # manifest.json, seeds, scripts/ (scanner, generator, doc gen)
+├── docs/        # Sphinx docs site (Python-first, TS guide embedded)
+├── skills/      # AI coding agent skills
+└── justfile     # Monorepo-aware commands (`just test`, `just ts-test`, `just test-all`)
+```
+
 ## Install
+
+### Python (`adk-fluent`)
 
 ```bash
 pip install adk-fluent
 ```
 
 Autocomplete works immediately -- the package ships with `.pyi` type stubs for every builder. Type `Agent("name").` and your IDE shows all available methods with type hints.
+
+### TypeScript (`adk-fluent-ts`)
+
+The TypeScript port mirrors the Python API surface with method-chained operators (`.then()`, `.parallel()`, `.times()`, `.fallback()`, `.outputAs()`).
+
+```bash
+# From the monorepo (until the package is published to npm)
+cd ts
+npm install
+npm run build
+```
+
+```ts
+import { Agent, Pipeline } from "adk-fluent-ts";
+
+const pipeline = new Agent("writer", "gemini-2.5-flash")
+  .instruct("Write a draft about {topic}.")
+  .writes("draft")
+  .then(
+    new Agent("reviewer", "gemini-2.5-flash")
+      .instruct("Review the draft: {draft}")
+      .writes("feedback"),
+  )
+  .build();
+```
+
+See [`ts/README.md`](ts/README.md) for the full TypeScript API, the [operator → method-chain mapping](ts/CLAUDE.md), and [`ts/examples/`](ts/examples) for runnable recipes. The rest of this README focuses on the Python package.
 
 > **Full walkthrough:** [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) covers install, credentials, first agent, and IDE setup.
 
@@ -1551,20 +1604,20 @@ A custom web frontend for interactively running and debugging all cookbook agent
 ### Quick Start (from scratch)
 
 ```bash
-# 1. Clone and install
+# 1. Clone and install the Python package
 git clone https://github.com/vamsiramakrishnan/adk-fluent.git
 cd adk-fluent
-pip install -e ".[a2a,yaml,rich]"      # or: uv sync --all-extras
+cd python && uv sync --all-extras && cd ..    # or: pip install -e "./python[a2a,yaml,rich]"
 
 # 2. Configure credentials
-cp visual/.env.example visual/.env
-# Edit visual/.env — add your Gemini API key or Vertex AI credentials
+cp python/visual/.env.example python/visual/.env
+# Edit python/visual/.env — add your Gemini API key or Vertex AI credentials
 
 # 3. Generate agent folders from cookbooks (one-time)
-just agents                             # or: uv run python scripts/cookbook_to_agents.py --force
+just agents                             # or: uv run --project python python -m shared.scripts.cookbook_to_agents --force
 
 # 4. Launch the visual runner
-just visual                             # or: uv run uvicorn visual.server:app --port 8099 --reload
+just visual                             # or: cd python && uv run uvicorn visual.server:app --port 8099 --reload
 ```
 
 Opens at **http://localhost:8099** with:
@@ -1585,11 +1638,12 @@ This exports surfaces from cookbooks 70-74 and opens a static gallery in your br
 ### Visual Regression Tests
 
 ```bash
+cd python
 uv run pytest tests/visual/ -v                      # run tests (no API key needed)
 uv run pytest tests/visual/ -v --update-golden       # update golden snapshots
 ```
 
-See [`visual/README.md`](visual/README.md) for full architecture details.
+See [`python/visual/README.md`](python/visual/README.md) for full architecture details.
 
 ## Performance
 
@@ -1600,7 +1654,7 @@ adk-fluent is a **build-time layer**. Calling `.build()` produces a native ADK o
 Verify yourself:
 
 ```bash
-python scripts/benchmark.py
+uv run --project python python shared/scripts/benchmark.py
 ```
 
 ## ADK Compatibility
@@ -1633,25 +1687,38 @@ A [weekly sync workflow](.github/workflows/sync-adk.yml) scans for new ADK relea
 
 > **Deep dive:** [Architecture & Concepts](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/architecture-and-concepts/) · [IR & Backends](https://vamsiramakrishnan.github.io/adk-fluent/user-guide/ir-and-backends/)
 
-adk-fluent is **auto-generated** from the installed ADK package:
+adk-fluent is **auto-generated** from the installed ADK package. A single shared pipeline produces both the Python and TypeScript builders:
 
 ```
-scanner.py ──> manifest.json ──> seed_generator.py ──> seed.toml ──> generator.py ──> Python code
-                                      ^
-                              seed.manual.toml
-                              (hand-crafted extras)
+shared/scripts/scanner.py ─> shared/manifest.json
+                                        │
+                                        ▼
+                             shared/scripts/seed_generator.py
+                                        │
+                                        ▼
+                               shared/seeds/seed.toml  ◄── shared/seeds/seed.manual.toml
+                                        │
+                         ┌──────────────┴──────────────┐
+                         ▼                             ▼
+               shared/scripts/generator.py   shared/scripts/generator.py
+                 --target python               --target typescript
+                         │                             │
+                         ▼                             ▼
+               python/src/adk_fluent/         ts/src/builders/
+                 (builders + .pyi stubs)        (TypeScript classes)
 ```
 
-1. **Scanner** introspects all ADK modules and produces `manifest.json`
-1. **Seed Generator** classifies classes and produces `seed.toml` (merged with manual extras)
-1. **Code Generator** emits fluent builders, `.pyi` type stubs, and test scaffolds
+1. **Scanner** introspects all ADK modules and produces `shared/manifest.json`
+1. **Seed Generator** classifies classes and produces `shared/seeds/seed.toml` (merged with manual extras)
+1. **Code Generator** emits fluent builders for both Python (`python/src/adk_fluent/`) and TypeScript (`ts/src/builders/`)
 
 This means adk-fluent automatically stays in sync with ADK updates:
 
 ```bash
 pip install --upgrade google-adk
-just all   # Regenerate everything
-just test  # Verify
+just all              # Regenerate Python (scan → seed → generate → docs)
+just ts-generate      # Regenerate TypeScript from the same manifest
+just test-all         # Verify both languages
 ```
 
 ## API Reference
@@ -1728,26 +1795,65 @@ Works with Gemini CLI, Claude Code, Cursor, GitHub Copilot, Amp, and more.
 
 ## Development
 
-**Requires:** Python 3.11+, [just](https://github.com/casey/just#installation), [uv](https://docs.astral.sh/uv/)
+**Requires:** Python 3.11+, Node.js 20+, [just](https://github.com/casey/just#installation), [uv](https://docs.astral.sh/uv/)
 
 **Container:** Open in VS Code or GitHub Codespaces with the included Dev Container for a pre-configured environment.
 
-```bash
-# Setup
-uv venv .venv && source .venv/bin/activate
-uv pip install -e ".[dev]"
+### Monorepo layout
 
-# Full pipeline: scan -> seed -> generate -> docs
+```text
+adk-fluent/
+├── python/      # adk-fluent — uv-managed Python package (PyPI)
+├── ts/          # adk-fluent-ts — npm-managed TypeScript package
+├── shared/      # Manifests, seeds, generator/scanner/doc-gen scripts
+├── docs/        # Sphinx docs (built from python/ + shared/)
+├── skills/      # AI coding agent skills (auto-regenerated)
+└── justfile     # Monorepo-aware task runner
+```
+
+Generated files (`agent.py`, `config.py`, `.pyi` stubs, `ts/src/builders/*.ts`) are owned by `just generate` / `just ts-generate`. Hand-written files are owned by developers. Formatters and pre-commit hooks only touch hand-written files — see [`.gitattributes`](.gitattributes) for the full generated-file list.
+
+### First-time setup
+
+```bash
+just setup    # uv sync (python/) + npm install (ts/) + pre-commit hooks
+```
+
+### Python workflow
+
+```bash
+# Full pipeline: scan -> seed -> generate -> docs (Python)
 just all
 
-# Run tests (780+ tests)
+# Run the Python test suite (780+ tests)
 just test
 
-# Type check hand-written code
+# Type check hand-written Python code
 just typecheck-core
 
-# Local CI (lint + check-gen + test)
+# Local CI (preflight + check-gen + test)
 just ci
+```
+
+All Python commands run against `python/` under the hood — e.g. `just test` is equivalent to `cd python && uv run pytest tests/`.
+
+### TypeScript workflow
+
+```bash
+just ts-setup        # npm install inside ts/
+just ts-generate     # Regenerate TS builders from shared/manifest.json
+just ts-build        # tsc build
+just ts-typecheck    # tsc --noEmit
+just ts-lint         # eslint
+just ts-test         # vitest run
+```
+
+### Monorepo commands
+
+```bash
+just generate-all    # Regenerate Python AND TypeScript builders
+just build-all       # Generate + build both packages
+just test-all        # Run Python + TypeScript test suites
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Contributing guide](https://vamsiramakrishnan.github.io/adk-fluent/contributing/) for the full development guide.
@@ -1764,7 +1870,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full release history, or browse it on t
 
 ## Releases
 
-Only one file to edit: `src/adk_fluent/_version.py`. Everything else auto-syncs.
+Only one file to edit: `python/src/adk_fluent/_version.py`. Everything else auto-syncs. (The TypeScript package versions independently via `ts/package.json`.)
 
 ```bash
 just release patch   # or: minor, major
@@ -1775,7 +1881,7 @@ just release-tag     # creates and pushes the git tag
 # → CI auto-publishes to PyPI + rebuilds versioned docs
 ```
 
-The version in `_version.py` is the single source of truth — `pyproject.toml`, `docs/conf.py`, and the announcement banner all read from it automatically.
+The version in `python/src/adk_fluent/_version.py` is the single source of truth for the Python package — `python/pyproject.toml`, `docs/conf.py`, and the announcement banner all read from it automatically.
 
 ## License
 
