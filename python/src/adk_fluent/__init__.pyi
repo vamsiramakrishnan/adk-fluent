@@ -470,6 +470,13 @@ from ._permissions import PermissionHandler as PermissionHandler
 from ._permissions import PermissionMode as PermissionMode
 from ._permissions import PermissionPlugin as PermissionPlugin
 from ._permissions import PermissionPolicy as PermissionPolicy
+from ._subagents import FakeSubagentRunner as FakeSubagentRunner
+from ._subagents import SubagentRegistry as SubagentRegistry
+from ._subagents import SubagentResult as SubagentResult
+from ._subagents import SubagentRunner as SubagentRunner
+from ._subagents import SubagentRunnerError as SubagentRunnerError
+from ._subagents import SubagentSpec as SubagentSpec
+from ._subagents import make_task_tool as make_task_tool
 from ._harness import SandboxPolicy as SandboxPolicy
 from ._harness import make_read_file as make_read_file
 from ._harness import make_edit_file as make_edit_file
@@ -1120,6 +1127,13 @@ __all__ = [
     "ALL_MODES",
     "DEFAULT_MUTATING_TOOLS",
     "DEFAULT_READ_ONLY_TOOLS",
+    "SubagentSpec",
+    "SubagentRegistry",
+    "SubagentResult",
+    "SubagentRunner",
+    "SubagentRunnerError",
+    "FakeSubagentRunner",
+    "make_task_tool",
     "SandboxPolicy",
     "make_read_file",
     "make_edit_file",

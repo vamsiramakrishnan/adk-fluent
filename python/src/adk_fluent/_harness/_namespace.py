@@ -377,6 +377,61 @@ class H:
         return SandboxedBackend(backend, sandbox)
 
     # =================================================================
+    # Dynamic subagents (adk_fluent._subagents)
+    # =================================================================
+
+    @staticmethod
+    def subagent_spec(
+        role: str,
+        instruction: str,
+        *,
+        description: str = "",
+        model: str | None = None,
+        tool_names: tuple[str, ...] = (),
+        permission_mode: str = "default",
+        max_tokens: int | None = None,
+        metadata: dict | None = None,
+    ) -> Any:
+        """Create a :class:`~adk_fluent._subagents.SubagentSpec`."""
+        from adk_fluent._subagents import SubagentSpec
+
+        return SubagentSpec(
+            role=role,
+            instruction=instruction,
+            description=description,
+            model=model,
+            tool_names=tool_names,
+            permission_mode=permission_mode,
+            max_tokens=max_tokens,
+            metadata=dict(metadata or {}),
+        )
+
+    @staticmethod
+    def subagent_registry(specs: list | None = None) -> Any:
+        """Create a :class:`~adk_fluent._subagents.SubagentRegistry`."""
+        from adk_fluent._subagents import SubagentRegistry
+
+        return SubagentRegistry(specs=specs)
+
+    @staticmethod
+    def task_tool(
+        registry: Any,
+        runner: Any,
+        *,
+        context_provider: Any = None,
+        tool_name: str = "task",
+    ) -> Any:
+        """Build the dynamic ``task(role, prompt)`` tool for a parent agent."""
+        from adk_fluent._subagents import make_task_tool
+
+        return make_task_tool(
+            registry,
+            runner,
+            context_provider=context_provider,
+            tool_name=tool_name,
+        )
+
+    # =================================================================
     # Web tools (reuses ADK UrlContextTool / GoogleSearchTool)
     # =================================================================
 
