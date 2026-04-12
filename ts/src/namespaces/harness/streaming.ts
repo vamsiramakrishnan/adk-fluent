@@ -127,7 +127,8 @@ export class StreamingBash {
             resolveNext = resolve;
           });
         }
-        const item = queue.shift()!;
+        const item = queue.shift();
+        if (!item) continue;
         if (item.kind === "end") {
           if (item.value) {
             if (opts.onOutput) opts.onOutput(item.value);

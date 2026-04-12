@@ -11,7 +11,8 @@ warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated",
 warnings.filterwarnings("ignore", message=".*_Opt.*tuple interface.*deprecated", category=PendingDeprecationWarning)
 
 # ---------- Version: auto-read from _version.py (single source of truth) ----------
-_version_file = Path(__file__).resolve().parent.parent / "src" / "adk_fluent" / "_version.py"
+# After the monorepo restructure the package source lives under python/src/.
+_version_file = Path(__file__).resolve().parent.parent / "python" / "src" / "adk_fluent" / "_version.py"
 _version_match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', _version_file.read_text())
 _auto_version = _version_match.group(1) if _version_match else "0.0.0"
 
