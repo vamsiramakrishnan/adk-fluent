@@ -8,13 +8,11 @@ workspace tool factories.
 from __future__ import annotations
 
 import os
-import tempfile
 
 import pytest
 
 from adk_fluent import (
     FsBackend,
-    FsEntry,
     FsStat,
     H,
     LocalBackend,
@@ -24,7 +22,6 @@ from adk_fluent import (
     SandboxViolation,
     workspace_tools_with_backend,
 )
-
 
 # ======================================================================
 # Protocol

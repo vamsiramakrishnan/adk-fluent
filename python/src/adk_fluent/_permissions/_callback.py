@@ -21,9 +21,9 @@ directly at the App layer.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from adk_fluent._permissions._decision import PermissionDecision
 from adk_fluent._permissions._memory import ApprovalMemory
 from adk_fluent._permissions._policy import PermissionPolicy
 

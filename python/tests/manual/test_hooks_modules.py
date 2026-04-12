@@ -21,6 +21,7 @@ import pytest
 from adk_fluent import H
 from adk_fluent._hooks import (
     ALL_EVENTS,
+    SYSTEM_MESSAGE_STATE_KEY,
     HookAction,
     HookContext,
     HookDecision,
@@ -29,7 +30,6 @@ from adk_fluent._hooks import (
     HookMatcher,
     HookPlugin,
     HookRegistry,
-    SYSTEM_MESSAGE_STATE_KEY,
     SystemMessageChannel,
 )
 from adk_fluent._hooks._plugin import HookAsk

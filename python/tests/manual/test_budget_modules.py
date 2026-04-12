@@ -12,12 +12,12 @@ This module tests the Phase 5 additions:
 from __future__ import annotations
 
 import asyncio
+from dataclasses import FrozenInstanceError
 from types import SimpleNamespace
 
 import pytest
 
 from adk_fluent import BudgetMonitor, BudgetPlugin, BudgetPolicy, H, Threshold
-
 
 # ======================================================================
 # Threshold (frozen)
@@ -38,7 +38,7 @@ class TestThreshold:
 
     def test_is_frozen(self):
         t = Threshold(percent=0.5, callback=lambda m: None)
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             t.percent = 0.9  # type: ignore[misc]
 
     def test_percent_out_of_range_rejected(self):
@@ -60,7 +60,7 @@ class TestBudgetPolicy:
 
     def test_policy_is_frozen(self):
         p = BudgetPolicy(max_tokens=10_000)
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             p.max_tokens = 20_000  # type: ignore[misc]
 
     def test_rejects_non_positive_budget(self):

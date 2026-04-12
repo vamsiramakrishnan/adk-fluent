@@ -58,6 +58,7 @@ class SessionPlugin(BasePlugin):
     async def after_agent_callback(
         self,
         *,
+        agent: Any = None,
         callback_context: Any,
     ) -> Any:
         if not self._auto_fork:

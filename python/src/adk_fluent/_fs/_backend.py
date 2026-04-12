@@ -9,8 +9,9 @@ protocol.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Iterator, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 __all__ = ["FsBackend", "FsEntry", "FsStat"]
 
@@ -46,9 +47,11 @@ class FsBackend(Protocol):
 
     def exists(self, path: str) -> bool:
         """Return True if ``path`` exists under this backend."""
+        ...
 
     def stat(self, path: str) -> FsStat:
         """Return an :class:`FsStat` for ``path``. Raise FileNotFoundError if missing."""
+        ...
 
     # ------------------------------------------------------------------
     # Read
@@ -56,9 +59,11 @@ class FsBackend(Protocol):
 
     def read_text(self, path: str, *, encoding: str = "utf-8") -> str:
         """Read ``path`` as text. Raise FileNotFoundError if missing."""
+        ...
 
     def read_bytes(self, path: str) -> bytes:
         """Read ``path`` as bytes. Raise FileNotFoundError if missing."""
+        ...
 
     # ------------------------------------------------------------------
     # Write
@@ -66,15 +71,19 @@ class FsBackend(Protocol):
 
     def write_text(self, path: str, content: str, *, encoding: str = "utf-8") -> None:
         """Write text to ``path``, creating parent directories."""
+        ...
 
     def write_bytes(self, path: str, content: bytes) -> None:
         """Write bytes to ``path``, creating parent directories."""
+        ...
 
     def delete(self, path: str) -> None:
         """Delete ``path``. Raise FileNotFoundError if missing."""
+        ...
 
     def mkdir(self, path: str, *, parents: bool = True, exist_ok: bool = True) -> None:
         """Create a directory at ``path``."""
+        ...
 
     # ------------------------------------------------------------------
     # Directory traversal
@@ -82,9 +91,12 @@ class FsBackend(Protocol):
 
     def list_dir(self, path: str) -> list[FsEntry]:
         """List the contents of ``path`` one level deep."""
+        ...
 
     def iter_files(self, root: str) -> Iterator[str]:
         """Yield every file path under ``root`` recursively."""
+        ...
 
     def glob(self, pattern: str, *, root: str | None = None) -> list[str]:
         """Return paths under ``root`` matching the glob ``pattern``."""
+        ...

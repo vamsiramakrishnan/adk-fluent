@@ -39,25 +39,30 @@ split into focused modules:
 # Events
 # Artifacts
 # Agent self-management tools (TodoStore, AskUser, Worktree)
+# Budget monitor (lives in adk_fluent._budget, re-exported here)
+from adk_fluent._budget import BudgetMonitor, BudgetPlugin, BudgetPolicy, Threshold
+
+# Compression (lives in adk_fluent._compression, re-exported here)
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
+
+# Filesystem backends (adk_fluent._fs)
+from adk_fluent._fs import (
+    FsBackend,
+    FsEntry,
+    FsStat,
+    LocalBackend,
+    MemoryBackend,
+    SandboxedBackend,
+    SandboxViolation,
+    workspace_tools_with_backend,
+)
 from adk_fluent._harness._agent_tools import (
     TodoItem,
     TodoStore,
     WorktreeManager,
     make_ask_user_tool,
 )
-# Plan mode (lives in adk_fluent._plan_mode, re-exported here)
-from adk_fluent._plan_mode import (
-    MUTATING_TOOLS,
-    PlanMode,
-    PlanModePlugin,
-    PlanModePolicy,
-    PlanState,
-    plan_mode_tools,
-)
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
-
-# Budget monitor (lives in adk_fluent._budget, re-exported here)
-from adk_fluent._budget import BudgetMonitor, BudgetPlugin, BudgetPolicy, Threshold
 
 # Polyglot code execution
 from adk_fluent._harness._code_executor import CodeExecutor, CodeRunResult
@@ -67,9 +72,6 @@ from adk_fluent._harness._coding_agent import CodingAgentBundle, coding_agent
 
 # Commands (slash commands)
 from adk_fluent._harness._commands import CommandRegistry, CommandSpec
-
-# Compression (lives in adk_fluent._compression, re-exported here)
-from adk_fluent._compression import CompressionStrategy, ContextCompressor
 
 # Config
 from adk_fluent._harness._config import HarnessConfig
@@ -106,9 +108,6 @@ from adk_fluent._harness._events import (
     UsageUpdate,
 )
 
-# Fork (now lives in adk_fluent._session, re-exported here)
-from adk_fluent._session import Branch, ForkManager
-
 # Git
 from adk_fluent._harness._git import GitCheckpointer
 
@@ -117,19 +116,6 @@ from adk_fluent._harness._git_tools import git_tools
 
 # Gitignore
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-
-# Hooks — unified foundation lives in adk_fluent._hooks
-from adk_fluent._hooks import (
-    HookAction,
-    HookContext,
-    HookDecision,
-    HookEntry,
-    HookEvent,
-    HookMatcher,
-    HookPlugin,
-    HookRegistry,
-    SystemMessageChannel,
-)
 
 # Interrupt
 from adk_fluent._harness._interrupt import (
@@ -165,20 +151,6 @@ from adk_fluent._harness._notebook import (
     notebook_tools,
 )
 
-# Permissions (adk_fluent._permissions — decision-based layer with modes)
-from adk_fluent._permissions import (
-    ALL_MODES,
-    ApprovalMemory,
-    DEFAULT_MUTATING_TOOLS,
-    DEFAULT_READ_ONLY_TOOLS,
-    PermissionBehavior,
-    PermissionDecision,
-    PermissionHandler,
-    PermissionMode,
-    PermissionPlugin,
-    PermissionPolicy,
-)
-
 # Processes
 from adk_fluent._harness._processes import ProcessRegistry, process_tools
 
@@ -188,18 +160,6 @@ from adk_fluent._harness._renderer import JsonRenderer, PlainRenderer, RichRende
 # REPL
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 
-# Filesystem backends (adk_fluent._fs)
-from adk_fluent._fs import (
-    FsBackend,
-    FsEntry,
-    FsStat,
-    LocalBackend,
-    MemoryBackend,
-    SandboxViolation,
-    SandboxedBackend,
-    workspace_tools_with_backend,
-)
-
 # Sandbox
 from adk_fluent._harness._sandbox import SandboxPolicy
 
@@ -208,14 +168,6 @@ from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
 
 # Streaming
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
-
-# Session tape + store (now lives in adk_fluent._session, re-exported here)
-from adk_fluent._session import (
-    SessionPlugin,
-    SessionSnapshot,
-    SessionStore,
-    SessionTape,
-)
 
 # Task ledger
 from adk_fluent._harness._task_ledger import TaskLedger, TaskState
@@ -238,6 +190,57 @@ from adk_fluent._harness._tools import (
     workspace_tools,
 )
 
+# Web tools
+from adk_fluent._harness._web import make_web_fetch, web_tools
+
+# Hooks — unified foundation lives in adk_fluent._hooks
+from adk_fluent._hooks import (
+    HookAction,
+    HookContext,
+    HookDecision,
+    HookEntry,
+    HookEvent,
+    HookMatcher,
+    HookPlugin,
+    HookRegistry,
+    SystemMessageChannel,
+)
+
+# Permissions (adk_fluent._permissions — decision-based layer with modes)
+from adk_fluent._permissions import (
+    ALL_MODES,
+    DEFAULT_MUTATING_TOOLS,
+    DEFAULT_READ_ONLY_TOOLS,
+    ApprovalMemory,
+    PermissionBehavior,
+    PermissionDecision,
+    PermissionHandler,
+    PermissionMode,
+    PermissionPlugin,
+    PermissionPolicy,
+)
+
+# Plan mode (lives in adk_fluent._plan_mode, re-exported here)
+from adk_fluent._plan_mode import (
+    MUTATING_TOOLS,
+    PlanMode,
+    PlanModePlugin,
+    PlanModePolicy,
+    PlanState,
+    plan_mode_tools,
+)
+
+# Fork (now lives in adk_fluent._session, re-exported here)
+# Session tape + store (now lives in adk_fluent._session, re-exported here)
+from adk_fluent._session import (
+    Branch,
+    ForkManager,
+    SessionPlugin,
+    SessionSnapshot,
+    SessionStore,
+    SessionTape,
+)
+
 # Usage tracking (lives in adk_fluent._usage, re-exported here)
 from adk_fluent._usage import (
     AgentUsage,
@@ -247,9 +250,6 @@ from adk_fluent._usage import (
     UsagePlugin,
     UsageTracker,
 )
-
-# Web tools
-from adk_fluent._harness._web import make_web_fetch, web_tools
 
 # Backward-compatible aliases for old private names
 _make_read_file = make_read_file

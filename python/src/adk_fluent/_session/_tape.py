@@ -54,7 +54,7 @@ class SessionTape:
         self._events: deque[dict[str, Any]] = deque(maxlen=max_events if max_events > 0 else None)
         self._start_time = time.monotonic()
 
-    def record(self, event: "HarnessEvent") -> None:
+    def record(self, event: HarnessEvent) -> None:
         """Record a single event. Use as ``dispatcher.subscribe(tape.record)``.
 
         Args:

@@ -38,21 +38,23 @@ Two entry kinds are supported:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import inspect
 import os
 import shlex
 import subprocess
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable, Union
+from typing import Any
 
 from adk_fluent._hooks._decision import HookDecision
-from adk_fluent._hooks._events import ALL_EVENTS, HookContext
+from adk_fluent._hooks._events import HookContext
 from adk_fluent._hooks._matcher import HookMatcher
 
 __all__ = ["HookEntry", "HookRegistry", "HookCallable"]
 
 
-HookCallable = Callable[[HookContext], Union[HookDecision, Awaitable[HookDecision], None]]
+HookCallable = Callable[[HookContext], HookDecision | Awaitable[HookDecision] | None]
 """A hook callable. Must accept a :class:`HookContext` and return a
 :class:`HookDecision`. Sync and async both supported. Returning ``None`` is
 treated as :meth:`HookDecision.allow`."""
@@ -328,7 +330,7 @@ class HookRegistry:
             asyncio.create_task(_execute())
         except RuntimeError:
             # No running loop — fall back to blocking subprocess.
-            try:
+            with contextlib.suppress(Exception):
                 subprocess.run(
                     command,
                     shell=True,
@@ -337,8 +339,6 @@ class HookRegistry:
                     timeout=entry.timeout,
                     capture_output=True,
                 )
-            except Exception:
-                pass
         return HookDecision.allow()
 
 
@@ -381,14 +381,14 @@ def _render_shell_command(template: str, ctx: HookContext) -> str:
     # {tool_input[key]} dotted access
     import re
 
-    def _tool_input_sub(match: "re.Match[str]") -> str:
+    def _tool_input_sub(match: re.Match[str]) -> str:
         key = match.group(1)
         return shlex.quote(str(tool_input.get(key, "")))
 
     out = re.sub(r"\{tool_input\[([^\]]+)\]\}", _tool_input_sub, out)
 
     # Plain {key} substitution with shell quoting
-    def _plain_sub(match: "re.Match[str]") -> str:
+    def _plain_sub(match: re.Match[str]) -> str:
         key = match.group(1)
         return shlex.quote(fields.get(key, ""))
 

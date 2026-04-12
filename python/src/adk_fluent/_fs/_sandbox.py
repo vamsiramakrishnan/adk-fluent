@@ -9,7 +9,8 @@ keeps the underlying backend unaware of sandboxing.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterator
+from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
 from adk_fluent._fs._backend import FsBackend, FsEntry, FsStat
 

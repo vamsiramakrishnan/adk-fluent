@@ -9,15 +9,13 @@ callbacks), and SessionPlugin (after_agent auto-fork).
 from __future__ import annotations
 
 import json
-import tempfile
-from dataclasses import dataclass
+from dataclasses import FrozenInstanceError, dataclass
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 from adk_fluent import (
-    Branch,
     ForkManager,
     H,
     SessionPlugin,
@@ -171,7 +169,7 @@ class TestSessionSnapshot:
 
     def test_snapshot_is_frozen(self):
         snap = SessionSnapshot()
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             snap.version = 2  # type: ignore[misc]
 
     def test_to_dict_deep_copies_events(self):

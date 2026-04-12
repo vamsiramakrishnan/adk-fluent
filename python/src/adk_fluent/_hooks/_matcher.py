@@ -17,8 +17,9 @@ from __future__ import annotations
 
 import fnmatch
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from adk_fluent._hooks._events import ALL_EVENTS, HookContext
 

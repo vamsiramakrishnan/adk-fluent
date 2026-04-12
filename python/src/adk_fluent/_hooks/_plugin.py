@@ -27,10 +27,11 @@ for transient out-of-band instructions.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+import contextlib
+from typing import Any
 
-from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.models.llm_response import LlmResponse
+from google.adk.plugins.base_plugin import BasePlugin
 from google.genai import types as genai_types
 
 from adk_fluent._hooks._channel import SystemMessageChannel
@@ -154,7 +155,7 @@ class HookPlugin(BasePlugin):
         tool: Any,
         tool_args: dict[str, Any],
         tool_context: Any,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         ctx = self._tool_ctx(HookEvent.PRE_TOOL_USE, tool, tool_args, tool_context)
         decision = await self._registry.dispatch(ctx)
         self._drain_injects(decision, _state_from_tool_context(tool_context))
@@ -167,7 +168,7 @@ class HookPlugin(BasePlugin):
         tool_args: dict[str, Any],
         tool_context: Any,
         result: dict,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         ctx = self._tool_ctx(HookEvent.POST_TOOL_USE, tool, tool_args, tool_context)
         ctx.tool_output = result
         decision = await self._registry.dispatch(ctx)
@@ -181,7 +182,7 @@ class HookPlugin(BasePlugin):
         tool_args: dict[str, Any],
         tool_context: Any,
         error: Exception,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         ctx = self._tool_ctx(HookEvent.TOOL_ERROR, tool, tool_args, tool_context)
         ctx.error = error
         decision = await self._registry.dispatch(ctx)
@@ -197,7 +198,7 @@ class HookPlugin(BasePlugin):
         *,
         callback_context: Any,
         llm_request: Any,
-    ) -> Optional[LlmResponse]:
+    ) -> LlmResponse | None:
         state = _state_from_callback_context(callback_context)
         # Drain any pending system messages into the outgoing request BEFORE
         # dispatching user hooks — guarantees earlier-turn injects attach to
@@ -214,7 +215,7 @@ class HookPlugin(BasePlugin):
         *,
         callback_context: Any,
         llm_response: LlmResponse,
-    ) -> Optional[LlmResponse]:
+    ) -> LlmResponse | None:
         ctx = self._model_ctx(
             HookEvent.POST_MODEL, callback_context, llm_response=llm_response
         )
@@ -228,7 +229,7 @@ class HookPlugin(BasePlugin):
         callback_context: Any,
         llm_request: Any,
         error: Exception,
-    ) -> Optional[LlmResponse]:
+    ) -> LlmResponse | None:
         ctx = self._model_ctx(
             HookEvent.MODEL_ERROR, callback_context, llm_request=llm_request
         )
@@ -246,7 +247,7 @@ class HookPlugin(BasePlugin):
         *,
         agent: Any,
         callback_context: Any,
-    ) -> Optional[genai_types.Content]:
+    ) -> genai_types.Content | None:
         ctx = self._agent_ctx(HookEvent.PRE_AGENT, agent, callback_context)
         decision = await self._registry.dispatch(ctx)
         self._drain_injects(decision, _state_from_callback_context(callback_context))
@@ -257,7 +258,7 @@ class HookPlugin(BasePlugin):
         *,
         agent: Any,
         callback_context: Any,
-    ) -> Optional[genai_types.Content]:
+    ) -> genai_types.Content | None:
         ctx = self._agent_ctx(HookEvent.POST_AGENT, agent, callback_context)
         decision = await self._registry.dispatch(ctx)
         self._drain_injects(decision, _state_from_callback_context(callback_context))
@@ -272,7 +273,7 @@ class HookPlugin(BasePlugin):
         *,
         invocation_context: Any,
         user_message: Any,
-    ) -> Optional[genai_types.Content]:
+    ) -> genai_types.Content | None:
         ctx = self._session_ctx(HookEvent.USER_PROMPT_SUBMIT, invocation_context)
         ctx.user_message = _content_to_text(user_message)
         decision = await self._registry.dispatch(ctx)
@@ -283,7 +284,7 @@ class HookPlugin(BasePlugin):
         self,
         *,
         invocation_context: Any,
-    ) -> Optional[genai_types.Content]:
+    ) -> genai_types.Content | None:
         ctx = self._session_ctx(HookEvent.SESSION_START, invocation_context)
         decision = await self._registry.dispatch(ctx)
         self._drain_injects(decision, _state_from_invocation_context(invocation_context))
@@ -298,7 +299,7 @@ class HookPlugin(BasePlugin):
         *,
         invocation_context: Any,
         event: Any,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         ctx = self._session_ctx(HookEvent.ON_EVENT, invocation_context)
         ctx.extra["event"] = event
         decision = await self._registry.dispatch(ctx)
@@ -313,7 +314,7 @@ class HookPlugin(BasePlugin):
 # ---------------------------------------------------------------------------
 
 
-def _tool_decision_to_adk(decision: HookDecision) -> Optional[dict]:
+def _tool_decision_to_adk(decision: HookDecision) -> dict | None:
     if decision.action in (HookAction.ALLOW, HookAction.MODIFY, HookAction.INJECT):
         return None
     if decision.action == HookAction.DENY:
@@ -328,7 +329,7 @@ def _tool_decision_to_adk(decision: HookDecision) -> Optional[dict]:
     return None
 
 
-def _model_decision_to_adk(decision: HookDecision) -> Optional[LlmResponse]:
+def _model_decision_to_adk(decision: HookDecision) -> LlmResponse | None:
     if decision.action in (HookAction.ALLOW, HookAction.MODIFY, HookAction.INJECT):
         return None
     if decision.action == HookAction.ASK:
@@ -348,7 +349,7 @@ def _model_decision_to_adk(decision: HookDecision) -> Optional[LlmResponse]:
     return None
 
 
-def _content_decision_to_adk(decision: HookDecision) -> Optional[genai_types.Content]:
+def _content_decision_to_adk(decision: HookDecision) -> genai_types.Content | None:
     if decision.action in (HookAction.ALLOW, HookAction.INJECT, HookAction.MODIFY):
         return None
     if decision.action == HookAction.ASK:
@@ -420,7 +421,5 @@ def _inject_system_messages_into_request(state: Any, llm_request: Any) -> None:
         parts=[genai_types.Part(text=prefix_text)],
     )
     existing = list(getattr(llm_request, "contents", []) or [])
-    try:
+    with contextlib.suppress(Exception):  # pragma: no cover
         llm_request.contents = [injected, *existing]
-    except Exception:  # pragma: no cover
-        pass

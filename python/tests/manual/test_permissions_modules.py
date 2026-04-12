@@ -10,6 +10,7 @@ building blocks in isolation.
 from __future__ import annotations
 
 import asyncio
+from dataclasses import FrozenInstanceError
 from types import SimpleNamespace
 
 import pytest
@@ -26,7 +27,6 @@ from adk_fluent._permissions import (
     PermissionPolicy,
 )
 from adk_fluent._permissions._callback import make_permission_callback
-
 
 # ======================================================================
 # PermissionDecision
@@ -65,7 +65,7 @@ class TestPermissionDecision:
 
     def test_is_frozen(self):
         d = PermissionDecision.allow()
-        with pytest.raises(Exception):  # FrozenInstanceError subclass of AttributeError
+        with pytest.raises(FrozenInstanceError):
             d.behavior = "mutated"  # type: ignore[misc]
 
 
@@ -76,7 +76,7 @@ class TestPermissionDecision:
 
 class TestPermissionMode:
     def test_all_modes_populated(self):
-        assert ALL_MODES == frozenset(
+        assert frozenset(
             {
                 PermissionMode.DEFAULT,
                 PermissionMode.ACCEPT_EDITS,
@@ -84,7 +84,7 @@ class TestPermissionMode:
                 PermissionMode.BYPASS,
                 PermissionMode.DONT_ASK,
             }
-        )
+        ) == ALL_MODES
 
     def test_unknown_mode_raises(self):
         with pytest.raises(ValueError, match="Unknown permission mode"):

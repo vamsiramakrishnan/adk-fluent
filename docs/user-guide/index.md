@@ -113,6 +113,12 @@ Build Claude-Code-class autonomous agents. Five composable layers: intelligence,
 | [Harness](harness.md) | The `H` namespace, 5-layer architecture, EventBus, permissions, sandbox, budgets, REPL |
 | [Hooks](hooks.md) | `H.hooks()`, `HookDecision`, `HookEvent`, `HookMatcher`, session-scoped intervention at 12 ADK lifecycle points |
 | [Permissions](permissions.md) | `PermissionPolicy`, `PermissionDecision`, five modes (default/accept_edits/plan/bypass/dont_ask), `PermissionPlugin`, approval memory |
+| [Plan Mode](plan-mode.md) | Plan/execute latch, `PlanMode`, `PlanModePolicy`, `enter_plan_mode` / `exit_plan_mode` tools, read-only planning phase |
+| [Session](session.md) | `SessionStore`, `SessionSnapshot`, auto-fork / auto-restore, tape replay, persistence |
+| [Subagents](subagents.md) | `SubagentSpec`, `SubagentRunner`, dynamic spawner, `make_task_tool`, isolated child contexts |
+| [Compression](compression.md) | `ContextCompressor`, `CompressionStrategy`, `pre_compact` hooks, keep-recent / drop-old / summarize |
+| [Budget](budget.md) | `BudgetPolicy`, `BudgetMonitor`, `BudgetPlugin`, threshold callbacks, token / cost limits |
+| [Usage](usage.md) | `UsageTracker`, `CostTable`, `TurnUsage`, per-agent aggregation, cost-per-model accounting |
 
 ## Infrastructure
 
@@ -188,6 +194,14 @@ a2a
 a2ui
 skills
 harness
+hooks
+permissions
+plan-mode
+session
+subagents
+compression
+budget
+usage
 error-reference
 adk-samples/index
 ```

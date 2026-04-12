@@ -7,6 +7,7 @@ namespace factories (plan_mode, plan_mode_policy, plan_mode_plugin).
 
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
 from types import SimpleNamespace
 
 import pytest
@@ -17,11 +18,9 @@ from adk_fluent._harness import (
     PlanMode,
     PlanModePlugin,
     PlanModePolicy,
-    PlanState,
     plan_mode_tools,
 )
 from adk_fluent._permissions import (
-    PermissionBehavior,
     PermissionMode,
     PermissionPolicy,
 )
@@ -202,7 +201,7 @@ class TestPlanModePolicy:
         base = PermissionPolicy()
         latch = PlanMode()
         policy = PlanModePolicy(base=base, latch=latch)
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             policy.base = PermissionPolicy()  # type: ignore[misc]
 
 

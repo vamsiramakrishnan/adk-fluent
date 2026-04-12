@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
 from adk_fluent import (
@@ -13,7 +15,6 @@ from adk_fluent import (
     SubagentSpec,
     make_task_tool,
 )
-
 
 # ======================================================================
 # SubagentSpec
@@ -37,7 +38,7 @@ class TestSubagentSpec:
 
     def test_spec_is_frozen(self):
         spec = SubagentSpec(role="r", instruction="i")
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             spec.role = "other"  # type: ignore[misc]
 
     def test_rejects_empty_role(self):

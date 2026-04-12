@@ -33,6 +33,7 @@ the new state string and the plan text.
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Callable
 from typing import Literal
 
@@ -138,10 +139,8 @@ class PlanMode:
         self._observers.append(callback)
 
         def _unsubscribe() -> None:
-            try:
+            with contextlib.suppress(ValueError):
                 self._observers.remove(callback)
-            except ValueError:
-                pass
 
         return _unsubscribe
 

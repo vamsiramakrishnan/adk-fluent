@@ -37,11 +37,12 @@ fires its hooks.
 from __future__ import annotations
 
 import inspect
-from typing import Any, Awaitable, Callable, Optional, Union
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from google.adk.plugins.base_plugin import BasePlugin
 
-from adk_fluent._permissions._decision import PermissionBehavior, PermissionDecision
+from adk_fluent._permissions._decision import PermissionDecision
 from adk_fluent._permissions._memory import ApprovalMemory
 from adk_fluent._permissions._policy import PermissionPolicy
 
@@ -50,7 +51,7 @@ __all__ = ["PermissionPlugin", "PermissionHandler"]
 
 PermissionHandler = Callable[
     [str, dict, PermissionDecision],
-    Union[bool, Awaitable[bool]],
+    bool | Awaitable[bool],
 ]
 """Signature of an interactive permission handler.
 
@@ -101,7 +102,7 @@ class PermissionPlugin(BasePlugin):
         tool: Any,
         tool_args: dict[str, Any],
         tool_context: Any,
-    ) -> Optional[dict]:
+    ) -> dict | None:
         tool_name = getattr(tool, "name", str(tool))
         decision = self._policy.check(tool_name, tool_args)
 

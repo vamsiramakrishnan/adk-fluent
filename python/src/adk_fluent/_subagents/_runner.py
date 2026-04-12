@@ -18,7 +18,8 @@ Two public types:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Protocol, runtime_checkable
+from collections.abc import Callable
+from typing import Any, Protocol, runtime_checkable
 
 from adk_fluent._subagents._result import SubagentResult
 from adk_fluent._subagents._spec import SubagentSpec
@@ -48,6 +49,7 @@ class SubagentRunner(Protocol):
         context: dict[str, Any] | None = None,
     ) -> SubagentResult:
         """Execute ``spec`` with ``prompt`` and return a :class:`SubagentResult`."""
+        ...
 
 
 class FakeSubagentRunner:

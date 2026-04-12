@@ -118,7 +118,7 @@ class ContextCompressor:
         hook_result = self._run_pre_compact_sync(messages)
         if hook_result is _PreCompactSkip:
             return messages
-        if hook_result is not None:
+        if isinstance(hook_result, list):
             return hook_result
 
         return self._apply_strategy(messages)
@@ -151,7 +151,7 @@ class ContextCompressor:
         hook_result = await self._run_pre_compact_async(messages)
         if hook_result is _PreCompactSkip:
             return messages
-        if hook_result is not None:
+        if isinstance(hook_result, list):
             return hook_result
 
         strategy = self.strategy
@@ -212,6 +212,9 @@ class ContextCompressor:
     ) -> list[dict[str, Any]] | None | type:
         from adk_fluent._hooks._events import HookContext, HookEvent
 
+        registry = self._hook_registry
+        if registry is None:
+            return None
         ctx = HookContext(
             event=HookEvent.PRE_COMPACT,
             extra={
@@ -220,7 +223,7 @@ class ContextCompressor:
                 "strategy": self.strategy.method,
             },
         )
-        decision = await self._hook_registry.dispatch(ctx)
+        decision = await registry.dispatch(ctx)
         if decision.is_allow:
             return None
         if decision.action == "deny":

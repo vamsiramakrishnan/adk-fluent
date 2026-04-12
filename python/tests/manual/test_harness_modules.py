@@ -20,8 +20,8 @@ import tempfile
 import pytest
 
 from adk_fluent import H
-from adk_fluent._harness._artifacts import ArtifactStore
 from adk_fluent._compression import CompressionStrategy, ContextCompressor
+from adk_fluent._harness._artifacts import ArtifactStore
 from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._events import (
     CompressionTriggered,
@@ -33,10 +33,10 @@ from adk_fluent._harness._events import (
 )
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash
+from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
 
 # ======================================================================
 # Gitignore-aware filtering

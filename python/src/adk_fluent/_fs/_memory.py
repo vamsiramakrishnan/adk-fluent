@@ -9,10 +9,9 @@ touching the real disk at all.
 from __future__ import annotations
 
 import fnmatch
-import os
 import posixpath
 import time
-from typing import Iterator
+from collections.abc import Iterator
 
 from adk_fluent._fs._backend import FsEntry, FsStat
 
@@ -215,10 +214,7 @@ def _matches_glob(pattern: str, path: str) -> bool:
                 # Zero-or-more components.
                 if pi + 1 == len(pat_parts):
                     return True
-                for k in range(xi, len(path_parts) + 1):
-                    if match_here(pi + 1, k):
-                        return True
-                return False
+                return any(match_here(pi + 1, k) for k in range(xi, len(path_parts) + 1))
             if xi >= len(path_parts):
                 return False
             if not fnmatch.fnmatchcase(path_parts[xi], part):

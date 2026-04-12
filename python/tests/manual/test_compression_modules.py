@@ -10,6 +10,7 @@ Covers:
 from __future__ import annotations
 
 import asyncio
+from dataclasses import FrozenInstanceError
 
 import pytest
 
@@ -17,7 +18,6 @@ from adk_fluent import CompressionStrategy, ContextCompressor
 from adk_fluent._hooks._decision import HookDecision
 from adk_fluent._hooks._events import HookEvent
 from adk_fluent._hooks._registry import HookRegistry
-
 
 # ======================================================================
 # CompressionStrategy
@@ -42,7 +42,7 @@ class TestCompressionStrategy:
 
     def test_strategy_is_frozen(self):
         s = CompressionStrategy.keep_recent()
-        with pytest.raises(Exception):
+        with pytest.raises(FrozenInstanceError):
             s.method = "drop_old"  # type: ignore[misc]
 
 

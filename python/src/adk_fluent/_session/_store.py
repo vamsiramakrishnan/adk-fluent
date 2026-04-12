@@ -74,7 +74,7 @@ class SessionStore:
     # Convenience passthroughs
     # ------------------------------------------------------------------
 
-    def record_event(self, event: "HarnessEvent") -> None:
+    def record_event(self, event: HarnessEvent) -> None:
         """Append an event to the tape.
 
         Pass this directly to ``EventDispatcher.subscribe``.

@@ -46,7 +46,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from adk_fluent._permissions._decision import PermissionBehavior, PermissionDecision
+from adk_fluent._permissions._decision import PermissionDecision
 from adk_fluent._permissions._mode import ALL_MODES, PermissionMode
 
 __all__ = ["PermissionPolicy", "DEFAULT_MUTATING_TOOLS", "DEFAULT_READ_ONLY_TOOLS"]
