@@ -1,24 +1,25 @@
-"""Token budget lifecycle — observe, trigger, delegate.
+"""BudgetMonitor — cumulative token tracking with threshold triggers.
 
-``C.budget()`` and ``C.rolling()`` compress context at instruction
-time — they shape what the LLM sees on each turn. But they can't
-make *session-level* decisions: "we're at 80% capacity, switch from
-window(10) to window(3)" or "we're at 95%, summarize everything."
+``C.budget()`` and ``C.rolling()`` compress context at instruction time.
+They shape what the LLM sees on each turn, but they cannot make
+*session-level* decisions like "we're at 80% capacity, switch from
+``window(10)`` to ``window(3)``" or "we're at 95%, summarise everything."
 
-``BudgetMonitor`` fills this gap. It tracks cumulative token usage
-across turns and fires callbacks when configurable thresholds are
-crossed. It does NOT implement compression itself — it delegates
-to whatever handler the harness builder wires up.
+``BudgetMonitor`` fills that gap. It tracks cumulative token usage across
+turns and fires callbacks when configurable thresholds are crossed. It
+does **not** implement compression itself — it delegates to whatever
+handler the caller wires up.
 
 Design decisions:
-    - **Separate monitoring from compression** — the monitor observes
-      tokens; the handler decides what to do. This prevents the
-      ContextCompressor's mistake of reimplementing C.window() logic.
-    - **Threshold callbacks** — multiple thresholds with different
-      actions (warn at 80%, compress at 95%).
-    - **Composable** — works with EventBus (emits CompressionTriggered),
-      with C.* transforms (handler can swap context strategy), and with
-      ContextCompressor (as a replacement for should_compress()).
+
+- **Separate monitoring from compression** — the monitor observes tokens;
+  the handler decides what to do. This keeps policies testable without
+  spinning up a compressor.
+- **Threshold callbacks** — multiple thresholds with different actions
+  (warn at 80%, compress at 95%).
+- **Composable** — works with the event bus (emits
+  ``CompressionTriggered``) and with ``C.*`` transforms (handler swaps
+  the context strategy).
 
 Usage::
 
@@ -35,34 +36,19 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Any
 
-__all__ = ["BudgetMonitor", "Threshold"]
+from adk_fluent._budget._threshold import Threshold
 
-
-@dataclass(slots=True)
-class Threshold:
-    """A budget threshold with callback.
-
-    Attributes:
-        percent: Utilization percentage (0.0–1.0) to trigger at.
-        callback: Called with the BudgetMonitor when threshold is crossed.
-        fired: Whether this threshold has already fired this cycle.
-        recurring: If True, fires every time (not just first crossing).
-    """
-
-    percent: float
-    callback: Callable[..., None]
-    fired: bool = False
-    recurring: bool = False
+__all__ = ["BudgetMonitor"]
 
 
 class BudgetMonitor:
     """Token budget lifecycle monitor.
 
-    Tracks cumulative token usage and fires threshold callbacks.
-    Does not implement compression — delegates to handlers.
+    Tracks cumulative token usage across turns and fires threshold
+    callbacks. The monitor does not implement compression — it delegates
+    to handlers.
 
     Args:
         max_tokens: Total token budget for the session.
@@ -73,6 +59,7 @@ class BudgetMonitor:
         self._current_tokens = 0
         self._turn_count = 0
         self._thresholds: list[Threshold] = []
+        self._fired: set[int] = set()
         self._event_bus: Any = None
         self._history: list[tuple[int, int]] = []  # (input, output) per turn
 
@@ -90,34 +77,42 @@ class BudgetMonitor:
         """Register a threshold callback.
 
         Args:
-            percent: Utilization percentage (0.0–1.0).
+            percent: Utilisation fraction (0.0–1.0).
             callback: Called with ``(monitor)`` when threshold is crossed.
-            recurring: Fire every turn above threshold (not just once).
+            recurring: Fire on every record above threshold (not just once).
 
         Returns:
-            Self for chaining.
+            Self, for chaining.
         """
-        self._thresholds.append(
-            Threshold(
-                percent=percent,
-                callback=callback,
-                recurring=recurring,
-            )
-        )
-        # Keep sorted so they fire in order
+        self._thresholds.append(Threshold(percent=percent, callback=callback, recurring=recurring))
+        # Keep sorted so they fire in ascending order.
+        self._thresholds.sort(key=lambda t: t.percent)
+        return self
+
+    def add_threshold(self, threshold: Threshold) -> BudgetMonitor:
+        """Register a pre-built :class:`Threshold`.
+
+        Args:
+            threshold: The threshold to add.
+
+        Returns:
+            Self, for chaining.
+        """
+        self._thresholds.append(threshold)
         self._thresholds.sort(key=lambda t: t.percent)
         return self
 
     def with_bus(self, bus: Any) -> BudgetMonitor:
-        """Wire an EventBus for threshold events.
+        """Wire an ``EventBus`` for threshold events.
 
-        Emits ``CompressionTriggered`` when any threshold fires.
+        When any threshold fires the monitor emits a
+        ``CompressionTriggered`` event so subscribers can react.
 
         Args:
             bus: An EventBus instance.
 
         Returns:
-            Self for chaining.
+            Self, for chaining.
         """
         self._event_bus = bus
         return self
@@ -127,7 +122,7 @@ class BudgetMonitor:
     # -----------------------------------------------------------------
 
     def record_usage(self, input_tokens: int = 0, output_tokens: int = 0) -> None:
-        """Record token usage from a model call.
+        """Record token usage from one model call.
 
         Updates cumulative count and checks thresholds.
 
@@ -144,11 +139,11 @@ class BudgetMonitor:
     def _check_thresholds(self) -> None:
         """Fire any thresholds that have been crossed."""
         utilization = self.utilization
-        for threshold in self._thresholds:
-            if utilization >= threshold.percent and (not threshold.fired or threshold.recurring):
-                threshold.fired = True
+        for idx, threshold in enumerate(self._thresholds):
+            already_fired = idx in self._fired
+            if utilization >= threshold.percent and (not already_fired or threshold.recurring):
+                self._fired.add(idx)
 
-                # Emit event if bus is wired
                 if self._event_bus is not None:
                     from adk_fluent._harness._events import CompressionTriggered
 
@@ -159,45 +154,46 @@ class BudgetMonitor:
                         )
                     )
 
-                # Fire callback
                 with contextlib.suppress(Exception):
                     threshold.callback(self)
 
     def reset(self) -> None:
-        """Reset token count and threshold states.
+        """Reset cumulative count and threshold firing state.
 
-        Call after compression to restart the budget cycle.
+        Call after a compression pass to restart the budget cycle.
         """
         self._current_tokens = 0
         self._turn_count = 0
         self._history.clear()
-        for t in self._thresholds:
-            t.fired = False
+        self._fired.clear()
 
     def adjust(self, new_token_count: int) -> None:
-        """Adjust the current token count (e.g., after compression).
+        """Adjust the current token count (e.g. after compression).
+
+        Any thresholds whose ``percent`` is above the new utilisation
+        become re-armable.
 
         Args:
             new_token_count: New estimated token count post-compression.
         """
         self._current_tokens = new_token_count
-        # Reset thresholds that are now below the new level
         utilization = self.utilization
-        for t in self._thresholds:
-            if t.percent > utilization:
-                t.fired = False
+        for idx, threshold in enumerate(self._thresholds):
+            if threshold.percent > utilization:
+                self._fired.discard(idx)
 
     # -----------------------------------------------------------------
     # ADK callback hook
     # -----------------------------------------------------------------
 
     def after_model_hook(self) -> Callable:
-        """Create an ``after_model`` callback that tracks token usage.
+        """Return an ``after_model`` callback that records usage.
 
-        Extracts usage metadata from the LLM response and records it.
+        Extracts usage metadata from the LLM response and calls
+        :meth:`record_usage`.
 
         Returns:
-            ADK-compatible after_model callback.
+            ADK-compatible ``after_model`` callback.
         """
         monitor = self
 
@@ -227,7 +223,7 @@ class BudgetMonitor:
 
     @property
     def utilization(self) -> float:
-        """Current utilization as a fraction (0.0–1.0)."""
+        """Current utilisation as a fraction (0.0–1.0)."""
         if self._max_tokens <= 0:
             return 0.0
         return min(self._current_tokens / self._max_tokens, 1.0)
@@ -257,6 +253,15 @@ class BudgetMonitor:
             return 0
         return int(self.remaining / avg)
 
+    @property
+    def thresholds(self) -> tuple[Threshold, ...]:
+        """Return the registered thresholds in ascending percent order."""
+        return tuple(self._thresholds)
+
+    def thresholds_fired(self) -> int:
+        """Return the count of thresholds that have fired in this cycle."""
+        return len(self._fired)
+
     def summary(self) -> dict[str, Any]:
         """Return a summary of budget state."""
         return {
@@ -267,7 +272,7 @@ class BudgetMonitor:
             "avg_per_turn": round(self.avg_tokens_per_turn, 1),
             "remaining": self.remaining,
             "est_turns_remaining": self.estimated_turns_remaining,
-            "thresholds_fired": sum(1 for t in self._thresholds if t.fired),
+            "thresholds_fired": len(self._fired),
         }
 
     def __repr__(self) -> str:

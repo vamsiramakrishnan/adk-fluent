@@ -6,8 +6,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._sandbox import SandboxPolicy
+from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
 
 __all__ = ["HarnessConfig"]
 

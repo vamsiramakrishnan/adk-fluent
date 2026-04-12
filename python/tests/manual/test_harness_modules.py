@@ -20,8 +20,8 @@ import tempfile
 import pytest
 
 from adk_fluent import H
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._artifacts import ArtifactStore
-from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._events import (
     CompressionTriggered,
@@ -33,11 +33,10 @@ from adk_fluent._harness._events import (
 )
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-from adk_fluent._harness._hooks import HookRegistry
-from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash
+from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
 
 # ======================================================================
 # Gitignore-aware filtering
@@ -280,53 +279,8 @@ class TestEventDispatcher:
 # ======================================================================
 # Hook system
 # ======================================================================
-
-
-class TestHookSystem:
-    def test_hook_registration(self):
-        hooks = HookRegistry()
-        hooks.on("tool_call_start", "echo test")
-        assert "tool_call_start" in hooks.registered_events
-
-    def test_fire_sync(self):
-        hooks = HookRegistry()
-        hooks.on("test", "echo fired")
-        results = hooks.fire_sync("test")
-        assert len(results) == 1
-        assert results[0].exit_code == 0
-
-    def test_fire_with_context(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            hooks = HookRegistry(workspace=tmp)
-            hooks.on("test", "echo {tool_name}")
-            results = hooks.fire_sync("test", tool_name="bash")
-            assert results[0].exit_code == 0
-
-    def test_fire_async(self):
-        hooks = HookRegistry()
-        hooks.on("test", "echo async_fired")
-        results = asyncio.run(hooks.fire("test"))
-        assert len(results) == 1
-        assert results[0].exit_code == 0
-
-    def test_shorthand_methods(self):
-        hooks = HookRegistry()
-        hooks.on_tool_start("echo start")
-        hooks.on_tool_end("echo end")
-        hooks.on_turn("echo turn")
-        assert "tool_call_start" in hooks.registered_events
-        assert "tool_call_end" in hooks.registered_events
-        assert "turn_complete" in hooks.registered_events
-
-    def test_h_hooks_factory(self):
-        hooks = H.hooks("/tmp")
-        assert isinstance(hooks, HookRegistry)
-        assert hooks.workspace == "/tmp"
-
-    def test_hook_chaining(self):
-        hooks = H.hooks().on("a", "echo a").on("b", "echo b").on("a", "echo a2")
-        assert "a" in hooks.registered_events
-        assert "b" in hooks.registered_events
+# Moved to tests/manual/test_hooks_modules.py — the dedicated test module
+# for the adk_fluent._hooks foundation. Do not re-add hook tests here.
 
 
 # ======================================================================
@@ -701,6 +655,8 @@ class TestHNamespaceCompleteness:
             assert isinstance(cp, GitCheckpointer)
 
     def test_hooks(self):
+        from adk_fluent._hooks import HookRegistry
+
         hooks = H.hooks()
         assert isinstance(hooks, HookRegistry)
 

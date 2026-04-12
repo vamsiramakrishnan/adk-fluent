@@ -9,8 +9,9 @@ parallel exploration. This module provides state-level forking:
 - ``merge()`` combines states from multiple branches
 
 Composes with ADK's session state (``callback_context.state``),
-``.reads()``/``.writes()`` data flow, and ``SessionTape`` for
-event-level branching.
+``.reads()``/``.writes()`` data flow, and
+:class:`~adk_fluent._session._tape.SessionTape` for event-level
+branching.
 
 Usage::
 

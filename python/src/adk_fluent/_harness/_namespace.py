@@ -44,21 +44,28 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._artifacts import ArtifactStore
-from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._diff import PendingEditStore, make_apply_edit, make_diff_edit_file
 from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._error_strategy import ErrorStrategy
 from adk_fluent._harness._git import GitCheckpointer
-from adk_fluent._harness._hooks import HookRegistry
 from adk_fluent._harness._memory import ProjectMemory
 from adk_fluent._harness._multimodal import make_multimodal_read_file
-from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 from adk_fluent._harness._tools import workspace_tools
-from adk_fluent._harness._usage import UsageTracker
+from adk_fluent._hooks import HookDecision, HookMatcher, HookRegistry
+from adk_fluent._permissions import (
+    ApprovalMemory,
+    PermissionDecision,
+    PermissionHandler,
+    PermissionMode,
+    PermissionPlugin,
+    PermissionPolicy,
+)
+from adk_fluent._usage import UsageTracker
 
 __all__ = ["H"]
 
@@ -147,22 +154,62 @@ class H:
         return tools
 
     # =================================================================
-    # Permission policies
+    # Permission policies (adk_fluent._permissions)
     # =================================================================
 
     @staticmethod
+    def permissions(
+        *,
+        mode: str = PermissionMode.DEFAULT,
+        allow: list[str] | tuple[str, ...] | None = None,
+        deny: list[str] | tuple[str, ...] | None = None,
+        ask: list[str] | tuple[str, ...] | None = None,
+        allow_patterns: tuple[str, ...] = (),
+        deny_patterns: tuple[str, ...] = (),
+        ask_patterns: tuple[str, ...] = (),
+        pattern_mode: str = "glob",
+    ) -> PermissionPolicy:
+        """Build a :class:`PermissionPolicy` — the decision-based permission layer.
+
+        The canonical factory. Accepts every field of the policy and returns a
+        frozen, composable policy object.
+
+        Install via ``.harness(permissions=policy)`` or
+        ``App(...).plugin(PermissionPlugin(policy))``.
+
+        Usage::
+
+            perms = H.permissions(
+                mode=PermissionMode.ACCEPT_EDITS,
+                allow=["read_file", "list_files"],
+                deny=["shell_exec"],
+                ask=["bash"],
+            )
+        """
+        return PermissionPolicy(
+            mode=mode,
+            allow=frozenset(allow or ()),
+            deny=frozenset(deny or ()),
+            ask=frozenset(ask or ()),
+            allow_patterns=tuple(allow_patterns),
+            deny_patterns=tuple(deny_patterns),
+            ask_patterns=tuple(ask_patterns),
+            pattern_mode=pattern_mode,
+        )
+
+    @staticmethod
     def ask_before(*tool_names: str) -> PermissionPolicy:
-        """Require user approval before running these tools."""
+        """Shortcut: require user approval before running these tools."""
         return PermissionPolicy(ask=frozenset(tool_names))
 
     @staticmethod
     def auto_allow(*tool_names: str) -> PermissionPolicy:
-        """Auto-approve these tools without asking."""
+        """Shortcut: auto-approve these tools without asking."""
         return PermissionPolicy(allow=frozenset(tool_names))
 
     @staticmethod
     def deny(*tool_names: str) -> PermissionPolicy:
-        """Block these tools entirely."""
+        """Shortcut: block these tools entirely."""
         return PermissionPolicy(deny=frozenset(tool_names))
 
     @staticmethod
@@ -172,30 +219,95 @@ class H:
         Examples::
 
             H.allow_patterns("read_*", "list_*")           # glob
-            H.allow_patterns(".*_search$", mode="regex")    # regex
-
-        Args:
-            patterns: Glob or regex patterns.
-            mode: ``"glob"`` (default) or ``"regex"``.
+            H.allow_patterns(".*_search$", mode="regex")   # regex
         """
         return PermissionPolicy(allow_patterns=patterns, pattern_mode=mode)
 
     @staticmethod
     def deny_patterns(*patterns: str, mode: str = "glob") -> PermissionPolicy:
-        """Deny tools matching glob/regex patterns.
-
-        Args:
-            patterns: Glob or regex patterns.
-            mode: ``"glob"`` (default) or ``"regex"``.
-        """
+        """Deny tools matching glob/regex patterns."""
         return PermissionPolicy(deny_patterns=patterns, pattern_mode=mode)
 
     @staticmethod
-    def approval_memory() -> ApprovalMemory:
-        """Create an approval memory for persistent permission decisions.
+    def permissions_plan(
+        *,
+        allow: list[str] | tuple[str, ...] | None = None,
+    ) -> PermissionPolicy:
+        """Shortcut: return a policy in ``plan`` mode.
 
-        The memory remembers user decisions so the same tool+args
-        pattern isn't asked twice in a session::
+        In plan mode the agent may read the workspace freely but every
+        mutating tool is denied. Use as a safety net while the agent drafts
+        its approach before executing.
+        """
+        return PermissionPolicy(
+            mode=PermissionMode.PLAN,
+            allow=frozenset(allow or ()),
+        )
+
+    @staticmethod
+    def permissions_bypass() -> PermissionPolicy:
+        """Shortcut: allow every tool. Intended for trusted automation only."""
+        return PermissionPolicy(mode=PermissionMode.BYPASS)
+
+    @staticmethod
+    def permissions_accept_edits(
+        *,
+        ask: list[str] | tuple[str, ...] | None = None,
+    ) -> PermissionPolicy:
+        """Shortcut: auto-allow mutating file ops, ask for everything else.
+
+        Mirrors Claude Agent SDK's ``acceptEdits`` mode. Use for trusted
+        coding assistants where you still want a prompt before shell access.
+        """
+        return PermissionPolicy(
+            mode=PermissionMode.ACCEPT_EDITS,
+            ask=frozenset(ask or ()),
+        )
+
+    @staticmethod
+    def permissions_dont_ask(
+        *,
+        allow: list[str] | tuple[str, ...] | None = None,
+    ) -> PermissionPolicy:
+        """Shortcut: never prompt — allow the allowlist and deny everything else.
+
+        For CI or batch runners where there is no human to answer a prompt.
+        """
+        return PermissionPolicy(
+            mode=PermissionMode.DONT_ASK,
+            allow=frozenset(allow or ()),
+        )
+
+    @staticmethod
+    def permission_decision() -> type[PermissionDecision]:
+        """Return the :class:`PermissionDecision` class for use inside handlers.
+
+        Shorthand so handlers can write ``H.permission_decision().allow()``
+        without a separate import.
+        """
+        return PermissionDecision
+
+    @staticmethod
+    def permission_plugin(
+        policy: PermissionPolicy,
+        *,
+        handler: PermissionHandler | None = None,
+        memory: ApprovalMemory | None = None,
+    ) -> PermissionPlugin:
+        """Create the ADK :class:`PermissionPlugin` for ``policy``.
+
+        Usually not needed directly — ``.harness(permissions=...)`` builds
+        and installs the plugin automatically. Exposed for users who manage
+        the ADK ``App`` / ``Runner`` themselves.
+        """
+        return PermissionPlugin(policy, handler=handler, memory=memory)
+
+    @staticmethod
+    def approval_memory() -> ApprovalMemory:
+        """Create an :class:`ApprovalMemory` for persistent permission decisions.
+
+        The memory remembers user decisions so the same tool+args pattern
+        isn't asked twice in a session::
 
             memory = H.approval_memory()
             agent.harness(permissions=..., approval_memory=memory)
@@ -229,6 +341,94 @@ class H:
             allow_network=allow_network,
             read_paths=frozenset(read_paths or []),
             write_paths=frozenset(write_paths or []),
+        )
+
+    # =================================================================
+    # Filesystem backends (adk_fluent._fs)
+    # =================================================================
+
+    @staticmethod
+    def fs_local(root: str | None = None) -> Any:
+        """Return a :class:`adk_fluent._fs.LocalBackend` rooted at ``root``."""
+        from adk_fluent._fs import LocalBackend
+
+        return LocalBackend(root=root)
+
+    @staticmethod
+    def fs_memory(files: dict[str, str | bytes] | None = None) -> Any:
+        """Return a :class:`adk_fluent._fs.MemoryBackend` seeded with ``files``.
+
+        Useful for ephemeral scratch workspaces and for tests that want to
+        run workspace tools without touching the real disk.
+        """
+        from adk_fluent._fs import MemoryBackend
+
+        return MemoryBackend(files=files)
+
+    @staticmethod
+    def fs_sandboxed(backend: Any, sandbox: SandboxPolicy) -> Any:
+        """Wrap ``backend`` in a :class:`SandboxedBackend`.
+
+        The wrapper enforces ``sandbox``'s workspace scope and symlink-safe
+        path validation regardless of what the underlying backend does.
+        """
+        from adk_fluent._fs import SandboxedBackend
+
+        return SandboxedBackend(backend, sandbox)
+
+    # =================================================================
+    # Dynamic subagents (adk_fluent._subagents)
+    # =================================================================
+
+    @staticmethod
+    def subagent_spec(
+        role: str,
+        instruction: str,
+        *,
+        description: str = "",
+        model: str | None = None,
+        tool_names: tuple[str, ...] = (),
+        permission_mode: str = "default",
+        max_tokens: int | None = None,
+        metadata: dict | None = None,
+    ) -> Any:
+        """Create a :class:`~adk_fluent._subagents.SubagentSpec`."""
+        from adk_fluent._subagents import SubagentSpec
+
+        return SubagentSpec(
+            role=role,
+            instruction=instruction,
+            description=description,
+            model=model,
+            tool_names=tool_names,
+            permission_mode=permission_mode,
+            max_tokens=max_tokens,
+            metadata=dict(metadata or {}),
+        )
+
+    @staticmethod
+    def subagent_registry(specs: list | None = None) -> Any:
+        """Create a :class:`~adk_fluent._subagents.SubagentRegistry`."""
+        from adk_fluent._subagents import SubagentRegistry
+
+        return SubagentRegistry(specs=specs)
+
+    @staticmethod
+    def task_tool(
+        registry: Any,
+        runner: Any,
+        *,
+        context_provider: Any = None,
+        tool_name: str = "task",
+    ) -> Any:
+        """Build the dynamic ``task(role, prompt)`` tool for a parent agent."""
+        from adk_fluent._subagents import make_task_tool
+
+        return make_task_tool(
+            registry,
+            runner,
+            context_provider=context_provider,
+            tool_name=tool_name,
         )
 
     # =================================================================
@@ -362,6 +562,54 @@ class H:
             cost_per_million_input=cost_per_million_input,
             cost_per_million_output=cost_per_million_output,
         )
+
+    @staticmethod
+    def usage_plugin(
+        tracker: Any | None = None,
+        *,
+        name: str = "adkf_usage_plugin",
+    ) -> Any:
+        """Create a session-scoped :class:`UsagePlugin`.
+
+        Unlike ``H.usage()`` (which is a callback to attach to a
+        single agent), the plugin records every LLM call in the
+        invocation tree — root, sub-agents, and subagent specialists
+        — without extra wiring. Install it on the root app.
+
+        Args:
+            tracker: An optional pre-built :class:`UsageTracker`. If
+                omitted, a fresh one is created.
+            name: Plugin display name.
+        """
+        from adk_fluent._usage import UsagePlugin
+
+        return UsagePlugin(tracker, name=name)
+
+    @staticmethod
+    def cost_table(**per_model_rates: Any) -> Any:
+        """Build a :class:`CostTable` from keyword-supplied rates.
+
+        Pass each model as a keyword argument whose value is a
+        ``(input_per_million, output_per_million)`` tuple::
+
+            table = H.cost_table(
+                **{
+                    "gemini_2_5_flash": (0.075, 0.30),
+                    "*": (0.10, 0.40),
+                }
+            )
+
+        Because Python keyword arguments forbid dots, substitute
+        underscores or use ``H.cost_table()`` + ``.with_rate(...)``
+        for model names containing special characters.
+        """
+        from adk_fluent._usage import CostTable, ModelRate
+
+        rates = {
+            model: ModelRate(input_per_million=value[0], output_per_million=value[1])
+            for model, value in per_model_rates.items()
+        }
+        return CostTable(rates=rates)
 
     # =================================================================
     # Process lifecycle management
@@ -578,7 +826,7 @@ class H:
         Args:
             max_branches: Maximum branches (oldest auto-evicted).
         """
-        from adk_fluent._harness._fork import ForkManager
+        from adk_fluent._session import ForkManager
 
         return ForkManager(max_branches=max_branches)
 
@@ -637,21 +885,68 @@ class H:
 
     @staticmethod
     def hooks(workspace: str | Path | None = None) -> HookRegistry:
-        """Create a hook registry for user-defined event scripts.
+        """Create a hook registry — the unified hook foundation.
+
+        Hooks are session-scoped and subagent-inherited by construction. The
+        registry accepts both callable hooks (full decision power) and shell
+        hooks (notification-only). Install the registry via
+        ``agent.harness(hooks=registry)`` or ``App(...).plugin(registry.as_plugin())``.
 
         Usage::
 
+            from adk_fluent import H
+            from adk_fluent._hooks import HookDecision, HookMatcher, HookEvent
+
+            def block_rm_rf(ctx):
+                if "rm -rf" in (ctx.tool_input or {}).get("command", ""):
+                    return HookDecision.deny("rm -rf is forbidden")
+                return HookDecision.allow()
+
+            def lint_on_edit(ctx):
+                return HookDecision.inject(
+                    f"You just edited {ctx.tool_input['file_path']}"
+                )
+
             hooks = (
                 H.hooks("/project")
-                .on("tool_call_start", "echo {tool_name} >> audit.log")
-                .on("turn_complete", "./scripts/post-turn.sh")
-                .on_edit("ruff check {file_path}")
-                .on_error("notify-send 'Error: {error}'")
-                .on_commit("./scripts/post-commit.sh")
-                .on_compress("echo 'Context compressed'")
+                .on(HookEvent.PRE_TOOL_USE, block_rm_rf,
+                    match=HookMatcher.for_tool(HookEvent.PRE_TOOL_USE, "bash"))
+                .on(HookEvent.POST_TOOL_USE, lint_on_edit,
+                    match=HookMatcher.for_tool(
+                        HookEvent.POST_TOOL_USE, "edit_file", file_path="*.py"))
+                .shell(HookEvent.POST_TOOL_USE, "ruff check {tool_input[file_path]}",
+                       match=HookMatcher.for_tool(
+                           HookEvent.POST_TOOL_USE, "edit_file"))
             )
+
+        See :doc:`/user-guide/hooks` for the full decision protocol, event
+        taxonomy, and cookbook recipes.
         """
         return HookRegistry(workspace=str(workspace) if workspace else None)
+
+    @staticmethod
+    def hook_decision() -> type[HookDecision]:
+        """Return the :class:`HookDecision` class for use inside hook callables.
+
+        Shorthand so user hooks can write ``H.hook_decision().deny("...")``
+        without a separate import.
+        """
+        return HookDecision
+
+    @staticmethod
+    def hook_match(
+        event: str,
+        tool_name: str | None = None,
+        **args: Any,
+    ) -> HookMatcher:
+        """Build a :class:`HookMatcher` for filtering hook dispatches.
+
+        ``H.hook_match("pre_tool_use", "edit_file", file_path="*.py")`` is
+        equivalent to ``HookMatcher.for_tool("pre_tool_use", "edit_file", file_path="*.py")``.
+        """
+        if tool_name is None:
+            return HookMatcher.any(event)
+        return HookMatcher.for_tool(event, tool_name, **args)
 
     # =================================================================
     # Artifacts
@@ -746,25 +1041,23 @@ class H:
         agent: Any,
         *,
         dispatcher: EventDispatcher | None = None,
-        hooks: HookRegistry | None = None,
         compressor: ContextCompressor | None = None,
         config: ReplConfig | None = None,
     ) -> HarnessRepl:
         """Create an interactive REPL for a harness agent.
 
+        Hooks are installed at the harness / App layer before building the
+        agent — the REPL just drives the input/output loop.
+
         Usage::
 
-            repl = H.repl(
-                agent,
-                hooks=H.hooks("/project"),
-                compressor=H.compressor(50_000),
-            )
+            agent = agent.harness(hooks=H.hooks("/project").on(...))
+            repl = H.repl(agent.build(), compressor=H.compressor(50_000))
             await repl.run()
         """
         return HarnessRepl(
             agent,
             dispatcher=dispatcher,
-            hooks=hooks,
             compressor=compressor,
             config=config,
         )
@@ -816,9 +1109,65 @@ class H:
         Args:
             max_events: Maximum events to buffer (0 = unlimited).
         """
-        from adk_fluent._harness._tape import SessionTape
+        from adk_fluent._session import SessionTape
 
         return SessionTape(max_events=max_events)
+
+    @staticmethod
+    def session_store(
+        *,
+        max_events: int = 0,
+        max_branches: int = 20,
+    ) -> Any:
+        """Create a :class:`~adk_fluent._session.SessionStore`.
+
+        A store bundles a :class:`SessionTape` and a
+        :class:`ForkManager` behind one API so you can record events
+        and snapshot branches from a single object, then persist them
+        atomically via :meth:`SessionStore.snapshot`::
+
+            store = H.session_store()
+            dispatcher.subscribe(store.record_event)
+            agent.after_agent(store.auto_fork("after_step"))
+
+            # End of session
+            store.snapshot().save("/project/.harness/session.json")
+
+        Args:
+            max_events: Max events to buffer in the tape (0 = unlimited).
+            max_branches: Max branches to retain in the fork manager
+                (oldest auto-evicted when the cap is reached).
+        """
+        from adk_fluent._session import ForkManager, SessionStore, SessionTape
+
+        return SessionStore(
+            tape=SessionTape(max_events=max_events),
+            forks=ForkManager(max_branches=max_branches),
+        )
+
+    @staticmethod
+    def session_plugin(
+        store: Any | None = None,
+        *,
+        auto_fork: bool = True,
+        fork_prefix: str = "auto",
+        name: str = "adkf_session_plugin",
+    ) -> Any:
+        """Create a session-scoped :class:`SessionPlugin`.
+
+        Install on the root app to auto-snapshot state after every agent
+        in the invocation tree completes. Subagent specialists are
+        covered for free because ADK ``BasePlugin`` is session-scoped.
+
+        Args:
+            store: Optional pre-built :class:`SessionStore`.
+            auto_fork: Auto-create a branch after each agent completion.
+            fork_prefix: Prefix for auto-fork branch names.
+            name: Plugin display name.
+        """
+        from adk_fluent._session import SessionPlugin
+
+        return SessionPlugin(store, auto_fork=auto_fork, fork_prefix=fork_prefix, name=name)
 
     # =================================================================
     # Slash commands
@@ -1012,9 +1361,50 @@ class H:
         Args:
             max_tokens: Total token budget for the session.
         """
-        from adk_fluent._harness._budget_monitor import BudgetMonitor
+        from adk_fluent._budget import BudgetMonitor
 
         return BudgetMonitor(max_tokens=max_tokens)
+
+    @staticmethod
+    def budget_policy(
+        max_tokens: int = 200_000,
+        *,
+        thresholds: tuple = (),
+    ) -> Any:
+        """Return a frozen :class:`BudgetPolicy`.
+
+        A policy is the inert description of a budget. Pass it to
+        :class:`BudgetPlugin` to attach to an agent tree, or call
+        :meth:`BudgetPolicy.build_monitor` to materialise a live
+        tracker.
+
+        Args:
+            max_tokens: Total token budget for the session.
+            thresholds: Tuple of :class:`Threshold` values.
+        """
+        from adk_fluent._budget import BudgetPolicy
+
+        return BudgetPolicy(max_tokens=max_tokens, thresholds=tuple(thresholds))
+
+    @staticmethod
+    def budget_plugin(
+        policy_or_monitor: Any,
+        *,
+        name: str = "adkf_budget_plugin",
+    ) -> Any:
+        """Return a session-scoped :class:`BudgetPlugin`.
+
+        The plugin records token usage for every LLM call in the
+        invocation tree (root, sub-agents, subagent specialists).
+
+        Args:
+            policy_or_monitor: A :class:`BudgetPolicy` or an existing
+                :class:`BudgetMonitor`.
+            name: Plugin display name.
+        """
+        from adk_fluent._budget import BudgetPlugin
+
+        return BudgetPlugin(policy_or_monitor, name=name)
 
     # =================================================================
     # TaskLedger — dispatch/join bridge
@@ -1142,9 +1532,41 @@ class H:
     @staticmethod
     def plan_mode() -> Any:
         """Create a :class:`PlanMode` latch for plan-then-execute flows."""
-        from adk_fluent._harness._agent_tools import PlanMode
+        from adk_fluent._plan_mode import PlanMode
 
         return PlanMode()
+
+    @staticmethod
+    def plan_mode_policy(base: Any, latch: Any | None = None) -> Any:
+        """Wrap a :class:`PermissionPolicy` with plan-mode-aware dispatch.
+
+        Returns a :class:`PlanModePolicy` whose ``check()`` follows the
+        latch: while the latch is ``planning``, mutating tools are
+        denied; otherwise ``base`` is consulted verbatim. If ``latch``
+        is omitted, a fresh :class:`PlanMode` is created and exposed
+        as ``policy.latch``.
+        """
+        from adk_fluent._plan_mode import PlanMode, PlanModePolicy
+
+        return PlanModePolicy(base=base, latch=latch or PlanMode())
+
+    @staticmethod
+    def plan_mode_plugin(
+        latch: Any | None = None,
+        *,
+        name: str = "adkf_plan_mode_plugin",
+    ) -> Any:
+        """Create a session-scoped :class:`PlanModePlugin`.
+
+        Install on the root app to block mutating tool calls across
+        the full invocation tree while the latch is planning. Unlike
+        :meth:`plan_mode`, this variant covers sub-agents and subagent
+        specialists automatically because ADK ``BasePlugin`` is
+        session-scoped.
+        """
+        from adk_fluent._plan_mode import PlanModePlugin
+
+        return PlanModePlugin(latch, name=name)
 
     @staticmethod
     def ask_user(handler: Callable[[str, list[str] | None], str] | None = None) -> Callable:

@@ -13,7 +13,7 @@ split into focused modules:
     _streaming.py      — PTY-based streaming bash
     _git.py            — git checkpoint/rollback
     _gitignore.py      — gitignore-aware file filtering
-    _hooks.py          — user-configurable event hooks
+    _hooks             — unified hook foundation (lives at adk_fluent._hooks)
     _artifacts.py      — artifact/blob handling
     _compression.py    — context auto-compression
     _dispatcher.py     — ADK→HarnessEvent translation
@@ -38,19 +38,31 @@ split into focused modules:
 
 # Events
 # Artifacts
-# Agent self-management tools (TodoStore, PlanMode, AskUser, Worktree)
+# Agent self-management tools (TodoStore, AskUser, Worktree)
+# Budget monitor (lives in adk_fluent._budget, re-exported here)
+from adk_fluent._budget import BudgetMonitor, BudgetPlugin, BudgetPolicy, Threshold
+
+# Compression (lives in adk_fluent._compression, re-exported here)
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
+
+# Filesystem backends (adk_fluent._fs)
+from adk_fluent._fs import (
+    FsBackend,
+    FsEntry,
+    FsStat,
+    LocalBackend,
+    MemoryBackend,
+    SandboxedBackend,
+    SandboxViolation,
+    workspace_tools_with_backend,
+)
 from adk_fluent._harness._agent_tools import (
-    MUTATING_TOOLS,
-    PlanMode,
     TodoItem,
     TodoStore,
     WorktreeManager,
     make_ask_user_tool,
 )
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
-
-# Budget monitor
-from adk_fluent._harness._budget_monitor import BudgetMonitor, Threshold
 
 # Polyglot code execution
 from adk_fluent._harness._code_executor import CodeExecutor, CodeRunResult
@@ -60,12 +72,6 @@ from adk_fluent._harness._coding_agent import CodingAgentBundle, coding_agent
 
 # Commands (slash commands)
 from adk_fluent._harness._commands import CommandRegistry, CommandSpec
-
-# Compression
-from adk_fluent._harness._compression import (
-    CompressionStrategy,
-    ContextCompressor,
-)
 
 # Config
 from adk_fluent._harness._config import HarnessConfig
@@ -102,9 +108,6 @@ from adk_fluent._harness._events import (
     UsageUpdate,
 )
 
-# Fork
-from adk_fluent._harness._fork import Branch, ForkManager
-
 # Git
 from adk_fluent._harness._git import GitCheckpointer
 
@@ -113,9 +116,6 @@ from adk_fluent._harness._git_tools import git_tools
 
 # Gitignore
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-
-# Hooks
-from adk_fluent._harness._hooks import HookRegistry, HookSpec
 
 # Interrupt
 from adk_fluent._harness._interrupt import (
@@ -151,13 +151,6 @@ from adk_fluent._harness._notebook import (
     notebook_tools,
 )
 
-# Permissions
-from adk_fluent._harness._permissions import (
-    ApprovalMemory,
-    PermissionPolicy,
-    make_permission_callback,
-)
-
 # Processes
 from adk_fluent._harness._processes import ProcessRegistry, process_tools
 
@@ -175,9 +168,6 @@ from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
 
 # Streaming
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
-
-# Session tape
-from adk_fluent._harness._tape import SessionTape
 
 # Task ledger
 from adk_fluent._harness._task_ledger import TaskLedger, TaskState
@@ -200,11 +190,66 @@ from adk_fluent._harness._tools import (
     workspace_tools,
 )
 
-# Usage tracking
-from adk_fluent._harness._usage import TurnUsage, UsageTracker
-
 # Web tools
 from adk_fluent._harness._web import make_web_fetch, web_tools
+
+# Hooks — unified foundation lives in adk_fluent._hooks
+from adk_fluent._hooks import (
+    HookAction,
+    HookContext,
+    HookDecision,
+    HookEntry,
+    HookEvent,
+    HookMatcher,
+    HookPlugin,
+    HookRegistry,
+    SystemMessageChannel,
+)
+
+# Permissions (adk_fluent._permissions — decision-based layer with modes)
+from adk_fluent._permissions import (
+    ALL_MODES,
+    DEFAULT_MUTATING_TOOLS,
+    DEFAULT_READ_ONLY_TOOLS,
+    ApprovalMemory,
+    PermissionBehavior,
+    PermissionDecision,
+    PermissionHandler,
+    PermissionMode,
+    PermissionPlugin,
+    PermissionPolicy,
+)
+
+# Plan mode (lives in adk_fluent._plan_mode, re-exported here)
+from adk_fluent._plan_mode import (
+    MUTATING_TOOLS,
+    PlanMode,
+    PlanModePlugin,
+    PlanModePolicy,
+    PlanState,
+    plan_mode_tools,
+)
+
+# Fork (now lives in adk_fluent._session, re-exported here)
+# Session tape + store (now lives in adk_fluent._session, re-exported here)
+from adk_fluent._session import (
+    Branch,
+    ForkManager,
+    SessionPlugin,
+    SessionSnapshot,
+    SessionStore,
+    SessionTape,
+)
+
+# Usage tracking (lives in adk_fluent._usage, re-exported here)
+from adk_fluent._usage import (
+    AgentUsage,
+    CostTable,
+    ModelRate,
+    TurnUsage,
+    UsagePlugin,
+    UsageTracker,
+)
 
 # Backward-compatible aliases for old private names
 _make_read_file = make_read_file
@@ -214,7 +259,6 @@ _make_glob_search = make_glob_search
 _make_grep_search = make_grep_search
 _make_bash = make_bash
 _make_list_dir = make_list_dir
-_make_permission_callback = make_permission_callback
 _compile_skills_to_static = compile_skills_to_static
 
 __all__ = [
@@ -245,6 +289,8 @@ __all__ = [
     "EventBus",
     # Budget monitor
     "BudgetMonitor",
+    "BudgetPlugin",
+    "BudgetPolicy",
     "Threshold",
     # Tool policy
     "ToolPolicy",
@@ -258,11 +304,27 @@ __all__ = [
     "CapabilityRegistry",
     "ManifoldToolset",
     # Permissions
-    "PermissionPolicy",
+    "ALL_MODES",
     "ApprovalMemory",
-    "make_permission_callback",
+    "DEFAULT_MUTATING_TOOLS",
+    "DEFAULT_READ_ONLY_TOOLS",
+    "PermissionBehavior",
+    "PermissionDecision",
+    "PermissionHandler",
+    "PermissionMode",
+    "PermissionPlugin",
+    "PermissionPolicy",
     # Sandbox
     "SandboxPolicy",
+    # Filesystem backends
+    "FsBackend",
+    "FsEntry",
+    "FsStat",
+    "LocalBackend",
+    "MemoryBackend",
+    "SandboxedBackend",
+    "SandboxViolation",
+    "workspace_tools_with_backend",
     # Tools
     "make_read_file",
     "make_edit_file",
@@ -282,6 +344,10 @@ __all__ = [
     "TodoStore",
     "TodoItem",
     "PlanMode",
+    "PlanModePlugin",
+    "PlanModePolicy",
+    "PlanState",
+    "plan_mode_tools",
     "MUTATING_TOOLS",
     "WorktreeManager",
     "make_ask_user_tool",
@@ -300,6 +366,10 @@ __all__ = [
     "Branch",
     # Usage
     "UsageTracker",
+    "UsagePlugin",
+    "AgentUsage",
+    "CostTable",
+    "ModelRate",
     "TurnUsage",
     # Diff mode
     "PendingEditStore",
@@ -338,9 +408,16 @@ __all__ = [
     # Gitignore
     "GitignoreMatcher",
     "load_gitignore",
-    # Hooks
+    # Hooks (unified foundation)
+    "HookAction",
+    "HookContext",
+    "HookDecision",
+    "HookEntry",
+    "HookEvent",
+    "HookMatcher",
+    "HookPlugin",
     "HookRegistry",
-    "HookSpec",
+    "SystemMessageChannel",
     # Artifacts
     "ArtifactStore",
     "ArtifactRef",
@@ -354,6 +431,9 @@ __all__ = [
     "ReplConfig",
     # Session tape
     "SessionTape",
+    "SessionStore",
+    "SessionSnapshot",
+    "SessionPlugin",
     # Commands
     "CommandRegistry",
     "CommandSpec",

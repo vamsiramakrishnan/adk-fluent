@@ -36,10 +36,10 @@ from adk_fluent._harness._artifacts import ArtifactStore
 from adk_fluent._harness._code_executor import CodeExecutor
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._memory import ProjectMemory
-from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._tools import workspace_tools
-from adk_fluent._harness._usage import UsageTracker
+from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
+from adk_fluent._usage import UsageTracker
 
 __all__ = ["CodingAgentBundle", "coding_agent"]
 

@@ -24,7 +24,7 @@ Composes with::
     EventDispatcher  — translate() emits into the bus
     SessionTape      — bus.tape() returns a subscribed tape
     Renderer         — bus.on("text", renderer.handle)
-    HookRegistry     — hooks subscribe to specific kinds
+    (Hooks install as ADK plugins, not bus subscribers — see adk_fluent._hooks.)
     UsageTracker     — subscribes to "usage_update" events
 
 Usage::
@@ -271,31 +271,17 @@ class EventBus:
         Returns:
             A SessionTape instance, already recording.
         """
-        from adk_fluent._harness._tape import SessionTape
+        from adk_fluent._session import SessionTape
 
         t = SessionTape(max_events=max_events)
         self.subscribe(t.record)
         return t
 
-    def hooks(self, registry: Any) -> EventBus:
-        """Wire a HookRegistry as a subscriber.
-
-        Each event kind maps to the corresponding hook trigger.
-
-        Args:
-            registry: A HookRegistry instance.
-
-        Returns:
-            Self for chaining.
-        """
-        bus_ref = self  # noqa: F841
-
-        def _fire_hooks(event: HarnessEvent) -> None:
-            with contextlib.suppress(Exception):
-                registry.fire(event.kind, **_event_to_env(event))
-
-        self.subscribe(_fire_hooks)
-        return self
+    # Note: the unified HookRegistry is not an EventBus subscriber. It
+    # installs as an ADK Plugin via ``registry.as_plugin()`` and fires
+    # directly from ADK callback sites, independent of this bus. The bus
+    # still exists for harness-level events (GitCheckpoint, ProcessEvent,
+    # etc.) that do not have a native ADK callback.
 
     # -----------------------------------------------------------------
     # Introspection
@@ -316,13 +302,3 @@ class EventBus:
         kinds = len(self._handlers)
         total = self.subscriber_count
         return f"EventBus(subscribers={total}, kinds={kinds})"
-
-
-def _event_to_env(event: HarnessEvent) -> dict[str, str]:
-    """Convert event fields to string dict for hook environment vars."""
-    from dataclasses import asdict
-
-    try:
-        return {k: str(v) for k, v in asdict(event).items() if k != "kind"}
-    except Exception:
-        return {}

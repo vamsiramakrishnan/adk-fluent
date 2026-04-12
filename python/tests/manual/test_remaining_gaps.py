@@ -12,13 +12,13 @@ import time
 from unittest.mock import MagicMock
 
 from adk_fluent import H
-from adk_fluent._harness._fork import ForkManager
 from adk_fluent._harness._interrupt import (
     CancellationToken,
     TurnSnapshot,
     make_cancellation_callback,
 )
 from adk_fluent._harness._memory import MemoryHierarchy
+from adk_fluent._session import ForkManager
 
 # ======================================================================
 # 1. Interrupt & Resume

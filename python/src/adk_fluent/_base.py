@@ -2785,12 +2785,9 @@ class BuilderBase:
                 )
             )
         """
-        from adk_fluent._harness import (
-            HarnessConfig,
-            PermissionPolicy,
-            SandboxPolicy,
-            _make_permission_callback,
-        )
+        from adk_fluent._harness import HarnessConfig, SandboxPolicy
+        from adk_fluent._permissions import PermissionPolicy
+        from adk_fluent._permissions._callback import make_permission_callback
 
         self = self._maybe_fork_for_mutation()
 
@@ -2807,7 +2804,7 @@ class BuilderBase:
 
         # Wire permission enforcement as before_tool callback
         if permissions is not None:
-            cb = _make_permission_callback(cfg.permissions, cfg.approval_handler)
+            cb = make_permission_callback(cfg.permissions, cfg.approval_handler)
             self._callbacks.setdefault("before_tool_callback", []).append(cb)
 
         # Wire usage tracking as after_model callback

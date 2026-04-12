@@ -7,16 +7,25 @@
 
 export type CompressionStrategy = (messages: unknown[]) => unknown[];
 
+export type PreCompactHook = (messages: readonly unknown[]) => void | Promise<void>;
+
 export interface ContextCompressorOptions {
   threshold?: number;
   strategy?: CompressionStrategy;
   onCompress?: (newSize: number) => void;
+  /**
+   * Hook fired just before the compression strategy runs. Useful for
+   * checkpointing or auditing the pre-compact state. Exceptions are
+   * swallowed — the hook must not block the compression path.
+   */
+  preCompact?: PreCompactHook;
 }
 
 export class ContextCompressor {
   readonly threshold: number;
   readonly strategy: CompressionStrategy;
   readonly onCompress?: (newSize: number) => void;
+  readonly preCompact?: PreCompactHook;
 
   constructor(opts: ContextCompressorOptions = {}) {
     this.threshold = opts.threshold ?? 100_000;
@@ -28,16 +37,61 @@ export class ContextCompressor {
         return msgs.slice(cut);
       });
     this.onCompress = opts.onCompress;
+    this.preCompact = opts.preCompact;
   }
 
   shouldCompress(currentTokens: number): boolean {
     return currentTokens >= this.threshold;
   }
 
-  compressMessages(messages: unknown[]): unknown[] {
+  async compressMessages(messages: unknown[]): Promise<unknown[]> {
+    if (this.preCompact) {
+      try {
+        await this.preCompact(messages);
+      } catch {
+        /* pre-compact hooks must not break compression */
+      }
+    }
     const compressed = this.strategy(messages);
     this.onCompress?.(compressed.length);
     return compressed;
+  }
+
+  /** Synchronous convenience wrapper for callers that cannot await. */
+  compressMessagesSync(messages: unknown[]): unknown[] {
+    const compressed = this.strategy(messages);
+    this.onCompress?.(compressed.length);
+    return compressed;
+  }
+}
+
+// ─── BudgetPolicy (frozen config) ──────────────────────────────────────────
+
+export interface BudgetThreshold {
+  /** Fractional budget ratio to fire at (e.g. 0.8 for 80%). */
+  readonly ratio: number;
+  /** Optional label for observers/events. */
+  readonly label?: string;
+}
+
+/**
+ * Frozen dataclass describing a token budget and its warning thresholds.
+ * A `BudgetMonitor` is the mutable runtime half that consumes this.
+ */
+export class BudgetPolicy {
+  readonly maxTokens: number;
+  readonly thresholds: readonly BudgetThreshold[];
+
+  constructor(opts: { maxTokens?: number; thresholds?: readonly BudgetThreshold[] } = {}) {
+    this.maxTokens = opts.maxTokens ?? 200_000;
+    this.thresholds = Object.freeze([...(opts.thresholds ?? [])]);
+    Object.freeze(this);
+  }
+
+  /** Apply this frozen policy to a fresh monitor, wiring every threshold. */
+  applyTo(monitor: BudgetMonitor, handler: BudgetThresholdHandler): BudgetMonitor {
+    for (const t of this.thresholds) monitor.onThreshold(t.ratio, handler);
+    return monitor;
   }
 }
 

@@ -450,8 +450,10 @@ from ._harness import TaskEvent as TaskEvent
 from ._harness import CapabilityLoaded as CapabilityLoaded
 from ._harness import ManifoldFinalized as ManifoldFinalized
 from ._harness import EventBus as EventBus
-from ._harness import BudgetMonitor as BudgetMonitor
-from ._harness import Threshold as Threshold
+from ._budget import BudgetMonitor as BudgetMonitor
+from ._budget import BudgetPlugin as BudgetPlugin
+from ._budget import BudgetPolicy as BudgetPolicy
+from ._budget import Threshold as Threshold
 from ._harness import ToolPolicy as ToolPolicy
 from ._harness import ToolRule as ToolRule
 from ._harness import TaskLedger as TaskLedger
@@ -460,9 +462,23 @@ from ._harness import CapabilityType as CapabilityType
 from ._harness import CapabilityEntry as CapabilityEntry
 from ._harness import CapabilityRegistry as CapabilityRegistry
 from ._harness import ManifoldToolset as ManifoldToolset
-from ._harness import PermissionPolicy as PermissionPolicy
-from ._harness import ApprovalMemory as ApprovalMemory
-from ._harness import make_permission_callback as make_permission_callback
+from ._permissions import ALL_MODES as ALL_MODES
+from ._permissions import ApprovalMemory as ApprovalMemory
+from ._permissions import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
+from ._permissions import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
+from ._permissions import PermissionBehavior as PermissionBehavior
+from ._permissions import PermissionDecision as PermissionDecision
+from ._permissions import PermissionHandler as PermissionHandler
+from ._permissions import PermissionMode as PermissionMode
+from ._permissions import PermissionPlugin as PermissionPlugin
+from ._permissions import PermissionPolicy as PermissionPolicy
+from ._subagents import FakeSubagentRunner as FakeSubagentRunner
+from ._subagents import SubagentRegistry as SubagentRegistry
+from ._subagents import SubagentResult as SubagentResult
+from ._subagents import SubagentRunner as SubagentRunner
+from ._subagents import SubagentRunnerError as SubagentRunnerError
+from ._subagents import SubagentSpec as SubagentSpec
+from ._subagents import make_task_tool as make_task_tool
 from ._harness import SandboxPolicy as SandboxPolicy
 from ._harness import make_read_file as make_read_file
 from ._harness import make_edit_file as make_edit_file
@@ -481,8 +497,12 @@ from ._harness import TurnSnapshot as TurnSnapshot
 from ._harness import make_cancellation_callback as make_cancellation_callback
 from ._harness import ForkManager as ForkManager
 from ._harness import Branch as Branch
-from ._harness import UsageTracker as UsageTracker
-from ._harness import TurnUsage as TurnUsage
+from ._usage import UsageTracker as UsageTracker
+from ._usage import UsagePlugin as UsagePlugin
+from ._usage import TurnUsage as TurnUsage
+from ._usage import AgentUsage as AgentUsage
+from ._usage import CostTable as CostTable
+from ._usage import ModelRate as ModelRate
 from ._harness import PendingEditStore as PendingEditStore
 from ._harness import make_diff_edit_file as make_diff_edit_file
 from ._harness import make_apply_edit as make_apply_edit
@@ -508,8 +528,15 @@ from ._harness import GitCheckpointer as GitCheckpointer
 from ._harness import git_tools as git_tools
 from ._harness import GitignoreMatcher as GitignoreMatcher
 from ._harness import load_gitignore as load_gitignore
+from ._harness import HookAction as HookAction
+from ._harness import HookContext as HookContext
+from ._harness import HookDecision as HookDecision
+from ._harness import HookEntry as HookEntry
+from ._harness import HookEvent as HookEvent
+from ._harness import HookMatcher as HookMatcher
+from ._harness import HookPlugin as HookPlugin
 from ._harness import HookRegistry as HookRegistry
-from ._harness import HookSpec as HookSpec
+from ._harness import SystemMessageChannel as SystemMessageChannel
 from ._harness import ArtifactStore as ArtifactStore
 from ._harness import ArtifactRef as ArtifactRef
 from ._harness import ContextCompressor as ContextCompressor
@@ -524,12 +551,14 @@ from ._harness import SkillSpec as SkillSpec
 from ._harness import compile_skills_to_static as compile_skills_to_static
 from ._harness._artifacts import ArtifactStore as ArtifactStore
 from ._harness._artifacts import ArtifactRef as ArtifactRef
-from ._harness._budget_monitor import BudgetMonitor as BudgetMonitor
-from ._harness._budget_monitor import Threshold as Threshold
+from ._budget._tracker import BudgetMonitor as BudgetMonitor
+from ._budget._threshold import Threshold as Threshold
+from ._budget._policy import BudgetPolicy as BudgetPolicy
+from ._budget._plugin import BudgetPlugin as BudgetPlugin
 from ._harness._commands import CommandRegistry as CommandRegistry
 from ._harness._commands import CommandSpec as CommandSpec
-from ._harness._compression import ContextCompressor as ContextCompressor
-from ._harness._compression import CompressionStrategy as CompressionStrategy
+from ._compression import ContextCompressor as ContextCompressor
+from ._compression import CompressionStrategy as CompressionStrategy
 from ._harness._config import HarnessConfig as HarnessConfig
 from ._harness._diff import make_diff_edit_file as make_diff_edit_file
 from ._harness._diff import make_apply_edit as make_apply_edit
@@ -556,14 +585,24 @@ from ._harness._events import ProcessEvent as ProcessEvent
 from ._harness._events import TaskEvent as TaskEvent
 from ._harness._events import CapabilityLoaded as CapabilityLoaded
 from ._harness._events import ManifoldFinalized as ManifoldFinalized
-from ._harness._fork import ForkManager as ForkManager
-from ._harness._fork import Branch as Branch
+from ._session import ForkManager as ForkManager
+from ._session import Branch as Branch
+from ._session import SessionStore as SessionStore
+from ._session import SessionSnapshot as SessionSnapshot
+from ._session import SessionPlugin as SessionPlugin
 from ._harness._git import GitCheckpointer as GitCheckpointer
 from ._harness._git_tools import git_tools as git_tools
 from ._harness._gitignore import GitignoreMatcher as GitignoreMatcher
 from ._harness._gitignore import load_gitignore as load_gitignore
-from ._harness._hooks import HookRegistry as HookRegistry
-from ._harness._hooks import HookSpec as HookSpec
+from ._hooks import HookAction as HookAction
+from ._hooks import HookContext as HookContext
+from ._hooks import HookDecision as HookDecision
+from ._hooks import HookEntry as HookEntry
+from ._hooks import HookEvent as HookEvent
+from ._hooks import HookMatcher as HookMatcher
+from ._hooks import HookPlugin as HookPlugin
+from ._hooks import HookRegistry as HookRegistry
+from ._hooks import SystemMessageChannel as SystemMessageChannel
 from ._harness._interrupt import CancellationToken as CancellationToken
 from ._harness._interrupt import TurnSnapshot as TurnSnapshot
 from ._harness._interrupt import make_cancellation_callback as make_cancellation_callback
@@ -580,9 +619,6 @@ from ._harness._namespace import H as H
 from ._harness._notebook import make_read_notebook as make_read_notebook
 from ._harness._notebook import make_edit_notebook_cell as make_edit_notebook_cell
 from ._harness._notebook import notebook_tools as notebook_tools
-from ._harness._permissions import PermissionPolicy as PermissionPolicy
-from ._harness._permissions import ApprovalMemory as ApprovalMemory
-from ._harness._permissions import make_permission_callback as make_permission_callback
 from ._harness._processes import ProcessRegistry as ProcessRegistry
 from ._harness._processes import make_process_tools as make_process_tools
 from ._harness._processes import process_tools as process_tools
@@ -597,7 +633,7 @@ from ._harness._skills import SkillSpec as SkillSpec
 from ._harness._skills import compile_skills_to_static as compile_skills_to_static
 from ._harness._streaming import StreamingBash as StreamingBash
 from ._harness._streaming import make_streaming_bash as make_streaming_bash
-from ._harness._tape import SessionTape as SessionTape
+from ._session import SessionTape as SessionTape
 from ._harness._task_ledger import TaskLedger as TaskLedger
 from ._harness._task_ledger import TaskState as TaskState
 from ._harness._tasks import TaskRegistry as TaskRegistry
@@ -613,9 +649,7 @@ from ._harness._tools import make_grep_search as make_grep_search
 from ._harness._tools import make_bash as make_bash
 from ._harness._tools import make_list_dir as make_list_dir
 from ._harness._tools import workspace_tools as workspace_tools
-from ._harness._usage import UsageTracker as UsageTracker
-from ._harness._usage import TurnUsage as TurnUsage
-from ._harness._usage import UsageUpdate as UsageUpdate
+from ._harness._events import UsageUpdate as UsageUpdate
 from ._harness._web import make_web_fetch as make_web_fetch
 from ._harness._web import web_tools as web_tools
 from .backends import Backend as Backend
@@ -1083,6 +1117,8 @@ __all__ = [
     "ManifoldFinalized",
     "EventBus",
     "BudgetMonitor",
+    "BudgetPlugin",
+    "BudgetPolicy",
     "Threshold",
     "ToolPolicy",
     "ToolRule",
@@ -1093,8 +1129,22 @@ __all__ = [
     "CapabilityRegistry",
     "ManifoldToolset",
     "PermissionPolicy",
+    "PermissionDecision",
+    "PermissionBehavior",
+    "PermissionMode",
+    "PermissionPlugin",
+    "PermissionHandler",
     "ApprovalMemory",
-    "make_permission_callback",
+    "ALL_MODES",
+    "DEFAULT_MUTATING_TOOLS",
+    "DEFAULT_READ_ONLY_TOOLS",
+    "SubagentSpec",
+    "SubagentRegistry",
+    "SubagentResult",
+    "SubagentRunner",
+    "SubagentRunnerError",
+    "FakeSubagentRunner",
+    "make_task_tool",
     "SandboxPolicy",
     "make_read_file",
     "make_edit_file",
@@ -1114,7 +1164,11 @@ __all__ = [
     "ForkManager",
     "Branch",
     "UsageTracker",
+    "UsagePlugin",
     "TurnUsage",
+    "AgentUsage",
+    "CostTable",
+    "ModelRate",
     "PendingEditStore",
     "make_diff_edit_file",
     "make_apply_edit",
@@ -1140,8 +1194,15 @@ __all__ = [
     "git_tools",
     "GitignoreMatcher",
     "load_gitignore",
+    "HookAction",
+    "HookContext",
+    "HookDecision",
+    "HookEntry",
+    "HookEvent",
+    "HookMatcher",
+    "HookPlugin",
     "HookRegistry",
-    "HookSpec",
+    "SystemMessageChannel",
     "ArtifactStore",
     "ArtifactRef",
     "ContextCompressor",
@@ -1150,6 +1211,9 @@ __all__ = [
     "HarnessRepl",
     "ReplConfig",
     "SessionTape",
+    "SessionStore",
+    "SessionSnapshot",
+    "SessionPlugin",
     "CommandRegistry",
     "CommandSpec",
     "SkillSpec",

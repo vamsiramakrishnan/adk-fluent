@@ -417,38 +417,11 @@ class TestMCPConfig:
 # ======================================================================
 # Hook extensions
 # ======================================================================
-
-
-class TestHookExtensions:
-    def test_on_edit(self):
-        hooks = H.hooks()
-        hooks.on_edit("echo edited {file_path}")
-        assert "file_edited" in hooks.registered_events
-
-    def test_on_error(self):
-        hooks = H.hooks()
-        hooks.on_error("echo error {error}")
-        assert "error" in hooks.registered_events
-
-    def test_on_commit(self):
-        hooks = H.hooks()
-        hooks.on_commit("echo committed {commit_sha}")
-        assert "git_checkpoint" in hooks.registered_events
-
-    def test_on_compress(self):
-        hooks = H.hooks()
-        hooks.on_compress("echo compressed")
-        assert "compression_triggered" in hooks.registered_events
-
-    def test_chaining_all_new_hooks(self):
-        hooks = (
-            H.hooks().on_edit("echo edit").on_error("echo error").on_commit("echo commit").on_compress("echo compress")
-        )
-        events = hooks.registered_events
-        assert "file_edited" in events
-        assert "error" in events
-        assert "git_checkpoint" in events
-        assert "compression_triggered" in events
+# The convenience methods ``on_edit`` / ``on_error`` / ``on_commit`` /
+# ``on_compress`` were removed when the hook foundation moved to
+# ``adk_fluent._hooks``. Hook tests live in test_hooks_modules.py now; the
+# equivalent recipes use ``HookEvent.POST_TOOL_USE`` + ``HookMatcher.for_tool``
+# (see docs/user-guide/hooks.md).
 
 
 # ======================================================================

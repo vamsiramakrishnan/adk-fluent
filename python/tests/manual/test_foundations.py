@@ -16,8 +16,8 @@ import tempfile
 from unittest.mock import MagicMock
 
 from adk_fluent import H
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._commands import CommandRegistry
-from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._events import TextChunk, ToolCallStart, TurnComplete
 from adk_fluent._harness._manifold import (
     CapabilityEntry,
@@ -26,8 +26,8 @@ from adk_fluent._harness._manifold import (
     ManifoldToolset,
 )
 from adk_fluent._harness._memory import ProjectMemory
-from adk_fluent._harness._permissions import PermissionPolicy
-from adk_fluent._harness._tape import SessionTape
+from adk_fluent._permissions import PermissionPolicy
+from adk_fluent._session import SessionTape
 from adk_fluent._tool_registry import ToolRegistry
 
 
@@ -43,59 +43,59 @@ def _run(coro):
 class TestPatternPermissions:
     def test_glob_allow(self):
         policy = PermissionPolicy(allow_patterns=("read_*", "list_*"))
-        assert policy.check("read_file") == "allow"
-        assert policy.check("read_notebook") == "allow"
-        assert policy.check("list_dir") == "allow"
-        assert policy.check("edit_file") == "ask"
+        assert policy.check("read_file").behavior == "allow"
+        assert policy.check("read_notebook").behavior == "allow"
+        assert policy.check("list_dir").behavior == "allow"
+        assert policy.check("edit_file").behavior == "ask"
 
     def test_glob_deny(self):
         policy = PermissionPolicy(deny_patterns=("*dangerous*",))
-        assert policy.check("run_dangerous_command") == "deny"
-        assert policy.check("safe_tool") == "ask"
+        assert policy.check("run_dangerous_command").behavior == "deny"
+        assert policy.check("safe_tool").behavior == "ask"
 
     def test_regex_mode(self):
         policy = PermissionPolicy(
             allow_patterns=("^(read|list)_.*$",),
             pattern_mode="regex",
         )
-        assert policy.check("read_file") == "allow"
-        assert policy.check("list_dir") == "allow"
-        assert policy.check("edit_file") == "ask"
+        assert policy.check("read_file").behavior == "allow"
+        assert policy.check("list_dir").behavior == "allow"
+        assert policy.check("edit_file").behavior == "ask"
 
     def test_exact_overrides_pattern(self):
         policy = PermissionPolicy(
             deny=frozenset(["read_secret"]),
             allow_patterns=("read_*",),
         )
-        assert policy.check("read_secret") == "deny"  # exact wins
-        assert policy.check("read_file") == "allow"  # pattern applies
+        assert policy.check("read_secret").behavior == "deny"  # exact wins
+        assert policy.check("read_file").behavior == "allow"  # pattern applies
 
     def test_merge_preserves_patterns(self):
         p1 = PermissionPolicy(allow_patterns=("read_*",))
         p2 = PermissionPolicy(deny_patterns=("*secret*",))
         merged = p1.merge(p2)
-        assert merged.check("read_file") == "allow"
-        assert merged.check("read_secret") == "deny"  # deny pattern wins
-        assert merged.check("edit_file") == "ask"
+        assert merged.check("read_file").behavior == "allow"
+        assert merged.check("read_secret").behavior == "deny"  # deny pattern wins
+        assert merged.check("edit_file").behavior == "ask"
 
     def test_ask_patterns(self):
         policy = PermissionPolicy(ask_patterns=("bash*",))
-        assert policy.check("bash") == "ask"
-        assert policy.check("bash_streaming") == "ask"
+        assert policy.check("bash").behavior == "ask"
+        assert policy.check("bash_streaming").behavior == "ask"
 
     def test_h_allow_patterns(self):
         policy = H.allow_patterns("read_*", "list_*")
-        assert policy.check("read_file") == "allow"
-        assert policy.check("bash") == "ask"
+        assert policy.check("read_file").behavior == "allow"
+        assert policy.check("bash").behavior == "ask"
 
     def test_h_deny_patterns(self):
         policy = H.deny_patterns("*dangerous*")
-        assert policy.check("dangerous_tool") == "deny"
+        assert policy.check("dangerous_tool").behavior == "deny"
 
     def test_h_patterns_compose_with_exact(self):
         policy = H.auto_allow("bash").merge(H.deny_patterns("*secret*"))
-        assert policy.check("bash") == "allow"
-        assert policy.check("read_secret") == "deny"
+        assert policy.check("bash").behavior == "allow"
+        assert policy.check("read_secret").behavior == "deny"
 
 
 # ======================================================================
