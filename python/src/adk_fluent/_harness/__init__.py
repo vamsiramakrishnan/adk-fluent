@@ -13,7 +13,7 @@ split into focused modules:
     _streaming.py      — PTY-based streaming bash
     _git.py            — git checkpoint/rollback
     _gitignore.py      — gitignore-aware file filtering
-    _hooks.py          — user-configurable event hooks
+    _hooks             — unified hook foundation (lives at adk_fluent._hooks)
     _artifacts.py      — artifact/blob handling
     _compression.py    — context auto-compression
     _dispatcher.py     — ADK→HarnessEvent translation
@@ -114,8 +114,18 @@ from adk_fluent._harness._git_tools import git_tools
 # Gitignore
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
 
-# Hooks
-from adk_fluent._harness._hooks import HookRegistry, HookSpec
+# Hooks — unified foundation lives in adk_fluent._hooks
+from adk_fluent._hooks import (
+    HookAction,
+    HookContext,
+    HookDecision,
+    HookEntry,
+    HookEvent,
+    HookMatcher,
+    HookPlugin,
+    HookRegistry,
+    SystemMessageChannel,
+)
 
 # Interrupt
 from adk_fluent._harness._interrupt import (
@@ -338,9 +348,16 @@ __all__ = [
     # Gitignore
     "GitignoreMatcher",
     "load_gitignore",
-    # Hooks
+    # Hooks (unified foundation)
+    "HookAction",
+    "HookContext",
+    "HookDecision",
+    "HookEntry",
+    "HookEvent",
+    "HookMatcher",
+    "HookPlugin",
     "HookRegistry",
-    "HookSpec",
+    "SystemMessageChannel",
     # Artifacts
     "ArtifactStore",
     "ArtifactRef",

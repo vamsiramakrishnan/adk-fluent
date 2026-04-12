@@ -50,7 +50,7 @@ from adk_fluent._harness._diff import PendingEditStore, make_apply_edit, make_di
 from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._error_strategy import ErrorStrategy
 from adk_fluent._harness._git import GitCheckpointer
-from adk_fluent._harness._hooks import HookRegistry
+from adk_fluent._hooks import HookDecision, HookMatcher, HookRegistry
 from adk_fluent._harness._memory import ProjectMemory
 from adk_fluent._harness._multimodal import make_multimodal_read_file
 from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
@@ -637,21 +637,68 @@ class H:
 
     @staticmethod
     def hooks(workspace: str | Path | None = None) -> HookRegistry:
-        """Create a hook registry for user-defined event scripts.
+        """Create a hook registry — the unified hook foundation.
+
+        Hooks are session-scoped and subagent-inherited by construction. The
+        registry accepts both callable hooks (full decision power) and shell
+        hooks (notification-only). Install the registry via
+        ``agent.harness(hooks=registry)`` or ``App(...).plugin(registry.as_plugin())``.
 
         Usage::
 
+            from adk_fluent import H
+            from adk_fluent._hooks import HookDecision, HookMatcher, HookEvent
+
+            def block_rm_rf(ctx):
+                if "rm -rf" in (ctx.tool_input or {}).get("command", ""):
+                    return HookDecision.deny("rm -rf is forbidden")
+                return HookDecision.allow()
+
+            def lint_on_edit(ctx):
+                return HookDecision.inject(
+                    f"You just edited {ctx.tool_input['file_path']}"
+                )
+
             hooks = (
                 H.hooks("/project")
-                .on("tool_call_start", "echo {tool_name} >> audit.log")
-                .on("turn_complete", "./scripts/post-turn.sh")
-                .on_edit("ruff check {file_path}")
-                .on_error("notify-send 'Error: {error}'")
-                .on_commit("./scripts/post-commit.sh")
-                .on_compress("echo 'Context compressed'")
+                .on(HookEvent.PRE_TOOL_USE, block_rm_rf,
+                    match=HookMatcher.for_tool(HookEvent.PRE_TOOL_USE, "bash"))
+                .on(HookEvent.POST_TOOL_USE, lint_on_edit,
+                    match=HookMatcher.for_tool(
+                        HookEvent.POST_TOOL_USE, "edit_file", file_path="*.py"))
+                .shell(HookEvent.POST_TOOL_USE, "ruff check {tool_input[file_path]}",
+                       match=HookMatcher.for_tool(
+                           HookEvent.POST_TOOL_USE, "edit_file"))
             )
+
+        See :doc:`/user-guide/hooks` for the full decision protocol, event
+        taxonomy, and cookbook recipes.
         """
         return HookRegistry(workspace=str(workspace) if workspace else None)
+
+    @staticmethod
+    def hook_decision() -> type[HookDecision]:
+        """Return the :class:`HookDecision` class for use inside hook callables.
+
+        Shorthand so user hooks can write ``H.hook_decision().deny("...")``
+        without a separate import.
+        """
+        return HookDecision
+
+    @staticmethod
+    def hook_match(
+        event: str,
+        tool_name: str | None = None,
+        **args: Any,
+    ) -> HookMatcher:
+        """Build a :class:`HookMatcher` for filtering hook dispatches.
+
+        ``H.hook_match("pre_tool_use", "edit_file", file_path="*.py")`` is
+        equivalent to ``HookMatcher.for_tool("pre_tool_use", "edit_file", file_path="*.py")``.
+        """
+        if tool_name is None:
+            return HookMatcher.any(event)
+        return HookMatcher.for_tool(event, tool_name, **args)
 
     # =================================================================
     # Artifacts
@@ -746,25 +793,23 @@ class H:
         agent: Any,
         *,
         dispatcher: EventDispatcher | None = None,
-        hooks: HookRegistry | None = None,
         compressor: ContextCompressor | None = None,
         config: ReplConfig | None = None,
     ) -> HarnessRepl:
         """Create an interactive REPL for a harness agent.
 
+        Hooks are installed at the harness / App layer before building the
+        agent — the REPL just drives the input/output loop.
+
         Usage::
 
-            repl = H.repl(
-                agent,
-                hooks=H.hooks("/project"),
-                compressor=H.compressor(50_000),
-            )
+            agent = agent.harness(hooks=H.hooks("/project").on(...))
+            repl = H.repl(agent.build(), compressor=H.compressor(50_000))
             await repl.run()
         """
         return HarnessRepl(
             agent,
             dispatcher=dispatcher,
-            hooks=hooks,
             compressor=compressor,
             config=config,
         )

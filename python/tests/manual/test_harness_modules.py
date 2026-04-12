@@ -33,7 +33,14 @@ from adk_fluent._harness._events import (
 )
 from adk_fluent._harness._git import GitCheckpointer
 from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
-from adk_fluent._harness._hooks import HookRegistry
+from adk_fluent._hooks import (
+    HookContext,
+    HookDecision,
+    HookEvent,
+    HookMatcher,
+    HookPlugin,
+    HookRegistry,
+)
 from adk_fluent._harness._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
@@ -283,40 +290,111 @@ class TestEventDispatcher:
 
 
 class TestHookSystem:
-    def test_hook_registration(self):
+    def test_callable_hook_registration(self):
         hooks = HookRegistry()
-        hooks.on("tool_call_start", "echo test")
-        assert "tool_call_start" in hooks.registered_events
+        hooks.on(HookEvent.PRE_TOOL_USE, lambda ctx: HookDecision.allow())
+        assert HookEvent.PRE_TOOL_USE in hooks.registered_events
 
-    def test_fire_sync(self):
+    def test_shell_hook_registration(self):
+        hooks = HookRegistry(workspace="/tmp")
+        hooks.shell(HookEvent.POST_TOOL_USE, "echo {tool_name}")
+        assert HookEvent.POST_TOOL_USE in hooks.registered_events
+        assert len(hooks.entries_for(HookEvent.POST_TOOL_USE)) == 1
+
+    def test_deny_decision(self):
         hooks = HookRegistry()
-        hooks.on("test", "echo fired")
-        results = hooks.fire_sync("test")
-        assert len(results) == 1
-        assert results[0].exit_code == 0
+        hooks.on(
+            HookEvent.PRE_TOOL_USE,
+            lambda ctx: HookDecision.deny("forbidden"),
+        )
+        ctx = HookContext(event=HookEvent.PRE_TOOL_USE, tool_name="bash")
+        decision = asyncio.run(hooks.dispatch(ctx))
+        assert decision.action == "deny"
+        assert decision.reason == "forbidden"
 
-    def test_fire_with_context(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            hooks = HookRegistry(workspace=tmp)
-            hooks.on("test", "echo {tool_name}")
-            results = hooks.fire_sync("test", tool_name="bash")
-            assert results[0].exit_code == 0
-
-    def test_fire_async(self):
+    def test_modify_rewrites_tool_input(self):
         hooks = HookRegistry()
-        hooks.on("test", "echo async_fired")
-        results = asyncio.run(hooks.fire("test"))
-        assert len(results) == 1
-        assert results[0].exit_code == 0
 
-    def test_shorthand_methods(self):
+        def redact(ctx):
+            ti = dict(ctx.tool_input or {})
+            ti["command"] = ti.get("command", "").replace("secret", "****")
+            return HookDecision.modify(ti)
+
+        hooks.on(HookEvent.PRE_TOOL_USE, redact)
+        ctx = HookContext(
+            event=HookEvent.PRE_TOOL_USE,
+            tool_name="bash",
+            tool_input={"command": "echo secret"},
+        )
+        decision = asyncio.run(hooks.dispatch(ctx))
+        assert decision.is_allow
+        assert ctx.tool_input["command"] == "echo ****"
+
+    def test_inject_collects_pending_messages(self):
         hooks = HookRegistry()
-        hooks.on_tool_start("echo start")
-        hooks.on_tool_end("echo end")
-        hooks.on_turn("echo turn")
-        assert "tool_call_start" in hooks.registered_events
-        assert "tool_call_end" in hooks.registered_events
-        assert "turn_complete" in hooks.registered_events
+        hooks.on(HookEvent.POST_TOOL_USE, lambda c: HookDecision.inject("a"))
+        hooks.on(HookEvent.POST_TOOL_USE, lambda c: HookDecision.inject("b"))
+        ctx = HookContext(event=HookEvent.POST_TOOL_USE, tool_name="edit_file")
+        decision = asyncio.run(hooks.dispatch(ctx))
+        assert decision.metadata.get("pending_injects") == ["a", "b"]
+
+    def test_matcher_filters_tool_name(self):
+        hooks = HookRegistry()
+        seen: list[str] = []
+        hooks.on(
+            HookEvent.PRE_TOOL_USE,
+            lambda c: (seen.append(c.tool_name), HookDecision.allow())[1],
+            match=HookMatcher.for_tool(HookEvent.PRE_TOOL_USE, "edit_file"),
+        )
+        asyncio.run(hooks.dispatch(HookContext(event=HookEvent.PRE_TOOL_USE, tool_name="bash")))
+        asyncio.run(hooks.dispatch(HookContext(event=HookEvent.PRE_TOOL_USE, tool_name="edit_file")))
+        assert seen == ["edit_file"]
+
+    def test_matcher_filters_by_args(self):
+        hooks = HookRegistry()
+        seen: list[dict] = []
+        hooks.on(
+            HookEvent.PRE_TOOL_USE,
+            lambda c: (seen.append(dict(c.tool_input or {})), HookDecision.allow())[1],
+            match=HookMatcher(
+                event=HookEvent.PRE_TOOL_USE,
+                tool_name="edit_file",
+                args={"file_path": "*.py"},
+            ),
+        )
+        asyncio.run(
+            hooks.dispatch(
+                HookContext(
+                    event=HookEvent.PRE_TOOL_USE,
+                    tool_name="edit_file",
+                    tool_input={"file_path": "README.md"},
+                )
+            )
+        )
+        asyncio.run(
+            hooks.dispatch(
+                HookContext(
+                    event=HookEvent.PRE_TOOL_USE,
+                    tool_name="edit_file",
+                    tool_input={"file_path": "foo.py"},
+                )
+            )
+        )
+        assert len(seen) == 1 and seen[0]["file_path"] == "foo.py"
+
+    def test_merge_registries(self):
+        a = HookRegistry().on(HookEvent.PRE_TOOL_USE, lambda c: HookDecision.allow())
+        b = HookRegistry().on(HookEvent.POST_TOOL_USE, lambda c: HookDecision.allow())
+        merged = a.merge(b)
+        assert HookEvent.PRE_TOOL_USE in merged.registered_events
+        assert HookEvent.POST_TOOL_USE in merged.registered_events
+
+    def test_as_plugin_is_adk_base_plugin(self):
+        from google.adk.plugins.base_plugin import BasePlugin
+
+        plugin = HookRegistry().as_plugin()
+        assert isinstance(plugin, BasePlugin)
+        assert isinstance(plugin, HookPlugin)
 
     def test_h_hooks_factory(self):
         hooks = H.hooks("/tmp")
@@ -324,9 +402,14 @@ class TestHookSystem:
         assert hooks.workspace == "/tmp"
 
     def test_hook_chaining(self):
-        hooks = H.hooks().on("a", "echo a").on("b", "echo b").on("a", "echo a2")
-        assert "a" in hooks.registered_events
-        assert "b" in hooks.registered_events
+        hooks = (
+            H.hooks()
+            .on(HookEvent.PRE_TOOL_USE, lambda c: HookDecision.allow())
+            .on(HookEvent.POST_TOOL_USE, lambda c: HookDecision.allow())
+            .on(HookEvent.PRE_TOOL_USE, lambda c: HookDecision.allow())
+        )
+        assert HookEvent.PRE_TOOL_USE in hooks.registered_events
+        assert HookEvent.POST_TOOL_USE in hooks.registered_events
 
 
 # ======================================================================

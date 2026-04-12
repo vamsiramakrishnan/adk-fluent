@@ -33,8 +33,6 @@ from adk_fluent._harness._events import (
     TextChunk,
     TurnComplete,
 )
-from adk_fluent._harness._hooks import HookRegistry
-
 __all__ = ["HarnessRepl", "ReplConfig"]
 
 
@@ -63,10 +61,13 @@ class HarnessRepl:
     The REPL handles the outer loop: reading input, dispatching to the
     agent, streaming output, and managing session state.
 
+    Hooks are installed at the agent / App layer (``.harness(hooks=...)`` or
+    ``App.plugin(registry.as_plugin())``), not on the REPL. The REPL's
+    only responsibility is the input/output loop.
+
     Args:
         agent: An adk-fluent Agent builder (not yet built).
         dispatcher: Event dispatcher for routing HarnessEvents.
-        hooks: Hook registry for user scripts.
         compressor: Context compressor for auto-compression.
         config: REPL configuration.
     """
@@ -76,13 +77,11 @@ class HarnessRepl:
         agent: Any,
         *,
         dispatcher: EventDispatcher | None = None,
-        hooks: HookRegistry | None = None,
         compressor: ContextCompressor | None = None,
         config: ReplConfig | None = None,
     ) -> None:
         self.agent = agent
         self.dispatcher = dispatcher or EventDispatcher()
-        self.hooks = hooks
         self.compressor = compressor
         self.config = config or ReplConfig()
         self._turn_count = 0
@@ -144,11 +143,8 @@ class HarnessRepl:
         Yields:
             HarnessEvents as they occur.
         """
-        # Fire pre-turn hooks
-        if self.hooks:
-            await self.hooks.fire("turn_start", prompt=prompt)
-
-        # Stream agent events
+        # Stream agent events. Hooks (pre_tool_use, session_start, etc.) fire
+        # automatically via HookPlugin installed at the agent / App layer.
         try:
             async for adk_event in self.agent.events(prompt):
                 harness_events = self.dispatcher.translate(adk_event)
@@ -158,10 +154,6 @@ class HarnessRepl:
             error_chunk = TextChunk(text=f"\nError: {e}\n")
             self.dispatcher.emit(error_chunk)
             yield error_chunk
-
-        # Fire post-turn hooks
-        if self.hooks:
-            await self.hooks.fire("turn_complete", turn=self._turn_count)
 
     def stop(self) -> None:
         """Signal the REPL to stop after the current turn."""

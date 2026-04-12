@@ -508,8 +508,15 @@ from ._harness import GitCheckpointer as GitCheckpointer
 from ._harness import git_tools as git_tools
 from ._harness import GitignoreMatcher as GitignoreMatcher
 from ._harness import load_gitignore as load_gitignore
+from ._harness import HookAction as HookAction
+from ._harness import HookContext as HookContext
+from ._harness import HookDecision as HookDecision
+from ._harness import HookEntry as HookEntry
+from ._harness import HookEvent as HookEvent
+from ._harness import HookMatcher as HookMatcher
+from ._harness import HookPlugin as HookPlugin
 from ._harness import HookRegistry as HookRegistry
-from ._harness import HookSpec as HookSpec
+from ._harness import SystemMessageChannel as SystemMessageChannel
 from ._harness import ArtifactStore as ArtifactStore
 from ._harness import ArtifactRef as ArtifactRef
 from ._harness import ContextCompressor as ContextCompressor
@@ -562,8 +569,15 @@ from ._harness._git import GitCheckpointer as GitCheckpointer
 from ._harness._git_tools import git_tools as git_tools
 from ._harness._gitignore import GitignoreMatcher as GitignoreMatcher
 from ._harness._gitignore import load_gitignore as load_gitignore
-from ._harness._hooks import HookRegistry as HookRegistry
-from ._harness._hooks import HookSpec as HookSpec
+from ._hooks import HookAction as HookAction
+from ._hooks import HookContext as HookContext
+from ._hooks import HookDecision as HookDecision
+from ._hooks import HookEntry as HookEntry
+from ._hooks import HookEvent as HookEvent
+from ._hooks import HookMatcher as HookMatcher
+from ._hooks import HookPlugin as HookPlugin
+from ._hooks import HookRegistry as HookRegistry
+from ._hooks import SystemMessageChannel as SystemMessageChannel
 from ._harness._interrupt import CancellationToken as CancellationToken
 from ._harness._interrupt import TurnSnapshot as TurnSnapshot
 from ._harness._interrupt import make_cancellation_callback as make_cancellation_callback
@@ -1140,8 +1154,15 @@ __all__ = [
     "git_tools",
     "GitignoreMatcher",
     "load_gitignore",
+    "HookAction",
+    "HookContext",
+    "HookDecision",
+    "HookEntry",
+    "HookEvent",
+    "HookMatcher",
+    "HookPlugin",
     "HookRegistry",
-    "HookSpec",
+    "SystemMessageChannel",
     "ArtifactStore",
     "ArtifactRef",
     "ContextCompressor",
