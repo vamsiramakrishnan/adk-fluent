@@ -5,6 +5,7 @@ from __future__ import annotations
 
 def main() -> None:
     from tests.bench import (
+        bench_agent_build,
         bench_builder_clone,
         bench_context_providers,
         bench_eval_gate,
@@ -27,6 +28,8 @@ def main() -> None:
     bench_prompt_render.main()
     print()
     bench_eval_gate.main()
+    print()
+    bench_agent_build.main()
 
 
 if __name__ == "__main__":

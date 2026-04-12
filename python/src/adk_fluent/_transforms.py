@@ -104,19 +104,34 @@ def _merge_keysets(a: frozenset[str] | None, b: frozenset[str] | None) -> frozen
 
 
 def _apply_result(state: dict[str, Any], result: StateDelta | StateReplacement | dict | None) -> dict[str, Any]:
-    """Apply a transform result to a state dict, returning a new dict."""
-    out = dict(state)
+    """Apply a transform result to a state dict, returning a new dict.
+
+    Fast paths:
+    * ``result is None``  → return ``state`` unchanged. STransform functions
+      are documented as non-mutating, and the chain/call sites read the
+      returned dict without mutating it. Skipping the copy halves the
+      allocation cost of no-op steps like ``S.log`` or ``S.guard``.
+    * ``StateReplacement`` → build the result dict directly from scoped
+      keys + new_state, instead of copying the entire state first and
+      then discarding most of it.
+    """
     if result is None:
-        return out
+        return state
     if isinstance(result, StateDelta):
+        out = dict(state)
         out.update(result.updates)
-    elif isinstance(result, StateReplacement):
-        # Keep scoped keys, replace session-scoped
-        scoped = {k: v for k, v in out.items() if k.startswith(_SCOPE_PREFIXES)}
-        out = {**scoped, **result.new_state}
-    elif isinstance(result, dict):
+        return out
+    if isinstance(result, StateReplacement):
+        # Keep scoped (app:/user:/temp:) keys from the original state,
+        # drop every other key, then overlay the replacement.
+        out = {k: v for k, v in state.items() if k.startswith(_SCOPE_PREFIXES)}
+        out.update(result.new_state)
+        return out
+    if isinstance(result, dict):
+        out = dict(state)
         out.update(result)
-    return out
+        return out
+    return dict(state)
 
 
 class STransform:
@@ -143,6 +158,15 @@ class STransform:
         pipeline = S.capture("input") >> Agent("writer")
     """
 
+    __slots__ = (
+        "_fn",
+        "_reads_keys",
+        "_writes_keys",
+        "_capture_key",
+        "__name__",
+        "_chain_fns",
+    )
+
     def __init__(
         self,
         fn: Callable,
@@ -158,6 +182,10 @@ class STransform:
         self._capture_key = capture_key
         # __name__ used by _fn_step and debugging
         self.__name__ = name
+        # _chain_fns is populated by _chain_transforms when this STransform
+        # represents a flattened chain of leaf transforms. None means a
+        # single leaf (the common case).
+        self._chain_fns: tuple[Callable, ...] | None = None
 
     # ------------------------------------------------------------------
     # NamespaceSpec protocol
@@ -247,22 +275,48 @@ class STransform:
 
 
 def _chain_transforms(first: STransform, second: STransform) -> STransform:
-    """Chain two transforms sequentially.
+    """Chain two transforms sequentially, flattening nested chains.
 
-    First runs on original state, result applied, then second runs on
-    the updated state. Combined metadata is the union of both.
+    Each N-step chain used to be N-1 nested closures. We now collect a
+    flat tuple of leaf callables and execute them in a single loop, so a
+    chain of N transforms pays one Python call per step instead of N-1
+    levels of nested ``_chained`` invocations. Intermediate ``None``
+    results short-circuit the state copy in ``_apply_result``.
     """
+    # Collect leaf callables from both sides, flattening any existing
+    # flat chains.
+    first_fns = first._chain_fns
+    second_fns = second._chain_fns
+    if first_fns is None:
+        if second_fns is None:
+            fns = (first._fn, second._fn)
+        else:
+            fns = (first._fn, *second_fns)
+    else:
+        if second_fns is None:
+            fns = (*first_fns, second._fn)
+        else:
+            fns = (*first_fns, *second_fns)
+
+    # Materialize the tail split once to avoid tuple slicing per call.
+    head = fns[:-1]
+    tail = fns[-1]
 
     def _chained(state: dict) -> StateDelta | StateReplacement:
-        result1 = first(state)
-        intermediate = _apply_result(state, result1)
-        return second(intermediate)
+        cur = state
+        for fn in head:
+            result = fn(cur)
+            if result is not None:
+                cur = _apply_result(cur, result)
+        return tail(cur)
 
     reads = _merge_keysets(first._reads_keys, second._reads_keys)
     writes = _merge_keysets(first._writes_keys, second._writes_keys)
     name = f"{first.__name__}_then_{second.__name__}"
 
-    return STransform(_chained, reads=reads, writes=writes, name=name)
+    chained = STransform(_chained, reads=reads, writes=writes, name=name)
+    chained._chain_fns = fns
+    return chained
 
 
 def _combine_transforms(first: STransform, second: STransform) -> STransform:
