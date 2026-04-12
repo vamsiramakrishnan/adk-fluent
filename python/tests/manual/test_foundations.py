@@ -17,7 +17,7 @@ from unittest.mock import MagicMock
 
 from adk_fluent import H
 from adk_fluent._harness._commands import CommandRegistry
-from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._events import TextChunk, ToolCallStart, TurnComplete
 from adk_fluent._harness._manifold import (
     CapabilityEntry,

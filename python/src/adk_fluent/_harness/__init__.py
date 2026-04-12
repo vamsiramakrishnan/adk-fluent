@@ -61,11 +61,8 @@ from adk_fluent._harness._coding_agent import CodingAgentBundle, coding_agent
 # Commands (slash commands)
 from adk_fluent._harness._commands import CommandRegistry, CommandSpec
 
-# Compression
-from adk_fluent._harness._compression import (
-    CompressionStrategy,
-    ContextCompressor,
-)
+# Compression (lives in adk_fluent._compression, re-exported here)
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 
 # Config
 from adk_fluent._harness._config import HarnessConfig

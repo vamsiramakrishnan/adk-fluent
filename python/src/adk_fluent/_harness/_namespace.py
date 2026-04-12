@@ -45,7 +45,7 @@ from pathlib import Path
 from typing import Any
 
 from adk_fluent._harness._artifacts import ArtifactStore
-from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._diff import PendingEditStore, make_apply_edit, make_diff_edit_file
 from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._error_strategy import ErrorStrategy

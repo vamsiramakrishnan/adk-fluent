@@ -553,8 +553,8 @@ from ._budget._policy import BudgetPolicy as BudgetPolicy
 from ._budget._plugin import BudgetPlugin as BudgetPlugin
 from ._harness._commands import CommandRegistry as CommandRegistry
 from ._harness._commands import CommandSpec as CommandSpec
-from ._harness._compression import ContextCompressor as ContextCompressor
-from ._harness._compression import CompressionStrategy as CompressionStrategy
+from ._compression import ContextCompressor as ContextCompressor
+from ._compression import CompressionStrategy as CompressionStrategy
 from ._harness._config import HarnessConfig as HarnessConfig
 from ._harness._diff import make_diff_edit_file as make_diff_edit_file
 from ._harness._diff import make_apply_edit as make_apply_edit

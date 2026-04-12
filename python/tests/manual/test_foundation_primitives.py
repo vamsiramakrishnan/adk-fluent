@@ -417,7 +417,7 @@ class TestBudgetMonitor:
         assert monitor.max_tokens == 150_000
 
     def test_compressor_bridge(self):
-        from adk_fluent._harness._compression import ContextCompressor
+        from adk_fluent._compression import ContextCompressor
 
         compressor = ContextCompressor(threshold=100_000)
         monitor = compressor.to_monitor()

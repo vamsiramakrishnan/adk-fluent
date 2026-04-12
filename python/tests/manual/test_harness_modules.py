@@ -21,7 +21,7 @@ import pytest
 
 from adk_fluent import H
 from adk_fluent._harness._artifacts import ArtifactStore
-from adk_fluent._harness._compression import CompressionStrategy, ContextCompressor
+from adk_fluent._compression import CompressionStrategy, ContextCompressor
 from adk_fluent._harness._dispatcher import EventDispatcher
 from adk_fluent._harness._events import (
     CompressionTriggered,
