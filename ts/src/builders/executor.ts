@@ -4,6 +4,29 @@
 import { BuilderBase } from "../core/builder-base.js";
 
 /**
+ * An AgentExecutor that runs an ADK Agent against an A2A request and.
+ */
+export class A2aAgentExecutor extends BuilderBase {
+  constructor(runner: string) {
+    super(runner);
+  }
+
+  /**
+   * Set the ``config`` field.
+   */
+  config(value: unknown | undefined): this {
+    return this._setConfig("config", value);
+  }
+
+  /**
+   * An AgentExecutor that runs an ADK Agent against an A2A request and. Resolve into a native ADK _ADK_A2aAgentExecutor.
+   */
+  build(): Record<string, unknown> {
+    return this._buildConfig("A2aAgentExecutor");
+  }
+}
+
+/**
  * A code executor that uses Agent Engine Code Execution Sandbox to execute code.
  */
 export class AgentEngineSandboxCodeExecutor extends BuilderBase {

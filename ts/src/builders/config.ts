@@ -4,6 +4,50 @@
 import { BuilderBase } from "../core/builder-base.js";
 
 /**
+ * Configuration for the A2aAgentExecutor.
+ */
+export class A2aAgentExecutorConfig extends BuilderBase {
+  constructor() {
+    super("");
+  }
+
+  /**
+   * Set the ``a2a_part_converter`` field.
+   */
+  a2aPartConverter(value: (...args: unknown[]) => unknown): this {
+    return this._setConfig("a2a_part_converter", value);
+  }
+
+  /**
+   * Set the ``gen_ai_part_converter`` field.
+   */
+  genAiPartConverter(value: (...args: unknown[]) => unknown): this {
+    return this._setConfig("gen_ai_part_converter", value);
+  }
+
+  /**
+   * Set the ``request_converter`` field.
+   */
+  requestConverter(value: (...args: unknown[]) => unknown): this {
+    return this._setConfig("request_converter", value);
+  }
+
+  /**
+   * Set the ``event_converter`` field.
+   */
+  eventConverter(value: (...args: unknown[]) => unknown): this {
+    return this._setConfig("event_converter", value);
+  }
+
+  /**
+   * Configuration for the A2aAgentExecutor. Resolve into a native ADK _ADK_A2aAgentExecutorConfig.
+   */
+  build(): Record<string, unknown> {
+    return this._buildConfig("A2aAgentExecutorConfig");
+  }
+}
+
+/**
  * The config for the YAML schema to create an agent.
  */
 export class AgentConfig extends BuilderBase {

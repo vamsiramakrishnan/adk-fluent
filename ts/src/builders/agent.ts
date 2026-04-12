@@ -115,102 +115,6 @@ export class Agent extends BuilderBase {
   }
 
   /**
-   * Deprecated: use ``.agent_tool()`` instead.
-   */
-  delegate(value: unknown): this {
-    console.warn(".delegate() is deprecated, use .agent_tool() instead");
-    return this._setConfig("_delegate", value);
-  }
-
-  /**
-   * Deprecated: use ``.guard()`` instead.
-   */
-  guardrail(value: unknown): this {
-    console.warn(".guardrail() is deprecated, use .guard() instead");
-    return this._setConfig("_guardrail", value);
-  }
-
-  /**
-   * Deprecated: use ``.context()`` instead.
-   */
-  history(value: unknown): this {
-    console.warn(".history() is deprecated, use .context() instead");
-    return this._setConfig("include_contents", value);
-  }
-
-  /**
-   * Deprecated: use ``.context()`` instead.
-   */
-  includeHistory(value: unknown): this {
-    console.warn(".include_history() is deprecated, use .context() instead");
-    return this._setConfig("include_contents", value);
-  }
-
-  /**
-   * Deprecated: use ``.prepend()`` instead.
-   */
-  injectContext(value: unknown): this {
-    console.warn(".inject_context() is deprecated, use .prepend() instead");
-    return this._setConfig("_inject_context", value);
-  }
-
-  /**
-   * Deprecated: use ``.accepts()`` instead.
-   */
-  inputSchema(value: unknown): this {
-    console.warn(".input_schema() is deprecated, use .accepts() instead");
-    return this._setConfig("input_schema", value);
-  }
-
-  /**
-   * Deprecated: use ``.writes()`` instead.
-   */
-  outputKey(value: string | undefined): this {
-    console.warn(".output_key() is deprecated, use .writes() instead");
-    return this._setConfig("output_key", value);
-  }
-
-  /**
-   * Deprecated: use ``.returns()`` instead.
-   */
-  outputSchema(value: unknown): this {
-    console.warn(".output_schema() is deprecated, use .returns() instead");
-    return this._setConfig("output_schema", value);
-  }
-
-  /**
-   * Deprecated: use ``.writes()`` instead.
-   */
-  outputs(value: string | undefined): this {
-    console.warn(".outputs() is deprecated, use .writes() instead");
-    return this._setConfig("output_key", value);
-  }
-
-  /**
-   * Deprecated: use ``.loop_while()`` instead.
-   */
-  retryIf(value: unknown): this {
-    console.warn(".retry_if() is deprecated, use .loop_while() instead");
-    return this._setConfig("_retry_if", value);
-  }
-
-  /**
-   * Deprecated: use ``.writes()`` instead.
-   */
-  saveAs(value: string | undefined): this {
-    console.warn(".save_as() is deprecated, use .writes() instead");
-    return this._setConfig("output_key", value);
-  }
-
-  /**
-   * Deprecated: use ``.static()`` instead.
-   */
-  staticInstruct(value: unknown): this {
-    console.warn(".static_instruct() is deprecated, use .static() instead");
-    return this._setConfig("static_instruction", value);
-  }
-
-  /**
    * Append callback(s) to `after_agent_callback`. Multiple calls accumulate.
    */
   afterAgent(...fns: unknown[]): this {
@@ -587,5 +491,84 @@ export class Agent extends BuilderBase {
    */
   build(): Record<string, unknown> {
     return this._buildConfig("LlmAgent");
+  }
+}
+
+/**
+ * Agent that communicates with a remote A2A agent via A2A client.
+ */
+export class RemoteA2aAgent extends BuilderBase {
+  constructor(name: string) {
+    super(name);
+  }
+
+  /**
+   * Set agent description (metadata for transfer routing and topology display — NOT sent to the LLM as instruction). Always set this on sub-agents so the coordinator LLM can pick the right specialist.
+   */
+  describe(value: string): this {
+    return this._setConfig("description", value);
+  }
+
+  /**
+   * Append callback(s) to `after_agent_callback`. Multiple calls accumulate.
+   */
+  afterAgent(...fns: unknown[]): this {
+    let next: this = this;
+    for (const fn of fns) {
+      next = next._addCallback("after_agent_callback", fn);
+    }
+    return next;
+  }
+
+  /**
+   * Append callback to `after_agent_callback` only if condition is True.
+   */
+  afterAgentIf(condition: boolean, fn: (...args: unknown[]) => unknown): this {
+    if (condition) {
+      return this._addCallback("after_agent_callback", fn);
+    }
+    return this;
+  }
+
+  /**
+   * Append callback(s) to `before_agent_callback`. Multiple calls accumulate.
+   */
+  beforeAgent(...fns: unknown[]): this {
+    let next: this = this;
+    for (const fn of fns) {
+      next = next._addCallback("before_agent_callback", fn);
+    }
+    return next;
+  }
+
+  /**
+   * Append callback to `before_agent_callback` only if condition is True.
+   */
+  beforeAgentIf(condition: boolean, fn: (...args: unknown[]) => unknown): this {
+    if (condition) {
+      return this._addCallback("before_agent_callback", fn);
+    }
+    return this;
+  }
+
+  /**
+   * Set the ``sub_agents`` field.
+   */
+  subAgents(value: unknown[]): this {
+    return this._setConfig("sub_agents", value);
+  }
+
+  /**
+   * Append to ``sub_agents`` (lazy — built at .build() time).
+   */
+  subAgent(value: unknown): this {
+    return this._addToList("sub_agents", value);
+  }
+
+  /**
+   * Agent that communicates with a remote A2A agent via A2A client. Resolve into a native ADK _ADK_RemoteA2aAgent.
+   */
+  build(): Record<string, unknown> {
+    return this._buildConfig("RemoteA2aAgent");
   }
 }

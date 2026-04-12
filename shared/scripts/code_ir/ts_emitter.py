@@ -677,7 +677,15 @@ def _rewrite_method_call(expr: str) -> str:
 
 
 def _emit_method_ts(method: MethodNode, indent: str = "  ") -> str | None:
-    """Emit a TypeScript method. Returns None if the method should be skipped."""
+    """Emit a TypeScript method. Returns None if the method should be skipped.
+
+    Skips Python-only deprecation aliases entirely — the TS package is brand
+    new and has no legacy users to support, so we don't ship dead methods that
+    only exist to ``console.warn`` and forward to the canonical name.
+    """
+    if any(isinstance(stmt, DeprecationStmt) for stmt in method.body):
+        return None
+
     body_lines = _detect_pattern(method, indent + "  ")
     if body_lines is None:
         return None
