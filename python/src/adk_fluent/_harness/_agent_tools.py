@@ -10,7 +10,7 @@ isolate a speculative refactor on its own branch.
 from __future__ import annotations
 
 import subprocess
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -51,7 +51,7 @@ class TodoStore:
     def list(self) -> list[TodoItem]:
         return list(self._items)
 
-    def replace(self, items: list[dict | TodoItem]) -> None:
+    def replace(self, items: Sequence[dict | TodoItem]) -> None:
         normalized: list[TodoItem] = []
         for raw in items:
             if isinstance(raw, TodoItem):

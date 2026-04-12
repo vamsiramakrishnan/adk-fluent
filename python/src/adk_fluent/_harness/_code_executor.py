@@ -141,8 +141,14 @@ class CodeExecutor:
             exit_code = proc.returncode
             killed = False
         except subprocess.TimeoutExpired as exc:
-            stdout = exc.stdout or ""
-            stderr = (exc.stderr or "") + f"\n[killed after {int(timeout_s * 1000)}ms]"
+            # subprocess.TimeoutExpired exposes stdout/stderr as bytes | str | None
+            # depending on whether the call used text=True. Normalise to str so
+            # we can append the [killed] marker without a TypeError.
+            raw_out = exc.stdout
+            raw_err = exc.stderr
+            stdout = raw_out.decode("utf8", errors="replace") if isinstance(raw_out, bytes) else (raw_out or "")
+            err_text = raw_err.decode("utf8", errors="replace") if isinstance(raw_err, bytes) else (raw_err or "")
+            stderr = err_text + f"\n[killed after {int(timeout_s * 1000)}ms]"
             exit_code = -1
             killed = True
         finally:
