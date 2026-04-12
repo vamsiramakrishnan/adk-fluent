@@ -33,7 +33,11 @@ import { Agent, Pipeline, FanOut, Loop } from "adk-fluent-ts";
 
 // Sequential
 const pipeline = new Pipeline("research")
-  .step(new Agent("searcher", "gemini-2.5-flash").instruct("Search for information."))
+  .step(
+    new Agent("searcher", "gemini-2.5-flash").instruct(
+      "Search for information.",
+    ),
+  )
   .step(new Agent("writer", "gemini-2.5-flash").instruct("Write a summary."))
   .build();
 
@@ -55,14 +59,14 @@ const loop = new Loop("refine")
 
 JavaScript has no operator overloading, so `adk-fluent-ts` uses method calls. The mapping from the Python operator algebra is:
 
-| Python       | TypeScript                     | Returns    |
-| ------------ | ------------------------------ | ---------- |
-| `a >> b`     | `a.then(b)`                    | `Pipeline` |
-| `a \| b`     | `a.parallel(b)`                | `FanOut`   |
-| `a * 3`      | `a.times(3)`                   | `Loop`     |
-| `a * until`  | `a.timesUntil(pred, { max })`  | `Loop`     |
-| `a // b`     | `a.fallback(b)`                | `Fallback` |
-| `a @ Schema` | `a.outputAs(Schema)`           | `Agent`    |
+| Python       | TypeScript                    | Returns    |
+| ------------ | ----------------------------- | ---------- |
+| `a >> b`     | `a.then(b)`                   | `Pipeline` |
+| `a \| b`     | `a.parallel(b)`               | `FanOut`   |
+| `a * 3`      | `a.times(3)`                  | `Loop`     |
+| `a * until`  | `a.timesUntil(pred, { max })` | `Loop`     |
+| `a // b`     | `a.fallback(b)`               | `Fallback` |
+| `a @ Schema` | `a.outputAs(Schema)`          | `Agent`    |
 
 Sub-builders passed into workflow builders are auto-built — do **not** call `.build()` on individual steps.
 
@@ -89,7 +93,13 @@ All nine namespaces from the Python API are available with TypeScript idioms —
 ```ts
 import { S, C, P, T, G, M, A, E, UI } from "adk-fluent-ts";
 import { tap, expect, gate, race, dispatch, join, Route } from "adk-fluent-ts";
-import { reviewLoop, mapReduce, cascade, chain, conditional } from "adk-fluent-ts";
+import {
+  reviewLoop,
+  mapReduce,
+  cascade,
+  chain,
+  conditional,
+} from "adk-fluent-ts";
 import { RemoteAgent, A2AServer, AgentRegistry } from "adk-fluent-ts";
 ```
 
