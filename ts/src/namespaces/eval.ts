@@ -213,35 +213,38 @@ export class E {
     threshold?: number;
     match?: "exact" | "in_order" | "any_order";
   }): EComposite {
-    return new EComposite([{
-      name: "trajectory",
-      config: {
-        threshold: opts?.threshold ?? 1.0,
-        match: opts?.match ?? "exact",
+    return new EComposite([
+      {
+        name: "trajectory",
+        config: {
+          threshold: opts?.threshold ?? 1.0,
+          match: opts?.match ?? "exact",
+        },
       },
-    }]);
+    ]);
   }
 
   /** ROUGE-1 response match criterion. */
   static responseMatch(opts?: { threshold?: number }): EComposite {
-    return new EComposite([{
-      name: "response_match",
-      config: { threshold: opts?.threshold ?? 0.8 },
-    }]);
+    return new EComposite([
+      {
+        name: "response_match",
+        config: { threshold: opts?.threshold ?? 0.8 },
+      },
+    ]);
   }
 
   /** LLM-as-a-judge semantic matching. */
-  static semanticMatch(opts?: {
-    threshold?: number;
-    judgeModel?: string;
-  }): EComposite {
-    return new EComposite([{
-      name: "semantic_match",
-      config: {
-        threshold: opts?.threshold ?? 0.8,
-        judgeModel: opts?.judgeModel,
+  static semanticMatch(opts?: { threshold?: number; judgeModel?: string }): EComposite {
+    return new EComposite([
+      {
+        name: "semantic_match",
+        config: {
+          threshold: opts?.threshold ?? 0.8,
+          judgeModel: opts?.judgeModel,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Hallucination detection criterion. */
@@ -250,37 +253,40 @@ export class E {
     judgeModel?: string;
     checkIntermediate?: boolean;
   }): EComposite {
-    return new EComposite([{
-      name: "hallucination",
-      config: {
-        threshold: opts?.threshold ?? 0.5,
-        judgeModel: opts?.judgeModel,
-        checkIntermediate: opts?.checkIntermediate ?? false,
+    return new EComposite([
+      {
+        name: "hallucination",
+        config: {
+          threshold: opts?.threshold ?? 0.5,
+          judgeModel: opts?.judgeModel,
+          checkIntermediate: opts?.checkIntermediate ?? false,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Safety evaluation criterion. */
   static safety(opts?: { threshold?: number }): EComposite {
-    return new EComposite([{
-      name: "safety",
-      config: { threshold: opts?.threshold ?? 1.0 },
-    }]);
+    return new EComposite([
+      {
+        name: "safety",
+        config: { threshold: opts?.threshold ?? 1.0 },
+      },
+    ]);
   }
 
   /** Rubric-based response quality criterion. */
-  static rubric(
-    texts: string[],
-    opts?: { threshold?: number; judgeModel?: string },
-  ): EComposite {
-    return new EComposite([{
-      name: "rubric",
-      config: {
-        texts,
-        threshold: opts?.threshold ?? 0.8,
-        judgeModel: opts?.judgeModel,
+  static rubric(texts: string[], opts?: { threshold?: number; judgeModel?: string }): EComposite {
+    return new EComposite([
+      {
+        name: "rubric",
+        config: {
+          texts,
+          threshold: opts?.threshold ?? 0.8,
+          judgeModel: opts?.judgeModel,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Rubric-based tool use quality criterion. */
@@ -288,26 +294,26 @@ export class E {
     texts: string[],
     opts?: { threshold?: number; judgeModel?: string },
   ): EComposite {
-    return new EComposite([{
-      name: "tool_rubric",
-      config: {
-        texts,
-        threshold: opts?.threshold ?? 0.8,
-        judgeModel: opts?.judgeModel,
+    return new EComposite([
+      {
+        name: "tool_rubric",
+        config: {
+          texts,
+          threshold: opts?.threshold ?? 0.8,
+          judgeModel: opts?.judgeModel,
+        },
       },
-    }]);
+    ]);
   }
 
   /** User-defined custom metric. */
-  static custom(
-    name: string,
-    fn: CallbackFn,
-    opts?: { threshold?: number },
-  ): EComposite {
-    return new EComposite([{
-      name,
-      config: { fn, threshold: opts?.threshold ?? 1.0 },
-    }]);
+  static custom(name: string, fn: CallbackFn, opts?: { threshold?: number }): EComposite {
+    return new EComposite([
+      {
+        name,
+        config: { fn, threshold: opts?.threshold ?? 1.0 },
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -323,11 +329,7 @@ export class E {
   }
 
   /** Create a conversation scenario for user simulation. */
-  static scenario(
-    start: string,
-    plan: string[],
-    opts?: { persona?: EPersonaSpec },
-  ): EScenario {
+  static scenario(start: string, plan: string[], opts?: { persona?: EPersonaSpec }): EScenario {
     return new EScenario(start, plan, opts?.persona);
   }
 
@@ -366,17 +368,16 @@ export class E {
   // ------------------------------------------------------------------
 
   /** Create a quality gate for pipelines. */
-  static gate(
-    criteria: EComposite,
-    opts?: { threshold?: number; outputKey?: string },
-  ): EComposite {
-    return new EComposite([{
-      name: "gate",
-      config: {
-        criteria: criteria.criteria,
-        threshold: opts?.threshold ?? 0.8,
-        outputKey: opts?.outputKey ?? "eval_result",
+  static gate(criteria: EComposite, opts?: { threshold?: number; outputKey?: string }): EComposite {
+    return new EComposite([
+      {
+        name: "gate",
+        config: {
+          criteria: criteria.criteria,
+          threshold: opts?.threshold ?? 0.8,
+          outputKey: opts?.outputKey ?? "eval_result",
+        },
       },
-    }]);
+    ]);
   }
 }

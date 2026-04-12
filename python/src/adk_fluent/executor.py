@@ -6,16 +6,62 @@ from typing import TYPE_CHECKING, Any, Self
 
 from adk_fluent._base import BuilderBase
 
+if not TYPE_CHECKING:
+    try:
+        from google.adk.a2a.executor.a2a_agent_executor import (
+            A2aAgentExecutor as _ADK_A2aAgentExecutor,
+        )
+    except (ImportError, ModuleNotFoundError):
+        _ADK_A2aAgentExecutor = None  # type: ignore[assignment,misc]
+
 if TYPE_CHECKING:
+    from google.adk.a2a.executor.a2a_agent_executor import (
+        A2aAgentExecutor as _ADK_A2aAgentExecutor,
+    )
+    from google.adk.a2a.executor.a2a_agent_executor import (
+        A2aAgentExecutorConfig,
+    )
     from google.adk.code_executors.agent_engine_sandbox_code_executor import (
         AgentEngineSandboxCodeExecutor as _ADK_AgentEngineSandboxCodeExecutor,
     )
-    from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
-    from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
+    from google.adk.code_executors.base_code_executor import (
+        BaseCodeExecutor as _ADK_BaseCodeExecutor,
+    )
+    from google.adk.code_executors.built_in_code_executor import (
+        BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor,
+    )
     from google.adk.code_executors.unsafe_local_code_executor import (
         UnsafeLocalCodeExecutor as _ADK_UnsafeLocalCodeExecutor,
     )
-    from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
+    from google.adk.code_executors.vertex_ai_code_executor import (
+        VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor,
+    )
+
+
+class A2aAgentExecutor(BuilderBase):
+    """An AgentExecutor that runs an ADK Agent against an A2A request and."""
+
+    _ALIASES: dict[str, str] = {}
+    _CALLBACK_ALIASES: dict[str, str] = {}
+    _ADDITIVE_FIELDS: set[str] = set()
+    _KNOWN_PARAMS: set[str] | None = {"config", "runner"}
+
+    def __init__(self, runner: str) -> None:
+        self._init_storage(runner)
+
+    def config(self, value: A2aAgentExecutorConfig | None) -> Self:
+        """Set the ``config`` field."""
+        self = self._maybe_fork_for_mutation()
+        self._config["config"] = value
+        return self
+
+    def build(self) -> _ADK_A2aAgentExecutor:
+        """An AgentExecutor that runs an ADK Agent against an A2A request and. Resolve into a native ADK _ADK_A2aAgentExecutor."""
+        if _ADK_A2aAgentExecutor is None:
+            raise ImportError("A2A support requires the a2a SDK. Install with: pip install 'google-adk[a2a]'")
+        config = self._prepare_build_config()
+        result = self._safe_build(_ADK_A2aAgentExecutor, config)
+        return self._apply_native_hooks(result)
 
 
 class AgentEngineSandboxCodeExecutor(BuilderBase):
@@ -129,7 +175,9 @@ class BaseCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_BaseCodeExecutor:
         """Abstract base class for all code executors. Resolve into a native ADK _ADK_BaseCodeExecutor."""
-        from google.adk.code_executors.base_code_executor import BaseCodeExecutor as _ADK_BaseCodeExecutor
+        from google.adk.code_executors.base_code_executor import (
+            BaseCodeExecutor as _ADK_BaseCodeExecutor,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BaseCodeExecutor, config)
@@ -184,7 +232,9 @@ class BuiltInCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_BuiltInCodeExecutor:
         """A code executor that uses the Model's built-in code executor. Resolve into a native ADK _ADK_BuiltInCodeExecutor."""
-        from google.adk.code_executors.built_in_code_executor import BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor
+        from google.adk.code_executors.built_in_code_executor import (
+            BuiltInCodeExecutor as _ADK_BuiltInCodeExecutor,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BuiltInCodeExecutor, config)
@@ -296,7 +346,9 @@ class VertexAiCodeExecutor(BuilderBase):
 
     def build(self) -> _ADK_VertexAiCodeExecutor:
         """A code executor that uses Vertex Code Interpreter Extension to execute code. Resolve into a native ADK _ADK_VertexAiCodeExecutor."""
-        from google.adk.code_executors.vertex_ai_code_executor import VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor
+        from google.adk.code_executors.vertex_ai_code_executor import (
+            VertexAiCodeExecutor as _ADK_VertexAiCodeExecutor,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_VertexAiCodeExecutor, config)

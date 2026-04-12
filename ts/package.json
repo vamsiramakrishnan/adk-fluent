@@ -15,8 +15,12 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src/",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "check": "npm run lint && npm run format:check && npm run typecheck",
     "docs": "typedoc --out docs/api src/index.ts",
     "docs:watch": "typedoc --watch --out docs/api src/index.ts"
   },
@@ -39,12 +43,15 @@
     "@google/adk": ">=0.6.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@google/adk": "^0.6.1",
-    "typescript": "^5.7.0",
-    "vitest": "^3.0.0",
-    "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "typedoc": "^0.27.0"
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.0",
+    "typedoc": "^0.27.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
   }
 }

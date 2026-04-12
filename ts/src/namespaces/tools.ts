@@ -47,20 +47,19 @@ export class T {
     callable: ToolFn,
     opts?: { name?: string; description?: string; confirm?: boolean },
   ): TComposite {
-    return new TComposite([{
-      type: "function",
-      fn: callable,
-      name: opts?.name,
-      description: opts?.description,
-      confirm: opts?.confirm ?? false,
-    }]);
+    return new TComposite([
+      {
+        type: "function",
+        fn: callable,
+        name: opts?.name,
+        description: opts?.description,
+        confirm: opts?.confirm ?? false,
+      },
+    ]);
   }
 
   /** Wrap an agent/builder as an AgentTool. */
-  static agent(
-    agent: unknown,
-    opts?: { name?: string; description?: string },
-  ): TComposite {
+  static agent(agent: unknown, opts?: { name?: string; description?: string }): TComposite {
     return new TComposite([{ type: "agent_tool", agent, ...opts }]);
   }
 
@@ -87,12 +86,14 @@ export class T {
     registry: unknown,
     opts?: { alwaysLoaded?: string[]; maxTools?: number },
   ): TComposite {
-    return new TComposite([{
-      type: "search",
-      registry,
-      alwaysLoaded: opts?.alwaysLoaded,
-      maxTools: opts?.maxTools ?? 20,
-    }]);
+    return new TComposite([
+      {
+        type: "search",
+        registry,
+        alwaysLoaded: opts?.alwaysLoaded,
+        maxTools: opts?.maxTools ?? 20,
+      },
+    ]);
   }
 
   /** Attach a ToolSchema for contract checking. */
@@ -109,12 +110,14 @@ export class T {
     urlOrParams: string | Record<string, unknown>,
     opts?: { toolFilter?: string[]; prefix?: string },
   ): TComposite {
-    return new TComposite([{
-      type: "mcp",
-      params: typeof urlOrParams === "string" ? { url: urlOrParams } : urlOrParams,
-      toolFilter: opts?.toolFilter,
-      prefix: opts?.prefix,
-    }]);
+    return new TComposite([
+      {
+        type: "mcp",
+        params: typeof urlOrParams === "string" ? { url: urlOrParams } : urlOrParams,
+        toolFilter: opts?.toolFilter,
+        prefix: opts?.prefix,
+      },
+    ]);
   }
 
   /** OpenAPI spec tool. */
@@ -122,12 +125,14 @@ export class T {
     spec: string | Record<string, unknown>,
     opts?: { toolFilter?: string[]; auth?: Record<string, unknown> },
   ): TComposite {
-    return new TComposite([{
-      type: "openapi",
-      spec,
-      toolFilter: opts?.toolFilter,
-      auth: opts?.auth,
-    }]);
+    return new TComposite([
+      {
+        type: "openapi",
+        spec,
+        toolFilter: opts?.toolFilter,
+        auth: opts?.auth,
+      },
+    ]);
   }
 
   /** Wrap remote A2A agent as AgentTool. */
@@ -135,21 +140,25 @@ export class T {
     agentCardUrl: string,
     opts?: { name?: string; description?: string; timeout?: number },
   ): TComposite {
-    return new TComposite([{
-      type: "a2a",
-      agentCardUrl,
-      name: opts?.name,
-      description: opts?.description,
-      timeout: opts?.timeout ?? 600,
-    }]);
+    return new TComposite([
+      {
+        type: "a2a",
+        agentCardUrl,
+        name: opts?.name,
+        description: opts?.description,
+        timeout: opts?.timeout ?? 600,
+      },
+    ]);
   }
 
   /** A2UI toolset. */
   static a2ui(opts?: { catalog?: string }): TComposite {
-    return new TComposite([{
-      type: "a2ui",
-      catalog: opts?.catalog ?? "basic",
-    }]);
+    return new TComposite([
+      {
+        type: "a2ui",
+        catalog: opts?.catalog ?? "basic",
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -158,29 +167,40 @@ export class T {
 
   /** Create a mock tool for testing. */
   static mock(name: string, opts?: { returns?: unknown; sideEffect?: ToolFn }): TComposite {
-    return new TComposite([{
-      type: "mock",
-      name,
-      returns: opts?.returns,
-      sideEffect: opts?.sideEffect,
-    }]);
+    return new TComposite([
+      {
+        type: "mock",
+        name,
+        returns: opts?.returns,
+        sideEffect: opts?.sideEffect,
+      },
+    ]);
   }
 
   /** Wrap tool with human confirmation requirement. */
   static confirm(toolOrComposite: TComposite | ToolFn, message?: string): TComposite {
-    const items = toolOrComposite instanceof TComposite ? toolOrComposite.items : [{ type: "function", fn: toolOrComposite }];
+    const items =
+      toolOrComposite instanceof TComposite
+        ? toolOrComposite.items
+        : [{ type: "function", fn: toolOrComposite }];
     return new TComposite(items.map((t) => ({ ...t, confirm: true, confirmMessage: message })));
   }
 
   /** Wrap tool with timeout. */
   static timeout(toolOrComposite: TComposite | ToolFn, seconds = 30): TComposite {
-    const items = toolOrComposite instanceof TComposite ? toolOrComposite.items : [{ type: "function", fn: toolOrComposite }];
+    const items =
+      toolOrComposite instanceof TComposite
+        ? toolOrComposite.items
+        : [{ type: "function", fn: toolOrComposite }];
     return new TComposite(items.map((t) => ({ ...t, timeout: seconds })));
   }
 
   /** Wrap tool with TTL-based result cache. */
   static cache(toolOrComposite: TComposite | ToolFn, opts?: { ttl?: number }): TComposite {
-    const items = toolOrComposite instanceof TComposite ? toolOrComposite.items : [{ type: "function", fn: toolOrComposite }];
+    const items =
+      toolOrComposite instanceof TComposite
+        ? toolOrComposite.items
+        : [{ type: "function", fn: toolOrComposite }];
     return new TComposite(items.map((t) => ({ ...t, cache: true, ttl: opts?.ttl ?? 300 })));
   }
 
@@ -189,7 +209,12 @@ export class T {
     toolOrComposite: TComposite | ToolFn,
     opts: { pre?: ToolFn; post?: ToolFn },
   ): TComposite {
-    const items = toolOrComposite instanceof TComposite ? toolOrComposite.items : [{ type: "function", fn: toolOrComposite }];
-    return new TComposite(items.map((t) => ({ ...t, preTransform: opts.pre, postTransform: opts.post })));
+    const items =
+      toolOrComposite instanceof TComposite
+        ? toolOrComposite.items
+        : [{ type: "function", fn: toolOrComposite }];
+    return new TComposite(
+      items.map((t) => ({ ...t, preTransform: opts.pre, postTransform: opts.post })),
+    );
   }
 }

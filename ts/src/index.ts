@@ -52,16 +52,7 @@ export { UI, UIComponent, UISurface } from "./namespaces/ui.js";
 export type { UIBinding, UICheck } from "./namespaces/ui.js";
 
 // Primitives — function-level building blocks (tap, expect, mapOver, ...)
-export {
-  Primitive,
-  tap,
-  expect,
-  mapOver,
-  gate,
-  race,
-  dispatch,
-  join,
-} from "./primitives/index.js";
+export { Primitive, tap, expect, mapOver, gate, race, dispatch, join } from "./primitives/index.js";
 export type { DispatchOptions } from "./primitives/index.js";
 
 // Routing
@@ -77,10 +68,7 @@ export {
   conditional,
   supervised,
 } from "./patterns/index.js";
-export type {
-  ReviewLoopOptions,
-  MapReduceOptions,
-} from "./patterns/index.js";
+export type { ReviewLoopOptions, MapReduceOptions } from "./patterns/index.js";
 
 // A2A — remote agent communication
 export { RemoteAgent, A2AServer, AgentRegistry } from "./a2a/index.js";

@@ -44,10 +44,12 @@ export class M {
 
   /** Retry with exponential backoff. */
   static retry(opts?: { maxAttempts?: number; backoff?: number }): MComposite {
-    return new MComposite([{
-      name: "retry",
-      config: { maxAttempts: opts?.maxAttempts ?? 3, backoff: opts?.backoff ?? 2.0 },
-    }]);
+    return new MComposite([
+      {
+        name: "retry",
+        config: { maxAttempts: opts?.maxAttempts ?? 3, backoff: opts?.backoff ?? 2.0 },
+      },
+    ]);
   }
 
   /** Structured event logging. */
@@ -81,18 +83,22 @@ export class M {
 
   /** Restrict middleware to specific agents. */
   static scope(agents: string[], mw: MComposite): MComposite {
-    return new MComposite([{
-      name: "scope",
-      config: { agents, middleware: mw.middlewares },
-    }]);
+    return new MComposite([
+      {
+        name: "scope",
+        config: { agents, middleware: mw.middlewares },
+      },
+    ]);
   }
 
   /** Conditional middleware. */
   static when(condition: CallbackFn | ((state: State) => boolean), mw: MComposite): MComposite {
-    return new MComposite([{
-      name: "when",
-      config: { condition, middleware: mw.middlewares },
-    }]);
+    return new MComposite([
+      {
+        name: "when",
+        config: { condition, middleware: mw.middlewares },
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -145,13 +151,15 @@ export class M {
 
   /** Circuit breaker: trips open after N consecutive errors. */
   static circuitBreaker(opts?: { threshold?: number; resetAfter?: number }): MComposite {
-    return new MComposite([{
-      name: "circuit_breaker",
-      config: {
-        threshold: opts?.threshold ?? 5,
-        resetAfter: opts?.resetAfter ?? 60,
+    return new MComposite([
+      {
+        name: "circuit_breaker",
+        config: {
+          threshold: opts?.threshold ?? 5,
+          resetAfter: opts?.resetAfter ?? 60,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Per-agent execution timeout. */
@@ -161,10 +169,12 @@ export class M {
 
   /** Cache LLM responses with TTL. */
   static cache(opts?: { ttl?: number; keyFn?: CallbackFn }): MComposite {
-    return new MComposite([{
-      name: "cache",
-      config: { ttl: opts?.ttl ?? 300, keyFn: opts?.keyFn },
-    }]);
+    return new MComposite([
+      {
+        name: "cache",
+        config: { ttl: opts?.ttl ?? 300, keyFn: opts?.keyFn },
+      },
+    ]);
   }
 
   /** Auto-downgrade to fallback model on failure. */
@@ -174,18 +184,22 @@ export class M {
 
   /** Suppress duplicate model calls within a sliding window. */
   static dedup(opts?: { window?: number }): MComposite {
-    return new MComposite([{
-      name: "dedup",
-      config: { window: opts?.window ?? 60 },
-    }]);
+    return new MComposite([
+      {
+        name: "dedup",
+        config: { window: opts?.window ?? 60 },
+      },
+    ]);
   }
 
   /** Probabilistic middleware: fires inner middleware only N% of the time. */
   static sample(rate: number, mw?: MComposite): MComposite {
-    return new MComposite([{
-      name: "sample",
-      config: { rate, middleware: mw?.middlewares },
-    }]);
+    return new MComposite([
+      {
+        name: "sample",
+        config: { rate, middleware: mw?.middlewares },
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -194,18 +208,22 @@ export class M {
 
   /** OpenTelemetry span export. */
   static trace(opts?: { exporter?: unknown }): MComposite {
-    return new MComposite([{
-      name: "trace",
-      config: { exporter: opts?.exporter },
-    }]);
+    return new MComposite([
+      {
+        name: "trace",
+        config: { exporter: opts?.exporter },
+      },
+    ]);
   }
 
   /** Metrics collection. */
   static metrics(opts?: { collector?: unknown }): MComposite {
-    return new MComposite([{
-      name: "metrics",
-      config: { collector: opts?.collector },
-    }]);
+    return new MComposite([
+      {
+        name: "metrics",
+        config: { collector: opts?.collector },
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -219,15 +237,17 @@ export class M {
     agents?: string[];
     onRetry?: CallbackFn;
   }): MComposite {
-    return new MComposite([{
-      name: "a2a_retry",
-      config: {
-        maxAttempts: opts?.maxAttempts ?? 3,
-        backoff: opts?.backoff ?? 2.0,
-        agents: opts?.agents,
-        onRetry: opts?.onRetry,
+    return new MComposite([
+      {
+        name: "a2a_retry",
+        config: {
+          maxAttempts: opts?.maxAttempts ?? 3,
+          backoff: opts?.backoff ?? 2.0,
+          agents: opts?.agents,
+          onRetry: opts?.onRetry,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Circuit breaker for A2A remote agents. */
@@ -238,16 +258,18 @@ export class M {
     onOpen?: CallbackFn;
     onClose?: CallbackFn;
   }): MComposite {
-    return new MComposite([{
-      name: "a2a_circuit_breaker",
-      config: {
-        threshold: opts?.threshold ?? 5,
-        resetAfter: opts?.resetAfter ?? 60,
-        agents: opts?.agents,
-        onOpen: opts?.onOpen,
-        onClose: opts?.onClose,
+    return new MComposite([
+      {
+        name: "a2a_circuit_breaker",
+        config: {
+          threshold: opts?.threshold ?? 5,
+          resetAfter: opts?.resetAfter ?? 60,
+          agents: opts?.agents,
+          onOpen: opts?.onOpen,
+          onClose: opts?.onClose,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Per-delegation timeout for A2A remote agents. */
@@ -256,14 +278,16 @@ export class M {
     agents?: string[];
     onTimeout?: CallbackFn;
   }): MComposite {
-    return new MComposite([{
-      name: "a2a_timeout",
-      config: {
-        seconds: opts?.seconds ?? 30,
-        agents: opts?.agents,
-        onTimeout: opts?.onTimeout,
+    return new MComposite([
+      {
+        name: "a2a_timeout",
+        config: {
+          seconds: opts?.seconds ?? 30,
+          agents: opts?.agents,
+          onTimeout: opts?.onTimeout,
+        },
       },
-    }]);
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -272,12 +296,14 @@ export class M {
 
   /** Log A2UI surface operations. */
   static a2uiLog(opts?: { level?: "info" | "debug" | "trace"; agents?: string[] }): MComposite {
-    return new MComposite([{
-      name: "a2ui_log",
-      config: {
-        level: opts?.level ?? "info",
-        agents: opts?.agents,
+    return new MComposite([
+      {
+        name: "a2ui_log",
+        config: {
+          level: opts?.level ?? "info",
+          agents: opts?.agents,
+        },
       },
-    }]);
+    ]);
   }
 }

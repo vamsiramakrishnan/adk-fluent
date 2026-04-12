@@ -8,8 +8,12 @@ from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from google.adk.planners.base_planner import BasePlanner as _ADK_BasePlanner
-    from google.adk.planners.built_in_planner import BuiltInPlanner as _ADK_BuiltInPlanner
-    from google.adk.planners.plan_re_act_planner import PlanReActPlanner as _ADK_PlanReActPlanner
+    from google.adk.planners.built_in_planner import (
+        BuiltInPlanner as _ADK_BuiltInPlanner,
+    )
+    from google.adk.planners.plan_re_act_planner import (
+        PlanReActPlanner as _ADK_PlanReActPlanner,
+    )
 
 
 class BasePlanner(BuilderBase):
@@ -45,7 +49,9 @@ class BuiltInPlanner(BuilderBase):
 
     def build(self) -> _ADK_BuiltInPlanner:
         """The built-in planner that uses model's built-in thinking features. Resolve into a native ADK _ADK_BuiltInPlanner."""
-        from google.adk.planners.built_in_planner import BuiltInPlanner as _ADK_BuiltInPlanner
+        from google.adk.planners.built_in_planner import (
+            BuiltInPlanner as _ADK_BuiltInPlanner,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_BuiltInPlanner, config)
@@ -65,7 +71,9 @@ class PlanReActPlanner(BuilderBase):
 
     def build(self) -> _ADK_PlanReActPlanner:
         """Plan-Re-Act planner that constrains the LLM response to generate a plan before any action/observation. Resolve into a native ADK _ADK_PlanReActPlanner."""
-        from google.adk.planners.plan_re_act_planner import PlanReActPlanner as _ADK_PlanReActPlanner
+        from google.adk.planners.plan_re_act_planner import (
+            PlanReActPlanner as _ADK_PlanReActPlanner,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_PlanReActPlanner, config)

@@ -17,7 +17,8 @@ from pathlib import Path
 def test_manual_seed_only_contains_non_inferrable_extras():
     """Every extra in seed.manual.toml should have a behavior that requires
     human judgment — not things derivable from types."""
-    manual_path = Path("seeds/seed.manual.toml")
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    manual_path = repo_root / "shared" / "seeds" / "seed.manual.toml"
     with open(manual_path, "rb") as f:
         manual = tomllib.load(f)
 

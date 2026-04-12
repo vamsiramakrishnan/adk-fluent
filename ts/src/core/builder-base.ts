@@ -109,20 +109,24 @@ export abstract class BuilderBase<TBuild = unknown> {
    */
   protected _addCallback(key: string, fn: CallbackFn | unknown): this {
     const next = this._clone();
-    if (!next._callbacks.has(key)) {
-      next._callbacks.set(key, []);
+    let bucket = next._callbacks.get(key);
+    if (!bucket) {
+      bucket = [];
+      next._callbacks.set(key, bucket);
     }
-    next._callbacks.get(key)!.push(fn as CallbackFn);
+    bucket.push(fn as CallbackFn);
     return next;
   }
 
   /** Append to a list field, returning a new builder. */
   protected _addToList(key: string, item: unknown): this {
     const next = this._clone();
-    if (!next._lists.has(key)) {
-      next._lists.set(key, []);
+    let bucket = next._lists.get(key);
+    if (!bucket) {
+      bucket = [];
+      next._lists.set(key, bucket);
     }
-    next._lists.get(key)!.push(item);
+    bucket.push(item);
     return next;
   }
 
@@ -154,9 +158,7 @@ export abstract class BuilderBase<TBuild = unknown> {
     // Lists — auto-build sub-builders
     for (const [k, v] of this._lists) {
       if (v.length === 0) continue;
-      result[k] = v.map((item) =>
-        item instanceof BuilderBase ? item.build() : item,
-      );
+      result[k] = v.map((item) => (item instanceof BuilderBase ? item.build() : item));
     }
 
     // Callbacks
@@ -206,7 +208,7 @@ export abstract class BuilderBase<TBuild = unknown> {
     const otherName =
       other instanceof BuilderBase
         ? ((other._config.get("name") as string) ?? "")
-        : (other as Function).name ?? "fn";
+        : ((other as { name?: string }).name ?? "fn");
 
     if (this instanceof Pipeline) {
       const clone = this._clone();
@@ -279,10 +281,7 @@ export abstract class BuilderBase<TBuild = unknown> {
    * Conditional loop: `a.timesUntil(pred, { max: 5 })`.
    * Equivalent to Python's `a * until(pred, max=5)`.
    */
-  timesUntil(
-    predicate: StatePredicate | UntilSpec,
-    opts?: { max?: number },
-  ): BuilderBase {
+  timesUntil(predicate: StatePredicate | UntilSpec, opts?: { max?: number }): BuilderBase {
     let pred: StatePredicate;
     let max: number;
     if (typeof predicate === "function") {

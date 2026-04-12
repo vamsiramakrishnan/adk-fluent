@@ -20,7 +20,10 @@ class Loop(BuilderBase):
     """A shell agent that run its sub-agents in a loop."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "before_agent": "before_agent_callback",
+    }
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
@@ -133,7 +136,12 @@ class Loop(BuilderBase):
         return await run_map_async(self, prompts, concurrency=concurrency)
 
     def test(
-        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+        self,
+        prompt: str,
+        *,
+        contains: str | None = None,
+        matches: str | None = None,
+        equals: str | None = None,
     ) -> Self:
         """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
         from adk_fluent._helpers import run_inline_test
@@ -165,7 +173,10 @@ class FanOut(BuilderBase):
     """A shell agent that runs its sub-agents in parallel in an isolated manner."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "before_agent": "before_agent_callback",
+    }
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
@@ -276,7 +287,12 @@ class FanOut(BuilderBase):
         return await run_map_async(self, prompts, concurrency=concurrency)
 
     def test(
-        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+        self,
+        prompt: str,
+        *,
+        contains: str | None = None,
+        matches: str | None = None,
+        equals: str | None = None,
     ) -> Self:
         """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
         from adk_fluent._helpers import run_inline_test
@@ -308,7 +324,10 @@ class Pipeline(BuilderBase):
     """A shell agent that runs its sub-agents in sequence."""
 
     _ALIASES: dict[str, str] = {"describe": "description"}
-    _CALLBACK_ALIASES: dict[str, str] = {"after_agent": "after_agent_callback", "before_agent": "before_agent_callback"}
+    _CALLBACK_ALIASES: dict[str, str] = {
+        "after_agent": "after_agent_callback",
+        "before_agent": "before_agent_callback",
+    }
     _ADDITIVE_FIELDS: set[str] = {"after_agent_callback", "before_agent_callback"}
 
     def __init__(self, name: str) -> None:
@@ -415,7 +434,12 @@ class Pipeline(BuilderBase):
         return await run_map_async(self, prompts, concurrency=concurrency)
 
     def test(
-        self, prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None
+        self,
+        prompt: str,
+        *,
+        contains: str | None = None,
+        matches: str | None = None,
+        equals: str | None = None,
     ) -> Self:
         """Run a smoke test. Calls .ask() internally, asserts output matches condition."""
         from adk_fluent._helpers import run_inline_test

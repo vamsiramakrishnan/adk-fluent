@@ -1,31 +1,82 @@
-# Generated files are owned by `just generate` — not by pre-commit.
-# Golden files are generator output snapshots — also excluded.
-# The exclude pattern below keeps formatters from touching generated output.
+# ─────────────────────────────────────────────────────────────────────────────
+# adk-fluent monorepo pre-commit configuration
+#
+# Two language tracks:
+#   • Python  → ruff (check + format)        owned by python/pyproject.toml
+#   • TypeScript → eslint + prettier         owned by ts/.eslintrc + ts/.prettierrc
+#
+# Generated files (Python builders + TS builders) are owned by the codegen
+# pipeline (`just generate` / `just ts-generate`) — formatters never touch
+# them. The exclude regex below mirrors that contract.
+# ─────────────────────────────────────────────────────────────────────────────
+
 exclude: |
   (?x)^(
-    src/adk_fluent/(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|
-    src/adk_fluent/_ir_generated\.py$|
-    tests/generated/|
-    tests/golden/|
-    docs/generated/
+    python/src/adk_fluent/(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|
+    python/src/adk_fluent/_ir_generated\.py$|
+    python/src/adk_fluent/_ui_generated\.py$|
+    python/tests/generated/|
+    python/tests/golden/|
+    docs/generated/|
+    ts/src/builders/(agent|config|executor|planner|plugin|runtime|service|tool)\.ts$|
+    ts/dist/|
+    ts/docs/api/|
+    ts/CLAUDE\.md$|
+    docs/llms\.txt$|
+    docs/llms-ts\.txt$|
+    CLAUDE\.md$
   )
 
 repos:
+  # ─── python ──────────────────────────────────────────────────────────────
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.7
     hooks:
       - id: ruff
         args: [--fix]
+        files: ^python/.*\.py$
       - id: ruff-format
+        files: ^python/.*\.py$
 
+  # ─── typescript / javascript ─────────────────────────────────────────────
+  # Run ESLint via the locally installed binary so the version matches what
+  # CI runs and the project's flat config is honored.
+  - repo: local
+    hooks:
+      # pre-commit passes paths from the repo root (e.g. `ts/src/foo.ts`).
+      # We `cd ts` so eslint/prettier auto-discover their config (eslint.config.js,
+      # .prettierrc.json, .prettierignore) — so we must strip the `ts/` prefix
+      # from each filename. ${@#ts/} does that for every positional arg.
+      - id: ts-eslint
+        name: eslint (ts/)
+        entry: bash -c 'cd ts && exec npx --no-install eslint --max-warnings 0 --no-warn-ignored "${@#ts/}"' --
+        language: system
+        files: ^ts/.*\.(ts|tsx|js|mjs|cjs)$
+        exclude: ^ts/(dist|docs/api|node_modules)/
+        require_serial: true
+        pass_filenames: true
+
+      - id: ts-prettier
+        name: prettier (ts/)
+        entry: bash -c 'cd ts && exec npx --no-install prettier --write "${@#ts/}"' --
+        language: system
+        files: ^ts/.*\.(ts|tsx|js|mjs|cjs|json|md|yml|yaml)$
+        exclude: ^ts/(dist|docs/api|node_modules|package-lock\.json|CLAUDE\.md)
+        require_serial: true
+        pass_filenames: true
+
+  # ─── universal hygiene ───────────────────────────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^(shared/seeds/|ts/package-lock\.json$)
       - id: end-of-file-fixer
+        exclude: ^(shared/seeds/|ts/package-lock\.json$)
       - id: check-yaml
       - id: check-toml
-        exclude: ^seeds/a2ui_seed\.toml$
+        exclude: ^shared/seeds/a2ui_seed\.toml$
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=500]
+        exclude: ^(ts/package-lock\.json|python/uv\.lock)$

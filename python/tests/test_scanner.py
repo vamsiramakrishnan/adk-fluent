@@ -37,7 +37,6 @@ def test_discover_classes_finds_core_classes():
 
 def test_scan_class_pydantic():
     from google.adk.agents import LlmAgent
-
     from scripts.scanner import scan_class
 
     info = scan_class(LlmAgent)
@@ -49,7 +48,6 @@ def test_scan_class_pydantic():
 
 def test_scan_class_non_pydantic():
     from google.adk.runners import Runner
-
     from scripts.scanner import scan_class
 
     info = scan_class(Runner)

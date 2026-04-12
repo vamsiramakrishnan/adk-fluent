@@ -25,9 +25,7 @@ export class STransform {
   /** Chain: run this transform, then other on the result. */
   pipe(other: STransform): STransform {
     const self = this;
-    return new STransform(`${self.name}>>${other.name}`, (state) =>
-      other.fn(self.fn(state)),
-    );
+    return new STransform(`${self.name}>>${other.name}`, (state) => other.fn(self.fn(state)));
   }
 
   /** Combine: both read same input, merge outputs. */
@@ -57,13 +55,17 @@ export class S {
 
   /** Keep only the named keys. */
   static pick(...keys: string[]): STransform {
-    return new STransform(`pick(${keys.join(",")})`, (state) => {
-      const result: State = {};
-      for (const k of keys) {
-        if (k in state) result[k] = state[k];
-      }
-      return result;
-    }, keys);
+    return new STransform(
+      `pick(${keys.join(",")})`,
+      (state) => {
+        const result: State = {};
+        for (const k of keys) {
+          if (k in state) result[k] = state[k];
+        }
+        return result;
+      },
+      keys,
+    );
   }
 
   /** Remove the named keys. */
@@ -98,33 +100,52 @@ export class S {
 
   /** Apply a function to transform one key's value. */
   static transform(key: string, fn: (value: unknown) => unknown): STransform {
-    return new STransform(`transform(${key})`, (state) => ({
-      ...state,
-      [key]: fn(state[key]),
-    }), [key], [key]);
+    return new STransform(
+      `transform(${key})`,
+      (state) => ({
+        ...state,
+        [key]: fn(state[key]),
+      }),
+      [key],
+      [key],
+    );
   }
 
   /** Derive new keys from full state. */
   static compute(factories: Record<string, (state: State) => unknown>): STransform {
-    return new STransform("compute", (state) => {
-      const result: State = { ...state };
-      for (const [key, fn] of Object.entries(factories)) {
-        result[key] = fn(state);
-      }
-      return result;
-    }, null, Object.keys(factories));
+    return new STransform(
+      "compute",
+      (state) => {
+        const result: State = { ...state };
+        for (const [key, fn] of Object.entries(factories)) {
+          result[key] = fn(state);
+        }
+        return result;
+      },
+      null,
+      Object.keys(factories),
+    );
   }
 
   /** Merge multiple keys into a single key. */
-  static merge_(keys: string[], into: string, fn?: (values: Record<string, unknown>) => unknown): STransform {
-    return new STransform(`merge(${keys.join(",")}→${into})`, (state) => {
-      const collected: Record<string, unknown> = {};
-      for (const k of keys) {
-        if (k in state) collected[k] = state[k];
-      }
-      const merged = fn ? fn(collected) : collected;
-      return { ...state, [into]: merged };
-    }, keys, [into]);
+  static merge_(
+    keys: string[],
+    into: string,
+    fn?: (values: Record<string, unknown>) => unknown,
+  ): STransform {
+    return new STransform(
+      `merge(${keys.join(",")}→${into})`,
+      (state) => {
+        const collected: Record<string, unknown> = {};
+        for (const k of keys) {
+          if (k in state) collected[k] = state[k];
+        }
+        const merged = fn ? fn(collected) : collected;
+        return { ...state, [into]: merged };
+      },
+      keys,
+      [into],
+    );
   }
 
   // ------------------------------------------------------------------
@@ -133,8 +154,7 @@ export class S {
 
   /** Set explicit key-value pairs. */
   static set(values: Record<string, unknown>): STransform {
-    return new STransform("set", (state) => ({ ...state, ...values }),
-      null, Object.keys(values));
+    return new STransform("set", (state) => ({ ...state, ...values }), null, Object.keys(values));
   }
 
   /** Fill missing keys with defaults. */
@@ -150,10 +170,15 @@ export class S {
 
   /** Capture user message into state[key]. */
   static capture(key: string): STransform {
-    return new STransform(`capture(${key})`, (state) => {
-      // At runtime, the ADK runner injects the user message
-      return state;
-    }, null, [key]);
+    return new STransform(
+      `capture(${key})`,
+      (state) => {
+        // At runtime, the ADK runner injects the user message
+        return state;
+      },
+      null,
+      [key],
+    );
   }
 
   // ------------------------------------------------------------------
@@ -163,32 +188,45 @@ export class S {
   /** Append current value of key to a running list (default: same key). */
   static accumulate(key: string, into?: string): STransform {
     const target = into ?? key;
-    return new STransform(`accumulate(${key}→${target})`, (state) => {
-      const list = Array.isArray(state[target]) ? [...(state[target] as unknown[])] : [];
-      if (key in state) list.push(state[key]);
-      return { ...state, [target]: list };
-    }, [key], [target]);
+    return new STransform(
+      `accumulate(${key}→${target})`,
+      (state) => {
+        const list = Array.isArray(state[target]) ? [...(state[target] as unknown[])] : [];
+        if (key in state) list.push(state[key]);
+        return { ...state, [target]: list };
+      },
+      [key],
+      [target],
+    );
   }
 
   /** Increment a numeric counter in state. */
   static counter(key: string, step = 1): STransform {
-    return new STransform(`counter(${key})`, (state) => ({
-      ...state,
-      [key]: ((state[key] as number) ?? 0) + step,
-    }), [key], [key]);
+    return new STransform(
+      `counter(${key})`,
+      (state) => ({
+        ...state,
+        [key]: ((state[key] as number) ?? 0) + step,
+      }),
+      [key],
+      [key],
+    );
   }
 
   /** Maintain a rolling history of a key's values. */
   static history(key: string, maxSize = 10): STransform {
     const historyKey = `${key}_history`;
-    return new STransform(`history(${key})`, (state) => {
-      const hist = Array.isArray(state[historyKey])
-        ? [...(state[historyKey] as unknown[])]
-        : [];
-      if (key in state) hist.push(state[key]);
-      while (hist.length > maxSize) hist.shift();
-      return { ...state, [historyKey]: hist };
-    }, [key], [historyKey]);
+    return new STransform(
+      `history(${key})`,
+      (state) => {
+        const hist = Array.isArray(state[historyKey]) ? [...(state[historyKey] as unknown[])] : [];
+        if (key in state) hist.push(state[key]);
+        while (hist.length > maxSize) hist.shift();
+        return { ...state, [historyKey]: hist };
+      },
+      [key],
+      [historyKey],
+    );
   }
 
   // ------------------------------------------------------------------
@@ -207,14 +245,18 @@ export class S {
 
   /** Assert that all named keys exist and are truthy. */
   static require(...keys: string[]): STransform {
-    return new STransform(`require(${keys.join(",")})`, (state) => {
-      for (const k of keys) {
-        if (!(k in state) || !state[k]) {
-          throw new Error(`Required state key "${k}" is missing or falsy`);
+    return new STransform(
+      `require(${keys.join(",")})`,
+      (state) => {
+        for (const k of keys) {
+          if (!(k in state) || !state[k]) {
+            throw new Error(`Required state key "${k}" is missing or falsy`);
+          }
         }
-      }
-      return state;
-    }, keys);
+        return state;
+      },
+      keys,
+    );
   }
 
   /** Validate state against a schema (Zod or custom validator). */
@@ -240,73 +282,89 @@ export class S {
 
   /** Flatten a nested dict to dotted keys: { a: { b: 1 } } → { "a.b": 1 }. */
   static flatten(key: string, separator = "."): STransform {
-    return new STransform(`flatten(${key})`, (state) => {
-      const nested = state[key];
-      if (typeof nested !== "object" || nested === null) return state;
-      const flat: State = {};
-      const walk = (obj: Record<string, unknown>, prefix: string) => {
-        for (const [k, v] of Object.entries(obj)) {
-          const path = prefix ? `${prefix}${separator}${k}` : k;
-          if (typeof v === "object" && v !== null && !Array.isArray(v)) {
-            walk(v as Record<string, unknown>, path);
-          } else {
-            flat[path] = v;
+    return new STransform(
+      `flatten(${key})`,
+      (state) => {
+        const nested = state[key];
+        if (typeof nested !== "object" || nested === null) return state;
+        const flat: State = {};
+        const walk = (obj: Record<string, unknown>, prefix: string) => {
+          for (const [k, v] of Object.entries(obj)) {
+            const path = prefix ? `${prefix}${separator}${k}` : k;
+            if (typeof v === "object" && v !== null && !Array.isArray(v)) {
+              walk(v as Record<string, unknown>, path);
+            } else {
+              flat[path] = v;
+            }
           }
-        }
-      };
-      walk(nested as Record<string, unknown>, "");
-      return { ...state, [key]: flat };
-    }, [key], [key]);
+        };
+        walk(nested as Record<string, unknown>, "");
+        return { ...state, [key]: flat };
+      },
+      [key],
+      [key],
+    );
   }
 
   /** Unflatten dotted keys to nested: { "a.b": 1 } → { a: { b: 1 } }. */
   static unflatten(key: string, separator = "."): STransform {
-    return new STransform(`unflatten(${key})`, (state) => {
-      const flat = state[key];
-      if (typeof flat !== "object" || flat === null) return state;
-      const nested: Record<string, unknown> = {};
-      for (const [path, value] of Object.entries(flat as Record<string, unknown>)) {
-        const parts = path.split(separator);
-        let current: Record<string, unknown> = nested;
-        for (let i = 0; i < parts.length - 1; i++) {
-          if (!(parts[i] in current)) current[parts[i]] = {};
-          current = current[parts[i]] as Record<string, unknown>;
+    return new STransform(
+      `unflatten(${key})`,
+      (state) => {
+        const flat = state[key];
+        if (typeof flat !== "object" || flat === null) return state;
+        const nested: Record<string, unknown> = {};
+        for (const [path, value] of Object.entries(flat as Record<string, unknown>)) {
+          const parts = path.split(separator);
+          let current: Record<string, unknown> = nested;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!(parts[i] in current)) current[parts[i]] = {};
+            current = current[parts[i]] as Record<string, unknown>;
+          }
+          current[parts[parts.length - 1]] = value;
         }
-        current[parts[parts.length - 1]] = value;
-      }
-      return { ...state, [key]: nested };
-    }, [key], [key]);
+        return { ...state, [key]: nested };
+      },
+      [key],
+      [key],
+    );
   }
 
   /** Zip parallel lists: S.zip("names", "scores", into: "pairs"). */
   static zip(keys: string[], into: string): STransform {
-    return new STransform(`zip(${keys.join(",")}→${into})`, (state) => {
-      const arrays = keys.map((k) => (state[k] as unknown[]) ?? []);
-      const maxLen = Math.max(...arrays.map((a) => a.length));
-      const zipped: unknown[][] = [];
-      for (let i = 0; i < maxLen; i++) {
-        zipped.push(arrays.map((a) => a[i]));
-      }
-      return { ...state, [into]: zipped };
-    }, keys, [into]);
+    return new STransform(
+      `zip(${keys.join(",")}→${into})`,
+      (state) => {
+        const arrays = keys.map((k) => (state[k] as unknown[]) ?? []);
+        const maxLen = Math.max(...arrays.map((a) => a.length));
+        const zipped: unknown[][] = [];
+        for (let i = 0; i < maxLen; i++) {
+          zipped.push(arrays.map((a) => a[i]));
+        }
+        return { ...state, [into]: zipped };
+      },
+      keys,
+      [into],
+    );
   }
 
   /** Group list items by a key function. */
-  static groupBy(
-    itemsKey: string,
-    keyFn: (item: unknown) => string,
-    into: string,
-  ): STransform {
-    return new STransform(`groupBy(${itemsKey}→${into})`, (state) => {
-      const items = (state[itemsKey] as unknown[]) ?? [];
-      const groups: Record<string, unknown[]> = {};
-      for (const item of items) {
-        const groupKey = keyFn(item);
-        if (!groups[groupKey]) groups[groupKey] = [];
-        groups[groupKey].push(item);
-      }
-      return { ...state, [into]: groups };
-    }, [itemsKey], [into]);
+  static groupBy(itemsKey: string, keyFn: (item: unknown) => string, into: string): STransform {
+    return new STransform(
+      `groupBy(${itemsKey}→${into})`,
+      (state) => {
+        const items = (state[itemsKey] as unknown[]) ?? [];
+        const groups: Record<string, unknown[]> = {};
+        for (const item of items) {
+          const groupKey = keyFn(item);
+          if (!groups[groupKey]) groups[groupKey] = [];
+          groups[groupKey].push(item);
+        }
+        return { ...state, [into]: groups };
+      },
+      [itemsKey],
+      [into],
+    );
   }
 
   // ------------------------------------------------------------------
@@ -326,11 +384,15 @@ export class S {
     routes: Record<string, STransform>,
     fallback?: STransform,
   ): STransform {
-    return new STransform(`branch(${key})`, (state) => {
-      const value = String(state[key] ?? "");
-      const transform = routes[value] ?? fallback;
-      return transform ? transform.fn(state) : state;
-    }, [key]);
+    return new STransform(
+      `branch(${key})`,
+      (state) => {
+        const value = String(state[key] ?? "");
+        const transform = routes[value] ?? fallback;
+        return transform ? transform.fn(state) : state;
+      },
+      [key],
+    );
   }
 
   // ------------------------------------------------------------------
@@ -359,16 +421,25 @@ export class S {
 
   /** Bridge state keys → A2UI data model. */
   static toUi(...keys: string[]): STransform {
-    return new STransform(`toUi(${keys.join(",")})`, (state) => {
-      // At runtime, this bridges to the A2UI surface data model
-      return state;
-    }, keys);
+    return new STransform(
+      `toUi(${keys.join(",")})`,
+      (state) => {
+        // At runtime, this bridges to the A2UI surface data model
+        return state;
+      },
+      keys,
+    );
   }
 
   /** Bridge A2UI data model → state keys. */
   static fromUi(...keys: string[]): STransform {
-    return new STransform(`fromUi(${keys.join(",")})`, (state) => {
-      return state;
-    }, null, keys);
+    return new STransform(
+      `fromUi(${keys.join(",")})`,
+      (state) => {
+        return state;
+      },
+      null,
+      keys,
+    );
   }
 }

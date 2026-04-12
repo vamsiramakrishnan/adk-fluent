@@ -114,10 +114,15 @@ export class UI {
     content: string,
     opts?: { variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "caption" | "body"; id?: string },
   ): UIComponent {
-    return new UIComponent("Text", {
-      text: content,
-      variant: opts?.variant ?? "body",
-    }, [], opts?.id);
+    return new UIComponent(
+      "Text",
+      {
+        text: content,
+        variant: opts?.variant ?? "body",
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Heading sugar (alias for UI.text with variant='h1'). */
@@ -130,11 +135,16 @@ export class UI {
     url: string,
     opts?: { fit?: "contain" | "cover" | "fill"; variant?: string; id?: string },
   ): UIComponent {
-    return new UIComponent("Image", {
-      url,
-      fit: opts?.fit ?? "contain",
-      variant: opts?.variant,
-    }, [], opts?.id);
+    return new UIComponent(
+      "Image",
+      {
+        url,
+        fit: opts?.fit ?? "contain",
+        variant: opts?.variant,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Icon component. */
@@ -149,10 +159,15 @@ export class UI {
 
   /** Audio player component. */
   static audio(url: string, opts?: { description?: string; id?: string }): UIComponent {
-    return new UIComponent("Audio", {
-      url,
-      description: opts?.description,
-    }, [], opts?.id);
+    return new UIComponent(
+      "Audio",
+      {
+        url,
+        description: opts?.description,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   // ------------------------------------------------------------------
@@ -164,10 +179,15 @@ export class UI {
     children: UIComponent[],
     opts?: { justify?: string; align?: string; id?: string },
   ): UIComponent {
-    return new UIComponent("Row", {
-      justify: opts?.justify,
-      align: opts?.align,
-    }, children, opts?.id);
+    return new UIComponent(
+      "Row",
+      {
+        justify: opts?.justify,
+        align: opts?.align,
+      },
+      children,
+      opts?.id,
+    );
   }
 
   /** Vertical layout. */
@@ -175,10 +195,15 @@ export class UI {
     children: UIComponent[],
     opts?: { justify?: string; align?: string; id?: string },
   ): UIComponent {
-    return new UIComponent("Column", {
-      justify: opts?.justify,
-      align: opts?.align,
-    }, children, opts?.id);
+    return new UIComponent(
+      "Column",
+      {
+        justify: opts?.justify,
+        align: opts?.align,
+      },
+      children,
+      opts?.id,
+    );
   }
 
   /** List layout. */
@@ -186,10 +211,15 @@ export class UI {
     children: UIComponent[],
     opts?: { direction?: "horizontal" | "vertical"; align?: string; id?: string },
   ): UIComponent {
-    return new UIComponent("List", {
-      direction: opts?.direction ?? "vertical",
-      align: opts?.align,
-    }, children, opts?.id);
+    return new UIComponent(
+      "List",
+      {
+        direction: opts?.direction ?? "vertical",
+        align: opts?.align,
+      },
+      children,
+      opts?.id,
+    );
   }
 
   /** Card container. */
@@ -212,9 +242,14 @@ export class UI {
 
   /** Divider. */
   static divider(opts?: { axis?: "horizontal" | "vertical"; id?: string }): UIComponent {
-    return new UIComponent("Divider", {
-      axis: opts?.axis ?? "horizontal",
-    }, [], opts?.id);
+    return new UIComponent(
+      "Divider",
+      {
+        axis: opts?.axis ?? "horizontal",
+      },
+      [],
+      opts?.id,
+    );
   }
 
   // ------------------------------------------------------------------
@@ -231,12 +266,17 @@ export class UI {
       id?: string;
     },
   ): UIComponent {
-    return new UIComponent("Button", {
-      child: { type: "Text", text: label },
-      variant: opts?.variant ?? "default",
-      action: opts?.action,
-      checks: opts?.checks,
-    }, [], opts?.id);
+    return new UIComponent(
+      "Button",
+      {
+        child: { type: "Text", text: label },
+        variant: opts?.variant ?? "default",
+        action: opts?.action,
+        checks: opts?.checks,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Text input field. */
@@ -250,13 +290,18 @@ export class UI {
       id?: string;
     },
   ): UIComponent {
-    return new UIComponent("TextField", {
-      label,
-      value: opts?.value ?? "",
-      variant: opts?.variant ?? "shortText",
-      bind: opts?.bind,
-      checks: opts?.checks,
-    }, [], opts?.id);
+    return new UIComponent(
+      "TextField",
+      {
+        label,
+        value: opts?.value ?? "",
+        variant: opts?.variant ?? "shortText",
+        bind: opts?.bind,
+        checks: opts?.checks,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Checkbox component. */
@@ -264,12 +309,17 @@ export class UI {
     label: string,
     opts?: { value?: boolean; bind?: UIBinding; checks?: UICheck[]; id?: string },
   ): UIComponent {
-    return new UIComponent("Checkbox", {
-      label,
-      value: opts?.value ?? false,
-      bind: opts?.bind,
-      checks: opts?.checks,
-    }, [], opts?.id);
+    return new UIComponent(
+      "Checkbox",
+      {
+        label,
+        value: opts?.value ?? false,
+        bind: opts?.bind,
+        checks: opts?.checks,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Choice picker (select / radio). */
@@ -286,38 +336,46 @@ export class UI {
       id?: string;
     },
   ): UIComponent {
-    return new UIComponent("Choice", {
-      options,
-      value: opts?.value,
-      label: opts?.label,
-      variant: opts?.variant ?? "dropdown",
-      displayStyle: opts?.displayStyle,
-      filterable: opts?.filterable ?? false,
-      bind: opts?.bind,
-      checks: opts?.checks,
-    }, [], opts?.id);
+    return new UIComponent(
+      "Choice",
+      {
+        options,
+        value: opts?.value,
+        label: opts?.label,
+        variant: opts?.variant ?? "dropdown",
+        displayStyle: opts?.displayStyle,
+        filterable: opts?.filterable ?? false,
+        bind: opts?.bind,
+        checks: opts?.checks,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Slider component. */
-  static slider(
-    opts?: {
-      max?: number;
-      value?: number;
-      label?: string;
-      min?: number;
-      bind?: UIBinding;
-      checks?: UICheck[];
-      id?: string;
-    },
-  ): UIComponent {
-    return new UIComponent("Slider", {
-      min: opts?.min ?? 0,
-      max: opts?.max ?? 100,
-      value: opts?.value ?? 50,
-      label: opts?.label,
-      bind: opts?.bind,
-      checks: opts?.checks,
-    }, [], opts?.id);
+  static slider(opts?: {
+    max?: number;
+    value?: number;
+    label?: string;
+    min?: number;
+    bind?: UIBinding;
+    checks?: UICheck[];
+    id?: string;
+  }): UIComponent {
+    return new UIComponent(
+      "Slider",
+      {
+        min: opts?.min ?? 0,
+        max: opts?.max ?? 100,
+        value: opts?.value ?? 50,
+        label: opts?.label,
+        bind: opts?.bind,
+        checks: opts?.checks,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** DateTime input component. */
@@ -332,16 +390,21 @@ export class UI {
     checks?: UICheck[];
     id?: string;
   }): UIComponent {
-    return new UIComponent("DateTime", {
-      value: opts?.value,
-      enableDate: opts?.enableDate ?? true,
-      enableTime: opts?.enableTime ?? false,
-      min: opts?.min,
-      max: opts?.max,
-      label: opts?.label,
-      bind: opts?.bind,
-      checks: opts?.checks,
-    }, [], opts?.id);
+    return new UIComponent(
+      "DateTime",
+      {
+        value: opts?.value,
+        enableDate: opts?.enableDate ?? true,
+        enableTime: opts?.enableTime ?? false,
+        min: opts?.min,
+        max: opts?.max,
+        label: opts?.label,
+        bind: opts?.bind,
+        checks: opts?.checks,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   // ------------------------------------------------------------------
@@ -476,11 +539,7 @@ export class UI {
       variant: "primary",
       action: opts.submitAction,
     });
-    const root = UI.column([
-      UI.heading(title),
-      ...fieldComponents,
-      submitBtn,
-    ]);
+    const root = UI.column([UI.heading(title), ...fieldComponents, submitBtn]);
     return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root);
   }
 
@@ -497,10 +556,7 @@ export class UI {
         ]),
       ),
     );
-    const root = UI.column([
-      UI.heading(title),
-      UI.row(cardComponents),
-    ]);
+    const root = UI.column([UI.heading(title), UI.row(cardComponents)]);
     return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root);
   }
 
@@ -532,10 +588,15 @@ export class UI {
     const normalizedColumns = columns.map((c) =>
       typeof c === "string" ? { label: c, key: c } : c,
     );
-    return new UIComponent("Table", {
-      columns: normalizedColumns,
-      dataBind: opts?.dataBind,
-    }, [], opts?.id);
+    return new UIComponent(
+      "Table",
+      {
+        columns: normalizedColumns,
+        dataBind: opts?.dataBind,
+      },
+      [],
+      opts?.id,
+    );
   }
 
   /** Generate a multi-step wizard. */
@@ -543,10 +604,7 @@ export class UI {
     title: string,
     opts: { steps: Array<{ label: string; content: UIComponent }> },
   ): UISurface {
-    const root = UI.column([
-      UI.heading(title),
-      new UIComponent("Wizard", { steps: opts.steps }),
-    ]);
+    const root = UI.column([UI.heading(title), new UIComponent("Wizard", { steps: opts.steps })]);
     return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root);
   }
 }

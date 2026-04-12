@@ -63,10 +63,7 @@ describe("S (State transforms)", () => {
   });
 
   it("when() applies conditionally", () => {
-    const transform = S.when(
-      (s) => (s.flag as boolean) === true,
-      S.set({ bonus: "yes" }),
-    );
+    const transform = S.when((s) => (s.flag as boolean) === true, S.set({ bonus: "yes" }));
     expect(transform.apply({ flag: true })).toEqual({ flag: true, bonus: "yes" });
     expect(transform.apply({ flag: false })).toEqual({ flag: false });
   });
@@ -91,9 +88,7 @@ describe("P (Prompt composition)", () => {
   });
 
   it(".add() composes multiple sections", () => {
-    const prompt = P.role("Analyst")
-      .add(P.task("Analyze data"))
-      .add(P.constraint("Be brief"));
+    const prompt = P.role("Analyst").add(P.task("Analyze data")).add(P.constraint("Be brief"));
 
     const rendered = prompt.render();
     expect(rendered).toContain("## Role");

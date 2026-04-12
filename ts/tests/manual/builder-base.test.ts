@@ -124,10 +124,10 @@ describe("Loop builder", () => {
   });
 
   it("builds to a LoopAgent config", () => {
-    const result = new Loop("refine")
-      .step(new Agent("a"))
-      .maxIterations(5)
-      .build() as Record<string, unknown>;
+    const result = new Loop("refine").step(new Agent("a")).maxIterations(5).build() as Record<
+      string,
+      unknown
+    >;
 
     expect(result._type).toBe("LoopAgent");
     expect(result.maxIterations).toBe(5);
@@ -182,9 +182,7 @@ describe("Composition methods", () => {
 
 describe("Fallback builder", () => {
   it("adds alternatives via .attempt()", () => {
-    const fb = new Fallback("resilient")
-      .attempt(new Agent("fast"))
-      .attempt(new Agent("strong"));
+    const fb = new Fallback("resilient").attempt(new Agent("fast")).attempt(new Agent("strong"));
 
     const result = fb.build() as Record<string, unknown>;
     expect(result._type).toBe("Fallback");

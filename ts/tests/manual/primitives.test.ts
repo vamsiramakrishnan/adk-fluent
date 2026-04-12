@@ -101,11 +101,11 @@ describe("Route", () => {
   });
 
   it("predicates evaluate against state", () => {
-    const router = new Route("score")
-      .gt(50, new Agent("high"))
-      .otherwise(new Agent("low"));
+    const router = new Route("score").gt(50, new Agent("high")).otherwise(new Agent("low"));
     const built = router.build() as Record<string, unknown>;
-    const branches = built.branches as Array<{ predicate: (s: Record<string, unknown>) => boolean }>;
+    const branches = built.branches as Array<{
+      predicate: (s: Record<string, unknown>) => boolean;
+    }>;
     vexpect(branches[0].predicate({ score: 80 })).toBe(true);
     vexpect(branches[0].predicate({ score: 10 })).toBe(false);
   });
@@ -138,11 +138,7 @@ describe("patterns", () => {
   });
 
   it("conditional with else builds a Pipeline", () => {
-    const cond = conditional(
-      (s) => Boolean(s.ok),
-      new Agent("then"),
-      new Agent("else"),
-    );
+    const cond = conditional((s) => Boolean(s.ok), new Agent("then"), new Agent("else"));
     const built = cond.build() as Record<string, unknown>;
     vexpect(built._type).toBe("SequentialAgent");
   });

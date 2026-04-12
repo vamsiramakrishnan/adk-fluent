@@ -106,7 +106,11 @@ export class C {
   }
 
   /** Hard limit by turns or tokens. */
-  static truncate(opts: { maxTurns?: number; maxTokens?: number; strategy?: "head" | "tail" }): CTransform {
+  static truncate(opts: {
+    maxTurns?: number;
+    maxTokens?: number;
+    strategy?: "head" | "tail";
+  }): CTransform {
     return new CTransform("truncate", opts, true);
   }
 
@@ -140,12 +144,20 @@ export class C {
   }
 
   /** Write to scratchpad notes. */
-  static writeNotes(opts?: { key?: string; strategy?: "append" | "replace"; sourceKey?: string }): CTransform {
-    return new CTransform("writeNotes", {
-      notesKey: opts?.key ?? "default",
-      strategy: opts?.strategy ?? "append",
-      sourceKey: opts?.sourceKey,
-    }, false);
+  static writeNotes(opts?: {
+    key?: string;
+    strategy?: "append" | "replace";
+    sourceKey?: string;
+  }): CTransform {
+    return new CTransform(
+      "writeNotes",
+      {
+        notesKey: opts?.key ?? "default",
+        strategy: opts?.strategy ?? "append",
+        sourceKey: opts?.sourceKey,
+      },
+      false,
+    );
   }
 
   // ------------------------------------------------------------------
@@ -153,19 +165,30 @@ export class C {
   // ------------------------------------------------------------------
 
   /** Token budget constraint. */
-  static budget(opts: { maxTokens?: number; overflow?: "truncate_oldest" | "summarize" | "drop" }): CTransform {
-    return new CTransform("budget", {
-      maxTokens: opts.maxTokens ?? 8000,
-      overflow: opts.overflow ?? "truncate_oldest",
-    }, true);
+  static budget(opts: {
+    maxTokens?: number;
+    overflow?: "truncate_oldest" | "summarize" | "drop";
+  }): CTransform {
+    return new CTransform(
+      "budget",
+      {
+        maxTokens: opts.maxTokens ?? 8000,
+        overflow: opts.overflow ?? "truncate_oldest",
+      },
+      true,
+    );
   }
 
   /** Aggressive pruning to fit within a token limit. */
   static fit(opts?: { maxTokens?: number; strategy?: "strict" | "soft" }): CTransform {
-    return new CTransform("fit", {
-      maxTokens: opts?.maxTokens ?? 4000,
-      strategy: opts?.strategy ?? "strict",
-    }, true);
+    return new CTransform(
+      "fit",
+      {
+        maxTokens: opts?.maxTokens ?? 4000,
+        strategy: opts?.strategy ?? "strict",
+      },
+      true,
+    );
   }
 
   /** Priority tier for context ordering. */
@@ -178,28 +201,44 @@ export class C {
   // ------------------------------------------------------------------
 
   /** Importance-weighted by recency. */
-  static recent(opts?: { decay?: "exponential" | "linear"; halfLife?: number; minWeight?: number }): CTransform {
-    return new CTransform("recent", {
-      decay: opts?.decay ?? "exponential",
-      halfLife: opts?.halfLife ?? 10,
-      minWeight: opts?.minWeight ?? 0.1,
-    }, true);
+  static recent(opts?: {
+    decay?: "exponential" | "linear";
+    halfLife?: number;
+    minWeight?: number;
+  }): CTransform {
+    return new CTransform(
+      "recent",
+      {
+        decay: opts?.decay ?? "exponential",
+        halfLife: opts?.halfLife ?? 10,
+        minWeight: opts?.minWeight ?? 0.1,
+      },
+      true,
+    );
   }
 
   /** Prune stale items by age. */
   static fresh(opts?: { maxAge?: number; staleAction?: "drop" | "summarize" }): CTransform {
-    return new CTransform("fresh", {
-      maxAge: opts?.maxAge ?? 3600,
-      staleAction: opts?.staleAction ?? "drop",
-    }, true);
+    return new CTransform(
+      "fresh",
+      {
+        maxAge: opts?.maxAge ?? 3600,
+        staleAction: opts?.staleAction ?? "drop",
+      },
+      true,
+    );
   }
 
   /** Rolling window with optional compaction. */
   static rolling(opts?: { n?: number; summarize?: boolean }): CTransform {
-    return new CTransform("rolling", {
-      n: opts?.n ?? 5,
-      summarize: opts?.summarize ?? false,
-    }, true);
+    return new CTransform(
+      "rolling",
+      {
+        n: opts?.n ?? 5,
+        summarize: opts?.summarize ?? false,
+      },
+      true,
+    );
   }
 
   // ------------------------------------------------------------------
@@ -222,33 +261,49 @@ export class C {
 
   /** LLM-powered summarization. */
   static summarize(opts?: { scope?: "all" | "oldest" | "tools"; prompt?: string }): CTransform {
-    return new CTransform("summarize", {
-      scope: opts?.scope ?? "all",
-      prompt: opts?.prompt,
-    }, true);
+    return new CTransform(
+      "summarize",
+      {
+        scope: opts?.scope ?? "all",
+        prompt: opts?.prompt,
+      },
+      true,
+    );
   }
 
   /** Semantic relevance filtering. */
   static relevant(opts?: { queryKey?: string; query?: string; topK?: number }): CTransform {
-    return new CTransform("relevant", {
-      queryKey: opts?.queryKey,
-      query: opts?.query,
-      topK: opts?.topK ?? 5,
-    }, true);
+    return new CTransform(
+      "relevant",
+      {
+        queryKey: opts?.queryKey,
+        query: opts?.query,
+        topK: opts?.topK ?? 5,
+      },
+      true,
+    );
   }
 
   /** Extract structured data from context via LLM. */
   static extract(opts?: { key?: string }): CTransform {
-    return new CTransform("extract", {
-      key: opts?.key ?? "extracted",
-    }, true);
+    return new CTransform(
+      "extract",
+      {
+        key: opts?.key ?? "extracted",
+      },
+      true,
+    );
   }
 
   /** Distill context to key facts via LLM. */
   static distill(opts?: { key?: string }): CTransform {
-    return new CTransform("distill", {
-      key: opts?.key ?? "facts",
-    }, true);
+    return new CTransform(
+      "distill",
+      {
+        key: opts?.key ?? "facts",
+      },
+      true,
+    );
   }
 
   /** Context quality validation via LLM. */
@@ -271,10 +326,14 @@ export class C {
 
   /** Conditional context transform. */
   static when(predicate: (state: State) => boolean, transform: CTransform): CTransform {
-    return new CTransform(`when(${transform.kind})`, {
-      condition: predicate,
-      child: transform,
-    }, transform.suppressHistory);
+    return new CTransform(
+      `when(${transform.kind})`,
+      {
+        condition: predicate,
+        child: transform,
+      },
+      transform.suppressHistory,
+    );
   }
 
   // ------------------------------------------------------------------
@@ -283,9 +342,13 @@ export class C {
 
   /** Manus-style cascading context: progressive compression. */
   static manusCascade(opts?: { budget?: number }): CTransform {
-    return new CTransform("manusCascade", {
-      budget: opts?.budget ?? 8000,
-    }, true);
+    return new CTransform(
+      "manusCascade",
+      {
+        budget: opts?.budget ?? 8000,
+      },
+      true,
+    );
   }
 
   /** Pipeline-aware: user messages + state keys (for pipeline agents). */

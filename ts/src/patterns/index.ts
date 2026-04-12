@@ -7,7 +7,7 @@
  *   reviewLoop, mapReduce, cascade, fanOutMerge, chain, conditional, supervised
  */
 
-import { BuilderBase } from "../core/builder-base.js";
+import { type BuilderBase } from "../core/builder-base.js";
 import type { StatePredicate } from "../core/types.js";
 import { Pipeline, FanOut, Loop, Fallback } from "../builders/workflow.js";
 import { gate } from "../primitives/index.js";
@@ -64,10 +64,13 @@ export function mapReduce(
   const resultKey = opts.resultKey ?? "result";
   const name = opts.name ?? "map_reduce";
 
-  return new Pipeline(name).step(mapper).step(reducer).native((obj) => {
-    (obj as Record<string, unknown>)._items_key = itemsKey;
-    (obj as Record<string, unknown>)._result_key = resultKey;
-  });
+  return new Pipeline(name)
+    .step(mapper)
+    .step(reducer)
+    .native((obj) => {
+      (obj as Record<string, unknown>)._items_key = itemsKey;
+      (obj as Record<string, unknown>)._result_key = resultKey;
+    });
 }
 
 /**

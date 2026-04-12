@@ -53,7 +53,9 @@ export interface PIIDetector {
 
 /** Content judge interface. */
 export interface ContentJudge {
-  judge: (text: string) => Promise<{ pass: boolean; reason?: string }> | { pass: boolean; reason?: string };
+  judge: (
+    text: string,
+  ) => Promise<{ pass: boolean; reason?: string }> | { pass: boolean; reason?: string };
 }
 
 /**
@@ -73,33 +75,37 @@ export class G {
 
   /** Validate that output is valid JSON. */
   static json(): GComposite {
-    return new GComposite([{
-      name: "json",
-      check: (response: string) => {
-        try {
-          JSON.parse(response);
-        } catch (e) {
-          throw new GuardViolation("json", "post_model", `Output is not valid JSON: ${e}`);
-        }
+    return new GComposite([
+      {
+        name: "json",
+        check: (response: string) => {
+          try {
+            JSON.parse(response);
+          } catch (e) {
+            throw new GuardViolation("json", "post_model", `Output is not valid JSON: ${e}`);
+          }
+        },
       },
-    }]);
+    ]);
   }
 
   /** Enforce max/min response length. */
   static length(opts: { min?: number; max?: number }): GComposite {
     const { min = 0, max = Infinity } = opts;
-    return new GComposite([{
-      name: "length",
-      check: (response: string) => {
-        const len = response.length;
-        if (len < min) {
-          throw new GuardViolation("length", "post_model", `Output too short (${len} < ${min})`);
-        }
-        if (len > max) {
-          throw new GuardViolation("length", "post_model", `Output too long (${len} > ${max})`);
-        }
+    return new GComposite([
+      {
+        name: "length",
+        check: (response: string) => {
+          const len = response.length;
+          if (len < min) {
+            throw new GuardViolation("length", "post_model", `Output too short (${len} < ${min})`);
+          }
+          if (len > max) {
+            throw new GuardViolation("length", "post_model", `Output too long (${len} > ${max})`);
+          }
+        },
       },
-    }]);
+    ]);
   }
 
   /** Block or redact text matching a regex pattern. */
@@ -110,50 +116,72 @@ export class G {
     const re = typeof pattern === "string" ? new RegExp(pattern, "g") : pattern;
     const action = opts?.action ?? "block";
     const replacement = opts?.replacement ?? "[REDACTED]";
-    return new GComposite([{
-      name: "regex",
-      check: (response: string) => {
-        if (action === "block" && re.test(response)) {
-          throw new GuardViolation("regex", "post_model", `Output matches blocked pattern: ${re}`);
-        }
-        if (action === "redact") {
-          return response.replace(re, replacement);
-        }
-        return undefined;
+    return new GComposite([
+      {
+        name: "regex",
+        check: (response: string) => {
+          if (action === "block" && re.test(response)) {
+            throw new GuardViolation(
+              "regex",
+              "post_model",
+              `Output matches blocked pattern: ${re}`,
+            );
+          }
+          if (action === "redact") {
+            return response.replace(re, replacement);
+          }
+          return undefined;
+        },
+        config: { pattern: re.source, action, replacement },
       },
-      config: { pattern: re.source, action, replacement },
-    }]);
+    ]);
   }
 
   /** Validate output against a schema (e.g., Zod). */
-  static schema(zodSchema: { safeParse: (v: unknown) => { success: boolean; error?: unknown } }): GComposite {
-    return new GComposite([{
-      name: "schema",
-      check: (response: string) => {
-        const result = zodSchema.safeParse(JSON.parse(response));
-        if (!result.success) {
-          throw new GuardViolation("schema", "post_model", `Schema validation failed: ${result.error}`);
-        }
+  static schema(zodSchema: {
+    safeParse: (v: unknown) => { success: boolean; error?: unknown };
+  }): GComposite {
+    return new GComposite([
+      {
+        name: "schema",
+        check: (response: string) => {
+          const result = zodSchema.safeParse(JSON.parse(response));
+          if (!result.success) {
+            throw new GuardViolation(
+              "schema",
+              "post_model",
+              `Schema validation failed: ${result.error}`,
+            );
+          }
+        },
       },
-    }]);
+    ]);
   }
 
   /** Validate model output against a schema class. */
   static output(schemaCls: unknown): GComposite {
-    return new GComposite([{
-      name: "output",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { schema: schemaCls, phase: "post_model" },
-    }]);
+    return new GComposite([
+      {
+        name: "output",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { schema: schemaCls, phase: "post_model" },
+      },
+    ]);
   }
 
   /** Validate model input against a schema class. */
   static input(schemaCls: unknown): GComposite {
-    return new GComposite([{
-      name: "input",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { schema: schemaCls, phase: "pre_model" },
-    }]);
+    return new GComposite([
+      {
+        name: "input",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { schema: schemaCls, phase: "pre_model" },
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -163,30 +191,42 @@ export class G {
   /** Enforce token budget. */
   static budget(opts?: { maxTokens?: number }): GComposite {
     const maxTokens = opts?.maxTokens ?? 4096;
-    return new GComposite([{
-      name: "budget",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { maxTokens },
-    }]);
+    return new GComposite([
+      {
+        name: "budget",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { maxTokens },
+      },
+    ]);
   }
 
   /** Enforce requests-per-minute limit. */
   static rateLimit(opts?: { rpm?: number }): GComposite {
     const rpm = opts?.rpm ?? 60;
-    return new GComposite([{
-      name: "rate_limit",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { rpm },
-    }]);
+    return new GComposite([
+      {
+        name: "rate_limit",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { rpm },
+      },
+    ]);
   }
 
   /** Enforce maximum conversation turns. */
   static maxTurns(n: number): GComposite {
-    return new GComposite([{
-      name: "max_turns",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { maxTurns: n },
-    }]);
+    return new GComposite([
+      {
+        name: "max_turns",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { maxTurns: n },
+      },
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -200,46 +240,62 @@ export class G {
     threshold?: number;
     replacement?: string;
   }): GComposite {
-    return new GComposite([{
-      name: "pii",
-      check: () => { /* resolved at runtime by ADK with detector */ },
-      config: {
-        action: opts?.action ?? "block",
-        detector: opts?.detector,
-        threshold: opts?.threshold ?? 0.8,
-        replacement: opts?.replacement ?? "[PII]",
+    return new GComposite([
+      {
+        name: "pii",
+        check: () => {
+          /* resolved at runtime by ADK with detector */
+        },
+        config: {
+          action: opts?.action ?? "block",
+          detector: opts?.detector,
+          threshold: opts?.threshold ?? 0.8,
+          replacement: opts?.replacement ?? "[PII]",
+        },
       },
-    }]);
+    ]);
   }
 
   /** Block toxic content above threshold. */
   static toxicity(opts?: { threshold?: number; judge?: ContentJudge }): GComposite {
-    return new GComposite([{
-      name: "toxicity",
-      check: () => { /* resolved at runtime by ADK with judge */ },
-      config: {
-        threshold: opts?.threshold ?? 0.5,
-        judge: opts?.judge,
+    return new GComposite([
+      {
+        name: "toxicity",
+        check: () => {
+          /* resolved at runtime by ADK with judge */
+        },
+        config: {
+          threshold: opts?.threshold ?? 0.5,
+          judge: opts?.judge,
+        },
       },
-    }]);
+    ]);
   }
 
   /** Block output discussing denied topics. */
   static topic(opts: { deny: string[] }): GComposite {
-    return new GComposite([{
-      name: "topic",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { deny: opts.deny },
-    }]);
+    return new GComposite([
+      {
+        name: "topic",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { deny: opts.deny },
+      },
+    ]);
   }
 
   /** Require output to be grounded in provided sources. */
   static grounded(opts?: { sourcesKey?: string }): GComposite {
-    return new GComposite([{
-      name: "grounded",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: { sourcesKey: opts?.sourcesKey ?? "sources" },
-    }]);
+    return new GComposite([
+      {
+        name: "grounded",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: { sourcesKey: opts?.sourcesKey ?? "sources" },
+      },
+    ]);
   }
 
   /** Detect hallucinated content. */
@@ -248,15 +304,19 @@ export class G {
     sourcesKey?: string;
     judge?: ContentJudge;
   }): GComposite {
-    return new GComposite([{
-      name: "hallucination",
-      check: () => { /* resolved at runtime by ADK */ },
-      config: {
-        threshold: opts?.threshold ?? 0.5,
-        sourcesKey: opts?.sourcesKey ?? "sources",
-        judge: opts?.judge,
+    return new GComposite([
+      {
+        name: "hallucination",
+        check: () => {
+          /* resolved at runtime by ADK */
+        },
+        config: {
+          threshold: opts?.threshold ?? 0.5,
+          sourcesKey: opts?.sourcesKey ?? "sources",
+          judge: opts?.judge,
+        },
       },
-    }]);
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -269,15 +329,19 @@ export class G {
     allowedTypes?: string[];
     denyTypes?: string[];
   }): GComposite {
-    return new GComposite([{
-      name: "a2ui",
-      check: () => { /* resolved at runtime by A2UI runtime */ },
-      config: {
-        maxComponents: opts?.maxComponents ?? 50,
-        allowedTypes: opts?.allowedTypes,
-        denyTypes: opts?.denyTypes,
+    return new GComposite([
+      {
+        name: "a2ui",
+        check: () => {
+          /* resolved at runtime by A2UI runtime */
+        },
+        config: {
+          maxComponents: opts?.maxComponents ?? 50,
+          allowedTypes: opts?.allowedTypes,
+          denyTypes: opts?.denyTypes,
+        },
       },
-    }]);
+    ]);
   }
 
   // ------------------------------------------------------------------
@@ -286,11 +350,13 @@ export class G {
 
   /** Conditionally apply a guard. */
   static when(predicate: (state: State) => boolean, guard: GComposite): GComposite {
-    return new GComposite(guard.guards.map((g) => ({
-      ...g,
-      name: `when(${g.name})`,
-      config: { ...g.config, condition: predicate },
-    })));
+    return new GComposite(
+      guard.guards.map((g) => ({
+        ...g,
+        name: `when(${g.name})`,
+        config: { ...g.config, condition: predicate },
+      })),
+    );
   }
 
   // ------------------------------------------------------------------
@@ -298,11 +364,7 @@ export class G {
   // ------------------------------------------------------------------
 
   /** Create a Google Cloud DLP PII detector. */
-  static dlp(opts?: {
-    project?: string;
-    infoTypes?: string[];
-    location?: string;
-  }): PIIDetector {
+  static dlp(opts?: { project?: string; infoTypes?: string[]; location?: string }): PIIDetector {
     return {
       detect: () => {
         // At runtime, resolved by Cloud DLP integration
@@ -359,7 +421,9 @@ export class G {
 
   /** Wrap an async callable as a content judge. */
   static customJudge(
-    fn: (text: string) => Promise<{ pass: boolean; reason?: string }> | { pass: boolean; reason?: string },
+    fn: (
+      text: string,
+    ) => Promise<{ pass: boolean; reason?: string }> | { pass: boolean; reason?: string },
   ): ContentJudge {
     return { judge: fn };
   }

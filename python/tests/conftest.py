@@ -7,14 +7,32 @@ test files don't have to construct these from scratch every time.
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
 import pytest
 
-# Ensure scripts/ is importable
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure shared/scripts/ is importable as both `scripts.X` and `X` so that
+# legacy `from scripts.code_ir import ...` and `from doc_generator import ...`
+# imports keep working after the monorepo restructure that moved scripts/
+# into shared/.
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_SHARED = _REPO_ROOT / "shared"
+_SHARED_SCRIPTS = _SHARED / "scripts"
+for _p in (_SHARED_SCRIPTS, _REPO_ROOT / "python"):
+    _ps = str(_p)
+    if _ps not in sys.path:
+        sys.path.insert(0, _ps)
+
+# Map the legacy `scripts.*` package namespace to `shared/scripts/` so that
+# `from scripts.code_ir import ...` keeps working without touching call sites.
+
+if "scripts" not in sys.modules:
+    import types as _types  # noqa: E402
+
+    _scripts_pkg = _types.ModuleType("scripts")
+    _scripts_pkg.__path__ = [str(_SHARED_SCRIPTS)]  # type: ignore[attr-defined]
+    sys.modules["scripts"] = _scripts_pkg
 
 
 # ---------------------------------------------------------------------------

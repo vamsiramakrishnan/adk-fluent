@@ -56,11 +56,7 @@ export function tap(fn: (state: State) => void, name = "tap"): Primitive {
  * Inline state assertion. Throws if `pred(state)` is false. Unlike `tap`,
  * this is a contract check rather than a side-effect observer.
  */
-export function expect(
-  pred: StatePredicate,
-  msg = "Assertion failed",
-  name = "expect",
-): Primitive {
+export function expect(pred: StatePredicate, msg = "Assertion failed", name = "expect"): Primitive {
   const p = new Primitive(name, "expect");
   p["_config"].set("_pred", pred);
   p["_config"].set("_msg", msg);
@@ -82,11 +78,7 @@ export function mapOver(key: string, agent: BuilderBase, name?: string): Primiti
  * Conditional execution: skip the wrapped agent unless `pred(state)`
  * returns true.
  */
-export function gate(
-  pred: StatePredicate,
-  agent: BuilderBase,
-  name?: string,
-): Primitive {
+export function gate(pred: StatePredicate, agent: BuilderBase, name?: string): Primitive {
   const p = new Primitive(name ?? "gate", "gate");
   p["_config"].set("_pred", pred);
   p["_lists"].set("_agents", [agent]);

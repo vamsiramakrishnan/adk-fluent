@@ -6,7 +6,7 @@ import { G, GuardViolation } from "../../src/namespaces/guards.js";
 import { M } from "../../src/namespaces/middleware.js";
 import { A } from "../../src/namespaces/artifacts.js";
 import { E } from "../../src/namespaces/eval.js";
-import { UI, UIComponent, UISurface } from "../../src/namespaces/ui.js";
+import { UI, UISurface } from "../../src/namespaces/ui.js";
 import { T } from "../../src/namespaces/tools.js";
 
 describe("G (Guards) — expanded", () => {
@@ -56,7 +56,9 @@ describe("G (Guards) — expanded", () => {
   });
 
   it("guards chain with .pipe()", () => {
-    const chain = G.json().pipe(G.length({ max: 100 })).pipe(G.regex("\\bbad\\b"));
+    const chain = G.json()
+      .pipe(G.length({ max: 100 }))
+      .pipe(G.regex("\\bbad\\b"));
     expect(chain.guards.length).toBe(3);
   });
 });
@@ -215,8 +217,9 @@ describe("A (Artifacts)", () => {
   });
 
   it("A operations chain with .pipe()", () => {
-    const chain = A.publish("a.json", { fromKey: "x" })
-      .pipe(A.snapshot("b.json", { intoKey: "y" }));
+    const chain = A.publish("a.json", { fromKey: "x" }).pipe(
+      A.snapshot("b.json", { intoKey: "y" }),
+    );
     expect(chain.ops.length).toBe(2);
   });
 });
@@ -496,18 +499,27 @@ describe("T (Tools) — expanded", () => {
   });
 
   it("T.confirm() wraps a tool with confirmation", () => {
-    const t = T.confirm(T.fn(() => undefined), "Are you sure?");
+    const t = T.confirm(
+      T.fn(() => undefined),
+      "Are you sure?",
+    );
     expect(t.items[0].confirm).toBe(true);
     expect(t.items[0].confirmMessage).toBe("Are you sure?");
   });
 
   it("T.timeout() wraps a tool with seconds", () => {
-    const t = T.timeout(T.fn(() => undefined), 30);
+    const t = T.timeout(
+      T.fn(() => undefined),
+      30,
+    );
     expect(t.items[0].timeout).toBe(30);
   });
 
   it("T.cache() wraps a tool with TTL", () => {
-    const t = T.cache(T.fn(() => undefined), { ttl: 600 });
+    const t = T.cache(
+      T.fn(() => undefined),
+      { ttl: 600 },
+    );
     expect(t.items[0].cache).toBe(true);
     expect(t.items[0].ttl).toBe(600);
   });

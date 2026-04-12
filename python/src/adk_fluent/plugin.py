@@ -9,22 +9,36 @@ from adk_fluent._base import BuilderBase
 
 if TYPE_CHECKING:
     from google.adk.agents.llm_agent import InstructionProvider
-    from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
+    from google.adk.cli.plugins.recordings_plugin import (
+        RecordingsPlugin as _ADK_RecordingsPlugin,
+    )
     from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
     from google.adk.plugins.base_plugin import BasePlugin as _ADK_BasePlugin
     from google.adk.plugins.bigquery_agent_analytics_plugin import (
         BigQueryAgentAnalyticsPlugin as _ADK_BigQueryAgentAnalyticsPlugin,
     )
-    from google.adk.plugins.bigquery_agent_analytics_plugin import BigQueryLoggerConfig
-    from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
-    from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
-    from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
+    from google.adk.plugins.bigquery_agent_analytics_plugin import (
+        BigQueryLoggerConfig,
+    )
+    from google.adk.plugins.context_filter_plugin import (
+        ContextFilterPlugin as _ADK_ContextFilterPlugin,
+    )
+    from google.adk.plugins.debug_logging_plugin import (
+        DebugLoggingPlugin as _ADK_DebugLoggingPlugin,
+    )
+    from google.adk.plugins.global_instruction_plugin import (
+        GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin,
+    )
     from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
     from google.adk.plugins.multimodal_tool_results_plugin import (
         MultimodalToolResultsPlugin as _ADK_MultimodalToolResultsPlugin,
     )
-    from google.adk.plugins.reflect_retry_tool_plugin import ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin
-    from google.adk.plugins.reflect_retry_tool_plugin import TrackingScope
+    from google.adk.plugins.reflect_retry_tool_plugin import (
+        ReflectAndRetryToolPlugin as _ADK_ReflectAndRetryToolPlugin,
+    )
+    from google.adk.plugins.reflect_retry_tool_plugin import (
+        TrackingScope,
+    )
     from google.adk.plugins.save_files_as_artifacts_plugin import (
         SaveFilesAsArtifactsPlugin as _ADK_SaveFilesAsArtifactsPlugin,
     )
@@ -53,7 +67,9 @@ class RecordingsPlugin(BuilderBase):
 
     def build(self) -> _ADK_RecordingsPlugin:
         """Plugin for recording ADK agent interactions. Resolve into a native ADK _ADK_RecordingsPlugin."""
-        from google.adk.cli.plugins.recordings_plugin import RecordingsPlugin as _ADK_RecordingsPlugin
+        from google.adk.cli.plugins.recordings_plugin import (
+            RecordingsPlugin as _ADK_RecordingsPlugin,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_RecordingsPlugin, config)
@@ -79,7 +95,9 @@ class ReplayPlugin(BuilderBase):
 
     def build(self) -> _ADK_ReplayPlugin:
         """Plugin for replaying ADK agent interactions from recordings. Resolve into a native ADK _ADK_ReplayPlugin."""
-        from google.adk.cli.plugins.replay_plugin import ReplayPlugin as _ADK_ReplayPlugin
+        from google.adk.cli.plugins.replay_plugin import (
+            ReplayPlugin as _ADK_ReplayPlugin,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ReplayPlugin, config)
@@ -112,7 +130,13 @@ class BigQueryAgentAnalyticsPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"config", "dataset_id", "location", "project_id", "table_id"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "config",
+        "dataset_id",
+        "location",
+        "project_id",
+        "table_id",
+    }
 
     def __init__(self, project_id: str, dataset_id: str, kwargs: str) -> None:
         self._init_storage(project_id, dataset_id=dataset_id, kwargs=kwargs)
@@ -152,7 +176,11 @@ class ContextFilterPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"custom_filter", "name", "num_invocations_to_keep"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "custom_filter",
+        "name",
+        "num_invocations_to_keep",
+    }
 
     def __init__(self) -> None:
         self._init_storage("")
@@ -177,7 +205,9 @@ class ContextFilterPlugin(BuilderBase):
 
     def build(self) -> _ADK_ContextFilterPlugin:
         """A plugin that filters the LLM context to reduce its size. Resolve into a native ADK _ADK_ContextFilterPlugin."""
-        from google.adk.plugins.context_filter_plugin import ContextFilterPlugin as _ADK_ContextFilterPlugin
+        from google.adk.plugins.context_filter_plugin import (
+            ContextFilterPlugin as _ADK_ContextFilterPlugin,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_ContextFilterPlugin, config)
@@ -190,7 +220,12 @@ class DebugLoggingPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"include_session_state", "include_system_instruction", "name", "output_path"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "include_session_state",
+        "include_system_instruction",
+        "name",
+        "output_path",
+    }
 
     def __init__(self) -> None:
         self._init_storage("")
@@ -221,7 +256,9 @@ class DebugLoggingPlugin(BuilderBase):
 
     def build(self) -> _ADK_DebugLoggingPlugin:
         """A plugin that captures complete debug information to a file. Resolve into a native ADK _ADK_DebugLoggingPlugin."""
-        from google.adk.plugins.debug_logging_plugin import DebugLoggingPlugin as _ADK_DebugLoggingPlugin
+        from google.adk.plugins.debug_logging_plugin import (
+            DebugLoggingPlugin as _ADK_DebugLoggingPlugin,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_DebugLoggingPlugin, config)
@@ -253,7 +290,9 @@ class GlobalInstructionPlugin(BuilderBase):
 
     def build(self) -> _ADK_GlobalInstructionPlugin:
         """Plugin that provides global instructions functionality at the App level. Resolve into a native ADK _ADK_GlobalInstructionPlugin."""
-        from google.adk.plugins.global_instruction_plugin import GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin
+        from google.adk.plugins.global_instruction_plugin import (
+            GlobalInstructionPlugin as _ADK_GlobalInstructionPlugin,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_GlobalInstructionPlugin, config)
@@ -279,7 +318,9 @@ class LoggingPlugin(BuilderBase):
 
     def build(self) -> _ADK_LoggingPlugin:
         """A plugin that logs important information at each callback point. Resolve into a native ADK _ADK_LoggingPlugin."""
-        from google.adk.plugins.logging_plugin import LoggingPlugin as _ADK_LoggingPlugin
+        from google.adk.plugins.logging_plugin import (
+            LoggingPlugin as _ADK_LoggingPlugin,
+        )
 
         config = self._prepare_build_config()
         result = self._safe_build(_ADK_LoggingPlugin, config)
@@ -320,7 +361,12 @@ class ReflectAndRetryToolPlugin(BuilderBase):
     _ALIASES: dict[str, str] = {}
     _CALLBACK_ALIASES: dict[str, str] = {}
     _ADDITIVE_FIELDS: set[str] = set()
-    _KNOWN_PARAMS: set[str] | None = {"max_retries", "name", "throw_exception_if_retry_exceeded", "tracking_scope"}
+    _KNOWN_PARAMS: set[str] | None = {
+        "max_retries",
+        "name",
+        "throw_exception_if_retry_exceeded",
+        "tracking_scope",
+    }
 
     def __init__(self) -> None:
         self._init_storage("")

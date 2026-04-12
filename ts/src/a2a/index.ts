@@ -99,9 +99,7 @@ export class A2AServer extends BuilderBase<Record<string, unknown>> {
     const clone = super._clone();
     (clone as A2AServer)._agent = this._agent;
     (clone as A2AServer)._skills = [...this._skills];
-    (clone as A2AServer)._provider = this._provider
-      ? { ...this._provider }
-      : null;
+    (clone as A2AServer)._provider = this._provider ? { ...this._provider } : null;
     return clone;
   }
 
@@ -119,11 +117,7 @@ export class A2AServer extends BuilderBase<Record<string, unknown>> {
     return clone;
   }
 
-  skill(
-    id: string,
-    title: string,
-    opts: { description?: string; tags?: string[] } = {},
-  ): this {
+  skill(id: string, title: string, opts: { description?: string; tags?: string[] } = {}): this {
     const clone = this._clone();
     clone._skills.push({ id, title, ...opts });
     return clone;
