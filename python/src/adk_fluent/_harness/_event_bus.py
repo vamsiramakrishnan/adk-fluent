@@ -271,7 +271,7 @@ class EventBus:
         Returns:
             A SessionTape instance, already recording.
         """
-        from adk_fluent._harness._tape import SessionTape
+        from adk_fluent._session import SessionTape
 
         t = SessionTape(max_events=max_events)
         self.subscribe(t.record)

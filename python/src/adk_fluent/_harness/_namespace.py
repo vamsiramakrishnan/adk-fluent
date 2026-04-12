@@ -828,7 +828,7 @@ class H:
         Args:
             max_branches: Maximum branches (oldest auto-evicted).
         """
-        from adk_fluent._harness._fork import ForkManager
+        from adk_fluent._session import ForkManager
 
         return ForkManager(max_branches=max_branches)
 
@@ -1111,9 +1111,67 @@ class H:
         Args:
             max_events: Maximum events to buffer (0 = unlimited).
         """
-        from adk_fluent._harness._tape import SessionTape
+        from adk_fluent._session import SessionTape
 
         return SessionTape(max_events=max_events)
+
+    @staticmethod
+    def session_store(
+        *,
+        max_events: int = 0,
+        max_branches: int = 20,
+    ) -> Any:
+        """Create a :class:`~adk_fluent._session.SessionStore`.
+
+        A store bundles a :class:`SessionTape` and a
+        :class:`ForkManager` behind one API so you can record events
+        and snapshot branches from a single object, then persist them
+        atomically via :meth:`SessionStore.snapshot`::
+
+            store = H.session_store()
+            dispatcher.subscribe(store.record_event)
+            agent.after_agent(store.auto_fork("after_step"))
+
+            # End of session
+            store.snapshot().save("/project/.harness/session.json")
+
+        Args:
+            max_events: Max events to buffer in the tape (0 = unlimited).
+            max_branches: Max branches to retain in the fork manager
+                (oldest auto-evicted when the cap is reached).
+        """
+        from adk_fluent._session import ForkManager, SessionStore, SessionTape
+
+        return SessionStore(
+            tape=SessionTape(max_events=max_events),
+            forks=ForkManager(max_branches=max_branches),
+        )
+
+    @staticmethod
+    def session_plugin(
+        store: Any | None = None,
+        *,
+        auto_fork: bool = True,
+        fork_prefix: str = "auto",
+        name: str = "adkf_session_plugin",
+    ) -> Any:
+        """Create a session-scoped :class:`SessionPlugin`.
+
+        Install on the root app to auto-snapshot state after every agent
+        in the invocation tree completes. Subagent specialists are
+        covered for free because ADK ``BasePlugin`` is session-scoped.
+
+        Args:
+            store: Optional pre-built :class:`SessionStore`.
+            auto_fork: Auto-create a branch after each agent completion.
+            fork_prefix: Prefix for auto-fork branch names.
+            name: Plugin display name.
+        """
+        from adk_fluent._session import SessionPlugin
+
+        return SessionPlugin(
+            store, auto_fork=auto_fork, fork_prefix=fork_prefix, name=name
+        )
 
     # =================================================================
     # Slash commands

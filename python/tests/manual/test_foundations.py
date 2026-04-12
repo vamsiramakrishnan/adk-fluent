@@ -27,7 +27,7 @@ from adk_fluent._harness._manifold import (
 )
 from adk_fluent._harness._memory import ProjectMemory
 from adk_fluent._permissions import PermissionPolicy
-from adk_fluent._harness._tape import SessionTape
+from adk_fluent._session import SessionTape
 from adk_fluent._tool_registry import ToolRegistry
 
 

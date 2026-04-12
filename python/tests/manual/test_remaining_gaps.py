@@ -12,7 +12,7 @@ import time
 from unittest.mock import MagicMock
 
 from adk_fluent import H
-from adk_fluent._harness._fork import ForkManager
+from adk_fluent._session import ForkManager
 from adk_fluent._harness._interrupt import (
     CancellationToken,
     TurnSnapshot,

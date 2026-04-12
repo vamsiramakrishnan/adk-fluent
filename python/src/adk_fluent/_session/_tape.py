@@ -1,7 +1,8 @@
 """Session tape — event recording and replay.
 
-Records HarnessEvents during a session for replay, debugging, or
-analysis. Composes with ``EventDispatcher`` as a subscriber::
+Records :class:`~adk_fluent._harness._events.HarnessEvent` instances
+during a session for replay, debugging, or analysis. Composes with
+``EventDispatcher`` as a subscriber::
 
     tape = SessionTape()
     dispatcher = H.dispatcher()
@@ -14,6 +15,11 @@ analysis. Composes with ``EventDispatcher`` as a subscriber::
     tape = SessionTape.load("/project/.harness/session.jsonl")
     for event in tape.events:
         print(event)
+
+The tape is intentionally codec-agnostic: every event is flattened to a
+plain dict via :func:`dataclasses.asdict` and persisted as JSONL. This
+makes tapes portable across Python versions and allows external tools
+(diff, grep, jq) to inspect them without loading the harness.
 """
 
 from __future__ import annotations
@@ -22,9 +28,10 @@ import json
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from adk_fluent._harness._events import HarnessEvent
+if TYPE_CHECKING:
+    from adk_fluent._harness._events import HarnessEvent
 
 __all__ = ["SessionTape"]
 
@@ -44,7 +51,7 @@ class SessionTape:
         self._max_events = max_events
         self._start_time = time.monotonic()
 
-    def record(self, event: HarnessEvent) -> None:
+    def record(self, event: "HarnessEvent") -> None:
         """Record a single event. Use as ``dispatcher.subscribe(tape.record)``.
 
         Args:

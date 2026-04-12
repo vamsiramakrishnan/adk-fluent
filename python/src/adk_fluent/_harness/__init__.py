@@ -99,8 +99,8 @@ from adk_fluent._harness._events import (
     UsageUpdate,
 )
 
-# Fork
-from adk_fluent._harness._fork import Branch, ForkManager
+# Fork (now lives in adk_fluent._session, re-exported here)
+from adk_fluent._session import Branch, ForkManager
 
 # Git
 from adk_fluent._harness._git import GitCheckpointer
@@ -202,8 +202,13 @@ from adk_fluent._harness._skills import SkillSpec, compile_skills_to_static
 # Streaming
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 
-# Session tape
-from adk_fluent._harness._tape import SessionTape
+# Session tape + store (now lives in adk_fluent._session, re-exported here)
+from adk_fluent._session import (
+    SessionPlugin,
+    SessionSnapshot,
+    SessionStore,
+    SessionTape,
+)
 
 # Task ledger
 from adk_fluent._harness._task_ledger import TaskLedger, TaskState
@@ -415,6 +420,9 @@ __all__ = [
     "ReplConfig",
     # Session tape
     "SessionTape",
+    "SessionStore",
+    "SessionSnapshot",
+    "SessionPlugin",
     # Commands
     "CommandRegistry",
     "CommandSpec",

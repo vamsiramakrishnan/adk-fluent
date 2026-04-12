@@ -585,8 +585,11 @@ from ._harness._events import ProcessEvent as ProcessEvent
 from ._harness._events import TaskEvent as TaskEvent
 from ._harness._events import CapabilityLoaded as CapabilityLoaded
 from ._harness._events import ManifoldFinalized as ManifoldFinalized
-from ._harness._fork import ForkManager as ForkManager
-from ._harness._fork import Branch as Branch
+from ._session import ForkManager as ForkManager
+from ._session import Branch as Branch
+from ._session import SessionStore as SessionStore
+from ._session import SessionSnapshot as SessionSnapshot
+from ._session import SessionPlugin as SessionPlugin
 from ._harness._git import GitCheckpointer as GitCheckpointer
 from ._harness._git_tools import git_tools as git_tools
 from ._harness._gitignore import GitignoreMatcher as GitignoreMatcher
@@ -630,7 +633,7 @@ from ._harness._skills import SkillSpec as SkillSpec
 from ._harness._skills import compile_skills_to_static as compile_skills_to_static
 from ._harness._streaming import StreamingBash as StreamingBash
 from ._harness._streaming import make_streaming_bash as make_streaming_bash
-from ._harness._tape import SessionTape as SessionTape
+from ._session import SessionTape as SessionTape
 from ._harness._task_ledger import TaskLedger as TaskLedger
 from ._harness._task_ledger import TaskState as TaskState
 from ._harness._tasks import TaskRegistry as TaskRegistry
@@ -1208,6 +1211,9 @@ __all__ = [
     "HarnessRepl",
     "ReplConfig",
     "SessionTape",
+    "SessionStore",
+    "SessionSnapshot",
+    "SessionPlugin",
     "CommandRegistry",
     "CommandSpec",
     "SkillSpec",
