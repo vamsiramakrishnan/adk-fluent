@@ -60,11 +60,7 @@ const satisfaction = new Agent("satisfaction_monitor", MODEL)
 const escalation = new Agent("escalation_handler", MODEL).instruct(
   "Customer issue unresolved. Escalate to a human supervisor with full context.",
 );
-const escalationGate = gate(
-  (s) => s.resolved === "no",
-  escalation,
-  "escalation_gate",
-);
+const escalationGate = gate((s) => s.resolved === "no", escalation, "escalation_gate");
 
 const captureMessage = S.capture("customer_message");
 

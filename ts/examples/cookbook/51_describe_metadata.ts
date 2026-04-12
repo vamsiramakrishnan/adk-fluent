@@ -41,9 +41,9 @@ const coordinator = new Agent("research_coordinator", "gemini-2.5-pro")
   .subAgent(academicSearcher)
   .subAgent(internalSearcher)
   .build() as Record<string, unknown> & {
-    description: string;
-    sub_agents: Record<string, unknown>[];
-  };
+  description: string;
+  sub_agents: Record<string, unknown>[];
+};
 
 assert.equal(coordinator.name, "research_coordinator");
 assert.equal(coordinator.description, "Routes research questions to the appropriate specialist.");

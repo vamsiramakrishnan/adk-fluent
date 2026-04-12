@@ -41,10 +41,7 @@ assert.equal(snap._persistent_context, true);
 // `.discover()` is a static helper for DNS `.well-known` lookup.
 const discovered = RemoteAgent.discover("research-agent.acme.com", "researcher");
 const discoveredBuilt = discovered.build() as Record<string, unknown>;
-assert.equal(
-  discoveredBuilt.agent_card,
-  "https://research-agent.acme.com/.well-known/agent.json",
-);
+assert.equal(discoveredBuilt.agent_card, "https://research-agent.acme.com/.well-known/agent.json");
 
 // Env-var configured remote — no agent_card baked in, runtime resolves it.
 const envRemote = new RemoteAgent("code", { env: "CODE_AGENT_URL" });

@@ -51,10 +51,10 @@ const verifier = new Agent("verifier", MODEL)
   .instruct("Verify the task result for correctness and surface any concerns.")
   .context(C.none().add(C.fromState("task_result")));
 
-const pipeline = new Pipeline("multi_tool_flow")
-  .step(taskAgent)
-  .step(verifier)
-  .build() as { _type: string; subAgents: Record<string, unknown>[] };
+const pipeline = new Pipeline("multi_tool_flow").step(taskAgent).step(verifier).build() as {
+  _type: string;
+  subAgents: Record<string, unknown>[];
+};
 
 assert.equal(pipeline._type, "SequentialAgent");
 assert.equal(pipeline.subAgents.length, 2);

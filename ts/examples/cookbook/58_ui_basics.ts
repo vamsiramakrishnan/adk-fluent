@@ -55,9 +55,7 @@ assert.equal(surface.name, "login");
 assert.equal(surface.root, root);
 
 // Attach the surface to an agent — stored as a private `_ui_spec` key.
-const loginAgent = new Agent("login_helper", MODEL)
-  .instruct("Help the user sign in.")
-  .ui(surface);
+const loginAgent = new Agent("login_helper", MODEL).instruct("Help the user sign in.").ui(surface);
 
 assert.equal(loginAgent.inspect()._ui_spec, surface);
 // Build strips private keys.

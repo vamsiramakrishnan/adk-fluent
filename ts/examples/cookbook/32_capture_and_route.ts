@@ -57,10 +57,7 @@ const helpdesk = new Pipeline("helpdesk_triage")
 
 assert.equal(helpdesk._type, "SequentialAgent");
 assert.equal(helpdesk.subAgents.length, 3);
-assert.equal(
-  (helpdesk.subAgents[0] as Record<string, unknown>).name,
-  "capture_ticket",
-);
+assert.equal((helpdesk.subAgents[0] as Record<string, unknown>).name, "capture_ticket");
 assert.equal((helpdesk.subAgents[1] as Record<string, unknown>).name, "triage");
 
 // The Route is the last step and exposes its decision tree shape.

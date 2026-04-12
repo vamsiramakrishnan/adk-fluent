@@ -34,11 +34,7 @@ assert.equal(onlyIfUrgentBuilt._kind, "gate");
 // 2b. conditional — if/else, returns a Pipeline of two gates.
 const refund = new Agent("refund", MODEL).instruct("Issue a refund.");
 const declineRefund = new Agent("decline", MODEL).instruct("Decline politely.");
-const ifElse = conditional(
-  (s) => Number(s.amount ?? 0) < 100,
-  refund,
-  declineRefund,
-);
+const ifElse = conditional((s) => Number(s.amount ?? 0) < 100, refund, declineRefund);
 assert.ok(ifElse instanceof Pipeline);
 const ifElseBuilt = ifElse.build() as { subAgents: Array<{ _kind: string; name: string }> };
 assert.equal(ifElseBuilt.subAgents.length, 2);

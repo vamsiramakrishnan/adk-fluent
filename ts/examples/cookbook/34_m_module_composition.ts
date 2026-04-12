@@ -42,7 +42,8 @@ assert.equal(debugLog.middlewares[0].name, "when");
 
 // 5. Single-hook shortcuts produce one-element composites.
 const seen: string[] = [];
-const beforeHook = M.beforeAgent(((_ctx: unknown, name: unknown) => seen.push(String(name))) as never);
+const beforeHook = M.beforeAgent(((_ctx: unknown, name: unknown) =>
+  seen.push(String(name))) as never);
 assert.equal(beforeHook.middlewares.length, 1);
 assert.equal(beforeHook.middlewares[0].name, "before_agent");
 

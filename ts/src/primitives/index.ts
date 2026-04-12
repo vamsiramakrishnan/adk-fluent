@@ -88,7 +88,12 @@ export function expect(pred: StatePredicate, msg = "Assertion failed", name = "e
  * results in `state[key + "_results"]`.
  */
 export function mapOver(key: string, agent: BuilderBase, name?: string): Primitive {
-  return Primitive.create(name ?? `map_over_${key}`, "map_over", { _key: key }, { _agents: [agent] });
+  return Primitive.create(
+    name ?? `map_over_${key}`,
+    "map_over",
+    { _key: key },
+    { _agents: [agent] },
+  );
 }
 
 /**

@@ -11,7 +11,9 @@ import assert from "node:assert/strict";
 import { Agent, Pipeline } from "../../src/index.js";
 
 function normalizeQuery(state: Record<string, unknown>): Record<string, unknown> {
-  const q = String(state.query ?? "").trim().toLowerCase();
+  const q = String(state.query ?? "")
+    .trim()
+    .toLowerCase();
   return { ...state, query: q };
 }
 

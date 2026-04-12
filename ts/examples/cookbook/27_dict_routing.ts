@@ -20,10 +20,7 @@ const freeDesk = new Agent("free", "gemini-2.5-flash").instruct(
   "Greet a free-tier customer briefly.",
 );
 
-const desk = new Route("tier")
-  .eq("vip", vipDesk)
-  .eq("standard", standardDesk)
-  .otherwise(freeDesk);
+const desk = new Route("tier").eq("vip", vipDesk).eq("standard", standardDesk).otherwise(freeDesk);
 
 const built = desk.build();
 

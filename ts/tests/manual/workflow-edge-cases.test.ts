@@ -96,9 +96,7 @@ describe("Fallback edge cases", () => {
   });
 
   it("recursively builds Pipeline children", () => {
-    const primary = new Pipeline("primary")
-      .step(new Agent("a", M))
-      .step(new Agent("b", M));
+    const primary = new Pipeline("primary").step(new Agent("a", M)).step(new Agent("b", M));
     const fb = new Fallback("resilient")
       .attempt(primary)
       .attempt(new Agent("backup", M))

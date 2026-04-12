@@ -54,11 +54,10 @@ assert.equal(baseAgent.inspect()._output_schema, undefined);
 assert.equal(typedAgent.inspect()._output_schema, ClaimIntake);
 
 // Wire it all into a pipeline.
-const pipeline = new Pipeline("claim_flow")
-  .step(intake)
-  .step(risk)
-  .step(summary)
-  .build() as { _type: string; subAgents: Record<string, unknown>[] };
+const pipeline = new Pipeline("claim_flow").step(intake).step(risk).step(summary).build() as {
+  _type: string;
+  subAgents: Record<string, unknown>[];
+};
 assert.equal(pipeline._type, "SequentialAgent");
 assert.equal(pipeline.subAgents.length, 3);
 assert.equal(pipeline.subAgents[0].name, "intake_agent");
