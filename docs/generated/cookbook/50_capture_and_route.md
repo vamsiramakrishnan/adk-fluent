@@ -88,28 +88,6 @@ built = helpdesk.build()
 # Route-based dispatch requires another custom agent with if/elif logic.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["capture_ticket_then_triage_routed (sequence)"]]
-    n2>"capture_ticket capture(ticket)"]
-    n3["triage"]
-    n4{"route_priority (route)"}
-    n5["incident_commander"]
-    n6["senior_support"]
-    n7["support_bot"]
-    n4 --> n5
-    n4 --> n6
-    n4 -.-> n7
-    n2 --> n3
-    n3 --> n4
-    n3 -. "priority" .-> n4
-    n2 -. "ticket" .-> n3
-    n2 -. "ticket" .-> n5
-    n2 -. "ticket" .-> n6
-    n2 -. "ticket" .-> n7
-```
-:::
 ::::
 
 ## Equivalence
@@ -119,7 +97,7 @@ graph TD
 assert len(contract_errors) == 0
 
 # Pipeline builds with capture agent first
-from adk_fluent._base import CaptureAgent
+from adk_fluent._primitives import CaptureAgent
 
 assert isinstance(built.sub_agents[0], CaptureAgent)
 assert built.sub_agents[0].name == "capture_ticket"

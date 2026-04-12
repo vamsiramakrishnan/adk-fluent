@@ -589,19 +589,19 @@ RemoteAgent extends BuilderBase — all operators (>>, |, //, *) work:
     RemoteAgent("code", env="CODE_AGENT_URL")  — environment variable configuration
 ## Builder inventory
 
-132 builders across 9 modules.
+135 builders across 9 modules.
 
-### agent module (2 builders)
+### agent module (3 builders)
 
-BaseAgent, Agent
+BaseAgent, Agent, RemoteA2aAgent
 
-### config module (38 builders)
+### config module (39 builders)
 
-AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
+A2aAgentExecutorConfig, AgentConfig, BaseAgentConfig, AgentRefConfig, ArgumentConfig, CodeConfig, ContextCacheConfig, LlmAgentConfig, LoopAgentConfig, ParallelAgentConfig, RunConfig, ToolThreadPoolConfig, SequentialAgentConfig, EventsCompactionConfig, ResumabilityConfig, FeatureConfig, AudioCacheConfig, SimplePromptOptimizerConfig, BigQueryLoggerConfig, RetryConfig, GetSessionConfig, BaseGoogleCredentialsConfig, AgentSimulatorConfig, InjectionConfig, ToolSimulationConfig, AgentToolConfig, BigQueryCredentialsConfig, BigQueryToolConfig, BigtableCredentialsConfig, DataAgentToolConfig, DataAgentCredentialsConfig, ExampleToolConfig, McpToolsetConfig, PubSubToolConfig, PubSubCredentialsConfig, SpannerCredentialsConfig, BaseToolConfig, ToolArgsConfig, ToolConfig
 
-### executor module (5 builders)
+### executor module (6 builders)
 
-AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
+A2aAgentExecutor, AgentEngineSandboxCodeExecutor, BaseCodeExecutor, BuiltInCodeExecutor, UnsafeLocalCodeExecutor, VertexAiCodeExecutor
 
 ### planner module (3 builders)
 

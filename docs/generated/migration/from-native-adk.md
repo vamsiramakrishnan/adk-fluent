@@ -103,6 +103,8 @@ fanout = (
 
 | Native ADK Class | adk-fluent Builder | Import |
 |------------------|-------------------|--------|
+| `A2aAgentExecutor` | [A2aAgentExecutor](../api/executor.md#builder-A2aAgentExecutor) | `from adk_fluent import A2aAgentExecutor` |
+| `A2aAgentExecutorConfig` | [A2aAgentExecutorConfig](../api/config.md#builder-A2aAgentExecutorConfig) | `from adk_fluent import A2aAgentExecutorConfig` |
 | `APIHubToolset` | [APIHubToolset](../api/tool.md#builder-APIHubToolset) | `from adk_fluent import APIHubToolset` |
 | `ActiveStreamingTool` | [ActiveStreamingTool](../api/tool.md#builder-ActiveStreamingTool) | `from adk_fluent import ActiveStreamingTool` |
 | `LlmAgent` | [Agent](../api/agent.md#builder-Agent) | `from adk_fluent import Agent` |
@@ -205,6 +207,7 @@ fanout = (
 | `PubSubToolset` | [PubSubToolset](../api/tool.md#builder-PubSubToolset) | `from adk_fluent import PubSubToolset` |
 | `RecordingsPlugin` | [RecordingsPlugin](../api/plugin.md#builder-RecordingsPlugin) | `from adk_fluent import RecordingsPlugin` |
 | `ReflectAndRetryToolPlugin` | [ReflectAndRetryToolPlugin](../api/plugin.md#builder-ReflectAndRetryToolPlugin) | `from adk_fluent import ReflectAndRetryToolPlugin` |
+| `RemoteA2aAgent` | [RemoteA2aAgent](../api/agent.md#builder-RemoteA2aAgent) | `from adk_fluent import RemoteA2aAgent` |
 | `ReplayPlugin` | [ReplayPlugin](../api/plugin.md#builder-ReplayPlugin) | `from adk_fluent import ReplayPlugin` |
 | `RestApiTool` | [RestApiTool](../api/tool.md#builder-RestApiTool) | `from adk_fluent import RestApiTool` |
 | `ResumabilityConfig` | [ResumabilityConfig](../api/config.md#builder-ResumabilityConfig) | `from adk_fluent import ResumabilityConfig` |
@@ -342,6 +345,15 @@ The tables below show fluent method names that differ from the native field name
 
 (migration-pipeline)=
 ### Pipeline
+
+| Native Field | Fluent Method | Notes |
+|-------------|---------------|-------|
+| `description` | `.describe()` | alias |
+| `after_agent_callback` | `.after_agent()` | callback, additive |
+| `before_agent_callback` | `.before_agent()` | callback, additive |
+
+(migration-remotea2aagent)=
+### RemoteA2aAgent
 
 | Native Field | Fluent Method | Notes |
 |-------------|---------------|-------|

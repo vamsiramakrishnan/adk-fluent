@@ -154,27 +154,6 @@ code_review = (
 # Total: ~80 lines of boilerplate
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_tap_6_then_finding_aggregator_then_comment_writer (sequence)"]]
-    n2["diff_parser"]
-    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
-    n4["style_checker"]
-    n5["security_scanner"]
-    n6["logic_reviewer"]
-    n7>"tap_6 tap"]
-    n8["finding_aggregator"]
-    n9["comment_writer"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n2 --> n3
-    n3 --> n7
-    n7 --> n8
-    n8 --> n9
-```
-:::
 ::::
 
 ## Equivalence

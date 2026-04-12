@@ -63,16 +63,6 @@ agent = Agent("solver").instruct("Solve the problem.").engine("asyncio")
 assert agent._config["_engine"] == "asyncio"
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1{"web_search_and_paper_search (parallel)"}
-    n2["web_search"]
-    n3["paper_search"]
-    n1 --> n2
-    n1 --> n3
-```
-:::
 ::::
 
 ## Equivalence

@@ -8,6 +8,15 @@ In other frameworks: LangGraph manages context through TypedDict state slicing,
 requiring manual state key management. adk-fluent uses the C module (C.none(),
 C.from_state(), C.user_only()) for declarative context control.
 
+Key design principle: data-injection transforms (C.from_state, C.template,
+C.notes) are neutral — they inject state without suppressing conversation
+history. History-filtering transforms (C.none, C.window, C.user_only)
+explicitly control visibility. Compose them to get both::
+
+    C.none() + C.from_state("key")   # inject state, no history
+    C.from_state("key")              # inject state, keep history
+    C.window(n=3) + C.from_state("key")  # last 3 turns + state
+
 :::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
 :::
@@ -43,7 +52,7 @@ support_pipeline = (
             "You are a billing specialist. Help the customer with their billing issue.\n"
             "Customer message: {customer_message}"
         )
-        .context(C.from_state("customer_message")),
+        .context(C.none() + C.from_state("customer_message")),  # state only, no history
     )
     .eq(
         "technical",
@@ -54,7 +63,7 @@ support_pipeline = (
             "Customer message: {customer_message}\n"
             "Urgency: {urgency}"
         )
-        .context(C.from_state("customer_message", "urgency") + C.window(n=3)),
+        .context(C.window(n=3) + C.from_state("customer_message", "urgency")),  # last 3 turns + state
     )
     .otherwise(
         Agent("general_agent")
@@ -78,27 +87,6 @@ built = support_pipeline.build()
 # per agent.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["capture_customer_message_then_classifier_routed (sequence)"]]
-    n2>"capture_customer_message capture(customer_message)"]
-    n3["classifier"]
-    n4{"route_category (route)"}
-    n5["billing_agent"]
-    n6["tech_agent"]
-    n7["general_agent"]
-    n4 --> n5
-    n4 --> n6
-    n4 -.-> n7
-    n2 --> n3
-    n3 --> n4
-    n3 -. "category" .-> n4
-    n2 -. "customer_message" .-> n3
-    n2 -. "customer_message" .-> n5
-    n2 -. "customer_message" .-> n6
-```
-:::
 ::::
 
 ## Equivalence
@@ -113,7 +101,7 @@ classifier = built.sub_agents[1]  # After capture agent
 assert classifier.include_contents == "none"
 
 # The capture agent is first
-from adk_fluent._base import CaptureAgent
+from adk_fluent._primitives import CaptureAgent
 
 assert isinstance(built.sub_agents[0], CaptureAgent)
 ```

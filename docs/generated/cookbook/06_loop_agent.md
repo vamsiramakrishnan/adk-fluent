@@ -85,16 +85,6 @@ loop_native = LoopAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1(("essay_refiner (loop x3)"))
-    n2["critic"]
-    n3["reviser"]
-    n1 --> n2
-    n1 --> n3
-```
-:::
 ::::
 
 ## Equivalence

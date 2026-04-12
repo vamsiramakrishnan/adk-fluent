@@ -66,20 +66,6 @@ complex_route = (
 # Neither approach is ergonomic for common routing patterns.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1{"route_category (route)"}
-    n2["electronics"]
-    n3["clothing"]
-    n4["grocery"]
-    n5["general"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
-    n1 -.-> n5
-```
-:::
 ::::
 
 ## Equivalence

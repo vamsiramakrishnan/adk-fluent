@@ -73,17 +73,6 @@ pipeline_native = SequentialAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["order_validator_then_payment_processor_then_fulfillment (sequence)"]]
-    n2["order_validator"]
-    n3["payment_processor"]
-    n4["fulfillment"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

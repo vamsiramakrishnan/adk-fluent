@@ -17,7 +17,7 @@ _Source: `32_fallback_operator.py`_
 :::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
-from adk_fluent._base import _FallbackBuilder
+from adk_fluent._primitive_builders import _FallbackBuilder
 
 # // creates a fallback chain — first success wins.
 # In a knowledge retrieval system: try the fast vector DB first,
@@ -79,24 +79,6 @@ fallback_with_default = Agent("primary_search").model("gemini-2.5-flash").instru
 #   2. Sub-agents list for each fallback tier
 #   3. Manual error handling and re-delegation
 # This is ~30 lines per fallback chain.
-```
-:::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1{"case_law_db_or_statute_search_and_reg_db_or_federal_register (parallel)"}
-    n2[/"case_law_db_or_statute_search (fallback)"\]
-    n3["case_law_db"]
-    n4["statute_search"]
-    n5[/"reg_db_or_federal_register (fallback)"\]
-    n6["reg_db"]
-    n7["federal_register"]
-    n2 --> n3
-    n2 --> n4
-    n1 --> n2
-    n5 --> n6
-    n5 --> n7
-    n1 --> n5
 ```
 :::
 ::::

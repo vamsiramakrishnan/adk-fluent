@@ -55,19 +55,6 @@ bounded_execution = (
 # This is ~40 lines of async boilerplate per timeout.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["data_ingest_then_strategy_engine_timeout_2_then_order_formatter (sequence)"]]
-    n2["data_ingest"]
-    n3["strategy_engine_timeout_2 (timeout 30s)"]
-    n4["strategy_engine"]
-    n5["order_formatter"]
-    n3 --> n4
-    n2 --> n3
-    n3 --> n5
-```
-:::
 ::::
 
 ## Equivalence

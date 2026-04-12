@@ -62,16 +62,6 @@ via_loop = (
 # just to handle transient 503 errors.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1(("charge_agent_then_verification_agent_x5 (loop x5)"))
-    n2["charge_agent"]
-    n3["verification_agent"]
-    n1 --> n2
-    n1 --> n3
-```
-:::
 ::::
 
 ## Equivalence

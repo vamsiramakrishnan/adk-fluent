@@ -184,8 +184,8 @@ agent = Agent("composer").tools(T.fn(tool_a) | T.fn(tool_b))
 ir = agent.to_ir()
 assert len(ir.tools) >= 2
 
-# .tool() and .tools(TComposite) combine
-agent2 = Agent("combined").tool(tool_a).tools(T.fn(tool_b))
+# .tools() replaces, .tool() appends — use .tools() first, then .tool() to add
+agent2 = Agent("combined").tools(T.fn(tool_a)).tool(tool_b)
 ir2 = agent2.to_ir()
 assert len(ir2.tools) >= 2
 
@@ -444,14 +444,6 @@ ir_full = agent_full.to_ir()
 assert len(ir_full.tools) >= 4
 
 print("All T module assertions passed!")
-```
-:::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    c["coordinator"]
-    d0["specialist"]
-    c -.->|delegates| d0
 ```
 :::
 ::::

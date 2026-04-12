@@ -24,7 +24,7 @@ _Source: `61_dispatch_middleware.py`_
 ```python
 from adk_fluent import Agent, dispatch, get_execution_mode, join
 from adk_fluent._primitive_builders import BackgroundTask
-from adk_fluent._base import _execution_mode
+from adk_fluent.backends.adk._primitives import _execution_mode
 from adk_fluent._primitives import _middleware_dispatch_hooks
 from adk_fluent.middleware import (
     DispatchLogMiddleware,
@@ -130,14 +130,6 @@ assert DLM2 is DispatchLogMiddleware
 assert gem2 is get_execution_mode
 
 print("All dispatch middleware assertions passed!")
-```
-:::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1>"dispatch_7 dispatch(1)"]
-    n2["emailer"]
-    n1 --> n2
 ```
 :::
 ::::

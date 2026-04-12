@@ -83,25 +83,13 @@ multi_stage_review = (
 # This is ~25 lines of boilerplate per approval gate.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["contract_drafter_then_gate_3_then_risk_disclosures_then_gate_4 (sequence)"]]
-    n2["contract_drafter"]
-    n3{{"gate_3 (gate)"}}
-    n4["risk_disclosures"]
-    n5{{"gate_4 (gate)"}}
-    n2 --> n3
-    n3 --> n4
-    n4 --> n5
-```
-:::
 ::::
 
 ## Equivalence
 
 ```python
-from adk_fluent._base import _GateBuilder, BuilderBase
+from adk_fluent._primitive_builders import _GateBuilder
+from adk_fluent._base import BuilderBase
 
 # gate() creates a _GateBuilder
 g = gate(lambda s: True, message="Test")

@@ -108,17 +108,6 @@ risk_native = LlmAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["intake_agent_then_risk_agent_then_summary_agent (sequence)"]]
-    n2["intake_agent"]
-    n3["risk_agent"]
-    n4["summary_agent"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

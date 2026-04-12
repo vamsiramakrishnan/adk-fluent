@@ -96,19 +96,6 @@ assert agent._config["_engine"] == "temporal"
 assert agent._config["_engine_kwargs"]["task_queue"] == "my-queue"
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["researcher_then_analyst_then_writer (sequence)"]]
-    n2["researcher"]
-    n3["analyst"]
-    n4["writer"]
-    n2 --> n3
-    n3 --> n4
-    n3 -. "analysis" .-> n4
-    n2 -. "findings" .-> n3
-```
-:::
 ::::
 
 ## Equivalence

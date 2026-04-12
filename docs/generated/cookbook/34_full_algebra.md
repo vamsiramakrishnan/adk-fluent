@@ -89,34 +89,13 @@ review_pipeline = (
 # expresses the same architecture in a single readable expression.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["diff_parser_then_style_checker_and_security_scanner_and_logic_reviewer_then_finding_aggregator_or_backup_aggregator (sequence)"]]
-    n2["diff_parser"]
-    n3{"style_checker_and_security_scanner_and_logic_reviewer (parallel)"}
-    n4["style_checker"]
-    n5["security_scanner"]
-    n6["logic_reviewer"]
-    n7[/"finding_aggregator_or_backup_aggregator (fallback)"\]
-    n8["finding_aggregator"]
-    n9["backup_aggregator"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n7 --> n8
-    n7 --> n9
-    n2 --> n3
-    n3 --> n7
-```
-:::
 ::::
 
 ## Equivalence
 
 ```python
 from adk_fluent import Pipeline
-from adk_fluent._base import _FallbackBuilder
+from adk_fluent._primitive_builders import _FallbackBuilder
 
 # Pipeline builds correctly
 assert isinstance(review_pipeline, Pipeline)

@@ -90,18 +90,6 @@ coordinator_native = LlmAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1["launch_coordinator"]
-    n2["marketing"]
-    n3["engineering"]
-    n4["legal"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
-```
-:::
 ::::
 
 ## Equivalence

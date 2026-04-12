@@ -59,17 +59,6 @@ asyncio_caps = asyncio_compiled.capabilities
 temporal_caps = temporal_compiled.capabilities
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["researcher_then_writer_then_reviewer (sequence)"]]
-    n2["researcher"]
-    n3["writer"]
-    n4["reviewer"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

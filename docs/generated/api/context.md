@@ -41,6 +41,7 @@ Context engineering namespace. Each method returns a frozen CTransform descripto
 | `C.user(strategy='all')`                                                       | `CUser`               | Select user messages with a strategy                                        |
 | `C.manus_cascade(budget=8000, model='gemini-2.5-flash')`                       | `CManusCascade`       | Manus-inspired progressive compression cascade                              |
 | `C.pipeline_aware(*keys)`                                                      | `CPipelineAware`      | Topology-aware context: user messages + named state keys                    |
+| `C.shared_thread()`                                                            | `CSharedThread`       | Shared conversational context for multi-agent loops                         |
 | `C.with_ui(surface_id=None)`                                                   | `CTransform`          | Include current UI surface state in agent context                           |
 
 ## Methods
@@ -363,6 +364,19 @@ Example:
 
 - `*keys` (*str*)
 
+### `C.shared_thread() -> CSharedThread`
+
+Shared conversational context for multi-agent loops.
+
+Every agent sees the full transcript of what all other agents said.
+Like a group chat — no explicit state wiring needed.
+
+Usage:
+    loop = (
+        (researcher >> writer >> critic)
+        * until(lambda s: s.get("approved"), max=4)
+    ).context(C.shared_thread())
+
 ### `C.with_ui(surface_id: str | None = None) -> CTransform`
 
 Include current UI surface state in agent context.
@@ -429,3 +443,4 @@ Chain context processing
 | `CManusCascade`       | Manus-inspired progressive compression cascade                              |
 | `CWhen`               | Conditional context inclusion                                               |
 | `CPipelineAware`      | Topology-aware context for pipeline agents                                  |
+| `CSharedThread`       | Shared conversational thread for multi-agent loops                          |

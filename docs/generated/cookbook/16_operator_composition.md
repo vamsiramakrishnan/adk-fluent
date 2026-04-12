@@ -62,17 +62,6 @@ fact_checker = LlmAgent(name="fact_checker", model="gemini-2.5-flash", instructi
 loop_native = LoopAgent(name="editorial_loop", max_iterations=3, sub_agents=[draft_writer, fact_checker])
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["scraper_then_analyzer_then_reporter (sequence)"]]
-    n2["scraper"]
-    n3["analyzer"]
-    n4["reporter"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence
