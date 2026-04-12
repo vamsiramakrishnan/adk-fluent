@@ -344,6 +344,39 @@ class H:
         )
 
     # =================================================================
+    # Filesystem backends (adk_fluent._fs)
+    # =================================================================
+
+    @staticmethod
+    def fs_local(root: str | None = None) -> Any:
+        """Return a :class:`adk_fluent._fs.LocalBackend` rooted at ``root``."""
+        from adk_fluent._fs import LocalBackend
+
+        return LocalBackend(root=root)
+
+    @staticmethod
+    def fs_memory(files: dict[str, str | bytes] | None = None) -> Any:
+        """Return a :class:`adk_fluent._fs.MemoryBackend` seeded with ``files``.
+
+        Useful for ephemeral scratch workspaces and for tests that want to
+        run workspace tools without touching the real disk.
+        """
+        from adk_fluent._fs import MemoryBackend
+
+        return MemoryBackend(files=files)
+
+    @staticmethod
+    def fs_sandboxed(backend: Any, sandbox: SandboxPolicy) -> Any:
+        """Wrap ``backend`` in a :class:`SandboxedBackend`.
+
+        The wrapper enforces ``sandbox``'s workspace scope and symlink-safe
+        path validation regardless of what the underlying backend does.
+        """
+        from adk_fluent._fs import SandboxedBackend
+
+        return SandboxedBackend(backend, sandbox)
+
+    # =================================================================
     # Web tools (reuses ADK UrlContextTool / GoogleSearchTool)
     # =================================================================
 

@@ -184,6 +184,18 @@ from adk_fluent._harness._renderer import JsonRenderer, PlainRenderer, RichRende
 # REPL
 from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 
+# Filesystem backends (adk_fluent._fs)
+from adk_fluent._fs import (
+    FsBackend,
+    FsEntry,
+    FsStat,
+    LocalBackend,
+    MemoryBackend,
+    SandboxViolation,
+    SandboxedBackend,
+    workspace_tools_with_backend,
+)
+
 # Sandbox
 from adk_fluent._harness._sandbox import SandboxPolicy
 
@@ -286,6 +298,15 @@ __all__ = [
     "PermissionPolicy",
     # Sandbox
     "SandboxPolicy",
+    # Filesystem backends
+    "FsBackend",
+    "FsEntry",
+    "FsStat",
+    "LocalBackend",
+    "MemoryBackend",
+    "SandboxedBackend",
+    "SandboxViolation",
+    "workspace_tools_with_backend",
     # Tools
     "make_read_file",
     "make_edit_file",
