@@ -76,6 +76,16 @@ interface TaggedConfig {
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 
+/**
+ * Read sub-agents from a tagged config, accepting both ``subAgents`` and
+ * ``sub_agents``. The Agent builder (codegen-emitted) currently spells the
+ * key in snake_case while the hand-written workflow builders use camelCase;
+ * this helper hides the inconsistency from every renderer call site.
+ */
+function readSubAgents(cfg: TaggedConfig): unknown[] {
+  return (cfg.subAgents ?? cfg.sub_agents ?? []) as unknown[];
+}
+
 /** Make a shallow VizNode with all required arrays initialized. */
 function blank(kind: VizNode["kind"], name: string, source?: string): VizNode {
   return {
@@ -121,8 +131,7 @@ function walk(input: unknown, ids: IdCounter): VizNode {
       if (cfg.instruction) node.meta.instruction = renderInstruction(cfg.instruction);
 
       // sub_agents → transfer targets
-      const subs = (cfg.sub_agents ?? cfg.subAgents ?? []) as unknown[];
-      for (const s of subs) node.transfers.push(walk(s, ids));
+      for (const s of readSubAgents(cfg)) node.transfers.push(walk(s, ids));
 
       // tools → tool nodes
       for (const t of flattenTools(cfg.tools)) node.tools.push(toolNode(t, ids));
@@ -134,16 +143,14 @@ function walk(input: unknown, ids: IdCounter): VizNode {
     case "SequentialAgent": {
       const node = blank("sequence", name, type);
       node.label = `${name} (sequence)`;
-      const subs = (cfg.subAgents ?? cfg.sub_agents ?? []) as unknown[];
-      for (const s of subs) node.children.push(walk(s, ids));
+      for (const s of readSubAgents(cfg)) node.children.push(walk(s, ids));
       return node;
     }
 
     case "ParallelAgent": {
       const node = blank("parallel", name, type);
       node.label = `${name} (parallel)`;
-      const subs = (cfg.subAgents ?? cfg.sub_agents ?? []) as unknown[];
-      for (const s of subs) node.children.push(walk(s, ids));
+      for (const s of readSubAgents(cfg)) node.children.push(walk(s, ids));
       return node;
     }
 
@@ -152,8 +159,7 @@ function walk(input: unknown, ids: IdCounter): VizNode {
       const max = cfg.maxIterations ?? cfg.max_iterations;
       node.label = max != null ? `${name} (loop ×${max})` : `${name} (loop)`;
       if (max != null) node.meta.maxIterations = max;
-      const subs = (cfg.subAgents ?? cfg.sub_agents ?? []) as unknown[];
-      for (const s of subs) node.children.push(walk(s, ids));
+      for (const s of readSubAgents(cfg)) node.children.push(walk(s, ids));
       return node;
     }
 
