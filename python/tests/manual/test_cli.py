@@ -38,7 +38,10 @@ class TestHtmlWrapper:
 
     def test_html_has_cdn_script(self):
         html = _MERMAID_HTML_TEMPLATE.format(title="test", mermaid_source="graph LR")
-        assert "cdn.jsdelivr.net" in html
+        # Match the full script src so the check is anchored to the URL scheme
+        # and host (avoids the CodeQL "incomplete URL substring sanitization"
+        # warning that fires on bare substring checks like `"cdn.jsdelivr.net" in url`).
+        assert 'src="https://cdn.jsdelivr.net/npm/mermaid@' in html
 
 
 class TestCliMain:
