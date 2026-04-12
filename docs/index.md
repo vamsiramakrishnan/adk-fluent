@@ -145,6 +145,15 @@ research = SequentialAgent(
 
 Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `adk run`, and `adk deploy`.
 
+:::{note} Python + TypeScript monorepo
+adk-fluent ships as two sibling packages from a single monorepo:
+
+- **`adk-fluent`** ([PyPI](https://pypi.org/project/adk-fluent/)) — Python 3.11+, under [`python/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/python). The reference implementation and the focus of these docs.
+- **`adk-fluent-ts`** (npm, coming soon) — TypeScript, under [`ts/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts). Mirrors the same builders and namespaces with method-chained operators (`.then()`, `.parallel()`, `.times()`, `.fallback()`, `.outputAs()`). See the [TypeScript README](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/ts/README.md).
+
+Both packages are generated from the same `shared/manifest.json`, so parity is enforced at generation time. Guides on this site apply to both languages; operator differences are called out inline.
+:::
+
 ## What's New in v{{version}}
 
 ::::{grid} 1 1 2 3

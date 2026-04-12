@@ -8,6 +8,15 @@ This page gets you from zero to a working agent in 5 minutes.
 By the end, you'll understand the builder pattern, the expression operators,
 and when to use each.
 
+:::{note} Python and TypeScript
+`adk-fluent` ships as two sibling packages from a single monorepo:
+
+- **`adk-fluent`** (Python 3.11+, [PyPI](https://pypi.org/project/adk-fluent/)) — lives in [`python/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/python). This documentation is Python-first.
+- **`adk-fluent-ts`** (TypeScript, not yet published) — lives in [`ts/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts). Mirrors the same builders and namespaces with method-chained operators (`.then()`, `.parallel()`, `.times()`, `.fallback()`, `.outputAs()`). See [`ts/README.md`](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/ts/README.md) for the TS quick start.
+
+Both packages are regenerated from the same `shared/manifest.json`, so the API surface stays in sync by construction.
+:::
+
 ## Install
 
 ```bash
