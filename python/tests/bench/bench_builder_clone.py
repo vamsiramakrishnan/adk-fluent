@@ -11,7 +11,6 @@ from __future__ import annotations
 import copy
 
 from adk_fluent import Agent, FanOut, Pipeline
-
 from tests.bench._common import bench, report_header
 
 

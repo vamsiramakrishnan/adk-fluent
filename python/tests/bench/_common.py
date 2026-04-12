@@ -62,9 +62,5 @@ def bench(
         gc.enable()
 
     ns_per_op = elapsed / iters
-    print(
-        f"{name:<48s} {iters:>10,} iters  "
-        f"{ns_per_op:>10.1f} ns/op  "
-        f"{_rss_mb():>7.1f} MB rss"
-    )
+    print(f"{name:<48s} {iters:>10,} iters  {ns_per_op:>10.1f} ns/op  {_rss_mb():>7.1f} MB rss")
     return ns_per_op

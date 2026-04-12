@@ -1304,12 +1304,34 @@ def _compile_context_spec(
             "instruction": developer_instruction,
         }
 
-    # Build a combined async instruction provider
+    # Build a combined async instruction provider.
+    #
+    # Fast path: if ``developer_instruction`` is a static string, compile
+    # its {key}/{key?} placeholders into a flat segment tuple once here
+    # (build time). The hot per-turn path then walks the segments and
+    # joins — no regex, no per-call closures. Missing required keys are
+    # left as literal ``{key}`` to match the legacy re.sub behaviour.
+    #
+    # Slow path: if the instruction is a callable (dynamic), we resolve
+    # it per turn but still use the module-level precompiled pattern.
+    from adk_fluent._context_providers import _compile_template, _render_template
+
     raw_instruction = developer_instruction
+    static_segments: tuple | None = None
+    static_text: str | None = None
+    if isinstance(raw_instruction, str):
+        static_segments = _compile_template(raw_instruction)
+        if static_segments is None:
+            # No placeholders — instruction is fully static.
+            static_text = raw_instruction
 
     async def _combined_provider(ctx: Any) -> str:
         # Step 1: resolve the developer instruction
-        if raw_instruction is None:
+        if static_text is not None:
+            instruction = static_text
+        elif static_segments is not None:
+            instruction = _render_template(static_segments, ctx.state, raise_on_missing=False)
+        elif raw_instruction is None:
             instruction = ""
         elif callable(raw_instruction):
             result = raw_instruction(ctx)
@@ -1320,25 +1342,13 @@ def _compile_context_spec(
                 instruction = await result
             else:
                 instruction = str(result)
+            # Dynamic instructions may still contain placeholders.
+            if instruction and "{" in instruction:
+                dyn_segments = _compile_template(instruction)
+                if dyn_segments is not None:
+                    instruction = _render_template(dyn_segments, ctx.state, raise_on_missing=False)
         else:
             instruction = str(raw_instruction)
-
-        # Template state variables into instruction ({key} patterns)
-        if instruction and "{" in instruction:
-            state = ctx.state
-
-            def _sub(match: re.Match) -> str:
-                key = match.group(1)
-                optional = match.group(2) == "?"
-                value = state.get(key)
-                if value is None:
-                    if optional:
-                        return ""
-                    # Leave unreplaced if not optional and not in state
-                    return match.group(0)
-                return str(value)
-
-            instruction = re.sub(r"\{(\w+)(\??)}", _sub, instruction)
 
         # Step 2: get context from the C transform's provider
         context = await spec_provider(ctx)

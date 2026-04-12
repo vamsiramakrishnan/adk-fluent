@@ -27,6 +27,72 @@ _DEFAULT_MODEL = "gemini-2.5-flash"
 _log = logging.getLogger(__name__)
 
 
+# Module-level precompiled pattern for {key} / {key?} placeholders.
+# Used by the template provider and the combined-provider instruction
+# substitution path. Compiling once and reusing avoids the per-turn
+# ``re.compile`` call that ``re.sub`` with a string pattern pays.
+_PLACEHOLDER_RE = re.compile(r"\{(\w+)(\??)}")
+
+# Sentinel meaning "compile_template found no placeholders". Call sites
+# can short-circuit when they see this.
+_NO_SEGMENTS: tuple = ()
+
+
+def _compile_template(template: str) -> tuple | None:
+    """Pre-compile a template string into a flat tuple of render segments.
+
+    Returns ``None`` if the template contains no placeholders (callers
+    should then skip substitution entirely). Otherwise returns a tuple
+    of alternating literal strings and ``(key, optional)`` pairs. The
+    render loop in :func:`_render_template` walks this tuple with no
+    regex work and no per-call allocation beyond the output list.
+    """
+    if not template or "{" not in template:
+        return None
+
+    segments: list = []
+    pos = 0
+    for match in _PLACEHOLDER_RE.finditer(template):
+        start, end = match.span()
+        if start > pos:
+            segments.append(template[pos:start])
+        segments.append((match.group(1), match.group(2) == "?"))
+        pos = end
+    if pos < len(template):
+        segments.append(template[pos:])
+
+    if not segments or not any(isinstance(s, tuple) for s in segments):
+        return None
+    return tuple(segments)
+
+
+def _render_template(segments: tuple, state: Any, *, raise_on_missing: bool = True) -> str:
+    """Render a pre-compiled template against ``state``.
+
+    ``state`` is any mapping-like with ``.get(key)``. If a required
+    placeholder is missing:
+    * ``raise_on_missing=True`` (template provider) → raises ``KeyError``
+    * ``raise_on_missing=False`` (instruction provider) → leaves the
+      literal ``{key}`` in place, matching the legacy re.sub behaviour.
+    """
+    out: list[str] = []
+    for seg in segments:
+        if isinstance(seg, str):
+            out.append(seg)
+            continue
+        key, optional = seg
+        value = state.get(key)
+        if value is None:
+            if optional:
+                continue
+            if raise_on_missing:
+                raise KeyError(f"Template placeholder '{{{key}}}' not found in state")
+            out.append("{" + key + "}")
+            continue
+        out.append(str(value))
+    return "".join(out)
+
+
 def _format_events_as_context(events: list) -> str:
     """Format a list of ADK events as ``[author]: text`` lines."""
     lines: list[str] = []
@@ -118,23 +184,23 @@ def _make_template_provider(template: str) -> Callable:
     Supports:
     - {key}  — required placeholder, raises KeyError if missing
     - {key?} — optional placeholder, replaced with empty string if missing
+
+    The template is compiled once here into a flat tuple of segments, so
+    the per-turn cost is an O(segments) walk + one ``"".join`` — no regex
+    at runtime.
     """
+    segments = _compile_template(template)
+
+    if segments is None:
+        # No placeholders — return a closure that yields the static string.
+        async def _static_provider(ctx: Any) -> str:
+            return template
+
+        _static_provider.__name__ = "template_static"
+        return _static_provider
 
     async def _provider(ctx: Any) -> str:
-        state = ctx.state
-
-        def _replace(match: re.Match) -> str:
-            key = match.group(1)
-            optional = match.group(2) == "?"
-            value = state.get(key)
-            if value is None:
-                if optional:
-                    return ""
-                raise KeyError(f"Template placeholder '{{{key}}}' not found in state")
-            return str(value)
-
-        # Match {key} and {key?} patterns
-        return re.sub(r"\{(\w+)(\??)}", _replace, template)
+        return _render_template(segments, ctx.state, raise_on_missing=True)
 
     _provider.__name__ = "template"
     return _provider

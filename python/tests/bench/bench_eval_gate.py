@@ -9,7 +9,6 @@ changes are measurable.
 from __future__ import annotations
 
 from adk_fluent._eval import _resolve_gate_text
-
 from tests.bench._common import bench, report_header
 
 

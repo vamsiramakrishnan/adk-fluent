@@ -19,7 +19,6 @@ from adk_fluent._context_providers import (
     _make_window_provider,
 )
 from adk_fluent._session_index import get_session_index
-
 from tests.bench._common import bench, report_header
 
 
@@ -82,22 +81,22 @@ def main() -> None:
 
         bench(
             f"window(5) [turns={turns}]",
-            lambda: loop.run_until_complete(window(ctx)),
+            lambda w=window, c=ctx: loop.run_until_complete(w(c)),
             iters=20_000,
         )
         bench(
             f"user_only() [turns={turns}]",
-            lambda: loop.run_until_complete(user_only(ctx)),
+            lambda u=user_only, c=ctx: loop.run_until_complete(u(c)),
             iters=20_000,
         )
         bench(
             f"from_agents('assistant') [turns={turns}]",
-            lambda: loop.run_until_complete(from_agents(ctx)),
+            lambda f=from_agents, c=ctx: loop.run_until_complete(f(c)),
             iters=20_000,
         )
         bench(
             f"exclude_agents('tool') [turns={turns}]",
-            lambda: loop.run_until_complete(exclude(ctx)),
+            lambda e=exclude, c=ctx: loop.run_until_complete(e(c)),
             iters=20_000,
         )
 

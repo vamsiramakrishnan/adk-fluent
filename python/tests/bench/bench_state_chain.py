@@ -9,7 +9,6 @@ structural-sharing (HAMT) implementation.
 from __future__ import annotations
 
 from adk_fluent import S
-
 from tests.bench._common import bench, report_header
 
 

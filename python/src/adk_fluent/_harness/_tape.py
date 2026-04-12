@@ -44,9 +44,7 @@ class SessionTape:
         # Use a bounded deque when capping — O(1) append with automatic
         # eviction of the oldest entry, versus an O(n) list slice on every
         # overflow.
-        self._events: deque[dict[str, Any]] = deque(
-            maxlen=max_events if max_events > 0 else None
-        )
+        self._events: deque[dict[str, Any]] = deque(maxlen=max_events if max_events > 0 else None)
         self._start_time = time.monotonic()
 
     def record(self, event: HarnessEvent) -> None:

@@ -16,7 +16,6 @@ suites and hot reloads rebuild agents on every assertion.
 from __future__ import annotations
 
 from adk_fluent import Agent, FanOut, Pipeline
-
 from tests.bench._common import bench, report_header
 
 

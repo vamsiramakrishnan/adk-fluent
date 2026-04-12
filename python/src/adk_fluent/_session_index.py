@@ -29,6 +29,7 @@ was fetched. Obtain a fresh one per provider call::
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 from weakref import WeakKeyDictionary
 
@@ -36,7 +37,7 @@ __all__ = ["SessionEventIndex", "get_session_index"]
 
 
 # Per-session cache. Weak keys so entries drop when ADK releases the session.
-_INDEX_CACHE: WeakKeyDictionary[Any, "SessionEventIndex"] = WeakKeyDictionary()
+_INDEX_CACHE: WeakKeyDictionary[Any, SessionEventIndex] = WeakKeyDictionary()
 
 
 class SessionEventIndex:
@@ -183,11 +184,9 @@ def get_session_index(session: Any) -> SessionEventIndex:
     idx = _INDEX_CACHE.get(session)
     if idx is None:
         idx = SessionEventIndex()
-        try:
+        # Session not weakref-able (e.g. a test stub) — fall back to
+        # a throwaway index. Still saves the work within this call.
+        with contextlib.suppress(TypeError):
             _INDEX_CACHE[session] = idx
-        except TypeError:
-            # Session not weakref-able (e.g. a test stub) — fall back to
-            # a throwaway index. Still saves the work within this call.
-            pass
     idx._sync(session)
     return idx

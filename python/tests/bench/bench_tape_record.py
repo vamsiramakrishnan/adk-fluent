@@ -17,7 +17,6 @@ from adk_fluent._harness._events import (
     UsageUpdate,
 )
 from adk_fluent._harness._tape import SessionTape
-
 from tests.bench._common import bench, report_header
 
 

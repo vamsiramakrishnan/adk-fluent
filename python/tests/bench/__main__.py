@@ -7,7 +7,9 @@ def main() -> None:
     from tests.bench import (
         bench_agent_build,
         bench_builder_clone,
+        bench_callback_dispatch,
         bench_context_providers,
+        bench_context_runtime,
         bench_eval_gate,
         bench_middleware_stack,
         bench_prompt_render,
@@ -24,6 +26,10 @@ def main() -> None:
     bench_builder_clone.main()
     print()
     bench_context_providers.main()
+    print()
+    bench_context_runtime.main()
+    print()
+    bench_callback_dispatch.main()
     print()
     bench_prompt_render.main()
     print()

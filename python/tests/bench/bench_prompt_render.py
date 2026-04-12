@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from adk_fluent import P
 from adk_fluent._prompt import _compile_prompt_spec
-
 from tests.bench._common import bench, report_header
 
 
@@ -36,17 +35,14 @@ def main() -> None:
     # Large composition (10 sections with reorder/without).
     def build_large() -> object:
         return (
-            (
-                P.role("support agent")
-                + P.context("handle tier-1 tickets")
-                + P.task("triage and respond")
-                + P.constraint("stay polite", "escalate if unclear")
-                + P.format("json with fields: intent, response")
-                + P.example(input="q1", output="a1")
-                + P.example(input="q2", output="a2")
-            )
-            | P.without("example")
-        )
+            P.role("support agent")
+            + P.context("handle tier-1 tickets")
+            + P.task("triage and respond")
+            + P.constraint("stay polite", "escalate if unclear")
+            + P.format("json with fields: intent, response")
+            + P.example(input="q1", output="a1")
+            + P.example(input="q2", output="a2")
+        ) | P.without("example")
 
     bench("build P[3]", build_small, iters=50_000)
     bench("build P[6]", build_medium, iters=50_000)

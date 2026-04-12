@@ -391,6 +391,17 @@ def _compose_callbacks(fns: list) -> Callable:
     Each runs in order. First non-None return value wins (short-circuit).
     Handles both sync and async callbacks, and resolves guard spec tuples
     into real async callbacks.
+
+    Fast paths:
+
+    * Empty list raises — callers are expected to check first.
+    * Single callback is returned raw (no wrapper). This is the common
+      case for users who register one callback per hook.
+    * Multi-callback path pre-classifies each entry as sync vs async
+      using ``inspect.iscoroutinefunction`` at compose time. The hot
+      runtime loop then skips the ``asyncio.iscoroutine`` check on
+      classified-async entries and only falls into it on the (rare)
+      case where a sync callback happens to return a coroutine.
     """
     if not fns:
         raise ValueError("_compose_callbacks requires at least one callback")
@@ -406,13 +417,31 @@ def _compose_callbacks(fns: list) -> Callable:
     if len(resolved) == 1:
         return resolved[0]
 
+    import inspect
+
+    # Classify each callable as sync/async ONCE at compose time. The
+    # runtime loop uses this to skip the generic iscoroutine probe that
+    # used to run on every turn for every callback.
+    classified: tuple[tuple[Callable, bool], ...] = tuple((fn, inspect.iscoroutinefunction(fn)) for fn in resolved)
+
     async def _composed(*args, **kwargs):
-        for fn in resolved:
-            result = fn(*args, **kwargs)
-            if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
-                result = await result
-            if result is not None:
-                return result
+        for fn, is_async in classified:
+            if is_async:
+                result = await fn(*args, **kwargs)
+                if result is not None:
+                    return result
+            else:
+                result = fn(*args, **kwargs)
+                if result is not None:
+                    # Sync callback returned something; it may still be
+                    # a coroutine (users occasionally write
+                    # ``def cb(...): return some_async()``).
+                    if _asyncio.iscoroutine(result) or _asyncio.isfuture(result):
+                        result = await result
+                        if result is not None:
+                            return result
+                    else:
+                        return result
         return None
 
     _composed.__name__ = f"composed_{'_'.join(getattr(f, '__name__', '?') for f in resolved)}"
@@ -573,7 +602,7 @@ class BuilderBase:
     # the per-builder overhead to one memo update. Atomic leaf values
     # (strings, frozensets, types, callables) still hit
     # ``copy._deepcopy_atomic`` fast paths.
-    def __deepcopy__(self, memo: dict) -> "BuilderBase":
+    def __deepcopy__(self, memo: dict) -> BuilderBase:
         import copy as _copy
 
         new = object.__new__(type(self))

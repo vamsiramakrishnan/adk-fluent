@@ -7,6 +7,7 @@ test files don't have to construct these from scratch every time.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -204,3 +205,31 @@ def minimal_builder_specs(minimal_seed_path, minimal_manifest_path):
 
 def pytest_addoption(parser):
     parser.addoption("--update-golden", action="store_true", default=False, help="Update golden files on disk")
+
+
+# ---------------------------------------------------------------------------
+# CWD FIXTURE — pin tests to the python/ project root
+# ---------------------------------------------------------------------------
+#
+# Several tests load fixtures via relative paths like
+# ``examples/skills/research_pipeline`` which expect the process cwd to be
+# the python/ project root. When pytest is invoked from the monorepo root
+# (``uv run --project python pytest python/tests/...``), cwd stays at the
+# monorepo root and those paths resolve to nonexistent locations.
+#
+# Pin cwd to ``_PROJECT_ROOT`` (= ``python/``) for the whole session so
+# relative fixture paths resolve consistently regardless of where pytest
+# was launched. Restore the original cwd on teardown.
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _pin_cwd_to_project_root():
+    previous = Path.cwd().resolve()
+    target = _PROJECT_ROOT.resolve()
+    if previous != target:
+        os.chdir(target)
+    try:
+        yield
+    finally:
+        if previous != target:
+            os.chdir(previous)

@@ -586,28 +586,49 @@ class _MiddlewarePlugin(BasePlugin):
     def __init__(self, name: str, stack: list) -> None:
         super().__init__(name=name)
         self._stack = list(stack)
-        # Precompute hook dispatch table: hook_name -> [(mw, bound_fn, is_scoped), ...]
+        # Precompute hook dispatch table:
+        #   hook_name -> (global_entries, scoped_entries)
+        # where each entry is ``(mw, bound_fn)``.
         #
-        # This eliminates per-call `getattr(mw, method_name, None)` lookups, which on
-        # hot paths (before_model/after_model/before_tool per-turn) dominate middleware
-        # dispatch cost. The table is built once at plugin-construction time; hooks not
-        # implemented by any middleware become a single dict.get() miss at dispatch.
+        # This eliminates per-call ``getattr(mw, method_name, None)`` lookups,
+        # which on hot paths (before_model/after_model/before_tool per turn)
+        # dominate middleware dispatch cost. The table is built once at
+        # plugin-construction time; hooks not implemented by any middleware
+        # become a single ``dict.get()`` miss at dispatch.
         #
-        # Also resolves `_ConditionalMiddleware.__getattr__` eagerly — it creates a new
-        # `_guarded` closure on every access, so caching the resolved bound fn is itself
-        # a secondary win on conditional middleware.
-        hook_table: dict[str, tuple[tuple[Any, Callable, bool], ...]] = {}
+        # Wave 4c: partition each hook into (global, scoped) buckets at init
+        # so the hot runtime loop can skip the ``_agent_matches`` filter for
+        # global middlewares — the common case. Scoped middlewares live in
+        # their own tuple and only run through the filter when present.
+        #
+        # Also resolves ``_ConditionalMiddleware.__getattr__`` eagerly — it
+        # creates a new ``_guarded`` closure on every access, so caching the
+        # resolved bound fn is itself a secondary win on conditional
+        # middleware.
+        hook_table: dict[
+            str,
+            tuple[tuple[tuple[Any, Callable], ...], tuple[tuple[Any, Callable], ...]],
+        ] = {}
         for method_name in self._ALL_HOOK_NAMES:
-            is_scoped = method_name in _SCOPED_HOOKS
-            entries: list[tuple[Any, Callable, bool]] = []
+            is_scoped_hook = method_name in _SCOPED_HOOKS
+            global_entries: list[tuple[Any, Callable]] = []
+            scoped_entries: list[tuple[Any, Callable]] = []
             for mw in self._stack:
                 fn = getattr(mw, method_name, None)
                 if fn is None:
                     continue
-                entries.append((mw, fn, is_scoped))
-            if entries:
-                hook_table[method_name] = tuple(entries)
-        self._hook_table: dict[str, tuple[tuple[Any, Callable, bool], ...]] = hook_table
+                # Only scoped-hook entries can land in the scoped bucket. An
+                # unscoped hook (e.g. on_start) always lives in ``global``.
+                if is_scoped_hook and getattr(mw, "agents", None) is not None:
+                    scoped_entries.append((mw, fn))
+                else:
+                    global_entries.append((mw, fn))
+            if global_entries or scoped_entries:
+                hook_table[method_name] = (tuple(global_entries), tuple(scoped_entries))
+        self._hook_table: dict[
+            str,
+            tuple[tuple[tuple[Any, Callable], ...], tuple[tuple[Any, Callable], ...]],
+        ] = hook_table
 
     # --- Helpers: iterate stack ---
 
@@ -627,13 +648,15 @@ class _MiddlewarePlugin(BasePlugin):
         Filters scoped hooks by agent_name.
 
         Uses the precomputed hook table — no per-call getattr probing.
+        Wave 4c: hook table is partitioned into ``(global, scoped)`` buckets
+        so the global bucket skips the ``_agent_matches`` filter entirely.
         """
-        entries = self._hook_table.get(method_name)
-        if not entries:
+        buckets = self._hook_table.get(method_name)
+        if buckets is None:
             return None
-        for mw, fn, is_scoped in entries:
-            if is_scoped and agent_name is not None and not _agent_matches(mw, agent_name):
-                continue
+        global_entries, scoped_entries = buckets
+        # Phase 1: global middlewares — no per-agent filter.
+        for mw, fn in global_entries:
             try:
                 result = await fn(*args)
                 if result is not None:
@@ -641,6 +664,18 @@ class _MiddlewarePlugin(BasePlugin):
             except Exception as exc:
                 _log.warning("Middleware %s.%s raised: %s", type(mw).__name__, method_name, exc)
                 await self._fire_middleware_error(mw, method_name, exc)
+        # Phase 2: scoped middlewares — apply agent filter.
+        if scoped_entries:
+            for mw, fn in scoped_entries:
+                if agent_name is not None and not _agent_matches(mw, agent_name):
+                    continue
+                try:
+                    result = await fn(*args)
+                    if result is not None:
+                        return result
+                except Exception as exc:
+                    _log.warning("Middleware %s.%s raised: %s", type(mw).__name__, method_name, exc)
+                    await self._fire_middleware_error(mw, method_name, exc)
         return None
 
     async def _run_stack_void(self, method_name: str, *args, agent_name: str | None = None) -> None:
@@ -648,18 +683,27 @@ class _MiddlewarePlugin(BasePlugin):
 
         Wraps each call in an error boundary.
         Uses the precomputed hook table — no per-call getattr probing.
+        Wave 4c: partitioned global/scoped buckets — see ``_run_stack``.
         """
-        entries = self._hook_table.get(method_name)
-        if not entries:
+        buckets = self._hook_table.get(method_name)
+        if buckets is None:
             return
-        for mw, fn, is_scoped in entries:
-            if is_scoped and agent_name is not None and not _agent_matches(mw, agent_name):
-                continue
+        global_entries, scoped_entries = buckets
+        for mw, fn in global_entries:
             try:
                 await fn(*args)
             except Exception as exc:
                 _log.warning("Middleware %s.%s raised: %s", type(mw).__name__, method_name, exc)
                 await self._fire_middleware_error(mw, method_name, exc)
+        if scoped_entries:
+            for mw, fn in scoped_entries:
+                if agent_name is not None and not _agent_matches(mw, agent_name):
+                    continue
+                try:
+                    await fn(*args)
+                except Exception as exc:
+                    _log.warning("Middleware %s.%s raised: %s", type(mw).__name__, method_name, exc)
+                    await self._fire_middleware_error(mw, method_name, exc)
 
     async def _fire_middleware_error(self, failed_mw: Any, hook_name: str, error: Exception) -> None:
         """Fire on_middleware_error on all *other* middleware.
