@@ -192,14 +192,28 @@ bus = H.event_bus()
 # SessionTape records everything to JSONL
 tape = bus.tape()
 
-# Hooks fire shell commands on events
+# Hooks intercept the agent's execution at ADK lifecycle points. See
+# docs/user-guide/hooks.md for the full decision protocol and cookbook.
+from adk_fluent._hooks import HookDecision, HookEvent, HookMatcher
+
 hooks = (
     H.hooks("/project")
-    .on_edit("ruff check {file_path}")
-    .on_error("notify-send 'Agent error: {error}'")
-    .on("turn_complete", "./scripts/post-turn.sh")
+    .shell(
+        HookEvent.POST_TOOL_USE,
+        "ruff check {tool_input[file_path]}",
+        match=HookMatcher.for_tool(
+            HookEvent.POST_TOOL_USE, "edit_file", file_path="*.py"
+        ),
+    )
+    .on(
+        HookEvent.TOOL_ERROR,
+        lambda ctx: HookDecision.inject(
+            f"Tool {ctx.tool_name} failed: {ctx.error}. Consider rolling back."
+        ),
+    )
 )
-bus.hooks(hooks)
+# Install the registry as an ADK plugin on your App/Runner:
+#     Runner(app=App(...), plugins=[hooks.as_plugin()])
 
 # Wire the bus into agent callbacks
 agent = (
@@ -249,7 +263,6 @@ for event in events:
 repl = H.repl(
     agent.build(),
     dispatcher=H.dispatcher(bus=bus),
-    hooks=hooks,
     compressor=H.compressor(threshold=100_000),
     config=ReplConfig(
         prompt_prefix="coder> ",
@@ -257,6 +270,7 @@ repl = H.repl(
         auto_checkpoint=True,  # Git checkpoint before destructive tools
     ),
 )
+# Hooks install at the App/Runner layer, not on the REPL — see docs/user-guide/hooks.md
 
 await repl.run()
 ```
@@ -375,9 +389,10 @@ agent = (
 # --- Runtime ---
 repl = H.repl(
     agent.build(),
-    hooks=H.hooks(project).on_edit("ruff check {file_path}"),
     compressor=H.compressor(100_000),
 )
+# Install a HookRegistry as an ADK plugin alongside the repl's runner.
+# See docs/user-guide/hooks.md for the hook cookbook.
 
 await repl.run()
 ```

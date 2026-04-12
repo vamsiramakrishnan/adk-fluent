@@ -111,6 +111,7 @@ Build Claude-Code-class autonomous agents. Five composable layers: intelligence,
 | Chapter | What you'll learn |
 |---|---|
 | [Harness](harness.md) | The `H` namespace, 5-layer architecture, EventBus, permissions, sandbox, budgets, REPL |
+| [Hooks](hooks.md) | `H.hooks()`, `HookDecision`, `HookEvent`, `HookMatcher`, session-scoped intervention at 12 ADK lifecycle points |
 
 ## Infrastructure
 
