@@ -39,7 +39,7 @@ from adk_fluent._harness._memory import ProjectMemory
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._permissions import ApprovalMemory, PermissionPolicy
 from adk_fluent._harness._tools import workspace_tools
-from adk_fluent._harness._usage import UsageTracker
+from adk_fluent._usage import UsageTracker
 
 __all__ = ["CodingAgentBundle", "coding_agent"]
 

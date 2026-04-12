@@ -226,8 +226,15 @@ from adk_fluent._harness._tools import (
     workspace_tools,
 )
 
-# Usage tracking
-from adk_fluent._harness._usage import TurnUsage, UsageTracker
+# Usage tracking (lives in adk_fluent._usage, re-exported here)
+from adk_fluent._usage import (
+    AgentUsage,
+    CostTable,
+    ModelRate,
+    TurnUsage,
+    UsagePlugin,
+    UsageTracker,
+)
 
 # Web tools
 from adk_fluent._harness._web import make_web_fetch, web_tools
@@ -343,6 +350,10 @@ __all__ = [
     "Branch",
     # Usage
     "UsageTracker",
+    "UsagePlugin",
+    "AgentUsage",
+    "CostTable",
+    "ModelRate",
     "TurnUsage",
     # Diff mode
     "PendingEditStore",

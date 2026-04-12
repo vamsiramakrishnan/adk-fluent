@@ -497,8 +497,12 @@ from ._harness import TurnSnapshot as TurnSnapshot
 from ._harness import make_cancellation_callback as make_cancellation_callback
 from ._harness import ForkManager as ForkManager
 from ._harness import Branch as Branch
-from ._harness import UsageTracker as UsageTracker
-from ._harness import TurnUsage as TurnUsage
+from ._usage import UsageTracker as UsageTracker
+from ._usage import UsagePlugin as UsagePlugin
+from ._usage import TurnUsage as TurnUsage
+from ._usage import AgentUsage as AgentUsage
+from ._usage import CostTable as CostTable
+from ._usage import ModelRate as ModelRate
 from ._harness import PendingEditStore as PendingEditStore
 from ._harness import make_diff_edit_file as make_diff_edit_file
 from ._harness import make_apply_edit as make_apply_edit
@@ -642,9 +646,7 @@ from ._harness._tools import make_grep_search as make_grep_search
 from ._harness._tools import make_bash as make_bash
 from ._harness._tools import make_list_dir as make_list_dir
 from ._harness._tools import workspace_tools as workspace_tools
-from ._harness._usage import UsageTracker as UsageTracker
-from ._harness._usage import TurnUsage as TurnUsage
-from ._harness._usage import UsageUpdate as UsageUpdate
+from ._harness._events import UsageUpdate as UsageUpdate
 from ._harness._web import make_web_fetch as make_web_fetch
 from ._harness._web import web_tools as web_tools
 from .backends import Backend as Backend
@@ -1159,7 +1161,11 @@ __all__ = [
     "ForkManager",
     "Branch",
     "UsageTracker",
+    "UsagePlugin",
     "TurnUsage",
+    "AgentUsage",
+    "CostTable",
+    "ModelRate",
     "PendingEditStore",
     "make_diff_edit_file",
     "make_apply_edit",

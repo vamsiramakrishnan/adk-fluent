@@ -65,7 +65,7 @@ from adk_fluent._harness._repl import HarnessRepl, ReplConfig
 from adk_fluent._harness._sandbox import SandboxPolicy
 from adk_fluent._harness._streaming import StreamingBash, make_streaming_bash
 from adk_fluent._harness._tools import workspace_tools
-from adk_fluent._harness._usage import UsageTracker
+from adk_fluent._usage import UsageTracker
 
 __all__ = ["H"]
 
@@ -562,6 +562,56 @@ class H:
             cost_per_million_input=cost_per_million_input,
             cost_per_million_output=cost_per_million_output,
         )
+
+    @staticmethod
+    def usage_plugin(
+        tracker: Any | None = None,
+        *,
+        name: str = "adkf_usage_plugin",
+    ) -> Any:
+        """Create a session-scoped :class:`UsagePlugin`.
+
+        Unlike ``H.usage()`` (which is a callback to attach to a
+        single agent), the plugin records every LLM call in the
+        invocation tree — root, sub-agents, and subagent specialists
+        — without extra wiring. Install it on the root app.
+
+        Args:
+            tracker: An optional pre-built :class:`UsageTracker`. If
+                omitted, a fresh one is created.
+            name: Plugin display name.
+        """
+        from adk_fluent._usage import UsagePlugin
+
+        return UsagePlugin(tracker, name=name)
+
+    @staticmethod
+    def cost_table(**per_model_rates: Any) -> Any:
+        """Build a :class:`CostTable` from keyword-supplied rates.
+
+        Pass each model as a keyword argument whose value is a
+        ``(input_per_million, output_per_million)`` tuple::
+
+            table = H.cost_table(
+                **{
+                    "gemini_2_5_flash": (0.075, 0.30),
+                    "*": (0.10, 0.40),
+                }
+            )
+
+        Because Python keyword arguments forbid dots, substitute
+        underscores or use ``H.cost_table()`` + ``.with_rate(...)``
+        for model names containing special characters.
+        """
+        from adk_fluent._usage import CostTable, ModelRate
+
+        rates = {
+            model: ModelRate(
+                input_per_million=value[0], output_per_million=value[1]
+            )
+            for model, value in per_model_rates.items()
+        }
+        return CostTable(rates=rates)
 
     # =================================================================
     # Process lifecycle management
