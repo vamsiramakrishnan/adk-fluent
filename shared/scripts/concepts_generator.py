@@ -3,7 +3,9 @@ from pathlib import Path
 
 
 def main():
-    repo_root = Path(__file__).parent.parent
+    # File lives at <repo_root>/shared/scripts/concepts_generator.py — three
+    # parents up land at the repo root after the monorepo restructure.
+    repo_root = Path(__file__).resolve().parent.parent.parent
     specs_dir = repo_root / "docs" / "other_specs"
     output_path = repo_root / "docs" / "user-guide" / "architecture-and-concepts.md"
 

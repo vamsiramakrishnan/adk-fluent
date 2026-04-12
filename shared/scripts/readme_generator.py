@@ -16,8 +16,9 @@ import re
 import sys
 from pathlib import Path
 
-# Ensure adk_fluent is importable
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Ensure adk_fluent is importable when invoked outside the python uv project.
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_REPO_ROOT / "python" / "src"))
 
 from adk_fluent import Agent, Pipeline
 
@@ -37,12 +38,14 @@ def build_sample_pipeline():
     def create_ticket(issue):
         pass
 
+    from adk_fluent import C
+
     pipeline = (
         Pipeline("customer_support")
         .step(
             Agent("classifier", "gemini-2.5-flash")
             .instruct("Classify the customer's intent.")
-            .outputs("intent")
+            .writes("intent")
             .before_model(log_fn)
         )
         .step(
@@ -50,7 +53,7 @@ def build_sample_pipeline():
             .instruct("Resolve the {intent} issue.")
             .tool(lookup_customer)
             .tool(create_ticket)
-            .history("none")
+            .context(C.none())
         )
         .step(
             Agent("responder", "gemini-2.5-flash").instruct("Draft a response to the customer.").after_model(audit_fn)
@@ -115,7 +118,9 @@ def extract_changelog_highlights(changelog_path: Path, max_releases: int = 5) ->
 
 
 def main():
-    repo_root = Path(__file__).parent.parent
+    # File lives at <repo_root>/shared/scripts/readme_generator.py — three
+    # parents up land at the repo root after the monorepo restructure.
+    repo_root = Path(__file__).resolve().parent.parent.parent
     template_path = repo_root / "README.template.md"
     readme_path = repo_root / "README.md"
     changelog_path = repo_root / "CHANGELOG.md"
