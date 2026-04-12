@@ -96,7 +96,7 @@ _SECTION_ORDER_MAP["ui_schema"] = 250  # Between context (200) and task (300)
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PTransform:
     """Base prompt transform descriptor.
 
@@ -160,7 +160,7 @@ class PTransform:
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PComposite(PTransform):
     """Union of multiple prompt blocks (via + operator).
 
@@ -179,7 +179,7 @@ class PComposite(PTransform):
         return f"PComposite({', '.join(kinds)})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PPipe(PTransform):
     """Pipe transform: source feeds into transform (via | operator).
 
@@ -201,7 +201,7 @@ class PPipe(PTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PRole(PTransform):
     """Role/persona definition. Rendered without a section header."""
 
@@ -212,7 +212,7 @@ class PRole(PTransform):
         return f"PRole({self.content[:40]!r})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PContext(PTransform):
     """Background context section."""
 
@@ -223,7 +223,7 @@ class PContext(PTransform):
         return f"PContext({self.content[:40]!r})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PTask(PTransform):
     """Primary task/objective section."""
 
@@ -234,7 +234,7 @@ class PTask(PTransform):
         return f"PTask({self.content[:40]!r})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PConstraint(PTransform):
     """Rule/constraint section. Multiple constraints merge into one section."""
 
@@ -245,7 +245,7 @@ class PConstraint(PTransform):
         return f"PConstraint({self.content[:40]!r})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PFormat(PTransform):
     """Output format specification section."""
 
@@ -256,7 +256,7 @@ class PFormat(PTransform):
         return f"PFormat({self.content[:40]!r})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PExample(PTransform):
     """Few-shot example section. Supports freeform text or structured input/output.
 
@@ -289,7 +289,7 @@ class PExample(PTransform):
         return f"PExample({self.content[:40]!r})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PSection(PTransform):
     """Custom named section."""
 
@@ -306,7 +306,7 @@ class PSection(PTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PWhen(PTransform):
     """Conditional section inclusion.
 
@@ -325,7 +325,7 @@ class PWhen(PTransform):
         return f"PWhen({pred!r}, {blk})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PFromState(PTransform):
     """Read named keys from session state and format as context sections.
 
@@ -343,7 +343,7 @@ class PFromState(PTransform):
         return f"PFromState({', '.join(self.keys)})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PTemplate(PTransform):
     """Template string with {key}, {key?}, and {ns:key} placeholders.
 
@@ -368,7 +368,7 @@ class PTemplate(PTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PReorder(PTransform):
     """Override default section ordering.
 
@@ -383,7 +383,7 @@ class PReorder(PTransform):
         return f"PReorder({', '.join(self.order)})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class POnly(PTransform):
     """Keep only the named sections (projection). Remove all others."""
 
@@ -394,7 +394,7 @@ class POnly(PTransform):
         return f"POnly({', '.join(self.names)})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PWithout(PTransform):
     """Remove the named sections. Keep all others."""
 
@@ -410,7 +410,7 @@ class PWithout(PTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PCompress(PTransform):
     """LLM-powered prompt compression.
 
@@ -426,7 +426,7 @@ class PCompress(PTransform):
         return f"PCompress(max_tokens={self.max_tokens})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PAdapt(PTransform):
     """LLM-powered audience adaptation.
 
@@ -446,7 +446,7 @@ class PAdapt(PTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PScaffolded(PTransform):
     """Defensive prompt scaffolding.
 
@@ -464,7 +464,7 @@ class PScaffolded(PTransform):
         return f"PScaffolded({blk})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PVersioned(PTransform):
     """Versioned prompt with tag and fingerprint metadata.
 

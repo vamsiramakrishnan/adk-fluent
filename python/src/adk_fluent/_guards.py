@@ -36,7 +36,7 @@ __all__ = [
 # ── Data types and protocols ──────────────────────────────────────────
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PIIFinding:
     """A single PII detection result."""
 
@@ -54,7 +54,7 @@ class PIIDetector(Protocol):
     async def detect(self, text: str) -> list[PIIFinding]: ...
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class JudgmentResult:
     """Result from a content judgment provider."""
 
