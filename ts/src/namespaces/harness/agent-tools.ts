@@ -193,13 +193,10 @@ export class WorktreeManager {
 
   tools(): HarnessTool[] {
     return [
-      asTool(
-        "enter_worktree",
-        async (args: { branch: string; path: string; baseRef?: string }) => {
-          const path = this.enter(args);
-          return { branch: args.branch, path };
-        },
-      ),
+      asTool("enter_worktree", async (args: { branch: string; path: string; baseRef?: string }) => {
+        const path = this.enter(args);
+        return { branch: args.branch, path };
+      }),
       asTool("exit_worktree", async (args: { branch: string; force?: boolean }) => {
         this.exit(args.branch, { force: args.force });
         return { ok: true };

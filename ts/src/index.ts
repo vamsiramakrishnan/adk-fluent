@@ -100,10 +100,7 @@ export {
 } from "./namespaces/harness/agent-tools.js";
 export type { TodoItem, TodoStatus, AskUserHandler } from "./namespaces/harness/agent-tools.js";
 export { codingAgent } from "./namespaces/harness/coding-agent.js";
-export type {
-  CodingAgentOptions,
-  CodingAgentBundle,
-} from "./namespaces/harness/coding-agent.js";
+export type { CodingAgentOptions, CodingAgentBundle } from "./namespaces/harness/coding-agent.js";
 export type { HarnessTool } from "./namespaces/harness/types.js";
 
 // Primitives — function-level building blocks (tap, expect, mapOver, ...)

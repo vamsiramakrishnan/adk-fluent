@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-env
+      - uses: ./.github/actions/setup-python-env
         with:
           uv-version: ${{ env.UV_VERSION }}
 
@@ -58,16 +58,16 @@ jobs:
       - name: Scan ADK upstream
         id: scan
         run: |
-          uv run python scripts/scanner.py -o manifest.json
-          uv run python scripts/scanner.py --summary
-          ADK_VERSION=$(uv run python -c "from importlib.metadata import version; print(version('google-adk'))")
+          uv run --project python python shared/scripts/scanner.py -o shared/manifest.json
+          uv run --project python python shared/scripts/scanner.py --summary
+          ADK_VERSION=$(uv run --project python python -c "from importlib.metadata import version; print(version('google-adk'))")
           echo "adk_version=$ADK_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Diff against previous manifest
         id: check_changes
         run: |
-          if [ -f manifest.previous.json ]; then
-            DIFF=$(uv run python scripts/scanner.py --diff manifest.previous.json)
+          if [ -f shared/manifest.previous.json ]; then
+            DIFF=$(uv run --project python python shared/scripts/scanner.py --diff shared/manifest.previous.json)
             echo "$DIFF" | uv run python -c "
           import sys, json
           d = json.load(sys.stdin)
@@ -126,7 +126,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-env
+      - uses: ./.github/actions/setup-python-env
         with:
           uv-version: ${{ env.UV_VERSION }}
 
@@ -156,7 +156,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-env
+      - uses: ./.github/actions/setup-python-env
         with:
           uv-version: ${{ env.UV_VERSION }}
 

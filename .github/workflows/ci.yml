@@ -70,13 +70,17 @@ jobs:
   python-lint:
     name: python · lint
     needs: detect
-    if: needs.detect.outputs.python == 'true' || needs.detect.outputs.ci == 'true'
+    if: needs.detect.outputs.python == 'true' || needs.detect.outputs.ci == 'true' || needs.detect.outputs.ts == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-python-env
         with:
           uv-version: ${{ env.UV_VERSION }}
+      # pre-commit runs ts-eslint / ts-prettier hooks via `npx --no-install`,
+      # which requires `npm ci` to have run inside ts/ first. Use the shared
+      # composite action so the install matches the dedicated ts-* jobs.
+      - uses: ./.github/actions/setup-ts-env
       - name: Run pre-commit hooks
         run: uv run --project python pre-commit run --all-files --show-diff-on-failure
 
