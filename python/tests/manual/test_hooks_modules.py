@@ -241,8 +241,7 @@ class TestHookRegistryDispatch:
         seen: dict[str, Any] = {}
         reg.on(
             HookEvent.PRE_TOOL_USE,
-            lambda c: seen.setdefault("cmd", (c.tool_input or {}).get("command"))
-            or HookDecision.allow(),
+            lambda c: seen.setdefault("cmd", (c.tool_input or {}).get("command")) or HookDecision.allow(),
         )
         ctx = HookContext(
             event=HookEvent.PRE_TOOL_USE,
@@ -304,9 +303,7 @@ class TestHookRegistryDispatch:
             lambda c: HookDecision.deny("should not fire"),
             match=HookMatcher.for_tool(HookEvent.PRE_TOOL_USE, "edit_file"),
         )
-        decision = _run(
-            reg.dispatch(HookContext(event=HookEvent.PRE_TOOL_USE, tool_name="bash"))
-        )
+        decision = _run(reg.dispatch(HookContext(event=HookEvent.PRE_TOOL_USE, tool_name="bash")))
         assert decision.is_allow
 
 
@@ -397,20 +394,14 @@ class TestShellHooks:
             sentinel = os.path.join(tmp, "touched")
             reg = HookRegistry(workspace=tmp)
             reg.shell(HookEvent.POST_TOOL_USE, f"touch {sentinel}", blocking=True)
-            _run(
-                reg.dispatch(
-                    HookContext(event=HookEvent.POST_TOOL_USE, tool_name="bash")
-                )
-            )
+            _run(reg.dispatch(HookContext(event=HookEvent.POST_TOOL_USE, tool_name="bash")))
             assert os.path.exists(sentinel)
 
     def test_shell_hook_returns_allow_decision(self) -> None:
         """Shell hooks are notification-only — dispatch always resolves to allow."""
         reg = HookRegistry()
         reg.shell(HookEvent.POST_TOOL_USE, "true", blocking=True)
-        decision = _run(
-            reg.dispatch(HookContext(event=HookEvent.POST_TOOL_USE, tool_name="x"))
-        )
+        decision = _run(reg.dispatch(HookContext(event=HookEvent.POST_TOOL_USE, tool_name="x")))
         assert decision.is_allow
 
     def test_placeholder_substitution_shell_quotes(self) -> None:

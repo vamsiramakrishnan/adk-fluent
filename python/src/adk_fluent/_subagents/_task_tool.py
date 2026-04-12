@@ -45,10 +45,7 @@ def make_task_tool(
         spec = registry.get(role)
         if spec is None:
             known = ", ".join(registry.roles()) or "(none)"
-            return (
-                f"Error: unknown subagent role {role!r}. "
-                f"Known roles: {known}"
-            )
+            return f"Error: unknown subagent role {role!r}. Known roles: {known}"
         context = context_provider() if context_provider is not None else None
         try:
             result = runner.run(spec, prompt, context)

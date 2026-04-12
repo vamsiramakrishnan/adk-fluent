@@ -36,9 +36,7 @@ class BudgetPolicy:
 
     def __post_init__(self) -> None:
         if self.max_tokens <= 0:
-            raise ValueError(
-                f"BudgetPolicy.max_tokens must be positive, got {self.max_tokens}"
-            )
+            raise ValueError(f"BudgetPolicy.max_tokens must be positive, got {self.max_tokens}")
 
     def build_monitor(self) -> BudgetMonitor:
         """Materialise a fresh :class:`BudgetMonitor` from this policy.
@@ -68,9 +66,7 @@ class BudgetPolicy:
         Returns:
             A new frozen :class:`BudgetPolicy`.
         """
-        new_threshold = Threshold(
-            percent=percent, callback=callback, recurring=recurring
-        )
+        new_threshold = Threshold(percent=percent, callback=callback, recurring=recurring)
         return BudgetPolicy(
             max_tokens=self.max_tokens,
             thresholds=self.thresholds + (new_threshold,),

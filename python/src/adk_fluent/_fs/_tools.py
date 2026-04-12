@@ -93,9 +93,7 @@ def make_list_dir_backend(backend: FsBackend) -> Callable:
             return f"Error: directory not found: {path}"
         except Exception as e:  # noqa: BLE001
             return f"Error listing directory: {e}"
-        lines = [
-            f"{'d ' if e.is_dir else 'f '}{e.name}" for e in entries[:200]
-        ]
+        lines = [f"{'d ' if e.is_dir else 'f '}{e.name}" for e in entries[:200]]
         return "\n".join(lines) or "(empty directory)"
 
     return list_dir

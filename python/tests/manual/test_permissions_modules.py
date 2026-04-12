@@ -76,15 +76,18 @@ class TestPermissionDecision:
 
 class TestPermissionMode:
     def test_all_modes_populated(self):
-        assert frozenset(
-            {
-                PermissionMode.DEFAULT,
-                PermissionMode.ACCEPT_EDITS,
-                PermissionMode.PLAN,
-                PermissionMode.BYPASS,
-                PermissionMode.DONT_ASK,
-            }
-        ) == ALL_MODES
+        assert (
+            frozenset(
+                {
+                    PermissionMode.DEFAULT,
+                    PermissionMode.ACCEPT_EDITS,
+                    PermissionMode.PLAN,
+                    PermissionMode.BYPASS,
+                    PermissionMode.DONT_ASK,
+                }
+            )
+            == ALL_MODES
+        )
 
     def test_unknown_mode_raises(self):
         with pytest.raises(ValueError, match="Unknown permission mode"):
@@ -283,17 +286,13 @@ def _fake_tool(name: str) -> SimpleNamespace:
 
 class TestSyncCallback:
     def test_allow_returns_none(self):
-        cb = make_permission_callback(
-            PermissionPolicy(allow=frozenset({"read_file"}))
-        )
+        cb = make_permission_callback(PermissionPolicy(allow=frozenset({"read_file"})))
         args: dict = {}
         result = cb(None, _fake_tool("read_file"), args, None)
         assert result is None
 
     def test_deny_returns_error_dict(self):
-        cb = make_permission_callback(
-            PermissionPolicy(deny=frozenset({"edit_file"}))
-        )
+        cb = make_permission_callback(PermissionPolicy(deny=frozenset({"edit_file"})))
         result = cb(None, _fake_tool("edit_file"), {}, None)
         assert isinstance(result, dict)
         assert "error" in result
@@ -316,9 +315,7 @@ class TestSyncCallback:
         assert calls == [("read_file", {"path": "/a"})]
 
     def test_ask_with_handler_denies(self):
-        cb = make_permission_callback(
-            PermissionPolicy(), handler=lambda *_: False
-        )
+        cb = make_permission_callback(PermissionPolicy(), handler=lambda *_: False)
         result = cb(None, _fake_tool("read_file"), {}, None)
         assert isinstance(result, dict) and "denied" in result["error"].lower()
 
@@ -331,17 +328,13 @@ class TestSyncCallback:
             calls.append(1)
             return False
 
-        cb = make_permission_callback(
-            PermissionPolicy(), handler=handler, memory=mem
-        )
+        cb = make_permission_callback(PermissionPolicy(), handler=handler, memory=mem)
         assert cb(None, _fake_tool("read_file"), {"path": "/a"}, None) is None
         assert calls == []  # handler never consulted
 
     def test_handler_result_persisted_to_memory(self):
         mem = ApprovalMemory()
-        cb = make_permission_callback(
-            PermissionPolicy(), handler=lambda *_: True, memory=mem
-        )
+        cb = make_permission_callback(PermissionPolicy(), handler=lambda *_: True, memory=mem)
         cb(None, _fake_tool("read_file"), {"path": "/a"}, None)
         assert mem.recall("read_file", {"path": "/a"}) is True
 
@@ -361,9 +354,7 @@ class TestSyncCallback:
 
 class TestPermissionPlugin:
     def test_allow_path(self):
-        plugin = PermissionPlugin(
-            PermissionPolicy(allow=frozenset({"read_file"}))
-        )
+        plugin = PermissionPlugin(PermissionPolicy(allow=frozenset({"read_file"})))
         args: dict = {"path": "/a"}
         result = asyncio.run(
             plugin.before_tool_callback(
@@ -376,9 +367,7 @@ class TestPermissionPlugin:
         assert args == {"path": "/a"}
 
     def test_deny_path(self):
-        plugin = PermissionPlugin(
-            PermissionPolicy(deny=frozenset({"edit_file"}))
-        )
+        plugin = PermissionPlugin(PermissionPolicy(deny=frozenset({"edit_file"})))
         result = asyncio.run(
             plugin.before_tool_callback(
                 tool=_fake_tool("edit_file"),
@@ -391,9 +380,7 @@ class TestPermissionPlugin:
     def test_updated_input_is_applied(self):
         class RewritingPolicy(PermissionPolicy):
             def check(self, tool_name, tool_input=None):  # type: ignore[override]
-                return PermissionDecision.allow(
-                    updated_input={"path": "/safe/path"}
-                )
+                return PermissionDecision.allow(updated_input={"path": "/safe/path"})
 
         plugin = PermissionPlugin(RewritingPolicy())
         args: dict = {"path": "/tmp/unsafe"}
@@ -422,9 +409,7 @@ class TestPermissionPlugin:
         assert result is None
 
     def test_sync_handler_supported(self):
-        plugin = PermissionPlugin(
-            PermissionPolicy(), handler=lambda *_: True
-        )
+        plugin = PermissionPlugin(PermissionPolicy(), handler=lambda *_: True)
         assert (
             asyncio.run(
                 plugin.before_tool_callback(

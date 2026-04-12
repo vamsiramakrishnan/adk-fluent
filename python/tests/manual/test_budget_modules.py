@@ -141,11 +141,7 @@ class TestBudgetPlugin:
         plugin = BudgetPlugin(BudgetPolicy(max_tokens=1_000))
         llm_response = self._usage(inp=100, out=50)
 
-        asyncio.run(
-            plugin.after_model_callback(
-                callback_context=None, llm_response=llm_response
-            )
-        )
+        asyncio.run(plugin.after_model_callback(callback_context=None, llm_response=llm_response))
         assert plugin.monitor.current_tokens == 150
         assert plugin.monitor.turn_count == 1
 
@@ -164,19 +160,11 @@ class TestBudgetPlugin:
         fired: list[float] = []
         policy = BudgetPolicy(
             max_tokens=100,
-            thresholds=(
-                Threshold(
-                    percent=0.5, callback=lambda m: fired.append(m.utilization)
-                ),
-            ),
+            thresholds=(Threshold(percent=0.5, callback=lambda m: fired.append(m.utilization)),),
         )
         plugin = BudgetPlugin(policy)
 
-        asyncio.run(
-            plugin.after_model_callback(
-                callback_context=None, llm_response=self._usage(30, 30)
-            )
-        )
+        asyncio.run(plugin.after_model_callback(callback_context=None, llm_response=self._usage(30, 30)))
         assert len(fired) == 1
         assert fired[0] == pytest.approx(0.6)
 

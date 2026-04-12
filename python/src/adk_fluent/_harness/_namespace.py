@@ -606,9 +606,7 @@ class H:
         from adk_fluent._usage import CostTable, ModelRate
 
         rates = {
-            model: ModelRate(
-                input_per_million=value[0], output_per_million=value[1]
-            )
+            model: ModelRate(input_per_million=value[0], output_per_million=value[1])
             for model, value in per_model_rates.items()
         }
         return CostTable(rates=rates)
@@ -1169,9 +1167,7 @@ class H:
         """
         from adk_fluent._session import SessionPlugin
 
-        return SessionPlugin(
-            store, auto_fork=auto_fork, fork_prefix=fork_prefix, name=name
-        )
+        return SessionPlugin(store, auto_fork=auto_fork, fork_prefix=fork_prefix, name=name)
 
     # =================================================================
     # Slash commands

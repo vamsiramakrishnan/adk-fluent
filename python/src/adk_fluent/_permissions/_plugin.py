@@ -136,17 +136,12 @@ class PermissionPlugin(BasePlugin):
             if recalled is True:
                 return PermissionDecision.allow()
             if recalled is False:
-                return PermissionDecision.deny(
-                    reason=f"Tool '{tool_name}' was previously denied."
-                )
+                return PermissionDecision.deny(reason=f"Tool '{tool_name}' was previously denied.")
 
         # 2. Handler
         if self._handler is None:
             return PermissionDecision.deny(
-                reason=(
-                    f"Tool '{tool_name}' requires approval but no permission "
-                    "handler is installed."
-                )
+                reason=(f"Tool '{tool_name}' requires approval but no permission handler is installed.")
             )
 
         try:
@@ -154,18 +149,14 @@ class PermissionPlugin(BasePlugin):
             if inspect.isawaitable(result):
                 result = await result
         except Exception as exc:
-            return PermissionDecision.deny(
-                reason=f"Permission handler raised: {exc}"
-            )
+            return PermissionDecision.deny(reason=f"Permission handler raised: {exc}")
 
         granted = bool(result)
         if self._memory is not None:
             self._memory.remember_specific(tool_name, tool_args, granted)
         if granted:
             return PermissionDecision.allow()
-        return PermissionDecision.deny(
-            reason=f"Tool '{tool_name}' was denied by the user."
-        )
+        return PermissionDecision.deny(reason=f"Tool '{tool_name}' was denied by the user.")
 
     # ------------------------------------------------------------------
     # Updated input application

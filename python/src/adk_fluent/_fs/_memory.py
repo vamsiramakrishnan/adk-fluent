@@ -43,9 +43,7 @@ class MemoryBackend:
         self._mtimes: dict[str, float] = {}
         if files:
             for p, c in files.items():
-                self.write_bytes(
-                    p, c.encode("utf-8") if isinstance(c, str) else c
-                )
+                self.write_bytes(p, c.encode("utf-8") if isinstance(c, str) else c)
 
     # ------------------------------------------------------------------
     # Metadata
@@ -149,7 +147,7 @@ class MemoryBackend:
         # Files that live directly in this dir.
         for f in self._files:
             if f.startswith(prefix):
-                rest = f[len(prefix):]
+                rest = f[len(prefix) :]
                 if "/" not in rest:
                     entries.append(
                         FsEntry(
@@ -165,7 +163,7 @@ class MemoryBackend:
         # Explicit subdirectories.
         for d in self._dirs:
             if d.startswith(prefix):
-                rest = d[len(prefix):]
+                rest = d[len(prefix) :]
                 if rest and "/" not in rest:
                     seen_dirs.add(rest)
         for name in sorted(seen_dirs):
@@ -194,7 +192,7 @@ class MemoryBackend:
         for f in sorted(self._files):
             if not f.startswith(prefix) and not (r == "/" and f.startswith("/")):
                 continue
-            rel = f[len(prefix):] if r != "/" else f.lstrip("/")
+            rel = f[len(prefix) :] if r != "/" else f.lstrip("/")
             if _matches_glob(pattern, rel):
                 matches.append(f)
         return matches

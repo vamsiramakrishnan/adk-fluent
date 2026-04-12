@@ -91,9 +91,7 @@ class SessionStore:
         **metadata: Any,
     ) -> Branch:
         """Create a named branch from the given state (see ``ForkManager.fork``)."""
-        return self._forks.fork(
-            name, state, messages=messages, parent=parent, **metadata
-        )
+        return self._forks.fork(name, state, messages=messages, parent=parent, **metadata)
 
     def switch(self, name: str) -> dict[str, Any]:
         """Switch to a named branch."""

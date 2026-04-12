@@ -84,9 +84,7 @@ class BudgetMonitor:
         Returns:
             Self, for chaining.
         """
-        self._thresholds.append(
-            Threshold(percent=percent, callback=callback, recurring=recurring)
-        )
+        self._thresholds.append(Threshold(percent=percent, callback=callback, recurring=recurring))
         # Keep sorted so they fire in ascending order.
         self._thresholds.sort(key=lambda t: t.percent)
         return self
@@ -143,9 +141,7 @@ class BudgetMonitor:
         utilization = self.utilization
         for idx, threshold in enumerate(self._thresholds):
             already_fired = idx in self._fired
-            if utilization >= threshold.percent and (
-                not already_fired or threshold.recurring
-            ):
+            if utilization >= threshold.percent and (not already_fired or threshold.recurring):
                 self._fired.add(idx)
 
                 if self._event_bus is not None:

@@ -67,18 +67,14 @@ class TestContextCompressorSync:
         assert c.compression_count == 0
 
     def test_keep_recent_keeps_last_n_pairs(self):
-        c = ContextCompressor(
-            threshold=10, strategy=CompressionStrategy.keep_recent(n=2)
-        )
+        c = ContextCompressor(threshold=10, strategy=CompressionStrategy.keep_recent(n=2))
         msgs = _fake_messages(20)
         out = c.compress_messages(msgs)
         assert len(out) == 4  # 2 turn-pairs = 4 messages
         assert out[-1] == msgs[-1]
 
     def test_drop_old_preserves_system(self):
-        c = ContextCompressor(
-            threshold=10, strategy=CompressionStrategy.drop_old(keep_turns=1)
-        )
+        c = ContextCompressor(threshold=10, strategy=CompressionStrategy.drop_old(keep_turns=1))
         msgs = [
             {"role": "system", "content": "sys"},
             *_fake_messages(10),
@@ -88,9 +84,7 @@ class TestContextCompressorSync:
         assert len(out) == 3  # system + 2 message pair
 
     def test_compression_count_increments(self):
-        c = ContextCompressor(
-            threshold=10, strategy=CompressionStrategy.keep_recent(n=1)
-        )
+        c = ContextCompressor(threshold=10, strategy=CompressionStrategy.keep_recent(n=1))
         c.compress_messages(_fake_messages(10))
         c.compress_messages(_fake_messages(10))
         assert c.compression_count == 2
@@ -128,9 +122,7 @@ class TestContextCompressorAsync:
             {"role": "system", "content": "sys"},
             *_fake_messages(20),
         ]
-        out = asyncio.run(
-            c.compress_messages_async(msgs, summarizer=lambda text: "SUMMARY")
-        )
+        out = asyncio.run(c.compress_messages_async(msgs, summarizer=lambda text: "SUMMARY"))
         assert out[0]["role"] == "system"
         assert "SUMMARY" in out[1]["content"]
         # system + summary + 2*2 retained = 6 messages
@@ -154,9 +146,7 @@ class TestContextCompressorAsync:
             strategy=CompressionStrategy.summarize(),
         )
         msgs = _fake_messages(30)
-        out = asyncio.run(
-            c.compress_messages_async(msgs, summarizer=async_summarizer)
-        )
+        out = asyncio.run(c.compress_messages_async(msgs, summarizer=async_summarizer))
         assert any("ASYNC:" in (m.get("content") or "") for m in out)
 
 
@@ -219,9 +209,7 @@ class TestPreCompactHook:
         assert captured and captured[0] >= 0
 
     def test_with_hooks_is_pure(self):
-        base = ContextCompressor(
-            threshold=10, strategy=CompressionStrategy.keep_recent(n=1)
-        )
+        base = ContextCompressor(threshold=10, strategy=CompressionStrategy.keep_recent(n=1))
         registry = HookRegistry()
         wired = base.with_hooks(registry)
         assert base.hook_registry is None

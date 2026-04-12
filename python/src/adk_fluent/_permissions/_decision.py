@@ -59,14 +59,10 @@ class PermissionDecision:
     # ------------------------------------------------------------------
 
     @classmethod
-    def allow(
-        cls, *, updated_input: dict[str, Any] | None = None
-    ) -> PermissionDecision:
+    def allow(cls, *, updated_input: dict[str, Any] | None = None) -> PermissionDecision:
         """Allow the tool. Optionally rewrite its argument dict."""
         if updated_input is not None and not isinstance(updated_input, dict):
-            raise TypeError(
-                "PermissionDecision.allow(updated_input=...) must be a dict"
-            )
+            raise TypeError("PermissionDecision.allow(updated_input=...) must be a dict")
         return cls(
             behavior=PermissionBehavior.ALLOW,
             updated_input=dict(updated_input) if updated_input is not None else None,

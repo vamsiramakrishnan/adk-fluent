@@ -73,17 +73,10 @@ def make_permission_callback(
             if recalled is True:
                 return None
             if recalled is False:
-                return {
-                    "error": f"Tool '{tool_name}' was previously denied."
-                }
+                return {"error": f"Tool '{tool_name}' was previously denied."}
 
         if handler is None:
-            return {
-                "error": (
-                    f"Tool '{tool_name}' requires approval but no handler "
-                    "is installed."
-                )
-            }
+            return {"error": (f"Tool '{tool_name}' requires approval but no handler is installed.")}
 
         try:
             granted = bool(handler(tool_name, args))

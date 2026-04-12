@@ -121,13 +121,9 @@ class PermissionPolicy:
 
     def __post_init__(self) -> None:
         if self.mode not in ALL_MODES:
-            raise ValueError(
-                f"Unknown permission mode {self.mode!r}. Valid: {sorted(ALL_MODES)}"
-            )
+            raise ValueError(f"Unknown permission mode {self.mode!r}. Valid: {sorted(ALL_MODES)}")
         if self.pattern_mode not in {"glob", "regex"}:
-            raise ValueError(
-                f"pattern_mode must be 'glob' or 'regex', got {self.pattern_mode!r}"
-            )
+            raise ValueError(f"pattern_mode must be 'glob' or 'regex', got {self.pattern_mode!r}")
 
     # ------------------------------------------------------------------
     # Query
@@ -163,13 +159,9 @@ class PermissionPolicy:
 
         # 1. Explicit deny (name then patterns) always wins.
         if tool_name in self.deny:
-            return PermissionDecision.deny(
-                reason=f"Tool '{tool_name}' is in the permission deny list."
-            )
+            return PermissionDecision.deny(reason=f"Tool '{tool_name}' is in the permission deny list.")
         if self._matches_any(tool_name, self.deny_patterns):
-            return PermissionDecision.deny(
-                reason=f"Tool '{tool_name}' matches a deny pattern."
-            )
+            return PermissionDecision.deny(reason=f"Tool '{tool_name}' matches a deny pattern.")
 
         mode = self.mode
 
@@ -181,8 +173,7 @@ class PermissionPolicy:
         if mode == PermissionMode.PLAN and self.is_mutating(tool_name):
             return PermissionDecision.deny(
                 reason=(
-                    f"Plan mode denies mutating tool '{tool_name}'. "
-                    "Describe your plan without executing side effects."
+                    f"Plan mode denies mutating tool '{tool_name}'. Describe your plan without executing side effects."
                 )
             )
 
@@ -200,27 +191,20 @@ class PermissionPolicy:
         if mode == PermissionMode.DONT_ASK:
             return PermissionDecision.deny(
                 reason=(
-                    f"Tool '{tool_name}' requires approval, but the policy is "
-                    "in 'dont_ask' mode (non-interactive)."
+                    f"Tool '{tool_name}' requires approval, but the policy is in 'dont_ask' mode (non-interactive)."
                 )
             )
 
         # 7. Explicit ask list.
         if tool_name in self.ask or self._matches_any(tool_name, self.ask_patterns):
-            return PermissionDecision.ask(
-                prompt=f"Allow tool '{tool_name}'?"
-            )
+            return PermissionDecision.ask(prompt=f"Allow tool '{tool_name}'?")
 
         # 8. Mode-based fallback.
         if mode in {PermissionMode.DEFAULT, PermissionMode.ACCEPT_EDITS, PermissionMode.PLAN}:
-            return PermissionDecision.ask(
-                prompt=f"Allow tool '{tool_name}'?"
-            )
+            return PermissionDecision.ask(prompt=f"Allow tool '{tool_name}'?")
 
         # Unreachable: all modes covered above.
-        return PermissionDecision.deny(
-            reason=f"Unhandled mode {mode!r} for tool '{tool_name}'"
-        )
+        return PermissionDecision.deny(reason=f"Unhandled mode {mode!r} for tool '{tool_name}'")
 
     # ------------------------------------------------------------------
     # Composition
@@ -252,9 +236,7 @@ class PermissionPolicy:
         else:
             mode = self.mode
 
-        pattern_mode = (
-            "regex" if "regex" in {self.pattern_mode, other.pattern_mode} else "glob"
-        )
+        pattern_mode = "regex" if "regex" in {self.pattern_mode, other.pattern_mode} else "glob"
 
         return PermissionPolicy(
             mode=mode,
@@ -271,9 +253,7 @@ class PermissionPolicy:
     def with_mode(self, mode: str) -> PermissionPolicy:
         """Return a copy of this policy with ``mode`` replaced."""
         if mode not in ALL_MODES:
-            raise ValueError(
-                f"Unknown permission mode {mode!r}. Valid: {sorted(ALL_MODES)}"
-            )
+            raise ValueError(f"Unknown permission mode {mode!r}. Valid: {sorted(ALL_MODES)}")
         return PermissionPolicy(
             mode=mode,
             allow=self.allow,

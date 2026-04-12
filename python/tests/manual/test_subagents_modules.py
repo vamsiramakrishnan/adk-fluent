@@ -161,9 +161,7 @@ class TestFakeSubagentRunner:
         assert result.role == "r"
 
     def test_responder_callable(self):
-        runner = FakeSubagentRunner(
-            responder=lambda spec, prompt, ctx: f"{spec.role}::{prompt}"
-        )
+        runner = FakeSubagentRunner(responder=lambda spec, prompt, ctx: f"{spec.role}::{prompt}")
         result = runner.run(SubagentSpec(role="r", instruction="i"), "go")
         assert result.output == "r::go"
 
@@ -219,9 +217,7 @@ class TestMakeTaskTool:
                 ),
             ]
         )
-        runner = FakeSubagentRunner(
-            responder=lambda spec, prompt, ctx: f"{spec.role} handled: {prompt}"
-        )
+        runner = FakeSubagentRunner(responder=lambda spec, prompt, ctx: f"{spec.role} handled: {prompt}")
         task = make_task_tool(registry, runner)
         return registry, runner, task
 
@@ -250,9 +246,7 @@ class TestMakeTaskTool:
         assert "researcher" in out
 
     def test_runner_error_propagates(self):
-        registry = SubagentRegistry(
-            [SubagentSpec(role="r", instruction="i")]
-        )
+        registry = SubagentRegistry([SubagentSpec(role="r", instruction="i")])
         runner = FakeSubagentRunner(error_for_role={"r": "model down"})
         task = make_task_tool(registry, runner)
         out = task("r", "hi")
@@ -269,9 +263,7 @@ class TestMakeTaskTool:
             return "ok"
 
         runner = FakeSubagentRunner(responder=responder)
-        task = make_task_tool(
-            registry, runner, context_provider=lambda: {"turn": 3}
-        )
+        task = make_task_tool(registry, runner, context_provider=lambda: {"turn": 3})
         task("r", "hi")
         assert captured == [{"turn": 3}]
 
@@ -293,9 +285,7 @@ class TestHNamespaceSugar:
         assert spec.description == "d"
 
     def test_subagent_registry_factory(self):
-        r = H.subagent_registry(
-            [H.subagent_spec("a", "i"), H.subagent_spec("b", "i")]
-        )
+        r = H.subagent_registry([H.subagent_spec("a", "i"), H.subagent_spec("b", "i")])
         assert isinstance(r, SubagentRegistry)
         assert "a" in r and "b" in r
 

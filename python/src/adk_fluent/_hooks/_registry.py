@@ -126,9 +126,7 @@ class HookRegistry:
         """
         matcher = match or HookMatcher.any(event)
         if matcher.event != event:
-            raise ValueError(
-                f"HookMatcher event {matcher.event!r} must equal {event!r}"
-            )
+            raise ValueError(f"HookMatcher event {matcher.event!r} must equal {event!r}")
         entry = HookEntry(
             matcher=matcher,
             fn=fn,
@@ -168,9 +166,7 @@ class HookRegistry:
         """
         matcher = match or HookMatcher.any(event)
         if matcher.event != event:
-            raise ValueError(
-                f"HookMatcher event {matcher.event!r} must equal {event!r}"
-            )
+            raise ValueError(f"HookMatcher event {matcher.event!r} must equal {event!r}")
         entry = HookEntry(
             matcher=matcher,
             command=command,

@@ -36,6 +36,4 @@ class Threshold:
 
     def __post_init__(self) -> None:
         if not 0.0 < self.percent <= 1.0:
-            raise ValueError(
-                f"Threshold percent must be in (0.0, 1.0], got {self.percent}"
-            )
+            raise ValueError(f"Threshold percent must be in (0.0, 1.0], got {self.percent}")

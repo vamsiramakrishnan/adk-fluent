@@ -216,9 +216,7 @@ class HookPlugin(BasePlugin):
         callback_context: Any,
         llm_response: LlmResponse,
     ) -> LlmResponse | None:
-        ctx = self._model_ctx(
-            HookEvent.POST_MODEL, callback_context, llm_response=llm_response
-        )
+        ctx = self._model_ctx(HookEvent.POST_MODEL, callback_context, llm_response=llm_response)
         decision = await self._registry.dispatch(ctx)
         self._drain_injects(decision, _state_from_callback_context(callback_context))
         return _model_decision_to_adk(decision)
@@ -230,9 +228,7 @@ class HookPlugin(BasePlugin):
         llm_request: Any,
         error: Exception,
     ) -> LlmResponse | None:
-        ctx = self._model_ctx(
-            HookEvent.MODEL_ERROR, callback_context, llm_request=llm_request
-        )
+        ctx = self._model_ctx(HookEvent.MODEL_ERROR, callback_context, llm_request=llm_request)
         ctx.error = error
         decision = await self._registry.dispatch(ctx)
         self._drain_injects(decision, _state_from_callback_context(callback_context))
@@ -363,9 +359,7 @@ def _content_decision_to_adk(decision: HookDecision) -> genai_types.Content | No
         output = decision.output
         if isinstance(output, genai_types.Content):
             return output
-        return genai_types.Content(
-            role="model", parts=[genai_types.Part(text=str(output))]
-        )
+        return genai_types.Content(role="model", parts=[genai_types.Part(text=str(output))])
     return None
 
 

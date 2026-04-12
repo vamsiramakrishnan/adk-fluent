@@ -64,12 +64,8 @@ class UsageTracker:
     _start_time: float = field(default_factory=time.time)
 
     def __post_init__(self) -> None:
-        if self.cost_table is None and (
-            self.cost_per_million_input or self.cost_per_million_output
-        ):
-            self.cost_table = CostTable.flat(
-                self.cost_per_million_input, self.cost_per_million_output
-            )
+        if self.cost_table is None and (self.cost_per_million_input or self.cost_per_million_output):
+            self.cost_table = CostTable.flat(self.cost_per_million_input, self.cost_per_million_output)
 
     # ------------------------------------------------------------------
     # Cumulative totals
@@ -113,9 +109,7 @@ class UsageTracker:
             Mapping ``{agent_name: AgentUsage}``. Turns without an
             agent name are grouped under ``""``.
         """
-        counter: dict[str, dict[str, int]] = defaultdict(
-            lambda: {"input": 0, "output": 0, "calls": 0}
-        )
+        counter: dict[str, dict[str, int]] = defaultdict(lambda: {"input": 0, "output": 0, "calls": 0})
         for t in self._turns:
             bucket = counter[t.agent_name]
             bucket["input"] += t.input_tokens

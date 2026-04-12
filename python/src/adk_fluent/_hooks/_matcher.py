@@ -49,10 +49,7 @@ class HookMatcher:
 
     def __post_init__(self) -> None:
         if self.event not in ALL_EVENTS:
-            raise ValueError(
-                f"Unknown hook event {self.event!r}. "
-                f"Valid events: {sorted(ALL_EVENTS)}"
-            )
+            raise ValueError(f"Unknown hook event {self.event!r}. Valid events: {sorted(ALL_EVENTS)}")
 
     def matches(self, ctx: HookContext) -> bool:
         """Return True if ``ctx`` should trigger the associated hook."""

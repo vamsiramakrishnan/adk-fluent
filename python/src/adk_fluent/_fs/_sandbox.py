@@ -42,9 +42,7 @@ class SandboxedBackend:
     def _check(self, path: str, *, write: bool) -> str:
         resolved = self._sandbox.resolve_path(path)
         if not self._sandbox.validate_path(resolved, write=write):
-            raise SandboxViolation(
-                f"Path {path!r} is outside the sandboxed workspace."
-            )
+            raise SandboxViolation(f"Path {path!r} is outside the sandboxed workspace.")
         return resolved
 
     # ------------------------------------------------------------------

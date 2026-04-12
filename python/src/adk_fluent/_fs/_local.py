@@ -105,7 +105,5 @@ class LocalBackend:
                 yield str(child)
 
     def glob(self, pattern: str, *, root: str | None = None) -> list[str]:
-        base = self._resolve(root) if root is not None else (
-            Path(self._root) if self._root else Path(".")
-        )
+        base = self._resolve(root) if root is not None else (Path(self._root) if self._root else Path("."))
         return sorted(str(p) for p in base.glob(pattern))

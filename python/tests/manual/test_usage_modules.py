@@ -24,9 +24,7 @@ from adk_fluent import (
 )
 
 
-def _fake_response(
-    input_tokens: int, output_tokens: int, model: str = ""
-) -> SimpleNamespace:
+def _fake_response(input_tokens: int, output_tokens: int, model: str = "") -> SimpleNamespace:
     return SimpleNamespace(
         usage_metadata=SimpleNamespace(
             prompt_token_count=input_tokens,
@@ -84,9 +82,7 @@ class TestCostTable:
         table = CostTable(
             rates={
                 "*": ModelRate(input_per_million=1.0, output_per_million=1.0),
-                "gemini-2.5-pro": ModelRate(
-                    input_per_million=3.5, output_per_million=10.5
-                ),
+                "gemini-2.5-pro": ModelRate(input_per_million=3.5, output_per_million=10.5),
             }
         )
         assert table.rate_for("gemini-2.5-pro").input_per_million == 3.5
@@ -99,9 +95,7 @@ class TestCostTable:
 
     def test_with_rate_is_pure(self):
         base = CostTable()
-        extended = base.with_rate(
-            "gemini-2.5-flash", input_per_million=0.075, output_per_million=0.30
-        )
+        extended = base.with_rate("gemini-2.5-flash", input_per_million=0.075, output_per_million=0.30)
         assert "gemini-2.5-flash" not in base.rates
         assert "gemini-2.5-flash" in extended.rates
         assert extended.rates["gemini-2.5-flash"].output_per_million == 0.30
@@ -140,9 +134,7 @@ class TestUsageTracker:
         assert tracker.turns[0].model == "gemini-2.5-flash"
 
     def test_legacy_cost_args_build_flat_table(self):
-        tracker = UsageTracker(
-            cost_per_million_input=1.0, cost_per_million_output=2.0
-        )
+        tracker = UsageTracker(cost_per_million_input=1.0, cost_per_million_output=2.0)
         assert tracker.cost_table is not None
         rate = tracker.cost_table.rate_for("*")
         assert rate.input_per_million == 1.0

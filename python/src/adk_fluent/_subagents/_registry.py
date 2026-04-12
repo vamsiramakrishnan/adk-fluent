@@ -30,10 +30,7 @@ class SubagentRegistry:
     def register(self, spec: SubagentSpec) -> None:
         """Register ``spec``. Raises if a spec for the same role exists."""
         if spec.role in self._specs:
-            raise ValueError(
-                f"Subagent role {spec.role!r} is already registered; "
-                "use .replace() to overwrite."
-            )
+            raise ValueError(f"Subagent role {spec.role!r} is already registered; use .replace() to overwrite.")
         self._specs[spec.role] = spec
 
     def replace(self, spec: SubagentSpec) -> None:
@@ -51,10 +48,7 @@ class SubagentRegistry:
     def require(self, role: str) -> SubagentSpec:
         """Return the spec for ``role`` or raise :class:`KeyError`."""
         if role not in self._specs:
-            raise KeyError(
-                f"Unknown subagent role {role!r}. "
-                f"Known roles: {sorted(self._specs)}"
-            )
+            raise KeyError(f"Unknown subagent role {role!r}. Known roles: {sorted(self._specs)}")
         return self._specs[role]
 
     # ------------------------------------------------------------------

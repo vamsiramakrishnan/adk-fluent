@@ -57,8 +57,7 @@ class BudgetPlugin(BasePlugin):
             self._monitor = policy_or_monitor
         else:
             raise TypeError(
-                "BudgetPlugin expected BudgetPolicy or BudgetMonitor, "
-                f"got {type(policy_or_monitor).__name__}"
+                f"BudgetPlugin expected BudgetPolicy or BudgetMonitor, got {type(policy_or_monitor).__name__}"
             )
 
     @property

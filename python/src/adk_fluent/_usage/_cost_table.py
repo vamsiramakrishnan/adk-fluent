@@ -34,10 +34,9 @@ class ModelRate:
 
     def cost_for(self, input_tokens: int, output_tokens: int) -> float:
         """Return the USD cost for the given token counts."""
-        return (
-            (input_tokens / 1_000_000) * self.input_per_million
-            + (output_tokens / 1_000_000) * self.output_per_million
-        )
+        return (input_tokens / 1_000_000) * self.input_per_million + (
+            output_tokens / 1_000_000
+        ) * self.output_per_million
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,9 +84,7 @@ class CostTable:
 
     def cost_for(self, turn: TurnUsage) -> float:
         """Return the USD cost of a :class:`TurnUsage` record."""
-        return self.rate_for(turn.model).cost_for(
-            turn.input_tokens, turn.output_tokens
-        )
+        return self.rate_for(turn.model).cost_for(turn.input_tokens, turn.output_tokens)
 
     def with_rate(
         self,

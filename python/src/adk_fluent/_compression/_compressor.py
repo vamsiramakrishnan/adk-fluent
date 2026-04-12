@@ -94,9 +94,7 @@ class ContextCompressor:
     # Sync compression
     # ------------------------------------------------------------------
 
-    def compress_messages(
-        self, messages: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def compress_messages(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Compress a message list according to the strategy.
 
         For the ``summarize`` strategy this sync variant falls back to
@@ -170,9 +168,7 @@ class ContextCompressor:
 
         old_msgs = non_system[:-keep_count]
         recent_msgs = non_system[-keep_count:]
-        old_text = "\n".join(
-            f"{m.get('role', 'unknown')}: {m.get('content', '')}" for m in old_msgs
-        )
+        old_text = "\n".join(f"{m.get('role', 'unknown')}: {m.get('content', '')}" for m in old_msgs)
 
         if asyncio.iscoroutinefunction(summarizer):
             summary = await summarizer(old_text)
@@ -189,9 +185,7 @@ class ContextCompressor:
     # Pre-compact hook dispatch
     # ------------------------------------------------------------------
 
-    def _run_pre_compact_sync(
-        self, messages: list[dict[str, Any]]
-    ) -> list[dict[str, Any]] | None | type:
+    def _run_pre_compact_sync(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]] | None | type:
         if self._hook_registry is None:
             return None
         try:
@@ -200,16 +194,12 @@ class ContextCompressor:
             # Already inside a loop — skip the hook in sync path.
             return None
 
-    async def _run_pre_compact_async(
-        self, messages: list[dict[str, Any]]
-    ) -> list[dict[str, Any]] | None | type:
+    async def _run_pre_compact_async(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]] | None | type:
         if self._hook_registry is None:
             return None
         return await self._dispatch_pre_compact(messages)
 
-    async def _dispatch_pre_compact(
-        self, messages: list[dict[str, Any]]
-    ) -> list[dict[str, Any]] | None | type:
+    async def _dispatch_pre_compact(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]] | None | type:
         from adk_fluent._hooks._events import HookContext, HookEvent
 
         registry = self._hook_registry
@@ -247,9 +237,7 @@ class ContextCompressor:
     # Strategy application
     # ------------------------------------------------------------------
 
-    def _apply_strategy(
-        self, messages: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _apply_strategy(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         strategy = self.strategy
         self._compression_count += 1
         if self.on_compress:
@@ -305,31 +293,19 @@ class ContextCompressor:
         return monitor
 
     @staticmethod
-    def _drop_old(
-        messages: list[dict[str, Any]], keep: int
-    ) -> list[dict[str, Any]]:
+    def _drop_old(messages: list[dict[str, Any]], keep: int) -> list[dict[str, Any]]:
         system_msgs = [m for m in messages if m.get("role") == "system"]
         non_system = [m for m in messages if m.get("role") != "system"]
         keep_count = keep * 2
-        recent = (
-            non_system[-keep_count:]
-            if len(non_system) > keep_count
-            else non_system
-        )
+        recent = non_system[-keep_count:] if len(non_system) > keep_count else non_system
         return system_msgs + recent
 
     @staticmethod
-    def _keep_recent(
-        messages: list[dict[str, Any]], n: int
-    ) -> list[dict[str, Any]]:
+    def _keep_recent(messages: list[dict[str, Any]], n: int) -> list[dict[str, Any]]:
         system_msgs = [m for m in messages if m.get("role") == "system"]
         non_system = [m for m in messages if m.get("role") != "system"]
         keep_count = n * 2
-        recent = (
-            non_system[-keep_count:]
-            if len(non_system) > keep_count
-            else non_system
-        )
+        recent = non_system[-keep_count:] if len(non_system) > keep_count else non_system
         return system_msgs + recent
 
 

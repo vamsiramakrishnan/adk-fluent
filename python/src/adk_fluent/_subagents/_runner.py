@@ -68,8 +68,7 @@ class FakeSubagentRunner:
 
     def __init__(
         self,
-        responder: Callable[[SubagentSpec, str, dict[str, Any] | None], str]
-        | None = None,
+        responder: Callable[[SubagentSpec, str, dict[str, Any] | None], str] | None = None,
         *,
         usage: dict[str, int] | None = None,
         error_for_role: dict[str, str] | None = None,
