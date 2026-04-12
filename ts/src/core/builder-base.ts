@@ -12,6 +12,8 @@
  */
 
 import type { CallbackFn, StatePredicate, UntilSpec } from "./types.js";
+import { visualize as visualizeRender } from "../visualize/index.js";
+import type { VisualizeOptions } from "../visualize/index.js";
 
 /**
  * Workflow builder registry — populated by workflow.ts at module load to
@@ -355,6 +357,21 @@ export abstract class BuilderBase<TBuild = unknown> {
   /** Debug mode: log builder operations to stderr. */
   debug(enabled = true): this {
     return this._setConfig("_debug", enabled);
+  }
+
+  /**
+   * Render this builder's topology as a string.
+   *
+   * Builds the agent and dispatches to the requested format. The
+   * default `"ascii"` format produces a `tree`-style listing suitable
+   * for terminal output and `.explain()`-style introspection.
+   *
+   *   console.log(pipeline.visualize());                       // ascii
+   *   console.log(pipeline.visualize({ format: "mermaid" }));  // mermaid
+   *   console.log(pipeline.visualize({ format: "markdown" })); // anatomy
+   */
+  visualize(opts: VisualizeOptions = {}): string {
+    return visualizeRender(this.build(), opts);
   }
 
   // ------------------------------------------------------------------

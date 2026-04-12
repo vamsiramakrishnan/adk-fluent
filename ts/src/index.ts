@@ -125,3 +125,20 @@ export type { ReviewLoopOptions, MapReduceOptions } from "./patterns/index.js";
 // A2A — remote agent communication
 export { RemoteAgent, A2AServer, AgentRegistry } from "./a2a/index.js";
 export type { RemoteAgentOptions } from "./a2a/index.js";
+
+// Visualization — render builder topologies as ascii / mermaid / markdown
+export {
+  visualize,
+  normalize,
+  renderAscii,
+  renderMermaid,
+  renderMarkdown,
+} from "./visualize/index.js";
+export type {
+  VizNode,
+  VisualizeFormat,
+  VisualizeOptions,
+  AsciiOptions,
+  MermaidOptions,
+  MarkdownOptions,
+} from "./visualize/index.js";

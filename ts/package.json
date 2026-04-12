@@ -5,10 +5,17 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "adk-fluent": "dist/cli/visualize.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./visualize": {
+      "types": "./dist/visualize/index.d.ts",
+      "import": "./dist/visualize/index.js"
     }
   },
   "scripts": {
