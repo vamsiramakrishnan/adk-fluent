@@ -38,12 +38,34 @@ flowchart LR
 
 **Composition operators:**
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 C.window(3) + C.from_state("topic")    # union: both applied
 C.window(5) | C.template("{history}")   # pipe: output → input
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+C.window(3).add(C.fromState("topic"));    // union: both applied
+C.window(5).pipe(C.template("{history}")); // pipe: output → input
+```
+:::
+::::
+
+:::{note} TypeScript naming
+TypeScript uses camelCase: `C.fromState`, `C.userOnly`, `C.fromAgents`, `C.excludeAgents`. The `+` operator from Python becomes `.add()` and `|` becomes `.pipe()`.
+:::
 
 ## Quick Start
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, C
@@ -59,6 +81,27 @@ focused_agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, C } from "adk-fluent-ts";
+
+// Suppress all conversation history
+const cleanAgent = new Agent("processor", "gemini-2.5-flash")
+  .context(C.none())
+  .instruct("Process input.")
+  .build();
+
+// Only see last 3 turn-pairs + state keys
+const focusedAgent = new Agent("analyst", "gemini-2.5-flash")
+  .context(C.window(3).add(C.fromState("topic")))
+  .instruct("Analyze {topic}.")
+  .build();
+```
+:::
+::::
 
 ## The Problem
 
@@ -92,30 +135,83 @@ Context engineering solves three problems:
 
 Suppress all conversation history. The agent sees only its instruction:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 agent = Agent("classifier").context(C.none()).instruct("Classify the input.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const agent = new Agent("classifier", "gemini-2.5-flash")
+  .context(C.none())
+  .instruct("Classify the input.")
+  .build();
+```
+:::
+::::
 
 ## `C.default()`
 
 Keep the default conversation history. This is the pass-through -- equivalent to not calling `.context()` at all:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 agent = Agent("assistant").context(C.default()).instruct("Help the user.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-## `C.user_only()`
+```ts
+// In TypeScript, `default` is reserved — use `default_()`.
+const agent = new Agent("assistant", "gemini-2.5-flash")
+  .context(C.default_())
+  .instruct("Help the user.")
+  .build();
+```
+:::
+::::
+
+## `C.userOnly()` / `C.user_only()`
 
 Include only user messages, filtering out all agent and tool responses:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # The reviewer sees what the user said, not what other agents produced
 agent = Agent("reviewer").context(C.user_only()).instruct("Review the request.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-## `C.from_state(*keys)`
+```ts
+const agent = new Agent("reviewer", "gemini-2.5-flash")
+  .context(C.userOnly())
+  .instruct("Review the request.")
+  .build();
+```
+:::
+::::
+
+## `C.fromState()` / `C.from_state()`
 
 Read named keys from session state and inject them as context. This is a **pure data-injection transform** — it injects state values without suppressing conversation history:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # Inject state AND keep conversation history
@@ -136,14 +232,40 @@ agent = (
 
 # Or use .reads() which suppresses history by default
 agent = Agent("writer").reads("topic", "style").instruct("Write about {topic} in {style} style.").build()
-
-# .reads() with keep_history=True to inject state without suppressing
-agent = Agent("writer").reads("topic", "style", keep_history=True).instruct("Write.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-## `C.from_agents(*names)`
+```ts
+// Inject state AND keep conversation history
+const a = new Agent("writer", "gemini-2.5-flash")
+  .context(C.fromState("topic", "style"))
+  .instruct("Write about {topic} in {style} style.")
+  .build();
+
+// Inject state, suppress history (common pipeline pattern)
+const b = new Agent("writer", "gemini-2.5-flash")
+  .context(C.none().add(C.fromState("topic", "style")))
+  .instruct("Write about {topic} in {style} style.")
+  .build();
+
+// Or use .reads() which suppresses history by default
+const c = new Agent("writer", "gemini-2.5-flash")
+  .reads("topic", "style")
+  .instruct("Write about {topic} in {style} style.")
+  .build();
+```
+:::
+::::
+
+## `C.fromAgents()` / `C.from_agents()`
 
 Include user messages plus outputs from specific named agents. All other agent outputs are excluded:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # The editor sees only what the user said and what "writer" produced
@@ -154,10 +276,26 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-## `C.exclude_agents(*names)`
+```ts
+const agent = new Agent("editor", "gemini-2.5-flash")
+  .context(C.fromAgents("writer"))
+  .instruct("Edit the draft for clarity.")
+  .build();
+```
+:::
+::::
+
+## `C.excludeAgents()` / `C.exclude_agents()`
 
 Include everything except outputs from the named agents:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # The summarizer sees the full history but ignores the verbose "researcher" output
@@ -168,19 +306,51 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-## `C.window(n=)`
+```ts
+const agent = new Agent("summarizer", "gemini-2.5-flash")
+  .context(C.excludeAgents("researcher"))
+  .instruct("Summarize the conversation.")
+  .build();
+```
+:::
+::::
+
+## `C.window(n)`
 
 Include only the last N turn-pairs (user message + model response). Useful for long-running conversations where only recent context matters:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # Only see the last 3 exchanges
 agent = Agent("responder").context(C.window(n=3)).instruct("Continue the conversation.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const agent = new Agent("responder", "gemini-2.5-flash")
+  .context(C.window(3))
+  .instruct("Continue the conversation.")
+  .build();
+```
+:::
+::::
 
 ## `C.template(str)`
 
 Render a template string using state values. Supports `{key}` (required) and `{key?}` (optional, replaced with empty string if missing):
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 agent = (
@@ -190,10 +360,26 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const agent = new Agent("reporter", "gemini-2.5-flash")
+  .context(C.template("Topic: {topic}\nNotes: {notes?}"))
+  .instruct("Write a report from the context above.")
+  .build();
+```
+:::
+::::
 
 ## `S.capture(key)`
 
 Capture the most recent user message into a state key. Used as a pipeline step, not inside `.context()`:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 from adk_fluent import Agent, C, S
@@ -205,6 +391,21 @@ pipeline = (
         .instruct("Respond to: {user_message}")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, C, S } from "adk-fluent-ts";
+
+const pipeline = S.capture("user_message").then(
+  new Agent("handler", "gemini-2.5-flash")
+    .context(C.fromState("user_message"))
+    .instruct("Respond to: {user_message}"),
+);
+```
+:::
+::::
 
 ## `C.budget(max_tokens=)`
 
@@ -236,7 +437,11 @@ agent = (
 
 Primitives compose with two operators:
 
-**`+` (union)** combines transforms. Both are applied to produce the final context:
+**Union** combines transforms. Both are applied to produce the final context:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # Window + state keys: agent sees last 3 turns AND the topic from state
@@ -244,8 +449,25 @@ ctx = C.window(n=3) + C.from_state("topic", "style")
 
 agent = Agent("analyst").context(ctx).instruct("Analyze {topic}.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-**`|` (pipe)** feeds the output of one transform into another:
+```ts
+const ctx = C.window(3).add(C.fromState("topic", "style"));
+const agent = new Agent("analyst", "gemini-2.5-flash")
+  .context(ctx)
+  .instruct("Analyze {topic}.")
+  .build();
+```
+:::
+::::
+
+**Pipe** feeds the output of one transform into another:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # Window output piped through a template
@@ -253,12 +475,38 @@ ctx = C.window(n=5) | C.template("Recent conversation:\n{history}")
 
 agent = Agent("summarizer").context(ctx).instruct("Summarize.").build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const ctx = C.window(5).pipe(C.template("Recent conversation:\n{history}"));
+const agent = new Agent("summarizer", "gemini-2.5-flash")
+  .context(ctx)
+  .instruct("Summarize.")
+  .build();
+```
+:::
+::::
 
 You can chain multiple unions:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 ctx = C.window(n=3) + C.from_state("topic") + C.budget(max_tokens=4000)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const ctx = C.window(3).add(C.fromState("topic")).add(C.budget({ maxTokens: 4000 }));
+```
+:::
+::::
 
 ## Integration with Agent Builder
 
@@ -289,6 +537,10 @@ Context flow through a pipeline:
                                                  + user history
 ```
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, C, S
 
@@ -305,6 +557,28 @@ pipeline = (
         .context(C.from_state("user_message", "intent") + C.user_only())
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, C, S } from "adk-fluent-ts";
+
+const pipeline = S.capture("user_message")
+  .then(
+    new Agent("classifier", "gemini-2.5-flash")
+      .instruct("Classify the user's intent.")
+      .context(C.none()) // No history needed
+      .writes("intent"),
+  )
+  .then(
+    new Agent("handler", "gemini-2.5-flash")
+      .instruct("Help the user.")
+      .context(C.fromState("user_message", "intent").add(C.userOnly())),
+  );
+```
+:::
+::::
 
 The classifier sees only its instruction -- no history, no prior agent output. The handler sees the original user message and classified intent from state, plus user-only history for conversational continuity. Each agent gets exactly the context it needs.
 

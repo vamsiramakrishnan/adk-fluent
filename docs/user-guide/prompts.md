@@ -8,6 +8,10 @@ The `P` namespace provides structured, composable prompt construction using froz
 
 ## Basic Usage
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, P
 
@@ -23,8 +27,31 @@ prompt = (
 
 agent = Agent("reviewer").model("gemini-2.5-flash").instruct(prompt).build()
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-Each `P.xxx()` call returns an immutable `PTransform` dataclass. Transforms compose via `+` (union) and `|` (pipe).
+```ts
+import { Agent, P } from "adk-fluent-ts";
+
+const prompt = P.role("You are a senior code reviewer.")
+  .add(P.context("The codebase uses Python 3.11 with type hints."))
+  .add(P.task("Review the code for bugs and security issues."))
+  .add(P.constraint("Be concise. Max 5 bullet points."))
+  .add(P.constraint("No false positives."))
+  .add(P.format("Return markdown with ## sections."))
+  .add(P.example({ input: "x=eval(input())", output: "Critical: eval() on user input" }));
+
+const agent = new Agent("reviewer", "gemini-2.5-flash").instruct(prompt).build();
+```
+:::
+::::
+
+Each `P.xxx()` call returns an immutable `PTransform`. Transforms compose via `+` / `.add()` (union) and `|` / `.pipe()` (pipe).
+
+:::{note} TypeScript naming
+TypeScript uses camelCase: `P.fromState`, `P.uiSchema`. The `+` operator from Python becomes `.add()` and `|` becomes `.pipe()`. `P.example(input=..., output=...)` becomes `P.example({ input, output })`.
+:::
 
 ## Core Sections
 
@@ -110,9 +137,13 @@ Adds a custom named section:
 P.section("Audience", "C-level executives with limited technical background.")
 ```
 
-## Composability with `+`
+## Composability
 
-Prompts compose and reuse via the `+` operator:
+Prompts compose and reuse:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 base = P.role("You are a senior engineer.") + P.constraint("Be precise.")
@@ -120,12 +151,32 @@ base = P.role("You are a senior engineer.") + P.constraint("Be precise.")
 reviewer = Agent("reviewer").instruct(base + P.task("Review code."))
 writer   = Agent("writer").instruct(base + P.task("Write documentation."))
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const base = P.role("You are a senior engineer.").add(P.constraint("Be precise."));
+
+const reviewer = new Agent("reviewer", "gemini-2.5-flash").instruct(
+  base.add(P.task("Review code.")),
+);
+const writer = new Agent("writer", "gemini-2.5-flash").instruct(
+  base.add(P.task("Write documentation.")),
+);
+```
+:::
+::::
 
 This allows you to define common persona, constraints, and context once, then specialize with task-specific sections.
 
 ## Building and Inspection
 
-Every `PTransform` supports `.build()`, `str()`, and `.fingerprint()`:
+Every prompt transform can be rendered to a string with state values resolved:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 prompt = P.role("Helper.") + P.task("Answer questions.")
@@ -140,12 +191,31 @@ text = prompt.build(state={"topic": "Python"})
 # SHA-256 fingerprint for caching/versioning
 fp = prompt.fingerprint()  # e.g. "a1b2c3d4e5f6"
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const prompt = P.role("Helper.").add(P.task("Answer questions."));
+
+// Compile to instruction string
+const text1 = prompt.render();
+
+// Compile with state variables resolved
+const text2 = prompt.render({ topic: "Python" });
+```
+:::
+::::
 
 ## Conditional and Dynamic Sections
 
 ### `P.when(predicate, block)`
 
 Include a section only when a condition is met at runtime:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 # String predicate — checks if state key is truthy
@@ -160,10 +230,25 @@ prompt = (
     + P.when(lambda s: s.get("tier") == "premium", P.context("Premium features enabled."))
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
 
-### `P.from_state(*keys)`
+```ts
+const prompt = P.role("Helper").add(
+  P.when((s) => s.tier === "premium", P.context("Premium features enabled.")),
+);
+```
+:::
+::::
+
+### `P.fromState()` / `P.from_state()`
 
 Read named keys from session state and render as context:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 prompt = P.role("Support agent") + P.from_state("customer_name", "plan")
@@ -171,15 +256,37 @@ prompt = P.role("Support agent") + P.from_state("customer_name", "plan")
 #   customer_name: Alice
 #   plan: pro
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const prompt = P.role("Support agent").add(P.fromState("customer_name", "plan"));
+```
+:::
+::::
 
 ### `P.template(text)`
 
 Template string with `{key}`, `{key?}` (optional), and `{ns:key}` (namespaced) placeholders:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 prompt = P.template("Help the user with {topic} in a {style} tone. Note: {extra?}")
 # {topic} and {style} are required; {extra?} resolves to empty string if missing
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const prompt = P.template("Help the user with {topic} in a {style} tone. Note: {extra?}");
+```
+:::
+::::
 
 ## Structural Transforms
 
@@ -291,6 +398,10 @@ Optional variables use `?` suffix (`{maybe_key?}` returns empty string if missin
 
 Split prompts into cacheable and dynamic parts:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 agent = (
     Agent("analyst")
@@ -300,12 +411,28 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const agent = new Agent("analyst", "gemini-2.5-flash")
+  .static("You are a financial analyst. Here is the 50-page annual report: ...")
+  .instruct("Answer the user's question about the report.")
+  .build();
+```
+:::
+::::
 
 When `.static()` is set, the static content goes as a system instruction (eligible for context caching), while `.instruct()` content goes as user content. This avoids re-processing large static contexts on every turn.
 
 ## Dynamic Context Injection
 
 Prepend runtime context to every LLM call:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
 agent = (
@@ -316,5 +443,17 @@ agent = (
     .prepend(lambda ctx: f"Plan: {ctx.state.get('plan', 'free')}")
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const agent = new Agent("support", "gemini-2.5-flash")
+  .instruct("Help the customer.")
+  .prepend((ctx) => `Customer: ${ctx.state.customer_name ?? "unknown"}`)
+  .prepend((ctx) => `Plan: ${ctx.state.plan ?? "free"}`);
+```
+:::
+::::
 
 Each `.prepend()` call accumulates. The function receives the callback context and returns a string that gets prepended as content before the LLM processes the request.

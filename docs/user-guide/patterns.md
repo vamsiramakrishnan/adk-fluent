@@ -1,10 +1,39 @@
 # Composition Patterns
 
-Higher-order constructors from `adk_fluent.patterns` that compose agents into common architectures. Each pattern is a function that returns a ready-to-use builder.
+Higher-order constructors that compose agents into common architectures. Each pattern is a function that returns a ready-to-use builder. Both packages ship the same pattern set with parallel naming (snake_case in Python, camelCase in TypeScript).
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
 
 ```python
-from adk_fluent.patterns import review_loop, cascade, fan_out_merge, chain, conditional, supervised, map_reduce
+from adk_fluent.patterns import (
+    review_loop,
+    cascade,
+    fan_out_merge,
+    chain,
+    conditional,
+    supervised,
+    map_reduce,
+)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import {
+  reviewLoop,
+  cascade,
+  fanOutMerge,
+  chain,
+  conditional,
+  supervised,
+  mapReduce,
+} from "adk-fluent-ts";
+```
+:::
+::::
 
 ```
 Pattern Quick Reference:
@@ -27,6 +56,10 @@ ______________________________________________________________________
 
 A worker produces output, a reviewer scores it, and the loop repeats until quality meets the target.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = review_loop(
     worker=Agent("writer").instruct("Write a blog post about {topic}."),
@@ -36,6 +69,19 @@ pipeline = review_loop(
     max_rounds=3,
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = reviewLoop(
+  new Agent("writer", "gemini-2.5-flash").instruct("Write a blog post about {topic}."),
+  new Agent("reviewer", "gemini-2.5-flash").instruct("Score the draft 0-1 for quality."),
+  { qualityKey: "review_score", target: 0.8, maxRounds: 3 },
+);
+```
+:::
+::::
 
 ```
     ┌──────────────────────────────────────────────┐
@@ -62,6 +108,10 @@ ______________________________________________________________________
 
 Tries each agent in order. First successful response wins.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = cascade(
     Agent("fast").model("gemini-2.0-flash"),
@@ -69,6 +119,19 @@ pipeline = cascade(
     Agent("fallback").model("gemini-2.0-flash").instruct("Provide a safe default."),
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = cascade(
+  new Agent("fast", "gemini-2.0-flash"),
+  new Agent("smart", "gemini-2.5-pro"),
+  new Agent("fallback", "gemini-2.0-flash").instruct("Provide a safe default."),
+);
+```
+:::
+::::
 
 ```
     fast ──► success? ─── yes ──► done
@@ -86,6 +149,10 @@ ______________________________________________________________________
 
 Run multiple agents in parallel, then merge their outputs.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = fan_out_merge(
     Agent("web_search").writes("web"),
@@ -95,6 +162,22 @@ pipeline = fan_out_merge(
     merge_fn=lambda results: "\n\n".join(results.values()),
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = fanOutMerge(
+  [
+    new Agent("web_search", "gemini-2.5-flash").writes("web"),
+    new Agent("doc_search", "gemini-2.5-flash").writes("docs"),
+    new Agent("expert", "gemini-2.5-flash").writes("expert"),
+  ],
+  { mergeKey: "combined" },
+);
+```
+:::
+::::
 
 ```
     ┌─ web_search ──► state["web"]  ─┐
@@ -114,6 +197,10 @@ ______________________________________________________________________
 
 Compose a list of steps into a Pipeline.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = chain(
     Agent("researcher").writes("findings"),
@@ -121,6 +208,19 @@ pipeline = chain(
     Agent("editor").reads("draft").writes("final"),
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = chain(
+  new Agent("researcher", "gemini-2.5-flash").writes("findings"),
+  new Agent("writer", "gemini-2.5-flash").reads("findings").writes("draft"),
+  new Agent("editor", "gemini-2.5-flash").reads("draft").writes("final"),
+);
+```
+:::
+::::
 
 **Data flow:** Each agent runs in sequence. State propagates between steps via `.writes()` and `.reads()`.
 
@@ -130,6 +230,10 @@ ______________________________________________________________________
 
 Route to different agents based on a predicate.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = conditional(
     predicate=lambda state: state.get("category") == "technical",
@@ -137,6 +241,19 @@ pipeline = conditional(
     if_false=Agent("general_support").instruct("Handle general inquiry."),
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = conditional(
+  (state) => state.category === "technical",
+  new Agent("tech_support", "gemini-2.5-flash").instruct("Handle technical issue."),
+  new Agent("general_support", "gemini-2.5-flash").instruct("Handle general inquiry."),
+);
+```
+:::
+::::
 
 ```
                     ┌─ yes ──► tech_support
@@ -152,6 +269,10 @@ ______________________________________________________________________
 
 A worker produces output, a supervisor approves or requests revisions.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = supervised(
     worker=Agent("drafter").instruct("Draft the contract."),
@@ -160,6 +281,19 @@ pipeline = supervised(
     max_revisions=2,
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = supervised(
+  new Agent("drafter", "gemini-2.5-flash").instruct("Draft the contract."),
+  new Agent("lawyer", "gemini-2.5-flash").instruct("Review for legal compliance."),
+  { approvedKey: "approved", maxRounds: 2 },
+);
+```
+:::
+::::
 
 **Data flow:** Similar to `review_loop` but with approval semantics. The supervisor marks `state[approval_key]` as approved or requests changes.
 
@@ -169,6 +303,10 @@ ______________________________________________________________________
 
 Apply a mapper agent to each item, then reduce results.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 pipeline = map_reduce(
     mapper=Agent("analyzer").instruct("Analyze this item: {item}"),
@@ -176,6 +314,19 @@ pipeline = map_reduce(
     items_key="items",
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+const pipeline = mapReduce(
+  new Agent("analyzer", "gemini-2.5-flash").instruct("Analyze this item: {item}"),
+  new Agent("synthesizer", "gemini-2.5-flash").instruct("Synthesize all analyses."),
+  { itemsKey: "items", resultKey: "report" },
+);
+```
+:::
+::::
 
 ```
     state["items"] ──┬─ mapper("item_0") ─┐
