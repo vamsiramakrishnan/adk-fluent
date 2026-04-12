@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from cachetools import TTLCache as _TTLCache
+
 from adk_fluent._composite import Composite
 
 __all__ = [
@@ -409,31 +411,31 @@ class _TimeoutWrapper:
 
 
 class _CachedWrapper:
-    """Wraps a tool with a TTL-based in-memory cache."""
+    """Wraps a tool with a TTL-based in-memory cache.
 
-    def __init__(self, inner: Any, ttl: float, key_fn: Any = None):
+    Backed by ``cachetools.TTLCache`` which handles expiry eviction and
+    max-size bounds. Replaces the hand-rolled dict + timestamp pattern,
+    which grew unbounded in long-running agents.
+    """
+
+    def __init__(self, inner: Any, ttl: float, key_fn: Any = None, *, max_size: int = 1024):
         self._inner = inner
         self._ttl = ttl
         self._key_fn = key_fn or (lambda args: str(sorted(args.items())))
-        self._cache: dict[str, tuple[Any, float]] = {}
+        self._cache: _TTLCache[str, Any] = _TTLCache(maxsize=max_size, ttl=ttl)
         self.name = getattr(inner, "name", getattr(inner, "__name__", "tool"))
         self.description = getattr(inner, "description", getattr(inner, "__doc__", "") or "")
 
     async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
         """Return cached result if fresh, otherwise invoke and cache."""
-        import time
-
         key = self._key_fn(args)
-        now = time.monotonic()
         if key in self._cache:
-            result, ts = self._cache[key]
-            if now - ts < self._ttl:
-                return result
+            return self._cache[key]
         if hasattr(self._inner, "run_async"):
             result = await self._inner.run_async(args=args, tool_context=tool_context)
         else:
             result = self._inner(**args)
-        self._cache[key] = (result, now)
+        self._cache[key] = result
         return result
 
 
