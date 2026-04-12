@@ -152,7 +152,7 @@ class EComposite(Composite, kind="eval"):
 # ======================================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class ECase:
     """A single evaluation case. Maps to ADK's ``EvalCase``.
 
@@ -245,7 +245,7 @@ class ECase:
 # ======================================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class EvalReport:
     """Result of running an evaluation suite.
 
@@ -287,7 +287,7 @@ class EvalReport:
 # ======================================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class ComparisonReport:
     """Result of comparing multiple agents on the same eval cases."""
 
@@ -1271,15 +1271,19 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
                     num_runs=suite._num_runs,
                     print_detailed_results=False,
                 )
-                # If no assertion error, all passed
-                scores = {c.metric_name: 1.0 for c in suite._criteria._items}
-                thresholds = {c.metric_name: c.threshold for c in suite._criteria._items}
-                passed = {c.metric_name: True for c in suite._criteria._items}
+                # If no assertion error, all passed — build scores/thresholds/passed in one pass
+                scores, thresholds, passed = {}, {}, {}
+                for c in suite._criteria._items:
+                    scores[c.metric_name] = 1.0
+                    thresholds[c.metric_name] = c.threshold
+                    passed[c.metric_name] = True
             except AssertionError as exc:
-                # Parse failure details from the assertion message
-                scores = {c.metric_name: 0.0 for c in suite._criteria._items}
-                thresholds = {c.metric_name: c.threshold for c in suite._criteria._items}
-                passed = {c.metric_name: False for c in suite._criteria._items}
+                # Parse failure details from the assertion message — single pass
+                scores, thresholds, passed = {}, {}, {}
+                for c in suite._criteria._items:
+                    scores[c.metric_name] = 0.0
+                    thresholds[c.metric_name] = c.threshold
+                    passed[c.metric_name] = False
                 # Store raw error for debugging
                 return EvalReport(
                     scores=scores,
@@ -1317,9 +1321,10 @@ def _resolve_gate_text(state: dict[str, Any], output_key: str | None) -> str | N
         val = state["_last_output"]
         return str(val) if val is not None else None
 
-    # Scan for the most recently written non-internal string value
-    for key in reversed(list(state)):
-        if key.startswith("_") or key.startswith("temp:") or key.startswith("app:"):
+    # Scan for the most recently written non-internal string value.
+    # dict is insertion-ordered; reversed() works directly since 3.8, no list() copy.
+    for key in reversed(state):
+        if key.startswith(("_", "temp:", "app:")):
             continue
         val = state[key]
         if isinstance(val, str) and len(val) > 0:

@@ -360,11 +360,13 @@ def _debug_log(agent_name: str, msg: str):
 
 
 def deep_clone_builder(builder: Any, new_name: str) -> Any:
-    """Deep-copy a builder's internal state and set a new name."""
-    new_builder = object.__new__(type(builder))
-    new_builder._config = copy.deepcopy(builder._config)
-    new_builder._callbacks = copy.deepcopy(builder._callbacks)
-    new_builder._lists = copy.deepcopy(builder._lists)
+    """Deep-copy a builder's internal state and set a new name.
+
+    Delegates to ``BuilderBase.__deepcopy__`` which walks ``_config``,
+    ``_callbacks`` and ``_lists`` under a single shared memo so sub-builders
+    referenced from multiple fields are deduplicated.
+    """
+    new_builder = copy.deepcopy(builder)
     new_builder._config["name"] = new_name
     return new_builder
 

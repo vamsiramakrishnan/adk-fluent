@@ -120,7 +120,7 @@ _trace_context: ContextVar[TraceContext | None] = ContextVar("_trace_context", d
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DispatchDirective:
     """Returned by ``on_dispatch`` to control dispatch behavior.
 
@@ -134,7 +134,7 @@ class DispatchDirective:
     inject_state: dict[str, Any] | None = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class LoopDirective:
     """Returned by ``on_loop_iteration`` to control loop behavior.
 
@@ -543,9 +543,71 @@ class _MiddlewarePlugin(BasePlugin):
         4. Topology hooks: set self as _topology_hooks ContextVar.
     """
 
+    # All hook names that _MiddlewarePlugin dispatches. Used at construction
+    # time to precompute a hook table, eliminating per-call getattr probing.
+    _ALL_HOOK_NAMES: tuple[str, ...] = (
+        # Runner lifecycle
+        "on_user_message",
+        "before_run",
+        "after_run",
+        "on_event",
+        # Agent lifecycle (scoped)
+        "before_agent",
+        "after_agent",
+        # Model lifecycle (scoped)
+        "before_model",
+        "after_model",
+        "on_model_error",
+        # Tool lifecycle (scoped)
+        "before_tool",
+        "after_tool",
+        "on_tool_error",
+        # Dispatch/Join
+        "on_dispatch",
+        "on_task_complete",
+        "on_task_error",
+        "on_join",
+        # Topology
+        "on_loop_iteration",
+        "on_fanout_start",
+        "on_fanout_complete",
+        "on_route_selected",
+        "on_fallback_attempt",
+        "on_timeout",
+        # Stream lifecycle
+        "on_stream_item",
+        "on_stream_start",
+        "on_stream_end",
+        "on_backpressure",
+        # Cleanup
+        "close",
+    )
+
     def __init__(self, name: str, stack: list) -> None:
         super().__init__(name=name)
         self._stack = list(stack)
+        # Precompute hook dispatch table: hook_name -> [(mw, bound_fn, is_scoped), ...]
+        #
+        # This eliminates per-call `getattr(mw, method_name, None)` lookups, which on
+        # hot paths (before_model/after_model/before_tool per-turn) dominate middleware
+        # dispatch cost. The table is built once at plugin-construction time; hooks not
+        # implemented by any middleware become a single dict.get() miss at dispatch.
+        #
+        # Also resolves `_ConditionalMiddleware.__getattr__` eagerly — it creates a new
+        # `_guarded` closure on every access, so caching the resolved bound fn is itself
+        # a secondary win on conditional middleware.
+        hook_table: dict[str, tuple[tuple[Any, Callable, bool], ...]] = {}
+        for method_name in self._ALL_HOOK_NAMES:
+            is_scoped = method_name in _SCOPED_HOOKS
+            entries: list[tuple[Any, Callable, bool]] = []
+            for mw in self._stack:
+                fn = getattr(mw, method_name, None)
+                if fn is None:
+                    continue
+                entries.append((mw, fn, is_scoped))
+            if entries:
+                hook_table[method_name] = tuple(entries)
+        self._hook_table: dict[str, tuple[tuple[Any, Callable, bool], ...]] = hook_table
 
     # --- Helpers: iterate stack ---
 
@@ -563,13 +625,14 @@ class _MiddlewarePlugin(BasePlugin):
         Short-circuits on the first non-None return.
         Wraps each call in an error boundary.
         Filters scoped hooks by agent_name.
+
+        Uses the precomputed hook table — no per-call getattr probing.
         """
-        is_scoped = method_name in _SCOPED_HOOKS
-        for mw in self._stack:
+        entries = self._hook_table.get(method_name)
+        if not entries:
+            return None
+        for mw, fn, is_scoped in entries:
             if is_scoped and agent_name is not None and not _agent_matches(mw, agent_name):
-                continue
-            fn = getattr(mw, method_name, None)
-            if fn is None:
                 continue
             try:
                 result = await fn(*args)
@@ -584,13 +647,13 @@ class _MiddlewarePlugin(BasePlugin):
         """Call *method_name* on ALL middleware (no short-circuit).
 
         Wraps each call in an error boundary.
+        Uses the precomputed hook table — no per-call getattr probing.
         """
-        is_scoped = method_name in _SCOPED_HOOKS
-        for mw in self._stack:
+        entries = self._hook_table.get(method_name)
+        if not entries:
+            return
+        for mw, fn, is_scoped in entries:
             if is_scoped and agent_name is not None and not _agent_matches(mw, agent_name):
-                continue
-            fn = getattr(mw, method_name, None)
-            if fn is None:
                 continue
             try:
                 await fn(*args)

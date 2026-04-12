@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class AgentNode:
     """Generated IR node for ADK LlmAgent.
 
@@ -74,7 +74,7 @@ class AgentNode:
     guard_specs: tuple = ()  # GGuard specs, preserved for contract checking
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SequenceNode:
     """Generated IR node for ADK SequentialAgent.
 
@@ -96,7 +96,7 @@ class SequenceNode:
     middlewares: tuple = ()  # Middleware instances for contract checking (Pass 14)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ParallelNode:
     """Generated IR node for ADK ParallelAgent.
 
@@ -117,7 +117,7 @@ class ParallelNode:
     context_spec: Any = None  # CTransform descriptor, preserved for diagnostics
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class LoopNode:
     """Generated IR node for ADK LoopAgent.
 

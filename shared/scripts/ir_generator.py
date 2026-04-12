@@ -176,7 +176,7 @@ def gen_node_class(adk_name: str, ir_name: str, cls_data: dict) -> str:
     regular_fields, callback_fields = classify_fields(fields)
 
     lines = []
-    lines.append("@dataclass(frozen=True)")
+    lines.append("@dataclass(frozen=True, slots=True)")
     lines.append(f"class {ir_name}:")
     lines.append(f'    """Generated IR node for ADK {adk_name}.')
     lines.append("")

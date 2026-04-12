@@ -553,6 +553,47 @@ class BuilderBase:
         return self
 
     # ------------------------------------------------------------------
+    # __deepcopy__ — explicit protocol override
+    # ------------------------------------------------------------------
+    #
+    # The previous implementation (in deep_clone_builder) called
+    # ``copy.deepcopy`` three times independently on ``_config``,
+    # ``_callbacks`` and ``_lists`` with three separate memos. That had
+    # two costs:
+    #
+    # 1. Sub-agents referenced from multiple fields (e.g. appearing in
+    #    both ``_lists["sub_agents"]`` and ``_config["parent_agent"]``)
+    #    were deep-copied twice, producing two independent clones.
+    # 2. The per-call ``copy.deepcopy`` dispatch overhead paid three
+    #    times instead of once for a single walk.
+    #
+    # Implementing ``__deepcopy__`` at the ``BuilderBase`` level lets
+    # CPython's ``copy.deepcopy`` machinery unify the walk through a
+    # single memo — this both deduplicates sub-builder copies and keeps
+    # the per-builder overhead to one memo update. Atomic leaf values
+    # (strings, frozensets, types, callables) still hit
+    # ``copy._deepcopy_atomic`` fast paths.
+    def __deepcopy__(self, memo: dict) -> "BuilderBase":
+        import copy as _copy
+
+        new = object.__new__(type(self))
+        memo[id(self)] = new
+        # Single shared memo across all three containers — sub-builders
+        # referenced from multiple fields are copied once.
+        new._config = _copy.deepcopy(self._config, memo)
+        new._callbacks = _copy.deepcopy(self._callbacks, memo)
+        new._lists = _copy.deepcopy(self._lists, memo)
+        # Middlewares are stateful-but-shared; operator paths already
+        # treat them as references. Preserve that here.
+        mw = getattr(self, "_middlewares", None)
+        if mw is not None:
+            new._middlewares = list(mw)
+        # Clones always start unfrozen — subsequent mutation paths expect
+        # the same invariant the old deep_clone_builder produced.
+        new._frozen = False
+        return new
+
+    # ------------------------------------------------------------------
     # Shared __getattr__: dynamic field forwarding
     # ------------------------------------------------------------------
 
