@@ -1257,9 +1257,50 @@ class H:
         Args:
             max_tokens: Total token budget for the session.
         """
-        from adk_fluent._harness._budget_monitor import BudgetMonitor
+        from adk_fluent._budget import BudgetMonitor
 
         return BudgetMonitor(max_tokens=max_tokens)
+
+    @staticmethod
+    def budget_policy(
+        max_tokens: int = 200_000,
+        *,
+        thresholds: tuple = (),
+    ) -> Any:
+        """Return a frozen :class:`BudgetPolicy`.
+
+        A policy is the inert description of a budget. Pass it to
+        :class:`BudgetPlugin` to attach to an agent tree, or call
+        :meth:`BudgetPolicy.build_monitor` to materialise a live
+        tracker.
+
+        Args:
+            max_tokens: Total token budget for the session.
+            thresholds: Tuple of :class:`Threshold` values.
+        """
+        from adk_fluent._budget import BudgetPolicy
+
+        return BudgetPolicy(max_tokens=max_tokens, thresholds=tuple(thresholds))
+
+    @staticmethod
+    def budget_plugin(
+        policy_or_monitor: Any,
+        *,
+        name: str = "adkf_budget_plugin",
+    ) -> Any:
+        """Return a session-scoped :class:`BudgetPlugin`.
+
+        The plugin records token usage for every LLM call in the
+        invocation tree (root, sub-agents, subagent specialists).
+
+        Args:
+            policy_or_monitor: A :class:`BudgetPolicy` or an existing
+                :class:`BudgetMonitor`.
+            name: Plugin display name.
+        """
+        from adk_fluent._budget import BudgetPlugin
+
+        return BudgetPlugin(policy_or_monitor, name=name)
 
     # =================================================================
     # TaskLedger — dispatch/join bridge

@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from adk_fluent import H
-from adk_fluent._harness._budget_monitor import BudgetMonitor
+from adk_fluent._budget import BudgetMonitor
 from adk_fluent._harness._event_bus import EventBus
 from adk_fluent._harness._events import (
     TextChunk,

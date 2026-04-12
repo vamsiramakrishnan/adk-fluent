@@ -450,8 +450,10 @@ from ._harness import TaskEvent as TaskEvent
 from ._harness import CapabilityLoaded as CapabilityLoaded
 from ._harness import ManifoldFinalized as ManifoldFinalized
 from ._harness import EventBus as EventBus
-from ._harness import BudgetMonitor as BudgetMonitor
-from ._harness import Threshold as Threshold
+from ._budget import BudgetMonitor as BudgetMonitor
+from ._budget import BudgetPlugin as BudgetPlugin
+from ._budget import BudgetPolicy as BudgetPolicy
+from ._budget import Threshold as Threshold
 from ._harness import ToolPolicy as ToolPolicy
 from ._harness import ToolRule as ToolRule
 from ._harness import TaskLedger as TaskLedger
@@ -545,8 +547,10 @@ from ._harness import SkillSpec as SkillSpec
 from ._harness import compile_skills_to_static as compile_skills_to_static
 from ._harness._artifacts import ArtifactStore as ArtifactStore
 from ._harness._artifacts import ArtifactRef as ArtifactRef
-from ._harness._budget_monitor import BudgetMonitor as BudgetMonitor
-from ._harness._budget_monitor import Threshold as Threshold
+from ._budget._tracker import BudgetMonitor as BudgetMonitor
+from ._budget._threshold import Threshold as Threshold
+from ._budget._policy import BudgetPolicy as BudgetPolicy
+from ._budget._plugin import BudgetPlugin as BudgetPlugin
 from ._harness._commands import CommandRegistry as CommandRegistry
 from ._harness._commands import CommandSpec as CommandSpec
 from ._harness._compression import ContextCompressor as ContextCompressor
@@ -1108,6 +1112,8 @@ __all__ = [
     "ManifoldFinalized",
     "EventBus",
     "BudgetMonitor",
+    "BudgetPlugin",
+    "BudgetPolicy",
     "Threshold",
     "ToolPolicy",
     "ToolRule",

@@ -207,7 +207,7 @@ class ContextCompressor:
         Returns:
             A ``BudgetMonitor`` pre-configured with this threshold.
         """
-        from adk_fluent._harness._budget_monitor import BudgetMonitor
+        from adk_fluent._budget import BudgetMonitor
 
         compressor = self
 

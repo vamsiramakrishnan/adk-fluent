@@ -49,8 +49,8 @@ from adk_fluent._harness._agent_tools import (
 )
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
 
-# Budget monitor
-from adk_fluent._harness._budget_monitor import BudgetMonitor, Threshold
+# Budget monitor (lives in adk_fluent._budget, re-exported here)
+from adk_fluent._budget import BudgetMonitor, BudgetPlugin, BudgetPolicy, Threshold
 
 # Polyglot code execution
 from adk_fluent._harness._code_executor import CodeExecutor, CodeRunResult
@@ -273,6 +273,8 @@ __all__ = [
     "EventBus",
     # Budget monitor
     "BudgetMonitor",
+    "BudgetPlugin",
+    "BudgetPolicy",
     "Threshold",
     # Tool policy
     "ToolPolicy",
