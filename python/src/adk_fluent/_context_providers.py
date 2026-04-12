@@ -18,11 +18,79 @@ import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from adk_fluent._session_index import get_session_index
+
 if TYPE_CHECKING:
     from adk_fluent._context import CTransform
 
 _DEFAULT_MODEL = "gemini-2.5-flash"
 _log = logging.getLogger(__name__)
+
+
+# Module-level precompiled pattern for {key} / {key?} placeholders.
+# Used by the template provider and the combined-provider instruction
+# substitution path. Compiling once and reusing avoids the per-turn
+# ``re.compile`` call that ``re.sub`` with a string pattern pays.
+_PLACEHOLDER_RE = re.compile(r"\{(\w+)(\??)}")
+
+# Sentinel meaning "compile_template found no placeholders". Call sites
+# can short-circuit when they see this.
+_NO_SEGMENTS: tuple = ()
+
+
+def _compile_template(template: str) -> tuple | None:
+    """Pre-compile a template string into a flat tuple of render segments.
+
+    Returns ``None`` if the template contains no placeholders (callers
+    should then skip substitution entirely). Otherwise returns a tuple
+    of alternating literal strings and ``(key, optional)`` pairs. The
+    render loop in :func:`_render_template` walks this tuple with no
+    regex work and no per-call allocation beyond the output list.
+    """
+    if not template or "{" not in template:
+        return None
+
+    segments: list = []
+    pos = 0
+    for match in _PLACEHOLDER_RE.finditer(template):
+        start, end = match.span()
+        if start > pos:
+            segments.append(template[pos:start])
+        segments.append((match.group(1), match.group(2) == "?"))
+        pos = end
+    if pos < len(template):
+        segments.append(template[pos:])
+
+    if not segments or not any(isinstance(s, tuple) for s in segments):
+        return None
+    return tuple(segments)
+
+
+def _render_template(segments: tuple, state: Any, *, raise_on_missing: bool = True) -> str:
+    """Render a pre-compiled template against ``state``.
+
+    ``state`` is any mapping-like with ``.get(key)``. If a required
+    placeholder is missing:
+    * ``raise_on_missing=True`` (template provider) → raises ``KeyError``
+    * ``raise_on_missing=False`` (instruction provider) → leaves the
+      literal ``{key}`` in place, matching the legacy re.sub behaviour.
+    """
+    out: list[str] = []
+    for seg in segments:
+        if isinstance(seg, str):
+            out.append(seg)
+            continue
+        key, optional = seg
+        value = state.get(key)
+        if value is None:
+            if optional:
+                continue
+            if raise_on_missing:
+                raise KeyError(f"Template placeholder '{{{key}}}' not found in state")
+            out.append("{" + key + "}")
+            continue
+        out.append(str(value))
+    return "".join(out)
 
 
 def _format_events_as_context(events: list) -> str:
@@ -65,22 +133,10 @@ def _make_window_provider(n: int) -> Callable:
     """Create an async provider that includes the last N turn-pairs."""
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        # A turn-pair is a user message + the model response(s) after it.
-        # Walk backwards to find the last N user messages.
-        user_indices: list[int] = []
-        for i, event in enumerate(events):
-            if getattr(event, "author", None) == "user":
-                user_indices.append(i)
-
-        # Take the last N turn-pair start indices
-        start_indices = user_indices[-n:] if len(user_indices) >= n else user_indices
-        if not start_indices:
+        idx = get_session_index(ctx.session)
+        window_events = idx.window_tail(n)
+        if not window_events:
             return ""
-
-        # Include everything from the earliest selected user message onward
-        window_start = start_indices[0]
-        window_events = events[window_start:]
         return _format_events_as_context(window_events)
 
     _provider.__name__ = f"window_{n}"
@@ -91,9 +147,8 @@ def _make_user_only_provider() -> Callable:
     """Create an async provider that includes only user messages."""
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        user_events = [e for e in events if getattr(e, "author", None) == "user"]
-        return _format_events_as_context(user_events)
+        idx = get_session_index(ctx.session)
+        return _format_events_as_context(idx.user_events())
 
     _provider.__name__ = "user_only"
     return _provider
@@ -101,14 +156,11 @@ def _make_user_only_provider() -> Callable:
 
 def _make_from_agents_provider(agent_names: tuple[str, ...]) -> Callable:
     """Create an async provider including user + named agent outputs."""
-    names_set = set(agent_names)
+    names_set = set(agent_names) | {"user"}
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        filtered = [
-            e for e in events if getattr(e, "author", None) == "user" or getattr(e, "author", None) in names_set
-        ]
-        return _format_events_as_context(filtered)
+        idx = get_session_index(ctx.session)
+        return _format_events_as_context(idx.events_by_authors(names_set))
 
     _provider.__name__ = f"from_agents_{'_'.join(agent_names)}"
     return _provider
@@ -119,9 +171,8 @@ def _make_exclude_agents_provider(agent_names: tuple[str, ...]) -> Callable:
     names_set = set(agent_names)
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        filtered = [e for e in events if getattr(e, "author", None) not in names_set]
-        return _format_events_as_context(filtered)
+        idx = get_session_index(ctx.session)
+        return _format_events_as_context(idx.events_excluding_authors(names_set))
 
     _provider.__name__ = f"exclude_agents_{'_'.join(agent_names)}"
     return _provider
@@ -133,23 +184,23 @@ def _make_template_provider(template: str) -> Callable:
     Supports:
     - {key}  — required placeholder, raises KeyError if missing
     - {key?} — optional placeholder, replaced with empty string if missing
+
+    The template is compiled once here into a flat tuple of segments, so
+    the per-turn cost is an O(segments) walk + one ``"".join`` — no regex
+    at runtime.
     """
+    segments = _compile_template(template)
+
+    if segments is None:
+        # No placeholders — return a closure that yields the static string.
+        async def _static_provider(ctx: Any) -> str:
+            return template
+
+        _static_provider.__name__ = "template_static"
+        return _static_provider
 
     async def _provider(ctx: Any) -> str:
-        state = ctx.state
-
-        def _replace(match: re.Match) -> str:
-            key = match.group(1)
-            optional = match.group(2) == "?"
-            value = state.get(key)
-            if value is None:
-                if optional:
-                    return ""
-                raise KeyError(f"Template placeholder '{{{key}}}' not found in state")
-            return str(value)
-
-        # Match {key} and {key?} patterns
-        return re.sub(r"\{(\w+)(\??)}", _replace, template)
+        return _render_template(segments, ctx.state, raise_on_missing=True)
 
     _provider.__name__ = "template"
     return _provider

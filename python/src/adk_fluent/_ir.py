@@ -48,7 +48,7 @@ __all__ = [
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TransformNode:
     """Zero-cost state transform. No LLM call."""
 
@@ -60,7 +60,7 @@ class TransformNode:
     reads_keys: frozenset[str] | None = None  # keys this transform reads (None = opaque/full state)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TapNode:
     """Zero-cost observation. No LLM call, no state mutation."""
 
@@ -68,7 +68,7 @@ class TapNode:
     fn: Callable
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FallbackNode:
     """Try children in order. First success wins."""
 
@@ -76,7 +76,7 @@ class FallbackNode:
     children: tuple = ()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RaceNode:
     """Run children concurrently. First to finish wins."""
 
@@ -84,7 +84,7 @@ class RaceNode:
     children: tuple = ()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GateNode:
     """Human-in-the-loop approval gate."""
 
@@ -94,7 +94,7 @@ class GateNode:
     gate_key: str = "_gate_approved"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class MapOverNode:
     """Iterate a sub-agent over each item in a state list."""
 
@@ -105,7 +105,7 @@ class MapOverNode:
     output_key: str = "results"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TimeoutNode:
     """Wrap a sub-agent with a time limit."""
 
@@ -114,7 +114,7 @@ class TimeoutNode:
     seconds: float = 0.0
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RouteNode:
     """Deterministic state-based routing. No LLM call."""
 
@@ -124,7 +124,7 @@ class RouteNode:
     default: Any = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class TransferNode:
     """Hard agent transfer (ADK's transfer_to_agent)."""
 
@@ -133,7 +133,7 @@ class TransferNode:
     condition: Callable | None = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CaptureNode:
     """Capture the most recent user message into session state."""
 
@@ -141,7 +141,7 @@ class CaptureNode:
     key: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ArtifactNode:
     """Artifact operation in the IR."""
 
@@ -160,7 +160,7 @@ class ArtifactNode:
     consumes_state: frozenset[str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class DispatchNode:
     """Fire-and-continue background execution.
 
@@ -175,7 +175,7 @@ class DispatchNode:
     progress_key: str | None = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class JoinNode:
     """Synchronization barrier for dispatched tasks.
 
@@ -188,7 +188,7 @@ class JoinNode:
     timeout: float | None = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class WatchNode:
     """Reactive state trigger.
 
@@ -201,7 +201,7 @@ class WatchNode:
     trigger: str = "change"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UINode:
     """A2UI surface attached to an agent.
 
@@ -223,7 +223,7 @@ class UINode:
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CompactionConfig:
     """Event compaction settings (maps to ADK EventsCompactionConfig)."""
 
@@ -233,7 +233,7 @@ class CompactionConfig:
     event_retention_size: int | None = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ExecutionConfig:
     """Top-level execution configuration."""
 
@@ -252,7 +252,7 @@ class ExecutionConfig:
 # ======================================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class ToolCallInfo:
     """A tool invocation within an event."""
 
@@ -261,7 +261,7 @@ class ToolCallInfo:
     call_id: str
 
 
-@dataclass
+@dataclass(slots=True)
 class ToolResponseInfo:
     """A tool response within an event."""
 
@@ -270,7 +270,7 @@ class ToolResponseInfo:
     call_id: str
 
 
-@dataclass
+@dataclass(slots=True)
 class AgentEvent:
     """Backend-agnostic representation of an execution event."""
 

@@ -115,7 +115,7 @@ __all__ = [
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CTransform:
     """Base context transform descriptor.
 
@@ -187,7 +187,7 @@ def _derive_include_contents(
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CComposite(CTransform):
     """Union of multiple context blocks (via + operator).
 
@@ -220,7 +220,7 @@ class CComposite(CTransform):
         return frozenset(keys) if keys else None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CPipe(CTransform):
     """Pipe transform: source feeds into transform (via | operator)."""
 
@@ -239,7 +239,7 @@ class CPipe(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CWhen(CTransform):
     """Conditional context inclusion.
 
@@ -270,7 +270,7 @@ class CWhen(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CFromState(CTransform):
     """Read named keys from session state and format as context.
 
@@ -302,7 +302,7 @@ class CFromState(CTransform):
         return frozenset(self.keys)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CWindow(CTransform):
     """Include only the last N turn-pairs from conversation history."""
 
@@ -318,7 +318,7 @@ class CWindow(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CUserOnly(CTransform):
     """Include only user messages from conversation history."""
 
@@ -333,7 +333,7 @@ class CUserOnly(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CFromAgents(CTransform):
     """Include user messages + outputs from named agents."""
 
@@ -349,7 +349,7 @@ class CFromAgents(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CExcludeAgents(CTransform):
     """Exclude outputs from named agents."""
 
@@ -365,7 +365,7 @@ class CExcludeAgents(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CTemplate(CTransform):
     """Render a template string with {key} and {key?} placeholders from state.
 
@@ -395,7 +395,7 @@ class CTemplate(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CSelect(CTransform):
     """Filter events by metadata: author, type, and/or tag."""
 
@@ -413,7 +413,7 @@ class CSelect(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CRecent(CTransform):
     """Importance-weighted selection based on recency with exponential decay."""
 
@@ -436,7 +436,7 @@ class CRecent(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CCompact(CTransform):
     """Structural compaction — merge sequential same-author messages or tool calls."""
 
@@ -452,7 +452,7 @@ class CCompact(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CDedup(CTransform):
     """Remove duplicate or redundant events."""
 
@@ -469,7 +469,7 @@ class CDedup(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CTruncate(CTransform):
     """Hard limit on context size by turn count or estimated tokens."""
 
@@ -487,7 +487,7 @@ class CTruncate(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CProject(CTransform):
     """Keep only specific fields from event content."""
 
@@ -508,7 +508,7 @@ class CProject(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CBudget(CTransform):
     """Token budget constraint for context."""
 
@@ -525,7 +525,7 @@ class CBudget(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CPriority(CTransform):
     """Priority tier for context ordering (lower = higher priority)."""
 
@@ -533,7 +533,7 @@ class CPriority(CTransform):
     _kind: str = "priority"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CFit(CTransform):
     """Aggressive pruning to fit a hard token limit."""
 
@@ -556,7 +556,7 @@ class CFit(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CFresh(CTransform):
     """Prune stale context based on event timestamp."""
 
@@ -573,7 +573,7 @@ class CFresh(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CRedact(CTransform):
     """Remove PII or sensitive patterns from context via regex."""
 
@@ -595,7 +595,7 @@ class CRedact(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CSummarize(CTransform):
     """Lossy compression via LLM summarization."""
 
@@ -614,7 +614,7 @@ class CSummarize(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CRelevant(CTransform):
     """Semantic relevance selection via LLM scoring."""
 
@@ -633,7 +633,7 @@ class CRelevant(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CExtract(CTransform):
     """Structured extraction from conversation via LLM."""
 
@@ -651,7 +651,7 @@ class CExtract(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CDistill(CTransform):
     """Fact distillation from conversation via LLM."""
 
@@ -668,7 +668,7 @@ class CDistill(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CValidate(CTransform):
     """Context quality validation."""
 
@@ -690,7 +690,7 @@ class CValidate(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CNotes(CTransform):
     """Read from an agent's structured scratchpad stored in session state.
 
@@ -719,7 +719,7 @@ class CNotes(CTransform):
         return frozenset({f"_notes_{self.key}"})
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CWriteNotes(CTransform):
     """Write to an agent's structured scratchpad after agent execution.
 
@@ -760,7 +760,7 @@ class CWriteNotes(CTransform):
 # ======================================================================
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CRolling(CTransform):
     """Rolling window with optional summarization of older turns.
 
@@ -782,7 +782,7 @@ class CRolling(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CFromAgentsWindowed(CTransform):
     """Per-agent selective windowing.
 
@@ -808,7 +808,7 @@ class CFromAgentsWindowed(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CUser(CTransform):
     """User message strategies.
 
@@ -832,7 +832,7 @@ class CUser(CTransform):
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CManusCascade(CTransform):
     """Manus-inspired progressive compression cascade.
 
@@ -858,7 +858,7 @@ class CManusCascade(CTransform):
 # Provider factories are in _context_providers.py (imported at module top).
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CPipelineAware(CTransform):
     """Topology-aware context for pipeline agents.
 
@@ -912,7 +912,7 @@ class CPipelineAware(CTransform):
         return frozenset(self.keys)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class CSharedThread(CTransform):
     """Shared conversational thread for multi-agent loops.
 
@@ -1304,12 +1304,34 @@ def _compile_context_spec(
             "instruction": developer_instruction,
         }
 
-    # Build a combined async instruction provider
+    # Build a combined async instruction provider.
+    #
+    # Fast path: if ``developer_instruction`` is a static string, compile
+    # its {key}/{key?} placeholders into a flat segment tuple once here
+    # (build time). The hot per-turn path then walks the segments and
+    # joins — no regex, no per-call closures. Missing required keys are
+    # left as literal ``{key}`` to match the legacy re.sub behaviour.
+    #
+    # Slow path: if the instruction is a callable (dynamic), we resolve
+    # it per turn but still use the module-level precompiled pattern.
+    from adk_fluent._context_providers import _compile_template, _render_template
+
     raw_instruction = developer_instruction
+    static_segments: tuple | None = None
+    static_text: str | None = None
+    if isinstance(raw_instruction, str):
+        static_segments = _compile_template(raw_instruction)
+        if static_segments is None:
+            # No placeholders — instruction is fully static.
+            static_text = raw_instruction
 
     async def _combined_provider(ctx: Any) -> str:
         # Step 1: resolve the developer instruction
-        if raw_instruction is None:
+        if static_text is not None:
+            instruction = static_text
+        elif static_segments is not None:
+            instruction = _render_template(static_segments, ctx.state, raise_on_missing=False)
+        elif raw_instruction is None:
             instruction = ""
         elif callable(raw_instruction):
             result = raw_instruction(ctx)
@@ -1320,25 +1342,13 @@ def _compile_context_spec(
                 instruction = await result
             else:
                 instruction = str(result)
+            # Dynamic instructions may still contain placeholders.
+            if instruction and "{" in instruction:
+                dyn_segments = _compile_template(instruction)
+                if dyn_segments is not None:
+                    instruction = _render_template(dyn_segments, ctx.state, raise_on_missing=False)
         else:
             instruction = str(raw_instruction)
-
-        # Template state variables into instruction ({key} patterns)
-        if instruction and "{" in instruction:
-            state = ctx.state
-
-            def _sub(match: re.Match) -> str:
-                key = match.group(1)
-                optional = match.group(2) == "?"
-                value = state.get(key)
-                if value is None:
-                    if optional:
-                        return ""
-                    # Leave unreplaced if not optional and not in state
-                    return match.group(0)
-                return str(value)
-
-            instruction = re.sub(r"\{(\w+)(\??)}", _sub, instruction)
 
         # Step 2: get context from the C transform's provider
         context = await spec_provider(ctx)

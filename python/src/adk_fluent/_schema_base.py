@@ -30,7 +30,7 @@ __all__ = [
 _VALID_SCOPES = frozenset({"session", "app", "user", "temp"})
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Reads:
     """Field is read from state before execution."""
 
@@ -41,7 +41,7 @@ class Reads:
             raise ValueError(f"Invalid scope '{self.scope}'. Must be one of: {', '.join(sorted(_VALID_SCOPES))}")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Writes:
     """Field is written to state after execution."""
 
@@ -52,21 +52,21 @@ class Writes:
             raise ValueError(f"Invalid scope '{self.scope}'. Must be one of: {', '.join(sorted(_VALID_SCOPES))}")
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Param:
     """Field is a tool/function parameter (not from state)."""
 
     required: bool = True
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Confirms:
     """Tool requires user confirmation before execution."""
 
     message: str = ""
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Timeout:
     """Execution timeout constraint."""
 

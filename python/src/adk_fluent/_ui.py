@@ -147,7 +147,7 @@ class _UIGroup(UIComponent):
         return self._children
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UISurface:
     """Named A2UI surface — the top-level compilation root.
 

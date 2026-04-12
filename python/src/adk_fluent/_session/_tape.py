@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import json
 import time
-from dataclasses import asdict
+from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -47,8 +47,11 @@ class SessionTape:
     """
 
     def __init__(self, *, max_events: int = 0) -> None:
-        self._events: list[dict[str, Any]] = []
         self._max_events = max_events
+        # Use a bounded deque when capping — O(1) append with automatic
+        # eviction of the oldest entry, versus an O(n) list slice on every
+        # overflow.
+        self._events: deque[dict[str, Any]] = deque(maxlen=max_events if max_events > 0 else None)
         self._start_time = time.monotonic()
 
     def record(self, event: "HarnessEvent") -> None:
@@ -57,15 +60,21 @@ class SessionTape:
         Args:
             event: HarnessEvent to record.
         """
-        entry = {
+        # Hand-roll the entry instead of ``dataclasses.asdict``. ``asdict``
+        # performs a recursive deepcopy of every field which dominates hot
+        # paths where tens of thousands of events flow through the tape.
+        # All HarnessEvent subclasses are slotted frozen dataclasses, so we
+        # iterate __dataclass_fields__ and shallow-copy by reference.
+        entry: dict[str, Any] = {
             "t": round(time.monotonic() - self._start_time, 3),
             "kind": event.kind,
             "type": type(event).__name__,
-            **{k: v for k, v in asdict(event).items() if k != "kind"},
         }
+        for field_name in type(event).__dataclass_fields__:  # type: ignore[attr-defined]
+            if field_name == "kind":
+                continue
+            entry[field_name] = getattr(event, field_name)
         self._events.append(entry)
-        if self._max_events > 0 and len(self._events) > self._max_events:
-            self._events = self._events[-self._max_events :]
 
     @property
     def events(self) -> list[dict[str, Any]]:
@@ -107,9 +116,11 @@ class SessionTape:
         """
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
+        # Serialize all entries up-front and issue a single write — one
+        # syscall instead of one per event.
+        payload = "".join(json.dumps(entry) + "\n" for entry in self._events)
         with p.open("w") as f:
-            for entry in self._events:
-                f.write(json.dumps(entry) + "\n")
+            f.write(payload)
 
     @classmethod
     def load(cls, path: str | Path) -> SessionTape:
