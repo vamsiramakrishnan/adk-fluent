@@ -1545,9 +1545,7 @@ class A2ACircuitBreakerMiddleware:
     def open_circuits(self) -> dict[str, str]:
         """Return currently open / half-open circuits keyed by name → state."""
         return {
-            name: breaker.current_state
-            for name, breaker in self._breakers.items()
-            if breaker.current_state != "closed"
+            name: breaker.current_state for name, breaker in self._breakers.items() if breaker.current_state != "closed"
         }
 
     async def before_agent(self, ctx: Any, agent_name: str) -> Any:
