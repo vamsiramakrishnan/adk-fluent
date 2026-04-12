@@ -4,7 +4,7 @@
  * These wrap @google/adk's SequentialAgent, ParallelAgent, and LoopAgent.
  */
 
-import { BuilderBase, autoBuild } from "../core/builder-base.js";
+import { BuilderBase, autoBuild, registerWorkflow } from "../core/builder-base.js";
 import type { StatePredicate } from "../core/types.js";
 
 /**
@@ -40,13 +40,7 @@ export class Pipeline extends BuilderBase {
     const desc = this._config.get("description");
     if (desc) config.description = desc;
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { SequentialAgent } = require("@google/adk");
-      return new SequentialAgent(config);
-    } catch {
-      return { _type: "SequentialAgent", ...config };
-    }
+    return { _type: "SequentialAgent", ...config };
   }
 }
 
@@ -82,13 +76,7 @@ export class FanOut extends BuilderBase {
     const desc = this._config.get("description");
     if (desc) config.description = desc;
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { ParallelAgent } = require("@google/adk");
-      return new ParallelAgent(config);
-    } catch {
-      return { _type: "ParallelAgent", ...config };
-    }
+    return { _type: "ParallelAgent", ...config };
   }
 }
 
@@ -137,13 +125,7 @@ export class Loop extends BuilderBase {
     const desc = this._config.get("description");
     if (desc) config.description = desc;
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { LoopAgent } = require("@google/adk");
-      return new LoopAgent(config);
-    } catch {
-      return { _type: "LoopAgent", ...config };
-    }
+    return { _type: "LoopAgent", ...config };
   }
 }
 
@@ -183,3 +165,9 @@ export class Fallback extends BuilderBase {
     };
   }
 }
+
+// Register workflow classes with builder-base to break circular import.
+registerWorkflow("Pipeline", Pipeline);
+registerWorkflow("FanOut", FanOut);
+registerWorkflow("Loop", Loop);
+registerWorkflow("Fallback", Fallback);

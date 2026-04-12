@@ -46,7 +46,7 @@ describe("Agent builder", () => {
     expect(config["lists.tools"]).toBe(1);
   });
 
-  it("builds to a config object (no @google/adk installed)", () => {
+  it("builds to a config object", () => {
     const result = new Agent("helper", "gemini-2.5-flash")
       .instruct("Be helpful.")
       .build() as Record<string, unknown>;

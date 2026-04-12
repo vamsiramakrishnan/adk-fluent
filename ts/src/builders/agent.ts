@@ -240,23 +240,18 @@ export class Agent extends BuilderBase {
       config.outputSchema = outputSchema;
     }
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { LlmAgent } = require("@google/adk");
-      const agent = new LlmAgent(config);
+    // Return a plain config object. Real @google/adk wiring happens via the
+    // codegen pipeline (or via .native() hooks) — keeping build() synchronous
+    // and side-effect-free makes the builder safe to use in tests and ESM.
+    const result: Record<string, unknown> = { _type: "LlmAgent", ...config };
 
-      // Apply native hooks
-      const nativeHooks = this._callbacks.get("_native_hooks");
-      if (nativeHooks) {
-        for (const hook of nativeHooks) {
-          hook(agent);
-        }
+    const nativeHooks = this._callbacks.get("_native_hooks");
+    if (nativeHooks) {
+      for (const hook of nativeHooks) {
+        hook(result);
       }
-
-      return agent;
-    } catch {
-      // @google/adk not installed — return config object for testing
-      return { _type: "LlmAgent", ...config };
     }
+
+    return result;
   }
 }

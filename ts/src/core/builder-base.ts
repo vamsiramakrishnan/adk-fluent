@@ -11,7 +11,32 @@
  * - Method-based operators: .then(), .parallel(), .times() instead of >>, |, *
  */
 
-import type { CallbackFn, State, StatePredicate, UntilSpec } from "./types.js";
+import type { CallbackFn, StatePredicate, UntilSpec } from "./types.js";
+
+/**
+ * Workflow builder registry — populated by workflow.ts at module load to
+ * avoid circular ESM imports between builder-base.ts and workflow.ts.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _workflowRegistry: Record<string, any> = {};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function registerWorkflow(name: string, ctor: any): void {
+  _workflowRegistry[name] = ctor;
+}
+
+function getWorkflow(name: string): {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]): BuilderBase;
+} {
+  const ctor = _workflowRegistry[name];
+  if (!ctor) {
+    throw new Error(
+      `Workflow class "${name}" not registered. Make sure builders/workflow.js is imported.`,
+    );
+  }
+  return ctor;
+}
 
 /**
  * Abstract base class for all fluent builders.
@@ -113,8 +138,7 @@ export abstract class BuilderBase<TBuild = unknown> {
    * If `this` is already a Pipeline, appends `other` as a new step.
    */
   then(other: BuilderBase | ((...args: unknown[]) => unknown)): BuilderBase {
-    // Lazy import to avoid circular deps — resolved at call time
-    const { Pipeline } = require("../builders/workflow.js");
+    const Pipeline = getWorkflow("Pipeline");
 
     const myName = (this._config.get("name") as string) ?? "";
     const otherName =
@@ -124,7 +148,8 @@ export abstract class BuilderBase<TBuild = unknown> {
 
     if (this instanceof Pipeline) {
       const clone = this._clone();
-      clone._addToList("sub_agents", other);
+      const existing = (clone._lists.get("sub_agents") ?? []) as unknown[];
+      clone._lists.set("sub_agents", [...existing, other]);
       clone._config.set("name", `${myName}_then_${otherName}`);
       return clone;
     }
@@ -142,14 +167,15 @@ export abstract class BuilderBase<TBuild = unknown> {
    * If `this` is already a FanOut, appends `other` as a new branch.
    */
   parallel(other: BuilderBase): BuilderBase {
-    const { FanOut } = require("../builders/workflow.js");
+    const FanOut = getWorkflow("FanOut");
 
     const myName = (this._config.get("name") as string) ?? "";
     const otherName = (other._config.get("name") as string) ?? "";
 
     if (this instanceof FanOut) {
       const clone = this._clone();
-      clone._addToList("sub_agents", other);
+      const existing = (clone._lists.get("sub_agents") ?? []) as unknown[];
+      clone._lists.set("sub_agents", [...existing, other]);
       clone._config.set("name", `${myName}_and_${otherName}`);
       return clone;
     }
@@ -170,7 +196,8 @@ export abstract class BuilderBase<TBuild = unknown> {
       throw new Error(`Loop iterations must be >= 1, got ${iterations}`);
     }
 
-    const { Loop, Pipeline } = require("../builders/workflow.js");
+    const Loop = getWorkflow("Loop");
+    const Pipeline = getWorkflow("Pipeline");
 
     const myName = (this._config.get("name") as string) ?? "";
     const name = `${myName}_x${iterations}`;
@@ -216,7 +243,7 @@ export abstract class BuilderBase<TBuild = unknown> {
    * Tries this builder first. If it fails, falls back to `other`.
    */
   fallback(other: BuilderBase): BuilderBase {
-    const { Fallback } = require("../builders/workflow.js");
+    const Fallback = getWorkflow("Fallback");
     return new Fallback(`${this._config.get("name")}_or_${other._config.get("name")}`, [
       this,
       other,
