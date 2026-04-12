@@ -40,7 +40,7 @@ export class Pipeline extends BuilderBase {
     const desc = this._config.get("description");
     if (desc) config.description = desc;
 
-    return { _type: "SequentialAgent", ...config };
+    return this._applyNativeHooks({ _type: "SequentialAgent", ...config });
   }
 }
 
@@ -76,7 +76,7 @@ export class FanOut extends BuilderBase {
     const desc = this._config.get("description");
     if (desc) config.description = desc;
 
-    return { _type: "ParallelAgent", ...config };
+    return this._applyNativeHooks({ _type: "ParallelAgent", ...config });
   }
 }
 
@@ -125,7 +125,7 @@ export class Loop extends BuilderBase {
     const desc = this._config.get("description");
     if (desc) config.description = desc;
 
-    return { _type: "LoopAgent", ...config };
+    return this._applyNativeHooks({ _type: "LoopAgent", ...config });
   }
 }
 
@@ -158,11 +158,11 @@ export class Fallback extends BuilderBase {
 
   build(): unknown {
     const builtChildren = this._children.map((c) => autoBuild(c));
-    return {
+    return this._applyNativeHooks({
       _type: "Fallback",
       name: this._config.get("name"),
       children: builtChildren,
-    };
+    });
   }
 }
 

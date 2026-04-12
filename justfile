@@ -590,6 +590,13 @@ ts-setup:
     @echo "Installing TypeScript dependencies..."
     @cd {{TS_DIR}} && npm install
 
+# --- TypeScript: regenerate builders from seed + manifest ---
+ts-generate: _require-manifest _require-seed
+    @echo "Generating TypeScript builders from seed + manifest..."
+    @uv run python -m shared.scripts.generator {{SEED}} {{MANIFEST}} \
+        --target typescript \
+        --ts-output-dir {{TS_DIR}}/src/builders
+
 # --- TypeScript: build ---
 ts-build:
     @echo "Building TypeScript package..."
@@ -615,5 +622,9 @@ test-all: test ts-test
     @echo "\nAll Python and TypeScript tests passed."
 
 # --- Monorepo: build everything ---
-build-all: generate ts-build
+build-all: generate ts-generate ts-build
     @echo "\nAll packages built successfully."
+
+# --- Monorepo: regenerate everything (Python + TypeScript) ---
+generate-all: generate ts-generate
+    @echo "\nRegenerated Python and TypeScript builders."

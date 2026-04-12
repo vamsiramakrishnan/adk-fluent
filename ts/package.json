@@ -16,7 +16,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "docs": "typedoc --out docs/api src/index.ts",
+    "docs:watch": "typedoc --watch --out docs/api src/index.ts"
   },
   "keywords": [
     "adk",
@@ -42,6 +44,7 @@
     "vitest": "^3.0.0",
     "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0"
+    "@typescript-eslint/parser": "^8.0.0",
+    "typedoc": "^0.27.0"
   }
 }

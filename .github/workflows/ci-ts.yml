@@ -54,3 +54,7 @@ jobs:
       - name: Test
         working-directory: ts
         run: npm test
+
+      - name: Generate API docs (typedoc)
+        working-directory: ts
+        run: npm run docs

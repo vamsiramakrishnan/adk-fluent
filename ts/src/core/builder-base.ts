@@ -100,13 +100,19 @@ export abstract class BuilderBase<TBuild = unknown> {
     return next;
   }
 
-  /** Append to a callback list, returning a new builder. */
-  protected _addCallback(key: string, fn: CallbackFn): this {
+  /**
+   * Append to a callback list, returning a new builder.
+   *
+   * Accepts ``unknown`` so that generated builders can pass through values
+   * whose type the emitter could not narrow. The cast is safe at runtime
+   * because the value is only invoked when ``.build()`` is called.
+   */
+  protected _addCallback(key: string, fn: CallbackFn | unknown): this {
     const next = this._clone();
     if (!next._callbacks.has(key)) {
       next._callbacks.set(key, []);
     }
-    next._callbacks.get(key)!.push(fn);
+    next._callbacks.get(key)!.push(fn as CallbackFn);
     return next;
   }
 
@@ -125,6 +131,62 @@ export abstract class BuilderBase<TBuild = unknown> {
     const next = this._clone();
     next._lists.set(key, [...items]);
     return next;
+  }
+
+  /**
+   * Build a plain config object from this builder's state.
+   *
+   * Used by generated builders that don't have a corresponding
+   * `@google/adk` class to construct directly. Returns a tagged
+   * config object: ``{ _type: typeName, ...config, ...lists, ...callbacks }``.
+   *
+   * Sub-builders inside list fields are recursively built.
+   */
+  protected _buildConfig(typeName: string): Record<string, unknown> {
+    const result: Record<string, unknown> = { _type: typeName };
+
+    // Plain config (skip private keys starting with _)
+    for (const [k, v] of this._config) {
+      if (k.startsWith("_")) continue;
+      result[k] = v;
+    }
+
+    // Lists — auto-build sub-builders
+    for (const [k, v] of this._lists) {
+      if (v.length === 0) continue;
+      result[k] = v.map((item) =>
+        item instanceof BuilderBase ? item.build() : item,
+      );
+    }
+
+    // Callbacks
+    for (const [k, v] of this._callbacks) {
+      if (k.startsWith("_") || v.length === 0) continue;
+      if (v.length === 1) {
+        result[k] = v[0];
+      } else {
+        // Compose multiple callbacks into a single async-fold
+        const fns = [...v];
+        result[k] = async (...args: unknown[]) => {
+          for (const fn of fns) {
+            await fn(...args);
+          }
+        };
+      }
+    }
+
+    return this._applyNativeHooks(result);
+  }
+
+  /** Apply any registered ``.native()`` post-build hooks. */
+  protected _applyNativeHooks<T>(result: T): T {
+    const hooks = this._callbacks.get("_native_hooks");
+    if (hooks) {
+      for (const hook of hooks) {
+        (hook as (obj: T) => void)(result);
+      }
+    }
+    return result;
   }
 
   // ------------------------------------------------------------------

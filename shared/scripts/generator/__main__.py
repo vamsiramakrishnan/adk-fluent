@@ -16,6 +16,17 @@ def main():
     parser.add_argument("--stubs-only", action="store_true", help="Generate only .pyi stubs")
     parser.add_argument("--tests-only", action="store_true", help="Generate only test scaffolds")
     parser.add_argument("--stats", default=None, metavar="FILE", help="Write generation stats as JSON to FILE")
+    parser.add_argument(
+        "--target",
+        default="python",
+        choices=["python", "typescript", "both"],
+        help="Which language to emit (default: python)",
+    )
+    parser.add_argument(
+        "--ts-output-dir",
+        default=None,
+        help="Output directory for generated TypeScript builders (required when --target includes typescript)",
+    )
     args = parser.parse_args()
 
     generate_all(
@@ -26,6 +37,8 @@ def main():
         stubs_only=args.stubs_only,
         tests_only=args.tests_only,
         stats_json=args.stats,
+        target=args.target,
+        ts_output_dir=args.ts_output_dir,
     )
 
 

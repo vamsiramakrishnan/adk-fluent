@@ -827,6 +827,114 @@ def _wrap_for_zed(content: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# TypeScript-flavored content
+# ---------------------------------------------------------------------------
+
+_TS_HEADER = """\
+# adk-fluent-ts — LLM Context
+
+> Auto-generated from manifest.json. Do not edit manually.
+> Repo: https://github.com/vamsiramakrishnan/adk-fluent
+> Package directory: ts/
+
+adk-fluent-ts is the TypeScript port of adk-fluent — a fluent builder API
+that wraps Google's Agent Development Kit. The TS package mirrors the Python
+API surface but uses TypeScript idioms (immutable clones, method-chained
+operators, camelCase).
+"""
+
+_TS_INSTALL = """\
+## Install (TypeScript)
+
+    cd ts
+    npm install
+    npm run build
+
+The package targets ``@google/adk`` (the JavaScript port of Google ADK).
+"""
+
+_TS_IMPORTS = """\
+## Imports (TypeScript)
+
+    import { Agent, Pipeline, FanOut, Loop, Fallback } from "adk-fluent-ts";
+    import { S, C, P, T, G, M, A, E, UI } from "adk-fluent-ts";
+    import { tap, expect, gate, race, dispatch, join, Route } from "adk-fluent-ts";
+    import { reviewLoop, mapReduce, cascade, chain, conditional } from "adk-fluent-ts";
+    import { RemoteAgent, A2AServer, AgentRegistry } from "adk-fluent-ts";
+"""
+
+_TS_OPERATORS = """\
+## Operators → method chains
+
+JavaScript has no operator overloading, so adk-fluent-ts uses method calls:
+
+  Python      TypeScript                 Returns
+  --------    -----------------------    --------
+  a >> b      a.then(b)                  Pipeline
+  a | b       a.parallel(b)              FanOut
+  a * 3       a.times(3)                 Loop
+  a * until   a.timesUntil(pred,{max})   Loop
+  a // b      a.fallback(b)              Fallback
+  a @ Schema  a.outputAs(Schema)         Agent
+
+Sub-builders passed to workflow builders are auto-built — do not call
+``.build()`` on individual steps.
+"""
+
+_TS_EXAMPLE = """\
+## Example (TypeScript)
+
+    import { Agent, Pipeline } from "adk-fluent-ts";
+
+    const writer = new Agent("writer", "gemini-2.5-flash")
+      .instruct("Write a draft about {topic}.")
+      .writes("draft");
+
+    const reviewer = new Agent("reviewer", "gemini-2.5-flash")
+      .instruct("Review the draft: {draft}")
+      .writes("feedback");
+
+    const pipeline = new Pipeline("review_flow")
+      .step(writer)
+      .step(reviewer)
+      .build();
+
+    // Equivalent with method-chained operators:
+    const pipeline2 = writer.then(reviewer).times(3).build();
+"""
+
+_TS_COMMANDS = """\
+## Development commands (TypeScript)
+
+    cd ts
+    npm install                              # install
+    npm test                                 # run vitest
+    npm run typecheck                        # tsc --noEmit
+    npm run build                            # tsc -> dist/
+    just ts-generate                         # regenerate builders from seed
+    just ts-test                             # run tests via just
+"""
+
+
+def generate_llms_txt_ts(specs: list[BuilderSpec]) -> str:
+    """Generate the TypeScript-flavored llms.txt content."""
+    groups = _group_builders_by_module(specs)
+
+    sections = [
+        _TS_HEADER,
+        _TS_INSTALL,
+        _TS_IMPORTS,
+        _TS_OPERATORS,
+        _TS_EXAMPLE,
+        _NAMESPACE_MODULES,  # namespaces are identical apart from import path
+        _format_builder_section(groups),
+        _BEST_PRACTICES,
+        _TS_COMMANDS,
+    ]
+    return "\n".join(s.strip() for s in sections) + "\n"
+
+
+# ---------------------------------------------------------------------------
 # Output targets
 # ---------------------------------------------------------------------------
 
@@ -837,6 +945,14 @@ TARGETS: list[tuple[str, callable]] = [
     (".github/instructions/adk-fluent.instructions.md", _wrap_for_copilot),
     (".windsurfrules", lambda c: c),
     (".clinerules/adk-fluent.md", lambda c: c),
+]
+
+# Targets written when ``--ts`` is supplied. The TypeScript llms.txt lives
+# alongside the Python one but with a distinct filename so editors and
+# documentation sites can offer them as separate language entry points.
+TS_TARGETS: list[tuple[str, callable]] = [
+    ("docs/llms-ts.txt", lambda c: c),
+    ("ts/CLAUDE.md", _wrap_for_claude_md),
 ]
 
 
@@ -859,6 +975,16 @@ def main():
         action="store_true",
         help="Only generate docs/llms.txt",
     )
+    parser.add_argument(
+        "--ts",
+        action="store_true",
+        help="Also emit TypeScript-flavored llms.txt (docs/llms-ts.txt + ts/CLAUDE.md)",
+    )
+    parser.add_argument(
+        "--ts-only",
+        action="store_true",
+        help="Only emit TypeScript-flavored llms.txt (skips Python targets)",
+    )
     args = parser.parse_args()
 
     manifest = parse_manifest(args.manifest)
@@ -868,15 +994,26 @@ def main():
     content = generate_llms_txt(specs)
     root = Path(args.output_dir)
 
-    targets = TARGETS[:1] if args.llms_only else TARGETS
+    written = 0
+    if not args.ts_only:
+        targets = TARGETS[:1] if args.llms_only else TARGETS
+        for relpath, wrapper in targets:
+            outpath = root / relpath
+            outpath.parent.mkdir(parents=True, exist_ok=True)
+            outpath.write_text(wrapper(content))
+            print(f"  Generated {relpath}")
+            written += 1
 
-    for relpath, wrapper in targets:
-        outpath = root / relpath
-        outpath.parent.mkdir(parents=True, exist_ok=True)
-        outpath.write_text(wrapper(content))
-        print(f"  Generated {relpath}")
+    if args.ts or args.ts_only:
+        ts_content = generate_llms_txt_ts(specs)
+        for relpath, wrapper in TS_TARGETS:
+            outpath = root / relpath
+            outpath.parent.mkdir(parents=True, exist_ok=True)
+            outpath.write_text(wrapper(ts_content))
+            print(f"  Generated {relpath}")
+            written += 1
 
-    print(f"\nGenerated {len(targets)} file(s) from {len(specs)} builder specs.")
+    print(f"\nGenerated {written} file(s) from {len(specs)} builder specs.")
 
 
 if __name__ == "__main__":
