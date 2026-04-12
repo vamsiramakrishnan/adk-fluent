@@ -18,6 +18,8 @@ import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from adk_fluent._session_index import get_session_index
+
 if TYPE_CHECKING:
     from adk_fluent._context import CTransform
 
@@ -65,22 +67,10 @@ def _make_window_provider(n: int) -> Callable:
     """Create an async provider that includes the last N turn-pairs."""
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        # A turn-pair is a user message + the model response(s) after it.
-        # Walk backwards to find the last N user messages.
-        user_indices: list[int] = []
-        for i, event in enumerate(events):
-            if getattr(event, "author", None) == "user":
-                user_indices.append(i)
-
-        # Take the last N turn-pair start indices
-        start_indices = user_indices[-n:] if len(user_indices) >= n else user_indices
-        if not start_indices:
+        idx = get_session_index(ctx.session)
+        window_events = idx.window_tail(n)
+        if not window_events:
             return ""
-
-        # Include everything from the earliest selected user message onward
-        window_start = start_indices[0]
-        window_events = events[window_start:]
         return _format_events_as_context(window_events)
 
     _provider.__name__ = f"window_{n}"
@@ -91,9 +81,8 @@ def _make_user_only_provider() -> Callable:
     """Create an async provider that includes only user messages."""
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        user_events = [e for e in events if getattr(e, "author", None) == "user"]
-        return _format_events_as_context(user_events)
+        idx = get_session_index(ctx.session)
+        return _format_events_as_context(idx.user_events())
 
     _provider.__name__ = "user_only"
     return _provider
@@ -101,14 +90,11 @@ def _make_user_only_provider() -> Callable:
 
 def _make_from_agents_provider(agent_names: tuple[str, ...]) -> Callable:
     """Create an async provider including user + named agent outputs."""
-    names_set = set(agent_names)
+    names_set = set(agent_names) | {"user"}
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        filtered = [
-            e for e in events if getattr(e, "author", None) == "user" or getattr(e, "author", None) in names_set
-        ]
-        return _format_events_as_context(filtered)
+        idx = get_session_index(ctx.session)
+        return _format_events_as_context(idx.events_by_authors(names_set))
 
     _provider.__name__ = f"from_agents_{'_'.join(agent_names)}"
     return _provider
@@ -119,9 +105,8 @@ def _make_exclude_agents_provider(agent_names: tuple[str, ...]) -> Callable:
     names_set = set(agent_names)
 
     async def _provider(ctx: Any) -> str:
-        events = list(ctx.session.events)
-        filtered = [e for e in events if getattr(e, "author", None) not in names_set]
-        return _format_events_as_context(filtered)
+        idx = get_session_index(ctx.session)
+        return _format_events_as_context(idx.events_excluding_authors(names_set))
 
     _provider.__name__ = f"exclude_agents_{'_'.join(agent_names)}"
     return _provider
