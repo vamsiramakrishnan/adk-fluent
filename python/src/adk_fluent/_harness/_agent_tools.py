@@ -104,78 +104,9 @@ class TodoStore:
         return [todo_write, todo_read]
 
 
-# ─── PlanMode ─────────────────────────────────────────────────────────────
+# ─── PlanMode (lives in adk_fluent._plan_mode, re-exported here) ─────────
 
-
-MUTATING_TOOLS = frozenset(
-    {
-        "write_file",
-        "edit_file",
-        "bash",
-        "run_code",
-        "git_commit",
-        "start_process",
-    }
-)
-
-
-class PlanMode:
-    """Plan-mode latch.
-
-    When the latch is in ``planning``, the harness should reject every
-    write/edit/exec tool call and surface the proposed plan to the user
-    instead. The harness wires the latch into ``PermissionPolicy`` (or a
-    ``ToolPolicy`` "ask" action).
-    """
-
-    def __init__(self) -> None:
-        self._state: Literal["off", "planning", "executing"] = "off"
-        self._plan = ""
-
-    @property
-    def current(self) -> str:
-        return self._state
-
-    @property
-    def current_plan(self) -> str:
-        return self._plan
-
-    @staticmethod
-    def is_mutating(tool_name: str) -> bool:
-        return tool_name in MUTATING_TOOLS
-
-    def enter(self) -> None:
-        self._state = "planning"
-        self._plan = ""
-
-    def exit(self, plan: str) -> None:
-        self._state = "executing"
-        self._plan = plan
-
-    def reset(self) -> None:
-        self._state = "off"
-        self._plan = ""
-
-    def tools(self) -> list[Callable]:
-        latch = self
-
-        def enter_plan_mode() -> dict:
-            """Enter plan mode. The agent should propose a plan, not act."""
-            latch.enter()
-            return {"state": latch._state}
-
-        def exit_plan_mode(plan: str) -> dict:
-            """Exit plan mode with the finalized plan text.
-
-            Args:
-                plan: Markdown / numbered list describing the steps.
-            """
-            latch.exit(plan)
-            return {"state": latch._state, "plan": latch._plan}
-
-        enter_plan_mode.__name__ = "enter_plan_mode"
-        exit_plan_mode.__name__ = "exit_plan_mode"
-        return [enter_plan_mode, exit_plan_mode]
+from adk_fluent._plan_mode import MUTATING_TOOLS, PlanMode  # noqa: E402
 
 
 # ─── AskUser ──────────────────────────────────────────────────────────────

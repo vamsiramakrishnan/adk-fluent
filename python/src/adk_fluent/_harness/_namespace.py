@@ -1536,9 +1536,41 @@ class H:
     @staticmethod
     def plan_mode() -> Any:
         """Create a :class:`PlanMode` latch for plan-then-execute flows."""
-        from adk_fluent._harness._agent_tools import PlanMode
+        from adk_fluent._plan_mode import PlanMode
 
         return PlanMode()
+
+    @staticmethod
+    def plan_mode_policy(base: Any, latch: Any | None = None) -> Any:
+        """Wrap a :class:`PermissionPolicy` with plan-mode-aware dispatch.
+
+        Returns a :class:`PlanModePolicy` whose ``check()`` follows the
+        latch: while the latch is ``planning``, mutating tools are
+        denied; otherwise ``base`` is consulted verbatim. If ``latch``
+        is omitted, a fresh :class:`PlanMode` is created and exposed
+        as ``policy.latch``.
+        """
+        from adk_fluent._plan_mode import PlanMode, PlanModePolicy
+
+        return PlanModePolicy(base=base, latch=latch or PlanMode())
+
+    @staticmethod
+    def plan_mode_plugin(
+        latch: Any | None = None,
+        *,
+        name: str = "adkf_plan_mode_plugin",
+    ) -> Any:
+        """Create a session-scoped :class:`PlanModePlugin`.
+
+        Install on the root app to block mutating tool calls across
+        the full invocation tree while the latch is planning. Unlike
+        :meth:`plan_mode`, this variant covers sub-agents and subagent
+        specialists automatically because ADK ``BasePlugin`` is
+        session-scoped.
+        """
+        from adk_fluent._plan_mode import PlanModePlugin
+
+        return PlanModePlugin(latch, name=name)
 
     @staticmethod
     def ask_user(handler: Callable[[str, list[str] | None], str] | None = None) -> Callable:

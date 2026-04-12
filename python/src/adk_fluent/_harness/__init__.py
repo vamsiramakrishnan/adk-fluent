@@ -38,14 +38,21 @@ split into focused modules:
 
 # Events
 # Artifacts
-# Agent self-management tools (TodoStore, PlanMode, AskUser, Worktree)
+# Agent self-management tools (TodoStore, AskUser, Worktree)
 from adk_fluent._harness._agent_tools import (
-    MUTATING_TOOLS,
-    PlanMode,
     TodoItem,
     TodoStore,
     WorktreeManager,
     make_ask_user_tool,
+)
+# Plan mode (lives in adk_fluent._plan_mode, re-exported here)
+from adk_fluent._plan_mode import (
+    MUTATING_TOOLS,
+    PlanMode,
+    PlanModePlugin,
+    PlanModePolicy,
+    PlanState,
+    plan_mode_tools,
 )
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
 
@@ -337,6 +344,10 @@ __all__ = [
     "TodoStore",
     "TodoItem",
     "PlanMode",
+    "PlanModePlugin",
+    "PlanModePolicy",
+    "PlanState",
+    "plan_mode_tools",
     "MUTATING_TOOLS",
     "WorktreeManager",
     "make_ask_user_tool",
