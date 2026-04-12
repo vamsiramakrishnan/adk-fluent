@@ -51,6 +51,61 @@ export type { ECriterion, EPersonaSpec } from "./namespaces/eval.js";
 export { UI, UIComponent, UISurface } from "./namespaces/ui.js";
 export type { UIBinding, UICheck } from "./namespaces/ui.js";
 
+// H — Harness namespace (build-your-own coding agent)
+export { H } from "./namespaces/harness/H.js";
+export { PermissionPolicy, ApprovalMemory } from "./namespaces/harness/permissions.js";
+export { SandboxPolicy } from "./namespaces/harness/sandbox.js";
+export { ErrorStrategy } from "./namespaces/harness/error-strategy.js";
+export { UsageTracker } from "./namespaces/harness/usage.js";
+export { ProjectMemory, MemoryHierarchy } from "./namespaces/harness/memory.js";
+export { ArtifactStore } from "./namespaces/harness/artifacts.js";
+export { EventDispatcher, EventBus, SessionTape } from "./namespaces/harness/events.js";
+export type {
+  HarnessEvent,
+  HarnessEventKind,
+  TextEvent,
+  ToolEvent,
+  ModelEvent,
+  EventSubscriber,
+} from "./namespaces/harness/events.js";
+export {
+  ContextCompressor,
+  BudgetMonitor,
+  CancellationToken,
+  ForkManager,
+} from "./namespaces/harness/lifecycle.js";
+export {
+  HookRegistry,
+  CommandRegistry,
+  ToolPolicy,
+  TaskRegistry,
+  TaskLedger,
+} from "./namespaces/harness/registries.js";
+export { PlainRenderer, RichRenderer, JsonRenderer } from "./namespaces/harness/renderer.js";
+export type { Renderer, RendererOptions } from "./namespaces/harness/renderer.js";
+export { GitCheckpointer } from "./namespaces/harness/git.js";
+export { HarnessRepl } from "./namespaces/harness/repl.js";
+export { HarnessConfig } from "./namespaces/harness/config.js";
+export { CodeExecutor } from "./namespaces/harness/code-executor.js";
+export type {
+  CodeLanguage,
+  CodeExecutorOptions,
+  CodeRunResult,
+} from "./namespaces/harness/code-executor.js";
+export {
+  TodoStore,
+  PlanMode,
+  WorktreeManager,
+  askUserTool,
+} from "./namespaces/harness/agent-tools.js";
+export type { TodoItem, TodoStatus, AskUserHandler } from "./namespaces/harness/agent-tools.js";
+export { codingAgent } from "./namespaces/harness/coding-agent.js";
+export type {
+  CodingAgentOptions,
+  CodingAgentBundle,
+} from "./namespaces/harness/coding-agent.js";
+export type { HarnessTool } from "./namespaces/harness/types.js";
+
 // Primitives — function-level building blocks (tap, expect, mapOver, ...)
 export { Primitive, tap, expect, mapOver, gate, race, dispatch, join } from "./primitives/index.js";
 export type { DispatchOptions } from "./primitives/index.js";

@@ -1084,3 +1084,116 @@ class H:
             memory=memory,
             on_error=on_error,
         )
+
+    # =================================================================
+    # Polyglot code execution
+    # =================================================================
+
+    @staticmethod
+    def code_executor(
+        workspace: str | Path,
+        *,
+        interpreters: dict[str, list[str]] | None = None,
+        default_timeout_ms: int = 60_000,
+        disable: frozenset[str] | None = None,
+        max_output_bytes: int = 200_000,
+    ) -> Any:
+        """Create a polyglot :class:`CodeExecutor` rooted at ``workspace``.
+
+        The returned executor exposes ``.tools()`` (LLM-callable
+        ``run_code`` + ``which_languages``) and ``.run(language, source)``
+        for direct programmatic invocation. Supports python / node /
+        typescript / bash out of the box.
+        """
+        from adk_fluent._harness._code_executor import CodeExecutor
+
+        sandbox = SandboxPolicy(
+            workspace=str(Path(workspace).resolve()),
+            allow_shell=True,
+            max_output_bytes=max_output_bytes,
+        )
+        return CodeExecutor(
+            sandbox=sandbox,
+            interpreters=interpreters or {},
+            default_timeout_ms=default_timeout_ms,
+            disable=disable or frozenset(),
+        )
+
+    @staticmethod
+    def run_code_tools(
+        workspace: str | Path,
+        *,
+        interpreters: dict[str, list[str]] | None = None,
+    ) -> list[Callable]:
+        """Shorthand for ``H.code_executor(...).tools()``."""
+        return H.code_executor(workspace, interpreters=interpreters).tools()
+
+    # =================================================================
+    # Agent self-management tools (TodoWrite, PlanMode, AskUser, Worktree)
+    # =================================================================
+
+    @staticmethod
+    def todos() -> Any:
+        """Create an in-memory :class:`TodoStore` (claude-code style)."""
+        from adk_fluent._harness._agent_tools import TodoStore
+
+        return TodoStore()
+
+    @staticmethod
+    def plan_mode() -> Any:
+        """Create a :class:`PlanMode` latch for plan-then-execute flows."""
+        from adk_fluent._harness._agent_tools import PlanMode
+
+        return PlanMode()
+
+    @staticmethod
+    def ask_user(handler: Callable[[str, list[str] | None], str] | None = None) -> Callable:
+        """Build an ``ask_user_question`` LLM tool wrapping ``handler``."""
+        from adk_fluent._harness._agent_tools import make_ask_user_tool
+
+        return make_ask_user_tool(handler)
+
+    @staticmethod
+    def worktrees(workspace: str | Path) -> Any:
+        """Create a git :class:`WorktreeManager` rooted at ``workspace``."""
+        from adk_fluent._harness._agent_tools import WorktreeManager
+
+        return WorktreeManager(workspace)
+
+    # =================================================================
+    # Coding-agent preset — build-your-own-Claude-Code in one call
+    # =================================================================
+
+    @staticmethod
+    def coding_agent(
+        workspace: str | Path,
+        *,
+        allow_mutations: bool = True,
+        allow_network: bool = True,
+        on_ask_user: Callable[[str, list[str] | None], str] | None = None,
+        memory_path: str | Path | None = None,
+        max_output_bytes: int = 200_000,
+        interpreters: dict[str, list[str]] | None = None,
+        enable_git: bool = True,
+    ) -> Any:
+        """Build a fully-wired coding-agent harness in one call.
+
+        Returns a :class:`CodingAgentBundle` with ``tools`` ready to plug
+        into ``Agent.tools(...)`` plus every primitive (sandbox,
+        permissions, executor, todos, plan_mode, …) exposed for
+        inspection / overrides. See
+        :func:`adk_fluent._harness._coding_agent.coding_agent` for the
+        full parameter docs.
+        """
+        from adk_fluent._harness._coding_agent import coding_agent as _coding_agent
+
+        return _coding_agent(
+            workspace=workspace,
+            allow_mutations=allow_mutations,
+            allow_network=allow_network,
+            on_ask_user=on_ask_user,
+            memory_path=memory_path,
+            max_output_bytes=max_output_bytes,
+            interpreters=interpreters,
+            enable_git=enable_git,
+        )

@@ -38,10 +38,25 @@ split into focused modules:
 
 # Events
 # Artifacts
+# Agent self-management tools (TodoStore, PlanMode, AskUser, Worktree)
+from adk_fluent._harness._agent_tools import (
+    MUTATING_TOOLS,
+    PlanMode,
+    TodoItem,
+    TodoStore,
+    WorktreeManager,
+    make_ask_user_tool,
+)
 from adk_fluent._harness._artifacts import ArtifactRef, ArtifactStore
 
 # Budget monitor
 from adk_fluent._harness._budget_monitor import BudgetMonitor, Threshold
+
+# Polyglot code execution
+from adk_fluent._harness._code_executor import CodeExecutor, CodeRunResult
+
+# Coding-agent preset
+from adk_fluent._harness._coding_agent import CodingAgentBundle, coding_agent
 
 # Commands (slash commands)
 from adk_fluent._harness._commands import CommandRegistry, CommandSpec
@@ -260,6 +275,19 @@ __all__ = [
     # Web
     "make_web_fetch",
     "web_tools",
+    # Polyglot code execution
+    "CodeExecutor",
+    "CodeRunResult",
+    # Agent self-management tools
+    "TodoStore",
+    "TodoItem",
+    "PlanMode",
+    "MUTATING_TOOLS",
+    "WorktreeManager",
+    "make_ask_user_tool",
+    # Coding-agent preset
+    "coding_agent",
+    "CodingAgentBundle",
     # Memory
     "ProjectMemory",
     "MemoryHierarchy",
