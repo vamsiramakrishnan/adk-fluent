@@ -17,11 +17,36 @@ import type { State, StatePredicate } from "../core/types.js";
  * Lightweight, hand-rolled primitive class. Each primitive is a tiny
  * BuilderBase subclass that records its kind in `_config["_kind"]` so the
  * runtime layer can dispatch on it.
+ *
+ * Factory helpers below call `Primitive.create()` to populate private
+ * config / list fields up-front instead of poking at protected maps with
+ * bracket notation.
  */
 export class Primitive extends BuilderBase<Record<string, unknown>> {
   constructor(name: string, kind: string) {
     super(name);
     this._config.set("_kind", kind);
+  }
+
+  /**
+   * Construct a Primitive with private payload baked in. Used by the
+   * factory helpers (`tap`, `gate`, `mapOver`, ...) so they can stay free
+   * of bracket-notation access into protected fields.
+   */
+  static create(
+    name: string,
+    kind: string,
+    config: Record<string, unknown> = {},
+    lists: Record<string, unknown[]> = {},
+  ): Primitive {
+    const p = new Primitive(name, kind);
+    for (const [k, v] of Object.entries(config)) {
+      p._config.set(k, v);
+    }
+    for (const [k, v] of Object.entries(lists)) {
+      p._lists.set(k, v);
+    }
+    return p;
   }
 
   build(): Record<string, unknown> {
@@ -47,9 +72,7 @@ export class Primitive extends BuilderBase<Record<string, unknown>> {
  *   pipeline.then(tap((s) => console.log("midpoint", s)))
  */
 export function tap(fn: (state: State) => void, name = "tap"): Primitive {
-  const p = new Primitive(name, "tap");
-  p["_config"].set("_fn", fn);
-  return p;
+  return Primitive.create(name, "tap", { _fn: fn });
 }
 
 /**
@@ -57,10 +80,7 @@ export function tap(fn: (state: State) => void, name = "tap"): Primitive {
  * this is a contract check rather than a side-effect observer.
  */
 export function expect(pred: StatePredicate, msg = "Assertion failed", name = "expect"): Primitive {
-  const p = new Primitive(name, "expect");
-  p["_config"].set("_pred", pred);
-  p["_config"].set("_msg", msg);
-  return p;
+  return Primitive.create(name, "expect", { _pred: pred, _msg: msg });
 }
 
 /**
@@ -68,10 +88,7 @@ export function expect(pred: StatePredicate, msg = "Assertion failed", name = "e
  * results in `state[key + "_results"]`.
  */
 export function mapOver(key: string, agent: BuilderBase, name?: string): Primitive {
-  const p = new Primitive(name ?? `map_over_${key}`, "map_over");
-  p["_config"].set("_key", key);
-  p["_lists"].set("_agents", [agent]);
-  return p;
+  return Primitive.create(name ?? `map_over_${key}`, "map_over", { _key: key }, { _agents: [agent] });
 }
 
 /**
@@ -79,10 +96,7 @@ export function mapOver(key: string, agent: BuilderBase, name?: string): Primiti
  * returns true.
  */
 export function gate(pred: StatePredicate, agent: BuilderBase, name?: string): Primitive {
-  const p = new Primitive(name ?? "gate", "gate");
-  p["_config"].set("_pred", pred);
-  p["_lists"].set("_agents", [agent]);
-  return p;
+  return Primitive.create(name ?? "gate", "gate", { _pred: pred }, { _agents: [agent] });
 }
 
 /**
@@ -90,9 +104,7 @@ export function gate(pred: StatePredicate, agent: BuilderBase, name?: string): P
  * result of the first one to finish.
  */
 export function race(...agents: BuilderBase[]): Primitive {
-  const p = new Primitive("race", "race");
-  p["_lists"].set("_agents", agents);
-  return p;
+  return Primitive.create("race", "race", {}, { _agents: agents });
 }
 
 /**
@@ -105,10 +117,9 @@ export interface DispatchOptions {
 }
 
 export function dispatch(agent: BuilderBase, opts: DispatchOptions = {}): Primitive {
-  const p = new Primitive(opts.name ?? "dispatch", "dispatch");
-  p["_lists"].set("_agents", [agent]);
-  if (opts.onComplete) p["_config"].set("_on_complete", opts.onComplete);
-  return p;
+  const config: Record<string, unknown> = {};
+  if (opts.onComplete) config._on_complete = opts.onComplete;
+  return Primitive.create(opts.name ?? "dispatch", "dispatch", config, { _agents: [agent] });
 }
 
 /**
