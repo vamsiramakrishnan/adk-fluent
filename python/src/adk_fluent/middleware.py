@@ -30,7 +30,12 @@ from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 from uuid import uuid4 as _uuid4
 
+from cachetools import LRUCache as _LRUCache
+from cachetools import TTLCache as _TTLCache
 from google.adk.plugins.base_plugin import BasePlugin
+from pybreaker import CircuitBreaker as _CircuitBreaker
+from pybreaker import CircuitBreakerError as _CircuitBreakerError
+from tenacity import wait_exponential_jitter as _wait_exponential_jitter
 
 __all__ = [
     # Core types
@@ -44,6 +49,7 @@ __all__ = [
     "_MiddlewarePlugin",
     # Built-in middleware
     "RetryMiddleware",
+    "RateLimitMiddleware",
     "StructuredLogMiddleware",
     "DispatchLogMiddleware",
     "TopologyLogMiddleware",
@@ -794,20 +800,48 @@ class _MiddlewarePlugin(BasePlugin):
 class RetryMiddleware:
     """Retry middleware for model and tool errors.
 
-    Returns None on error to let ADK retry.
-    Uses exponential backoff between retries.
+    Returns None on error to let ADK retry. Between retries, this middleware
+    sleeps for a jittered exponential backoff delay computed by
+    ``tenacity.wait_exponential_jitter`` — the de-facto standard retry library.
+    Jitter avoids thundering-herd synchronization of retries against upstream
+    LLM / tool APIs when many workers fail at once.
+
+    The hook-based middleware design cannot *invoke* the retry itself — ADK is
+    responsible for re-issuing the failed call — so this class is intentionally
+    limited to computing and applying the inter-attempt wait.
     """
 
-    def __init__(self, max_attempts: int = 3, backoff_base: float = 1.0):
+    def __init__(
+        self,
+        max_attempts: int = 3,
+        backoff_base: float = 1.0,
+        *,
+        max_backoff: float = 60.0,
+        jitter: float = 1.0,
+    ):
         self.max_attempts = max_attempts
         self.backoff_base = backoff_base
+        self._max_backoff = max_backoff
+        # tenacity computes: min(initial * 2**(attempt-1), max) + uniform(0, jitter)
+        self._wait = _wait_exponential_jitter(
+            initial=backoff_base,
+            max=max_backoff,
+            jitter=jitter,
+        )
         self._attempts: dict[str, int] = {}
+
+    def _compute_delay(self, attempt_number: int) -> float:
+        """Delegate delay computation to tenacity's jittered exponential strategy."""
+        # tenacity's wait strategies take a RetryCallState but only read attempt_number.
+        # We construct a minimal duck-typed shim to avoid the full RetryCallState setup.
+        state = _TenacityRetryState(attempt_number=attempt_number)
+        return float(self._wait(state))  # type: ignore[arg-type]
 
     async def on_model_error(self, ctx, request, error):
         key = f"model_{id(request)}"
         self._attempts[key] = self._attempts.get(key, 0) + 1
         if self._attempts[key] < self.max_attempts:
-            delay = self.backoff_base * (2 ** (self._attempts[key] - 1))
+            delay = self._compute_delay(self._attempts[key])
             if delay > 0:
                 await _asyncio.sleep(delay)
         return None
@@ -816,10 +850,22 @@ class RetryMiddleware:
         key = f"tool_{tool_name}"
         self._attempts[key] = self._attempts.get(key, 0) + 1
         if self._attempts[key] < self.max_attempts:
-            delay = self.backoff_base * (2 ** (self._attempts[key] - 1))
+            delay = self._compute_delay(self._attempts[key])
             if delay > 0:
                 await _asyncio.sleep(delay)
         return None
+
+
+@dataclass
+class _TenacityRetryState:
+    """Minimal duck-type of tenacity.RetryCallState for wait strategies.
+
+    Tenacity's ``wait_*`` strategies only read ``attempt_number`` from the
+    state object; we avoid constructing a full RetryCallState because that
+    requires a live ``Retrying`` instance and real function call context.
+    """
+
+    attempt_number: int
 
 
 class StructuredLogMiddleware:
@@ -1066,34 +1112,65 @@ class CostTracker:
 
 
 class CircuitBreakerMiddleware:
-    """Trips open after N consecutive model errors, auto-resets after cooldown."""
+    """Trips open after N consecutive model errors, auto-resets after cooldown.
+
+    Backed by ``pybreaker.CircuitBreaker``: a thread-safe, well-tested state
+    machine with CLOSED → OPEN → HALF_OPEN transitions. Each agent gets its
+    own breaker instance keyed by agent name.
+    """
 
     def __init__(self, threshold: int = 5, reset_after: float = 60):
         self._threshold = threshold
         self._reset_after = reset_after
-        self._failures: dict[str, int] = {}
-        self._tripped_at: dict[str, float] = {}
+        self._breakers: dict[str, _CircuitBreaker] = {}
+
+    def _get_breaker(self, name: str) -> _CircuitBreaker:
+        breaker = self._breakers.get(name)
+        if breaker is None:
+            breaker = _CircuitBreaker(
+                fail_max=self._threshold,
+                reset_timeout=self._reset_after,
+                name=f"agent:{name}",
+            )
+            self._breakers[name] = breaker
+        return breaker
 
     async def before_model(self, ctx: Any, request: Any) -> Any:
         name = getattr(ctx, "agent_name", "unknown")
-        if name in self._tripped_at:
-            elapsed = _time.monotonic() - self._tripped_at[name]
-            if elapsed < self._reset_after:
-                raise RuntimeError(f"Circuit open for agent '{name}' — {self._reset_after - elapsed:.0f}s until reset")
-            del self._tripped_at[name]
-            self._failures[name] = 0
+        breaker = self._get_breaker(name)
+        # Probe the breaker: calling() transitions OPEN → HALF_OPEN after
+        # reset_timeout and raises CircuitBreakerError while still open.
+        try:
+            with breaker.calling():
+                pass
+        except _CircuitBreakerError as exc:
+            raise RuntimeError(f"Circuit open for agent '{name}': {exc}") from exc
         return None
 
     async def after_model(self, ctx: Any, request: Any, response: Any) -> Any:
+        # A successful call in closed / half-open state closes the breaker.
+        # Driving the breaker via .calling() with no-op body records the
+        # success and resets fail_counter.
         name = getattr(ctx, "agent_name", "unknown")
-        self._failures[name] = 0
+        breaker = self._get_breaker(name)
+        with _contextlib.suppress(_CircuitBreakerError), breaker.calling():
+            pass
         return None
 
     async def on_model_error(self, ctx: Any, request: Any, error: Any) -> Any:
         name = getattr(ctx, "agent_name", "unknown")
-        self._failures[name] = self._failures.get(name, 0) + 1
-        if self._failures[name] >= self._threshold:
-            self._tripped_at[name] = _time.monotonic()
+        breaker = self._get_breaker(name)
+        # Feed the breaker a synthetic failure matching the real error so it
+        # increments fail_counter and trips when the threshold is reached.
+        try:
+            with breaker.calling():
+                raise error if isinstance(error, BaseException) else RuntimeError(str(error))
+        except _CircuitBreakerError:
+            # Circuit opened / already open — absorbed, re-probed on next call.
+            pass
+        except BaseException:
+            # Expected: the synthetic failure re-raised through pybreaker.
+            pass
         return None
 
 
@@ -1137,24 +1214,29 @@ class TimeoutMiddleware:
 
 
 class ModelCacheMiddleware:
-    """Caches LLM responses keyed by request content."""
+    """Caches LLM responses keyed by request content.
 
-    def __init__(self, ttl: float = 300, key_fn: Any = None):
+    Backed by ``cachetools.TTLCache`` which evicts expired entries lazily
+    *and* enforces a max-size bound — preventing the unbounded-dict memory
+    leak of the previous hand-rolled implementation.
+    """
+
+    def __init__(self, ttl: float = 300, key_fn: Any = None, *, max_size: int = 1024):
         self._ttl = ttl
         self._key_fn = key_fn or (lambda req: str(req))
-        self._cache: dict[str, tuple[Any, float]] = {}
+        self._cache: _TTLCache[str, Any] = _TTLCache(maxsize=max_size, ttl=ttl)
 
     async def before_model(self, ctx: Any, request: Any) -> Any:
         key = self._key_fn(request)
+        # TTLCache raises KeyError on expired / missing; __contains__ handles
+        # expiry checking for us.
         if key in self._cache:
-            result, ts = self._cache[key]
-            if _time.monotonic() - ts < self._ttl:
-                return result
+            return self._cache[key]
         return None
 
     async def after_model(self, ctx: Any, request: Any, response: Any) -> Any:
         key = self._key_fn(request)
-        self._cache[key] = (response, _time.monotonic())
+        self._cache[key] = response
         return None
 
 
@@ -1181,25 +1263,60 @@ class FallbackModelMiddleware:
 
 
 class DedupMiddleware:
-    """Suppress duplicate model calls within a sliding window."""
+    """Suppress duplicate model calls within a sliding window.
+
+    Backed by ``cachetools.LRUCache`` keyed on a stable hash of the
+    stringified request. O(1) lookup (vs. O(n) list scan previously) and
+    automatic eviction once the window size is exceeded.
+    """
 
     def __init__(self, window: int = 10):
         self._window = window
-        self._recent: list[str] = []
+        # value type is bool — we only care about key membership.
+        self._seen: _LRUCache[int, bool] = _LRUCache(maxsize=max(1, window))
 
     async def before_model(self, ctx: Any, request: Any) -> Any:
-        key = str(request)
-        if key in self._recent:
+        key = hash(str(request))
+        if key in self._seen:
             return None
-        self._recent.append(key)
-        if len(self._recent) > self._window:
-            self._recent = self._recent[-self._window :]
+        self._seen[key] = True
         return None
 
 
 # ---------------------------------------------------------------------------
 # Sampled middleware wrapper
 # ---------------------------------------------------------------------------
+
+
+class RateLimitMiddleware:
+    """Token-bucket rate limiter backed by ``aiolimiter``.
+
+    Blocks inside ``before_model`` until a token is available, so downstream
+    model calls are throttled to ``rate`` calls per ``time_period`` seconds.
+    Unlike :class:`_SampledMiddleware` (which is probabilistic and can drop
+    calls), this middleware delays calls to enforce a true rate ceiling.
+
+    Requires ``pip install adk-fluent[ratelimit]`` (i.e. ``aiolimiter``).
+    """
+
+    def __init__(self, rate: float, time_period: float = 1.0):
+        try:
+            from aiolimiter import AsyncLimiter  # type: ignore[reportMissingImports]
+        except ImportError as exc:
+            msg = (
+                "aiolimiter is required for M.rate_limit(). "
+                "Install with: pip install adk-fluent[ratelimit] "
+                "(or pip install aiolimiter)."
+            )
+            raise ImportError(msg) from exc
+        self._rate = rate
+        self._time_period = time_period
+        self._limiter = AsyncLimiter(max_rate=rate, time_period=time_period)
+
+    async def before_model(self, ctx: Any, request: Any) -> Any:
+        # Acquire blocks until a token is available from the leaky bucket.
+        await self._limiter.acquire()
+        return None
 
 
 class _SampledMiddleware:
@@ -1312,6 +1429,8 @@ class A2ARetryMiddleware:
         max_attempts: int = 3,
         backoff_base: float = 2.0,
         *,
+        max_backoff: float = 60.0,
+        jitter: float = 2.0,
         agents: str | tuple[str, ...] | None = None,
         on_retry: Callable | None = None,
     ):
@@ -1319,8 +1438,19 @@ class A2ARetryMiddleware:
         self.backoff_base = backoff_base
         self.agents = agents
         self._on_retry = on_retry
+        # Jittered exponential backoff via tenacity. Jitter is particularly
+        # important for A2A because remote agents often fail in bursts
+        # (network hiccup, 5xx storm) and naive retries would synchronize.
+        self._wait = _wait_exponential_jitter(
+            initial=backoff_base,
+            max=max_backoff,
+            jitter=jitter,
+        )
         self._attempts: dict[str, int] = {}
         self._log = _logging.getLogger(f"{__name__}.A2ARetryMiddleware")
+
+    def _compute_delay(self, attempt_number: int) -> float:
+        return float(self._wait(_TenacityRetryState(attempt_number=attempt_number)))  # type: ignore[arg-type]
 
     def _should_retry(self, error: Exception) -> bool:
         """Determine if an error is retryable (A2A-specific heuristics)."""
@@ -1341,7 +1471,7 @@ class A2ARetryMiddleware:
         self._attempts[tool_name] = self._attempts.get(tool_name, 0) + 1
         attempt = self._attempts[tool_name]
         if attempt < self.max_attempts:
-            delay = self.backoff_base * (2 ** (attempt - 1))
+            delay = self._compute_delay(attempt)
             self._log.info("A2A retry %d/%d for %s in %.1fs", attempt, self.max_attempts, tool_name, delay)
             if self._on_retry:
                 await self._on_retry(ctx, tool_name, attempt, error)
@@ -1356,7 +1486,7 @@ class A2ARetryMiddleware:
         self._attempts[key] = self._attempts.get(key, 0) + 1
         attempt = self._attempts[key]
         if attempt < self.max_attempts:
-            delay = self.backoff_base * (2 ** (attempt - 1))
+            delay = self._compute_delay(attempt)
             self._log.info("A2A model retry %d/%d in %.1fs", attempt, self.max_attempts, delay)
             await _asyncio.sleep(delay)
         return None
@@ -1393,70 +1523,73 @@ class A2ACircuitBreakerMiddleware:
         self.agents = agents
         self._on_open = on_open
         self._on_close = on_close
-        self._failures: dict[str, int] = {}
-        self._tripped_at: dict[str, float] = {}
-        self._half_open: set[str] = set()
+        # Per-endpoint pybreaker instances. pybreaker handles half-open
+        # probe semantics natively (success in half-open → closed,
+        # failure in half-open → re-open).
+        self._breakers: dict[str, _CircuitBreaker] = {}
+        self._open_notified: set[str] = set()
         self._log = _logging.getLogger(f"{__name__}.A2ACircuitBreakerMiddleware")
 
-    @property
-    def open_circuits(self) -> dict[str, float]:
-        """Return currently open circuits with their trip times."""
-        now = _time.monotonic()
-        return {
-            name: now - trip_time for name, trip_time in self._tripped_at.items() if now - trip_time < self._reset_after
-        }
+    def _get_breaker(self, key: str) -> _CircuitBreaker:
+        breaker = self._breakers.get(key)
+        if breaker is None:
+            breaker = _CircuitBreaker(
+                fail_max=self._threshold,
+                reset_timeout=self._reset_after,
+                name=f"a2a:{key}",
+            )
+            self._breakers[key] = breaker
+        return breaker
 
-    def _get_agent_key(self, ctx: Any) -> str:
-        return getattr(ctx, "agent_name", "unknown")
+    @property
+    def open_circuits(self) -> dict[str, str]:
+        """Return currently open / half-open circuits keyed by name → state."""
+        return {
+            name: breaker.current_state
+            for name, breaker in self._breakers.items()
+            if breaker.current_state != "closed"
+        }
 
     async def before_agent(self, ctx: Any, agent_name: str) -> Any:
         """Check circuit state before agent execution."""
-        key = agent_name
-        if key in self._tripped_at:
-            elapsed = _time.monotonic() - self._tripped_at[key]
-            if elapsed < self._reset_after:
-                raise A2ACircuitOpenError(
-                    f"A2A circuit open for '{key}' — {self._reset_after - elapsed:.0f}s until reset"
-                )
-            # Half-open: allow one probe
-            self._half_open.add(key)
-            self._log.info("A2A circuit half-open for '%s', allowing probe", key)
+        breaker = self._get_breaker(agent_name)
+        try:
+            with breaker.calling():
+                pass
+        except _CircuitBreakerError as exc:
+            raise A2ACircuitOpenError(f"A2A circuit open for '{agent_name}': {exc}") from exc
         return None
 
     async def after_agent(self, ctx: Any, agent_name: str) -> Any:
-        """Reset failure count on success."""
-        key = agent_name
-        if key in self._half_open:
-            self._half_open.discard(key)
-            del self._tripped_at[key]
-            self._failures[key] = 0
-            self._log.info("A2A circuit closed for '%s' after successful probe", key)
+        """Reset failure count on success (via pybreaker's state machine)."""
+        breaker = self._get_breaker(agent_name)
+        with _contextlib.suppress(_CircuitBreakerError), breaker.calling():
+            pass
+        if agent_name in self._open_notified and breaker.current_state == "closed":
+            self._open_notified.discard(agent_name)
+            self._log.info("A2A circuit closed for '%s'", agent_name)
             if self._on_close:
-                await self._on_close(ctx, key)
-        else:
-            self._failures[key] = 0
+                await self._on_close(ctx, agent_name)
         return None
 
     async def on_tool_error(self, ctx: Any, tool_name: str, args: dict, error: Exception) -> dict | None:
         """Track failures for circuit breaker logic."""
-        key = tool_name
-        if key in self._half_open:
-            # Probe failed, re-trip
-            self._half_open.discard(key)
-            self._tripped_at[key] = _time.monotonic()
-            self._log.warning("A2A circuit re-tripped for '%s' after failed probe", key)
-            return None
-
-        self._failures[key] = self._failures.get(key, 0) + 1
-        if self._failures[key] >= self._threshold:
-            self._tripped_at[key] = _time.monotonic()
-            self._log.warning(
-                "A2A circuit opened for '%s' after %d failures",
-                key,
-                self._failures[key],
-            )
+        breaker = self._get_breaker(tool_name)
+        previously_closed = breaker.current_state == "closed"
+        # Feed the real error through pybreaker so it bumps the counter
+        # (and trips when the threshold is reached).
+        try:
+            with breaker.calling():
+                raise error if isinstance(error, BaseException) else RuntimeError(str(error))
+        except _CircuitBreakerError:
+            pass
+        except BaseException:
+            pass
+        if previously_closed and breaker.current_state == "open" and tool_name not in self._open_notified:
+            self._open_notified.add(tool_name)
+            self._log.warning("A2A circuit opened for '%s' after %d failures", tool_name, breaker.fail_counter)
             if self._on_open:
-                await self._on_open(ctx, key)
+                await self._on_open(ctx, tool_name)
         return None
 
 

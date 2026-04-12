@@ -242,12 +242,41 @@ class M:
 
     @staticmethod
     def sample(rate: float, mw: MComposite | Any) -> MComposite:
-        """Probabilistic middleware — fires inner middleware only N% of the time."""
+        """Probabilistic middleware — fires inner middleware only N% of the time.
+
+        Note: this is *sampling*, not rate limiting. For a real token-bucket
+        rate ceiling on model calls, use :meth:`rate_limit` instead.
+        """
         from adk_fluent.middleware import _SampledMiddleware
 
         stack = mw.to_stack() if isinstance(mw, MComposite) else [mw]
         wrapped = [_SampledMiddleware(rate, m) for m in stack]
         return MComposite(wrapped)
+
+    @staticmethod
+    def rate_limit(rate: float, *, time_period: float = 1.0) -> MComposite:
+        """Token-bucket rate limiter for model calls (via ``aiolimiter``).
+
+        Blocks in ``before_model`` until a token is available from a leaky
+        bucket of capacity ``rate`` refilled over ``time_period`` seconds.
+        Use this for enforcing a true throughput ceiling (e.g., "≤ 10 model
+        calls per second"). Contrast with :meth:`sample`, which is
+        probabilistic dropping — not a real limiter.
+
+        Args:
+            rate: Maximum number of calls allowed per ``time_period`` seconds.
+            time_period: Window size in seconds (default 1.0).
+
+        Requires ``pip install adk-fluent[ratelimit]``.
+
+        Usage::
+
+            pipeline.middleware(M.rate_limit(10))                  # 10/sec
+            pipeline.middleware(M.rate_limit(60, time_period=60))  # 60/min
+        """
+        from adk_fluent.middleware import RateLimitMiddleware
+
+        return MComposite([RateLimitMiddleware(rate=rate, time_period=time_period)], kind="rate_limit")
 
     @staticmethod
     def trace(exporter: Any = None) -> MComposite:

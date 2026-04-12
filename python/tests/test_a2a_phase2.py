@@ -249,15 +249,15 @@ class TestA2ACircuitBreakerMiddleware:
         mw = A2ACircuitBreakerMiddleware(threshold=2, reset_after=0.01)
         for _ in range(2):
             await mw.on_tool_error(None, "remote", {}, RuntimeError("fail"))
-        # Wait for reset
-        await asyncio.sleep(0.02)
-        # Half-open: should allow probe
+        # Wait for reset — pybreaker will transition OPEN → half-open-eligible.
+        await asyncio.sleep(0.05)
+        # Probe call in half-open state should be allowed.
         await mw.before_agent(None, "remote")
-        assert "remote" in mw._half_open
-        # Success closes circuit
+        # A successful run closes the circuit.
         await mw.after_agent(None, "remote")
-        assert "remote" not in mw._half_open
-        assert mw._failures.get("remote") == 0
+        breaker = mw._get_breaker("remote")
+        assert breaker.current_state == "closed"
+        assert breaker.fail_counter == 0
 
     @pytest.mark.asyncio
     async def test_on_open_callback(self):
@@ -290,9 +290,10 @@ class TestA2ACircuitBreakerMiddleware:
         mw = A2ACircuitBreakerMiddleware(threshold=5)
         for _ in range(3):
             await mw.on_tool_error(None, "agent", {}, RuntimeError("fail"))
-        assert mw._failures["agent"] == 3
+        breaker = mw._get_breaker("agent")
+        assert breaker.fail_counter == 3
         await mw.after_agent(None, "agent")
-        assert mw._failures["agent"] == 0
+        assert breaker.fail_counter == 0
 
 
 # ======================================================================

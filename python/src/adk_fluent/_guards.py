@@ -244,6 +244,75 @@ class _DLPDetector:
         return findings
 
 
+class _PresidioDetector:
+    """Presidio-analyzer-based PII detector.
+
+    Uses Microsoft Presidio (presidio-analyzer), a widely-adopted
+    context-aware PII detection engine with recognizers for names,
+    addresses, IBANs, IP addresses, and many other entity types that
+    regex alone cannot reliably match.
+
+    Install with: ``pip install adk-fluent[pii-presidio]`` (or
+    ``pip install presidio-analyzer``). The default NLP engine is spaCy;
+    on first use Presidio will require a spaCy model such as
+    ``en_core_web_lg``.
+    """
+
+    def __init__(
+        self,
+        *,
+        language: str = "en",
+        entities: list[str] | None = None,
+        score_threshold: float = 0.5,
+        analyzer: Any = None,
+    ):
+        self._language = language
+        self._entities = entities
+        self._score_threshold = score_threshold
+
+        if analyzer is not None:
+            self._analyzer = analyzer
+            return
+        try:
+            from presidio_analyzer import AnalyzerEngine  # type: ignore[reportMissingImports]
+        except ImportError as exc:
+            msg = (
+                "presidio-analyzer is required for Presidio-based PII detection. "
+                "Install with: pip install adk-fluent[pii-presidio] "
+                "(or pip install presidio-analyzer and a spaCy model, e.g. en_core_web_lg)."
+            )
+            raise ImportError(msg) from exc
+        self._analyzer = AnalyzerEngine()
+
+    async def detect(self, text: str) -> list[PIIFinding]:
+        # Presidio is sync; run in the default executor so we do not block
+        # the event loop on larger inputs.
+        import asyncio
+
+        loop = asyncio.get_running_loop()
+        results = await loop.run_in_executor(
+            None,
+            lambda: self._analyzer.analyze(
+                text=text,
+                language=self._language,
+                entities=self._entities,
+                score_threshold=self._score_threshold,
+            ),
+        )
+        findings: list[PIIFinding] = []
+        for r in results:
+            findings.append(
+                PIIFinding(
+                    kind=r.entity_type,
+                    start=r.start,
+                    end=r.end,
+                    confidence=float(r.score),
+                    text=text[r.start : r.end],
+                )
+            )
+        return findings
+
+
 class _MultiDetector:
     """Union of multiple PII detectors, deduplicating by span."""
 
@@ -725,6 +794,40 @@ class G:
     ) -> _DLPDetector:
         """Create a Google Cloud DLP-based PII detector."""
         return _DLPDetector(project, info_types=info_types, location=location)
+
+    @staticmethod
+    def presidio(
+        *,
+        language: str = "en",
+        entities: list[str] | None = None,
+        score_threshold: float = 0.5,
+        analyzer: Any = None,
+    ) -> _PresidioDetector:
+        """Create a Presidio-analyzer-based PII detector.
+
+        Presidio is a production-grade, context-aware PII detection engine
+        (Microsoft / open source) with built-in recognizers for names,
+        addresses, IBANs, IP addresses, API keys, and many other entity
+        types that regex cannot reliably match. Prefer this over
+        ``G.regex_detector`` for anything beyond smoke tests.
+
+        Args:
+            language: ISO language code for the NLP pipeline (default ``en``).
+            entities: Optional whitelist of entity types to detect. ``None``
+                enables all registered recognizers.
+            score_threshold: Confidence cutoff; findings below this score
+                are dropped.
+            analyzer: Optional pre-constructed ``AnalyzerEngine`` (for
+                testing, custom recognizers, or non-default NLP engines).
+
+        Requires ``pip install adk-fluent[pii-presidio]``.
+        """
+        return _PresidioDetector(
+            language=language,
+            entities=entities,
+            score_threshold=score_threshold,
+            analyzer=analyzer,
+        )
 
     @staticmethod
     def regex_detector(
