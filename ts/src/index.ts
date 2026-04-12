@@ -53,10 +53,17 @@ export type { UIBinding, UICheck } from "./namespaces/ui.js";
 
 // H — Harness namespace (build-your-own coding agent)
 export { H } from "./namespaces/harness/H.js";
-export { PermissionPolicy, ApprovalMemory } from "./namespaces/harness/permissions.js";
+export {
+  PermissionPolicy,
+  ApprovalMemory,
+  PermissionMode,
+  PermissionBehavior,
+  PermissionDecision,
+} from "./namespaces/harness/permissions.js";
 export { SandboxPolicy } from "./namespaces/harness/sandbox.js";
 export { ErrorStrategy } from "./namespaces/harness/error-strategy.js";
-export { UsageTracker } from "./namespaces/harness/usage.js";
+export { UsageTracker, CostTable, TurnUsage, AgentUsage } from "./namespaces/harness/usage.js";
+export type { ModelRate } from "./namespaces/harness/usage.js";
 export { ProjectMemory, MemoryHierarchy } from "./namespaces/harness/memory.js";
 export { ArtifactStore } from "./namespaces/harness/artifacts.js";
 export { EventDispatcher, EventBus, SessionTape } from "./namespaces/harness/events.js";
@@ -71,9 +78,19 @@ export type {
 export {
   ContextCompressor,
   BudgetMonitor,
+  BudgetPolicy,
   CancellationToken,
   ForkManager,
 } from "./namespaces/harness/lifecycle.js";
+export type { BudgetThreshold, PreCompactHook } from "./namespaces/harness/lifecycle.js";
+export { SessionStore, SessionSnapshot } from "./namespaces/harness/session-store.js";
+export {
+  PlanModePolicy,
+  planModeTools,
+  planModeBeforeToolHook,
+  MUTATING_TOOLS,
+} from "./namespaces/harness/plan-mode.js";
+export type { PlanState, PlanObserver } from "./namespaces/harness/plan-mode.js";
 export {
   HookRegistry,
   CommandRegistry,

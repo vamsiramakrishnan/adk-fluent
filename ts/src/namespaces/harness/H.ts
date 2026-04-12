@@ -36,13 +36,11 @@
  * Calling these stubs throws a clear "not yet ported" error.
  */
 
-import {
-  PlanMode,
-  TodoStore,
-  WorktreeManager,
-  askUserTool,
-  type AskUserHandler,
-} from "./agent-tools.js";
+import { TodoStore, WorktreeManager, askUserTool, type AskUserHandler } from "./agent-tools.js";
+import { PlanMode, PlanModePolicy } from "./plan-mode.js";
+import { SessionStore, SessionSnapshot } from "./session-store.js";
+import { CostTable, type ModelRate } from "./usage.js";
+import { BudgetPolicy, type BudgetThreshold } from "./lifecycle.js";
 import { ArtifactStore } from "./artifacts.js";
 import { CodeExecutor, type CodeExecutorOptions } from "./code-executor.js";
 import { codingAgent, type CodingAgentBundle, type CodingAgentOptions } from "./coding-agent.js";
@@ -66,6 +64,7 @@ import {
 } from "./lifecycle.js";
 import { MemoryHierarchy, ProjectMemory, type ProjectMemoryOptions } from "./memory.js";
 import { ApprovalMemory, PermissionPolicy } from "./permissions.js";
+import type { PermissionMode } from "./permissions.js";
 import { processTools } from "./processes.js";
 import {
   CommandRegistry,
@@ -339,6 +338,48 @@ export class H {
 
   static planMode(): PlanMode {
     return new PlanMode();
+  }
+
+  /**
+   * Wrap a base `PermissionPolicy` in a `PlanModePolicy` that flips to
+   * `PermissionMode.PLAN` while `latch.isPlanning`. If no latch is
+   * supplied, a fresh one is created.
+   */
+  static planModePolicy(base: PermissionPolicy, latch: PlanMode = new PlanMode()): PlanModePolicy {
+    return new PlanModePolicy(base, latch);
+  }
+
+  // ─── Session store (tape + forks + snapshot) ────────────────────────────
+
+  static sessionStore(): SessionStore {
+    return new SessionStore();
+  }
+
+  static sessionSnapshot(path: string): SessionSnapshot {
+    return SessionSnapshot.load(path);
+  }
+
+  // ─── Cost table / budget policy ─────────────────────────────────────────
+
+  static costTable(rates: Iterable<[string, ModelRate]> = [], fallback?: ModelRate): CostTable {
+    return new CostTable(rates, fallback);
+  }
+
+  static flatCostTable(inputPerMillion: number, outputPerMillion: number): CostTable {
+    return CostTable.flat(inputPerMillion, outputPerMillion);
+  }
+
+  static budgetPolicy(
+    maxTokens = 200_000,
+    thresholds: readonly BudgetThreshold[] = [],
+  ): BudgetPolicy {
+    return new BudgetPolicy({ maxTokens, thresholds });
+  }
+
+  // ─── Permission modes (coarse overrides) ────────────────────────────────
+
+  static permissionMode(mode: PermissionMode): PermissionPolicy {
+    return new PermissionPolicy({ mode });
   }
 
   static askUser(handler?: AskUserHandler): HarnessTool {

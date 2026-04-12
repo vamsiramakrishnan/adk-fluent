@@ -64,67 +64,18 @@ export class TodoStore {
 
 // ─── PlanMode ──────────────────────────────────────────────────────────────
 
+// PlanMode lives in `./plan-mode.ts` — full latch with observers + policy
+// + before-tool hook. Re-exported here for back-compat.
+export {
+  PlanMode,
+  MUTATING_TOOLS,
+  planModeTools,
+  PlanModePolicy,
+  planModeBeforeToolHook,
+} from "./plan-mode.js";
+export type { PlanState, PlanObserver, PlanModeHookResult } from "./plan-mode.js";
+/** @deprecated use `PlanState` from ./plan-mode.js */
 export type PlanModeState = "off" | "planning" | "executing";
-
-/**
- * Plan-mode latch. When ON, the harness should reject every write/edit
- * tool call and surface the plan to the user instead. The harness wires
- * the latch into `PermissionPolicy` (or a `ToolPolicy` "ask" action).
- */
-export class PlanMode {
-  private state: PlanModeState = "off";
-  private plan = "";
-
-  get current(): PlanModeState {
-    return this.state;
-  }
-
-  get currentPlan(): string {
-    return this.plan;
-  }
-
-  /** Returns true iff the named tool is a write/edit/exec tool. */
-  static isMutating(toolName: string): boolean {
-    return MUTATING_TOOLS.has(toolName);
-  }
-
-  enter(): void {
-    this.state = "planning";
-    this.plan = "";
-  }
-
-  exit(plan: string): void {
-    this.state = "executing";
-    this.plan = plan;
-  }
-
-  reset(): void {
-    this.state = "off";
-    this.plan = "";
-  }
-
-  tools(): HarnessTool[] {
-    return [
-      asTool("enter_plan_mode", async () => {
-        this.enter();
-        return { state: this.state };
-      }),
-      asTool("exit_plan_mode", async (args: { plan: string }) => {
-        this.exit(args.plan);
-        return { state: this.state, plan: this.plan };
-      }),
-    ];
-  }
-}
-
-const MUTATING_TOOLS = new Set([
-  "write_file",
-  "edit_file",
-  "bash",
-  "run_code",
-  "git_commit",
-  "start_process",
-]);
 
 // ─── AskUserQuestion ───────────────────────────────────────────────────────
 
