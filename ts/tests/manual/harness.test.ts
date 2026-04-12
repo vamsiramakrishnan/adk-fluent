@@ -114,6 +114,63 @@ describe("H.codeExecutor — polyglot runner", () => {
   });
 });
 
+describe("H.streamingBash — real-time chunks", () => {
+  let workspace: string;
+
+  beforeAll(() => {
+    workspace = mkdtempSync(join(tmpdir(), "harness-stream-"));
+  });
+
+  afterAll(() => {
+    try {
+      rmSync(workspace, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+  });
+
+  it("yields chunks as they arrive", async () => {
+    const sb = H.sandbox({ workspace, allowShell: true });
+    const streamer = H.streamingBash(sb);
+    const chunks: string[] = [];
+    for await (const chunk of streamer.run("printf 'a\\nb\\nc\\n'")) {
+      chunks.push(chunk);
+    }
+    expect(chunks.join("")).toContain("a");
+    expect(chunks.join("")).toContain("b");
+    expect(chunks.join("")).toContain("c");
+  });
+
+  it("collects full output via runCollected", async () => {
+    const sb = H.sandbox({ workspace, allowShell: true });
+    const streamer = H.streamingBash(sb);
+    const out = await streamer.runCollected("echo hello-stream");
+    expect(out).toContain("hello-stream");
+  });
+
+  it("invokes onOutput callback for each chunk", async () => {
+    const sb = H.sandbox({ workspace, allowShell: true });
+    const streamer = H.streamingBash(sb);
+    const observed: string[] = [];
+    await streamer.runCollected("echo cb-test", { onOutput: (c) => observed.push(c) });
+    expect(observed.join("")).toContain("cb-test");
+  });
+
+  it("returns sandbox-disabled message when shell is off", async () => {
+    const sb = H.sandbox({ workspace, allowShell: false });
+    const streamer = H.streamingBash(sb);
+    const out = await streamer.runCollected("echo nope");
+    expect(out).toMatch(/disabled by sandbox/);
+  });
+
+  it("kills the command on timeout", async () => {
+    const sb = H.sandbox({ workspace, allowShell: true });
+    const streamer = H.streamingBash(sb);
+    const out = await streamer.runCollected("sleep 5", { timeoutSec: 1 });
+    expect(out).toMatch(/timed out after 1s/);
+  });
+});
+
 describe("H.codingAgent — preset", () => {
   let workspace: string;
 

@@ -70,18 +70,20 @@ jobs:
   python-lint:
     name: python · lint
     needs: detect
-    if: needs.detect.outputs.python == 'true' || needs.detect.outputs.ci == 'true' || needs.detect.outputs.ts == 'true'
+    if: needs.detect.outputs.python == 'true' || needs.detect.outputs.ci == 'true'
     runs-on: ubuntu-latest
+    env:
+      # TS hooks are owned by the dedicated ts-lint job (npm run lint /
+      # format:check). Skipping them here keeps python-lint from depending on
+      # the ts/ workspace and prevents TS-only failures from blocking Python
+      # changes.
+      SKIP: ts-eslint,ts-prettier
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-python-env
         with:
           uv-version: ${{ env.UV_VERSION }}
-      # pre-commit runs ts-eslint / ts-prettier hooks via `npx --no-install`,
-      # which requires `npm ci` to have run inside ts/ first. Use the shared
-      # composite action so the install matches the dedicated ts-* jobs.
-      - uses: ./.github/actions/setup-ts-env
-      - name: Run pre-commit hooks
+      - name: Run pre-commit hooks (Python + universal hygiene)
         run: uv run --project python pre-commit run --all-files --show-diff-on-failure
 
   python-typecheck:

@@ -161,6 +161,24 @@ export class T {
     ]);
   }
 
+  /**
+   * Wrap one or more SKILL.md directories as a SkillToolset for progressive
+   * disclosure. Pass a single path, a list of paths, or a list of pre-parsed
+   * skill objects. Skill metadata is loaded into the system prompt; full
+   * instructions are loaded on demand by the LLM.
+   *
+   * Mirrors the Python `T.skill(path)` factory.
+   */
+  static skill(path: string | string[] | unknown[]): TComposite {
+    const paths = Array.isArray(path) ? path : [path];
+    return new TComposite([
+      {
+        type: "skill_toolset",
+        paths,
+      },
+    ]);
+  }
+
   // ------------------------------------------------------------------
   // Wrappers
   // ------------------------------------------------------------------

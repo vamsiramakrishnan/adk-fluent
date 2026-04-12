@@ -78,6 +78,7 @@ import {
 import { JsonRenderer, PlainRenderer, RichRenderer, type RendererOptions } from "./renderer.js";
 import { HarnessRepl, type ReplConfig } from "./repl.js";
 import { SandboxPolicy, type SandboxPolicyOptions } from "./sandbox.js";
+import { StreamingBash } from "./streaming.js";
 import { UsageTracker, type UsageTrackerOptions } from "./usage.js";
 import { webTools, type WebOptions } from "./web.js";
 import { workspaceTools, type WorkspaceOptions } from "./workspace.js";
@@ -171,6 +172,26 @@ export class H {
       allowShell: opts.allowShell ?? true,
     });
     return processTools(sandbox);
+  }
+
+  // ─── Streaming bash ─────────────────────────────────────────────────────
+
+  /**
+   * Build a `StreamingBash` executor for real-time command output.
+   *
+   * Use this when you want to consume stdout/stderr as it arrives instead
+   * of waiting for the command to finish — long-running builds, dev
+   * servers, or test runs where progressive feedback matters.
+   *
+   * ```ts
+   * const streamer = H.streamingBash(H.workspaceOnly("/project"));
+   * for await (const chunk of streamer.run("npm test")) {
+   *   process.stdout.write(chunk);
+   * }
+   * ```
+   */
+  static streamingBash(sandbox: SandboxPolicy): StreamingBash {
+    return new StreamingBash(sandbox);
   }
 
   // ─── Error strategy ──────────────────────────────────────────────────────

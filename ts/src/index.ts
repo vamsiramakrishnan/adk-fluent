@@ -92,6 +92,8 @@ export type {
   CodeExecutorOptions,
   CodeRunResult,
 } from "./namespaces/harness/code-executor.js";
+export { StreamingBash } from "./namespaces/harness/streaming.js";
+export type { StreamingBashRunOptions } from "./namespaces/harness/streaming.js";
 export {
   TodoStore,
   PlanMode,

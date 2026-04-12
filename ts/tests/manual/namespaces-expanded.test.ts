@@ -482,6 +482,18 @@ describe("T (Tools) — expanded", () => {
     expect(T.googleSearch().items[0].type).toBe("google_search");
   });
 
+  it("T.skill() wraps a single SKILL.md path into a skill_toolset", () => {
+    const t = T.skill("/skills/researcher");
+    expect(t.items[0].type).toBe("skill_toolset");
+    expect((t.items[0].paths as string[]).length).toBe(1);
+    expect((t.items[0].paths as string[])[0]).toBe("/skills/researcher");
+  });
+
+  it("T.skill() accepts a list of paths", () => {
+    const t = T.skill(["/skills/a", "/skills/b"]);
+    expect((t.items[0].paths as string[]).length).toBe(2);
+  });
+
   it("T.mcp() with URL string", () => {
     const t = T.mcp("https://mcp.example.com");
     expect(t.items[0].type).toBe("mcp");
