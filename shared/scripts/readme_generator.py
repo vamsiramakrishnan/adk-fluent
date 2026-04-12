@@ -150,6 +150,15 @@ def main():
     new_content = new_content.replace("<!-- INJECT_CHANGELOG_HIGHLIGHTS -->", changelog_highlights)
 
     readme_path.write_text(new_content)
+
+    # PyPI build (hatchling) reads `readme = "README.md"` from python/pyproject.toml
+    # and the file must physically exist next to that pyproject.toml for both the
+    # metadata read and the wheel-from-sdist step to succeed. Keep python/README.md
+    # in lockstep with the repo-root README so PyPI shows the same content GitHub does.
+    python_readme = repo_root / "python" / "README.md"
+    if python_readme.parent.exists():
+        python_readme.write_text(new_content)
+
     print("README.md successfully generated with dynamic content.")
     if changelog_highlights:
         count = changelog_highlights.count("\n") + 1
