@@ -4,6 +4,14 @@ Write agents in 1-3 lines. Get native ADK objects. Keep full control.
 
 This guide takes you from "I know how to build a simple agent" to "I can design production multi-agent systems with data contracts, context engineering, middleware, and evaluation." Read sequentially for the full journey, or jump to the topic you need.
 
+:::{admonition} Python or TypeScript?
+:class: note
+
+This user guide is **Python-first**, but every concept applies to both `adk-fluent` (Python) and `adk-fluent-ts` (TypeScript). Code samples with a synced `Python` / `TypeScript` tab stay in sync once you pick one — click TypeScript on any block and the rest of the site follows.
+
+If you're using TypeScript, read the {doc}`typescript` landing page first. It covers install, imports, and the full operator → method-chain mapping (`>>` → `.then()`, `|` → `.parallel()`, `*` → `.times()`, `//` → `.fallback()`, `@` → `.outputAs()`).
+:::
+
 :::{admonition} Quick taste — every concept in 8 lines
 :class: tip
 
@@ -150,6 +158,7 @@ maxdepth: 2
 hidden: true
 ---
 architecture-and-concepts
+typescript
 best-practices
 comparison
 builders

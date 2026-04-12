@@ -105,16 +105,46 @@ hide-toc: true
 ## Before / After
 
 ::::{tab-set}
-:::{tab-item} adk-fluent (5 lines)
+:::{tab-item} adk-fluent — Python
+:sync: python
+
 ```python
-from adk_fluent import Agent, S, C
+from adk_fluent import Agent, C
 
 research = (
     Agent("analyzer", "gemini-2.5-flash").instruct("Decompose the query.").writes("plan")
     >> (Agent("web", "gemini-2.5-flash").instruct("Search web.").context(C.from_state("plan")).writes("web")
         | Agent("papers", "gemini-2.5-flash").instruct("Search papers.").context(C.from_state("plan")).writes("papers"))
     >> Agent("writer", "gemini-2.5-flash").instruct("Synthesize findings from {web} and {papers}.")
-)
+).build()
+```
+:::
+:::{tab-item} adk-fluent — TypeScript
+:sync: ts
+
+```ts
+import { Agent, C } from "adk-fluent-ts";
+
+const research = new Agent("analyzer", "gemini-2.5-flash")
+  .instruct("Decompose the query.")
+  .writes("plan")
+  .then(
+    new Agent("web", "gemini-2.5-flash")
+      .instruct("Search web.")
+      .context(C.fromState("plan"))
+      .writes("web")
+      .parallel(
+        new Agent("papers", "gemini-2.5-flash")
+          .instruct("Search papers.")
+          .context(C.fromState("plan"))
+          .writes("papers"),
+      ),
+  )
+  .then(
+    new Agent("writer", "gemini-2.5-flash")
+      .instruct("Synthesize findings from {web} and {papers}."),
+  )
+  .build();
 ```
 :::
 :::{tab-item} Native ADK (22 lines)
@@ -143,15 +173,15 @@ research = SequentialAgent(
 :::
 ::::
 
-Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `adk run`, and `adk deploy`.
+Every `.build()` returns a real ADK object -- fully compatible with `adk web`, `adk run`, and `adk deploy`. **Click a tab** — your Python/TypeScript choice is remembered across every code sample on this site.
 
 :::{note} Python + TypeScript monorepo
 adk-fluent ships as two sibling packages from a single monorepo:
 
-- **`adk-fluent`** ([PyPI](https://pypi.org/project/adk-fluent/)) — Python 3.11+, under [`python/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/python). The reference implementation and the focus of these docs.
-- **`adk-fluent-ts`** (npm, coming soon) — TypeScript, under [`ts/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts). Mirrors the same builders and namespaces with method-chained operators (`.then()`, `.parallel()`, `.times()`, `.fallback()`, `.outputAs()`). See the [TypeScript README](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/ts/README.md).
+- **`adk-fluent`** ([PyPI](https://pypi.org/project/adk-fluent/)) — Python 3.11+, under [`python/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/python). Reference implementation; this site is Python-first.
+- **`adk-fluent-ts`** (npm, coming soon) — TypeScript, under [`ts/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts). Mirrors the same builders and namespaces with method-chained operators. See the [TypeScript user guide](user-guide/typescript.md) and the [TS README](https://github.com/vamsiramakrishnan/adk-fluent/blob/master/ts/README.md).
 
-Both packages are generated from the same `shared/manifest.json`, so parity is enforced at generation time. Guides on this site apply to both languages; operator differences are called out inline.
+Both packages are generated from the same `shared/manifest.json`, so parity is enforced at generation time. Throughout this site, conceptual guides apply to both languages; code samples with a `Python` / `TypeScript` tab selector stay in sync once you pick one.
 :::
 
 ## What's New in v{{version}}
@@ -356,6 +386,8 @@ Complete reference for all 135 builders.
 
 **"I want my AI coding agent to know adk-fluent"** -- Set up [Editor & AI Agent Setup](editor-setup/index.md) for rules files, skills, and MCP servers.
 
+**"I'm using TypeScript, not Python"** -- Start with the [TypeScript user guide](user-guide/typescript.md). Every conceptual chapter in this site applies to both languages; code samples have a synced `Python` / `TypeScript` tab.
+
 ---
 
 [PyPI](https://pypi.org/project/adk-fluent/) · [GitHub](https://github.com/vamsiramakrishnan/adk-fluent) · [Changelog](changelog.md) · [Contributing](contributing/index.md)
@@ -366,6 +398,7 @@ maxdepth: 2
 caption: Getting Started
 ---
 getting-started
+user-guide/typescript
 editor-setup/index
 ```
 
