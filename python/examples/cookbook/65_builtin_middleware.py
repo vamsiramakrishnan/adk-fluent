@@ -227,11 +227,11 @@ from adk_fluent.middleware import (
     _SampledMiddleware,
 )
 
-# CircuitBreakerMiddleware
+# CircuitBreakerMiddleware (backed by pybreaker)
 circuit_breaker = CircuitBreakerMiddleware(threshold=5, reset_after=60)
 assert circuit_breaker._threshold == 5
 assert circuit_breaker._reset_after == 60
-assert circuit_breaker._failures == {}
+assert circuit_breaker._breakers == {}
 assert hasattr(circuit_breaker, "before_model")
 assert hasattr(circuit_breaker, "after_model")
 assert isinstance(circuit_breaker, Middleware)
@@ -244,10 +244,10 @@ assert hasattr(timeout_mw, "before_agent")
 assert hasattr(timeout_mw, "before_model")
 assert isinstance(timeout_mw, Middleware)
 
-# ModelCacheMiddleware
+# ModelCacheMiddleware (backed by cachetools.TTLCache)
 cache_mw = ModelCacheMiddleware(ttl=300, key_fn=None)
 assert cache_mw._ttl == 300
-assert cache_mw._cache == {}
+assert len(cache_mw._cache) == 0
 assert hasattr(cache_mw, "before_model")
 assert hasattr(cache_mw, "after_model")
 assert isinstance(cache_mw, Middleware)
@@ -258,10 +258,10 @@ assert fallback_mw._fallback == "gemini-2.0-flash"
 assert hasattr(fallback_mw, "on_model_error")
 assert isinstance(fallback_mw, Middleware)
 
-# DedupMiddleware
+# DedupMiddleware (backed by cachetools.LRUCache)
 dedup_mw = DedupMiddleware(window=10)
 assert dedup_mw._window == 10
-assert dedup_mw._recent == []
+assert len(dedup_mw._seen) == 0
 assert hasattr(dedup_mw, "before_model")
 assert isinstance(dedup_mw, Middleware)
 
