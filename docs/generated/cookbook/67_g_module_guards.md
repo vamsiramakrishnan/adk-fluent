@@ -496,13 +496,4 @@ assert len(reviewer_specs) == 2
 print("All G module guard composition assertions passed!")
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["medical_writer_then_medical_reviewer (sequence)"]]
-    n2["medical_writer"]
-    n3["medical_reviewer"]
-    n2 --> n3
-```
-:::
 ::::

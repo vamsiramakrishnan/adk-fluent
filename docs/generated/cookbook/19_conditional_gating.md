@@ -62,17 +62,6 @@ pipeline = risk_scorer >> fraud_investigator >> compliance_notifier
 #   )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["risk_scorer_then_fraud_investigator_then_compliance_notifier (sequence)"]]
-    n2["risk_scorer"]
-    n3["fraud_investigator"]
-    n4["compliance_notifier"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

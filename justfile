@@ -47,38 +47,49 @@
 
 # --- First-time setup ---
 setup:
-    @echo "Installing dependencies..."
-    @uv sync --all-extras
+    @echo "Installing Python dependencies (python/)..."
+    @cd {{PYTHON_DIR}} && uv sync --all-extras
     @echo "Installing pre-commit hooks..."
-    @uv run pre-commit install
+    @{{PYTOOL}} pre-commit install
+    @echo "Installing TypeScript dependencies (ts/)..."
+    @cd {{TS_DIR}} && npm install
     @echo ""
     @echo "Setup complete. Pre-commit hooks will auto-format on every commit."
     @echo "Run 'just all' to generate code, or 'just fmt' to format existing files."
 
-SEED          := "seeds/seed.toml"
-MANIFEST      := "manifest.json"
-PREV_MANIFEST := "manifest.previous.json"
-OUTPUT_DIR    := "src/adk_fluent"
-TEST_DIR      := "tests/generated"
-SCANNER       := "scripts/scanner.py"
-SEED_GEN      := "scripts/seed_generator.py"
-GENERATOR     := "scripts/generator.py"
+# --- Monorepo layout ---
+PYTHON_DIR    := "python"
+TS_DIR        := "ts"
+SHARED_DIR    := "shared"
+
+SEED          := SHARED_DIR / "seeds/seed.toml"
+MANIFEST      := SHARED_DIR / "manifest.json"
+PREV_MANIFEST := SHARED_DIR / "manifest.previous.json"
+OUTPUT_DIR    := PYTHON_DIR / "src/adk_fluent"
+TEST_DIR      := PYTHON_DIR / "tests/generated"
+# All Python scripts in shared/ are invoked through the python uv project so
+# they pick up google-adk and the rest of the runtime dependencies.
+PY            := "uv run --project " + PYTHON_DIR + " python"
+PYTOOL        := "uv run --project " + PYTHON_DIR
+SCANNER       := SHARED_DIR / "scripts/scanner.py"
+SEED_GEN      := SHARED_DIR / "scripts/seed_generator.py"
+GENERATOR     := SHARED_DIR / "scripts/generator.py"
 A2UI_SPEC_DIR := "specification/v0_10/json"
-A2UI_MANIFEST := "a2ui_manifest.json"
-A2UI_SEED     := "seeds/a2ui_seed.toml"
-A2UI_MANUAL   := "seeds/a2ui_seed.manual.toml"
-IR_GEN        := "scripts/ir_generator.py"
-DOC_GEN       := "scripts/doc_generator.py"
-LLMS_GEN      := "scripts/llms_generator.py"
-COOKBOOK_GEN   := "scripts/cookbook_generator.py"
-SKILL_GEN     := "scripts/skill_generator.py"
+A2UI_MANIFEST := SHARED_DIR / "a2ui_manifest.json"
+A2UI_SEED     := SHARED_DIR / "seeds/a2ui_seed.toml"
+A2UI_MANUAL   := SHARED_DIR / "seeds/a2ui_seed.manual.toml"
+IR_GEN        := SHARED_DIR / "scripts/ir_generator.py"
+DOC_GEN       := SHARED_DIR / "scripts/doc_generator.py"
+LLMS_GEN      := SHARED_DIR / "scripts/llms_generator.py"
+COOKBOOK_GEN   := SHARED_DIR / "scripts/cookbook_generator.py"
+SKILL_GEN     := SHARED_DIR / "scripts/skill_generator.py"
 DOC_DIR       := "docs/generated"
 SPHINX_OUT    := "docs/_build/html"
-COOKBOOK_DIR   := "examples/cookbook"
+COOKBOOK_DIR   := PYTHON_DIR / "examples/cookbook"
 
 # Generated files — owned by `just generate`, not by formatters or pre-commit.
 # This is the single source of truth; .pre-commit-config.yaml and .gitattributes mirror it.
-GENERATED_PY  := "src/adk_fluent/agent.py src/adk_fluent/config.py src/adk_fluent/executor.py src/adk_fluent/planner.py src/adk_fluent/plugin.py src/adk_fluent/runtime.py src/adk_fluent/service.py src/adk_fluent/tool.py src/adk_fluent/workflow.py src/adk_fluent/_ir_generated.py"
+GENERATED_PY  := PYTHON_DIR / "src/adk_fluent/agent.py" + " " + PYTHON_DIR / "src/adk_fluent/config.py" + " " + PYTHON_DIR / "src/adk_fluent/executor.py" + " " + PYTHON_DIR / "src/adk_fluent/planner.py" + " " + PYTHON_DIR / "src/adk_fluent/plugin.py" + " " + PYTHON_DIR / "src/adk_fluent/runtime.py" + " " + PYTHON_DIR / "src/adk_fluent/service.py" + " " + PYTHON_DIR / "src/adk_fluent/tool.py" + " " + PYTHON_DIR / "src/adk_fluent/workflow.py" + " " + PYTHON_DIR / "src/adk_fluent/_ir_generated.py"
 
 # --- Full pipeline ---
 all: scan seed generate a2ui docs skills docs-build
@@ -90,28 +101,28 @@ a2ui: a2ui-scan a2ui-seed a2ui-generate
 
 a2ui-scan:
     @echo "Scanning A2UI spec..."
-    @uv run python -m scripts.a2ui scan {{A2UI_SPEC_DIR}} -o {{A2UI_MANIFEST}}
+    @{{PY}} -m shared.scripts.a2ui scan {{A2UI_SPEC_DIR}} -o {{A2UI_MANIFEST}}
 
 a2ui-seed: _require-a2ui-manifest
     @echo "Generating A2UI seed..."
-    @uv run python -m scripts.a2ui seed {{A2UI_MANIFEST}} -o {{A2UI_SEED}} --json --merge {{A2UI_MANUAL}}
+    @{{PY}} -m shared.scripts.a2ui seed {{A2UI_MANIFEST}} -o {{A2UI_SEED}} --json --merge {{A2UI_MANUAL}}
 
 a2ui-generate: _require-a2ui-seed
     @echo "Generating A2UI UI factories..."
-    @uv run python -m scripts.a2ui generate {{A2UI_SEED}} --output-dir {{OUTPUT_DIR}} --test-dir {{TEST_DIR}}
-    @uv run ruff check --fix {{OUTPUT_DIR}}/_ui_generated.py {{TEST_DIR}}/test_ui_generated.py || true
-    @uv run ruff format {{OUTPUT_DIR}}/_ui_generated.py {{TEST_DIR}}/test_ui_generated.py
+    @{{PY}} -m shared.scripts.a2ui generate {{A2UI_SEED}} --output-dir {{OUTPUT_DIR}} --test-dir {{TEST_DIR}}
+    @{{PYTOOL}} ruff check --fix {{OUTPUT_DIR}}/_ui_generated.py {{TEST_DIR}}/test_ui_generated.py || true
+    @{{PYTOOL}} ruff format {{OUTPUT_DIR}}/_ui_generated.py {{TEST_DIR}}/test_ui_generated.py
 
 # --- Scan ADK ---
 scan:
     @echo "Scanning installed google-adk..."
-    @uv run python {{SCANNER}} -o {{MANIFEST}}
-    @uv run python {{SCANNER}} --summary
+    @{{PY}} {{SCANNER}} -o {{MANIFEST}}
+    @{{PY}} {{SCANNER}} --summary
 
 # --- Generate seed.toml from manifest ---
 seed: _require-manifest
     @echo "Generating seed.toml from manifest..."
-    @uv run python {{SEED_GEN}} {{MANIFEST}} -o {{SEED}} --merge seeds/seed.manual.toml
+    @{{PY}} {{SEED_GEN}} {{MANIFEST}} -o {{SEED}} --merge {{SHARED_DIR}}/seeds/seed.manual.toml
 
 # --- Generate code ---
 # The generator owns its output files end-to-end: emit → ruff-format → write.
@@ -120,48 +131,49 @@ seed: _require-manifest
 # the emitter's _ruff_format() is out of sync and should be investigated.
 generate: _require-manifest _require-seed
     @echo "Generating code from seed + manifest..."
-    @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --test-dir {{TEST_DIR}}
-    @uv run python {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
+    @{{PY}} {{IR_GEN}} {{MANIFEST}} --output {{OUTPUT_DIR}}/_ir_generated.py
     @# Safety net: verify generated output is already ruff-clean
-    @uv run ruff check --fix {{GENERATED_PY}} {{TEST_DIR}} || true
-    @uv run ruff format {{GENERATED_PY}} {{TEST_DIR}}
-    @uv run ruff check {{GENERATED_PY}} {{TEST_DIR}}
+    @{{PYTOOL}} ruff check --fix {{GENERATED_PY}} {{TEST_DIR}} || true
+    @{{PYTOOL}} ruff format {{GENERATED_PY}} {{TEST_DIR}}
+    @{{PYTOOL}} ruff check {{GENERATED_PY}} {{TEST_DIR}}
 
 # --- Stubs only (fast regeneration) ---
 stubs: _require-manifest _require-seed
     @echo "Regenerating .pyi stubs only..."
-    @uv run python {{GENERATOR}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{GENERATOR}} {{SEED}} {{MANIFEST}} \
         --output-dir {{OUTPUT_DIR}} \
         --stubs-only
 
-# --- Lint (hand-written files only — generated files are the generator's responsibility) ---
+# --- Lint (Python hand-written files; ts target lints TypeScript) ---
+# Generated builders are self-formatting via the generator; pyproject.toml's
+# per-file-ignores tell ruff not to nag on them. We just run ruff over python/.
 lint:
-    @echo "Running lint checks (hand-written files)..."
-    @uv run ruff check --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} .
-    @uv run ruff format --check --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} .
+    @echo "Running ruff checks (python/)..."
+    @cd {{PYTHON_DIR}} && uv run ruff check .
+    @cd {{PYTHON_DIR}} && uv run ruff format --check .
 
-# --- Format (hand-written files only — generated files are the generator's responsibility) ---
+# --- Format (Python hand-written files only) ---
 format:
-    @echo "Formatting hand-written files..."
-    @uv run ruff check --fix --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} . || true
-    @uv run ruff format --exclude {{OUTPUT_DIR}}/agent.py --exclude {{OUTPUT_DIR}}/config.py --exclude {{OUTPUT_DIR}}/executor.py --exclude {{OUTPUT_DIR}}/planner.py --exclude {{OUTPUT_DIR}}/plugin.py --exclude {{OUTPUT_DIR}}/runtime.py --exclude {{OUTPUT_DIR}}/service.py --exclude {{OUTPUT_DIR}}/tool.py --exclude {{OUTPUT_DIR}}/workflow.py --exclude {{OUTPUT_DIR}}/_ir_generated.py --exclude {{TEST_DIR}} .
+    @echo "Formatting Python files..."
+    @cd {{PYTHON_DIR}} && uv run ruff check --fix . || true
+    @cd {{PYTHON_DIR}} && uv run ruff format .
 
 # --- Format (alias) ---
 alias fmt := format
 
-# --- Format changed files only (fast, excludes generated files) ---
+# --- Format changed Python files only (fast, excludes generated files) ---
 fmt-changed:
     #!/usr/bin/env bash
     set -euo pipefail
-    # Generated files that formatters must never touch
-    generated_re='(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|_ir_generated\.py$|^tests/generated/'
-    py_files=$(git diff --name-only --diff-filter=d HEAD -- '*.py' | grep -Ev "$generated_re" || true)
+    generated_re='(agent|config|executor|planner|plugin|runtime|service|tool|workflow)\.(py|pyi)$|_ir_generated\.py$|^python/tests/generated/'
+    py_files=$(git diff --name-only --diff-filter=d HEAD -- 'python/**/*.py' | grep -Ev "$generated_re" || true)
     if [ -n "$py_files" ]; then
         echo "Formatting $(echo "$py_files" | wc -w) Python files..."
-        echo "$py_files" | xargs uv run ruff check --fix || true
-        echo "$py_files" | xargs uv run ruff format
+        echo "$py_files" | xargs {{PYTOOL}} ruff check --fix || true
+        echo "$py_files" | xargs {{PYTOOL}} ruff format
     else
         echo "No changed hand-written .py files to format."
     fi
@@ -184,22 +196,22 @@ check-gen: _require-manifest _require-seed
 # --- Tests ---
 test:
     @echo "Running tests..."
-    @uv run pytest tests/ -v --tb=short
+    @cd {{PYTHON_DIR}} && uv run pytest tests/ -v --tb=short
 
 # --- Pipeline tests only (fast inner loop) ---
 test-pipeline:
     @echo "Running pipeline tests (generator/seed_generator/code_ir)..."
-    @uv run pytest tests/test_code_ir.py tests/test_seed_generator.py tests/test_generator_golden.py tests/test_property_based.py -v --tb=short
+    @cd {{PYTHON_DIR}} && uv run pytest tests/test_code_ir.py tests/test_seed_generator.py tests/test_generator_golden.py tests/test_property_based.py -v --tb=short
 
 # --- Update golden files ---
 update-golden:
     @echo "Updating golden files..."
-    @uv run pytest tests/test_generator_golden.py --update-golden -v
+    @cd {{PYTHON_DIR}} && uv run pytest tests/test_generator_golden.py --update-golden -v
 
 # --- Preflight: run pre-commit hooks (mirrors CI lint exactly) ---
 preflight:
     @echo "Running pre-commit hooks (same as CI lint)..."
-    @uv run pre-commit run --all-files --show-diff-on-failure
+    @{{PYTOOL}} pre-commit run --all-files --show-diff-on-failure
 
 # --- Local CI: full pipeline matching GitHub Actions ---
 ci: preflight check-gen test
@@ -208,79 +220,79 @@ ci: preflight check-gen test
 # --- Type checking ---
 typecheck:
     @echo "Type-checking generated stubs..."
-    @uv run pyright {{OUTPUT_DIR}}/*.pyi --pythonversion 3.12
+    @{{PYTOOL}} pyright {{OUTPUT_DIR}}/*.pyi --pythonversion 3.12
 
 # --- Type checking hand-written code ---
 typecheck-core:
     @echo "Type-checking hand-written code..."
-    @uv run pyright
+    @cd {{PYTHON_DIR}} && uv run pyright
 
 # --- Watch mode ---
 watch:
     @echo "Watching for changes..."
-    @uv run watchfiles "just generate test typecheck" scripts/ seeds/ src/ tests/ manual/
+    @{{PYTOOL}} watchfiles "just generate test typecheck" {{SHARED_DIR}}/scripts/ {{SHARED_DIR}}/seeds/ {{PYTHON_DIR}}/src/ {{PYTHON_DIR}}/tests/
 
 # --- Documentation ---
 docs: _require-manifest _require-seed
     @echo "Generating documentation..."
-    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
         --output-dir {{DOC_DIR}} \
         --cookbook-dir {{COOKBOOK_DIR}}
     @echo "Updating README.md from template..."
-    @uv run python scripts/readme_generator.py
+    @{{PY}} {{SHARED_DIR}}/scripts/readme_generator.py
     @echo "Generating concepts documentation..."
-    @uv run python scripts/concepts_generator.py
+    @{{PY}} {{SHARED_DIR}}/scripts/concepts_generator.py
     @echo "Generating llms.txt and editor rules..."
-    @uv run python {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
+    @{{PY}} {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
 
 # --- LLMs context files (editor rules, llms.txt) ---
 llms: _require-manifest _require-seed
     @echo "Generating llms.txt and editor rules..."
-    @uv run python {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
+    @{{PY}} {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
 
 # --- Agent Skills reference generation ---
 skills: _require-manifest _require-seed
     @echo "Generating agent skill references..."
-    @uv run python {{SKILL_GEN}} {{MANIFEST}} {{SEED}}
+    @{{PY}} {{SKILL_GEN}} {{MANIFEST}} {{SEED}}
 
 # --- Check skills for staleness (fails if out of date) ---
 check-skills: _require-manifest _require-seed
     @echo "Checking skill freshness..."
-    @uv run python {{SKILL_GEN}} {{MANIFEST}} {{SEED}} --check
+    @{{PY}} {{SKILL_GEN}} {{MANIFEST}} {{SEED}} --check
 
 docs-api: _require-manifest _require-seed
     @echo "Generating API reference..."
-    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
         --output-dir {{DOC_DIR}} \
         --api-only
 
 docs-cookbook: _require-manifest _require-seed
     @echo "Generating cookbook..."
-    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
         --output-dir {{DOC_DIR}} \
         --cookbook-dir {{COOKBOOK_DIR}} \
         --cookbook-only
 
 docs-migration: _require-manifest _require-seed
     @echo "Generating migration guide..."
-    @uv run python {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
         --output-dir {{DOC_DIR}} \
         --migration-only
 
 # --- Sphinx build ---
 docs-build: docs
     @echo "Building Sphinx documentation..."
-    @uv run sphinx-build -W --keep-going -b html docs/ {{SPHINX_OUT}}
+    @{{PYTOOL}} sphinx-build -W --keep-going -b html docs/ {{SPHINX_OUT}}
 
 # --- Sphinx live preview ---
 docs-serve: docs
     @echo "Serving docs with live reload at http://localhost:8000..."
-    @uv run sphinx-autobuild docs/ {{SPHINX_OUT}} --watch {{DOC_DIR}} --watch src/ --port 8000
+    @{{PYTOOL}} sphinx-autobuild docs/ {{SPHINX_OUT}} --watch {{DOC_DIR}} --watch {{PYTHON_DIR}}/src/ --port 8000
 
 # --- REPL ---
 repl:
     @echo "Starting ADK-Fluent playground..."
-    @uv run ipython -i -c "from adk_fluent import *; print('\nADK-Fluent playground loaded! (Agent, Pipeline, S, C available)')"
+    @cd {{PYTHON_DIR}} && uv run ipython -i -c "from adk_fluent import *; print('\nADK-Fluent playground loaded! (Agent, Pipeline, S, C available)')"
 
 # --- Worktree: isolated workspace for feature work ---
 worktree name:
@@ -296,59 +308,59 @@ worktree name:
     echo "Creating worktree at $dir (branch: $branch)..."
     git worktree add "$dir" -b "$branch"
     echo "Installing dependencies..."
-    cd "$dir" && uv sync --all-extras
+    cd "$dir/{{PYTHON_DIR}}" && uv sync --all-extras
     echo ""
     echo "Worktree ready: cd $dir"
     echo "When done: git worktree remove $dir"
 
 # --- Add Cookbook ---
 add-cookbook name:
-    @uv run python scripts/add_cookbook.py "{{name}}"
+    @{{PY}} {{SHARED_DIR}}/scripts/add_cookbook.py "{{name}}"
 
 # --- Cookbook generation ---
 cookbook-gen: _require-manifest _require-seed
     @echo "Generating cookbook example stubs..."
-    @uv run python {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
         --cookbook-dir {{COOKBOOK_DIR}}
 
 cookbook-gen-dry: _require-manifest _require-seed
     @echo "Previewing cookbook example stubs..."
-    @uv run python {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
+    @{{PY}} {{COOKBOOK_GEN}} {{SEED}} {{MANIFEST}} \
         --cookbook-dir {{COOKBOOK_DIR}} --dry-run
 
 # --- Convert cookbook to adk-web agent folders ---
 agents:
     @echo "Converting cookbook examples to adk-web agent folders..."
-    @uv run python scripts/cookbook_to_agents.py --force
+    @{{PY}} {{SHARED_DIR}}/scripts/cookbook_to_agents.py --force
 
 # --- Visual: A2UI preview (static, no LLM, no server) ---
 a2ui-preview:
     @echo "Exporting A2UI surfaces from cookbooks..."
-    @uv run python scripts/export_a2ui_surfaces.py
+    @{{PY}} {{SHARED_DIR}}/scripts/export_a2ui_surfaces.py
     @echo "Opening A2UI gallery in browser..."
     @python3 -c "import webbrowser; webbrowser.open('visual/index.html')" 2>/dev/null || echo "Open visual/index.html in your browser"
 
 # --- Visual: full cookbook runner (requires API key) ---
 visual: a2ui-preview
     @echo "Starting visual cookbook runner at http://localhost:8099..."
-    @uv run uvicorn visual.server:app --host 0.0.0.0 --port 8099 --reload
+    @cd {{PYTHON_DIR}} && uv run uvicorn visual.server:app --host 0.0.0.0 --port 8099 --reload
 
 # --- Visual: export surfaces only ---
 visual-export:
     @echo "Exporting A2UI surfaces..."
-    @uv run python scripts/export_a2ui_surfaces.py
+    @{{PY}} {{SHARED_DIR}}/scripts/export_a2ui_surfaces.py
 
 # --- Visual test suite (requires API key) ---
 test-visual:
     @echo "Running visual test suite..."
-    @uv run pytest tests/visual/ -v --tb=short -m visual
+    @cd {{PYTHON_DIR}} && uv run pytest tests/visual/ -v --tb=short -m visual
 
 # --- Diff against previous ---
 diff:
     #!/usr/bin/env bash
     if [ -f {{PREV_MANIFEST}} ]; then
         echo "Changes since last scan:"
-        uv run python {{SCANNER}} --diff {{PREV_MANIFEST}}
+        {{PY}} {{SCANNER}} --diff {{PREV_MANIFEST}}
     else
         echo "No previous manifest found. Run 'just scan' first."
     fi
@@ -358,7 +370,7 @@ diff-md:
     #!/usr/bin/env bash
     if [ -f {{PREV_MANIFEST}} ]; then
         echo "Generating API diff Markdown..."
-        uv run python {{SCANNER}} --diff {{PREV_MANIFEST}} \
+        {{PY}} {{SCANNER}} --diff {{PREV_MANIFEST}} \
             --diff-markdown {{DOC_DIR}}/api-diff.md
         echo "Written to {{DOC_DIR}}/api-diff.md"
     else
@@ -367,27 +379,27 @@ diff-md:
 
 # --- Summary ---
 summary:
-    @uv run python {{SCANNER}} --summary
+    @{{PY}} {{SCANNER}} --summary
 
 # --- Archive current manifest ---
 archive:
     @cp {{MANIFEST}} {{PREV_MANIFEST}}
     @echo "Archived {{MANIFEST}} -> {{PREV_MANIFEST}}"
 
-# --- Package build ---
+# --- Package build (Python) ---
 build: all
-    @echo "Building package..."
-    @uv build
+    @echo "Building Python package..."
+    @cd {{PYTHON_DIR}} && uv build
 
 # --- Publish to TestPyPI ---
 publish-test: build
     @echo "Publishing to TestPyPI..."
-    @uv publish --index testpypi
+    @cd {{PYTHON_DIR}} && uv publish --index testpypi
 
 # --- Publish to PyPI ---
 publish: build
     @echo "Publishing to PyPI..."
-    @uv publish
+    @cd {{PYTHON_DIR}} && uv publish
 
 # ============================================================================
 # RELEASE ENGINEERING
@@ -399,7 +411,7 @@ publish: build
 #   just version                  → Show current version
 #
 
-VERSION_FILE  := "src/adk_fluent/_version.py"
+VERSION_FILE  := PYTHON_DIR / "src/adk_fluent/_version.py"
 
 # Show the current version from _version.py
 version:
@@ -460,15 +472,15 @@ release level="patch": (bump level)
     echo ""
 
     echo "── Running tests ──"
-    uv run pytest tests/ -x -q --tb=short
+    cd {{PYTHON_DIR}} && uv run pytest tests/ -x -q --tb=short
 
     echo ""
     echo "── Running typecheck ──"
-    uv run pyright src/adk_fluent/*.pyi --pythonversion 3.12 2>/dev/null || true
+    cd {{PYTHON_DIR}} && uv run pyright src/adk_fluent/*.pyi --pythonversion 3.12 2>/dev/null || true
 
     echo ""
     echo "── Building package ──"
-    uv build
+    cd {{PYTHON_DIR}} && uv build
 
     echo ""
     echo "════════════════════════════════════════════════════════════"
@@ -494,7 +506,8 @@ release level="patch": (bump level)
 # --- Clean ---
 clean:
     @echo "Cleaning generated files..."
-    @rm -rf {{OUTPUT_DIR}}/*.py {{OUTPUT_DIR}}/*.pyi
+    @rm -f {{OUTPUT_DIR}}/agent.py {{OUTPUT_DIR}}/config.py {{OUTPUT_DIR}}/executor.py {{OUTPUT_DIR}}/planner.py {{OUTPUT_DIR}}/plugin.py {{OUTPUT_DIR}}/runtime.py {{OUTPUT_DIR}}/service.py {{OUTPUT_DIR}}/tool.py {{OUTPUT_DIR}}/workflow.py {{OUTPUT_DIR}}/_ir_generated.py
+    @rm -f {{OUTPUT_DIR}}/*.pyi
     @rm -rf {{TEST_DIR}}/
     @rm -rf {{DOC_DIR}}/
     @rm -rf docs/_build/
@@ -575,3 +588,51 @@ _require-a2ui-manifest:
 [private]
 _require-a2ui-seed:
     @test -f {{A2UI_SEED}} || (echo "ERROR: {{A2UI_SEED}} not found. Run 'just a2ui-seed' first." && exit 1)
+
+# ============================================================================
+# TYPESCRIPT (ts/ package)
+# ============================================================================
+
+# --- TypeScript: install dependencies ---
+ts-setup:
+    @echo "Installing TypeScript dependencies..."
+    @cd {{TS_DIR}} && npm install
+
+# --- TypeScript: regenerate builders from seed + manifest ---
+ts-generate: _require-manifest _require-seed
+    @echo "Generating TypeScript builders from seed + manifest..."
+    @uv run python -m shared.scripts.generator {{SEED}} {{MANIFEST}} \
+        --target typescript \
+        --ts-output-dir {{TS_DIR}}/src/builders
+
+# --- TypeScript: build ---
+ts-build:
+    @echo "Building TypeScript package..."
+    @cd {{TS_DIR}} && npm run build
+
+# --- TypeScript: test ---
+ts-test:
+    @echo "Running TypeScript tests..."
+    @cd {{TS_DIR}} && npm test
+
+# --- TypeScript: typecheck ---
+ts-typecheck:
+    @echo "Running TypeScript type checks..."
+    @cd {{TS_DIR}} && npm run typecheck
+
+# --- TypeScript: lint ---
+ts-lint:
+    @echo "Running TypeScript linter..."
+    @cd {{TS_DIR}} && npm run lint
+
+# --- Monorepo: run all tests ---
+test-all: test ts-test
+    @echo "\nAll Python and TypeScript tests passed."
+
+# --- Monorepo: build everything ---
+build-all: generate ts-generate ts-build
+    @echo "\nAll packages built successfully."
+
+# --- Monorepo: regenerate everything (Python + TypeScript) ---
+generate-all: generate ts-generate
+    @echo "\nRegenerated Python and TypeScript builders."

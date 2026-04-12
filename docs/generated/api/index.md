@@ -1,15 +1,15 @@
 # API Reference
 
-Complete API reference for all **132 builders** across
+Complete API reference for all **135 builders** across
 **9 modules**.
 
 ## Modules
 
 | Module | Builders | Link |
 |--------|----------|------|
-| `agent` | 2 | [agent](agent.md) |
-| `config` | 38 | [config](config.md) |
-| `executor` | 5 | [executor](executor.md) |
+| `agent` | 3 | [agent](agent.md) |
+| `config` | 39 | [config](config.md) |
+| `executor` | 6 | [executor](executor.md) |
 | `planner` | 3 | [planner](planner.md) |
 | `plugin` | 12 | [plugin](plugin.md) |
 | `runtime` | 3 | [runtime](runtime.md) |

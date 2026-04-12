@@ -125,15 +125,6 @@ async def demo_tool_runtime():
 asyncio.run(demo_tool_runtime())
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["a_then_b (sequence)"]]
-    n2["a"]
-    n3["b"]
-    n2 --> n3
-```
-:::
 ::::
 
 ## Equivalence

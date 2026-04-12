@@ -20,6 +20,7 @@ Fluent tool composition. Consistent with P, C, S, M modules.
 | `T.cache(tool_or_composite, ttl=300, key_fn=None)`                  | `TComposite` | Wrap tool(s) with a TTL-based result cache                   |
 | `T.mcp(url_or_params, tool_filter=None, prefix=None)`               | `TComposite` | Thin factory over :class:`McpToolset` builder                |
 | `T.a2a(agent_card_url, name=None, description=None, timeout=600.0)` | `TComposite` | Wrap a remote A2A agent as an AgentTool                      |
+| `T.skill(path)`                                                     | `TComposite` | Wrap ADK `SkillToolset` for progressive disclosure           |
 | `T.openapi(spec, tool_filter=None, auth=None)`                      | `TComposite` | Thin factory over :class:`OpenAPIToolset` builder            |
 | `T.a2ui(catalog='basic', schema=None)`                              | `TComposite` | A2UI toolset for LLM-guided UI generation                    |
 | `T.transform(tool_or_composite, pre=None, post=None)`               | `TComposite` | Wrap tool(s) with pre/post argument/result transforms        |
@@ -179,6 +180,26 @@ sub-agent (opaque autonomous task).
 - `name` (*str | None*) — default: `None`
 - `description` (*str | None*) — default: `None`
 - `timeout` (*float*) — default: `600.0`
+
+## Skills
+
+### `T.skill(path: Any) -> TComposite`
+
+Wrap ADK `SkillToolset` for progressive disclosure.
+
+Parses SKILL.md files from directory path(s) and creates a
+`SkillToolset`.  The toolset provides L1/L2/L3 progressive
+disclosure — skill metadata is always in the system prompt,
+instructions loaded on demand by the LLM.
+
+**Args:**
+
+- **`path`**: Directory path, list of paths, or list of
+  `google.adk.skills.Skill` objects.
+
+**Parameters:**
+
+- `path` (*Any*)
 
 ## OpenAPI
 

@@ -82,25 +82,13 @@ sentiment_analyzer = LlmAgent(
 native_mapper = MapOverAgent(name="feedback_mapper", sub_agents=[sentiment_analyzer])
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["feedback_collector_then_map_over_feedback_entries_3_then_summary_writer (sequence)"]]
-    n2["feedback_collector"]
-    n3(("map_over_feedback_entries_3 (map feedback_entries)"))
-    n4["sentiment_analyzer"]
-    n5["summary_writer"]
-    n3 --> n4
-    n2 --> n3
-    n3 --> n5
-```
-:::
 ::::
 
 ## Equivalence
 
 ```python
-from adk_fluent._base import _MapOverBuilder, BuilderBase
+from adk_fluent._primitive_builders import _MapOverBuilder
+from adk_fluent._base import BuilderBase
 
 # map_over returns a _MapOverBuilder
 assert isinstance(feedback_mapper, _MapOverBuilder)

@@ -67,19 +67,6 @@ order_errors = [i for i in order_issues if isinstance(i, dict) and i.get("level"
 # There's no static analysis to catch these wiring errors.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["capture_customer_request_then_parser_then_fulfillment (sequence)"]]
-    n2>"capture_customer_request capture(customer_request)"]
-    n3["parser"]
-    n4["fulfillment"]
-    n2 --> n3
-    n3 --> n4
-    n2 -. "customer_request" .-> n3
-    n3 -. "order_details" .-> n4
-```
-:::
 ::::
 
 ## Equivalence

@@ -1,0 +1,169 @@
+name: Release
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Release publishing pipeline. Runs on:
+#   - Pushed tags `v*`           → publish to PyPI (prod)
+#   - Manual workflow_dispatch   → publish to TestPyPI (dry run)
+#
+# Stages:
+#   1. version-check  — assert tag matches python/_version.py
+#   2. python-build   — build wheel + sdist
+#   3. ts-build       — build npm dist
+#   4. publish-pypi   — Trusted Publishing to PyPI
+#   5. publish-npm    — npm publish (gated on NPM_TOKEN secret)
+#
+# Both publishes are independent — npm can be skipped if NPM_TOKEN unset.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Publishing target
+        required: true
+        default: testpypi
+        type: choice
+        options:
+          - testpypi
+          - pypi
+          - npm
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  UV_VERSION: "0.8.17"
+
+jobs:
+  version-check:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify tag matches python/src/adk_fluent/_version.py
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          VERSION=$(python3 -c "exec(open('python/src/adk_fluent/_version.py').read()); print(__version__)")
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Tag v$TAG does not match python/src/adk_fluent/_version.py ($VERSION)"
+            exit 1
+          fi
+          echo "Version check passed: v$TAG == $VERSION"
+
+  python-build:
+    needs: [version-check]
+    if: |
+      always() &&
+      (needs.version-check.result == 'success' || needs.version-check.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-python-env
+        with:
+          uv-version: ${{ env.UV_VERSION }}
+      - name: Generate code
+        run: just scan seed generate
+      - name: Build wheel + sdist
+        working-directory: python
+        run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: python/dist/
+          retention-days: 30
+
+  ts-build:
+    needs: [version-check]
+    if: |
+      always() &&
+      (needs.version-check.result == 'success' || needs.version-check.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-ts-env
+      - name: Build
+        working-directory: ts
+        run: npm run build
+      - name: Pack tarball
+        working-directory: ts
+        run: npm pack --pack-destination dist-pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ts-dist
+          path: |
+            ts/dist/
+            ts/dist-pack/
+          retention-days: 30
+
+  publish-pypi:
+    needs: [python-build]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.target == 'pypi'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/adk-fluent
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  publish-testpypi:
+    needs: [python-build]
+    if: github.event.inputs.target == 'testpypi'
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/adk-fluent
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-npm:
+    needs: [ts-build]
+    if: |
+      (startsWith(github.ref, 'refs/tags/v') || github.event.inputs.target == 'npm')
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/adk-fluent-ts
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ts-dist
+          path: ts-artifact/
+      - name: Publish
+        working-directory: ts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::warning::NPM_TOKEN secret not set — skipping npm publish."
+            exit 0
+          fi
+          npm ci
+          npm publish --access public

@@ -70,7 +70,7 @@ verifier = (
     Agent("verifier")
     .model("gemini-2.5-flash")
     .instruct("Verify the task agent's output for accuracy and completeness.")
-    .context(C.from_state("task_result"))
+    .context(C.none() + C.from_state("task_result"))
 )
 
 # Compose: task agent -> verifier pipeline
@@ -113,15 +113,6 @@ agent_native = LlmAgent(
         functools.partial(read_file_native, api_key="prod_key"),
     ],
 )
-```
-:::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["task_agent_then_verifier (sequence)"]]
-    n2["task_agent"]
-    n3["verifier"]
-    n2 --> n3
 ```
 :::
 ::::

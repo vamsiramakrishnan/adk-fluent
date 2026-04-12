@@ -1,0 +1,29 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Files Prettier should never touch.
+#
+# Generated builders are owned by the codegen pipeline (`just ts-generate`)
+# and have their own deterministic format. Anything in dist/ or docs/api/ is
+# build output. CLAUDE.md is auto-generated from manifest.json.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# build output
+dist/
+docs/api/
+coverage/
+node_modules/
+
+# generated sources
+src/builders/agent.ts
+src/builders/config.ts
+src/builders/executor.ts
+src/builders/planner.ts
+src/builders/plugin.ts
+src/builders/runtime.ts
+src/builders/service.ts
+src/builders/tool.ts
+
+# auto-generated docs
+CLAUDE.md
+
+# lockfile
+package-lock.json

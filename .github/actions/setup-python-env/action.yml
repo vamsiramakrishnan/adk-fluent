@@ -1,0 +1,41 @@
+name: Setup Python environment
+description: |
+  Composite action that installs uv + just and syncs the Python project at
+  python/. Always runs from the repo root; commands inside this action
+  cd into python/ as needed. Reusable across all Python jobs.
+
+inputs:
+  python-version:
+    description: Python version pin (e.g. "3.12"). Empty = default from project.
+    required: false
+    default: ""
+  uv-version:
+    description: uv version
+    required: false
+    default: "0.8.17"
+  install-extras:
+    description: Whether to install --all-extras (slower) or core only.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+        cache-dependency-glob: "python/uv.lock"
+        version: ${{ inputs.uv-version }}
+        python-version: ${{ inputs.python-version || '' }}
+
+    - uses: taiki-e/install-action@just
+
+    - name: Sync Python dependencies
+      shell: bash
+      working-directory: python
+      run: |
+        if [ "${{ inputs.install-extras }}" = "true" ]; then
+          uv sync --all-extras
+        else
+          uv sync
+        fi

@@ -4,11 +4,62 @@
 
 | Builder | Description |
 |---------|-------------|
+| [A2aAgentExecutor](builder-A2aAgentExecutor) | An AgentExecutor that runs an ADK Agent against an A2A request and. |
 | [AgentEngineSandboxCodeExecutor](builder-AgentEngineSandboxCodeExecutor) | A code executor that uses Agent Engine Code Execution Sandbox to execute code. |
 | [BaseCodeExecutor](builder-BaseCodeExecutor) | Abstract base class for all code executors. |
 | [BuiltInCodeExecutor](builder-BuiltInCodeExecutor) | A code executor that uses the Model's built-in code executor. |
 | [UnsafeLocalCodeExecutor](builder-UnsafeLocalCodeExecutor) | A code executor that unsafely execute code in the current local context. |
 | [VertexAiCodeExecutor](builder-VertexAiCodeExecutor) | A code executor that uses Vertex Code Interpreter Extension to execute code. |
+
+(builder-A2aAgentExecutor)=
+## A2aAgentExecutor
+
+> Fluent builder for `google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutor`
+
+An AgentExecutor that runs an ADK Agent against an A2A request and.
+
+**Quick start:**
+
+```python
+from adk_fluent import A2aAgentExecutor
+
+result = (
+    A2aAgentExecutor("runner_value")
+    .build()
+)
+```
+
+### Constructor
+
+```python
+A2aAgentExecutor(runner: Runner | Callable[..., Runner | Awaitable[Runner]])
+```
+
+| Argument | Type |
+|----------|------|
+| `runner` | `Runner | Callable[..., Runner | Awaitable[Runner]]` |
+
+### Control Flow & Execution
+
+#### `.build() -> A2aAgentExecutor` {bdg-primary}`Control Flow & Execution`
+
+Resolve into a native ADK A2aAgentExecutor.
+
+**Example:**
+
+```python
+a2aagentexecutor = A2aAgentExecutor("a2aagentexecutor").build("...")
+```
+
+### Forwarded Fields
+
+These fields are available via `__getattr__` forwarding.
+
+| Field | Type |
+|-------|------|
+| `.config(value)` | `A2aAgentExecutorConfig | None` |
+
+---
 
 (builder-AgentEngineSandboxCodeExecutor)=
 ## AgentEngineSandboxCodeExecutor

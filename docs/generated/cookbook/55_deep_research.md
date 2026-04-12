@@ -68,17 +68,17 @@ parallel_search = (
     Agent("web_searcher")
     .model(MODEL)
     .instruct("Search the web for relevant articles and blog posts. Summarize key findings.")
-    .context(C.from_state("research_plan"))
+    .context(C.none() + C.from_state("research_plan"))
     .writes("web_results")
     | Agent("academic_searcher")
     .model(MODEL)
     .instruct("Search academic databases for peer-reviewed papers. Extract methodology and conclusions.")
-    .context(C.from_state("research_plan"))
+    .context(C.none() + C.from_state("research_plan"))
     .writes("academic_results")
     | Agent("news_searcher")
     .model(MODEL)
     .instruct("Search recent news for current developments and expert commentary.")
-    .context(C.from_state("research_plan"))
+    .context(C.none() + C.from_state("research_plan"))
     .writes("news_results")
 )
 
@@ -91,7 +91,7 @@ synthesizer = (
         "Identify consensus, contradictions, and gaps. "
         "Rate confidence on a 0-1 scale."
     )
-    .context(C.from_state("web_results", "academic_results", "news_results"))
+    .context(C.none() + C.from_state("web_results", "academic_results", "news_results"))
     .writes("synthesis")
 )
 
@@ -103,12 +103,12 @@ quality_loop = (
         "Review the research synthesis for accuracy, completeness, and bias. "
         "Score quality from 0 to 1. If below 0.85, specify what needs improvement."
     )
-    .context(C.from_state("synthesis"))
+    .context(C.none() + C.from_state("synthesis"))
     .writes("quality_score")
     >> Agent("revision_agent")
     .model(MODEL)
     .instruct("Revise the synthesis based on reviewer feedback. Address gaps and improve weak sections.")
-    .context(C.from_state("synthesis", "quality_score"))
+    .context(C.none() + C.from_state("synthesis", "quality_score"))
     .writes("synthesis")
 ).loop_until(lambda s: float(s.get("quality_score", 0)) >= 0.85, max_iterations=3)
 
@@ -117,7 +117,7 @@ report_writer = (
     Agent("report_writer")
     .model(MODEL)
     .instruct("Write the final research report with executive summary, key findings, and confidence assessment.")
-    .context(C.from_state("synthesis"))
+    .context(C.none() + C.from_state("synthesis"))
     @ ResearchReport
 )
 
@@ -135,31 +135,6 @@ deep_research = query_analyzer >> parallel_search >> synthesizer >> quality_loop
 #   - Manual include_contents="none" on stateless agents
 #   - Pydantic schema wiring for the final report
 # Total: ~120 lines of boilerplate
-```
-:::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["query_analyzer_then_web_searcher_and_academic_searcher_and_news_searcher_then_synthesizer_then_quality_reviewer_then_revision_agent_x3_then_report_writer (sequence)"]]
-    n2["query_analyzer"]
-    n3{"web_searcher_and_academic_searcher_and_news_searcher (parallel)"}
-    n4["web_searcher"]
-    n5["academic_searcher"]
-    n6["news_searcher"]
-    n7["synthesizer"]
-    n8(("quality_reviewer_then_revision_agent_x3 (loop x3)"))
-    n9["quality_reviewer"]
-    n10["revision_agent"]
-    n11["report_writer"]
-    n3 --> n4
-    n3 --> n5
-    n3 --> n6
-    n8 --> n9
-    n8 --> n10
-    n2 --> n3
-    n3 --> n7
-    n7 --> n8
-    n8 --> n11
 ```
 :::
 ::::

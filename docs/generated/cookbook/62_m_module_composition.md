@@ -216,13 +216,4 @@ assert len(conditional_timeout) == 1
 print("All M module composition assertions passed!")
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["writer_then_reviewer (sequence)"]]
-    n2["writer"]
-    n3["reviewer"]
-    n2 --> n3
-```
-:::
 ::::

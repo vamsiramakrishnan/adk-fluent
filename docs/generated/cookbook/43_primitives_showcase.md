@@ -167,13 +167,4 @@ stateless_processor = (
 assert stateless_processor._config["_context_spec"] is not None
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["order_parser_then_tap_5 (sequence)"]]
-    n2["order_parser"]
-    n3>"tap_5 tap"]
-    n2 --> n3
-```
-:::
 ::::

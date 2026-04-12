@@ -78,23 +78,12 @@ postprocessor = LlmAgent(name="postprocessor", model="gemini-2.5-flash", instruc
 pipeline_native = SequentialAgent(name="pipeline", sub_agents=[preprocessor, logger, postprocessor])
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["feature_engineer_then_tap_1_then_inference_engine (sequence)"]]
-    n2["feature_engineer"]
-    n3>"tap_1 tap"]
-    n4["inference_engine"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence
 
 ```python
-from adk_fluent._base import _TapBuilder
+from adk_fluent._primitive_builders import _TapBuilder
 
 # tap() creates a _TapBuilder
 t = tap(lambda s: None)

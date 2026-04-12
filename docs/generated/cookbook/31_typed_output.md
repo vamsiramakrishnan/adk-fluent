@@ -71,17 +71,6 @@ parser_native = LlmAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["ocr_agent_then_invoice_parser_then_bookkeeper (sequence)"]]
-    n2["ocr_agent"]
-    n3["invoice_parser"]
-    n4["bookkeeper"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

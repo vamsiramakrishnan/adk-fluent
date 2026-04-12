@@ -100,27 +100,6 @@ progress_pipeline = (
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["content_writer_then_dispatch_2_then_formatter_then_join_2_then_publisher_then_join_3 (sequence)"]]
-    n2["content_writer"]
-    n3>"dispatch_2 dispatch(2)"]
-    n4["email_sender"]
-    n5["seo_optimizer"]
-    n6["formatter"]
-    n7(("join_2 join(seo)"))
-    n8["publisher"]
-    n9(("join_3 join(email)"))
-    n3 --> n4
-    n3 --> n5
-    n2 --> n3
-    n3 --> n6
-    n6 --> n7
-    n7 --> n8
-    n8 --> n9
-```
-:::
 ::::
 
 ## Equivalence

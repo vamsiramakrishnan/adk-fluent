@@ -78,27 +78,13 @@ research_pipeline = (
 # This is ~40 lines of async boilerplate.
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["query_classifier_then_race_federal_search_state_search_then_citation_formatter (sequence)"]]
-    n2["query_classifier"]
-    n3{{"race_federal_search_state_search (race)"}}
-    n4["federal_search"]
-    n5["state_search"]
-    n6["citation_formatter"]
-    n3 --> n4
-    n3 --> n5
-    n2 --> n3
-    n3 --> n6
-```
-:::
 ::::
 
 ## Equivalence
 
 ```python
-from adk_fluent._base import _RaceBuilder, BuilderBase
+from adk_fluent._primitive_builders import _RaceBuilder
+from adk_fluent._base import BuilderBase
 
 # race() creates a _RaceBuilder
 assert isinstance(fastest_result, _RaceBuilder)

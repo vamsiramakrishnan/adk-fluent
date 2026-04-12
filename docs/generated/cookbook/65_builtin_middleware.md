@@ -328,13 +328,4 @@ assert isinstance(flat[5], DedupMiddleware)
 print("All built-in middleware assertions passed!")
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["writer_then_reviewer (sequence)"]]
-    n2["writer"]
-    n3["reviewer"]
-    n2 --> n3
-```
-:::
 ::::

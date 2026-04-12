@@ -50,17 +50,6 @@ variant_a = base >> Agent("downstream_a")  # base is now frozen
 variant_b = base.instruct("Modified instruction.")  # forks a new clone
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["intake_agent_then_adjuster_then_reviewer (sequence)"]]
-    n2["intake_agent"]
-    n3["adjuster"]
-    n4["reviewer"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

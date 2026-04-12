@@ -86,18 +86,6 @@ fanout_native = ParallelAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1{"market_research (parallel)"}
-    n2["web_analyst"]
-    n3["academic_analyst"]
-    n4["social_analyst"]
-    n1 --> n2
-    n1 --> n3
-    n1 --> n4
-```
-:::
 ::::
 
 ## Equivalence

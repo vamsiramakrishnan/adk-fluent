@@ -91,17 +91,6 @@ pipeline_native = SequentialAgent(
 )
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["contract_review (sequence)"]]
-    n2["extractor"]
-    n3["risk_analyst"]
-    n4["summarizer"]
-    n2 --> n3
-    n3 --> n4
-```
-:::
 ::::
 
 ## Equivalence

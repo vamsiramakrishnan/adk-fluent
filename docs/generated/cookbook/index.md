@@ -218,6 +218,12 @@ How to attach guardrails to agent model calls.
 
 How to manage interactive sessions with agents.
 ```
+```{grid-item-card} Medical Advice Safety Guards -- Guards with .guard()
+:link: 12_guardrails
+:link-type: doc
+
+How to attach guardrails to agent model calls.
+```
 ````
 
 ```{toctree}
@@ -229,6 +235,7 @@ How to manage interactive sessions with agents.
 11_inline_testing
 12_guards
 13_interactive_session
+12_guardrails
 ```
 
 ## Advanced
@@ -550,6 +557,18 @@ How to compose agents into a sequential pipeline.
 
 How to compose agents into a sequential pipeline.
 ```
+```{grid-item-card} Senior Architect Delegates to Junior Specialists (LLM-Driven Routing)
+:link: 27_delegate_pattern
+:link-type: doc
+
+How to delegate tasks between agents.
+```
+```{grid-item-card} Retry If: API Integration Agent That Retries on Transient Failures
+:link: 38_retry_if
+:link-type: doc
+
+How to use retry if: api integration agent that retries on transient failures with the fluent API.
+```
 ````
 
 ```{toctree}
@@ -578,6 +597,8 @@ How to compose agents into a sequential pipeline.
 41_gate_approval
 42_race
 43_primitives_showcase
+27_delegate_pattern
+38_retry_if
 ```
 
 ## v4 Features
@@ -657,6 +678,15 @@ classifiers see only the current message while specialists see full history.
 In other frameworks: LangGraph manages context through TypedDict state slicing,
 requiring manual state key management. adk-fluent uses the C module (C.none(),
 C.from_state(), C.user_only()) for declarative context control.
+
+Key design principle: data-injection transforms (C.from_state, C.template,
+C.notes) are neutral — they inject state without suppressing conversation
+history. History-filtering transforms (C.none, C.window, C.user_only)
+explicitly control visibility. Compose them to get both::
+
+    C.none() + C.from_state("key")   # inject state, no history
+    C.from_state("key")              # inject state, keep history
+    C.window(n=3) + C.from_state("key")  # last 3 turns + state
 :link: 49_context_engineering
 :link-type: doc
 
@@ -786,7 +816,11 @@ Pipeline topology:
         >> satisfaction_monitor
         >> gate(resolved == "no") -> escalate
 
-Uses: S.capture, C.none, C.from_state, Route, gate, save_as
+Uses: S.capture, C.none, C.from_state, C.user_only, Route, gate, save_as
+
+Note: C.from_state() is a pure data-injection transform — it injects state
+values without suppressing conversation history. To suppress history AND
+inject state, compose: C.none() + C.from_state("key").
 :link: 56_customer_support_triage
 :link-type: doc
 
@@ -1165,46 +1199,6 @@ How to compose agents into a sequential pipeline.
 ```
 ````
 
-## Skills & Harness Pathways
-
-These recipes demonstrate the [Skills](../../user-guide/skills.md) and [Harness](../../user-guide/harness.md) development pathways -- two of adk-fluent's [three distinct pathways](../../user-guide/index.md#three-pathways) for building agents at different abstraction levels.
-
-````{grid} 1 2 2 2
----
-gutter: 3
----
-```{grid-item-card} Skill-Based Agents -- Composable Skills from SKILL.md Files
-
-11 patterns for declaring agent topologies in YAML, loading them as `Skill()` builders, composing with operators, injecting tools, and discovering skills via `SkillRegistry`.
-
-**Pathway:** Skills
-:link: 77_skill_based_agents
-:link-type: doc
-
-How to use declarative SKILL.md files for composable agent packages.
-```
-```{grid-item-card} Skill-Powered Harness -- Building a CodAct Coding Agent
-
-8 patterns combining Skills + Harness: loading domain expertise from SKILL.md into agents with sandboxed workspace tools, permission policies, and context engineering.
-
-**Pathway:** Skills + Harness
-:link: 78_harness_and_skills
-:link-type: doc
-
-How to combine skill expertise with harness runtime primitives.
-```
-```{grid-item-card} Gemini CLI / Claude Code Clone -- Production Coding Agent Harness
-
-27 tests building a complete 5-layer autonomous coding runtime: intelligence, tools, safety, observability, and runtime. Includes EventBus, budget monitor, task ledger, cancellation, and REPL.
-
-**Pathway:** Harness
-:link: 79_coding_agent_harness
-:link-type: doc
-
-How to build a production autonomous coding runtime with the H namespace.
-```
-````
-
 ```{toctree}
 :hidden:
 
@@ -1236,7 +1230,170 @@ How to build a production autonomous coding runtime with the H namespace.
 72_a2ui_operators
 73_a2ui_llm_guided
 74_a2ui_pipeline
+```
+
+## Skills & Harness
+
+Declarative agent packages from SKILL.md files and autonomous coding runtimes with the H namespace. Two of adk-fluent's [three development pathways](../../user-guide/index.md#three-pathways).
+
+````{grid} 1 2 2 2
+---
+gutter: 3
+---
+```{grid-item-card} Prefect Backend -- Flow Orchestration for Agent Pipelines
+
+The Prefect backend compiles IR nodes to Prefect flows and tasks.
+Task results are cached by Prefect, so on retry, completed tasks
+return their cached results instead of re-executing (reducing LLM costs).
+
+Key mappings:
+  AgentNode     → Task     (non-deterministic: LLM call, cached on retry)
+  SequenceNode  → Flow     (sequential task orchestration)
+  ParallelNode  → Flow     (concurrent .submit() + wait)
+  LoopNode      → Flow     (iteration in flow body)
+  TransformNode → Inline   (pure function, no caching)
+  GateNode      → Pause    (pause_flow_run for HITL)
+  MapOverNode   → task.map (parallel map over list)
+
+Usage requires: pip install adk-fluent[prefect]
+:link: 75_prefect_backend
+:link-type: doc
+
+How to compose agents into a sequential pipeline.
+```
+```{grid-item-card} DBOS Backend -- Durable Functions for Agent Pipelines
+
+The DBOS backend compiles IR nodes to DBOS durable workflows and steps
+backed by PostgreSQL. Steps (LLM calls) are durably recorded -- on
+recovery, completed steps return their cached results (zero LLM cost).
+
+Key mappings:
+  AgentNode     → @DBOS.step()    (non-deterministic, durably recorded in PG)
+  SequenceNode  → @DBOS.workflow() (deterministic, replayed from DB log)
+  ParallelNode  → asyncio.gather   (concurrent steps in workflow)
+  LoopNode      → for loop         (iteration in workflow body)
+  TransformNode → Inline           (deterministic, replayed)
+  GateNode      → DBOS.recv()      (external signal for HITL)
+  DispatchNode  → DBOS.start_workflow() (child workflow)
+
+Key difference from Temporal: DBOS requires only PostgreSQL (no separate
+server process). Lighter infrastructure, similar durability guarantees.
+
+Usage requires: pip install adk-fluent[dbos]
+:link: 76_dbos_backend
+:link-type: doc
+
+How to compose agents into a sequential pipeline.
+```
+```{grid-item-card} Skill-Based Agents -- Composable Skills from SKILL.md Files
+
+Skills are the 100x multiplier for agent development. Instead of writing
+Python agent code, you declare agent topologies in YAML inside SKILL.md
+files and compose them with the same operators you already know.
+
+A single SKILL.md file serves four purposes:
+  1. Documentation for coding agents (Claude Code, Gemini CLI)
+  2. Progressive disclosure for ADK SkillToolset (L1/L2/L3)
+  3. Executable agent graph for adk-fluent runtime
+  4. Publishable artifact via npx skills
+
+Skill topology (research_pipeline):
+    researcher >> fact_checker >> synthesizer
+
+Skill topology (code_reviewer):
+    (analyzer | style_checker | security_auditor) >> summarizer
+:link: 77_skill_based_agents
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} Agent Collaboration Mechanisms — Six Ways Agents Work Together
+
+Demonstrates all six collaboration primitives in adk-fluent:
+
+1. Transfer — Agent A hands off to Agent B (LLM-routed or deterministic)
+2. Tool-call — Agent A calls Agent B as a function, stays in control
+3. Shared state — Agents read/write a common key-value store
+4. Interrupt — External signals stop or reroute a running agent
+5. Notify — Fire-and-forget: send without waiting
+6. Observe — Watch agent output and react to state changes
+
+Each pattern maps to a real-world collaboration analogy:
+  Transfer = handing off a customer to another department
+  Tool-call = asking a colleague a question and waiting for the answer
+  Shared state = whiteboard in a shared office
+  Interrupt = tapping someone on the shoulder while they're working
+  Notify = sending a Slack message
+  Observe = monitoring a live dashboard
+:link: 78_collaboration_mechanisms
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} Skill-Powered Harness — Building a CodAct Coding Agent
+
+Demonstrates how to build a Claude-Code-like coding agent harness using
+adk-fluent's three-layer skill architecture:
+
+  L1: .use_skill()  — expertise loading (SKILL.md body → static_instruction)
+  L2: T.skill()     — progressive disclosure (SkillToolset, LLM loads on demand)
+  L3: Skill()       — recipe (pre-composed agent workflow from SKILL.md)
+
+Plus the H namespace for harness runtime primitives:
+
+  H.workspace()     — sandboxed file/shell tools (read, edit, write, glob, grep, bash)
+  H.ask_before()    — permission policies (which tools need approval)
+  H.auto_allow()    — auto-approved tools
+  H.workspace_only()— sandbox policies (restrict fs to workspace)
+
+Architecture:
+    ┌──────────────────────────────────────┐
+    │          Agent + Skills              │
+    │  .use_skill("code-review/")         │  ← L1: expertise (static, cached)
+    │  .use_skill("python-best-practices/")│
+    │  .instruct("Review the code.")       │  ← per-task instruction
+    │  .tools(H.workspace("/project"))     │  ← sandboxed tools
+    │  .harness(permissions=..., sandbox=.)│  ← permission + sandbox
+    └──────────────────────────────────────┘
+:link: 78_harness_and_skills
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+```{grid-item-card} Gemini CLI / Claude Code Clone — Production Coding Agent Harness
+
+Builds a fully-functional autonomous coding runtime using adk-fluent's
+harness primitives. This is the proof: the same framework that builds
+single-purpose agents can build a Claude-Code-class system.
+
+Architecture (5 layers):
+
+    ┌──────────────────────────────────────────────────────────┐
+    │  5. RUNTIME         REPL, slash commands, interrupt      │
+    │  4. OBSERVABILITY   EventBus, tape, hooks, renderer      │
+    │  3. SAFETY          Permissions, sandbox, budgets         │
+    │  2. TOOLS           Workspace, web, git, processes, MCP   │
+    │  1. INTELLIGENCE    Agent + skills + manifold             │
+    └──────────────────────────────────────────────────────────┘
+
+Every test builds a real, wirable harness component. Together they
+compose into the complete system shown in test_full_coding_agent().
+
+Run: uv run pytest examples/cookbook/79_coding_agent_harness.py -v
+:link: 79_coding_agent_harness
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
+````
+
+```{toctree}
+:hidden:
+
+75_prefect_backend
+76_dbos_backend
 77_skill_based_agents
+78_collaboration_mechanisms
 78_harness_and_skills
 79_coding_agent_harness
 ```

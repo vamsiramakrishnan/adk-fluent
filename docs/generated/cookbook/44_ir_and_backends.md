@@ -80,21 +80,6 @@ underwriter = LlmAgent(
 pipeline_native = SequentialAgent(name="mortgage_pipeline", sub_agents=[doc_collector, parallel_checks, underwriter])
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["doc_collector_then_credit_check_and_income_verifier_then_underwriter (sequence)"]]
-    n2["doc_collector"]
-    n3{"credit_check_and_income_verifier (parallel)"}
-    n4["credit_check"]
-    n5["income_verifier"]
-    n6["underwriter"]
-    n3 --> n4
-    n3 --> n5
-    n2 --> n3
-    n3 --> n6
-```
-:::
 ::::
 
 ## Equivalence

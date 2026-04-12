@@ -26,7 +26,11 @@ Pipeline topology:
         >> satisfaction_monitor
         >> gate(resolved == "no") -> escalate
 
-Uses: S.capture, C.none, C.from_state, Route, gate, save_as
+Uses: S.capture, C.none, C.from_state, C.user_only, Route, gate, save_as
+
+Note: C.from_state() is a pure data-injection transform — it injects state
+values without suppressing conversation history. To suppress history AND
+inject state, compose: C.none() + C.from_state("key").
 
 :::{tip} What you'll learn
 How to compose agents into a sequential pipeline.
@@ -65,7 +69,7 @@ billing_handler = (
         "refunds, subscription changes, and invoice questions.\n"
         "Customer message: {customer_message}"
     )
-    .context(C.from_state("customer_message"))
+    .context(C.none() + C.from_state("customer_message"))  # state only, no history
     .writes("agent_response")
 )
 
@@ -77,7 +81,7 @@ technical_handler = (
         "suggest troubleshooting steps, and escalate if unresolvable.\n"
         "Customer message: {customer_message}"
     )
-    .context(C.from_state("customer_message"))
+    .context(C.none() + C.from_state("customer_message"))  # state only, no history
     .writes("agent_response")
 )
 
@@ -89,7 +93,7 @@ account_handler = (
         "profile updates, and security concerns.\n"
         "Customer message: {customer_message}"
     )
-    .context(C.from_state("customer_message"))
+    .context(C.none() + C.from_state("customer_message"))  # state only, no history
     .writes("agent_response")
 )
 
@@ -144,35 +148,6 @@ support_system = (
 # Total: ~100 lines plus custom agent classes
 ```
 :::
-:::{tab-item} Architecture
-```mermaid
-graph TD
-    n1[["capture_customer_message_then_intent_classifier_routed_then_satisfaction_monitor_then_gate_9 (sequence)"]]
-    n2>"capture_customer_message capture(customer_message)"]
-    n3["intent_classifier"]
-    n4{"route_intent (route)"}
-    n5["billing_specialist"]
-    n6["tech_support"]
-    n7["account_manager"]
-    n8["general_support"]
-    n9["satisfaction_monitor"]
-    n10{{"gate_9 (gate)"}}
-    n4 --> n5
-    n4 --> n6
-    n4 --> n7
-    n4 -.-> n8
-    n2 --> n3
-    n3 --> n4
-    n4 --> n9
-    n9 --> n10
-    n2 -. "customer_message" .-> n3
-    n2 -. "customer_message" .-> n5
-    n2 -. "customer_message" .-> n6
-    n2 -. "customer_message" .-> n7
-    n2 -. "customer_message" .-> n8
-    n3 -. "intent" .-> n4
-```
-:::
 ::::
 
 ## Equivalence
@@ -186,7 +161,7 @@ built = support_system.build()
 assert len(built.sub_agents) == 5
 
 # First agent is CaptureAgent for S.capture()
-from adk_fluent._base import CaptureAgent
+from adk_fluent._primitives import CaptureAgent
 
 assert isinstance(built.sub_agents[0], CaptureAgent)
 
