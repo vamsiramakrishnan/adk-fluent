@@ -30,6 +30,7 @@ ROOT = Path(__file__).parent.parent
 COOKBOOK_DIR = ROOT / "examples" / "cookbook"
 EXAMPLES_DIR = ROOT / "examples"
 VISUAL_DIR = Path(__file__).parent
+SHARED_VISUAL = ROOT.parent / "shared" / "visual"
 
 # Ensure project root is on path
 if str(ROOT) not in sys.path:
@@ -193,12 +194,12 @@ def _get_builder(cookbook_id: str):
 
 @app.get("/")
 async def serve_ui():
-    return FileResponse(VISUAL_DIR / "index.html")
+    return FileResponse(SHARED_VISUAL / "index.html")
 
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "cookbooks": len(get_cookbooks())}
+    return {"status": "ok", "language": "Python", "cookbooks": len(get_cookbooks())}
 
 
 @app.get("/api/cookbooks")
