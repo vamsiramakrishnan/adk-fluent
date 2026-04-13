@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-04-13
+
+### Added
+
+- **Monorepo restructure**: Python (`python/`), TypeScript (`ts/`), and shared codegen (`shared/`) now live in a single repo (#113)
+- **TypeScript package (adk-fluent-ts)**: Full TS port with 135 builders, 9 namespaces, immutable builder pattern, and camelCase API (#113)
+- **Unified hooks foundation**: Session-scoped, subagent-inherited hook system with 12 event types, `HookRegistry`, `HookPlugin` (#117)
+- **Permissions sub-package**: Refactored `_permissions.py` into 6-module package with `PermissionPolicy`, `PermissionPlugin`, `ApprovalMemory` (#117)
+- **Budget sub-package**: Extracted `BudgetMonitor` into `_budget/` with `BudgetPolicy`, `BudgetPlugin`, `Threshold` (#117)
+- **Shared visual runner**: Language-agnostic SPA at `shared/visual/index.html` with auto-detected language badge, served by both Python and TS backends
+- **TypeScript visual server**: Hono-based dev server (`ts/visual/server.ts`) implementing the same 4-endpoint API contract as Python
+- **Configurable visual ports**: `just visual-py [port]` (default 8098), `just visual-ts [port]` (default 8099)
+- **12 new TypeScript cookbooks** (64-75): middleware schema, builtin middleware, T module tools, G module guards, A2UI basics through dynamic, harness and skills, coding agent harness
+- **TS cookbook doc generation**: `doc_generator.py` now handles `.ts` files (JSDoc parsing, `typescript` code fences); `just docs-cookbook-ts`
+- **A2UI dynamic cookbook** (Python 77): LLM-guided UI generation example with golden test snapshots
+- **Harness examples**: `coding_agent_harness`, `harness_and_skills`, `harness_coder` example agents
+
+### Fixed
+
+- **Keyword-only callback signatures**: All harness/budget/permissions callbacks updated to `*, **_kw` pattern for ADK compatibility (8 files)
+- **`_ui_compile.py` crash**: Removed `config["_ui_spec"]` / `config["_ui_surface"]` that caused `LlmAgent(**config)` to fail with `extra='forbid'`
+- **`visual/server.py` session service**: Use `runner.session_service` instead of standalone `InMemorySessionService`
+- **Pyright errors in visual/server.py**: Added `None` guards for `spec`/`spec.loader`, typed `result` as `dict[str, Any]`, added return annotation to `_load_agent`
+
+### Changed
+
+- **Monorepo layout**: All Python code moved under `python/`, TypeScript under `ts/`, shared codegen under `shared/`
+- **Hot-path optimizations**: Slots, hook table, tape, deepcopy improvements (#116)
+- **Middleware resilience**: Restructured middleware primitives (#115)
+- **Documentation**: Three-pathway architecture (Pipeline, Skills, Harness), harmonized for monorepo (#110, #111, #114)
+- **TS README**: Expanded with H namespace showcase, 75-cookbook reference, visual runner section
+- **TS cookbook INDEX.md**: Updated from 26 to 75 entries with A2A, A2UI, and advanced pattern sections
+
 ## [0.13.2] - 2026-03-17
 
 ### Added
