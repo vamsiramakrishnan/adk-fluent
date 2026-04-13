@@ -39,6 +39,7 @@ permissions:
 
 env:
   UV_VERSION: "0.8.17"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   version-check:

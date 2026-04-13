@@ -34,6 +34,7 @@ permissions:
 env:
   UV_VERSION: "0.8.17"
   ADK_VERSION: "1.25.0"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   # ─── stage 1: detect changes ────────────────────────────────────────────
