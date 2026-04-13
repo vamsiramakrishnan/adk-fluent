@@ -296,6 +296,8 @@ from ._schema_base import Writes as Writes
 from ._schema_base import Param as Param
 from ._schema_base import Confirms as Confirms
 from ._schema_base import Timeout as Timeout
+from ._session_index import SessionEventIndex as SessionEventIndex
+from ._session_index import get_session_index as get_session_index
 from ._skill_parser import AgentDefinition as AgentDefinition
 from ._skill_parser import SkillDefinition as SkillDefinition
 from ._skill_parser import parse_skill_file as parse_skill_file
@@ -327,6 +329,7 @@ from .middleware import LoopDirective as LoopDirective
 from .middleware import Middleware as Middleware
 from .middleware import TopologyHooks as TopologyHooks
 from .middleware import RetryMiddleware as RetryMiddleware
+from .middleware import RateLimitMiddleware as RateLimitMiddleware
 from .middleware import StructuredLogMiddleware as StructuredLogMiddleware
 from .middleware import DispatchLogMiddleware as DispatchLogMiddleware
 from .middleware import TopologyLogMiddleware as TopologyLogMiddleware
@@ -429,6 +432,34 @@ from .source import Source as Source
 from .source import Inbox as Inbox
 from .stream import StreamRunner as StreamRunner
 from .stream import StreamStats as StreamStats
+from ._budget import BudgetMonitor as BudgetMonitor
+from ._budget import BudgetPlugin as BudgetPlugin
+from ._budget import BudgetPolicy as BudgetPolicy
+from ._budget import Threshold as Threshold
+from ._budget._plugin import BudgetPlugin as BudgetPlugin
+from ._budget._policy import BudgetPolicy as BudgetPolicy
+from ._budget._threshold import Threshold as Threshold
+from ._budget._tracker import BudgetMonitor as BudgetMonitor
+from ._compression import CompressionStrategy as CompressionStrategy
+from ._compression import ContextCompressor as ContextCompressor
+from ._compression._compressor import ContextCompressor as ContextCompressor
+from ._compression._strategy import CompressionStrategy as CompressionStrategy
+from ._fs import FsBackend as FsBackend
+from ._fs import FsEntry as FsEntry
+from ._fs import FsStat as FsStat
+from ._fs import LocalBackend as LocalBackend
+from ._fs import MemoryBackend as MemoryBackend
+from ._fs import SandboxedBackend as SandboxedBackend
+from ._fs import SandboxViolation as SandboxViolation
+from ._fs import workspace_tools_with_backend as workspace_tools_with_backend
+from ._fs._backend import FsBackend as FsBackend
+from ._fs._backend import FsEntry as FsEntry
+from ._fs._backend import FsStat as FsStat
+from ._fs._local import LocalBackend as LocalBackend
+from ._fs._memory import MemoryBackend as MemoryBackend
+from ._fs._sandbox import SandboxedBackend as SandboxedBackend
+from ._fs._sandbox import SandboxViolation as SandboxViolation
+from ._fs._tools import workspace_tools_with_backend as workspace_tools_with_backend
 from ._harness import H as H
 from ._harness import HarnessConfig as HarnessConfig
 from ._harness import HarnessEvent as HarnessEvent
@@ -450,10 +481,10 @@ from ._harness import TaskEvent as TaskEvent
 from ._harness import CapabilityLoaded as CapabilityLoaded
 from ._harness import ManifoldFinalized as ManifoldFinalized
 from ._harness import EventBus as EventBus
-from ._budget import BudgetMonitor as BudgetMonitor
-from ._budget import BudgetPlugin as BudgetPlugin
-from ._budget import BudgetPolicy as BudgetPolicy
-from ._budget import Threshold as Threshold
+from ._harness import BudgetMonitor as BudgetMonitor
+from ._harness import BudgetPlugin as BudgetPlugin
+from ._harness import BudgetPolicy as BudgetPolicy
+from ._harness import Threshold as Threshold
 from ._harness import ToolPolicy as ToolPolicy
 from ._harness import ToolRule as ToolRule
 from ._harness import TaskLedger as TaskLedger
@@ -462,24 +493,25 @@ from ._harness import CapabilityType as CapabilityType
 from ._harness import CapabilityEntry as CapabilityEntry
 from ._harness import CapabilityRegistry as CapabilityRegistry
 from ._harness import ManifoldToolset as ManifoldToolset
-from ._permissions import ALL_MODES as ALL_MODES
-from ._permissions import ApprovalMemory as ApprovalMemory
-from ._permissions import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
-from ._permissions import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
-from ._permissions import PermissionBehavior as PermissionBehavior
-from ._permissions import PermissionDecision as PermissionDecision
-from ._permissions import PermissionHandler as PermissionHandler
-from ._permissions import PermissionMode as PermissionMode
-from ._permissions import PermissionPlugin as PermissionPlugin
-from ._permissions import PermissionPolicy as PermissionPolicy
-from ._subagents import FakeSubagentRunner as FakeSubagentRunner
-from ._subagents import SubagentRegistry as SubagentRegistry
-from ._subagents import SubagentResult as SubagentResult
-from ._subagents import SubagentRunner as SubagentRunner
-from ._subagents import SubagentRunnerError as SubagentRunnerError
-from ._subagents import SubagentSpec as SubagentSpec
-from ._subagents import make_task_tool as make_task_tool
+from ._harness import ALL_MODES as ALL_MODES
+from ._harness import ApprovalMemory as ApprovalMemory
+from ._harness import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
+from ._harness import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
+from ._harness import PermissionBehavior as PermissionBehavior
+from ._harness import PermissionDecision as PermissionDecision
+from ._harness import PermissionHandler as PermissionHandler
+from ._harness import PermissionMode as PermissionMode
+from ._harness import PermissionPlugin as PermissionPlugin
+from ._harness import PermissionPolicy as PermissionPolicy
 from ._harness import SandboxPolicy as SandboxPolicy
+from ._harness import FsBackend as FsBackend
+from ._harness import FsEntry as FsEntry
+from ._harness import FsStat as FsStat
+from ._harness import LocalBackend as LocalBackend
+from ._harness import MemoryBackend as MemoryBackend
+from ._harness import SandboxedBackend as SandboxedBackend
+from ._harness import SandboxViolation as SandboxViolation
+from ._harness import workspace_tools_with_backend as workspace_tools_with_backend
 from ._harness import make_read_file as make_read_file
 from ._harness import make_edit_file as make_edit_file
 from ._harness import make_write_file as make_write_file
@@ -490,6 +522,20 @@ from ._harness import make_list_dir as make_list_dir
 from ._harness import workspace_tools as workspace_tools
 from ._harness import make_web_fetch as make_web_fetch
 from ._harness import web_tools as web_tools
+from ._harness import CodeExecutor as CodeExecutor
+from ._harness import CodeRunResult as CodeRunResult
+from ._harness import TodoStore as TodoStore
+from ._harness import TodoItem as TodoItem
+from ._harness import PlanMode as PlanMode
+from ._harness import PlanModePlugin as PlanModePlugin
+from ._harness import PlanModePolicy as PlanModePolicy
+from ._harness import PlanState as PlanState
+from ._harness import plan_mode_tools as plan_mode_tools
+from ._harness import MUTATING_TOOLS as MUTATING_TOOLS
+from ._harness import WorktreeManager as WorktreeManager
+from ._harness import make_ask_user_tool as make_ask_user_tool
+from ._harness import coding_agent as coding_agent
+from ._harness import CodingAgentBundle as CodingAgentBundle
 from ._harness import ProjectMemory as ProjectMemory
 from ._harness import MemoryHierarchy as MemoryHierarchy
 from ._harness import CancellationToken as CancellationToken
@@ -497,12 +543,12 @@ from ._harness import TurnSnapshot as TurnSnapshot
 from ._harness import make_cancellation_callback as make_cancellation_callback
 from ._harness import ForkManager as ForkManager
 from ._harness import Branch as Branch
-from ._usage import UsageTracker as UsageTracker
-from ._usage import UsagePlugin as UsagePlugin
-from ._usage import TurnUsage as TurnUsage
-from ._usage import AgentUsage as AgentUsage
-from ._usage import CostTable as CostTable
-from ._usage import ModelRate as ModelRate
+from ._harness import UsageTracker as UsageTracker
+from ._harness import UsagePlugin as UsagePlugin
+from ._harness import AgentUsage as AgentUsage
+from ._harness import CostTable as CostTable
+from ._harness import ModelRate as ModelRate
+from ._harness import TurnUsage as TurnUsage
 from ._harness import PendingEditStore as PendingEditStore
 from ._harness import make_diff_edit_file as make_diff_edit_file
 from ._harness import make_apply_edit as make_apply_edit
@@ -545,20 +591,28 @@ from ._harness import EventDispatcher as EventDispatcher
 from ._harness import HarnessRepl as HarnessRepl
 from ._harness import ReplConfig as ReplConfig
 from ._harness import SessionTape as SessionTape
+from ._harness import SessionStore as SessionStore
+from ._harness import SessionSnapshot as SessionSnapshot
+from ._harness import SessionPlugin as SessionPlugin
 from ._harness import CommandRegistry as CommandRegistry
 from ._harness import CommandSpec as CommandSpec
 from ._harness import SkillSpec as SkillSpec
 from ._harness import compile_skills_to_static as compile_skills_to_static
+from ._harness._agent_tools import TodoItem as TodoItem
+from ._harness._agent_tools import TodoStore as TodoStore
+from ._harness._agent_tools import PlanMode as PlanMode
+from ._harness._agent_tools import WorktreeManager as WorktreeManager
+from ._harness._agent_tools import make_ask_user_tool as make_ask_user_tool
+from ._harness._agent_tools import MUTATING_TOOLS as MUTATING_TOOLS
 from ._harness._artifacts import ArtifactStore as ArtifactStore
 from ._harness._artifacts import ArtifactRef as ArtifactRef
-from ._budget._tracker import BudgetMonitor as BudgetMonitor
-from ._budget._threshold import Threshold as Threshold
-from ._budget._policy import BudgetPolicy as BudgetPolicy
-from ._budget._plugin import BudgetPlugin as BudgetPlugin
+from ._harness._code_executor import CodeExecutor as CodeExecutor
+from ._harness._code_executor import CodeRunResult as CodeRunResult
+from ._harness._code_executor import CodeLanguage as CodeLanguage
+from ._harness._coding_agent import CodingAgentBundle as CodingAgentBundle
+from ._harness._coding_agent import coding_agent as coding_agent
 from ._harness._commands import CommandRegistry as CommandRegistry
 from ._harness._commands import CommandSpec as CommandSpec
-from ._compression import ContextCompressor as ContextCompressor
-from ._compression import CompressionStrategy as CompressionStrategy
 from ._harness._config import HarnessConfig as HarnessConfig
 from ._harness._diff import make_diff_edit_file as make_diff_edit_file
 from ._harness._diff import make_apply_edit as make_apply_edit
@@ -585,24 +639,10 @@ from ._harness._events import ProcessEvent as ProcessEvent
 from ._harness._events import TaskEvent as TaskEvent
 from ._harness._events import CapabilityLoaded as CapabilityLoaded
 from ._harness._events import ManifoldFinalized as ManifoldFinalized
-from ._session import ForkManager as ForkManager
-from ._session import Branch as Branch
-from ._session import SessionStore as SessionStore
-from ._session import SessionSnapshot as SessionSnapshot
-from ._session import SessionPlugin as SessionPlugin
 from ._harness._git import GitCheckpointer as GitCheckpointer
 from ._harness._git_tools import git_tools as git_tools
 from ._harness._gitignore import GitignoreMatcher as GitignoreMatcher
 from ._harness._gitignore import load_gitignore as load_gitignore
-from ._hooks import HookAction as HookAction
-from ._hooks import HookContext as HookContext
-from ._hooks import HookDecision as HookDecision
-from ._hooks import HookEntry as HookEntry
-from ._hooks import HookEvent as HookEvent
-from ._hooks import HookMatcher as HookMatcher
-from ._hooks import HookPlugin as HookPlugin
-from ._hooks import HookRegistry as HookRegistry
-from ._hooks import SystemMessageChannel as SystemMessageChannel
 from ._harness._interrupt import CancellationToken as CancellationToken
 from ._harness._interrupt import TurnSnapshot as TurnSnapshot
 from ._harness._interrupt import make_cancellation_callback as make_cancellation_callback
@@ -633,7 +673,6 @@ from ._harness._skills import SkillSpec as SkillSpec
 from ._harness._skills import compile_skills_to_static as compile_skills_to_static
 from ._harness._streaming import StreamingBash as StreamingBash
 from ._harness._streaming import make_streaming_bash as make_streaming_bash
-from ._session import SessionTape as SessionTape
 from ._harness._task_ledger import TaskLedger as TaskLedger
 from ._harness._task_ledger import TaskState as TaskState
 from ._harness._tasks import TaskRegistry as TaskRegistry
@@ -649,9 +688,103 @@ from ._harness._tools import make_grep_search as make_grep_search
 from ._harness._tools import make_bash as make_bash
 from ._harness._tools import make_list_dir as make_list_dir
 from ._harness._tools import workspace_tools as workspace_tools
-from ._harness._events import UsageUpdate as UsageUpdate
 from ._harness._web import make_web_fetch as make_web_fetch
 from ._harness._web import web_tools as web_tools
+from ._hooks import ALL_EVENTS as ALL_EVENTS
+from ._hooks import HookAction as HookAction
+from ._hooks import HookContext as HookContext
+from ._hooks import HookDecision as HookDecision
+from ._hooks import HookEntry as HookEntry
+from ._hooks import HookEvent as HookEvent
+from ._hooks import HookMatcher as HookMatcher
+from ._hooks import HookPlugin as HookPlugin
+from ._hooks import HookRegistry as HookRegistry
+from ._hooks import SYSTEM_MESSAGE_STATE_KEY as SYSTEM_MESSAGE_STATE_KEY
+from ._hooks import SystemMessageChannel as SystemMessageChannel
+from ._hooks._channel import SYSTEM_MESSAGE_STATE_KEY as SYSTEM_MESSAGE_STATE_KEY
+from ._hooks._channel import SystemMessageChannel as SystemMessageChannel
+from ._hooks._decision import HookAction as HookAction
+from ._hooks._decision import HookDecision as HookDecision
+from ._hooks._events import HookEvent as HookEvent
+from ._hooks._events import HookContext as HookContext
+from ._hooks._events import ALL_EVENTS as ALL_EVENTS
+from ._hooks._matcher import HookMatcher as HookMatcher
+from ._hooks._plugin import HookPlugin as HookPlugin
+from ._hooks._plugin import HookAsk as HookAsk
+from ._hooks._registry import HookEntry as HookEntry
+from ._hooks._registry import HookRegistry as HookRegistry
+from ._hooks._registry import HookCallable as HookCallable
+from ._permissions import ALL_MODES as ALL_MODES
+from ._permissions import ApprovalMemory as ApprovalMemory
+from ._permissions import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
+from ._permissions import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
+from ._permissions import PermissionBehavior as PermissionBehavior
+from ._permissions import PermissionDecision as PermissionDecision
+from ._permissions import PermissionHandler as PermissionHandler
+from ._permissions import PermissionMode as PermissionMode
+from ._permissions import PermissionPlugin as PermissionPlugin
+from ._permissions import PermissionPolicy as PermissionPolicy
+from ._permissions._callback import make_permission_callback as make_permission_callback
+from ._permissions._decision import PermissionBehavior as PermissionBehavior
+from ._permissions._decision import PermissionDecision as PermissionDecision
+from ._permissions._memory import ApprovalMemory as ApprovalMemory
+from ._permissions._mode import PermissionMode as PermissionMode
+from ._permissions._mode import ALL_MODES as ALL_MODES
+from ._permissions._plugin import PermissionPlugin as PermissionPlugin
+from ._permissions._plugin import PermissionHandler as PermissionHandler
+from ._permissions._policy import PermissionPolicy as PermissionPolicy
+from ._permissions._policy import DEFAULT_MUTATING_TOOLS as DEFAULT_MUTATING_TOOLS
+from ._permissions._policy import DEFAULT_READ_ONLY_TOOLS as DEFAULT_READ_ONLY_TOOLS
+from ._plan_mode import MUTATING_TOOLS as MUTATING_TOOLS
+from ._plan_mode import PlanMode as PlanMode
+from ._plan_mode import PlanModePlugin as PlanModePlugin
+from ._plan_mode import PlanModePolicy as PlanModePolicy
+from ._plan_mode import PlanState as PlanState
+from ._plan_mode import plan_mode_tools as plan_mode_tools
+from ._plan_mode._latch import PlanMode as PlanMode
+from ._plan_mode._latch import PlanState as PlanState
+from ._plan_mode._latch import MUTATING_TOOLS as MUTATING_TOOLS
+from ._plan_mode._plugin import PlanModePlugin as PlanModePlugin
+from ._plan_mode._policy import PlanModePolicy as PlanModePolicy
+from ._plan_mode._tools import plan_mode_tools as plan_mode_tools
+from ._session import Branch as Branch
+from ._session import ForkManager as ForkManager
+from ._session import SessionPlugin as SessionPlugin
+from ._session import SessionSnapshot as SessionSnapshot
+from ._session import SessionStore as SessionStore
+from ._session import SessionTape as SessionTape
+from ._session._fork import ForkManager as ForkManager
+from ._session._fork import Branch as Branch
+from ._session._plugin import SessionPlugin as SessionPlugin
+from ._session._snapshot import SessionSnapshot as SessionSnapshot
+from ._session._store import SessionStore as SessionStore
+from ._session._tape import SessionTape as SessionTape
+from ._subagents import FakeSubagentRunner as FakeSubagentRunner
+from ._subagents import SubagentRegistry as SubagentRegistry
+from ._subagents import SubagentResult as SubagentResult
+from ._subagents import SubagentRunner as SubagentRunner
+from ._subagents import SubagentRunnerError as SubagentRunnerError
+from ._subagents import SubagentSpec as SubagentSpec
+from ._subagents import make_task_tool as make_task_tool
+from ._subagents._registry import SubagentRegistry as SubagentRegistry
+from ._subagents._result import SubagentResult as SubagentResult
+from ._subagents._runner import SubagentRunner as SubagentRunner
+from ._subagents._runner import FakeSubagentRunner as FakeSubagentRunner
+from ._subagents._runner import SubagentRunnerError as SubagentRunnerError
+from ._subagents._spec import SubagentSpec as SubagentSpec
+from ._subagents._task_tool import make_task_tool as make_task_tool
+from ._usage import AgentUsage as AgentUsage
+from ._usage import CostTable as CostTable
+from ._usage import ModelRate as ModelRate
+from ._usage import TurnUsage as TurnUsage
+from ._usage import UsagePlugin as UsagePlugin
+from ._usage import UsageTracker as UsageTracker
+from ._usage._cost_table import CostTable as CostTable
+from ._usage._cost_table import ModelRate as ModelRate
+from ._usage._plugin import UsagePlugin as UsagePlugin
+from ._usage._tracker import UsageTracker as UsageTracker
+from ._usage._tracker import AgentUsage as AgentUsage
+from ._usage._turn import TurnUsage as TurnUsage
 from .backends import Backend as Backend
 from .backends import final_text as final_text
 from .backends import register_backend as register_backend
@@ -1024,6 +1157,8 @@ __all__ = [
     "Param",
     "Confirms",
     "Timeout",
+    "SessionEventIndex",
+    "get_session_index",
     "AgentDefinition",
     "SkillDefinition",
     "parse_skill_file",
@@ -1055,6 +1190,7 @@ __all__ = [
     "Middleware",
     "TopologyHooks",
     "RetryMiddleware",
+    "RateLimitMiddleware",
     "StructuredLogMiddleware",
     "DispatchLogMiddleware",
     "TopologyLogMiddleware",
@@ -1095,6 +1231,20 @@ __all__ = [
     "SessionHandle",
     "Skill",
     "StreamStats",
+    "BudgetMonitor",
+    "BudgetPlugin",
+    "BudgetPolicy",
+    "Threshold",
+    "CompressionStrategy",
+    "ContextCompressor",
+    "FsBackend",
+    "FsEntry",
+    "FsStat",
+    "LocalBackend",
+    "MemoryBackend",
+    "SandboxedBackend",
+    "SandboxViolation",
+    "workspace_tools_with_backend",
     "H",
     "HarnessConfig",
     "HarnessEvent",
@@ -1116,10 +1266,6 @@ __all__ = [
     "CapabilityLoaded",
     "ManifoldFinalized",
     "EventBus",
-    "BudgetMonitor",
-    "BudgetPlugin",
-    "BudgetPolicy",
-    "Threshold",
     "ToolPolicy",
     "ToolRule",
     "TaskLedger",
@@ -1128,23 +1274,16 @@ __all__ = [
     "CapabilityEntry",
     "CapabilityRegistry",
     "ManifoldToolset",
-    "PermissionPolicy",
-    "PermissionDecision",
-    "PermissionBehavior",
-    "PermissionMode",
-    "PermissionPlugin",
-    "PermissionHandler",
-    "ApprovalMemory",
     "ALL_MODES",
+    "ApprovalMemory",
     "DEFAULT_MUTATING_TOOLS",
     "DEFAULT_READ_ONLY_TOOLS",
-    "SubagentSpec",
-    "SubagentRegistry",
-    "SubagentResult",
-    "SubagentRunner",
-    "SubagentRunnerError",
-    "FakeSubagentRunner",
-    "make_task_tool",
+    "PermissionBehavior",
+    "PermissionDecision",
+    "PermissionHandler",
+    "PermissionMode",
+    "PermissionPlugin",
+    "PermissionPolicy",
     "SandboxPolicy",
     "make_read_file",
     "make_edit_file",
@@ -1156,6 +1295,20 @@ __all__ = [
     "workspace_tools",
     "make_web_fetch",
     "web_tools",
+    "CodeExecutor",
+    "CodeRunResult",
+    "TodoStore",
+    "TodoItem",
+    "PlanMode",
+    "PlanModePlugin",
+    "PlanModePolicy",
+    "PlanState",
+    "plan_mode_tools",
+    "MUTATING_TOOLS",
+    "WorktreeManager",
+    "make_ask_user_tool",
+    "coding_agent",
+    "CodingAgentBundle",
     "ProjectMemory",
     "MemoryHierarchy",
     "CancellationToken",
@@ -1165,10 +1318,10 @@ __all__ = [
     "Branch",
     "UsageTracker",
     "UsagePlugin",
-    "TurnUsage",
     "AgentUsage",
     "CostTable",
     "ModelRate",
+    "TurnUsage",
     "PendingEditStore",
     "make_diff_edit_file",
     "make_apply_edit",
@@ -1205,8 +1358,6 @@ __all__ = [
     "SystemMessageChannel",
     "ArtifactStore",
     "ArtifactRef",
-    "ContextCompressor",
-    "CompressionStrategy",
     "EventDispatcher",
     "HarnessRepl",
     "ReplConfig",
@@ -1218,8 +1369,21 @@ __all__ = [
     "CommandSpec",
     "SkillSpec",
     "compile_skills_to_static",
+    "CodeLanguage",
     "make_process_tools",
     "Renderer",
+    "ALL_EVENTS",
+    "SYSTEM_MESSAGE_STATE_KEY",
+    "HookAsk",
+    "HookCallable",
+    "make_permission_callback",
+    "FakeSubagentRunner",
+    "SubagentRegistry",
+    "SubagentResult",
+    "SubagentRunner",
+    "SubagentRunnerError",
+    "SubagentSpec",
+    "make_task_tool",
     "Backend",
     "final_text",
     "register_backend",
@@ -1276,3 +1440,4 @@ __all__ = [
     "DataFlowContract",
     "check_data_flow_contract",
 ]
+

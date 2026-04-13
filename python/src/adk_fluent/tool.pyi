@@ -99,8 +99,8 @@ from google.adk.tools.mcp_tool.mcp_tool import (
     ProgressCallbackFactory,
 )
 from google.adk.tools.mcp_tool.mcp_toolset import (
-    McpToolset as _ADK_McpToolset,
     MCPToolset as _ADK_MCPToolset,
+    McpToolset as _ADK_McpToolset,
 )
 from google.adk.tools.openapi_tool.openapi_spec_parser.openapi_toolset import (
     OpenAPIToolset as _ADK_OpenAPIToolset,
