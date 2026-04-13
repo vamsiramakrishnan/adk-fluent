@@ -235,6 +235,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
   <header class="header">
     <h1>adk-fluent</h1>
     <span class="pill">visual</span>
+    <span id="lang-badge" style="display:none; font-size:0.7rem; padding:2px 8px; border-radius:4px; margin-left:8px; background:var(--accent); color:#fff; vertical-align:middle;"></span>
     <span id="status-indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)">
       <span class="status-dot loading"></span> connecting...
     </span>
@@ -841,9 +842,15 @@ async function checkServer() {
   try {
     const r = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(2000) });
     if (r.ok) {
+      const data = await r.json();
       serverAvailable = true;
       document.getElementById('status-indicator').innerHTML =
         '<span class="status-dot ok"></span> connected';
+      const langBadge = document.getElementById('lang-badge');
+      if (langBadge && data.language) {
+        langBadge.textContent = data.language;
+        langBadge.style.display = 'inline';
+      }
       return true;
     }
   } catch {}
