@@ -356,14 +356,16 @@ a2ui-preview:
     @python3 -c "import webbrowser; webbrowser.open('shared/visual/index.html')" 2>/dev/null || echo "Open shared/visual/index.html in your browser"
 
 # --- Visual: Python cookbook runner (requires API key) ---
-visual-py: a2ui-preview
-    @echo "Starting Python visual runner at http://localhost:8098..."
-    @cd {{PYTHON_DIR}} && uv run uvicorn visual.server:app --host 0.0.0.0 --port 8098 --reload
+# Usage: just visual-py [port]  (default: 8098)
+visual-py port="8098": a2ui-preview
+    @echo "Starting Python visual runner at http://localhost:{{port}}..."
+    @cd {{PYTHON_DIR}} && uv run uvicorn visual.server:app --host 0.0.0.0 --port {{port}} --reload
 
 # --- Visual: TypeScript cookbook runner (requires API key) ---
-visual-ts:
-    @echo "Starting TypeScript visual runner at http://localhost:8099..."
-    @cd {{TS_DIR}} && npx tsx visual/server.ts
+# Usage: just visual-ts [port]  (default: 8099)
+visual-ts port="8099":
+    @echo "Starting TypeScript visual runner at http://localhost:{{port}}..."
+    @cd {{TS_DIR}} && PORT={{port}} npx tsx visual/server.ts
 
 # --- Visual: export surfaces only ---
 visual-export:
@@ -574,8 +576,8 @@ help:
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"
     @echo "  just a2ui-preview   Static A2UI gallery (no server, no LLM)"
-    @echo "  just visual-py      Python visual runner (port 8098, requires API key)"
-    @echo "  just visual-ts      TypeScript visual runner (port 8099, requires API key)"
+    @echo "  just visual-py [P]  Python visual runner (default port 8098)"
+    @echo "  just visual-ts [P]  TypeScript visual runner (default port 8099)"
     @echo "  just visual         Alias for visual-py"
     @echo "  just visual-export  Export A2UI surfaces to JSON"
     @echo "  just test-visual    Run visual regression tests"

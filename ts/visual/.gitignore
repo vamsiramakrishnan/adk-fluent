@@ -1,0 +1,5 @@
+# Generated surface exports
+surfaces/
+
+# Local env file (contains secrets)
+.env
