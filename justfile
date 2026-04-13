@@ -353,12 +353,17 @@ a2ui-preview:
     @echo "Exporting A2UI surfaces from cookbooks..."
     @{{PY}} {{SHARED_DIR}}/scripts/export_a2ui_surfaces.py
     @echo "Opening A2UI gallery in browser..."
-    @python3 -c "import webbrowser; webbrowser.open('visual/index.html')" 2>/dev/null || echo "Open visual/index.html in your browser"
+    @python3 -c "import webbrowser; webbrowser.open('shared/visual/index.html')" 2>/dev/null || echo "Open shared/visual/index.html in your browser"
 
-# --- Visual: full cookbook runner (requires API key) ---
-visual: a2ui-preview
-    @echo "Starting visual cookbook runner at http://localhost:8099..."
-    @cd {{PYTHON_DIR}} && uv run uvicorn visual.server:app --host 0.0.0.0 --port 8099 --reload
+# --- Visual: Python cookbook runner (requires API key) ---
+visual-py: a2ui-preview
+    @echo "Starting Python visual runner at http://localhost:8098..."
+    @cd {{PYTHON_DIR}} && uv run uvicorn visual.server:app --host 0.0.0.0 --port 8098 --reload
+
+# --- Visual: TypeScript cookbook runner (requires API key) ---
+visual-ts:
+    @echo "Starting TypeScript visual runner at http://localhost:8099..."
+    @cd {{TS_DIR}} && npx tsx visual/server.ts
 
 # --- Visual: export surfaces only ---
 visual-export:
@@ -369,6 +374,9 @@ visual-export:
 test-visual:
     @echo "Running visual test suite..."
     @cd {{PYTHON_DIR}} && uv run pytest tests/visual/ -v --tb=short -m visual
+
+# --- Visual: legacy alias ---
+visual: visual-py
 
 # --- Diff against previous ---
 diff:
@@ -566,7 +574,9 @@ help:
     @echo "  just cookbook-gen-dry Preview cookbook stubs (dry-run)"
     @echo "  just agents         Convert cookbook -> adk web folders"
     @echo "  just a2ui-preview   Static A2UI gallery (no server, no LLM)"
-    @echo "  just visual         Full visual runner (requires API key)"
+    @echo "  just visual-py      Python visual runner (port 8098, requires API key)"
+    @echo "  just visual-ts      TypeScript visual runner (port 8099, requires API key)"
+    @echo "  just visual         Alias for visual-py"
     @echo "  just visual-export  Export A2UI surfaces to JSON"
     @echo "  just test-visual    Run visual regression tests"
     @echo "  just diff           Show changes since last scan (JSON)"
