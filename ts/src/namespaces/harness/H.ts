@@ -68,12 +68,31 @@ import type { PermissionMode } from "./permissions.js";
 import { processTools } from "./processes.js";
 import {
   CommandRegistry,
+  HookDecision,
+  HookMatcher,
   HookRegistry,
+  SystemMessageChannel,
   TaskLedger,
   TaskRegistry,
   ToolPolicy,
   taskTools,
+  type HookMatcherOptions,
 } from "./registries.js";
+import {
+  SubagentRegistry,
+  SubagentSpec,
+  makeTaskTool,
+  type MakeTaskToolOptions,
+  type SubagentRunner,
+  type SubagentSpecOptions,
+  type TaskTool,
+} from "./subagents.js";
+import {
+  LocalBackend,
+  MemoryBackend,
+  SandboxedBackend,
+  type FsBackend,
+} from "./fs.js";
 import { JsonRenderer, PlainRenderer, RichRenderer, type RendererOptions } from "./renderer.js";
 import { HarnessRepl, type ReplConfig } from "./repl.js";
 import { SandboxPolicy, type SandboxPolicyOptions } from "./sandbox.js";
@@ -401,6 +420,106 @@ export class H {
    */
   static codingAgent(workspace: string, opts: CodingAgentOptions = {}): CodingAgentBundle {
     return codingAgent(workspace, opts);
+  }
+
+  // ─── Hook decision / matcher helpers ────────────────────────────────────
+
+  /** Build a pass-through `HookDecision`. Shorthand for `HookDecision.allow()`. */
+  static hookAllow(): HookDecision {
+    return HookDecision.allow();
+  }
+
+  /** Build a denial decision. */
+  static hookDeny(reason?: string): HookDecision {
+    return HookDecision.deny(reason);
+  }
+
+  /** Build a `modify` decision rewriting tool arguments. */
+  static hookModify(toolInput: Record<string, unknown>): HookDecision {
+    return HookDecision.modify(toolInput);
+  }
+
+  /** Build a `replace` decision short-circuiting the wrapped call. */
+  static hookReplace(output: unknown): HookDecision {
+    return HookDecision.replace(output);
+  }
+
+  /** Build an `ask` decision that raises a permission request. */
+  static hookAsk(prompt: string): HookDecision {
+    return HookDecision.ask(prompt);
+  }
+
+  /** Build an `inject` decision adding a transient system message. */
+  static hookInject(systemMessage: string): HookDecision {
+    return HookDecision.inject(systemMessage);
+  }
+
+  /** Build a matcher for a specific event (no additional filters). */
+  static hookMatch(options: HookMatcherOptions): HookMatcher {
+    return new HookMatcher(options);
+  }
+
+  /** Shorthand: match a specific tool by name with optional arg globs. */
+  static hookForTool(
+    event: string,
+    toolName: string,
+    args: Record<string, unknown> = {},
+  ): HookMatcher {
+    return HookMatcher.forTool(event, toolName, args);
+  }
+
+  /** Build a system-message channel backed by `state`. */
+  static systemMessages(
+    state: Record<string, unknown> | undefined,
+  ): SystemMessageChannel {
+    return new SystemMessageChannel(state);
+  }
+
+  // ─── Dynamic subagents + task tool ──────────────────────────────────────
+
+  /** Construct a single `SubagentSpec`. */
+  static subagentSpec(options: SubagentSpecOptions): SubagentSpec {
+    return new SubagentSpec(options);
+  }
+
+  /** Build an ordered registry of specs, keyed by role. */
+  static subagentRegistry(
+    specs: Iterable<SubagentSpec> = [],
+  ): SubagentRegistry {
+    return new SubagentRegistry(specs);
+  }
+
+  /**
+   * Build a `task(role, prompt) => string` callable backed by a
+   * registry + runner. The returned function carries a docstring
+   * enumerating every registered role.
+   */
+  static taskTool(
+    registry: SubagentRegistry,
+    runner: SubagentRunner,
+    options: MakeTaskToolOptions = {},
+  ): TaskTool {
+    return makeTaskTool(registry, runner, options);
+  }
+
+  // ─── Filesystem backends ────────────────────────────────────────────────
+
+  /** Real on-disk filesystem backend. `root` scopes relative paths. */
+  static fsLocal(opts: { root?: string } = {}): LocalBackend {
+    return new LocalBackend(opts.root);
+  }
+
+  /** In-memory filesystem backend (for tests + ephemeral scratch). */
+  static fsMemory(): MemoryBackend {
+    return new MemoryBackend();
+  }
+
+  /**
+   * Wrap any `FsBackend` with a `SandboxPolicy` that refuses operations
+   * escaping the allowed paths.
+   */
+  static fsSandboxed(inner: FsBackend, sandbox: SandboxPolicy): SandboxedBackend {
+    return new SandboxedBackend(inner, sandbox);
   }
 
   // ─── Stubs (not yet ported) ──────────────────────────────────────────────

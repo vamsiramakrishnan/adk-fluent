@@ -83,7 +83,49 @@ export {
   ForkManager,
 } from "./namespaces/harness/lifecycle.js";
 export type { BudgetThreshold, PreCompactHook } from "./namespaces/harness/lifecycle.js";
-export { SessionStore, SessionSnapshot } from "./namespaces/harness/session-store.js";
+export {
+  SessionStore,
+  SessionSnapshot,
+  SessionPlugin,
+  Branch,
+  ForkRegistry,
+} from "./namespaces/harness/session-store.js";
+export type {
+  BranchOptions,
+  ForkOptions,
+  MergeOptions,
+  MergeStrategy,
+  ForkDiff,
+  SessionSnapshotData,
+  SessionStoreOptions,
+  SessionPluginOptions,
+} from "./namespaces/harness/session-store.js";
+// Subagents — dynamic specialist spawner + task tool factory.
+export {
+  SubagentSpec,
+  SubagentResult,
+  SubagentRegistry,
+  SubagentRunnerError,
+  FakeSubagentRunner,
+  makeTaskTool,
+} from "./namespaces/harness/subagents.js";
+export type {
+  SubagentSpecOptions,
+  SubagentResultOptions,
+  SubagentRunner,
+  FakeSubagentRunnerOptions,
+  SubagentCall,
+  TaskTool,
+  MakeTaskToolOptions,
+} from "./namespaces/harness/subagents.js";
+// Pluggable filesystem backend for harness tools.
+export {
+  LocalBackend,
+  MemoryBackend,
+  SandboxedBackend,
+  SandboxViolation,
+} from "./namespaces/harness/fs.js";
+export type { FsBackend, FsStat, FsEntry } from "./namespaces/harness/fs.js";
 export {
   PlanModePolicy,
   planModeTools,
@@ -93,10 +135,27 @@ export {
 export type { PlanState, PlanObserver } from "./namespaces/harness/plan-mode.js";
 export {
   HookRegistry,
+  HookEvent,
+  HookDecision,
+  HookMatcher,
+  SystemMessageChannel,
+  SYSTEM_MESSAGE_STATE_KEY,
+  ALL_HOOK_EVENTS,
   CommandRegistry,
   ToolPolicy,
   TaskRegistry,
   TaskLedger,
+} from "./namespaces/harness/registries.js";
+export type {
+  HookContext,
+  HookAction,
+  HookDecisionFields,
+  HookMatcherOptions,
+  HookCallable,
+  HookEntry,
+  HookOnOptions,
+  HookShellOptions,
+  HookSpec,
 } from "./namespaces/harness/registries.js";
 export { PlainRenderer, RichRenderer, JsonRenderer } from "./namespaces/harness/renderer.js";
 export type { Renderer, RendererOptions } from "./namespaces/harness/renderer.js";
