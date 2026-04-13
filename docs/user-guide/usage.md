@@ -35,6 +35,10 @@ is separated from them so two sessions never share history by accident.
 If you only want to track one agent, attach `tracker.callback()` to its
 `after_model` hook directly:
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, UsageTracker
 
@@ -51,6 +55,26 @@ await agent.ask_async("Write about context engineering")
 
 print(tracker.summary())
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, UsageTracker } from "adk-fluent-ts";
+
+const tracker = new UsageTracker();
+
+const agent = new Agent("writer", "gemini-2.5-flash")
+  .instruct("Draft a blog post about AI agents.")
+  .afterModel(tracker.callback())
+  .build();
+
+await agent.askAsync("Write about context engineering");
+
+console.log(tracker.summary());
+```
+:::
+::::
 
 ### Session-wide plugin (recommended)
 

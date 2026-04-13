@@ -47,6 +47,84 @@ Every production harness has five layers. Skip one and your harness will be frag
 | **Observability** | Events, logging, hooks, replay | You can't debug when things go wrong |
 | **Runtime** | REPL, streaming, compression, interrupts | No way to interact with the agent |
 
+## Harness sub-packages (the short tour)
+
+The `H` namespace is a thin façade. Every concern lives in its own
+self-contained sub-package with frozen value types, mutable state
+containers, and an ADK `BasePlugin` for session-scoped installation.
+Each package has a dedicated user-guide page with the full cookbook:
+
+| Package | Guide | What it is |
+|---|---|---|
+| `adk_fluent._hooks` | [hooks](hooks.md) | 12-event registry with `HookDecision` allow/deny/modify/replace/ask/inject and shell-command hooks |
+| `adk_fluent._permissions` | [permissions](permissions.md) | 5-mode `PermissionPolicy` (default/accept_edits/plan/bypass/dont_ask), `ApprovalMemory`, `PermissionPlugin` |
+| `adk_fluent._plan_mode` | [plan-mode](plan-mode.md) | `PlanMode` latch + `enter_plan_mode`/`exit_plan_mode` tool pair + `PlanModePolicy` + `PlanModePlugin` |
+| `adk_fluent._session` | [session](session.md) | `SessionTape` (JSONL record/replay), `ForkManager` (named branches, merge, diff), `SessionStore`, `SessionSnapshot`, `SessionPlugin` |
+| `adk_fluent._subagents` | [subagents](subagents.md) | Runtime-decided specialist dispatch — `SubagentSpec`/`Registry`/`Runner` and `make_task_tool` |
+| `adk_fluent._usage` | [usage](usage.md) | `TurnUsage`/`AgentUsage`/`UsageTracker` with a frozen `CostTable` + `UsagePlugin` |
+| `adk_fluent._budget` | [budget](budget.md) | `BudgetPolicy` + `BudgetMonitor` + `Threshold` + `BudgetPlugin` |
+| `adk_fluent._compression` | [compression](compression.md) | `ContextCompressor` + `CompressionStrategy` with `pre_compact` hook integration |
+| `adk_fluent._fs` | [execution](execution.md) | `FsBackend` Protocol + `LocalBackend`/`MemoryBackend`/`SandboxedBackend` for pluggable filesystem |
+
+All types are re-exported at the top level so you never have to reach
+into a private module:
+
+```python
+from adk_fluent import (
+    H,                                              # façade
+    HookEvent, HookDecision, HookRegistry,          # _hooks
+    PermissionMode, PermissionPolicy,               # _permissions
+    SessionTape, SessionStore, ForkManager,         # _session
+    SubagentSpec, SubagentRegistry, make_task_tool, # _subagents
+    UsageTracker, CostTable,                        # _usage
+    BudgetMonitor, BudgetPolicy, Threshold,         # _budget
+    ContextCompressor, CompressionStrategy,         # _compression
+    FsBackend, LocalBackend, MemoryBackend,         # _fs
+)
+```
+
+Each sub-package ships its own ADK `BasePlugin`. Install them on the
+root `App` or `Runner` so the policy/tape/tracker/budget/compression
+layer applies to every agent in the invocation tree — including
+subagent specialists spawned at runtime:
+
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
+```python
+from adk_fluent import App, H
+
+app = (
+    App("coder-harness")
+    .plugin(H.hooks("/project").plugin())
+    .plugin(H.permission_plugin(policy=permissions, handler=ask_user))
+    .plugin(H.plan_mode_plugin())
+    .plugin(H.session_plugin())
+    .plugin(H.usage_plugin(tracker))
+    .plugin(H.budget_plugin(monitor))
+    .build()
+)
+```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { App, H } from "adk-fluent-ts";
+
+const app = new App("coder-harness")
+  .plugin(H.hooks("/project").plugin())
+  .plugin(H.permissionPlugin({ policy: permissions, handler: askUser }))
+  .plugin(H.planModePlugin())
+  .plugin(H.sessionPlugin())
+  .plugin(H.usagePlugin(tracker))
+  .plugin(H.budgetPlugin(monitor))
+  .build();
+```
+:::
+::::
+
 ## Layer 1: Intelligence
 
 Start with an agent that has domain expertise. Skills load from SKILL.md files — they're cached in `static_instruction` and never re-sent to the LLM on every turn.

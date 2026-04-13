@@ -279,10 +279,25 @@ docs-migration: _require-manifest _require-seed
         --output-dir {{DOC_DIR}} \
         --migration-only
 
+# --- TypeScript: typedoc API reference ---
+# Produces a fully-linked symbol reference for the TypeScript package.
+# The output lives at ts/docs/api/ — docs-build copies it under the
+# Sphinx HTML output so GH Pages serves it at /latest/ts-api/.
+ts-docs:
+    @echo "Generating TypeScript API reference (typedoc)..."
+    @cd {{TS_DIR}} && (test -d node_modules || npm install --no-audit --no-fund) && npm run docs
+
 # --- Sphinx build ---
-docs-build: docs
+# Depends on docs (markdown generation) + ts-docs (typedoc reference) so
+# the TS API reference lands under docs/_build/html/ts-api/ and ships
+# with the rest of the site to GitHub Pages.
+docs-build: docs ts-docs
     @echo "Building Sphinx documentation..."
     @{{PYTOOL}} sphinx-build -W --keep-going -b html docs/ {{SPHINX_OUT}}
+    @echo "Copying TypeScript API reference to {{SPHINX_OUT}}/ts-api/..."
+    @rm -rf {{SPHINX_OUT}}/ts-api
+    @mkdir -p {{SPHINX_OUT}}/ts-api
+    @if [ -d {{TS_DIR}}/docs/api ]; then cp -a {{TS_DIR}}/docs/api/. {{SPHINX_OUT}}/ts-api/; else echo "  (ts/docs/api/ missing — run 'just ts-docs' first)"; fi
 
 # --- Sphinx live preview ---
 docs-serve: docs

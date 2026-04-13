@@ -16,6 +16,10 @@ and hand around safely.
 
 ## Quick start
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, H, PermissionMode
 
@@ -32,6 +36,26 @@ agent = (
     )
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, H, PermissionMode } from "adk-fluent-ts";
+
+const agent = new Agent("coder", "gemini-2.5-flash")
+  .instruct("You are a senior engineer.")
+  .harness({
+    permissions: H.permissions({
+      mode: PermissionMode.AcceptEdits,
+      allow: ["read_file", "grep"],
+      deny: ["bash"],
+      ask: ["write_file"],
+    }),
+  });
+```
+:::
+::::
 
 Everything the harness needs — policy, sandbox, usage, memory — is declared
 up front. The policy object is just data, so it travels across agents,

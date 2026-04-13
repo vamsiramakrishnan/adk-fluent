@@ -54,6 +54,10 @@ Both honour the `pre_compact` hook.
 
 ## Quick start
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import ContextCompressor, CompressionStrategy
 
@@ -66,6 +70,25 @@ compressor = ContextCompressor(
 if compressor.should_compress(current_tokens=120_000):
     messages = compressor.compress_messages(messages)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { ContextCompressor, CompressionStrategy } from "adk-fluent-ts";
+
+const compressor = new ContextCompressor({
+  threshold: 100_000,
+  strategy: CompressionStrategy.keepRecent({ n: 10 }),
+  onCompress: (tokens) => console.log(`compressed at ${tokens} tokens`),
+});
+
+if (compressor.shouldCompress({ currentTokens: 120_000 })) {
+  messages = compressor.compressMessages(messages);
+}
+```
+:::
+::::
 
 ## `pre_compact` hook integration
 
