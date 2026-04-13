@@ -31,6 +31,10 @@ persistence and replay.
 
 ### Persist a whole session
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import H, SessionSnapshot, SessionStore
 
@@ -48,6 +52,29 @@ my_agent.after_agent(store.auto_fork("post_writer"))
 # End of session: dump everything to disk
 store.snapshot().save("/project/.harness/session.json")
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { H, SessionSnapshot, SessionStore } from "adk-fluent-ts";
+
+const store = H.sessionStore();
+
+// Wire the tape to your event dispatcher
+const dispatcher = H.dispatcher();
+dispatcher.subscribe((event) => store.recordEvent(event));
+
+// Auto-fork state after a key agent completes
+myAgent.afterAgent(store.autoFork("post_writer"));
+
+// ... run the session ...
+
+// End of session: dump everything to disk
+store.snapshot().save("/project/.harness/session.json");
+```
+:::
+::::
 
 ### Replay later
 

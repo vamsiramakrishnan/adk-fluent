@@ -294,6 +294,249 @@ Agent integration:
   S.fromUi(...keys, {surface}) — bridge A2UI data model → state
   M.a2uiLog({level})           — log A2UI surface operations
   C.withUi({surfaceId})        — include UI state in context
+## Harness sub-packages (H namespace building blocks)
+
+The ``H`` namespace is a thin façade over nine focused sub-packages that
+implement the AI-coding harness runtime (hooks, permissions, plan mode,
+session tape, subagents, usage, budget, compression, fs).  Every type is
+re-exported at the package root::
+
+    import {
+      H,                                                  // façade
+      HookEvent, HookDecision, HookRegistry,              // hooks
+      PermissionMode, PermissionPolicy, PermissionPlugin, // permissions
+      PlanMode, PlanModePolicy, PlanModePlugin,           // planMode
+      SessionTape, SessionStore, SessionSnapshot,
+      SessionPlugin, ForkManager, Branch,                 // session
+      SubagentSpec, SubagentRegistry, SubagentResult,
+      SubagentRunner, FakeSubagentRunner, makeTaskTool,   // subagents
+      TurnUsage, AgentUsage, UsageTracker, UsagePlugin,
+      CostTable, ModelRate,                               // usage
+      BudgetMonitor, BudgetPolicy, BudgetPlugin, Threshold, // budget
+      CompressionStrategy, ContextCompressor,             // compression
+      FsBackend, LocalBackend, MemoryBackend, SandboxedBackend, // fs
+    } from "adk-fluent-ts";
+
+### hooks — unified hook foundation
+
+Session-scoped, subagent-inherited hook layer mirroring Claude Agent
+SDK's hook surface.  Install via ``H.hooks()`` and plug into the
+runner::
+
+    const registry = H.hooks({ workspace: "/project" });
+    registry.on(HookEvent.PreToolUse, (ctx) =>
+      HookDecision.deny("blocked"),
+    );
+    const app = new App("coder").plugin(registry.plugin()).build();
+
+  HookEvent                    — 12-value event enum (PreToolUse,
+                                 PostToolUse, PreModel, PostModel,
+                                 PreCompact, UserPrompt, Stop,
+                                 SubagentStart, SubagentStop,
+                                 Notification, SessionStart, SessionEnd)
+  HookContext                  — normalized context (event, toolName,
+                                 toolInput, state, extra) passed to
+                                 every callable
+  HookDecision                 — structured return protocol
+    .allow() / .deny({reason}) / .modify({toolInput})
+    .replace({output}) / .ask({prompt}) / .inject({systemMessage})
+  HookMatcher                  — event + toolName regex + arg-glob filter
+    HookMatcher.forTool(event, toolName, {argGlob})
+  HookRegistry                 — ``.on(event, fn, {match})`` /
+                                 ``.shell(event, cmd, {match})`` /
+                                 ``.merge(other)`` / ``.asPlugin({name})``
+  HookPlugin                   — ADK ``BasePlugin`` dispatching 12 callbacks
+
+### permissions — decision-based permission layer
+
+Mirrors Claude Agent SDK's ``canUseTool`` surface and the five
+permission modes.  Session-scoped via an ADK plugin::
+
+    const policy = H.autoAllow("read_file")
+      .merge(H.askBefore("bash"));
+    const plugin = H.permissionPlugin({ policy, handler: myHandler });
+
+  PermissionMode               — Default / AcceptEdits / Plan / Bypass / DontAsk
+  PermissionDecision           — .allow({updatedInput}) / .deny({reason})
+                                 / .ask({prompt}) structured returns;
+                                 predicates .isAllow / .isDeny / .isAsk
+  PermissionPolicy             — declarative allow/deny/ask sets + patterns.
+                                 .check(toolName, toolInput?) → PermissionDecision
+                                 .merge(other) / .withMode(mode) / .isMutating(tool)
+  PermissionPlugin             — ADK plugin that enforces the policy
+  ApprovalMemory               — session-scoped record of interactive approvals.
+                                 .rememberSpecific / .rememberTool / .recall / .clear
+
+  H.permissions({mode, allow, deny, ask, …})  — factory
+  H.permissionsPlan({allow})                  — plan-mode defaults
+  H.permissionsBypass() / H.permissionsAcceptEdits({ask})
+  H.permissionsDontAsk({allow})
+  H.askBefore(...tools) / H.autoAllow(...tools) / H.deny(...tools)
+  H.allowPatterns(...patterns) / H.denyPatterns(...patterns)
+  H.permissionPlugin({policy, handler, memory})
+
+### planMode — plan-then-execute latch
+
+Three-state latch (``off`` / ``planning`` / ``executing``) paired with
+a policy wrapper and ADK plugin::
+
+    const latch  = H.planMode();
+    const policy = H.planModePolicy(basePolicy, latch);
+    const plugin = H.planModePlugin({ latch });
+
+  PlanMode                     — runtime latch with subscription API.
+                                 .current / .enter() / .exit({plan})
+                                 .reset() / .subscribe(fn) → unsubscribe
+                                 .isPlanning / .isExecuting
+  PlanModePolicy               — frozen wrapper around PermissionPolicy;
+                                 denies mutating tools while planning
+  PlanModePlugin               — ADK plugin owning a latch + before_tool
+                                 callback rejecting mutations in planning
+  planModeTools(latch)         — returns {enterPlanMode, exitPlanMode}
+                                 tool pair for ``.tools()`` registration
+  MUTATING_TOOLS               — frozen set of tool names classified as
+                                 mutating (writeFile, editFile, bash, …)
+
+### session — tape + fork + store
+
+Session-scoped event recording plus named state branches::
+
+    const store  = H.sessionStore({ maxEvents: 100, maxBranches: 10 });
+    const plugin = H.sessionPlugin(store);
+    store.fork("before-refactor", { draft: "v1" });
+
+  SessionTape                  — JSONL event recorder/replayer.
+                                 .record(event) / .events / .filter(kind)
+                                 .save(path) / .load(path) / .summary()
+  Branch                       — immutable record of a named snapshot
+  ForkManager                  — named branches with merge + diff.
+                                 .fork(name, state) / .switch(name)
+                                 .merge(a, b, {strategy}) / .diff(a, b)
+                                 .delete(name) / .listBranches()
+  SessionStore                 — bundles a tape + fork manager.
+                                 .recordEvent / .fork / .switch
+                                 .snapshot() / .fromSnapshot(snap)
+                                 .autoFork(name) / .autoRestore(name)
+  SessionSnapshot              — frozen serialisable view of events +
+                                 branches.  .toDict / .fromDict
+                                 .save(path) / .load(path)
+  SessionPlugin                — ADK plugin that auto-forks after every
+                                 agent via afterAgent callback
+
+### subagents — dynamic spawner + task tool
+
+Runtime-decided specialist dispatch — the missing piece between
+``.subAgent()`` (compile-time transfer) and ``.agentTool()`` (static
+tool)::
+
+    const registry = H.subagentRegistry([
+      H.subagentSpec({
+        role: "researcher",
+        instruction: "Find three papers.",
+        description: "Deep research",
+      }),
+      H.subagentSpec({
+        role: "reviewer",
+        instruction: "Critique the draft.",
+      }),
+    ]);
+    const runner = new FakeSubagentRunner();
+    const task   = H.taskTool(registry, runner);
+
+  SubagentSpec                 — frozen role description (role,
+                                 instruction, description, model,
+                                 toolNames, permissionMode, maxTokens,
+                                 metadata)
+  SubagentRegistry             — dict-like keyed by role.
+                                 .register / .unregister / .replace
+                                 .get / .require / .roles() / .roster()
+  SubagentResult               — structured output (role, output,
+                                 isError, error, usage, metadata,
+                                 artifacts); .toToolOutput()
+  SubagentRunner               — Protocol: ``run(spec, prompt, ctx?)``
+  FakeSubagentRunner           — test double with responder, error
+                                 overrides, and a .calls audit log
+  H.taskTool(registry, runner, {contextProvider, toolName})
+
+### usage — cumulative token + cost tracking
+
+Session-scoped usage accounting with per-agent breakdown and USD cost
+via a frozen cost table::
+
+    const table = H.costTable({ "gemini-2.5-pro": { input: 1.25, output: 5.00 } });
+    const tracker = H.usage({ costTable: table });
+    const plugin  = H.usagePlugin(tracker);
+
+  TurnUsage                    — frozen per-call record (agent, model,
+                                 inputTokens, outputTokens, cachedTokens,
+                                 costUsd, timestamp)
+  AgentUsage                   — frozen cumulative view for one agent
+  ModelRate                    — frozen per-model pricing
+  CostTable                    — frozen model → ModelRate lookup with
+                                 .estimate(model, inTokens, outTokens)
+  UsageTracker                 — mutable aggregator.
+                                 .record(turn) / .callback() /
+                                 .byAgent() / .summary()
+  UsagePlugin                  — ADK plugin capturing every LLM call
+
+### budget — cumulative token budget + thresholds
+
+Enforces a session-wide token ceiling and fires callbacks at percent
+checkpoints.  Designed to pair with ``ContextCompressor`` via
+``compressor.toMonitor()``::
+
+    const budget = H.budgetPolicy({ maxTokens: 200_000 })
+      .addThreshold({ percent: 80, onTrigger: (m) => console.log("80%") })
+      .addThreshold({ percent: 95, onTrigger: compactNow });
+    const monitor = H.budgetMonitor(budget);
+    const plugin  = H.budgetPlugin(monitor);
+
+  Threshold                    — frozen {percent, onTrigger} checkpoint
+  BudgetPolicy                 — frozen {maxTokens, thresholds}.
+                                 .addThreshold({percent, onTrigger})
+  BudgetMonitor                — mutable tracker.
+                                 .recordUsage({input, output}) /
+                                 .utilisation / .remaining /
+                                 .isOverBudget / .summary() / .reset()
+  BudgetPlugin                 — ADK plugin auto-wiring every LLM call
+
+### compression — message-level compression with pre_compact hook
+
+The message-rewriting half of context management.  ``C.*`` transforms
+shape what the LLM sees on a single turn; ``ContextCompressor``
+rewrites the persistent message history when it crosses a threshold::
+
+    const strategy = CompressionStrategy.keepRecent({ n: 8 });
+    let compressor = H.compressor({ threshold: 100_000, strategy });
+    compressor = compressor.withHooks(hookRegistry); // pre_compact wired
+
+  CompressionStrategy          — frozen description of *how* to compress.
+                                 .dropOld({keepTurns}) / .keepRecent({n})
+                                 .summarize({model})
+  ContextCompressor            — the machine.
+                                 .shouldCompress({currentTokens}) /
+                                 .compressMessages(messages) /
+                                 .compressMessagesAsync(msgs, {summarizer}) /
+                                 .withHooks(registry) / .toMonitor()
+                                 pre_compact hook: allow/deny/replace/modify
+
+### fs — pluggable filesystem backend
+
+Factors the workspace tools' filesystem calls behind a small Protocol
+so tools can be unit-tested without a real disk and re-targeted at
+in-memory or remote storage::
+
+    const backend = H.fsSandboxed(H.fsMemory(), H.workspaceOnly("/tmp/ws"));
+    const tools   = workspaceTools({ sandbox, backend });
+
+  FsBackend                    — Protocol: exists, stat, readText,
+                                 readBytes, writeText, writeBytes,
+                                 delete_, mkdir, listDir, iterFiles, glob
+  LocalBackend                 — real on-disk I/O
+  MemoryBackend                — dict-backed fake for tests + ephemeral
+                                 scratch workspaces
+  SandboxedBackend             — decorator wrapping any backend with a
+                                 SandboxPolicy; refuses escapes
 ## Builder inventory
 
 135 builders across 9 modules.

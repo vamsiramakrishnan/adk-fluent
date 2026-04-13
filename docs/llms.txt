@@ -32,7 +32,8 @@ when the ``a2ui-agent`` package is published.
 Always import from the top-level package:
 
     from adk_fluent import Agent, Pipeline, FanOut, Loop
-    from adk_fluent import S, C, P, A, M, T
+    from adk_fluent import S, C, P, A, M, T, E, G, UI
+    from adk_fluent import H  # harness namespace (hooks, permissions, plan mode, …)
 
 Never import from internal modules like `adk_fluent._base` or `adk_fluent.agent`.
 ## Core API patterns
@@ -479,6 +480,238 @@ Agent integration:
   S.from_ui(*keys, surface=)   — bridge A2UI data model → state
   M.a2ui_log(level=)           — log A2UI surface operations
   C.with_ui(surface_id=)       — include UI state in context
+## Harness sub-packages (H namespace building blocks)
+
+The ``H`` namespace is a thin façade over nine focused sub-packages that
+implement the AI-coding harness runtime (hooks, permissions, plan mode,
+session tape, subagents, usage, budget, compression, fs). Every type is
+re-exported at the top level::
+
+    from adk_fluent import (
+        H,                                              # façade
+        HookEvent, HookDecision, HookRegistry,          # _hooks
+        PermissionMode, PermissionPolicy, PermissionPlugin,  # _permissions
+        PlanMode, PlanModePolicy, PlanModePlugin,       # _plan_mode (see _harness)
+        SessionTape, SessionStore, SessionSnapshot, SessionPlugin, ForkManager, Branch,  # _session
+        SubagentSpec, SubagentRegistry, SubagentResult,
+        SubagentRunner, FakeSubagentRunner, make_task_tool,  # _subagents
+        TurnUsage, AgentUsage, UsageTracker, UsagePlugin,
+        CostTable, ModelRate,                           # _usage
+        BudgetMonitor, BudgetPolicy, BudgetPlugin, Threshold,  # _budget
+        CompressionStrategy, ContextCompressor,         # _compression
+        FsBackend, LocalBackend, MemoryBackend, SandboxedBackend,  # _fs
+    )
+
+### _hooks — unified hook foundation
+
+Session-scoped, subagent-inherited hook layer mirroring Claude Agent SDK's
+hook surface. Install via ``H.hooks()`` and plug into the runner::
+
+    registry = H.hooks(workspace="/project")
+    registry.on(HookEvent.PRE_TOOL_USE, lambda ctx: HookDecision.deny("blocked"))
+    app = App("coder").plugin(registry.plugin()).build()
+
+  HookEvent                    — 12-value event enum (PreToolUse, PostToolUse,
+                                 PreModel, PostModel, PreCompact, UserPrompt,
+                                 Stop, SubagentStart, SubagentStop, Notification,
+                                 SessionStart, SessionEnd)
+  HookContext                  — normalized context (event, tool_name, args,
+                                 state, extra) passed to every callable
+  HookDecision                 — structured return protocol
+    .allow() / .deny(reason=) / .modify(patch=) / .replace(output=)
+    .ask(prompt=) / .inject(message=)
+  HookMatcher                  — event + tool-name regex + arg-glob filter
+  HookRegistry                 — user-facing registry of hook callables and
+                                 shell commands; ``.on(event, fn)`` /
+                                 ``.command(event, cmd)`` / ``.plugin()``
+  HookPlugin                   — ADK ``BasePlugin`` that dispatches 12 callbacks
+  SystemMessageChannel         — transient system-message queue drained before
+                                 every LLM call (SYSTEM_MESSAGE_STATE_KEY)
+
+### _permissions — decision-based permission layer
+
+Mirrors Claude Agent SDK's ``canUseTool`` surface and the five permission
+modes. Session-scoped via an ADK plugin::
+
+    policy = H.auto_allow("read_file").merge(H.ask_before("bash"))
+    plugin = H.permission_plugin(policy=policy, handler=my_handler)
+
+  PermissionMode               — default / accept_edits / plan / bypass / dont_ask
+  PermissionDecision           — allow(updated_input=) / deny(reason=)
+                                 / ask(message=) structured returns
+  PermissionBehavior           — enum for the three decision branches
+  PermissionPolicy             — declarative allow/deny/ask sets + patterns;
+                                 .check(tool_name, args=) → PermissionDecision;
+                                 .merge(other) for composition
+  PermissionPlugin             — ADK plugin that enforces the policy
+  PermissionHandler            — protocol for interactive approval flows
+  ApprovalMemory               — session-scoped record of interactive approvals
+  DEFAULT_MUTATING_TOOLS       — frozenset used by Plan Mode
+
+### _plan_mode — plan-then-execute latch
+
+Three-state latch (``off`` / ``planning`` / ``executing``) paired with a
+policy wrapper and ADK plugin. Exported from ``adk_fluent._harness``::
+
+    from adk_fluent._harness import PlanMode, PlanModePolicy, PlanModePlugin
+    latch = H.plan_mode()
+    policy = H.plan_mode_policy(base_policy, latch=latch)
+    plugin = H.plan_mode_plugin(latch=latch)
+
+  PlanMode                     — runtime latch with subscription API.
+                                 .current, .enter(), .exit(plan=),
+                                 .reset(), .subscribe(fn) → unsubscribe
+                                 .is_planning, .is_executing
+  PlanModePolicy               — frozen wrapper around PermissionPolicy.
+                                 Denies mutating tools while planning;
+                                 exposes .mode reflecting latch state.
+  PlanModePlugin               — ADK plugin that owns a latch and installs
+                                 a before_tool_callback rejecting mutating
+                                 tools during planning.
+  plan_mode_tools(latch)       — returns (enter_plan_mode, exit_plan_mode)
+                                 tool pair for registration with Agent.tools()
+  MUTATING_TOOLS               — frozenset of tool names classified as mutating
+                                 (write_file, edit_file, bash, run_code, …)
+
+### _session — tape + fork + store
+
+Session-scoped event recording plus named state branches::
+
+    store = H.session_store(max_events=100, max_branches=10)
+    plugin = H.session_plugin(store)
+    store.fork("before-refactor", {"draft": "v1"})
+
+  SessionTape                  — JSONL event recorder/replayer.
+                                 .record(event), .events (defensive copy),
+                                 .filter(kind), .save(path), .load(path),
+                                 .summary(), .size, .clear()
+  Branch                       — immutable record of a named state snapshot
+  ForkManager                  — named-branch manager with merge + diff.
+                                 .fork(name, state), .switch(name) → deep copy,
+                                 .merge(a, b, strategy="union"|"intersection"|"prefer"),
+                                 .diff(a, b), .delete(name), .list_branches()
+  SessionStore                 — bundles a tape + fork manager.
+                                 .record_event, .fork, .switch, .snapshot(),
+                                 .from_snapshot(snap), .auto_fork(name),
+                                 .auto_restore(name), .summary(), .clear()
+  SessionSnapshot              — frozen serialisable view of events + branches.
+                                 .to_dict() / .from_dict(), .save() / .load()
+  SessionPlugin                — ADK plugin that auto-forks after every agent
+                                 via after_agent_callback (``auto:<name>``)
+
+### _subagents — dynamic spawner + task tool
+
+Runtime-decided specialist dispatch — the missing piece between
+``.sub_agent()`` (compile-time transfer) and ``.agent_tool()`` (static tool)::
+
+    registry = H.subagent_registry([
+        H.subagent_spec("researcher", "Find three papers.",
+                        description="Deep research"),
+        H.subagent_spec("reviewer", "Critique the draft."),
+    ])
+    runner = FakeSubagentRunner()           # or a real runner
+    task   = H.task_tool(registry, runner)  # parent-agent tool
+
+  SubagentSpec                 — frozen role description (role, instruction,
+                                 description, model, tool_names,
+                                 permission_mode, max_tokens, metadata)
+  SubagentRegistry             — dict-like keyed by role. .register / .unregister
+                                 / .replace / .get / .require / .roles() /
+                                 .roster() / iteration support
+  SubagentResult               — structured output (role, output, is_error,
+                                 error, usage, metadata, artifacts);
+                                 .to_tool_output() → ``[role] text``
+  SubagentRunner               — Protocol: ``run(spec, prompt, ctx) → SubagentResult``
+  FakeSubagentRunner           — test double with responder callable,
+                                 error_for_role override, usage injection,
+                                 and a .calls audit log
+  SubagentRunnerError          — raised when runner wiring fails
+  make_task_tool(registry, runner, *, context_provider=, tool_name="task")
+                               — factory. Returns a callable whose docstring
+                                 is rewritten to enumerate registered roles
+                                 so the parent LLM picks the right specialist.
+
+### _usage — cumulative token + cost tracking
+
+Session-scoped usage accounting with per-agent breakdown and USD cost via a
+frozen cost table::
+
+    table = H.cost_table(**{"gemini-2.5-pro": {"in": 1.25, "out": 5.00}})
+    tracker = H.usage(cost_table=table)
+    plugin  = H.usage_plugin(tracker)
+
+  TurnUsage                    — frozen per-call record (agent, model,
+                                 input_tokens, output_tokens, cached_tokens,
+                                 cost_usd, timestamp)
+  AgentUsage                   — frozen cumulative view for one agent
+  ModelRate                    — frozen per-model pricing ({input, output, cached})
+  CostTable                    — frozen dict of model → ModelRate with
+                                 .estimate(model, in_tokens, out_tokens)
+  UsageTracker                 — mutable aggregator. .record(turn),
+                                 .callback() for after_model wiring,
+                                 .by_agent() breakdown, .summary(),
+                                 cumulative properties
+  UsagePlugin                  — ADK plugin that captures every LLM call in
+                                 the invocation tree via after_model_callback
+
+### _budget — cumulative token budget + thresholds
+
+Enforces a session-wide token ceiling and fires callbacks at percent
+checkpoints. Designed to pair with ``ContextCompressor`` via
+``compressor.to_monitor()``::
+
+    budget = H.budget_policy(max_tokens=200_000)
+        .add_threshold(percent=80, on_trigger=lambda m: print("80%!"))
+        .add_threshold(percent=95, on_trigger=compact_now)
+    monitor = H.budget_monitor(budget)
+    plugin  = H.budget_plugin(monitor)
+
+  Threshold                    — frozen {percent, on_trigger} checkpoint
+  BudgetPolicy                 — frozen {max_tokens, thresholds}. Immutable.
+                                 .add_threshold(percent, on_trigger)
+  BudgetMonitor                — mutable tracker. .record_usage(in, out),
+                                 .utilisation, .remaining, .is_over_budget,
+                                 .summary(), .reset()
+  BudgetPlugin                 — ADK plugin auto-wiring every LLM call to
+                                 .record_usage()
+
+### _compression — message-level compression with pre_compact hook
+
+The message-rewriting half of context management. ``C.*`` transforms shape
+what the LLM sees on a single turn; ``ContextCompressor`` rewrites the
+persistent message history when it exceeds a threshold::
+
+    strategy = CompressionStrategy.keep_recent(n=8)
+    compressor = H.compressor(threshold=100_000, strategy=strategy)
+    compressor = compressor.with_hooks(hook_registry)  # pre_compact wired
+
+  CompressionStrategy          — frozen description of *how* to compress.
+                                 .drop_old(keep_turns=) / .keep_recent(n=)
+                                 / .summarize(model=)
+  ContextCompressor            — the machine.
+                                 .should_compress(tokens) / .compress_messages
+                                 / .compress_messages_async(msgs, summarizer=)
+                                 / .with_hooks(registry) / .to_monitor()
+                                 pre_compact hook: allow / deny / replace / modify
+
+### _fs — pluggable filesystem backend
+
+Factors the workspace tools' ``pathlib`` calls behind a small Protocol so
+tools can be unit-tested without a real disk and re-targeted at in-memory
+or remote storage::
+
+    backend = H.fs_sandboxed(H.fs_memory(), H.workspace_only("/tmp/ws"))
+    tools   = workspace_tools(sandbox=..., backend=backend)
+
+  FsBackend                    — Protocol: exists, stat, read_text, read_bytes,
+                                 write_text, write_bytes, delete, mkdir,
+                                 list_dir, iter_files, glob
+  LocalBackend                 — real on-disk I/O via pathlib
+  MemoryBackend                — dict-backed fake for tests and ephemeral
+                                 scratch workspaces
+  SandboxedBackend             — decorator wrapping any backend with a
+                                 SandboxPolicy; refuses operations that
+                                 escape the allowed paths
 ## Expression operators explained
 
     A >> B           # Sequential: A runs, then B. Returns a Pipeline.

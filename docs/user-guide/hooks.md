@@ -34,6 +34,10 @@ foundation.
 Every hook is the same function: it takes a `HookContext` and returns a
 `HookDecision`. Nothing else.
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import H
 from adk_fluent._hooks import HookContext, HookDecision, HookEvent
@@ -46,6 +50,25 @@ def block_rm_rf(ctx: HookContext) -> HookDecision:
 
 hooks = H.hooks("/project").on(HookEvent.PRE_TOOL_USE, block_rm_rf)
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { H, HookContext, HookDecision, HookEvent } from "adk-fluent-ts";
+
+function blockRmRf(ctx: HookContext): HookDecision {
+  const command = (ctx.toolInput ?? {}).command ?? "";
+  if (command.includes("rm -rf")) {
+    return HookDecision.deny("rm -rf is forbidden in this workspace");
+  }
+  return HookDecision.allow();
+}
+
+const hooks = H.hooks("/project").on(HookEvent.PreToolUse, blockRmRf);
+```
+:::
+::::
 
 The decision types are fixed. There are six, and they compose — a `deny`
 short-circuits the chain, a `modify` rewrites arguments and lets downstream

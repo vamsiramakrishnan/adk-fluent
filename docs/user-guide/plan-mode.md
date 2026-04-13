@@ -31,6 +31,10 @@ can wire the whole thing up in one line.
 
 ### Direct wiring
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, H
 from adk_fluent._permissions import PermissionPolicy
@@ -47,6 +51,27 @@ agent = (
     .build()
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, H, PermissionPolicy } from "adk-fluent-ts";
+
+const latch = H.planMode();
+
+const basePolicy = new PermissionPolicy({
+  allow: new Set(["read_file", "grep_search"]),
+});
+const policy = H.planModePolicy(basePolicy, latch);
+
+const agent = new Agent("planner", "gemini-2.5-pro")
+  .instruct("Plan a refactor. Call enter_plan_mode, outline steps, then exit_plan_mode.")
+  .tools([...latch.tools(), readFile, grepSearch, editFile])
+  .build();
+```
+:::
+::::
 
 While `latch.is_planning`, `policy.check("edit_file")` returns a
 `deny` decision with reason ``"Plan mode denies mutating tool

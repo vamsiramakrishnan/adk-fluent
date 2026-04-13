@@ -28,6 +28,10 @@ sessions never share state by accident.
 
 ### Manual wiring (direct API)
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import Agent, BudgetMonitor
 
@@ -47,6 +51,25 @@ agent = (
     .after_model(monitor.after_model_hook())
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import { Agent, BudgetMonitor } from "adk-fluent-ts";
+
+const monitor = new BudgetMonitor({ maxTokens: 200_000 });
+monitor.onThreshold(0.8, (m) =>
+  console.log(`warn: ${(m.utilization * 100).toFixed(0)}% used`),
+);
+monitor.onThreshold(0.95, () => compressSessionState());
+
+const agent = new Agent("coder", "gemini-2.5-flash")
+  .instruct("You are a senior engineer.")
+  .afterModel(monitor.afterModelHook());
+```
+:::
+::::
 
 ### Policy + plugin (session-scoped)
 

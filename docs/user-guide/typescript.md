@@ -30,6 +30,59 @@ import { RemoteAgent, A2AServer, AgentRegistry } from "adk-fluent-ts";
 
 All nine namespaces (`S`, `C`, `P`, `T`, `G`, `M`, `A`, `E`, `UI`) plus the `H` harness namespace are available. The surface is regenerated from the same `shared/manifest.json` that drives the Python package, so parity is enforced at generation time.
 
+## Harness (`H` namespace)
+
+`adk-fluent-ts` ships a full TypeScript port of the `H` harness namespace —
+the building blocks for autonomous coding agents. The TS package lives at
+[`ts/src/namespaces/harness/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/ts/src/namespaces/harness)
+and mirrors the nine Python sub-packages with camelCase names:
+
+| Python | TypeScript | Concept |
+| ------ | ---------- | ------- |
+| `H.workspace("/p")` | `H.workspace("/p")` | Sandboxed workspace tools (read, edit, write, glob, grep, bash, ls) |
+| `H.web()` | `H.web()` | URL fetch + web search tools |
+| `H.permissions()` / `H.auto_allow(...)` | `H.permissions()` / `H.autoAllow(...)` | 5-mode permission policy |
+| `H.plan_mode()` / `H.plan_mode_policy(p)` | `H.planMode()` / `H.planModePolicy(p)` | Plan-then-execute latch with mutating-tool gating |
+| `H.hooks("/p")` | `H.hooks("/p")` | 12-event hook registry with shell-command hooks |
+| `H.session_store()` / `H.session_plugin()` | `H.sessionStore()` / `H.sessionPlugin()` | JSONL tape + named-branch fork manager |
+| `H.subagent_registry()` / `H.task_tool(r, runner)` | `H.subagentRegistry()` / `H.taskTool(r, runner)` | Dynamic specialist dispatch |
+| `H.usage()` / `H.usage_plugin(t)` | `H.usage()` / `H.usagePlugin(t)` | Per-agent token + USD cost tracking |
+| `H.budget_monitor(n)` / `H.budget_plugin(m)` | `H.budgetMonitor(n)` / `H.budgetPlugin(m)` | Threshold-triggered token budget |
+| `H.compressor(threshold=...)` | `H.compressor({ threshold })` | Pre-compact hook integration |
+| `H.git(workspace)` | `H.git(workspace)` | Workspace git checkpointer |
+| `H.processes(...)` | `H.processes(...)` | Background process lifecycle |
+| `H.repl(agent, ...)` | `H.repl(agent, ...)` | Interactive REPL with rendering + compression |
+
+```ts
+import { Agent, H } from "adk-fluent-ts";
+
+const agent = new Agent("coder", "gemini-2.5-pro")
+  .tools([
+    ...H.workspace("/project", { diffMode: true }),
+    ...H.web(),
+    ...H.gitTools("/project"),
+  ])
+  .harness({
+    permissions: H.autoAllow("read_file", "grep_search").merge(
+      H.askBefore("edit_file", "bash"),
+    ),
+    sandbox: H.workspaceOnly("/project"),
+    usage: H.usage(),
+  });
+
+const repl = H.repl(agent.build(), {
+  compressor: H.compressor({ threshold: 100_000 }),
+});
+await repl.run();
+```
+
+See the [harness guide](harness.md) for the full five-layer architecture.
+The sub-package guides ([hooks](hooks.md), [permissions](permissions.md),
+[plan-mode](plan-mode.md), [session](session.md), [subagents](subagents.md),
+[usage](usage.md), [budget](budget.md), [compression](compression.md)) are
+shared between Python and TypeScript — the API shape is parallel, the method
+names differ only in case.
+
 ## Operators → method chains
 
 JavaScript has no operator overloading, so `adk-fluent-ts` uses method calls. This is the single most important mapping to internalize when reading the rest of these docs:
@@ -139,14 +192,19 @@ npx tsx examples/cookbook/01_simple_agent.ts
 
 ## TypeScript API reference
 
-The Python API reference under [`generated/api/`](../generated/api/index.md) is auto-generated from Python introspection. For a symbol-level TypeScript reference, build the typedoc output from inside the `ts/` package:
+The Python API reference under [`generated/api/`](../generated/api/index.md) is auto-generated from Python introspection. The TypeScript equivalent is produced by [`typedoc`](https://typedoc.org/) from the TS source and is published alongside this Sphinx site at **[`/ts-api/`](../../ts-api/index.html)** (linked from the top of GH Pages).
 
 ```bash
+# Local build:
 cd ts
 npm run docs     # writes HTML into ts/docs/api/
+
+# Or from the repo root — this is what CI runs:
+just ts-docs     # regenerates typedoc
+just docs-build  # builds Sphinx and copies ts/docs/api/ → docs/_build/html/ts-api/
 ```
 
-`typedoc` reads the TypeScript source directly and produces a fully-linked reference for all exported builders, namespaces, and types. We plan to stitch this into the Sphinx site once the TS package surface stabilizes; until then, treat `ts/docs/api/` as the authoritative symbol reference and the Sphinx site as the authoritative conceptual guide.
+`typedoc` reads the TypeScript source directly and produces a fully-linked reference for all exported builders, namespaces, and types. The GH Pages deploy ships both the Sphinx conceptual guide and the typedoc symbol reference in the same site under `/latest/` and `/v{version}/`.
 
 The shared `CLAUDE.md` files are also useful as a flat API reference:
 
@@ -160,6 +218,18 @@ Both packages are regenerated from the same manifest, so builder coverage is ide
 - The A2A server (`A2AServer` + middleware) is usable but less battle-tested than the Python implementation.
 - The evaluation (`E`) namespace does not yet include a TS-native LLM judge — use `E.case` and `E.criterion` with custom predicates.
 - Some cookbook recipes (70+, A2UI-heavy) do not yet have TypeScript equivalents.
+
+### Documentation coverage
+
+**Runtime and code parity is tight.** Documentation tab coverage is still catching up — most conceptual guides were written Python-first and have not yet been backfilled with a synced TS tab. If a page is missing a `:tab-item: TypeScript` block, mentally translate using:
+
+- **Operators → method chains** (`>>` → `.then()`, `|` → `.parallel()`, `*` → `.times()`, `//` → `.fallback()`, `@` → `.outputAs()`).
+- **Builder methods → camelCase** (`.before_model(fn)` → `.beforeModel(fn)`, `.max_iterations(n)` → `.maxIterations(n)`, `.agent_tool(a)` → `.agentTool(a)`).
+- **H namespace methods → camelCase** (`H.plan_mode()` → `H.planMode()`, `H.session_store()` → `H.sessionStore()`, `H.subagent_registry()` → `H.subagentRegistry()`).
+- **Namespace factories → options objects** (`G.length(max=500)` → `G.length({ max: 500 })`, `H.compressor(threshold=100_000)` → `H.compressor({ threshold: 100_000 })`).
+- **Composition operators in namespaces → `.pipe()`** (`G.pii() | G.length()` → `G.pii().pipe(G.length(...))`).
+
+The typedoc reference under [`/ts-api/`](../../ts-api/index.html) is authoritative for the TS symbol-level API; this guide and the sub-package guides ([harness](harness.md), [hooks](hooks.md), [permissions](permissions.md), [plan-mode](plan-mode.md), [session](session.md), [subagents](subagents.md), [usage](usage.md), [budget](budget.md), [compression](compression.md)) are the authoritative conceptual guides shared between both languages.
 
 ## Development
 

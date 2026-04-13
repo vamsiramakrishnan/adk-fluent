@@ -26,6 +26,10 @@ gives you three properties you cannot get from a static topology:
 
 ## Quick start
 
+::::{tab-set}
+:::{tab-item} Python
+:sync: python
+
 ```python
 from adk_fluent import (
     Agent,
@@ -57,6 +61,39 @@ coordinator = (
     .tool(task)
 )
 ```
+:::
+:::{tab-item} TypeScript
+:sync: ts
+
+```ts
+import {
+  Agent,
+  FakeSubagentRunner,
+  H,
+  SubagentSpec,
+} from "adk-fluent-ts";
+
+const registry = H.subagentRegistry([
+  H.subagentSpec({
+    role: "researcher",
+    instruction: "Find three authoritative papers and summarise them.",
+    description: "Deep research specialist",
+  }),
+  H.subagentSpec({
+    role: "reviewer",
+    instruction: "Critique the draft for factual errors.",
+    description: "Technical critic",
+  }),
+]);
+
+const task = H.taskTool(registry, new FakeSubagentRunner());
+
+const coordinator = new Agent("coordinator", "gemini-2.5-flash")
+  .instruct("Coordinate specialists. Use the `task` tool to delegate.")
+  .tool(task);
+```
+:::
+::::
 
 The generated `task` callable has a docstring that enumerates every registered
 role, so the parent LLM gets an accurate menu when it decides who to call.
