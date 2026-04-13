@@ -39,7 +39,9 @@ assert.ok(chain instanceof GComposite);
 assert.equal(chain.guards.length, 2);
 
 // Multiple guards chained
-const multiChain = G.json().pipe(G.length({ max: 500 })).pipe(G.pii({ action: "redact" }));
+const multiChain = G.json()
+  .pipe(G.length({ max: 500 }))
+  .pipe(G.pii({ action: "redact" }));
 assert.equal(multiChain.guards.length, 3);
 assert.deepEqual(
   multiChain.guards.map((g) => g.name),
@@ -219,7 +221,9 @@ assert.ok(conditionalPii.guards[0].config?.condition);
 // Conditional with multiple guards
 const conditionalMulti = G.when(
   (s) => s.strict_mode === true,
-  G.json().pipe(G.length({ max: 500 })).pipe(G.pii({ action: "block" })),
+  G.json()
+    .pipe(G.length({ max: 500 }))
+    .pipe(G.pii({ action: "block" })),
 );
 assert.equal(conditionalMulti.guards.length, 3);
 assert.ok(conditionalMulti.guards.every((g) => g.name.startsWith("when(")));
@@ -319,16 +323,22 @@ assert.equal(medPipeline.subAgents.length, 2);
 // ---------------------------------------------------------------------------
 
 // Regex-based PII detector
-const regexDetector = G.regexDetector([/\b\d{3}-\d{2}-\d{4}\b/g, /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi]);
+const regexDetector = G.regexDetector([
+  /\b\d{3}-\d{2}-\d{4}\b/g,
+  /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+]);
 const findings = regexDetector.detect("SSN: 123-45-6789, email: test@example.com");
 assert.ok(Array.isArray(findings));
 
 // Multi-detector union
-const multiDetector = G.multi(regexDetector, G.custom((text) => {
-  const matches: string[] = [];
-  if (text.includes("EMP-")) matches.push("EMP_ID");
-  return matches;
-}));
+const multiDetector = G.multi(
+  regexDetector,
+  G.custom((text) => {
+    const matches: string[] = [];
+    if (text.includes("EMP-")) matches.push("EMP_ID");
+    return matches;
+  }),
+);
 assert.ok(typeof multiDetector.detect === "function");
 
 // ---------------------------------------------------------------------------

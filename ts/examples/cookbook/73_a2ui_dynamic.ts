@@ -40,10 +40,7 @@ assert.ok((built.tools as unknown[]).length >= 1);
 
 // --- 3. Declarative mode still works for static surfaces ---
 const form = UI.form("Bug Report", {
-  fields: [
-    { label: "Title", required: true },
-    { label: "Severity" },
-  ],
+  fields: [{ label: "Title", required: true }, { label: "Severity" }],
   submit: "Submit Bug",
 });
 assert.ok(form instanceof UISurface);

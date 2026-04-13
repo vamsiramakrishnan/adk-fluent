@@ -25,8 +25,8 @@ const SHARED_VISUAL = join(ROOT, "shared", "visual");
 // ── Cookbook grouping (mirrors Python) ─────────────────────────
 const CRAWL = new Set([1, 2, 3, 8, 10, 11, 21, 22, 23, 24, 26]);
 const WALK = new Set([
-  4, 5, 6, 7, 12, 13, 14, 16, 17, 18, 19, 20, 27, 29, 30, 31, 32, 33, 35,
-  36, 37, 38, 39, 40, 41, 42, 56,
+  4, 5, 6, 7, 12, 13, 14, 16, 17, 18, 19, 20, 27, 29, 30, 31, 32, 33, 35, 36, 37, 38, 39, 40, 41,
+  42, 56,
 ]);
 const A2UI = new Set([58, 59, 68, 69, 70, 71, 72, 73]);
 
@@ -116,8 +116,7 @@ async function loadAgent(cookbookId: string): Promise<any> {
 
   const mod = await import(pathToFileURL(filepath).href);
 
-  const agent =
-    mod.root_agent ?? mod.rootAgent ?? mod.agent ?? mod.pipeline ?? mod.default;
+  const agent = mod.root_agent ?? mod.rootAgent ?? mod.agent ?? mod.pipeline ?? mod.default;
   if (!agent) {
     throw new Error(
       `No agent export found in ${cookbookId}.ts (tried: root_agent, rootAgent, agent, pipeline, default)`,
@@ -156,9 +155,7 @@ app.get("/api/inspect/:cookbookId", (c) => {
   const cookbookId = c.req.param("cookbookId");
   try {
     const filepath = join(COOKBOOK_DIR, `${cookbookId}.ts`);
-    const source = existsSync(filepath)
-      ? readFileSync(filepath, "utf-8")
-      : null;
+    const source = existsSync(filepath) ? readFileSync(filepath, "utf-8") : null;
 
     return c.json({
       cookbook_id: cookbookId,
@@ -189,8 +186,7 @@ app.post("/api/run", async (c) => {
       InMemoryRunner = runners.InMemoryRunner;
     } catch {
       return c.json({
-        error:
-          "ADK runner not available. Install @google/adk to enable agent execution.",
+        error: "ADK runner not available. Install @google/adk to enable agent execution.",
         response: null,
         surface_messages: null,
       });
@@ -234,16 +230,11 @@ app.post("/api/run", async (c) => {
       surface_messages: surfaceMessages,
     });
   } catch (err) {
-    return c.json(
-      { error: err instanceof Error ? err.message : String(err) },
-      500,
-    );
+    return c.json({ error: err instanceof Error ? err.message : String(err) }, 500);
   }
 });
 
 // ── Start ─────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT ?? "8099", 10);
-console.log(
-  `adk-fluent-ts visual runner starting on http://localhost:${PORT}`,
-);
+console.log(`adk-fluent-ts visual runner starting on http://localhost:${PORT}`);
 serve({ fetch: app.fetch, port: PORT });

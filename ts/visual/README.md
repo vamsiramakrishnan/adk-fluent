@@ -17,6 +17,7 @@ just visual-ts 3000
 ```
 
 Opens at `http://localhost:8099` (or your chosen port):
+
 - **Left sidebar**: all 75 TS cookbooks, grouped by difficulty
 - **Center**: chat with any agent
 - **Right panel**: live A2UI surface rendering + JSON inspector
@@ -43,12 +44,12 @@ ts/examples/cookbook/
 
 Both Python and TypeScript visual servers implement the same 4 endpoints:
 
-| Endpoint | Method | Response |
-|----------|--------|----------|
-| `/api/health` | GET | `{status, cookbooks, language}` |
-| `/api/cookbooks` | GET | `[{id, name, group, badge, ...}]` |
-| `/api/inspect/:id` | GET | `{cookbook_id, explain, mermaid, surface_messages}` |
-| `/api/run` | POST | `{response, surface_messages}` |
+| Endpoint           | Method | Response                                            |
+| ------------------ | ------ | --------------------------------------------------- |
+| `/api/health`      | GET    | `{status, cookbooks, language}`                     |
+| `/api/cookbooks`   | GET    | `[{id, name, group, badge, ...}]`                   |
+| `/api/inspect/:id` | GET    | `{cookbook_id, explain, mermaid, surface_messages}` |
+| `/api/run`         | POST   | `{response, surface_messages}`                      |
 
 ## How It Works
 

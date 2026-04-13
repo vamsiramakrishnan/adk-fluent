@@ -20,10 +20,12 @@ from adk_fluent._ui import UI
 auto = UI.auto()
 assert auto.catalog == "basic"
 
+
 # --- 2. Agent with .ui(UI.auto()) gets the toolset automatically ---
 def get_data(query: str) -> str:
     """Get data for a query."""
     return f"Results for: {query}"
+
 
 agent = (
     Agent("dynamic_ui", "gemini-2.5-flash")
@@ -38,11 +40,7 @@ assert len(built.tools) >= 1
 
 # --- 3. Declarative mode still works for static surfaces ---
 form = UI.form("Bug Report", fields={"title": "text", "severity": ["Low", "Medium", "High"]})
-form_agent = (
-    Agent("form_ui", "gemini-2.5-flash")
-    .instruct("Collect bug reports.")
-    .ui(form)
-)
+form_agent = Agent("form_ui", "gemini-2.5-flash").instruct("Collect bug reports.").ui(form)
 form_built = form_agent.build()
 assert form_built.name == "form_ui"
 

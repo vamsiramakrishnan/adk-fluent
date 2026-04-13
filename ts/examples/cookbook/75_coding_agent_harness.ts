@@ -222,8 +222,8 @@ assert.ok(!compressor.shouldCompress(50_000));
 const coder = new Agent("coder", "gemini-2.5-pro")
   .instruct(
     "You are an expert coding assistant. " +
-    "Use the provided tools to read files, edit code, run tests, " +
-    "and manage background tasks.",
+      "Use the provided tools to read files, edit code, run tests, " +
+      "and manage background tasks.",
   )
   .tools(harness.tools)
   .build() as Record<string, unknown>;
@@ -257,12 +257,4 @@ assert.equal(harness.todos.list().length, 3);
 harness.usage.record("gemini-2.5-pro", 5_000, 2_000);
 assert.equal(harness.usage.totalTokens, 7_000);
 
-export {
-  harness,
-  coder,
-  bus,
-  cmds,
-  monitor,
-  toolPolicy,
-  compressor,
-};
+export { harness, coder, bus, cmds, monitor, toolPolicy, compressor };

@@ -40,8 +40,9 @@ root_agent = (
     .tools(H.workspace(PROJECT_ROOT))
     .harness(
         permissions=(
-            H.auto_allow("read_file", "glob_search", "grep_search", "list_dir")
-            .merge(H.ask_before("edit_file", "write_file", "bash"))
+            H.auto_allow("read_file", "glob_search", "grep_search", "list_dir").merge(
+                H.ask_before("edit_file", "write_file", "bash")
+            )
         ),
         sandbox=H.workspace_only(PROJECT_ROOT),
     )

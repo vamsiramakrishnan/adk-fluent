@@ -152,10 +152,7 @@ const timeout5s = T.timeout(T.fn(slowOperation as never), 5);
 assert.equal(timeout5s.items[0].timeout, 5);
 
 // Timeout a composite
-const timeoutMulti = T.timeout(
-  T.fn(searchWeb as never).pipe(T.fn(sendEmail as never)),
-  10,
-);
+const timeoutMulti = T.timeout(T.fn(searchWeb as never).pipe(T.fn(sendEmail as never)), 10);
 assert.equal(timeoutMulti.items.length, 2);
 assert.ok(timeoutMulti.items.every((t) => t.timeout === 10));
 
@@ -182,10 +179,7 @@ function translate(text: string, lang: string): string {
   return `Translated to ${lang}: ${text}`;
 }
 
-const cacheMulti = T.cache(
-  T.fn(searchWeb as never).pipe(T.fn(translate as never)),
-  { ttl: 180 },
-);
+const cacheMulti = T.cache(T.fn(searchWeb as never).pipe(T.fn(translate as never)), { ttl: 180 });
 assert.equal(cacheMulti.items.length, 2);
 assert.ok(cacheMulti.items.every((t) => t.cache === true));
 assert.ok(cacheMulti.items.every((t) => t.ttl === 180));
@@ -225,10 +219,9 @@ assert.equal(typeof transformBoth.items[0].preTransform, "function");
 assert.equal(typeof transformBoth.items[0].postTransform, "function");
 
 // Transform a composite
-const transformMulti = T.transform(
-  T.fn(searchWeb as never).pipe(T.fn(translate as never)),
-  { pre: preFn as never },
-);
+const transformMulti = T.transform(T.fn(searchWeb as never).pipe(T.fn(translate as never)), {
+  pre: preFn as never,
+});
 assert.equal(transformMulti.items.length, 2);
 assert.ok(transformMulti.items.every((t) => typeof t.preTransform === "function"));
 

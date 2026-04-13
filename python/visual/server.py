@@ -267,9 +267,7 @@ async def run_agent(body: dict):
 
         runner = InMemoryRunner(agent=agent, app_name="visual_runner")
 
-        session = await runner.session_service.create_session(
-            app_name="visual_runner", user_id="visual_user"
-        )
+        session = await runner.session_service.create_session(app_name="visual_runner", user_id="visual_user")
 
         content = types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         response_text = ""

@@ -12,16 +12,24 @@
  *   - S.toUi() / S.fromUi() state bridging
  */
 import assert from "node:assert/strict";
-import { Agent, UI, UISurface, T, G, P, S, TComposite, GComposite, STransform } from "../../src/index.js";
+import {
+  Agent,
+  UI,
+  UISurface,
+  T,
+  G,
+  P,
+  S,
+  TComposite,
+  GComposite,
+  STransform,
+} from "../../src/index.js";
 
 const MODEL = "gemini-2.5-flash";
 
 // --- 1. Agent.ui() with declarative surface ---
 const formSurface = UI.form("ticket", {
-  fields: [
-    { label: "Issue", type: "longText" },
-    { label: "Priority" },
-  ],
+  fields: [{ label: "Issue", type: "longText" }, { label: "Priority" }],
 });
 const agent = new Agent("support", MODEL).instruct("Help users.").ui(formSurface);
 assert.equal(agent.inspect()._ui_spec, formSurface);

@@ -247,9 +247,7 @@ assert.ok(repr.includes("tokens_used"));
 // 10. Middleware composition works independently of agents
 // ---------------------------------------------------------------------------
 
-const fullStack = M.retry({ maxAttempts: 3 })
-  .pipe(M.log())
-  .pipe(M.cost());
+const fullStack = M.retry({ maxAttempts: 3 }).pipe(M.log()).pipe(M.cost());
 
 assert.equal(fullStack.middlewares.length, 3);
 assert.deepEqual(

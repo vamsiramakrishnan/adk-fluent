@@ -28,12 +28,7 @@ bus = H.event_bus(max_buffer=1000)
 tape = bus.tape()
 
 token = H.cancellation_token()
-monitor = (
-    H.budget_monitor(200_000)
-    .on_threshold(0.7, lambda m: None)
-    .on_threshold(0.9, lambda m: None)
-    .with_bus(bus)
-)
+monitor = H.budget_monitor(200_000).on_threshold(0.7, lambda m: None).on_threshold(0.9, lambda m: None).with_bus(bus)
 policy = (
     H.tool_policy()
     .retry("bash", max_attempts=3, backoff=1.0)

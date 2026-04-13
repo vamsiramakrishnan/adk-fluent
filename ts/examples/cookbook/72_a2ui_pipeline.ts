@@ -54,16 +54,14 @@ assert.ok(uiCtx instanceof CTransform);
 // --- 7. Pipeline pattern with UI ---
 const calcAgent = new Agent("calc", MODEL).instruct("Calculate totals.").writes("total");
 
-const renderer = new Agent("renderer", MODEL)
-  .instruct("Display results.")
-  .ui(
-    UI.dashboard("Metrics", {
-      cards: [
-        { label: "Total", value: "0" },
-        { label: "Count", value: "0" },
-      ],
-    }),
-  );
+const renderer = new Agent("renderer", MODEL).instruct("Display results.").ui(
+  UI.dashboard("Metrics", {
+    cards: [
+      { label: "Total", value: "0" },
+      { label: "Count", value: "0" },
+    ],
+  }),
+);
 
 // Both agents build correctly
 const calcBuilt = calcAgent.build() as Record<string, unknown>;

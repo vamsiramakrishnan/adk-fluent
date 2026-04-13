@@ -17,13 +17,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  Agent,
-  H,
-  HookEvent,
-  HookDecision,
-  PermissionMode,
-} from "../../src/index.js";
+import { Agent, H, HookEvent, HookDecision, PermissionMode } from "../../src/index.js";
 
 const workspace = mkdtempSync(join(tmpdir(), "adk-fluent-74-"));
 
@@ -173,7 +167,7 @@ assert.equal(monitor.used, 0);
 const agent = new Agent("coder", "gemini-2.5-pro")
   .instruct(
     "You are an expert coding assistant. " +
-    "Read the codebase, edit files, run tests, and self-correct until done.",
+      "Read the codebase, edit files, run tests, and self-correct until done.",
   )
   .tools(H.workspace(workspace))
   .build() as Record<string, unknown>;
@@ -184,12 +178,4 @@ assert.equal(agent._type, "LlmAgent");
 const builtTools = agent.tools as unknown[];
 assert.ok(builtTools.length > 0, "Agent has tools");
 
-export {
-  registry,
-  permissions,
-  planMode,
-  store,
-  usage,
-  monitor,
-  agent,
-};
+export { registry, permissions, planMode, store, usage, monitor, agent };
