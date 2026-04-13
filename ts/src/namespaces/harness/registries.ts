@@ -85,13 +85,7 @@ export interface HookContext {
 
 // ─── HookDecision ──────────────────────────────────────────────────────────
 
-export type HookAction =
-  | "allow"
-  | "deny"
-  | "modify"
-  | "replace"
-  | "ask"
-  | "inject";
+export type HookAction = "allow" | "deny" | "modify" | "replace" | "ask" | "inject";
 
 export interface HookDecisionFields {
   action: HookAction;
@@ -141,9 +135,7 @@ export class HookDecision {
   /** Rewrite tool arguments. Only valid for `PreToolUse`. */
   static modify(toolInput: Record<string, unknown>): HookDecision {
     if (toolInput === null || typeof toolInput !== "object") {
-      throw new TypeError(
-        "HookDecision.modify requires an object of tool arguments",
-      );
+      throw new TypeError("HookDecision.modify requires an object of tool arguments");
     }
     return new HookDecision({ action: "modify", toolInput: { ...toolInput } });
   }
@@ -169,11 +161,7 @@ export class HookDecision {
 
   /** True if this decision short-circuits the call (deny/replace/ask). */
   get isTerminal(): boolean {
-    return (
-      this.action === "deny" ||
-      this.action === "replace" ||
-      this.action === "ask"
-    );
+    return this.action === "deny" || this.action === "replace" || this.action === "ask";
   }
 
   /** True if this decision does not alter the wrapped call's output. */
@@ -218,9 +206,7 @@ export class HookMatcher {
     this.toolName = options.toolName;
     this.args = Object.freeze({ ...(options.args ?? {}) });
     this.predicate = options.predicate;
-    this.toolNameRegex = options.toolName
-      ? new RegExp(`^(?:${options.toolName})$`)
-      : undefined;
+    this.toolNameRegex = options.toolName ? new RegExp(`^(?:${options.toolName})$`) : undefined;
     const regexes = new Map<string, RegExp>();
     for (const [key, pattern] of Object.entries(this.args)) {
       regexes.set(key, fnmatchToRegExp(pattern));
@@ -264,11 +250,7 @@ export class HookMatcher {
   }
 
   /** Shorthand for matching a specific tool by name with optional arg globs. */
-  static forTool(
-    event: string,
-    toolName: string,
-    args: Record<string, unknown> = {},
-  ): HookMatcher {
+  static forTool(event: string, toolName: string, args: Record<string, unknown> = {}): HookMatcher {
     const stringArgs: Record<string, string> = {};
     for (const [key, value] of Object.entries(args)) {
       stringArgs[key] = String(value);
@@ -423,9 +405,7 @@ export class HookRegistry {
     }
     const matcher = opts.match ?? HookMatcher.any(event);
     if (matcher.event !== event) {
-      throw new Error(
-        `HookMatcher event '${matcher.event}' must equal '${event}'`,
-      );
+      throw new Error(`HookMatcher event '${matcher.event}' must equal '${event}'`);
     }
     const entry: HookEntry = {
       matcher,
@@ -443,9 +423,7 @@ export class HookRegistry {
   shell(event: HookEvent, command: string, opts: HookShellOptions = {}): this {
     const matcher = opts.match ?? HookMatcher.any(event);
     if (matcher.event !== event) {
-      throw new Error(
-        `HookMatcher event '${matcher.event}' must equal '${event}'`,
-      );
+      throw new Error(`HookMatcher event '${matcher.event}' must equal '${event}'`);
     }
     const entry: HookEntry = {
       matcher,
@@ -509,9 +487,7 @@ export class HookRegistry {
    */
   list(event?: HookEvent): readonly HookSpec[] {
     const out: HookSpec[] = [];
-    const events = event
-      ? [event]
-      : ([...this.entriesByEvent.keys()] as HookEvent[]);
+    const events = event ? [event] : ([...this.entriesByEvent.keys()] as HookEvent[]);
     for (const ev of events) {
       for (const entry of this.entriesByEvent.get(ev) ?? []) {
         if (entry.command !== undefined) {
@@ -579,10 +555,7 @@ export class HookRegistry {
     return final;
   }
 
-  private async runEntry(
-    entry: HookEntry,
-    ctx: HookContext,
-  ): Promise<HookDecision> {
+  private async runEntry(entry: HookEntry, ctx: HookContext): Promise<HookDecision> {
     if (entry.command !== undefined) {
       return this.runShell(entry, ctx);
     }
@@ -602,10 +575,7 @@ export class HookRegistry {
     }
   }
 
-  private async runShell(
-    entry: HookEntry,
-    ctx: HookContext,
-  ): Promise<HookDecision> {
+  private async runShell(entry: HookEntry, ctx: HookContext): Promise<HookDecision> {
     if (entry.command === undefined) return HookDecision.allow();
     const command = renderShellCommand(entry.command, ctx);
     const env = buildShellEnv(ctx, this.workspace);
@@ -654,10 +624,7 @@ export class HookRegistry {
    * placeholders against `vars` and awaits every matching shell hook for
    * `event`. Callable hooks are ignored — use `.dispatch()` for those.
    */
-  async fire(
-    event: HookEvent,
-    vars: Record<string, string> = {},
-  ): Promise<void> {
+  async fire(event: HookEvent, vars: Record<string, string> = {}): Promise<void> {
     const entries = this.entriesByEvent.get(event);
     if (!entries) return;
     const shells = entries.filter(
@@ -699,13 +666,11 @@ function renderShellCommand(template: string, ctx: HookContext): string {
     if (!(k in fields)) fields[k] = String(v);
   }
 
-  let out = template.replace(
-    /\{tool_input\[([^\]]+)\]\}/g,
-    (_m: string, key: string) => shellQuote(String(toolInput[key] ?? "")),
+  let out = template.replace(/\{tool_input\[([^\]]+)\]\}/g, (_m: string, key: string) =>
+    shellQuote(String(toolInput[key] ?? "")),
   );
-  out = out.replace(
-    /\{([A-Za-z_][A-Za-z0-9_]*)\}/g,
-    (_m: string, key: string) => shellQuote(fields[key] ?? ""),
+  out = out.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_m: string, key: string) =>
+    shellQuote(fields[key] ?? ""),
   );
   return out;
 }

@@ -66,9 +66,7 @@ describe("subagents — SubagentRegistry", () => {
   it("refuses duplicate roles but allows replace", () => {
     const reg = new SubagentRegistry();
     reg.register(new SubagentSpec({ role: "a", instruction: "x" }));
-    expect(() =>
-      reg.register(new SubagentSpec({ role: "a", instruction: "y" })),
-    ).toThrow();
+    expect(() => reg.register(new SubagentSpec({ role: "a", instruction: "y" }))).toThrow();
     reg.replace(new SubagentSpec({ role: "a", instruction: "z" }));
     expect(reg.require("a").instruction).toBe("z");
   });
@@ -96,9 +94,7 @@ describe("subagents — FakeSubagentRunner + makeTaskTool", () => {
       responder: (_s, prompt) => `ok: ${prompt}`,
       usage: { input: 10, output: 5 },
     });
-    const reg = new SubagentRegistry([
-      new SubagentSpec({ role: "writer", instruction: "Write" }),
-    ]);
+    const reg = new SubagentRegistry([new SubagentSpec({ role: "writer", instruction: "Write" })]);
     const task = makeTaskTool(reg, runner);
     const out = task("writer", "hello");
     expect(out).toBe("[writer] ok: hello");
@@ -115,9 +111,7 @@ describe("subagents — FakeSubagentRunner + makeTaskTool", () => {
     const runner = new FakeSubagentRunner({
       errorForRole: { bad: "boom" },
     });
-    const reg = new SubagentRegistry([
-      new SubagentSpec({ role: "bad", instruction: "x" }),
-    ]);
+    const reg = new SubagentRegistry([new SubagentSpec({ role: "bad", instruction: "x" })]);
     const task = makeTaskTool(reg, runner);
     expect(task("bad", "go")).toBe("[bad:error] boom");
   });
@@ -214,15 +208,9 @@ describe("hooks — HookDecision factories", () => {
 describe("hooks — HookMatcher", () => {
   it("matches by event + tool name regex", () => {
     const m = HookMatcher.forTool(HookEvent.PreToolUse, "bash");
-    expect(
-      m.matches({ event: HookEvent.PreToolUse, toolName: "bash" }),
-    ).toBe(true);
-    expect(
-      m.matches({ event: HookEvent.PreToolUse, toolName: "write_file" }),
-    ).toBe(false);
-    expect(m.matches({ event: HookEvent.PostToolUse, toolName: "bash" })).toBe(
-      false,
-    );
+    expect(m.matches({ event: HookEvent.PreToolUse, toolName: "bash" })).toBe(true);
+    expect(m.matches({ event: HookEvent.PreToolUse, toolName: "write_file" })).toBe(false);
+    expect(m.matches({ event: HookEvent.PostToolUse, toolName: "bash" })).toBe(false);
   });
 
   it("applies fnmatch globs to toolInput values", () => {
@@ -379,9 +367,7 @@ describe("session — ForkRegistry", () => {
     const state = forks.switch("main") as { doc: { body: string } };
     state.doc.body = "mutated";
     // Original branch state must be untouched.
-    expect(
-      (forks.get("main").state as { doc: { body: string } }).doc.body,
-    ).toBe("v1");
+    expect((forks.get("main").state as { doc: { body: string } }).doc.body).toBe("v1");
     expect(forks.active).toBe("main");
   });
 
@@ -411,9 +397,7 @@ describe("session — SessionSnapshot round-trip", () => {
       expect(store2.forks.has("base")).toBe(true);
       expect(store2.forks.has("refactor")).toBe(true);
       expect(store2.activeBranch).toBe("refactor");
-      expect(
-        (store2.forks.get("refactor").state as { draft: string }).draft,
-      ).toBe("v2");
+      expect((store2.forks.get("refactor").state as { draft: string }).draft).toBe("v2");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

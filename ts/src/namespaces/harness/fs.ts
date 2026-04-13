@@ -71,17 +71,10 @@ export interface FsBackend {
   stat(path: string): FsStat;
   readText(path: string, options?: { encoding?: BufferEncoding }): string;
   readBytes(path: string): Uint8Array;
-  writeText(
-    path: string,
-    content: string,
-    options?: { encoding?: BufferEncoding },
-  ): void;
+  writeText(path: string, content: string, options?: { encoding?: BufferEncoding }): void;
   writeBytes(path: string, content: Uint8Array): void;
   delete_(path: string): void;
-  mkdir(
-    path: string,
-    options?: { parents?: boolean; existOk?: boolean },
-  ): void;
+  mkdir(path: string, options?: { parents?: boolean; existOk?: boolean }): void;
   listDir(path: string): FsEntry[];
   iterFiles(root: string): IterableIterator<string>;
   glob(pattern: string, options?: { root?: string }): string[];
@@ -132,11 +125,7 @@ export class LocalBackend implements FsBackend {
     return new Uint8Array(fs.readFileSync(this.resolve(target)));
   }
 
-  writeText(
-    target: string,
-    content: string,
-    options: { encoding?: BufferEncoding } = {},
-  ): void {
+  writeText(target: string, content: string, options: { encoding?: BufferEncoding } = {}): void {
     const encoding = options.encoding ?? "utf-8";
     const resolved = this.resolve(target);
     fs.mkdirSync(path.dirname(resolved), { recursive: true });
@@ -161,10 +150,7 @@ export class LocalBackend implements FsBackend {
     }
   }
 
-  mkdir(
-    target: string,
-    options: { parents?: boolean; existOk?: boolean } = {},
-  ): void {
+  mkdir(target: string, options: { parents?: boolean; existOk?: boolean } = {}): void {
     const resolved = this.resolve(target);
     const parents = options.parents ?? true;
     const existOk = options.existOk ?? true;
@@ -213,10 +199,7 @@ export class LocalBackend implements FsBackend {
   }
 
   glob(pattern: string, options: { root?: string } = {}): string[] {
-    const base =
-      options.root !== undefined
-        ? this.resolve(options.root)
-        : this.root ?? ".";
+    const base = options.root !== undefined ? this.resolve(options.root) : (this.root ?? ".");
     // Lightweight glob that supports `*`, `?`, and `**`. Matches
     // Python's `pathlib.Path.glob()` for the patterns the harness
     // actually uses.
@@ -313,19 +296,14 @@ export class MemoryBackend implements FsBackend {
     const p = MemoryBackend.norm(target);
     const file = this.files.get(p);
     if (file === undefined) {
-      throw Object.assign(
-        new Error(`ENOENT: no such file or directory, '${target}'`),
-        { code: "ENOENT" },
-      );
+      throw Object.assign(new Error(`ENOENT: no such file or directory, '${target}'`), {
+        code: "ENOENT",
+      });
     }
     return new Uint8Array(file);
   }
 
-  writeText(
-    target: string,
-    content: string,
-    options: { encoding?: BufferEncoding } = {},
-  ): void {
+  writeText(target: string, content: string, options: { encoding?: BufferEncoding } = {}): void {
     const encoding = options.encoding ?? "utf-8";
     this.writeBytes(target, new Uint8Array(Buffer.from(content, encoding)));
   }
@@ -363,16 +341,12 @@ export class MemoryBackend implements FsBackend {
       this.dirs.delete(p);
       return;
     }
-    throw Object.assign(
-      new Error(`ENOENT: no such file or directory, '${target}'`),
-      { code: "ENOENT" },
-    );
+    throw Object.assign(new Error(`ENOENT: no such file or directory, '${target}'`), {
+      code: "ENOENT",
+    });
   }
 
-  mkdir(
-    target: string,
-    options: { parents?: boolean; existOk?: boolean } = {},
-  ): void {
+  mkdir(target: string, options: { parents?: boolean; existOk?: boolean } = {}): void {
     const parents = options.parents ?? true;
     const existOk = options.existOk ?? true;
     const p = MemoryBackend.norm(target);
@@ -381,10 +355,7 @@ export class MemoryBackend implements FsBackend {
       return;
     }
     if (!parents && !this.dirs.has(posixDirname(p))) {
-      throw Object.assign(
-        new Error(`ENOENT: parent missing for '${target}'`),
-        { code: "ENOENT" },
-      );
+      throw Object.assign(new Error(`ENOENT: parent missing for '${target}'`), { code: "ENOENT" });
     }
     let cursor = "";
     for (const seg of p.split("/").filter(Boolean)) {
@@ -397,10 +368,7 @@ export class MemoryBackend implements FsBackend {
   listDir(target: string): FsEntry[] {
     const p = MemoryBackend.norm(target);
     if (!this.dirs.has(p)) {
-      throw Object.assign(
-        new Error(`ENOENT: no such directory, '${target}'`),
-        { code: "ENOENT" },
-      );
+      throw Object.assign(new Error(`ENOENT: no such directory, '${target}'`), { code: "ENOENT" });
     }
     const prefix = p === "/" ? "/" : p + "/";
     const entries: FsEntry[] = [];
@@ -536,11 +504,7 @@ export class SandboxedBackend implements FsBackend {
     return this.innerBackend.readBytes(this.checkRead(target));
   }
 
-  writeText(
-    target: string,
-    content: string,
-    options?: { encoding?: BufferEncoding },
-  ): void {
+  writeText(target: string, content: string, options?: { encoding?: BufferEncoding }): void {
     this.innerBackend.writeText(this.checkWrite(target), content, options);
   }
 
@@ -552,10 +516,7 @@ export class SandboxedBackend implements FsBackend {
     this.innerBackend.delete_(this.checkWrite(target));
   }
 
-  mkdir(
-    target: string,
-    options?: { parents?: boolean; existOk?: boolean },
-  ): void {
+  mkdir(target: string, options?: { parents?: boolean; existOk?: boolean }): void {
     this.innerBackend.mkdir(this.checkWrite(target), options);
   }
 
@@ -571,7 +532,7 @@ export class SandboxedBackend implements FsBackend {
     const resolved =
       options.root !== undefined
         ? this.checkRead(options.root)
-        : this.sandboxPolicy.workspace ?? undefined;
+        : (this.sandboxPolicy.workspace ?? undefined);
     return this.innerBackend.glob(pattern, { root: resolved });
   }
 }

@@ -172,9 +172,7 @@ export class SubagentRegistry {
     const spec = this.specs.get(role);
     if (!spec) {
       const known = [...this.specs.keys()].sort().join(", ");
-      throw new Error(
-        `Unknown subagent role '${role}'. Known roles: ${known || "(none)"}`,
-      );
+      throw new Error(`Unknown subagent role '${role}'. Known roles: ${known || "(none)"}`);
     }
     return spec;
   }
@@ -224,11 +222,7 @@ export class SubagentRegistry {
  * wrap the event loop internally; the task tool never awaits.
  */
 export interface SubagentRunner {
-  run(
-    spec: SubagentSpec,
-    prompt: string,
-    context?: Record<string, unknown>,
-  ): SubagentResult;
+  run(spec: SubagentSpec, prompt: string, context?: Record<string, unknown>): SubagentResult;
 }
 
 export class SubagentRunnerError extends Error {
@@ -238,11 +232,7 @@ export class SubagentRunnerError extends Error {
   }
 }
 
-type Responder = (
-  spec: SubagentSpec,
-  prompt: string,
-  context?: Record<string, unknown>,
-) => string;
+type Responder = (spec: SubagentSpec, prompt: string, context?: Record<string, unknown>) => string;
 
 export interface FakeSubagentRunnerOptions {
   /** Invoked per run; defaults to echoing the prompt. */
@@ -275,8 +265,7 @@ export class FakeSubagentRunner implements SubagentRunner {
   private readonly log: SubagentCall[] = [];
 
   constructor(options: FakeSubagentRunnerOptions = {}) {
-    this.responder =
-      options.responder ?? ((_spec, prompt) => `echo: ${prompt}`);
+    this.responder = options.responder ?? ((_spec, prompt) => `echo: ${prompt}`);
     this.fixedUsage = { ...(options.usage ?? {}) };
     this.errors = { ...(options.errorForRole ?? {}) };
   }
@@ -286,11 +275,7 @@ export class FakeSubagentRunner implements SubagentRunner {
     return [...this.log];
   }
 
-  run(
-    spec: SubagentSpec,
-    prompt: string,
-    context?: Record<string, unknown>,
-  ): SubagentResult {
+  run(spec: SubagentSpec, prompt: string, context?: Record<string, unknown>): SubagentResult {
     this.log.push({ spec, prompt, context });
     if (spec.role in this.errors) {
       return new SubagentResult({

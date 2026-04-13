@@ -87,12 +87,7 @@ import {
   type SubagentSpecOptions,
   type TaskTool,
 } from "./subagents.js";
-import {
-  LocalBackend,
-  MemoryBackend,
-  SandboxedBackend,
-  type FsBackend,
-} from "./fs.js";
+import { LocalBackend, MemoryBackend, SandboxedBackend, type FsBackend } from "./fs.js";
 import { JsonRenderer, PlainRenderer, RichRenderer, type RendererOptions } from "./renderer.js";
 import { HarnessRepl, type ReplConfig } from "./repl.js";
 import { SandboxPolicy, type SandboxPolicyOptions } from "./sandbox.js";
@@ -469,9 +464,7 @@ export class H {
   }
 
   /** Build a system-message channel backed by `state`. */
-  static systemMessages(
-    state: Record<string, unknown> | undefined,
-  ): SystemMessageChannel {
+  static systemMessages(state: Record<string, unknown> | undefined): SystemMessageChannel {
     return new SystemMessageChannel(state);
   }
 
@@ -483,9 +476,7 @@ export class H {
   }
 
   /** Build an ordered registry of specs, keyed by role. */
-  static subagentRegistry(
-    specs: Iterable<SubagentSpec> = [],
-  ): SubagentRegistry {
+  static subagentRegistry(specs: Iterable<SubagentSpec> = []): SubagentRegistry {
     return new SubagentRegistry(specs);
   }
 

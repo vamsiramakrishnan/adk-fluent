@@ -19,12 +19,7 @@
  * used.
  */
 
-import {
-  writeFileSync,
-  mkdirSync,
-  readFileSync,
-  existsSync,
-} from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 import { SessionTape, type HarnessEvent } from "./events.js";
 import { ForkManager, type ForkBranch } from "./lifecycle.js";
@@ -63,9 +58,7 @@ export class Branch {
     }
     this.name = options.name;
     this.state = Object.freeze(deepClone(options.state ?? {}));
-    this.messages = Object.freeze(
-      (options.messages ?? []).map((m) => deepClone(m)),
-    );
+    this.messages = Object.freeze((options.messages ?? []).map((m) => deepClone(m)));
     this.parent = options.parent ?? null;
     this.createdAt = options.createdAt ?? Date.now() / 1000;
     this.metadata = Object.freeze({ ...(options.metadata ?? {}) });
@@ -88,13 +81,10 @@ export class Branch {
     return new Branch({
       name: String(data.name ?? "unnamed"),
       state: (data.state as Record<string, unknown>) ?? {},
-      messages:
-        (data.messages as ReadonlyArray<Record<string, unknown>>) ?? [],
+      messages: (data.messages as ReadonlyArray<Record<string, unknown>>) ?? [],
       parent: (data.parent as string | null) ?? null,
       createdAt:
-        typeof data.created_at === "number"
-          ? (data.created_at as number)
-          : Date.now() / 1000,
+        typeof data.created_at === "number" ? (data.created_at as number) : Date.now() / 1000,
       metadata: (data.metadata as Record<string, unknown>) ?? {},
     });
   }
@@ -142,11 +132,7 @@ export class ForkRegistry {
   }
 
   /** Create a named branch from `state`. */
-  fork(
-    name: string,
-    state: Record<string, unknown>,
-    opts: ForkOptions = {},
-  ): Branch {
+  fork(name: string, state: Record<string, unknown>, opts: ForkOptions = {}): Branch {
     if (this.maxBranches > 0 && this.branches.size >= this.maxBranches) {
       // Evict the oldest branch (by createdAt) before inserting.
       let oldest: Branch | undefined;
@@ -201,12 +187,8 @@ export class ForkRegistry {
    *    branch's values.
    * - `prefer`: start with union, then overlay `prefer` branch's values.
    */
-  merge(
-    branchNames: string[] = [],
-    opts: MergeOptions = {},
-  ): Record<string, unknown> {
-    const names =
-      branchNames.length > 0 ? branchNames : [...this.branches.keys()];
+  merge(branchNames: string[] = [], opts: MergeOptions = {}): Record<string, unknown> {
+    const names = branchNames.length > 0 ? branchNames : [...this.branches.keys()];
     const states: Record<string, unknown>[] = [];
     for (const name of names) {
       const branch = this.branches.get(name);
@@ -384,10 +366,8 @@ export class SessionSnapshot {
     return new SessionSnapshot({
       version: typeof data.version === "number" ? data.version : 1,
       activeBranch: (data.active_branch as string | null) ?? null,
-      events:
-        (data.events as ReadonlyArray<Record<string, unknown>>) ?? [],
-      branches:
-        (data.branches as Record<string, Record<string, unknown>>) ?? {},
+      events: (data.events as ReadonlyArray<Record<string, unknown>>) ?? [],
+      branches: (data.branches as Record<string, Record<string, unknown>>) ?? {},
     });
   }
 
@@ -456,11 +436,7 @@ export class SessionStore {
   }
 
   /** Create a named branch. */
-  fork(
-    name: string,
-    state: Record<string, unknown>,
-    opts: ForkOptions = {},
-  ): Branch {
+  fork(name: string, state: Record<string, unknown>, opts: ForkOptions = {}): Branch {
     return this.forks.fork(name, state, opts);
   }
 
@@ -502,16 +478,11 @@ export class SessionStore {
     for (const [name, data] of Object.entries(snapshot.branches)) {
       const branch = Branch.fromDict({ ...data, name });
       // Inline-insert preserving the original createdAt / metadata.
-      (forks as unknown as { branches: Map<string, Branch> }).branches.set(
-        name,
-        branch,
-      );
+      (forks as unknown as { branches: Map<string, Branch> }).branches.set(name, branch);
     }
     if (
       snapshot.activeBranch &&
-      (forks as unknown as { branches: Map<string, Branch> }).branches.has(
-        snapshot.activeBranch,
-      )
+      (forks as unknown as { branches: Map<string, Branch> }).branches.has(snapshot.activeBranch)
     ) {
       forks.active = snapshot.activeBranch;
     }
