@@ -18,7 +18,27 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import { SandboxPolicy } from "./sandbox.js";
+import type { SandboxPolicy } from "./sandbox.js";
+
+/**
+ * Node's `BufferEncoding` is a global type supplied by `@types/node`.
+ * We re-declare it locally so `eslint`'s `no-undef` rule (which does not
+ * know about ambient global types) stays quiet without sacrificing the
+ * strongly-typed surface.
+ */
+type BufferEncoding =
+  | "ascii"
+  | "utf8"
+  | "utf-8"
+  | "utf16le"
+  | "utf-16le"
+  | "ucs2"
+  | "ucs-2"
+  | "base64"
+  | "base64url"
+  | "latin1"
+  | "binary"
+  | "hex";
 
 /** Minimal stat result returned by `FsBackend.stat()`. */
 export interface FsStat {
@@ -151,7 +171,7 @@ export class LocalBackend implements FsBackend {
     try {
       fs.mkdirSync(resolved, { recursive: parents });
     } catch (exc: unknown) {
-      const err = exc as NodeJS.ErrnoException;
+      const err = exc as { code?: string };
       if (err.code === "EEXIST" && existOk) return;
       throw exc;
     }
@@ -173,7 +193,8 @@ export class LocalBackend implements FsBackend {
     const resolved = this.resolve(root);
     const stack: string[] = [resolved];
     while (stack.length > 0) {
-      const current = stack.pop()!;
+      const current = stack.pop();
+      if (current === undefined) break;
       let entries: fs.Dirent[];
       try {
         entries = fs.readdirSync(current, { withFileTypes: true });

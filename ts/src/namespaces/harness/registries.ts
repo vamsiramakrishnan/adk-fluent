@@ -49,6 +49,7 @@ export const HookEvent = {
   ErrorEvent: "error",
 } as const;
 
+// eslint-disable-next-line no-redeclare
 export type HookEvent = (typeof HookEvent)[keyof typeof HookEvent];
 
 /** Frozen set of every canonical event name. */
@@ -605,7 +606,8 @@ export class HookRegistry {
     entry: HookEntry,
     ctx: HookContext,
   ): Promise<HookDecision> {
-    const command = renderShellCommand(entry.command!, ctx);
+    if (entry.command === undefined) return HookDecision.allow();
+    const command = renderShellCommand(entry.command, ctx);
     const env = buildShellEnv(ctx, this.workspace);
 
     const exec = (): Promise<number> =>
@@ -658,12 +660,14 @@ export class HookRegistry {
   ): Promise<void> {
     const entries = this.entriesByEvent.get(event);
     if (!entries) return;
-    const shells = entries.filter((e) => e.command !== undefined);
+    const shells = entries.filter(
+      (e): e is HookEntry & { command: string } => e.command !== undefined,
+    );
     await Promise.all(
       shells.map(
         (entry) =>
           new Promise<void>((resolve) => {
-            const cmd = entry.command!.replace(
+            const cmd = entry.command.replace(
               /\{(\w+)\}/g,
               (_: string, k: string) => vars[k] ?? "",
             );
@@ -708,15 +712,15 @@ function renderShellCommand(template: string, ctx: HookContext): string {
 
 function shellQuote(value: string): string {
   if (value === "") return "''";
-  if (/^[A-Za-z0-9_\-.\/:=@%+,]+$/.test(value)) return value;
+  if (/^[A-Za-z0-9_\-./:=@%+,]+$/.test(value)) return value;
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
 function buildShellEnv(
   ctx: HookContext,
   workspace: string | undefined,
-): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { ...process.env };
+): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = { ...process.env };
   env.ADKF_HOOK_EVENT = ctx.event;
   if (workspace) env.ADKF_HOOK_WORKSPACE = workspace;
   if (ctx.toolName) env.ADKF_HOOK_TOOL_NAME = ctx.toolName;
