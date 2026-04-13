@@ -209,6 +209,6 @@ def compile_ui_for_agent(ui_spec: Any, config: dict[str, Any]) -> None:
         else:
             config["before_agent_callback"] = _emit_create_surface
 
-    # 4. Store UI spec for introspection
-    config["_ui_spec"] = ui_spec
-    config["_ui_surface"] = surface
+    # Note: ui_spec and surface are NOT stored in config — config goes to
+    # LlmAgent(**config) which has extra='forbid'. The original spec is
+    # preserved on the builder's _config["_ui_spec"] for introspection.

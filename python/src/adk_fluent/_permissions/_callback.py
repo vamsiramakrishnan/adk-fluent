@@ -50,10 +50,11 @@ def make_permission_callback(
     """
 
     def _callback(
-        callback_context: Any,
+        *,
         tool: Any,
         args: dict,
         tool_context: Any,
+        **_kw: Any,
     ) -> Any | None:
         tool_name = getattr(tool, "name", str(tool))
         decision = policy.check(tool_name, args)

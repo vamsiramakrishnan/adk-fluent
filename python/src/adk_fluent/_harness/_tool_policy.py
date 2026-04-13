@@ -212,11 +212,12 @@ class ToolPolicy:
         policy = self
 
         def _after_tool(
-            callback_context: Any,
+            *,
             tool: Any,
             args: dict,
             tool_context: Any,
             tool_response: Any,
+            **_kw: Any,
         ) -> Any:
             tool_name = getattr(tool, "name", str(tool))
 

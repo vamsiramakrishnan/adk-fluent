@@ -171,10 +171,11 @@ class EventBus:
         bus = self
 
         def _hook(
-            callback_context: Any,
+            *,
             tool: Any,
             args: dict,
             tool_context: Any,
+            **_kw: Any,
         ) -> None:
             name = getattr(tool, "name", str(tool))
             bus.emit(ToolCallStart(tool_name=name, args=dict(args)))
@@ -194,21 +195,23 @@ class EventBus:
         _start_times: dict[str, float] = {}
 
         def _before(
-            callback_context: Any,
+            *,
             tool: Any,
             args: dict,
             tool_context: Any,
+            **_kw: Any,
         ) -> None:
             name = getattr(tool, "name", str(tool))
             _start_times[name] = time.monotonic()
             return None
 
         def _after(
-            callback_context: Any,
+            *,
             tool: Any,
             args: dict,
             tool_context: Any,
             tool_response: Any,
+            **_kw: Any,
         ) -> Any:
             name = getattr(tool, "name", str(tool))
             start = _start_times.pop(name, time.monotonic())
@@ -243,7 +246,7 @@ class EventBus:
         """
         bus = self
 
-        def _hook(callback_context: Any, llm_response: Any) -> Any:
+        def _hook(*, callback_context: Any, llm_response: Any, **_kw: Any) -> Any:
             # Extract usage metadata if present
             usage = getattr(llm_response, "usage_metadata", None)
             if usage:

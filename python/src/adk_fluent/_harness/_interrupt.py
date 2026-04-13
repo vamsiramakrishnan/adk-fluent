@@ -164,10 +164,11 @@ def make_cancellation_callback(token: CancellationToken) -> Callable:
     """
 
     def check_cancellation(
-        callback_context: Any,
+        *,
         tool: Any,
         args: dict,
         tool_context: Any,
+        **_kw: Any,
     ) -> Any | None:
         if token.is_cancelled:
             tool_name = getattr(tool, "name", str(tool))

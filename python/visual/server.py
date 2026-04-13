@@ -257,13 +257,13 @@ async def run_agent(body: dict):
 
     try:
         from google.adk.runners import InMemoryRunner
-        from google.adk.sessions import InMemorySessionService
         from google.genai import types
 
-        session_service = InMemorySessionService()
-        runner = InMemoryRunner(agent=agent, app_name="visual_runner", session_service=session_service)
+        runner = InMemoryRunner(agent=agent, app_name="visual_runner")
 
-        session = await session_service.create_session(app_name="visual_runner", user_id="visual_user")
+        session = await runner.session_service.create_session(
+            app_name="visual_runner", user_id="visual_user"
+        )
 
         content = types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
         response_text = ""
@@ -276,7 +276,7 @@ async def run_agent(body: dict):
                         response_text += part.text
 
         # Extract A2UI surface messages from session state
-        final_session = await session_service.get_session(
+        final_session = await runner.session_service.get_session(
             app_name="visual_runner", user_id="visual_user", session_id=session.id
         )
         if final_session and final_session.state:

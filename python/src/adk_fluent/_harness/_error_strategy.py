@@ -106,7 +106,7 @@ def make_error_callbacks(
     """
     _retry_state: dict[str, int] = {}
 
-    def _after_tool(callback_context: Any, tool: Any, args: dict, tool_context: Any, tool_response: Any) -> Any:
+    def _after_tool(*, tool: Any, args: dict, tool_context: Any, tool_response: Any, **_kw: Any) -> Any:
         """Check tool results for errors and apply recovery strategy."""
         tool_name = getattr(tool, "name", str(tool))
 

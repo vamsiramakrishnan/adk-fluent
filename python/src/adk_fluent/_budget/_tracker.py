@@ -197,7 +197,7 @@ class BudgetMonitor:
         """
         monitor = self
 
-        def _hook(callback_context: Any, llm_response: Any) -> Any:
+        def _hook(*, callback_context: Any, llm_response: Any, **_kw: Any) -> Any:
             usage = getattr(llm_response, "usage_metadata", None)
             if usage:
                 inp = getattr(usage, "prompt_token_count", 0) or 0
