@@ -267,10 +267,17 @@ docs-api: _require-manifest _require-seed
         --api-only
 
 docs-cookbook: _require-manifest _require-seed
-    @echo "Generating cookbook..."
+    @echo "Generating Python cookbook..."
     @{{PY}} {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
         --output-dir {{DOC_DIR}} \
         --cookbook-dir {{COOKBOOK_DIR}} \
+        --cookbook-only
+
+docs-cookbook-ts: _require-manifest _require-seed
+    @echo "Generating TypeScript cookbook..."
+    @{{PY}} {{DOC_GEN}} {{SEED}} {{MANIFEST}} \
+        --output-dir {{DOC_DIR}}/cookbook-ts \
+        --cookbook-dir {{TS_DIR}}/examples/cookbook \
         --cookbook-only
 
 docs-migration: _require-manifest _require-seed

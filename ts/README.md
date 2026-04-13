@@ -117,18 +117,64 @@ import { RemoteAgent, A2AServer, AgentRegistry } from "adk-fluent-ts";
 
 JavaScript reserved words use a trailing underscore — `S.default_`, `C.default_`, `A.delete_`. See [`CLAUDE.md`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/CLAUDE.md) for the full TypeScript namespace reference.
 
+## Harness (H Namespace)
+
+The `H` namespace provides a Claude-Code-style coding agent harness — hooks, permissions, plan mode, session tape, budget tracking, and filesystem abstraction:
+
+```ts
+import { Agent, H } from "adk-fluent-ts";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+
+const workspace = mkdtempSync(`${tmpdir()}/my-agent-`);
+const harness = H.codingAgent(workspace, {
+  allowMutations: true,
+  allowNetwork: false,
+});
+
+const coder = new Agent("coder", "gemini-2.5-pro")
+  .instruct("You are a senior engineer. Use tools to ship.")
+  .tools(harness.tools)
+  .build();
+```
+
+Nine sub-packages: hooks, permissions, planMode, session, subagents, usage, budget, compression, fs. See [cookbook 74](examples/cookbook/74_harness_and_skills.ts) and [75](examples/cookbook/75_coding_agent_harness.ts) for comprehensive examples.
+
 ## Examples
 
-Runnable recipes live in [`ts/examples/cookbook/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/main/ts/examples/cookbook). Highlights:
+75 runnable recipes live in [`ts/examples/cookbook/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/main/ts/examples/cookbook). See the full [Cookbook INDEX](examples/cookbook/INDEX.md). Highlights by category:
 
-- [`01_simple_agent.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/01_simple_agent.ts) — minimal agent
-- [`04_sequential_pipeline.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/04_sequential_pipeline.ts) — `Pipeline` + `.then()`
-- [`05_parallel_fanout.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/05_parallel_fanout.ts) — `FanOut` + `.parallel()`
-- [`08_operator_composition.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/08_operator_composition.ts) — method-chain operator algebra
-- [`12_guards.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/12_guards.ts) — `G.pii()`, `G.length()`, `G.schema()`
-- [`18_review_loop_pattern.ts`](https://github.com/vamsiramakrishnan/adk-fluent/blob/main/ts/examples/cookbook/18_review_loop_pattern.ts) — `reviewLoop()` higher-order pattern
+**Basics:** [01 Simple Agent](examples/cookbook/01_simple_agent.ts) | [02 Tools](examples/cookbook/02_agent_with_tools.ts) | [03 Callbacks](examples/cookbook/03_callbacks.ts) | [11 Typed Output](examples/cookbook/11_typed_output.ts)
+
+**Workflows:** [04 Pipeline](examples/cookbook/04_sequential_pipeline.ts) | [05 FanOut](examples/cookbook/05_parallel_fanout.ts) | [06 Loop](examples/cookbook/06_loop_agent.ts) | [08 Operators](examples/cookbook/08_operator_composition.ts)
+
+**Routing:** [09 Route](examples/cookbook/09_route_branching.ts) | [10 Fallback](examples/cookbook/10_fallback_operator.ts) | [32 Capture & Route](examples/cookbook/32_capture_and_route.ts) | [45 Support Triage](examples/cookbook/45_customer_support_triage.ts)
+
+**Namespaces:** [34 M Module](examples/cookbook/34_m_module_composition.ts) | [35 T Module](examples/cookbook/35_t_module_tools.ts) | [41 G Module](examples/cookbook/41_g_module_guards.ts) | [65 Builtin Middleware](examples/cookbook/65_builtin_middleware.ts)
+
+**A2UI:** [58 UI Basics](examples/cookbook/58_ui_basics.ts) | [68 A2UI Basics](examples/cookbook/68_a2ui_basics.ts) | [71 LLM-Guided](examples/cookbook/71_a2ui_llm_guided.ts) | [73 Dynamic](examples/cookbook/73_a2ui_dynamic.ts)
+
+**Harness:** [23 Coding Harness](examples/cookbook/23_coding_harness.ts) | [74 Harness & Skills](examples/cookbook/74_harness_and_skills.ts) | [75 Full Harness](examples/cookbook/75_coding_agent_harness.ts)
+
+**Patterns:** [18 Review Loop](examples/cookbook/18_review_loop_pattern.ts) | [19 Map-Reduce](examples/cookbook/19_map_reduce.ts) | [25 Deep Research](examples/cookbook/25_deep_research_capstone.ts) | [47 Full Algebra](examples/cookbook/47_full_algebra.ts)
 
 Clone the repo and run any example with `npx tsx ts/examples/cookbook/01_simple_agent.ts`.
+
+## Visual Cookbook Runner
+
+Test any TS cookbook agent interactively with the visual runner:
+
+```bash
+# Configure credentials
+cp ts/visual/.env.example ts/visual/.env
+# Edit with your API key
+
+# Launch (default port 8099, or specify your own)
+just visual-ts
+just visual-ts 3000
+```
+
+The shared SPA auto-discovers all 75 TS cookbooks, lets you chat with any agent, and renders A2UI surfaces live. A **TypeScript** badge distinguishes it from the Python runner (`just visual-py`). See [`ts/visual/README.md`](visual/README.md) for details.
 
 ## Documentation
 

@@ -968,26 +968,46 @@ def process_cookbook_file(filepath: str) -> dict:
        cookbooks like skills/harness recipes) get the full source code
        placed into the ``fluent`` section so it renders as a single
        code block rather than an empty page.
+
+    Works with both ``.py`` and ``.ts`` files.  TypeScript files use
+    JSDoc (``/** ... */``) for titles instead of Python docstrings.
     """
     text = Path(filepath).read_text()
+    is_ts = Path(filepath).suffix == ".ts"
+    lang = "typescript" if is_ts else "python"
 
-    # Extract title from module docstring
-    title_match = re.match(r'"""(.+?)"""', text, re.DOTALL)
-    title = title_match.group(1).strip() if title_match else Path(filepath).stem
+    # Extract title from module docstring (Python) or JSDoc (TypeScript)
+    if is_ts:
+        title_match = re.match(r"/\*\*\s*\n\s*\*\s*(.+?)(?:\n\s*\*|\*/)", text, re.DOTALL)
+        # For TS JSDoc, extract just the first line (e.g. "58 — A2UI basics: ...")
+        if title_match:
+            raw = title_match.group(1).strip()
+            # Strip leading number + dash: "58 — Title" → "Title"
+            raw = re.sub(r"^\d+\s*[—–-]\s*", "", raw)
+            title = raw
+        else:
+            title = Path(filepath).stem
+    else:
+        title_match = re.match(r'"""(.+?)"""', text, re.DOTALL)
+        title = title_match.group(1).strip() if title_match else Path(filepath).stem
 
     sections = {"native": "", "fluent": "", "assertion": ""}
-    has_markers = any(marker in text for marker in ("# --- NATIVE ---", "# --- FLUENT ---", "# --- ASSERT ---"))
+
+    # Check for markers (Python uses #, TypeScript uses //)
+    comment = "//" if is_ts else "#"
+    markers = tuple(f"{comment} --- {m} ---" for m in ("NATIVE", "FLUENT", "ASSERT"))
+    has_markers = any(marker in text for marker in markers)
 
     if has_markers:
         current = None
         for line in text.split("\n"):
-            if "# --- NATIVE ---" in line:
+            if f"{comment} --- NATIVE ---" in line:
                 current = "native"
                 continue
-            elif "# --- FLUENT ---" in line:
+            elif f"{comment} --- FLUENT ---" in line:
                 current = "fluent"
                 continue
-            elif "# --- ASSERT ---" in line:
+            elif f"{comment} --- ASSERT ---" in line:
                 current = "assertion"
                 continue
             if current:
@@ -995,10 +1015,15 @@ def process_cookbook_file(filepath: str) -> dict:
     else:
         # Fallback for test-based cookbooks: use the full source
         # (minus the module docstring) as the fluent section.
-        # Strip the leading docstring so it doesn't repeat the title.
         source = text
         if title_match:
-            source = text[title_match.end() :].strip()
+            if is_ts:
+                # Strip the JSDoc block
+                jsdoc_match = re.match(r"/\*\*.*?\*/\s*", text, re.DOTALL)
+                if jsdoc_match:
+                    source = text[jsdoc_match.end() :].strip()
+            else:
+                source = text[title_match.end() :].strip()
         sections["fluent"] = source
 
     return {
@@ -1007,6 +1032,7 @@ def process_cookbook_file(filepath: str) -> dict:
         "fluent": sections["fluent"].strip(),
         "assertion": sections["assertion"].strip(),
         "filename": Path(filepath).name,
+        "lang": lang,
     }
 
 
@@ -1201,6 +1227,7 @@ def _get_mermaid_from_cookbook(filepath: str) -> str:
 def cookbook_to_markdown(parsed: dict) -> str:
     """Convert parsed cookbook data to MyST Markdown with sphinx-design tabs."""
     lines: list[str] = []
+    lang = parsed.get("lang", "python")
 
     lines.append(f"# {parsed['title']}")
     lines.append("")
@@ -1217,41 +1244,60 @@ def cookbook_to_markdown(parsed: dict) -> str:
 
     # --- Optional Mermaid Diagram ---
     # We try to dynamically evaluate the file to grab the mermaid graph
-    filepath = str(Path("examples/cookbook") / parsed["filename"])
-    mermaid_src = _get_mermaid_from_cookbook(filepath)
+    # (only for Python files — TS cookbooks can't be evaluated this way)
+    mermaid_src = ""
+    if lang == "python":
+        filepath = str(Path("examples/cookbook") / parsed["filename"])
+        mermaid_src = _get_mermaid_from_cookbook(filepath)
 
     # --- Tabbed comparison + Architecture ---
     if parsed["native"] or parsed["fluent"] or mermaid_src:
-        lines.append("::::{tab-set}")
-
-        if parsed["fluent"]:
-            lines.append(":::{tab-item} adk-fluent")
-            lines.append("```python")
-            lines.append(parsed["fluent"])
-            lines.append("```")
-            lines.append(":::")
+        tab_label = "adk-fluent-ts" if lang == "typescript" else "adk-fluent"
 
         if parsed["native"]:
-            lines.append(":::{tab-item} Native ADK")
-            lines.append("```python")
+            # Tabbed: fluent vs native
+            lines.append("::::{tab-set}")
+
+            if parsed["fluent"]:
+                lines.append(f":::{{tab-item}} {tab_label}")
+                lines.append(f"```{lang}")
+                lines.append(parsed["fluent"])
+                lines.append("```")
+                lines.append(":::")
+
+            lines.append(f":::{{tab-item}} Native ADK")
+            lines.append(f"```{lang}")
             lines.append(parsed["native"])
             lines.append("```")
             lines.append(":::")
 
-        if mermaid_src:
-            lines.append(":::{tab-item} Architecture")
-            lines.append("```mermaid")
-            lines.append(mermaid_src)
-            lines.append("```")
-            lines.append(":::")
+            if mermaid_src:
+                lines.append(":::{tab-item} Architecture")
+                lines.append("```mermaid")
+                lines.append(mermaid_src)
+                lines.append("```")
+                lines.append(":::")
 
-        lines.append("::::")
-        lines.append("")
+            lines.append("::::")
+            lines.append("")
+        else:
+            # No native section — render fluent code as a single block
+            if parsed["fluent"]:
+                lines.append(f"```{lang}")
+                lines.append(parsed["fluent"])
+                lines.append("```")
+                lines.append("")
+
+            if mermaid_src:
+                lines.append("```mermaid")
+                lines.append(mermaid_src)
+                lines.append("```")
+                lines.append("")
 
     if parsed["assertion"]:
         lines.append("## Equivalence")
         lines.append("")
-        lines.append("```python")
+        lines.append(f"```{lang}")
         lines.append(parsed["assertion"])
         lines.append("```")
         lines.append("")
@@ -1668,13 +1714,17 @@ def generate_docs(
 
             all_parsed: list[dict] = []
             generated_stems: set[str] = set()
-            for py_file in sorted(cookbook_path.glob("*.py")):
-                if py_file.name.startswith("conftest") or py_file.name.startswith("__"):
+            # Support both Python (.py) and TypeScript (.ts) cookbooks
+            source_files = sorted(
+                list(cookbook_path.glob("*.py")) + list(cookbook_path.glob("*.ts"))
+            )
+            for src_file in source_files:
+                if src_file.name.startswith("conftest") or src_file.name.startswith("__"):
                     continue
-                parsed = process_cookbook_file(str(py_file))
+                parsed = process_cookbook_file(str(src_file))
                 all_parsed.append(parsed)
-                generated_stems.add(py_file.stem)
-                md_file = cookbook_out / f"{py_file.stem}.md"
+                generated_stems.add(src_file.stem)
+                md_file = cookbook_out / f"{src_file.stem}.md"
 
                 # Preserve hand-written .md files that have been manually
                 # curated (contain sections like "## Layer" or "## Pattern"
