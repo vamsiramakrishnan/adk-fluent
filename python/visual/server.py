@@ -19,6 +19,7 @@ import logging
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -122,10 +123,10 @@ def get_cookbooks() -> list[dict]:
 
 # ── Agent loading ──────────────────────────────────────────────
 
-_agent_cache: dict[str, object] = {}
+_agent_cache: dict[str, Any] = {}
 
 
-def _load_agent(cookbook_id: str):
+def _load_agent(cookbook_id: str) -> Any:
     """Load and build an agent from a cookbook's example folder."""
     cb = _validate_cookbook_id(cookbook_id)
     if not cb:
@@ -139,6 +140,8 @@ def _load_agent(cookbook_id: str):
         agent_file = EXAMPLES_DIR / cb["folder"] / "agent.py"
         if agent_file.exists():
             spec = importlib.util.spec_from_file_location(f"example_{cb['folder']}", agent_file)
+            if spec is None or spec.loader is None:
+                raise RuntimeError(f"Cannot load module spec for {agent_file}")
             mod = importlib.util.module_from_spec(spec)
             try:
                 spec.loader.exec_module(mod)
@@ -170,6 +173,8 @@ def _get_builder(cookbook_id: str):
 
     try:
         spec = importlib.util.spec_from_file_location(f"cb_{cookbook_id}", cookbook_file)
+        if spec is None or spec.loader is None:
+            return None
         mod = importlib.util.module_from_spec(spec)
 
         import contextlib
@@ -179,7 +184,7 @@ def _get_builder(cookbook_id: str):
             spec.loader.exec_module(mod)
 
         # Find builder objects
-        from adk_fluent._base import BuilderBase
+        from adk_fluent._base import BuilderBase  # type: ignore[import-not-found]
 
         for name, obj in vars(mod).items():
             if isinstance(obj, BuilderBase) and not name.startswith("_"):
@@ -211,7 +216,7 @@ async def list_cookbooks():
 async def inspect_cookbook(cookbook_id: str):
     """Return introspection data for a cookbook agent."""
     builder = _get_builder(cookbook_id)
-    result = {"cookbook_id": cookbook_id}
+    result: dict[str, Any] = {"cookbook_id": cookbook_id}
 
     if builder:
         try:
@@ -229,7 +234,7 @@ async def inspect_cookbook(cookbook_id: str):
     ui_spec = getattr(builder, "_config", {}).get("_ui_spec") if builder else None
     if ui_spec:
         try:
-            from adk_fluent._ui import UISurface, compile_surface
+            from adk_fluent._ui import UISurface, compile_surface  # type: ignore[import-not-found]
 
             if isinstance(ui_spec, UISurface):
                 result["surface_messages"] = compile_surface(ui_spec)
