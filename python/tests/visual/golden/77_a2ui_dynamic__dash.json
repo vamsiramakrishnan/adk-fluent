@@ -1,0 +1,93 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "sales"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Sales",
+          "variant": "h1"
+        },
+        {
+          "component": "Text",
+          "id": "text_2",
+          "text": "Revenue",
+          "variant": "caption"
+        },
+        {
+          "component": "Text",
+          "id": "text_3",
+          "text": {
+            "path": "/metrics/revenue"
+          },
+          "variant": "h3"
+        },
+        {
+          "children": [
+            "text_2",
+            "text_3"
+          ],
+          "component": "Column",
+          "id": "column"
+        },
+        {
+          "child": "column",
+          "component": "Card",
+          "id": "card"
+        },
+        {
+          "component": "Text",
+          "id": "text_4",
+          "text": "Orders",
+          "variant": "caption"
+        },
+        {
+          "component": "Text",
+          "id": "text_5",
+          "text": {
+            "path": "/metrics/orders"
+          },
+          "variant": "h3"
+        },
+        {
+          "children": [
+            "text_4",
+            "text_5"
+          ],
+          "component": "Column",
+          "id": "column_2"
+        },
+        {
+          "child": "column_2",
+          "component": "Card",
+          "id": "card_2"
+        },
+        {
+          "children": [
+            "card",
+            "card_2"
+          ],
+          "component": "Row",
+          "id": "row"
+        },
+        {
+          "children": [
+            "text",
+            "row"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "sales"
+    },
+    "version": "v0.10"
+  }
+]

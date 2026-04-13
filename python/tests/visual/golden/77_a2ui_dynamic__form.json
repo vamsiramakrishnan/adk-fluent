@@ -1,0 +1,78 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "bug_report"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Bug Report",
+          "variant": "h1"
+        },
+        {
+          "component": "TextField",
+          "id": "title",
+          "label": "Title",
+          "value": {
+            "path": "/title"
+          },
+          "variant": "shortText"
+        },
+        {
+          "component": "ChoicePicker",
+          "id": "severity",
+          "label": "Severity",
+          "options": [
+            {
+              "label": "Low",
+              "value": "Low"
+            },
+            {
+              "label": "Medium",
+              "value": "Medium"
+            },
+            {
+              "label": "High",
+              "value": "High"
+            }
+          ],
+          "value": []
+        },
+        {
+          "component": "Text",
+          "id": "submit_label",
+          "text": "Submit"
+        },
+        {
+          "action": {
+            "event": {
+              "name": "submit"
+            }
+          },
+          "child": "submit_label",
+          "component": "Button",
+          "id": "submit_btn",
+          "variant": "primary"
+        },
+        {
+          "children": [
+            "text",
+            "title",
+            "severity",
+            "submit_btn"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "bug_report"
+    },
+    "version": "v0.10"
+  }
+]

@@ -1,0 +1,71 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "confirm"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Deploy to production?",
+          "variant": "body"
+        },
+        {
+          "component": "Text",
+          "id": "lbl_yes",
+          "text": "Yes"
+        },
+        {
+          "action": {
+            "event": {
+              "name": "confirm_yes"
+            }
+          },
+          "child": "lbl_yes",
+          "component": "Button",
+          "id": "btn_yes",
+          "variant": "primary"
+        },
+        {
+          "component": "Text",
+          "id": "lbl_no",
+          "text": "No"
+        },
+        {
+          "action": {
+            "event": {
+              "name": "confirm_no"
+            }
+          },
+          "child": "lbl_no",
+          "component": "Button",
+          "id": "btn_no",
+          "variant": "default"
+        },
+        {
+          "children": [
+            "btn_yes",
+            "btn_no"
+          ],
+          "component": "Row",
+          "id": "row"
+        },
+        {
+          "children": [
+            "text",
+            "row"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "confirm"
+    },
+    "version": "v0.10"
+  }
+]

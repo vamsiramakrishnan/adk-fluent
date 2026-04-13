@@ -1,0 +1,68 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "pre_deploy"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "Pre-Deploy Checklist",
+          "variant": "h2"
+        },
+        {
+          "component": "CheckBox",
+          "id": "check_0",
+          "label": "Unit tests pass",
+          "value": false
+        },
+        {
+          "component": "CheckBox",
+          "id": "check_1",
+          "label": "Changelog updated",
+          "value": false
+        },
+        {
+          "component": "CheckBox",
+          "id": "check_2",
+          "label": "Team notified",
+          "value": false
+        },
+        {
+          "component": "Text",
+          "id": "lbl_go",
+          "text": "All Clear"
+        },
+        {
+          "action": {
+            "event": {
+              "name": "deploy_approved"
+            }
+          },
+          "child": "lbl_go",
+          "component": "Button",
+          "id": "btn_go",
+          "variant": "primary"
+        },
+        {
+          "children": [
+            "text",
+            "check_0",
+            "check_1",
+            "check_2",
+            "btn_go"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "pre_deploy"
+    },
+    "version": "v0.10"
+  }
+]
