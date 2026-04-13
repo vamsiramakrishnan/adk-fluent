@@ -288,19 +288,19 @@ class TestSyncCallback:
     def test_allow_returns_none(self):
         cb = make_permission_callback(PermissionPolicy(allow=frozenset({"read_file"})))
         args: dict = {}
-        result = cb(None, _fake_tool("read_file"), args, None)
+        result = cb(tool=_fake_tool("read_file"), args=args, tool_context=None)
         assert result is None
 
     def test_deny_returns_error_dict(self):
         cb = make_permission_callback(PermissionPolicy(deny=frozenset({"edit_file"})))
-        result = cb(None, _fake_tool("edit_file"), {}, None)
+        result = cb(tool=_fake_tool("edit_file"), args={}, tool_context=None)
         assert isinstance(result, dict)
         assert "error" in result
         assert "deny" in result["error"].lower() or "edit_file" in result["error"]
 
     def test_ask_without_handler_denies(self):
         cb = make_permission_callback(PermissionPolicy())  # default → ask
-        result = cb(None, _fake_tool("read_file"), {}, None)
+        result = cb(tool=_fake_tool("read_file"), args={}, tool_context=None)
         assert isinstance(result, dict) and "error" in result
 
     def test_ask_with_handler_allows(self):
@@ -311,12 +311,12 @@ class TestSyncCallback:
             return True
 
         cb = make_permission_callback(PermissionPolicy(), handler=handler)
-        assert cb(None, _fake_tool("read_file"), {"path": "/a"}, None) is None
+        assert cb(tool=_fake_tool("read_file"), args={"path": "/a"}, tool_context=None) is None
         assert calls == [("read_file", {"path": "/a"})]
 
     def test_ask_with_handler_denies(self):
         cb = make_permission_callback(PermissionPolicy(), handler=lambda *_: False)
-        result = cb(None, _fake_tool("read_file"), {}, None)
+        result = cb(tool=_fake_tool("read_file"), args={}, tool_context=None)
         assert isinstance(result, dict) and "denied" in result["error"].lower()
 
     def test_memory_short_circuits_handler(self):
@@ -329,13 +329,13 @@ class TestSyncCallback:
             return False
 
         cb = make_permission_callback(PermissionPolicy(), handler=handler, memory=mem)
-        assert cb(None, _fake_tool("read_file"), {"path": "/a"}, None) is None
+        assert cb(tool=_fake_tool("read_file"), args={"path": "/a"}, tool_context=None) is None
         assert calls == []  # handler never consulted
 
     def test_handler_result_persisted_to_memory(self):
         mem = ApprovalMemory()
         cb = make_permission_callback(PermissionPolicy(), handler=lambda *_: True, memory=mem)
-        cb(None, _fake_tool("read_file"), {"path": "/a"}, None)
+        cb(tool=_fake_tool("read_file"), args={"path": "/a"}, tool_context=None)
         assert mem.recall("read_file", {"path": "/a"}) is True
 
     def test_handler_exception_becomes_deny(self):
@@ -343,7 +343,7 @@ class TestSyncCallback:
             raise RuntimeError("boom")
 
         cb = make_permission_callback(PermissionPolicy(), handler=handler)
-        result = cb(None, _fake_tool("read_file"), {}, None)
+        result = cb(tool=_fake_tool("read_file"), args={}, tool_context=None)
         assert isinstance(result, dict) and "handler raised" in result["error"]
 
 

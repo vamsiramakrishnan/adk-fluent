@@ -106,7 +106,7 @@ class TestCancellationCallback:
         mock_tool = MagicMock()
         mock_tool.name = "bash"
 
-        result = cb(MagicMock(), mock_tool, {"cmd": "ls"}, MagicMock())
+        result = cb(tool=mock_tool, args={"cmd": "ls"}, tool_context=MagicMock())
         assert result is None  # allow execution
 
     def test_blocks_when_cancelled(self):
@@ -116,7 +116,7 @@ class TestCancellationCallback:
         mock_tool = MagicMock()
         mock_tool.name = "bash"
 
-        result = cb(MagicMock(), mock_tool, {"cmd": "ls"}, MagicMock())
+        result = cb(tool=mock_tool, args={"cmd": "ls"}, tool_context=MagicMock())
         assert isinstance(result, dict)
         assert "cancelled" in result["error"].lower()
 
@@ -127,7 +127,7 @@ class TestCancellationCallback:
         mock_tool = MagicMock()
         mock_tool.name = "read_file"
 
-        cb(MagicMock(), mock_tool, {"path": "x.py"}, MagicMock())
+        cb(tool=mock_tool, args={"path": "x.py"}, tool_context=MagicMock())
         assert len(token._tool_calls) == 1
 
     def test_records_interrupted_tool(self):
@@ -138,13 +138,13 @@ class TestCancellationCallback:
         # First call succeeds
         mock_tool1 = MagicMock()
         mock_tool1.name = "read_file"
-        cb(MagicMock(), mock_tool1, {}, MagicMock())
+        cb(tool=mock_tool1, args={}, tool_context=MagicMock())
 
         # Cancel before second call
         token.cancel()
         mock_tool2 = MagicMock()
         mock_tool2.name = "edit_file"
-        result = cb(MagicMock(), mock_tool2, {}, MagicMock())
+        result = cb(tool=mock_tool2, args={}, tool_context=MagicMock())
 
         assert result is not None  # blocked
         assert token.snapshot.tool_call_interrupted == "edit_file"

@@ -114,7 +114,7 @@ class TestEventBus:
         mock_tool = MagicMock()
         mock_tool.name = "read_file"
 
-        result = hook(MagicMock(), mock_tool, {"path": "x.py"}, MagicMock())
+        result = hook(tool=mock_tool, args={"path": "x.py"}, tool_context=MagicMock())
         assert result is None  # allows execution
         assert len(received) == 1
         assert received[0].tool_name == "read_file"
@@ -128,7 +128,7 @@ class TestEventBus:
         mock_tool = MagicMock()
         mock_tool.name = "bash"
 
-        result = hook(MagicMock(), mock_tool, {}, MagicMock(), "output text")
+        result = hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="output text")
         assert result == "output text"
         assert len(received) == 1
         assert received[0].tool_name == "bash"
@@ -142,7 +142,7 @@ class TestEventBus:
         mock_tool = MagicMock()
         mock_tool.name = "bash"
 
-        hook(MagicMock(), mock_tool, {}, MagicMock(), "Error: command failed")
+        hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="Error: command failed")
         assert len(errors) == 1
 
     def test_h_event_bus_factory(self):
@@ -197,7 +197,7 @@ class TestToolPolicy:
 
         mock_tool = MagicMock()
         mock_tool.name = "bash"
-        result = hook(MagicMock(), mock_tool, {}, MagicMock(), "success output")
+        result = hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="success output")
         assert result == "success output"
 
     def test_after_tool_hook_skips_on_error(self):
@@ -206,7 +206,7 @@ class TestToolPolicy:
 
         mock_tool = MagicMock()
         mock_tool.name = "glob"
-        result = hook(MagicMock(), mock_tool, {}, MagicMock(), "Error: not found")
+        result = hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="Error: not found")
         assert result == {"result": "Skipped."}
 
     def test_after_tool_hook_retries_on_error(self):
@@ -217,11 +217,11 @@ class TestToolPolicy:
         mock_tool.name = "bash"
 
         # First failure — should propagate for LLM retry
-        r1 = hook(MagicMock(), mock_tool, {"cmd": "ls"}, MagicMock(), "Error: fail")
+        r1 = hook(tool=mock_tool, args={"cmd": "ls"}, tool_context=MagicMock(), tool_response="Error: fail")
         assert "Error" in str(r1)
 
         # Second failure — still retrying
-        r2 = hook(MagicMock(), mock_tool, {"cmd": "ls"}, MagicMock(), "Error: fail")
+        r2 = hook(tool=mock_tool, args={"cmd": "ls"}, tool_context=MagicMock(), tool_response="Error: fail")
         assert "Error" in str(r2)
 
     def test_after_tool_hook_ask_with_handler(self):
@@ -231,7 +231,7 @@ class TestToolPolicy:
 
         mock_tool = MagicMock()
         mock_tool.name = "edit"
-        result = hook(MagicMock(), mock_tool, {}, MagicMock(), "Error: permission denied")
+        result = hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="Error: permission denied")
         assert "skip" in str(result).lower() or "failed" in str(result).lower()
 
     def test_merge(self):
@@ -253,7 +253,7 @@ class TestToolPolicy:
 
         mock_tool = MagicMock()
         mock_tool.name = "bash"
-        hook(MagicMock(), mock_tool, {}, MagicMock(), "Error: fail")
+        hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="Error: fail")
 
         assert len(errors) == 1
 
@@ -379,7 +379,7 @@ class TestBudgetMonitor:
         mock_response.usage_metadata.prompt_token_count = 5000
         mock_response.usage_metadata.candidates_token_count = 2000
 
-        result = hook(MagicMock(), mock_response)
+        result = hook(callback_context=MagicMock(), llm_response=mock_response)
         assert result is mock_response
         assert monitor.current_tokens == 7000
 
@@ -572,7 +572,7 @@ class TestFoundationComposition:
 
         mock_tool = MagicMock()
         mock_tool.name = "bash"
-        hook(MagicMock(), mock_tool, {}, MagicMock(), "Error: failed")
+        hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="Error: failed")
 
         assert len(errors) == 1
         assert errors[0].tool_name == "bash"
@@ -612,7 +612,7 @@ class TestFoundationComposition:
         hook = policy.after_tool_hook()
         mock_tool = MagicMock()
         mock_tool.name = "glob"
-        hook(MagicMock(), mock_tool, {}, MagicMock(), "Error: fail")
+        hook(tool=mock_tool, args={}, tool_context=MagicMock(), tool_response="Error: fail")
 
         # token usage crossing threshold
         monitor.record_usage(95_000, 0)
