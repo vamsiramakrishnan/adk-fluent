@@ -52,10 +52,12 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@google/adk": "^0.6.1",
+    "@hono/node-server": "^1.19.14",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
+    "hono": "^4.12.12",
     "prettier": "^3.4.0",
     "typedoc": "^0.27.0",
     "typescript": "^5.7.0",
