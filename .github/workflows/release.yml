@@ -93,7 +93,9 @@ jobs:
         run: npm run build
       - name: Pack tarball
         working-directory: ts
-        run: npm pack --pack-destination dist-pack
+        run: |
+          mkdir -p dist-pack
+          npm pack --pack-destination dist-pack
       - uses: actions/upload-artifact@v4
         with:
           name: ts-dist
