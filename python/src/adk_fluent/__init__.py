@@ -520,6 +520,11 @@ __all__ = [
     "WorkflowLifecyclePlugin",
     "SignalChanged",
     "Interrupted",
+    # Reactor (Phase F)
+    "Signal",
+    "SignalPredicate",
+    "Reactor",
+    "ReactorRule",
     "CommandRegistry",
     "CommandSpec",
     "SkillSpec",
@@ -1115,6 +1120,11 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "WorkflowLifecyclePlugin": ("._harness", "WorkflowLifecyclePlugin"),
     "SignalChanged": ("._harness", "SignalChanged"),
     "Interrupted": ("._harness", "Interrupted"),
+    # Reactor (Phase F)
+    "Signal": ("._reactor", "Signal"),
+    "SignalPredicate": ("._reactor", "SignalPredicate"),
+    "Reactor": ("._reactor", "Reactor"),
+    "ReactorRule": ("._reactor", "ReactorRule"),
     "CommandRegistry": ("._harness", "CommandRegistry"),
     "CommandSpec": ("._harness", "CommandSpec"),
     "SkillSpec": ("._harness", "SkillSpec"),
