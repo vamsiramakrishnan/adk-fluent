@@ -635,8 +635,26 @@ def run_one_shot(builder, prompt: str) -> str:
     return _run_sync(run_one_shot_async(builder, prompt))
 
 
-async def run_stream(builder, prompt: str):
-    """Stream text chunks from a one-shot agent execution."""
+async def run_stream(builder, prompt: str, *, tape=None):
+    """Stream text chunks from a one-shot agent execution.
+
+    Args:
+        builder: Agent builder (or a pre-built agent).
+        prompt: The user message.
+        tape: Optional :class:`SessionTape`. When provided, every
+            streamed chunk is tee'd to the tape as a ``TextChunk``
+            event before being yielded. Consumers can then replay or
+            resume the stream via :func:`stream_from_cursor`.
+
+    Yields:
+        Text chunks in order.
+    """
+    from adk_fluent._harness._events import TextChunk
+
+    def _tee(chunk: str) -> None:
+        if tape is not None and chunk:
+            tape.record(TextChunk(text=chunk))
+
     engine = _resolve_engine(builder)
 
     if engine is not None and engine != "adk":
@@ -645,10 +663,12 @@ async def run_stream(builder, prompt: str):
         for event in events:
             content = getattr(event, "content", None)
             if isinstance(content, str) and content:
+                _tee(content)
                 yield content
             elif content is not None and hasattr(content, "parts"):
                 for part in content.parts:  # type: ignore[union-attr]
                     if getattr(part, "text", None):
+                        _tee(part.text)
                         yield part.text
     else:
         # Default ADK path
@@ -665,7 +685,49 @@ async def run_stream(builder, prompt: str):
             if event.content and event.content.parts:
                 for part in event.content.parts:
                     if part.text:
+                        _tee(part.text)
                         yield part.text
+
+
+async def stream_from_cursor(tape, from_seq: int = 0, *, kind: str | None = "text"):
+    """Replay tape text from ``from_seq`` then follow the tail.
+
+    Drains every entry already on the tape with ``seq >= from_seq`` (by
+    default filtered to ``kind == "text"``), yields the text, and then
+    switches to :meth:`SessionTape.tail` so new chunks stream live.
+    This is the resumable-streaming primitive: crash or drop the
+    connection, remember the last cursor, and rejoin without loss.
+
+    Args:
+        tape: A :class:`SessionTape`.
+        from_seq: Starting cursor (inclusive). Pass ``tape.head`` to
+            skip history.
+        kind: If set (default ``"text"``), filter to that event kind.
+            Pass ``None`` to yield every entry as a dict.
+
+    Yields:
+        Text strings (when ``kind == "text"``) or raw entry dicts.
+    """
+    # Phase 1: drain history.
+    drained_seq = from_seq
+    for entry in tape.since(from_seq):
+        if kind is not None and entry.get("kind") != kind:
+            drained_seq = int(entry.get("seq", drained_seq)) + 1
+            continue
+        drained_seq = int(entry.get("seq", drained_seq)) + 1
+        if kind == "text":
+            yield entry.get("text", "")
+        else:
+            yield entry
+
+    # Phase 2: follow tail from where history left off.
+    async for entry in tape.tail(from_seq=drained_seq):
+        if kind is not None and entry.get("kind") != kind:
+            continue
+        if kind == "text":
+            yield entry.get("text", "")
+        else:
+            yield entry
 
 
 def run_inline_test(builder, prompt: str, *, contains=None, matches=None, equals=None):
@@ -934,11 +996,20 @@ def _eval_suite(builder) -> Any:
     return EvalSuite(builder)
 
 
-async def run_events(builder, prompt: str):
+async def run_events(builder, prompt: str, *, tape=None):
     """Stream raw Event objects from a one-shot agent execution.
 
     Unlike .ask() which returns only the final text, this yields every
     Event including state deltas, function calls, tool results, etc.
+
+    Args:
+        builder: Agent builder (or a pre-built agent).
+        prompt: The user message.
+        tape: Optional :class:`SessionTape`. When provided, every text
+            part on an event's content is tee'd to the tape as a
+            ``TextChunk``. Full-event persistence is intentionally not
+            done here — ADK ``Event`` objects are not pure data and
+            would require custom serialisation.
 
     Usage:
         async for event in agent.events("What is 2+2?"):
@@ -947,12 +1018,32 @@ async def run_events(builder, prompt: str):
             if event.actions and event.actions.state_delta:
                 print(f"State changed: {event.actions.state_delta}")
     """
+    from adk_fluent._harness._events import TextChunk
+
+    def _tee(chunk: str) -> None:
+        if tape is not None and chunk:
+            tape.record(TextChunk(text=chunk))
+
+    def _tee_event(event) -> None:
+        if tape is None:
+            return
+        content = getattr(event, "content", None)
+        if isinstance(content, str):
+            _tee(content)
+            return
+        if content is not None and hasattr(content, "parts"):
+            for part in content.parts:
+                text = getattr(part, "text", None)
+                if text:
+                    _tee(text)
+
     engine = _resolve_engine(builder)
 
     if engine is not None and engine != "adk":
         # Non-ADK engine path
         _text, events = await _run_via_engine(builder, prompt)
         for event in events:
+            _tee_event(event)
             yield event
     else:
         # Default ADK path
@@ -966,6 +1057,7 @@ async def run_events(builder, prompt: str):
         content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
         async for event in runner.run_async(user_id="_events_user", session_id=session.id, new_message=content):
+            _tee_event(event)
             yield event
 
 
