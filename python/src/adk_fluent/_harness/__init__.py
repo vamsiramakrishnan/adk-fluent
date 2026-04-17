@@ -89,6 +89,9 @@ from adk_fluent._harness._error_strategy import ErrorStrategy, make_error_callba
 from adk_fluent._harness._event_bus import EventBus
 from adk_fluent._harness._events import (
     ArtifactSaved,
+    AttemptFailed,
+    BranchCompleted,
+    BranchStarted,
     CapabilityLoaded,
     CompressionTriggered,
     ErrorOccurred,
@@ -96,10 +99,18 @@ from adk_fluent._harness._events import (
     GitCheckpoint,
     HarnessEvent,
     HookFired,
+    Interrupted,
+    IterationCompleted,
+    IterationStarted,
     ManifoldFinalized,
     PermissionRequest,
     PermissionResult,
     ProcessEvent,
+    SignalChanged,
+    StepCompleted,
+    StepStarted,
+    SubagentCompleted,
+    SubagentStarted,
     TaskEvent,
     TextChunk,
     ToolCallEnd,
@@ -192,6 +203,9 @@ from adk_fluent._harness._tools import (
 
 # Web tools
 from adk_fluent._harness._web import make_web_fetch, web_tools
+
+# Workflow lifecycle events (Phase C)
+from adk_fluent._harness._workflow_events import WorkflowLifecyclePlugin
 
 # Hooks — unified foundation lives in adk_fluent._hooks
 from adk_fluent._hooks import (
@@ -287,6 +301,20 @@ __all__ = [
     "TaskEvent",
     "CapabilityLoaded",
     "ManifoldFinalized",
+    # Workflow lifecycle (Phase C)
+    "StepStarted",
+    "StepCompleted",
+    "IterationStarted",
+    "IterationCompleted",
+    "BranchStarted",
+    "BranchCompleted",
+    "SubagentStarted",
+    "SubagentCompleted",
+    "AttemptFailed",
+    "WorkflowLifecyclePlugin",
+    # Signals + interrupt (Phase F/G placeholders)
+    "SignalChanged",
+    "Interrupted",
     # Event bus
     "EventBus",
     # Budget monitor

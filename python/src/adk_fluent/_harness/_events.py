@@ -32,6 +32,19 @@ __all__ = [
     "TaskEvent",
     "CapabilityLoaded",
     "ManifoldFinalized",
+    # Workflow lifecycle (Phase C)
+    "StepStarted",
+    "StepCompleted",
+    "IterationStarted",
+    "IterationCompleted",
+    "BranchStarted",
+    "BranchCompleted",
+    "SubagentStarted",
+    "SubagentCompleted",
+    "AttemptFailed",
+    # Signals + interrupt (Phase F/G)
+    "SignalChanged",
+    "Interrupted",
 ]
 
 
@@ -197,3 +210,131 @@ class ManifoldFinalized(HarnessEvent):
     skill_count: int = 0
     mcp_count: int = 0
     kind: str = "manifold_finalized"
+
+
+# ----------------------------------------------------------------------
+# Workflow lifecycle (Phase C)
+# ----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class StepStarted(HarnessEvent):
+    """An agent step in any workflow is about to execute.
+
+    Emitted via ADK ``before_agent_callback`` for every agent in the
+    invocation tree. Consumers correlate StepStarted/StepCompleted by
+    ``agent_name``; the seq numbers on the tape preserve ordering.
+    """
+
+    agent_name: str = ""
+    agent_type: str = ""
+    parent_name: str = ""
+    kind: str = "step_started"
+
+
+@dataclass(frozen=True, slots=True)
+class StepCompleted(HarnessEvent):
+    """An agent step finished."""
+
+    agent_name: str = ""
+    agent_type: str = ""
+    parent_name: str = ""
+    duration_ms: float = 0.0
+    kind: str = "step_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class IterationStarted(HarnessEvent):
+    """A Loop iteration is about to run its body."""
+
+    loop_name: str = ""
+    iteration: int = 0
+    kind: str = "iteration_started"
+
+
+@dataclass(frozen=True, slots=True)
+class IterationCompleted(HarnessEvent):
+    """A Loop iteration has finished its body."""
+
+    loop_name: str = ""
+    iteration: int = 0
+    kind: str = "iteration_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class BranchStarted(HarnessEvent):
+    """A FanOut branch is about to execute in parallel."""
+
+    fanout_name: str = ""
+    branch_name: str = ""
+    branch_index: int = 0
+    kind: str = "branch_started"
+
+
+@dataclass(frozen=True, slots=True)
+class BranchCompleted(HarnessEvent):
+    """A FanOut branch finished."""
+
+    fanout_name: str = ""
+    branch_name: str = ""
+    branch_index: int = 0
+    duration_ms: float = 0.0
+    kind: str = "branch_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class SubagentStarted(HarnessEvent):
+    """A dynamically spawned subagent is about to run."""
+
+    role: str = ""
+    prompt: str = ""
+    kind: str = "subagent_started"
+
+
+@dataclass(frozen=True, slots=True)
+class SubagentCompleted(HarnessEvent):
+    """A dynamically spawned subagent finished."""
+
+    role: str = ""
+    is_error: bool = False
+    output_preview: str = ""
+    duration_ms: float = 0.0
+    kind: str = "subagent_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class AttemptFailed(HarnessEvent):
+    """An attempt in a retry/fallback chain failed."""
+
+    agent_name: str = ""
+    attempt_index: int = 0
+    error: str = ""
+    kind: str = "attempt_failed"
+
+
+# ----------------------------------------------------------------------
+# Signals + interrupt (Phase F / G)
+# ----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class SignalChanged(HarnessEvent):
+    """A reactive signal's value changed."""
+
+    name: str = ""
+    version: int = 0
+    # Values are serialisable (dicts, strings, numbers, bool, None).
+    # Complex objects are stringified to preserve JSONL portability.
+    value: Any = None
+    previous: Any = None
+    kind: str = "signal_changed"
+
+
+@dataclass(frozen=True, slots=True)
+class Interrupted(HarnessEvent):
+    """An agent was pre-empted; may be resumed from ``resume_cursor``."""
+
+    agent_name: str = ""
+    reason: str = ""
+    resume_cursor: int = 0
+    kind: str = "interrupted"
