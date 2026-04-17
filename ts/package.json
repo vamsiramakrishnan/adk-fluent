@@ -1,6 +1,6 @@
 {
   "name": "adk-fluent-ts",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Fluent builder API for Google's Agent Development Kit (TypeScript)",
   "type": "module",
   "main": "dist/index.js",
