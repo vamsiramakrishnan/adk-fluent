@@ -234,6 +234,8 @@ from adk_fluent._plan_mode import (
 # Session tape + store (now lives in adk_fluent._session, re-exported here)
 from adk_fluent._session import (
     Branch,
+    Cursor,
+    EventRecord,
     ForkManager,
     SessionPlugin,
     SessionSnapshot,
@@ -430,6 +432,8 @@ __all__ = [
     "HarnessRepl",
     "ReplConfig",
     # Session tape
+    "Cursor",
+    "EventRecord",
     "SessionTape",
     "SessionStore",
     "SessionSnapshot",
