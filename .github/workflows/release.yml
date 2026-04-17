@@ -47,15 +47,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Verify tag matches python/src/adk_fluent/_version.py
+      - name: Verify tag matches python + ts versions
         run: |
           TAG="${GITHUB_REF#refs/tags/v}"
-          VERSION=$(python3 -c "exec(open('python/src/adk_fluent/_version.py').read()); print(__version__)")
-          if [ "$TAG" != "$VERSION" ]; then
-            echo "::error::Tag v$TAG does not match python/src/adk_fluent/_version.py ($VERSION)"
+          PY_VERSION=$(python3 -c "exec(open('python/src/adk_fluent/_version.py').read()); print(__version__)")
+          TS_VERSION=$(python3 -c "import json; print(json.load(open('ts/package.json'))['version'])")
+          if [ "$TAG" != "$PY_VERSION" ]; then
+            echo "::error::Tag v$TAG does not match python/src/adk_fluent/_version.py ($PY_VERSION)"
             exit 1
           fi
-          echo "Version check passed: v$TAG == $VERSION"
+          if [ "$TAG" != "$TS_VERSION" ]; then
+            echo "::error::Tag v$TAG does not match ts/package.json ($TS_VERSION)"
+            exit 1
+          fi
+          echo "Version check passed: v$TAG == python $PY_VERSION == ts $TS_VERSION"
 
   python-build:
     needs: [version-check]
