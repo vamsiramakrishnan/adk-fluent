@@ -38,7 +38,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 __all__ = [
+    "AgentToken",
     "CancellationToken",
+    "TokenRegistry",
     "TurnSnapshot",
     "make_cancellation_callback",
 ]
@@ -147,6 +149,106 @@ class CancellationToken:
         """Record a completed tool call."""
         with self._lock:
             self._tool_calls.append({"tool_name": tool_name, "args": args})
+
+
+class AgentToken(CancellationToken):
+    """Per-agent cancellation token keyed by agent name.
+
+    Extends :class:`CancellationToken` with an ``agent_name`` so a
+    registry can address individual agents: cancel only the researcher,
+    leave the writer running. Pairs with :class:`TokenRegistry` for
+    priority preemption from the reactor.
+
+    Args:
+        agent_name: Stable identifier for the agent this token guards.
+        resume_cursor: Optional cursor on the tape to resume from when
+            the token is triggered. Set by the reactor/preemption path
+            so the resume prompt can replay events since that point.
+    """
+
+    def __init__(self, agent_name: str, *, resume_cursor: int = 0) -> None:
+        super().__init__()
+        self._agent_name = agent_name
+        self._resume_cursor = resume_cursor
+
+    @property
+    def agent_name(self) -> str:
+        return self._agent_name
+
+    @property
+    def resume_cursor(self) -> int:
+        return self._resume_cursor
+
+    def cancel_with_cursor(self, cursor: int) -> None:
+        """Cancel the token and record the resume cursor atomically."""
+        self._resume_cursor = cursor
+        self.cancel()
+
+    def __repr__(self) -> str:
+        state = "cancelled" if self.is_cancelled else "armed"
+        return f"AgentToken(agent={self._agent_name!r}, {state}, cursor={self._resume_cursor})"
+
+
+class TokenRegistry:
+    """Keyed registry of :class:`AgentToken` instances.
+
+    One registry per session. Agents that need per-instance cancellation
+    look up (or create) their token by name; the reactor and preemption
+    plumbing address them through the registry instead of carrying token
+    references around by hand.
+
+    Thread-safe: :meth:`get_or_create`, :meth:`cancel`, and :meth:`reset`
+    take a lock.
+    """
+
+    def __init__(self) -> None:
+        self._tokens: dict[str, AgentToken] = {}
+        self._lock = threading.Lock()
+
+    def get_or_create(self, agent_name: str) -> AgentToken:
+        with self._lock:
+            token = self._tokens.get(agent_name)
+            if token is None:
+                token = AgentToken(agent_name=agent_name)
+                self._tokens[agent_name] = token
+            return token
+
+    def get(self, agent_name: str) -> AgentToken | None:
+        with self._lock:
+            return self._tokens.get(agent_name)
+
+    def cancel(self, agent_name: str, *, resume_cursor: int = 0) -> bool:
+        """Cancel one agent's token. Returns False if the name is unknown."""
+        with self._lock:
+            token = self._tokens.get(agent_name)
+        if token is None:
+            return False
+        token.cancel_with_cursor(resume_cursor)
+        return True
+
+    def reset(self, agent_name: str) -> None:
+        with self._lock:
+            token = self._tokens.get(agent_name)
+        if token is not None:
+            token.reset()
+
+    def reset_all(self) -> None:
+        with self._lock:
+            tokens = list(self._tokens.values())
+        for token in tokens:
+            token.reset()
+
+    def names(self) -> tuple[str, ...]:
+        with self._lock:
+            return tuple(self._tokens.keys())
+
+    def __contains__(self, agent_name: str) -> bool:
+        with self._lock:
+            return agent_name in self._tokens
+
+    def __len__(self) -> int:
+        with self._lock:
+            return len(self._tokens)
 
 
 def make_cancellation_callback(token: CancellationToken) -> Callable:

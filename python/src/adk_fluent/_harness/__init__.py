@@ -130,7 +130,9 @@ from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
 
 # Interrupt
 from adk_fluent._harness._interrupt import (
+    AgentToken,
     CancellationToken,
+    TokenRegistry,
     TurnSnapshot,
     make_cancellation_callback,
 )
@@ -389,6 +391,8 @@ __all__ = [
     "MemoryHierarchy",
     # Interrupt
     "CancellationToken",
+    "AgentToken",
+    "TokenRegistry",
     "TurnSnapshot",
     "make_cancellation_callback",
     # Fork
