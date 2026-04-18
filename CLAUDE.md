@@ -487,24 +487,30 @@ Agent integration:
   C.with_ui(surface_id=)       — include UI state in context
 ## Harness sub-packages (H namespace building blocks)
 
-The ``H`` namespace is a thin façade over nine focused sub-packages that
+The ``H`` namespace is a thin façade over ten focused sub-packages that
 implement the AI-coding harness runtime (hooks, permissions, plan mode,
-session tape, subagents, usage, budget, compression, fs). Every type is
-re-exported at the top level::
+session tape, reactor, subagents, usage, budget, compression, fs). Every
+type is re-exported at the top level::
 
     from adk_fluent import (
         H,                                              # façade
         HookEvent, HookDecision, HookRegistry,          # _hooks
         PermissionMode, PermissionPolicy, PermissionPlugin,  # _permissions
         PlanMode, PlanModePolicy, PlanModePlugin,       # _plan_mode (see _harness)
-        SessionTape, SessionStore, SessionSnapshot, SessionPlugin, ForkManager, Branch,  # _session
+        SessionTape, SessionStore, SessionSnapshot, SessionPlugin, ForkManager, Branch,
+        EventRecord, Cursor, TapeBackend,
+        InMemoryBackend, JsonlBackend, NullBackend, ChainBackend,  # _session
+        Signal, SignalPredicate, Reactor, ReactorRule, # _reactor
+        AgentToken, TokenRegistry, WorkflowLifecyclePlugin,  # _harness
         SubagentSpec, SubagentRegistry, SubagentResult,
         SubagentRunner, FakeSubagentRunner, make_task_tool,  # _subagents
         TurnUsage, AgentUsage, UsageTracker, UsagePlugin,
         CostTable, ModelRate,                           # _usage
         BudgetMonitor, BudgetPolicy, BudgetPlugin, Threshold,  # _budget
         CompressionStrategy, ContextCompressor,         # _compression
-        FsBackend, LocalBackend, MemoryBackend, SandboxedBackend,  # _fs
+        FsBackend, FsStat, FsEntry,
+        LocalBackend, MemoryBackend, SandboxedBackend, SandboxViolation,
+        workspace_tools_with_backend,                   # _fs
     )
 
 ### _hooks — unified hook foundation
@@ -578,18 +584,31 @@ policy wrapper and ADK plugin. Exported from ``adk_fluent._harness``::
   MUTATING_TOOLS               — frozenset of tool names classified as mutating
                                  (write_file, edit_file, bash, run_code, …)
 
-### _session — tape + fork + store
+### _session — tape + fork + store (durable event log)
 
-Session-scoped event recording plus named state branches::
+Session-scoped event recording plus named state branches. Every recorded
+entry carries a monotonic ``seq``; consumers read with ``since(n)`` or
+follow live writes with async ``tail(from_seq=...)``. See the
+reactor + durable-events section below for the full surface::
 
     store = H.session_store(max_events=100, max_branches=10)
     plugin = H.session_plugin(store)
     store.fork("before-refactor", {"draft": "v1"})
 
-  SessionTape                  — JSONL event recorder/replayer.
-                                 .record(event), .events (defensive copy),
+  SessionTape                  — durable event recorder/replayer.
+                                 .record(event) → stamps seq; .head,
+                                 .since(from_seq=0), async .tail(from_seq=0),
                                  .filter(kind), .save(path), .load(path),
-                                 .summary(), .size, .clear()
+                                 .summary(), .size, .clear().
+                                 Optional ``backend=`` kwarg mirrors writes
+                                 to a pluggable TapeBackend.
+  EventRecord / Cursor         — typed aliases for tape entries and seq ints
+  TapeBackend                  — Protocol: append(entry). Persistence adapter
+                                 layer. Exceptions never block the tape.
+  InMemoryBackend              — deque mirror for tests / replay parity
+  JsonlBackend(path=, truncate=) — one-event-per-line JSONL file
+  NullBackend                  — /dev/null; drops every write
+  ChainBackend([a, b, ...])    — fan out to multiple backends
   Branch                       — immutable record of a named state snapshot
   ForkManager                  — named-branch manager with merge + diff.
                                  .fork(name, state), .switch(name) → deep copy,
@@ -603,6 +622,71 @@ Session-scoped event recording plus named state branches::
                                  .to_dict() / .from_dict(), .save() / .load()
   SessionPlugin                — ADK plugin that auto-forks after every agent
                                  via after_agent_callback (``auto:<name>``)
+
+### _reactor — reactive signals over the durable tape
+
+Turns the durable tape into something agents can collaborate on: typed
+state cells (signals), declarative triggers (predicates), priority
+scheduling, and cooperative interrupts with a resume cursor::
+
+    from adk_fluent import Signal, Reactor
+    temp = Signal("temp", 72.0).attach(bus)
+    r = Reactor()
+    r.when(temp.rising.where(lambda v: v > 90), alert_ops, priority=10)
+    r.start()
+
+  Signal                       — typed state cell. .get() / .set(v, force=)
+                                 / .update(fn) / .version / .subscribe(fn)
+                                 / .attach(bus) — equal-to-current writes
+                                 are no-ops unless ``force=True``.
+  SignalPredicate              — declarative trigger. signal.changed /
+                                 .rising / .falling / .is_(value). Compose
+                                 with ``a & b``, ``a | b``, ``~a``,
+                                 ``.where(fn)``, ``.debounce(ms)``,
+                                 ``.throttle(ms)``.
+  Reactor                      — scheduler of (predicate, handler, options)
+                                 rules. .when(pred, fn, priority=, preemptive=,
+                                 agent_name=) / .start() / .stop().
+                                 Rules ordered by priority (lower wins).
+  ReactorRule                  — frozen rule record returned by .when().
+  AgentToken                   — per-agent cancellation token extending
+                                 CancellationToken with ``agent_name`` and
+                                 ``resume_cursor``; cancel_with_cursor(c)
+                                 atomic cancel + resume record.
+  TokenRegistry                — keyed container of AgentTokens; install()
+                                 swaps live tokens while preserving in-flight
+                                 closures, .cancel(name, resume_cursor=),
+                                 .reset(name) / .reset_all().
+  WorkflowLifecyclePlugin      — ADK plugin that emits StepStarted/Completed,
+                                 IterationStarted/Completed, BranchStarted/
+                                 Completed, SubagentStarted/Completed, and
+                                 AttemptFailed events for Pipeline/Loop/FanOut
+                                 nodes — the tape-visible counterpart to the
+                                 callback hooks.
+
+### durable events (cross-cutting)
+
+The same tape powers streaming replay, multi-consumer fanout, and
+crash-safe audit. These entry points live on ``adk_fluent`` directly
+(not in a single sub-package) because they span ``_session`` +
+``_helpers`` + ``_harness._events``::
+
+    async for chunk in run_stream_from(agent, cursor=42):
+        print(chunk)
+
+  run_stream_from(builder, cursor=)
+                               — replay ``tape.since(cursor)`` text chunks
+                                 then switch to live ``tape.tail()``.
+                                 Lets a dropped SSE connection pick up
+                                 where it left off without re-running the
+                                 LLM.
+  HarnessEvent subtypes         — SignalChanged, Interrupted, StepStarted,
+                                 StepCompleted, IterationStarted,
+                                 IterationCompleted, BranchStarted,
+                                 BranchCompleted, SubagentStarted,
+                                 SubagentCompleted, AttemptFailed. Every
+                                 frozen-slotted; recorded onto the tape
+                                 via the event bus when plugins are wired.
 
 ### _subagents — dynamic spawner + task tool
 
@@ -703,20 +787,37 @@ persistent message history when it exceeds a threshold::
 
 Factors the workspace tools' ``pathlib`` calls behind a small Protocol so
 tools can be unit-tested without a real disk and re-targeted at in-memory
-or remote storage::
+or remote storage. See the [fs](user-guide/fs.md) user-guide page for the
+full cookbook::
 
-    backend = H.fs_sandboxed(H.fs_memory(), H.workspace_only("/tmp/ws"))
-    tools   = workspace_tools(sandbox=..., backend=backend)
+    backend = SandboxedBackend(MemoryBackend(), H.workspace_only("/tmp/ws"))
+    tools   = workspace_tools_with_backend(backend, read_only=False)
 
-  FsBackend                    — Protocol: exists, stat, read_text, read_bytes,
-                                 write_text, write_bytes, delete, mkdir,
-                                 list_dir, iter_files, glob
+  FsBackend                    — runtime-checkable Protocol: exists, stat,
+                                 read_text, read_bytes, write_text,
+                                 write_bytes, delete, mkdir, list_dir,
+                                 iter_files, glob
+  FsStat                       — frozen dataclass: path, size, is_dir,
+                                 is_file, mtime
+  FsEntry                      — frozen dataclass: name, path, is_dir,
+                                 is_file (one per ``list_dir`` result)
   LocalBackend                 — real on-disk I/O via pathlib
-  MemoryBackend                — dict-backed fake for tests and ephemeral
-                                 scratch workspaces
-  SandboxedBackend             — decorator wrapping any backend with a
+  MemoryBackend(files=None)    — dict-backed fake for tests and ephemeral
+                                 scratch workspaces; POSIX semantics on
+                                 every host.
+  SandboxedBackend(inner, sandbox)
+                               — decorator wrapping any backend with a
                                  SandboxPolicy; refuses operations that
-                                 escape the allowed paths
+                                 escape the allowed paths.
+  SandboxViolation             — PermissionError raised when a path is
+                                 rejected; tool shims translate into a
+                                 user-facing "Error: path '...' is outside
+                                 the allowed workspace." string.
+  workspace_tools_with_backend(backend, *, read_only=False)
+                               — factory returning the full workspace tool
+                                 set (read_file / edit_file / write_file /
+                                 list_dir / glob_search / grep_search)
+                                 routed through ``backend``.
 ## Expression operators explained
 
     A >> B           # Sequential: A runs, then B. Returns a Pipeline.

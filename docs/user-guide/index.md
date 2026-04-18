@@ -115,10 +115,13 @@ Build Claude-Code-class autonomous agents. Five composable layers: intelligence,
 | [Permissions](permissions.md) | `PermissionPolicy`, `PermissionDecision`, five modes (default/accept_edits/plan/bypass/dont_ask), `PermissionPlugin`, approval memory |
 | [Plan Mode](plan-mode.md) | Plan/execute latch, `PlanMode`, `PlanModePolicy`, `enter_plan_mode` / `exit_plan_mode` tools, read-only planning phase |
 | [Session](session.md) | `SessionStore`, `SessionSnapshot`, auto-fork / auto-restore, tape replay, persistence |
+| [Durable Events](durable-events.md) | `SessionTape` seq/cursor/tail, `TapeBackend` (JSONL/InMemory/Null/Chain), `stream_from_cursor`, workflow lifecycle events |
+| [Reactor](reactor.md) | `Signal`, `SignalPredicate`, `Reactor`, priority scheduling, preemption, `AgentToken`, `TokenRegistry` |
 | [Subagents](subagents.md) | `SubagentSpec`, `SubagentRunner`, dynamic spawner, `make_task_tool`, isolated child contexts |
 | [Compression](compression.md) | `ContextCompressor`, `CompressionStrategy`, `pre_compact` hooks, keep-recent / drop-old / summarize |
 | [Budget](budget.md) | `BudgetPolicy`, `BudgetMonitor`, `BudgetPlugin`, threshold callbacks, token / cost limits |
 | [Usage](usage.md) | `UsageTracker`, `CostTable`, `TurnUsage`, per-agent aggregation, cost-per-model accounting |
+| [Virtual Filesystem](fs.md) | `FsBackend` Protocol, `LocalBackend`, `MemoryBackend`, `SandboxedBackend`, `workspace_tools_with_backend`, sandbox-safe tool I/O |
 
 ## Infrastructure
 
@@ -198,10 +201,13 @@ hooks
 permissions
 plan-mode
 session
+durable-events
+reactor
 subagents
 compression
 budget
 usage
+fs
 error-reference
 adk-samples/index
 ```
