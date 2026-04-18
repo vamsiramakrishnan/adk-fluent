@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Shared Visual Runner — Cross-Language Conformance Tool
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -181,7 +185,9 @@ cd ts && npm install --save-dev hono @hono/node-server tsx
 
 - [ ] **Step 3: Create ts/visual/server.ts**
 
-```typescript
+```{code-block} typescript
+:force:
+
 /**
  * adk-fluent-ts Visual Cookbook Runner — Hono dev server.
  *
@@ -450,7 +456,7 @@ git commit -m "feat(visual): add TypeScript visual runner with Hono server"
 
 Find the existing visual commands (lines ~351-371) and replace with:
 
-```justfile
+```make
 # --- Visual: A2UI preview (static, no LLM, no server) ---
 a2ui-preview:
     @echo "Exporting A2UI surfaces from cookbooks..."
