@@ -103,11 +103,13 @@ class EventBus:
         self._handlers.setdefault(kind, []).append(handler)
         return self
 
-    def subscribe(self, handler: Callable[[HarnessEvent], None]) -> EventBus:
+    def subscribe(self, handler: Callable[[HarnessEvent], Any]) -> EventBus:
         """Subscribe to ALL events.
 
         Args:
-            handler: Callback receiving every event.
+            handler: Callback receiving every event. Return value is
+                ignored, so recorders like ``SessionTape.record`` that
+                return a ``seq`` can subscribe directly.
 
         Returns:
             Self for chaining.

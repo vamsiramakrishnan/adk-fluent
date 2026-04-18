@@ -55,15 +55,19 @@ class TapeBackend(Protocol):
 
     def append(self, entry: dict[str, Any]) -> None:
         """Persist one entry. The ``seq`` field is already set."""
+        ...
 
     def read_since(self, seq: int) -> list[dict[str, Any]]:
         """Return all persisted entries with ``entry["seq"] >= seq``."""
+        ...
 
     def head(self) -> int:
         """Return ``max(seq)+1`` across persisted entries, or 0 if empty."""
+        ...
 
     def clear(self) -> None:
         """Drop all persisted entries."""
+        ...
 
 
 class InMemoryBackend:
