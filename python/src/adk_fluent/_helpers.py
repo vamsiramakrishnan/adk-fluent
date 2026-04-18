@@ -17,6 +17,7 @@ __all__ = [
     "run_one_shot_async",
     "run_stream",
     "run_events",
+    "stream_from_cursor",
     "run_inline_test",
     "ChatSession",
     "create_session",
