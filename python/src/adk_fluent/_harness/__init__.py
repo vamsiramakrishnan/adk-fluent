@@ -94,9 +94,12 @@ from adk_fluent._harness._events import (
     BranchStarted,
     CapabilityLoaded,
     CompressionTriggered,
+    EffectRecorded,
     ErrorOccurred,
+    EvalEvent,
     FileEdited,
     GitCheckpoint,
+    GuardFired,
     HarnessEvent,
     HookFired,
     Interrupted,
@@ -251,6 +254,8 @@ from adk_fluent._plan_mode import (
 from adk_fluent._session import (
     Branch,
     Cursor,
+    EffectCache,
+    EffectEntry,
     EventRecord,
     ForkManager,
     SessionPlugin,
@@ -317,6 +322,10 @@ __all__ = [
     # Signals + interrupt (Phase F/G placeholders)
     "SignalChanged",
     "Interrupted",
+    # Cross-namespace emitters (Phase H)
+    "GuardFired",
+    "EvalEvent",
+    "EffectRecorded",
     # Event bus
     "EventBus",
     # Budget monitor
@@ -469,6 +478,8 @@ __all__ = [
     "SessionTape",
     "SessionStore",
     "SessionSnapshot",
+    "EffectCache",
+    "EffectEntry",
     "SessionPlugin",
     # Commands
     "CommandRegistry",

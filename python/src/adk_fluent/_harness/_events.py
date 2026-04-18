@@ -45,6 +45,10 @@ __all__ = [
     # Signals + interrupt (Phase F/G)
     "SignalChanged",
     "Interrupted",
+    # Cross-namespace emitters (Phase H)
+    "GuardFired",
+    "EvalEvent",
+    "EffectRecorded",
 ]
 
 
@@ -338,3 +342,57 @@ class Interrupted(HarnessEvent):
     reason: str = ""
     resume_cursor: int = 0
     kind: str = "interrupted"
+
+
+# ----------------------------------------------------------------------
+# Cross-namespace emitters (Phase H)
+# ----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class GuardFired(HarnessEvent):
+    """An output guard rejected or modified a model response.
+
+    Emitted from ``.guard()``-wired callbacks whenever a guard raises
+    ``GuardViolation`` or chooses to rewrite the response. Makes guard
+    activity tape-visible so replays can show exactly which rule fired.
+
+    ``action`` is ``"reject"`` for violations that raised the exception,
+    ``"rewrite"``/``"redact"`` for silent transformations. Parallels the
+    ``HookFired`` event for the hook registry.
+    """
+
+    guard_name: str = ""
+    agent_name: str = ""
+    reason: str = ""
+    action: str = "reject"  # "reject" | "rewrite" | "redact"
+    kind: str = "guard_fired"
+
+
+@dataclass(frozen=True, slots=True)
+class EvalEvent(HarnessEvent):
+    """One case/metric datapoint from an eval suite run."""
+
+    suite_name: str = ""
+    case_id: str = ""
+    metric: str = ""
+    score: float = 0.0
+    passed: bool = False
+    detail: str = ""
+    kind: str = "eval_event"
+
+
+@dataclass(frozen=True, slots=True)
+class EffectRecorded(HarnessEvent):
+    """An effectful tool call was memoised or replayed from cache.
+
+    Emitted by the effect-cache interceptor (Phase E) whenever it either
+    records a fresh result or short-circuits a call by returning a cached
+    value. The ``source`` field discriminates ``"fresh"`` vs ``"cache"``.
+    """
+
+    tool_name: str = ""
+    key: str = ""
+    source: str = "fresh"  # "fresh" | "cache"
+    duration_ms: float = 0.0
+    kind: str = "effect_recorded"

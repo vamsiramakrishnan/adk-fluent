@@ -1255,6 +1255,27 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
     mod.root_agent = built_agent  # type: ignore[attr-defined]
     sys.modules[mod_name] = mod
 
+    suite_name = getattr(suite, "_name", "") or getattr(suite, "name", "") or "eval_suite"
+
+    def _emit_eval(metric: str, score: float, passed_b: bool, case_id: str = "", detail: str = "") -> None:
+        # Best-effort emission; never break eval runs on bus errors.
+        try:
+            from adk_fluent._harness._event_bus import emit as _emit
+            from adk_fluent._harness._events import EvalEvent
+
+            _emit(
+                EvalEvent(
+                    suite_name=str(suite_name),
+                    case_id=str(case_id),
+                    metric=metric,
+                    score=float(score),
+                    passed=bool(passed_b),
+                    detail=str(detail)[:400],
+                )
+            )
+        except Exception:  # noqa: BLE001 — events never block eval
+            return None
+
     try:
         eval_set = suite.to_eval_set()
         eval_config = suite.to_eval_config()
@@ -1277,6 +1298,7 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
                     scores[c.metric_name] = 1.0
                     thresholds[c.metric_name] = c.threshold
                     passed[c.metric_name] = True
+                    _emit_eval(c.metric_name, 1.0, True)
             except AssertionError as exc:
                 # Parse failure details from the assertion message — single pass
                 scores, thresholds, passed = {}, {}, {}
@@ -1284,6 +1306,7 @@ async def _run_eval_suite(suite: EvalSuite) -> EvalReport:
                     scores[c.metric_name] = 0.0
                     thresholds[c.metric_name] = c.threshold
                     passed[c.metric_name] = False
+                    _emit_eval(c.metric_name, 0.0, False, detail=str(exc))
                 # Store raw error for debugging
                 return EvalReport(
                     scores=scores,

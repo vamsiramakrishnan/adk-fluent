@@ -21,10 +21,14 @@ from __future__ import annotations
 from adk_fluent._reactor._predicate import SignalPredicate
 from adk_fluent._reactor._reactor import Reactor, ReactorRule
 from adk_fluent._reactor._signal import Signal
+from adk_fluent._reactor._tracking import computed, reaction, track_reads
 
 __all__ = [
     "Reactor",
     "ReactorRule",
     "Signal",
     "SignalPredicate",
+    "computed",
+    "reaction",
+    "track_reads",
 ]

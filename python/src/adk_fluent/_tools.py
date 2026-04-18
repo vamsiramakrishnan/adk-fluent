@@ -31,6 +31,7 @@ __all__ = [
     "_ConfirmWrapper",
     "_TimeoutWrapper",
     "_CachedWrapper",
+    "_EffectfulWrapper",
     "_TransformWrapper",
 ]
 
@@ -330,6 +331,36 @@ class T:
             # Lightweight marker — prompt injection handled by .ui()
             return TComposite([], kind="a2ui")
 
+    # --- Effectful (idempotent) ---
+
+    @staticmethod
+    def effectful(
+        tool_or_composite: TComposite | Any,
+        *,
+        key: str | Any,
+        scope: str = "session",
+        ttl: float = 0.0,
+    ) -> TComposite:
+        """Wrap tool(s) as idempotent side-effects with a user-supplied key.
+
+        First call with a given key runs the tool and records the result in
+        the ambient :class:`EffectCache`; subsequent calls with the same key
+        return the cached value without invoking the tool.
+
+        An :class:`EffectRecorded` event is emitted on the ambient
+        :class:`EventBus` with ``source="fresh"`` or ``source="cache"``.
+
+        Args:
+            tool_or_composite: The tool to wrap.
+            key: Either a format string rendered against ``args`` (e.g.
+                ``"user:{user_id}"``) or a callable ``(args) -> str``.
+            scope: Cache partition bucket (``"session"`` by default).
+            ttl: Lifetime in seconds. ``0`` means "no expiry".
+        """
+        items = tool_or_composite._items if isinstance(tool_or_composite, TComposite) else [tool_or_composite]
+        wrapped = [_EffectfulWrapper(item, key=key, scope=scope, ttl=ttl) for item in items]
+        return TComposite(wrapped, kind="effectful")
+
     # --- Transform ---
 
     @staticmethod
@@ -437,6 +468,93 @@ class _CachedWrapper:
             result = self._inner(**args)
         self._cache[key] = result
         return result
+
+
+class _EffectfulWrapper:
+    """Wraps a tool as an idempotent side-effect (Phase E).
+
+    Looks up the ambient :class:`EffectCache` before invoking the inner
+    tool. On hit the cached value is returned and an
+    :class:`EffectRecorded` event with ``source="cache"`` is emitted.
+    On miss the tool runs, its return value is cached, and an
+    :class:`EffectRecorded` event with ``source="fresh"`` is emitted.
+
+    When no ambient cache is active the wrapper is a pass-through.
+    """
+
+    def __init__(self, inner: Any, *, key: str | Any, scope: str = "session", ttl: float = 0.0):
+        self._inner = inner
+        self._key_spec = key
+        self._scope = scope
+        self._ttl = ttl
+        self.name = getattr(inner, "name", getattr(inner, "__name__", "tool"))
+        self.description = getattr(inner, "description", getattr(inner, "__doc__", "") or "")
+
+    def _render_key(self, args: dict) -> str:
+        spec = self._key_spec
+        if callable(spec):
+            try:
+                return str(spec(args))
+            except Exception:
+                return repr(sorted(args.items()))
+        if isinstance(spec, str):
+            try:
+                return spec.format(**args, args=args)
+            except Exception:
+                return spec
+        return str(spec)
+
+    async def run_async(self, *, args: dict, tool_context: Any) -> Any:  # noqa: ANN401
+        """Consult ambient cache, invoke inner tool on miss, record outcome."""
+        import time as _time
+
+        from adk_fluent._session._effect_cache import active_cache
+
+        cache = active_cache()
+        rendered_key = self._render_key(args)
+
+        if cache is not None:
+            entry = cache.get(self.name, rendered_key, scope=self._scope)
+            if entry is not None:
+                self._emit_effect(rendered_key, source="cache", duration_ms=0.0)
+                return entry.value
+
+        start = _time.monotonic()
+        if hasattr(self._inner, "run_async"):
+            result = await self._inner.run_async(args=args, tool_context=tool_context)
+        else:
+            result = self._inner(**args)
+        duration_ms = (_time.monotonic() - start) * 1000.0
+
+        if cache is not None:
+            cache.put(
+                self.name,
+                rendered_key,
+                result,
+                scope=self._scope,
+                ttl_seconds=self._ttl,
+            )
+        self._emit_effect(rendered_key, source="fresh", duration_ms=duration_ms)
+        return result
+
+    def _emit_effect(self, rendered_key: str, *, source: str, duration_ms: float) -> None:
+        try:
+            from adk_fluent._harness._event_bus import active_bus
+            from adk_fluent._harness._events import EffectRecorded
+
+            bus = active_bus()
+            if bus is None:
+                return
+            bus.emit(
+                EffectRecorded(
+                    tool_name=self.name,
+                    key=rendered_key,
+                    source=source,
+                    duration_ms=duration_ms,
+                )
+            )
+        except Exception:  # noqa: BLE001
+            return
 
 
 class _TransformWrapper:

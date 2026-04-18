@@ -82,6 +82,13 @@ class Signal:
     # ------------------------------------------------------------------
 
     def get(self) -> Any:
+        # Auto-tracking: if a reactive derivation is collecting deps, add
+        # this signal to the set so changes re-run the derivation.
+        from adk_fluent._reactor._tracking import current_tracker
+
+        tracker = current_tracker()
+        if tracker is not None:
+            tracker.add(self)
         return self._value
 
     def set(self, value: Any, *, force: bool = False) -> bool:

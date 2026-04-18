@@ -97,10 +97,26 @@ class HookRegistry:
     def __init__(self, workspace: str | None = None) -> None:
         self._entries_by_event: dict[str, list[HookEntry]] = {}
         self._workspace = workspace
+        self._bridge_bus: Any = None  # EventBus | None — typed loose to avoid circular import
 
     @property
     def workspace(self) -> str | None:
         return self._workspace
+
+    def bridge_to(self, bus: Any) -> HookRegistry:
+        """Mirror every hook fire onto ``bus`` as a :class:`HookFired` event.
+
+        Phase H — makes hook activity tape-visible without the callers
+        needing to subscribe separately. Pass ``None`` to detach.
+
+        Args:
+            bus: An :class:`EventBus` instance, or ``None`` to disable.
+
+        Returns:
+            Self for chaining.
+        """
+        self._bridge_bus = bus
+        return self
 
     # -------------------------------------------------------------------
     # Registration
@@ -243,6 +259,7 @@ class HookRegistry:
             if not entry.matcher.matches(ctx):
                 continue
             decision = await self._run_entry(entry, ctx)
+            self._emit_hook_fired(entry, ctx, decision)
             if decision.is_allow:
                 continue
             if decision.action == "inject":
@@ -271,6 +288,37 @@ class HookRegistry:
                 metadata={**final.metadata, "pending_injects": pending_injects},
             )
         return final
+
+    def _emit_hook_fired(self, entry: HookEntry, ctx: HookContext, decision: HookDecision) -> None:
+        """Mirror one hook fire onto the bridged bus if one is installed.
+
+        Falls back to the ambient bus (set by WorkflowLifecyclePlugin) when
+        no explicit bridge is configured — that way plugging the registry
+        into an agent just works without a second wiring step.
+        """
+        bus = self._bridge_bus
+        if bus is None:
+            try:
+                from adk_fluent._harness._event_bus import active_bus
+
+                bus = active_bus()
+            except Exception:  # noqa: BLE001
+                return None
+        if bus is None:
+            return None
+        try:
+            from adk_fluent._harness._events import HookFired
+
+            # Map decision.action onto a short trigger label for the event.
+            trigger = "allow" if decision.is_allow else (decision.action or "fired")
+            bus.emit(
+                HookFired(
+                    hook_name=entry.name or (entry.command or "fn"),
+                    trigger=f"{ctx.event}:{trigger}",
+                )
+            )
+        except Exception:  # noqa: BLE001 — emit is strictly best-effort
+            return None
 
     async def _run_entry(self, entry: HookEntry, ctx: HookContext) -> HookDecision:
         if entry.command is not None:

@@ -48,8 +48,9 @@ Usage::
 from __future__ import annotations
 
 import contextlib
+import contextvars
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 from adk_fluent._harness._events import (
@@ -60,7 +61,46 @@ from adk_fluent._harness._events import (
     UsageUpdate,
 )
 
-__all__ = ["EventBus"]
+__all__ = ["EventBus", "active_bus", "emit", "use_bus"]
+
+
+# ----------------------------------------------------------------------
+# Ambient bus — lets call-sites deep in the stack emit without plumbing
+# an ``EventBus`` through every signature (guards, eval, hooks).
+# ----------------------------------------------------------------------
+
+_active_bus: contextvars.ContextVar[EventBus | None] = contextvars.ContextVar("adkf_active_event_bus", default=None)
+
+
+def active_bus() -> EventBus | None:
+    """Return the ambient :class:`EventBus`, or ``None`` if unset.
+
+    Consumers that want to emit events without being handed a bus
+    directly (guards, eval cases, hook bridges) call this and skip
+    emission cleanly when no bus is installed.
+    """
+    return _active_bus.get()
+
+
+def emit(event: HarnessEvent) -> None:
+    """Emit ``event`` on the ambient bus if one is installed.
+
+    No-op when no bus is active — makes emit sites cheap and safe to
+    sprinkle anywhere.
+    """
+    bus = _active_bus.get()
+    if bus is not None:
+        bus.emit(event)
+
+
+@contextlib.contextmanager
+def use_bus(bus: EventBus | None) -> Iterator[None]:
+    """Install ``bus`` as the ambient bus for the duration of the block."""
+    token = _active_bus.set(bus)
+    try:
+        yield
+    finally:
+        _active_bus.reset(token)
 
 
 class EventBus:

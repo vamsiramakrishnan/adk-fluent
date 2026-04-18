@@ -35,6 +35,7 @@ from typing import TYPE_CHECKING, Any
 
 from google.adk.plugins.base_plugin import BasePlugin
 
+from adk_fluent._harness._event_bus import _active_bus
 from adk_fluent._harness._events import (
     BranchCompleted,
     BranchStarted,
@@ -126,6 +127,13 @@ class WorkflowLifecyclePlugin(BasePlugin):
         agent: Any = None,
         callback_context: Any,
     ) -> Any:
+        # Install the bus as the ambient EventBus so deep call-sites
+        # (guards, eval cases, hook bridge) can emit without being
+        # handed a bus directly. Safe to re-set per agent — ContextVar
+        # is task-local, so parallel branches see their own copy.
+        if _active_bus.get() is not self._bus:
+            _active_bus.set(self._bus)
+
         name = self._agent_name(agent, callback_context)
         atype = self._agent_type(agent)
         parent = self._parent_name(agent, callback_context)
