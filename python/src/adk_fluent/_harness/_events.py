@@ -32,6 +32,23 @@ __all__ = [
     "TaskEvent",
     "CapabilityLoaded",
     "ManifoldFinalized",
+    # Workflow lifecycle (Phase C)
+    "StepStarted",
+    "StepCompleted",
+    "IterationStarted",
+    "IterationCompleted",
+    "BranchStarted",
+    "BranchCompleted",
+    "SubagentStarted",
+    "SubagentCompleted",
+    "AttemptFailed",
+    # Signals + interrupt (Phase F/G)
+    "SignalChanged",
+    "Interrupted",
+    # Cross-namespace emitters (Phase H)
+    "GuardFired",
+    "EvalEvent",
+    "EffectRecorded",
 ]
 
 
@@ -197,3 +214,185 @@ class ManifoldFinalized(HarnessEvent):
     skill_count: int = 0
     mcp_count: int = 0
     kind: str = "manifold_finalized"
+
+
+# ----------------------------------------------------------------------
+# Workflow lifecycle (Phase C)
+# ----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class StepStarted(HarnessEvent):
+    """An agent step in any workflow is about to execute.
+
+    Emitted via ADK ``before_agent_callback`` for every agent in the
+    invocation tree. Consumers correlate StepStarted/StepCompleted by
+    ``agent_name``; the seq numbers on the tape preserve ordering.
+    """
+
+    agent_name: str = ""
+    agent_type: str = ""
+    parent_name: str = ""
+    kind: str = "step_started"
+
+
+@dataclass(frozen=True, slots=True)
+class StepCompleted(HarnessEvent):
+    """An agent step finished."""
+
+    agent_name: str = ""
+    agent_type: str = ""
+    parent_name: str = ""
+    duration_ms: float = 0.0
+    kind: str = "step_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class IterationStarted(HarnessEvent):
+    """A Loop iteration is about to run its body."""
+
+    loop_name: str = ""
+    iteration: int = 0
+    kind: str = "iteration_started"
+
+
+@dataclass(frozen=True, slots=True)
+class IterationCompleted(HarnessEvent):
+    """A Loop iteration has finished its body."""
+
+    loop_name: str = ""
+    iteration: int = 0
+    kind: str = "iteration_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class BranchStarted(HarnessEvent):
+    """A FanOut branch is about to execute in parallel."""
+
+    fanout_name: str = ""
+    branch_name: str = ""
+    branch_index: int = 0
+    kind: str = "branch_started"
+
+
+@dataclass(frozen=True, slots=True)
+class BranchCompleted(HarnessEvent):
+    """A FanOut branch finished."""
+
+    fanout_name: str = ""
+    branch_name: str = ""
+    branch_index: int = 0
+    duration_ms: float = 0.0
+    kind: str = "branch_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class SubagentStarted(HarnessEvent):
+    """A dynamically spawned subagent is about to run."""
+
+    role: str = ""
+    prompt: str = ""
+    kind: str = "subagent_started"
+
+
+@dataclass(frozen=True, slots=True)
+class SubagentCompleted(HarnessEvent):
+    """A dynamically spawned subagent finished."""
+
+    role: str = ""
+    is_error: bool = False
+    output_preview: str = ""
+    duration_ms: float = 0.0
+    kind: str = "subagent_completed"
+
+
+@dataclass(frozen=True, slots=True)
+class AttemptFailed(HarnessEvent):
+    """An attempt in a retry/fallback chain failed."""
+
+    agent_name: str = ""
+    attempt_index: int = 0
+    error: str = ""
+    kind: str = "attempt_failed"
+
+
+# ----------------------------------------------------------------------
+# Signals + interrupt (Phase F / G)
+# ----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class SignalChanged(HarnessEvent):
+    """A reactive signal's value changed."""
+
+    name: str = ""
+    version: int = 0
+    # Values are serialisable (dicts, strings, numbers, bool, None).
+    # Complex objects are stringified to preserve JSONL portability.
+    value: Any = None
+    previous: Any = None
+    kind: str = "signal_changed"
+
+
+@dataclass(frozen=True, slots=True)
+class Interrupted(HarnessEvent):
+    """An agent was pre-empted; may be resumed from ``resume_cursor``."""
+
+    agent_name: str = ""
+    reason: str = ""
+    resume_cursor: int = 0
+    kind: str = "interrupted"
+
+
+# ----------------------------------------------------------------------
+# Cross-namespace emitters (Phase H)
+# ----------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class GuardFired(HarnessEvent):
+    """An output guard rejected or modified a model response.
+
+    Emitted from ``.guard()``-wired callbacks whenever a guard raises
+    ``GuardViolation`` or chooses to rewrite the response. Makes guard
+    activity tape-visible so replays can show exactly which rule fired.
+
+    ``action`` is ``"reject"`` for violations that raised the exception,
+    ``"rewrite"``/``"redact"`` for silent transformations. Parallels the
+    ``HookFired`` event for the hook registry.
+    """
+
+    guard_name: str = ""
+    agent_name: str = ""
+    reason: str = ""
+    action: str = "reject"  # "reject" | "rewrite" | "redact"
+    kind: str = "guard_fired"
+
+
+@dataclass(frozen=True, slots=True)
+class EvalEvent(HarnessEvent):
+    """One case/metric datapoint from an eval suite run."""
+
+    suite_name: str = ""
+    case_id: str = ""
+    metric: str = ""
+    score: float = 0.0
+    passed: bool = False
+    detail: str = ""
+    kind: str = "eval_event"
+
+
+@dataclass(frozen=True, slots=True)
+class EffectRecorded(HarnessEvent):
+    """An effectful tool call was memoised or replayed from cache.
+
+    Emitted by the effect-cache interceptor (Phase E) whenever it either
+    records a fresh result or short-circuits a call by returning a cached
+    value. The ``source`` field discriminates ``"fresh"`` vs ``"cache"``.
+    """
+
+    tool_name: str = ""
+    key: str = ""
+    source: str = "fresh"  # "fresh" | "cache"
+    duration_ms: float = 0.0
+    kind: str = "effect_recorded"

@@ -66,22 +66,55 @@ export { UsageTracker, CostTable, TurnUsage, AgentUsage } from "./namespaces/har
 export type { ModelRate } from "./namespaces/harness/usage.js";
 export { ProjectMemory, MemoryHierarchy } from "./namespaces/harness/memory.js";
 export { ArtifactStore } from "./namespaces/harness/artifacts.js";
-export { EventDispatcher, EventBus, SessionTape } from "./namespaces/harness/events.js";
+export {
+  EventDispatcher,
+  EventBus,
+  SessionTape,
+  InMemoryBackend,
+  JsonlBackend,
+  NullBackend,
+  ChainBackend,
+} from "./namespaces/harness/events.js";
 export type {
   HarnessEvent,
   HarnessEventKind,
   TextEvent,
   ToolEvent,
   ModelEvent,
+  EventRecord,
   EventSubscriber,
+  TapeBackend,
+  StepLifecycleEvent,
+  IterationLifecycleEvent,
+  BranchLifecycleEvent,
+  SubagentLifecycleEvent,
+  AttemptFailedEvent,
+  SignalChangedEvent,
 } from "./namespaces/harness/events.js";
 export {
   ContextCompressor,
   BudgetMonitor,
   BudgetPolicy,
   CancellationToken,
+  AgentToken,
+  TokenRegistry,
   ForkManager,
 } from "./namespaces/harness/lifecycle.js";
+// Reactor — reactive signals + priority-scheduled rule dispatch.
+export { Signal, SignalPredicate, Reactor } from "./namespaces/reactor.js";
+export type {
+  SignalOptions,
+  SignalSubscriber,
+  PredicateFn,
+  ReactorContext,
+  ReactorHandler,
+  ReactorOptions,
+  ReactorRule,
+  ReactorRuleOptions,
+} from "./namespaces/reactor.js";
+// Stream replay — resume from a cursor (Phase D).
+export { streamFromCursor } from "./namespaces/harness/stream-replay.js";
+export type { StreamFromCursorOptions } from "./namespaces/harness/stream-replay.js";
 export type { BudgetThreshold, PreCompactHook } from "./namespaces/harness/lifecycle.js";
 export {
   SessionStore,

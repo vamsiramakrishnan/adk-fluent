@@ -11,6 +11,17 @@ live as three separate harness modules:
 3. **Store** — bundle the tape and the fork manager behind one object
    so you can persist (and re-hydrate) a whole session atomically.
 
+:::{admonition} Looking for cursors, async tail, or pluggable backends?
+:class: tip
+
+This page covers the store / fork APIs. For the **durable event log**
+layer underneath -- monotonic `seq`, `since(n)`, `tail()`, `TapeBackend`
+(JSONL / InMemory / Null / Chain), `stream_from_cursor`, and the workflow
+lifecycle events -- see [durable events](durable-events.md). For the
+reactive layer on top (`Signal`, `Reactor`, `AgentToken`), see
+[reactor](reactor.md).
+:::
+
 ## The five pieces
 
 | Type | Role | Mutable? |
@@ -177,6 +188,13 @@ Every tape entry is a plain dict, not an event object. That makes
 tapes friendly to external tools (`jq`, `grep`, `diff`) and lets them
 survive across Python versions without worrying about class changes.
 
+Every recorded entry is stamped with a monotonic `seq` and the tape
+tracks a `head` cursor. `since(n)` returns history at or after the
+cursor; `tail(from_seq=...)` is an async iterator that blocks on new
+writes. See [durable events](durable-events.md) for the full cursor
+API and the `TapeBackend` Protocol (`JsonlBackend`, `InMemoryBackend`,
+`NullBackend`, `ChainBackend`).
+
 ```python
 from adk_fluent import H
 
@@ -192,6 +210,10 @@ tape.save("/tmp/session.jsonl")
 tape = SessionTape.load("/tmp/session.jsonl")
 tool_calls = tape.filter("tool_call_start")
 print(tape.summary())
+
+# Resume a consumer from a cursor (see durable-events.md)
+for entry in tape.since(42):
+    print(entry["seq"], entry["kind"])
 ```
 
 ## Putting it together

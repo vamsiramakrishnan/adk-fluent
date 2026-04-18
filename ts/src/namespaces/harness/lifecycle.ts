@@ -189,6 +189,105 @@ export class CancellationToken {
   }
 }
 
+// ─── AgentToken + TokenRegistry (Phase G) ─────────────────────────────────
+
+/**
+ * Per-agent cancellation token keyed by agent name.
+ *
+ * Extends `CancellationToken` with an `agentName` so a registry can
+ * address individual agents: cancel only the researcher, leave the
+ * writer running. Pairs with `TokenRegistry` for priority preemption
+ * from the reactor.
+ */
+export class AgentToken extends CancellationToken {
+  readonly agentName: string;
+  private _resumeCursor: number;
+
+  constructor(agentName: string, opts: { resumeCursor?: number } = {}) {
+    super();
+    this.agentName = agentName;
+    this._resumeCursor = opts.resumeCursor ?? 0;
+  }
+
+  get resumeCursor(): number {
+    return this._resumeCursor;
+  }
+
+  /** Cancel the token and record the resume cursor atomically. */
+  cancelWithCursor(cursor: number): void {
+    this._resumeCursor = cursor;
+    this.cancel();
+  }
+
+  override reset(): void {
+    super.reset();
+    this._resumeCursor = 0;
+  }
+}
+
+/**
+ * Keyed registry of `AgentToken` instances.
+ *
+ * One registry per session. Agents that need per-instance cancellation
+ * look up (or create) their token by name; the reactor and preemption
+ * plumbing address them through the registry instead of carrying token
+ * references around by hand.
+ */
+export class TokenRegistry {
+  private readonly tokens = new Map<string, AgentToken>();
+
+  getOrCreate(agentName: string): AgentToken {
+    let token = this.tokens.get(agentName);
+    if (!token) {
+      token = new AgentToken(agentName);
+      this.tokens.set(agentName, token);
+    }
+    return token;
+  }
+
+  /**
+   * Replace any existing entry for `token.agentName` with `token`.
+   * Used by the reactor when a rule re-runs: the in-flight handler
+   * keeps a reference to the previous token (so its cancel is still
+   * observable), while lookups address the live run.
+   */
+  install(token: AgentToken): void {
+    this.tokens.set(token.agentName, token);
+  }
+
+  get(agentName: string): AgentToken | null {
+    return this.tokens.get(agentName) ?? null;
+  }
+
+  /** Cancel one agent's token. Returns false if the name is unknown. */
+  cancel(agentName: string, opts: { resumeCursor?: number } = {}): boolean {
+    const token = this.tokens.get(agentName);
+    if (!token) return false;
+    token.cancelWithCursor(opts.resumeCursor ?? 0);
+    return true;
+  }
+
+  reset(agentName: string): void {
+    this.tokens.get(agentName)?.reset();
+  }
+
+  resetAll(): void {
+    for (const token of this.tokens.values()) token.reset();
+  }
+
+  names(): string[] {
+    return [...this.tokens.keys()];
+  }
+
+  has(agentName: string): boolean {
+    return this.tokens.has(agentName);
+  }
+
+  get size(): number {
+    return this.tokens.size;
+  }
+}
+
 // ─── ForkManager ───────────────────────────────────────────────────────────
 
 export interface ForkManagerOptions {

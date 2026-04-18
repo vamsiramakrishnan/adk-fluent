@@ -30,6 +30,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, Any
 
+from adk_fluent._session._effect_cache import EffectCache
 from adk_fluent._session._fork import Branch, ForkManager
 from adk_fluent._session._snapshot import SessionSnapshot
 from adk_fluent._session._tape import SessionTape
@@ -54,9 +55,11 @@ class SessionStore:
         self,
         tape: SessionTape | None = None,
         forks: ForkManager | None = None,
+        effect_cache: EffectCache | None = None,
     ) -> None:
         self._tape = tape or SessionTape()
         self._forks = forks or ForkManager()
+        self._effect_cache = effect_cache or EffectCache()
 
     # ------------------------------------------------------------------
     # Component accessors
@@ -69,6 +72,11 @@ class SessionStore:
     @property
     def forks(self) -> ForkManager:
         return self._forks
+
+    @property
+    def effect_cache(self) -> EffectCache:
+        """Return the session-scoped :class:`EffectCache` (Phase E)."""
+        return self._effect_cache
 
     # ------------------------------------------------------------------
     # Convenience passthroughs
@@ -171,3 +179,4 @@ class SessionStore:
         self._forks = ForkManager(
             max_branches=self._forks._max_branches  # noqa: SLF001
         )
+        self._effect_cache.clear()

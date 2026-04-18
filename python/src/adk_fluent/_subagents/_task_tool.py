@@ -9,11 +9,15 @@ options.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from adk_fluent._subagents._registry import SubagentRegistry
 from adk_fluent._subagents._runner import SubagentRunner
+
+if TYPE_CHECKING:
+    from adk_fluent._harness._event_bus import EventBus
 
 __all__ = ["make_task_tool"]
 
@@ -24,6 +28,7 @@ def make_task_tool(
     *,
     context_provider: Callable[[], dict[str, Any]] | None = None,
     tool_name: str = "task",
+    bus: EventBus | None = None,
 ) -> Callable[..., str]:
     """Return a ``task`` tool callable backed by ``registry`` and ``runner``.
 
@@ -34,6 +39,10 @@ def make_task_tool(
             to pass to the runner on every invocation. Use this to
             thread the parent agent's state into subagents.
         tool_name: The name the tool function will be exposed under.
+        bus: Optional :class:`EventBus`. When provided, the tool emits
+            :class:`SubagentStarted` before the runner call and
+            :class:`SubagentCompleted` afterwards so consumers on the
+            tape can trace dynamic delegation.
 
     Returns:
         A callable with signature ``task(role: str, prompt: str) -> str``.
@@ -47,11 +56,42 @@ def make_task_tool(
             known = ", ".join(registry.roles()) or "(none)"
             return f"Error: unknown subagent role {role!r}. Known roles: {known}"
         context = context_provider() if context_provider is not None else None
+
+        if bus is not None:
+            from adk_fluent._harness._events import SubagentStarted
+
+            bus.emit(SubagentStarted(role=role, prompt=prompt[:500]))
+
+        started = time.monotonic()
         try:
             result = runner.run(spec, prompt, context)
         except Exception as exc:  # noqa: BLE001
+            if bus is not None:
+                from adk_fluent._harness._events import SubagentCompleted
+
+                bus.emit(
+                    SubagentCompleted(
+                        role=role,
+                        is_error=True,
+                        output_preview=f"Runner raised: {exc}"[:500],
+                        duration_ms=round((time.monotonic() - started) * 1000, 1),
+                    )
+                )
             return f"[{role}:error] Runner raised: {exc}"
-        return result.to_tool_output()
+
+        output = result.to_tool_output()
+        if bus is not None:
+            from adk_fluent._harness._events import SubagentCompleted
+
+            bus.emit(
+                SubagentCompleted(
+                    role=role,
+                    is_error=bool(getattr(result, "is_error", False)),
+                    output_preview=output[:500],
+                    duration_ms=round((time.monotonic() - started) * 1000, 1),
+                )
+            )
+        return output
 
     roster = registry.roster()
     task.__doc__ = (

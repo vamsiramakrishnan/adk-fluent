@@ -20,17 +20,41 @@ containers. Use :meth:`SessionStore.snapshot` / :meth:`from_snapshot`
 to move between them cleanly.
 """
 
+from adk_fluent._session._effect_cache import (
+    EffectCache,
+    EffectEntry,
+    active_cache,
+    use_cache,
+)
 from adk_fluent._session._fork import Branch, ForkManager
 from adk_fluent._session._plugin import SessionPlugin
 from adk_fluent._session._snapshot import SessionSnapshot
 from adk_fluent._session._store import SessionStore
-from adk_fluent._session._tape import SessionTape
+from adk_fluent._session._tape import Cursor, EventRecord, SessionTape
+from adk_fluent._session._tape_backend import (
+    ChainBackend,
+    InMemoryBackend,
+    JsonlBackend,
+    NullBackend,
+    TapeBackend,
+)
 
 __all__ = [
     "Branch",
+    "ChainBackend",
+    "Cursor",
+    "EffectCache",
+    "EffectEntry",
+    "EventRecord",
     "ForkManager",
+    "InMemoryBackend",
+    "JsonlBackend",
+    "NullBackend",
     "SessionPlugin",
     "SessionSnapshot",
     "SessionStore",
     "SessionTape",
+    "TapeBackend",
+    "active_cache",
+    "use_cache",
 ]

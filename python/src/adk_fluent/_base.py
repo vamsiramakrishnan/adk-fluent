@@ -71,6 +71,38 @@ def fluent(fn: Callable) -> Callable:
 # ======================================================================
 
 
+def _emit_guard_fired(
+    guard_name: str,
+    reason: str,
+    callback_context: Any,
+    *,
+    action: str = "reject",
+) -> None:
+    """Emit a ``GuardFired`` event on the ambient bus, if one is installed.
+
+    Phase H: makes every guard rejection/rewrite tape-visible without
+    plumbing an ``EventBus`` through the guard signature. Safe to call
+    before raising ``GuardViolation`` — never throws itself.
+    """
+    try:
+        from adk_fluent._harness._event_bus import emit as _emit
+        from adk_fluent._harness._events import GuardFired
+
+        agent_name = ""
+        if callback_context is not None:
+            agent_name = str(getattr(callback_context, "agent_name", "") or "")
+        _emit(
+            GuardFired(
+                guard_name=guard_name,
+                agent_name=agent_name,
+                reason=reason,
+                action=action,
+            )
+        )
+    except Exception:  # noqa: BLE001 — emit is strictly best-effort
+        return None
+
+
 def _resolve_guard_tuple(spec: tuple) -> Callable:
     """Convert a guard spec tuple into a real async ADK callback.
 
@@ -95,7 +127,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             except _json.JSONDecodeError as exc:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation("json", "post_model", f"model output is not valid JSON: {exc}") from exc
+                reason = f"model output is not valid JSON: {exc}"
+                _emit_guard_fired("json", reason, callback_context)
+                raise GuardViolation("json", "post_model", reason) from exc
             return None
 
         _guard_json.__name__ = "guard_json"
@@ -113,11 +147,15 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             if n < min_len:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation("length", "post_model", f"output too short ({n} < {min_len})")
+                reason = f"output too short ({n} < {min_len})"
+                _emit_guard_fired("length", reason, callback_context)
+                raise GuardViolation("length", "post_model", reason)
             if n > max_len:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation("length", "post_model", f"output too long ({n} > {max_len})")
+                reason = f"output too long ({n} > {max_len})"
+                _emit_guard_fired("length", reason, callback_context)
+                raise GuardViolation("length", "post_model", reason)
             return None
 
         _guard_length.__name__ = "guard_length"
@@ -140,7 +178,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             except (_json.JSONDecodeError, ValidationError) as exc:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation("output", "post_model", f"schema validation failed: {exc}") from exc
+                reason = f"schema validation failed: {exc}"
+                _emit_guard_fired("output", reason, callback_context)
+                raise GuardViolation("output", "post_model", reason) from exc
             return None
 
         _guard_output.__name__ = "guard_output"
@@ -169,9 +209,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             if _budget_used["total"] > max_tokens:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation(
-                    "budget", "post_model", f"token budget exceeded ({_budget_used['total']} > {max_tokens})"
-                )
+                reason = f"token budget exceeded ({_budget_used['total']} > {max_tokens})"
+                _emit_guard_fired("budget", reason, callback_context)
+                raise GuardViolation("budget", "post_model", reason)
             return None
 
         _guard_budget.__name__ = "guard_budget"
@@ -197,7 +237,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             if turn_count > max_n:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation("max_turns", "pre_model", f"exceeded {max_n} turns (current: {turn_count})")
+                reason = f"exceeded {max_n} turns (current: {turn_count})"
+                _emit_guard_fired("max_turns", reason, callback_context)
+                raise GuardViolation("max_turns", "pre_model", reason)
             return None
 
         _guard_max_turns.__name__ = "guard_max_turns"
@@ -221,11 +263,15 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
                 from adk_fluent._exceptions import GuardViolation
 
                 kinds = ", ".join(f.kind for f in flagged)
-                raise GuardViolation("pii", "post_model", f"detected PII ({kinds})")
+                reason = f"detected PII ({kinds})"
+                _emit_guard_fired("pii", reason, callback_context)
+                raise GuardViolation("pii", "post_model", reason)
             # action == "redact": modify response text
             redacted = text
             for f in sorted(flagged, key=lambda x: x.start, reverse=True):
                 redacted = redacted[: f.start] + replacement + redacted[f.end :]
+            kinds = ", ".join(f.kind for f in flagged)
+            _emit_guard_fired("pii", f"redacted PII ({kinds})", callback_context, action="redact")
             return _replace_response_text(llm_response, redacted)
 
         _guard_pii.__name__ = "guard_pii"
@@ -243,11 +289,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             if not result.passed or result.score >= threshold:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation(
-                    "toxicity",
-                    "post_model",
-                    f"content flagged (score={result.score:.2f}, threshold={threshold}, reason={result.reason})",
-                )
+                reason = f"content flagged (score={result.score:.2f}, threshold={threshold}, reason={result.reason})"
+                _emit_guard_fired("toxicity", reason, callback_context)
+                raise GuardViolation("toxicity", "post_model", reason)
             return None
 
         _guard_toxicity.__name__ = "guard_toxicity"
@@ -265,7 +309,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
                 if topic.lower() in text_lower:
                     from adk_fluent._exceptions import GuardViolation
 
-                    raise GuardViolation("topic", "post_model", f"denied topic '{topic}' found in output")
+                    reason = f"denied topic '{topic}' found in output"
+                    _emit_guard_fired("topic", reason, callback_context)
+                    raise GuardViolation("topic", "post_model", reason)
             return None
 
         _guard_topic.__name__ = "guard_topic"
@@ -292,9 +338,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             if not result.passed:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation(
-                    "grounded", "post_model", f"content not grounded (score={result.score:.2f}, reason={result.reason})"
-                )
+                reason = f"content not grounded (score={result.score:.2f}, reason={result.reason})"
+                _emit_guard_fired("grounded", reason, callback_context)
+                raise GuardViolation("grounded", "post_model", reason)
             return None
 
         _guard_grounded.__name__ = "guard_grounded"
@@ -317,11 +363,9 @@ def _resolve_guard_tuple(spec: tuple) -> Callable:
             if not result.passed or result.score >= threshold:
                 from adk_fluent._exceptions import GuardViolation
 
-                raise GuardViolation(
-                    "hallucination",
-                    "post_model",
-                    f"content flagged (score={result.score:.2f}, threshold={threshold}, reason={result.reason})",
-                )
+                reason = f"content flagged (score={result.score:.2f}, threshold={threshold}, reason={result.reason})"
+                _emit_guard_fired("hallucination", reason, callback_context)
+                raise GuardViolation("hallucination", "post_model", reason)
             return None
 
         _guard_hallucination.__name__ = "guard_hallucination"

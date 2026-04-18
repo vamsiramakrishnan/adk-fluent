@@ -301,10 +301,10 @@ Agent integration:
   C.withUi({surfaceId})        — include UI state in context
 ## Harness sub-packages (H namespace building blocks)
 
-The ``H`` namespace is a thin façade over nine focused sub-packages that
+The ``H`` namespace is a thin façade over ten focused sub-packages that
 implement the AI-coding harness runtime (hooks, permissions, plan mode,
-session tape, subagents, usage, budget, compression, fs).  Every type is
-re-exported at the package root::
+session tape, reactor, subagents, usage, budget, compression, fs).
+Every type is re-exported at the package root::
 
     import {
       H,                                                  // façade
@@ -312,14 +312,19 @@ re-exported at the package root::
       PermissionMode, PermissionPolicy, PermissionPlugin, // permissions
       PlanMode, PlanModePolicy, PlanModePlugin,           // planMode
       SessionTape, SessionStore, SessionSnapshot,
-      SessionPlugin, ForkManager, Branch,                 // session
+      SessionPlugin, ForkManager, Branch,
+      EventRecord, Cursor, TapeBackend,
+      InMemoryBackend, JsonlBackend, NullBackend, ChainBackend, // session
+      Signal, SignalPredicate, Reactor, ReactorRule,      // reactor
+      AgentToken, TokenRegistry, WorkflowLifecyclePlugin, // harness
       SubagentSpec, SubagentRegistry, SubagentResult,
       SubagentRunner, FakeSubagentRunner, makeTaskTool,   // subagents
       TurnUsage, AgentUsage, UsageTracker, UsagePlugin,
       CostTable, ModelRate,                               // usage
       BudgetMonitor, BudgetPolicy, BudgetPlugin, Threshold, // budget
       CompressionStrategy, ContextCompressor,             // compression
-      FsBackend, LocalBackend, MemoryBackend, SandboxedBackend, // fs
+      FsBackend, FsStat, FsEntry,
+      LocalBackend, MemoryBackend, SandboxedBackend, SandboxViolation, // fs
     } from "adk-fluent-ts";
 
 ### hooks — unified hook foundation
@@ -402,17 +407,31 @@ a policy wrapper and ADK plugin::
   MUTATING_TOOLS               — frozen set of tool names classified as
                                  mutating (writeFile, editFile, bash, …)
 
-### session — tape + fork + store
+### session — tape + fork + store (durable event log)
 
-Session-scoped event recording plus named state branches::
+Session-scoped event recording plus named state branches. Every entry
+carries a monotonic ``seq``; consumers read with ``since(n)`` or follow
+live writes with async ``tail(fromSeq)``::
 
     const store  = H.sessionStore({ maxEvents: 100, maxBranches: 10 });
     const plugin = H.sessionPlugin(store);
     store.fork("before-refactor", { draft: "v1" });
 
-  SessionTape                  — JSONL event recorder/replayer.
-                                 .record(event) / .events / .filter(kind)
-                                 .save(path) / .load(path) / .summary()
+  SessionTape                  — durable event recorder/replayer.
+                                 .record(event) → stamps seq; .head,
+                                 .since({fromSeq}), async ``tail({fromSeq})``
+                                 (async iterator), .filter(kind)
+                                 .save(path) / .load(path) / .summary().
+                                 Optional ``backend`` option mirrors writes
+                                 to a pluggable TapeBackend.
+  EventRecord / Cursor         — typed aliases for tape entries and seq ints
+  TapeBackend                  — Protocol: append(entry). Persistence
+                                 adapter layer; exceptions never block the
+                                 tape.
+  InMemoryBackend              — deque mirror for tests / replay parity
+  JsonlBackend({path, truncate}) — one-event-per-line JSONL file
+  NullBackend                  — drops every write (``/dev/null``)
+  ChainBackend([a, b, …])      — fan out to multiple backends
   Branch                       — immutable record of a named snapshot
   ForkManager                  — named branches with merge + diff.
                                  .fork(name, state) / .switch(name)
@@ -427,6 +446,72 @@ Session-scoped event recording plus named state branches::
                                  .save(path) / .load(path)
   SessionPlugin                — ADK plugin that auto-forks after every
                                  agent via afterAgent callback
+
+### reactor — reactive signals over the durable tape
+
+Turns the durable tape into something agents can collaborate on: typed
+state cells (signals), declarative triggers (predicates), priority
+scheduling, and cooperative interrupts with a resume cursor::
+
+    import { Signal, Reactor } from "adk-fluent-ts";
+    const temp = new Signal("temp", 72.0).attach(bus);
+    const r = new Reactor();
+    r.when(temp.rising.where((v) => (v as number) > 90),
+           alertOps, { priority: 10 });
+    r.start();
+
+  Signal                       — typed state cell. .get() / .set(v, {force})
+                                 / .update(fn) / .version /
+                                 .subscribe(fn) → unsubscribe /
+                                 .attach(bus). Equal-to-current writes
+                                 are no-ops unless ``force: true``.
+  SignalPredicate              — declarative trigger. signal.changed /
+                                 .rising / .falling / .is(value). Compose
+                                 with ``a.and(b)``, ``a.or(b)``, ``a.not()``,
+                                 ``.where(fn)``, ``.debounce(ms)``,
+                                 ``.throttle(ms)``.
+  Reactor                      — scheduler of (predicate, handler, options)
+                                 rules. .when(pred, fn, {priority,
+                                 preemptive, agentName}) / .start() /
+                                 .stop(). Rules ordered by priority
+                                 (lower wins).
+  ReactorRule                  — frozen rule record returned by .when().
+  AgentToken                   — per-agent cancellation token extending
+                                 CancellationToken with ``agentName`` and
+                                 ``resumeCursor``; cancelWithCursor(c)
+                                 atomic cancel + resume record.
+  TokenRegistry                — keyed container of AgentTokens; install()
+                                 swaps live tokens while preserving in-flight
+                                 closures; .cancel(name, {resumeCursor}),
+                                 .reset(name) / .resetAll().
+  WorkflowLifecyclePlugin      — ADK plugin that emits StepStarted/Completed,
+                                 IterationStarted/Completed, BranchStarted/
+                                 Completed, SubagentStarted/Completed, and
+                                 AttemptFailed events for Pipeline/Loop/FanOut
+                                 nodes.
+
+### durable events (cross-cutting)
+
+The same tape powers streaming replay, multi-consumer fanout, and
+crash-safe audit. These entry points live on ``adk-fluent-ts`` directly
+because they span session + helpers + harness events::
+
+    for await (const chunk of streamFromCursor(builder, { cursor: 42 })) {
+      console.log(chunk);
+    }
+
+  streamFromCursor(builder, {cursor})
+                               — replay ``tape.since(cursor)`` text chunks
+                                 then switch to live ``tape.tail()``. Lets
+                                 a dropped SSE connection pick up where it
+                                 left off without re-running the LLM.
+  HarnessEvent subtypes         — SignalChanged, Interrupted, StepStarted,
+                                 StepCompleted, IterationStarted,
+                                 IterationCompleted, BranchStarted,
+                                 BranchCompleted, SubagentStarted,
+                                 SubagentCompleted, AttemptFailed. All
+                                 frozen, recorded onto the tape via the
+                                 event bus when plugins are wired.
 
 ### subagents — dynamic spawner + task tool
 
@@ -529,19 +614,28 @@ rewrites the persistent message history when it crosses a threshold::
 
 Factors the workspace tools' filesystem calls behind a small Protocol
 so tools can be unit-tested without a real disk and re-targeted at
-in-memory or remote storage::
+in-memory or remote storage. See the
+[fs](user-guide/fs.md) user-guide page for the full cookbook::
 
-    const backend = H.fsSandboxed(H.fsMemory(), H.workspaceOnly("/tmp/ws"));
+    const backend = new SandboxedBackend(new MemoryBackend(), sandbox);
     const tools   = workspaceTools({ sandbox, backend });
 
-  FsBackend                    — Protocol: exists, stat, readText,
+  FsBackend                    — interface: exists, stat, readText,
                                  readBytes, writeText, writeBytes,
                                  delete_, mkdir, listDir, iterFiles, glob
-  LocalBackend                 — real on-disk I/O
-  MemoryBackend                — dict-backed fake for tests + ephemeral
-                                 scratch workspaces
-  SandboxedBackend             — decorator wrapping any backend with a
-                                 SandboxPolicy; refuses escapes
+  FsStat                       — { path, size, isDir, isFile, mtime }
+  FsEntry                      — { name, path, isDir, isFile } (per
+                                 ``listDir`` result)
+  LocalBackend                 — real on-disk I/O via Node ``fs``
+  MemoryBackend(files?)        — dict-backed fake for tests + ephemeral
+                                 scratch workspaces; POSIX semantics
+                                 regardless of host OS.
+  SandboxedBackend(inner, policy)
+                               — decorator wrapping any backend with a
+                                 SandboxPolicy; refuses escapes.
+  SandboxViolation             — Error subclass raised when a path is
+                                 rejected; workspace tool shims surface
+                                 it as a "path outside workspace" string.
 ## Builder inventory
 
 135 builders across 9 modules.

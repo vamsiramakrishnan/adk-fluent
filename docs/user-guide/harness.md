@@ -59,12 +59,13 @@ Each package has a dedicated user-guide page with the full cookbook:
 | `adk_fluent._hooks` | [hooks](hooks.md) | 12-event registry with `HookDecision` allow/deny/modify/replace/ask/inject and shell-command hooks |
 | `adk_fluent._permissions` | [permissions](permissions.md) | 5-mode `PermissionPolicy` (default/accept_edits/plan/bypass/dont_ask), `ApprovalMemory`, `PermissionPlugin` |
 | `adk_fluent._plan_mode` | [plan-mode](plan-mode.md) | `PlanMode` latch + `enter_plan_mode`/`exit_plan_mode` tool pair + `PlanModePolicy` + `PlanModePlugin` |
-| `adk_fluent._session` | [session](session.md) | `SessionTape` (JSONL record/replay), `ForkManager` (named branches, merge, diff), `SessionStore`, `SessionSnapshot`, `SessionPlugin` |
+| `adk_fluent._session` | [session](session.md) · [durable-events](durable-events.md) | `SessionTape` with seq/cursor/async `tail()`, pluggable `TapeBackend` (JSONL/InMemory/Null/Chain), `ForkManager`, `SessionStore`, `SessionSnapshot`, `SessionPlugin`, `stream_from_cursor`, workflow lifecycle events |
+| `adk_fluent._reactor` | [reactor](reactor.md) | `Signal` + `SignalPredicate` + `Reactor` -- reactive state cells over the tape with priority scheduling, preemption, and per-agent `AgentToken` / `TokenRegistry` |
 | `adk_fluent._subagents` | [subagents](subagents.md) | Runtime-decided specialist dispatch — `SubagentSpec`/`Registry`/`Runner` and `make_task_tool` |
 | `adk_fluent._usage` | [usage](usage.md) | `TurnUsage`/`AgentUsage`/`UsageTracker` with a frozen `CostTable` + `UsagePlugin` |
 | `adk_fluent._budget` | [budget](budget.md) | `BudgetPolicy` + `BudgetMonitor` + `Threshold` + `BudgetPlugin` |
 | `adk_fluent._compression` | [compression](compression.md) | `ContextCompressor` + `CompressionStrategy` with `pre_compact` hook integration |
-| `adk_fluent._fs` | [execution](execution.md) | `FsBackend` Protocol + `LocalBackend`/`MemoryBackend`/`SandboxedBackend` for pluggable filesystem |
+| `adk_fluent._fs` | [fs](fs.md) | `FsBackend` Protocol + `LocalBackend`/`MemoryBackend`/`SandboxedBackend` + `workspace_tools_with_backend` -- retargetable, sandbox-safe filesystem layer behind every workspace tool |
 
 All types are re-exported at the top level so you never have to reach
 into a private module:

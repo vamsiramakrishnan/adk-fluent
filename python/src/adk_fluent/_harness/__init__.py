@@ -89,17 +89,31 @@ from adk_fluent._harness._error_strategy import ErrorStrategy, make_error_callba
 from adk_fluent._harness._event_bus import EventBus
 from adk_fluent._harness._events import (
     ArtifactSaved,
+    AttemptFailed,
+    BranchCompleted,
+    BranchStarted,
     CapabilityLoaded,
     CompressionTriggered,
+    EffectRecorded,
     ErrorOccurred,
+    EvalEvent,
     FileEdited,
     GitCheckpoint,
+    GuardFired,
     HarnessEvent,
     HookFired,
+    Interrupted,
+    IterationCompleted,
+    IterationStarted,
     ManifoldFinalized,
     PermissionRequest,
     PermissionResult,
     ProcessEvent,
+    SignalChanged,
+    StepCompleted,
+    StepStarted,
+    SubagentCompleted,
+    SubagentStarted,
     TaskEvent,
     TextChunk,
     ToolCallEnd,
@@ -119,7 +133,9 @@ from adk_fluent._harness._gitignore import GitignoreMatcher, load_gitignore
 
 # Interrupt
 from adk_fluent._harness._interrupt import (
+    AgentToken,
     CancellationToken,
+    TokenRegistry,
     TurnSnapshot,
     make_cancellation_callback,
 )
@@ -193,6 +209,9 @@ from adk_fluent._harness._tools import (
 # Web tools
 from adk_fluent._harness._web import make_web_fetch, web_tools
 
+# Workflow lifecycle events (Phase C)
+from adk_fluent._harness._workflow_events import WorkflowLifecyclePlugin
+
 # Hooks — unified foundation lives in adk_fluent._hooks
 from adk_fluent._hooks import (
     HookAction,
@@ -234,6 +253,10 @@ from adk_fluent._plan_mode import (
 # Session tape + store (now lives in adk_fluent._session, re-exported here)
 from adk_fluent._session import (
     Branch,
+    Cursor,
+    EffectCache,
+    EffectEntry,
+    EventRecord,
     ForkManager,
     SessionPlugin,
     SessionSnapshot,
@@ -285,6 +308,24 @@ __all__ = [
     "TaskEvent",
     "CapabilityLoaded",
     "ManifoldFinalized",
+    # Workflow lifecycle (Phase C)
+    "StepStarted",
+    "StepCompleted",
+    "IterationStarted",
+    "IterationCompleted",
+    "BranchStarted",
+    "BranchCompleted",
+    "SubagentStarted",
+    "SubagentCompleted",
+    "AttemptFailed",
+    "WorkflowLifecyclePlugin",
+    # Signals + interrupt (Phase F/G placeholders)
+    "SignalChanged",
+    "Interrupted",
+    # Cross-namespace emitters (Phase H)
+    "GuardFired",
+    "EvalEvent",
+    "EffectRecorded",
     # Event bus
     "EventBus",
     # Budget monitor
@@ -359,6 +400,8 @@ __all__ = [
     "MemoryHierarchy",
     # Interrupt
     "CancellationToken",
+    "AgentToken",
+    "TokenRegistry",
     "TurnSnapshot",
     "make_cancellation_callback",
     # Fork
@@ -430,9 +473,13 @@ __all__ = [
     "HarnessRepl",
     "ReplConfig",
     # Session tape
+    "Cursor",
+    "EventRecord",
     "SessionTape",
     "SessionStore",
     "SessionSnapshot",
+    "EffectCache",
+    "EffectEntry",
     "SessionPlugin",
     # Commands
     "CommandRegistry",
