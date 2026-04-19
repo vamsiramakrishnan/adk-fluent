@@ -86,7 +86,7 @@ Violating a boundary means a build-time error.
 | Family       | Keyset                                                            |
 |--------------|-------------------------------------------------------------------|
 | color (raw)  | `color.<family>.1..12` for neutral / brand / success / warning / danger / info |
-| color (alias)| `color.bg.{canvas,subtle,surface}`, `color.border.{default,focus,danger}`, `color.text.{primary,muted,onBrand,danger,link}`, `color.primary.{solid,solidHover,subtle,subtleHover}` |
+| color (alias)| `color.bg.{canvas,subtle,surface}`, `color.border.{default,focus,danger}`, `color.text.{primary,muted,onBrand,danger,link}`, `color.primary.{solid,solidHover,subtle,subtleHover}`, `color.danger.{solid,solidHover,subtle,subtleHover}`, `color.success.{solid,solidHover,subtle,subtleHover}` |
 | space        | 0, 0_5, 1, 1_5, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24 (4-px grid + half steps) |
 | radius       | none, xs, sm, md, lg, xl, 2xl, full                               |
 | shadow       | none, sm, md, lg, xl, focus                                       |
