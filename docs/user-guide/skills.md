@@ -516,8 +516,8 @@ All operators: `>>` (pipeline), `|` (parallel), `*` (loop), `//` (fallback), `@`
 
 ## Cookbook Examples
 
-See [Example 77 -- Skill-Based Agents](../../examples/cookbook/77_skill_based_agents.py) for 12 runnable patterns covering all the concepts above.
+See [Example 77 -- Skill-Based Agents](../../python/examples/cookbook/77_skill_based_agents.py) for 12 runnable patterns covering all the concepts above.
 
 Example skill files:
-- [`examples/skills/research_pipeline/SKILL.md`](../../examples/skills/research_pipeline/SKILL.md) -- Sequential pipeline
-- [`examples/skills/code_reviewer/SKILL.md`](../../examples/skills/code_reviewer/SKILL.md) -- Parallel fan-out with merge
+- [`python/examples/skills/research_pipeline/SKILL.md`](../../python/examples/skills/research_pipeline/SKILL.md) -- Sequential pipeline
+- [`python/examples/skills/code_reviewer/SKILL.md`](../../python/examples/skills/code_reviewer/SKILL.md) -- Parallel fan-out with merge

@@ -40,6 +40,7 @@ App(name: str, root_agent: BaseAgent)
 
 ### Configuration
 
+(method-App-plugin)=
 #### `.plugin(value: BasePlugin) -> Self` {bdg-info}`Configuration`
 
 Append to `plugins` (lazy — built at .build() time).
@@ -52,6 +53,7 @@ app = App("app").plugin("...")
 
 ### Control Flow & Execution
 
+(method-App-build)=
 #### `.build() -> App` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK App.
@@ -95,6 +97,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-InMemoryRunner-build)=
 #### `.build() -> InMemoryRunner` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemoryRunner.
@@ -149,6 +152,7 @@ Runner(session_service: BaseSessionService)
 
 ### Control Flow & Execution
 
+(method-Runner-build)=
 #### `.build() -> Runner` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK Runner.

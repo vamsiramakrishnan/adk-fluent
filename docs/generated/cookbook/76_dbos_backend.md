@@ -24,8 +24,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `76_dbos_backend.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 from adk_fluent.backends.dbos_backend import DBOSBackend, DBOSRunnable
@@ -116,5 +114,3 @@ print("  Cost savings: 67%")
 
 print("\nAll assertions passed!")
 ```
-:::
-::::

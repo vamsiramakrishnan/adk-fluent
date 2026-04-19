@@ -152,6 +152,31 @@ JavaScript has no operator overloading, so the TypeScript package replaces every
 | `Route("key").eq(...)`         | Branch             | Deterministic routing    |
 | `S.pick(...)`, `S.rename(...)` | State transforms   | Dict operations via `>>` |
 
+## Reading an expression
+
+Operators follow **Python's** precedence, which does not match reading order. In a mixed expression, `*` binds tighter than `@`, which binds tighter than `//`, which binds tighter than `|`, which binds tighter than `>>`.
+
+```{mermaid}
+flowchart LR
+    T1[tightest] --> P1["*<br/>loop"]
+    P1 --> P2["@<br/>typed output"]
+    P2 --> P3["//<br/>fallback"]
+    P3 --> P4["|<br/>parallel"]
+    P4 --> P5["&gt;&gt;<br/>sequence"]
+    P5 --> T2[loosest]
+
+    classDef a fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    classDef op fill:#fff3e0,stroke:#e65100,color:#bf360c
+    class T1,T2 a
+    class P1,P2,P3,P4,P5 op
+```
+
+Practical consequence: `a | b >> c` is `(a | b) >> c` — the parallel block runs, then `c`. And `a >> b @ Schema` is `a >> (b @ Schema)` — only `b` is constrained. When in doubt, add parens; they are never wrong.
+
+:::{tip} The "outer" operator is where to start reading
+Read expressions from the outermost operator inward. `>>` chains usually frame the whole pipeline, with `|`, `//`, `*`, and `@` nested inside the steps.
+:::
+
 ## Immutability
 
 All operators produce new expression objects. Sub-expressions can be safely reused:

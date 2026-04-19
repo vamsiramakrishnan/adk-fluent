@@ -8,7 +8,7 @@ hide-toc: true
 <div class="hero-section">
   <h1>adk-fluent</h1>
   <p class="hero-tagline">
-    Fluent builder API for Google ADK. 22 lines &rarr; 3 lines. Same native objects.
+    Fluent builder API for Google ADK. One agent in 1 line, one pipeline in 3, any topology in an expression. Same native objects at <code>.build()</code>.
   </p>
 
   <div class="badges">
@@ -102,7 +102,7 @@ hide-toc: true
 </div>
 ```
 
-## Your first agent — three lines
+## Your first agent — one line
 
 ::::{tab-set}
 :::{tab-item} adk-fluent — Python
@@ -112,6 +112,7 @@ hide-toc: true
 from adk_fluent import Agent
 
 answer = Agent("helper", "gemini-2.5-flash").ask("Say hello.")
+# => "Hi! How can I help?"
 ```
 :::
 :::{tab-item} adk-fluent — TypeScript
@@ -121,17 +122,15 @@ answer = Agent("helper", "gemini-2.5-flash").ask("Say hello.")
 import { Agent } from "adk-fluent-ts";
 
 const answer = await new Agent("helper", "gemini-2.5-flash").ask("Say hello.");
-```
-:::
-:::{tab-item} Native ADK
-```python
-# See the "22 lines" tab below for the native equivalent of the pipeline sample.
+// => "Hi! How can I help?"
 ```
 :::
 ::::
 
-That is the complete code. When you are ready to compose multiple agents in
-parallel or in sequence, scroll to *Pipeline flex* below.
+No builder boilerplate, no `Runner`, no `Session` — `.ask()` handles it
+for one-shot calls. Ready for more? *Pipeline flex* below shows the
+same fluent API doing sequential + parallel + context filtering in
+three lines (vs twenty-two in native ADK).
 
 ## Pipeline flex — when you need more
 

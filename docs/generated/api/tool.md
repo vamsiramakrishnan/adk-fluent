@@ -76,6 +76,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ActiveStreamingTool-build)=
 #### `.build() -> ActiveStreamingTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ActiveStreamingTool.
@@ -127,6 +128,7 @@ AgentTool(agent: BaseAgent)
 
 ### Control Flow & Execution
 
+(method-AgentTool-build)=
 #### `.build() -> AgentTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentTool.
@@ -178,6 +180,7 @@ APIHubToolset(apihub_resource_name: str)
 
 ### Control Flow & Execution
 
+(method-APIHubToolset-build)=
 #### `.build() -> APIHubToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK APIHubToolset.
@@ -237,6 +240,7 @@ ApplicationIntegrationToolset(project: str, location: str)
 
 ### Control Flow & Execution
 
+(method-ApplicationIntegrationToolset-build)=
 #### `.build() -> ApplicationIntegrationToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ApplicationIntegrationToolset.
@@ -300,6 +304,7 @@ IntegrationConnectorTool(name: str, description: str, connection_name: str)
 
 ### Control Flow & Execution
 
+(method-IntegrationConnectorTool-build)=
 #### `.build() -> IntegrationConnectorTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK IntegrationConnectorTool.
@@ -358,6 +363,7 @@ BaseAuthenticatedTool(name: Any, description: Any)
 
 ### Control Flow & Execution
 
+(method-BaseAuthenticatedTool-build)=
 #### `.build() -> BaseAuthenticatedTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseAuthenticatedTool.
@@ -410,6 +416,7 @@ BaseTool(name: Any, description: Any)
 
 ### Control Flow & Execution
 
+(method-BaseTool-build)=
 #### `.build() -> BaseTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseTool.
@@ -451,6 +458,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BaseToolset-build)=
 #### `.build() -> BaseToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseToolset.
@@ -492,6 +500,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BigQueryToolset-build)=
 #### `.build() -> BigQueryToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigQueryToolset.
@@ -534,6 +543,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BigtableToolset-build)=
 #### `.build() -> BigtableToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigtableToolset.
@@ -587,6 +597,7 @@ ComputerUseTool(func: Callable[..., Any], screen_size: tuple[int, int])
 
 ### Control Flow & Execution
 
+(method-ComputerUseTool-build)=
 #### `.build() -> ComputerUseTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ComputerUseTool.
@@ -637,6 +648,7 @@ ComputerUseToolset(computer: BaseComputer)
 
 ### Control Flow & Execution
 
+(method-ComputerUseToolset-build)=
 #### `.build() -> ComputerUseToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ComputerUseToolset.
@@ -669,6 +681,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-DataAgentToolset-build)=
 #### `.build() -> DataAgentToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DataAgentToolset.
@@ -711,6 +724,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-DiscoveryEngineSearchTool-build)=
 #### `.build() -> DiscoveryEngineSearchTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DiscoveryEngineSearchTool.
@@ -755,6 +769,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-EnterpriseWebSearchTool-build)=
 #### `.build() -> EnterpriseWebSearchTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK EnterpriseWebSearchTool.
@@ -797,6 +812,7 @@ ExampleTool(examples: list[Example] | BaseExampleProvider)
 
 ### Control Flow & Execution
 
+(method-ExampleTool-build)=
 #### `.build() -> ExampleTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ExampleTool.
@@ -839,6 +855,7 @@ FunctionTool(func: Callable[..., Any])
 
 ### Control Flow & Execution
 
+(method-FunctionTool-build)=
 #### `.build() -> FunctionTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK FunctionTool.
@@ -889,6 +906,7 @@ GoogleApiTool(rest_api_tool: RestApiTool)
 
 ### Control Flow & Execution
 
+(method-GoogleApiTool-build)=
 #### `.build() -> GoogleApiTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GoogleApiTool.
@@ -943,6 +961,7 @@ GoogleApiToolset(api_name: str, api_version: str)
 
 ### Control Flow & Execution
 
+(method-GoogleApiToolset-build)=
 #### `.build() -> GoogleApiToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GoogleApiToolset.
@@ -988,6 +1007,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-CalendarToolset-build)=
 #### `.build() -> CalendarToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK CalendarToolset.
@@ -1032,6 +1052,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-DocsToolset-build)=
 #### `.build() -> DocsToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DocsToolset.
@@ -1076,6 +1097,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-GmailToolset-build)=
 #### `.build() -> GmailToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GmailToolset.
@@ -1120,6 +1142,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-SheetsToolset-build)=
 #### `.build() -> SheetsToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SheetsToolset.
@@ -1164,6 +1187,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-SlidesToolset-build)=
 #### `.build() -> SlidesToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SlidesToolset.
@@ -1208,6 +1232,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-YoutubeToolset-build)=
 #### `.build() -> YoutubeToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK YoutubeToolset.
@@ -1252,6 +1277,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-GoogleMapsGroundingTool-build)=
 #### `.build() -> GoogleMapsGroundingTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GoogleMapsGroundingTool.
@@ -1294,6 +1320,7 @@ GoogleSearchAgentTool(agent: LlmAgent)
 
 ### Control Flow & Execution
 
+(method-GoogleSearchAgentTool-build)=
 #### `.build() -> GoogleSearchAgentTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GoogleSearchAgentTool.
@@ -1326,6 +1353,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-GoogleSearchTool-build)=
 #### `.build() -> GoogleSearchTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GoogleSearchTool.
@@ -1377,6 +1405,7 @@ GoogleTool(func: Callable[..., Any])
 
 ### Control Flow & Execution
 
+(method-GoogleTool-build)=
 #### `.build() -> GoogleTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GoogleTool.
@@ -1418,6 +1447,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-LoadArtifactsTool-build)=
 #### `.build() -> LoadArtifactsTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoadArtifactsTool.
@@ -1460,6 +1490,7 @@ LoadMcpResourceTool(mcp_toolset: McpToolset)
 
 ### Control Flow & Execution
 
+(method-LoadMcpResourceTool-build)=
 #### `.build() -> LoadMcpResourceTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoadMcpResourceTool.
@@ -1492,6 +1523,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-LoadMemoryTool-build)=
 #### `.build() -> LoadMemoryTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoadMemoryTool.
@@ -1534,6 +1566,7 @@ LongRunningFunctionTool(func: Callable)
 
 ### Control Flow & Execution
 
+(method-LongRunningFunctionTool-build)=
 #### `.build() -> LongRunningFunctionTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LongRunningFunctionTool.
@@ -1577,6 +1610,7 @@ MCPTool(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-MCPTool-build)=
 #### `.build() -> MCPTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK MCPTool.
@@ -1620,6 +1654,7 @@ McpTool(mcp_tool: McpBaseTool, mcp_session_manager: MCPSessionManager)
 
 ### Control Flow & Execution
 
+(method-McpTool-build)=
 #### `.build() -> McpTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK McpTool.
@@ -1675,6 +1710,7 @@ MCPToolset(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-MCPToolset-build)=
 #### `.build() -> MCPToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK MCPToolset.
@@ -1717,6 +1753,7 @@ McpToolset(connection_params: StdioServerParameters | StdioConnectionParams | Ss
 
 ### Control Flow & Execution
 
+(method-McpToolset-build)=
 #### `.build() -> McpToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK McpToolset.
@@ -1765,6 +1802,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-OpenAPIToolset-build)=
 #### `.build() -> OpenAPIToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK OpenAPIToolset.
@@ -1826,6 +1864,7 @@ RestApiTool(name: str, description: str, endpoint: OperationEndpoint | str)
 
 ### Control Flow & Execution
 
+(method-RestApiTool-build)=
 #### `.build() -> RestApiTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK RestApiTool.
@@ -1872,6 +1911,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-PreloadMemoryTool-build)=
 #### `.build() -> PreloadMemoryTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PreloadMemoryTool.
@@ -1904,6 +1944,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-PubSubToolset-build)=
 #### `.build() -> PubSubToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PubSubToolset.
@@ -1957,6 +1998,7 @@ BaseRetrievalTool(name: Any, description: Any)
 
 ### Control Flow & Execution
 
+(method-BaseRetrievalTool-build)=
 #### `.build() -> BaseRetrievalTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseRetrievalTool.
@@ -2008,6 +2050,7 @@ SetModelResponseTool(output_schema: type[BaseModel])
 
 ### Control Flow & Execution
 
+(method-SetModelResponseTool-build)=
 #### `.build() -> SetModelResponseTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SetModelResponseTool.
@@ -2050,6 +2093,7 @@ LoadSkillResourceTool(toolset: 'SkillToolset')
 
 ### Control Flow & Execution
 
+(method-LoadSkillResourceTool-build)=
 #### `.build() -> LoadSkillResourceTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoadSkillResourceTool.
@@ -2092,6 +2136,7 @@ LoadSkillTool(toolset: 'SkillToolset')
 
 ### Control Flow & Execution
 
+(method-LoadSkillTool-build)=
 #### `.build() -> LoadSkillTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoadSkillTool.
@@ -2134,6 +2179,7 @@ SkillToolset(skills: list[models.Skill])
 
 ### Control Flow & Execution
 
+(method-SkillToolset-build)=
 #### `.build() -> SkillToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SkillToolset.
@@ -2166,6 +2212,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-SpannerToolset-build)=
 #### `.build() -> SpannerToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SpannerToolset.
@@ -2219,6 +2266,7 @@ ToolboxToolset(server_url: str, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-ToolboxToolset-build)=
 #### `.build() -> ToolboxToolset` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ToolboxToolset.
@@ -2274,6 +2322,7 @@ TransferToAgentTool(agent_names: list[str])
 
 ### Control Flow & Execution
 
+(method-TransferToAgentTool-build)=
 #### `.build() -> TransferToAgentTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK TransferToAgentTool.
@@ -2306,6 +2355,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-UrlContextTool-build)=
 #### `.build() -> UrlContextTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK UrlContextTool.
@@ -2338,6 +2388,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-VertexAiSearchTool-build)=
 #### `.build() -> VertexAiSearchTool` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiSearchTool.

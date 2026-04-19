@@ -18,8 +18,6 @@ How to use operator syntax for composing agents.
 
 _Source: `62_m_module_composition.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._middleware import M, MComposite
@@ -215,5 +213,3 @@ assert len(conditional_timeout) == 1
 
 print("All M module composition assertions passed!")
 ```
-:::
-::::

@@ -18,8 +18,6 @@ How to attach tools to an agent using the fluent API.
 
 _Source: `71_compute_layer.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent.compute import ComputeConfig
@@ -124,8 +122,6 @@ async def demo_tool_runtime():
 
 asyncio.run(demo_tool_runtime())
 ```
-:::
-::::
 
 ## Equivalence
 

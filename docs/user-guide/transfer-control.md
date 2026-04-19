@@ -125,6 +125,44 @@ All four combinations of the two flags, the fluent shorthand that sets them, and
 |            `False`            |            `True`            |  `.no_peers()`   | **Parent only.** Agent can transfer back to parent but not to siblings. The coordinator decides all lateral routing. |
 |            `True`             |            `True`            |   `.isolate()`   | **Isolated.** No outbound transfers. Agent completes its task and control returns to parent automatically.           |
 
+Visually, the four control states shape these topologies:
+
+```{mermaid}
+flowchart TB
+    subgraph default[default — full transfer]
+        P1[parent] -->|allowed| C1[child]
+        C1 -.allowed.-> P1
+        C1 <-.allowed.-> S1[peer]
+    end
+    subgraph stay[stay — peers only]
+        P2[parent] -->|allowed| C2[child]
+        C2 x-.blocked.- P2
+        C2 <-.allowed.-> S2[peer]
+    end
+    subgraph noPeers[no_peers — parent only]
+        P3[parent] -->|allowed| C3[child]
+        C3 -.allowed.-> P3
+        C3 x-.blocked.- S3[peer]
+    end
+    subgraph isolate[isolate — dead-end]
+        P4[parent] -->|allowed| C4[child]
+        C4 x-.blocked.- P4
+        C4 x-.blocked.- S4[peer]
+    end
+
+    classDef blocked stroke:#c62828,stroke-dasharray:4 2,color:#b71c1c
+    classDef allowed stroke:#2e7d32,color:#1b5e20
+```
+
+### Decision rule: which flag do I want?
+
+Ask the agent this in sequence — stop at the first *yes*:
+
+1. Should the agent finish its task and hand control back? → **`.isolate()`** (the 80% case for specialists)
+2. Should the agent chain to the next peer but stay away from the coordinator? → **`.stay()`**
+3. Should the agent only answer back to the coordinator and never wander laterally? → **`.no_peers()`**
+4. Should the agent stay conversational and negotiate its own routing? → **no flag** (default)
+
 ## Choosing the Right Method
 
 Agents can be connected in several ways depending on the execution pattern you need. This table summarizes the builder methods for adding agents to different topologies:

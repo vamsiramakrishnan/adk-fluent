@@ -15,8 +15,6 @@ How to use operator syntax for composing agents.
 
 _Source: `72_a2ui_operators.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent._ui import UI, UIComponent, UISurface, compile_surface
 
@@ -70,5 +68,3 @@ assert grid_row._kind == "Row"
 
 print("All A2UI operator assertions passed!")
 ```
-:::
-::::

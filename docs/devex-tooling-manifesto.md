@@ -334,7 +334,7 @@ Located in `.claude/skills/` and `.gemini/skills/`. Activate automatically based
 | `/add-cookbook` | `.claude/skills/add-cookbook/SKILL.md` | Example scaffolding. Creates runnable pytest files that serve as both documentation and test. |
 | `/debug-builder` | `.claude/skills/debug-builder/SKILL.md` | Systematic debugging. `.explain()` → `.diagnose()` → `.doctor()` → fix. |
 
-#### Maintenance
+#### Skill maintenance
 
 | Skill | File | Why it exists |
 |-------|------|---------------|

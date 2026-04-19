@@ -15,8 +15,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `74_a2ui_pipeline.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, S
 from adk_fluent._context import C
@@ -72,8 +70,6 @@ renderer = (
 
 print("All A2UI pipeline assertions passed!")
 ```
-:::
-::::
 
 :::{seealso}
 API reference: [Pipeline](../api/workflow.md#builder-Pipeline)

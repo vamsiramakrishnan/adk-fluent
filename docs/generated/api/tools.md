@@ -6,24 +6,25 @@ Fluent tool composition. Consistent with P, C, S, M modules.
 
 ## Quick Reference
 
-| Method                                                              | Returns      | Description                                                  |
-| ------------------------------------------------------------------- | ------------ | ------------------------------------------------------------ |
-| `T.fn(func_or_tool, confirm=False)`                                 | `TComposite` | Wrap a callable as a tool                                    |
-| `T.agent(agent_or_builder)`                                         | `TComposite` | Wrap an agent (or builder) as an AgentTool                   |
-| `T.toolset(ts)`                                                     | `TComposite` | Wrap any ADK toolset (MCPToolset, etc.)                      |
-| `T.google_search()`                                                 | `TComposite` | Google Search tool                                           |
-| `T.search(registry, always_loaded=None, max_tools=20)`              | `TComposite` | BM25-indexed dynamic tool loading (two-phase pattern)        |
-| `T.schema(schema_cls)`                                              | `TComposite` | Attach a ToolSchema for contract checking                    |
-| `T.mock(name, returns=None, side_effect=None)`                      | `TComposite` | Create a mock tool that returns a fixed value or side-effect |
-| `T.confirm(tool_or_composite, message=None)`                        | `TComposite` | Wrap tool(s) with a confirmation requirement                 |
-| `T.timeout(tool_or_composite, seconds=30)`                          | `TComposite` | Wrap tool(s) with a per-invocation timeout                   |
-| `T.cache(tool_or_composite, ttl=300, key_fn=None)`                  | `TComposite` | Wrap tool(s) with a TTL-based result cache                   |
-| `T.mcp(url_or_params, tool_filter=None, prefix=None)`               | `TComposite` | Thin factory over :class:`McpToolset` builder                |
-| `T.a2a(agent_card_url, name=None, description=None, timeout=600.0)` | `TComposite` | Wrap a remote A2A agent as an AgentTool                      |
-| `T.skill(path)`                                                     | `TComposite` | Wrap ADK `SkillToolset` for progressive disclosure           |
-| `T.openapi(spec, tool_filter=None, auth=None)`                      | `TComposite` | Thin factory over :class:`OpenAPIToolset` builder            |
-| `T.a2ui(catalog='basic', schema=None)`                              | `TComposite` | A2UI toolset for LLM-guided UI generation                    |
-| `T.transform(tool_or_composite, pre=None, post=None)`               | `TComposite` | Wrap tool(s) with pre/post argument/result transforms        |
+| Method                                                              | Returns      | Description                                                      |
+| ------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------- |
+| `T.fn(func_or_tool, confirm=False)`                                 | `TComposite` | Wrap a callable as a tool                                        |
+| `T.agent(agent_or_builder)`                                         | `TComposite` | Wrap an agent (or builder) as an AgentTool                       |
+| `T.toolset(ts)`                                                     | `TComposite` | Wrap any ADK toolset (MCPToolset, etc.)                          |
+| `T.google_search()`                                                 | `TComposite` | Google Search tool                                               |
+| `T.search(registry, always_loaded=None, max_tools=20)`              | `TComposite` | BM25-indexed dynamic tool loading (two-phase pattern)            |
+| `T.schema(schema_cls)`                                              | `TComposite` | Attach a ToolSchema for contract checking                        |
+| `T.mock(name, returns=None, side_effect=None)`                      | `TComposite` | Create a mock tool that returns a fixed value or side-effect     |
+| `T.confirm(tool_or_composite, message=None)`                        | `TComposite` | Wrap tool(s) with a confirmation requirement                     |
+| `T.timeout(tool_or_composite, seconds=30)`                          | `TComposite` | Wrap tool(s) with a per-invocation timeout                       |
+| `T.cache(tool_or_composite, ttl=300, key_fn=None)`                  | `TComposite` | Wrap tool(s) with a TTL-based result cache                       |
+| `T.mcp(url_or_params, tool_filter=None, prefix=None)`               | `TComposite` | Thin factory over :class:`McpToolset` builder                    |
+| `T.a2a(agent_card_url, name=None, description=None, timeout=600.0)` | `TComposite` | Wrap a remote A2A agent as an AgentTool                          |
+| `T.skill(path)`                                                     | `TComposite` | Wrap ADK `SkillToolset` for progressive disclosure               |
+| `T.openapi(spec, tool_filter=None, auth=None)`                      | `TComposite` | Thin factory over :class:`OpenAPIToolset` builder                |
+| `T.a2ui(catalog='basic', schema=None)`                              | `TComposite` | A2UI toolset for LLM-guided UI generation                        |
+| `T.effectful(tool_or_composite, key, scope='session', ttl=0.0)`     | `TComposite` | Wrap tool(s) as idempotent side-effects with a user-supplied key |
+| `T.transform(tool_or_composite, pre=None, post=None)`               | `TComposite` | Wrap tool(s) with pre/post argument/result transforms            |
 
 ## Wrapping
 
@@ -231,6 +232,34 @@ Otherwise returns a no-op marker composite.
 
 - `catalog` (*str*) — default: `'basic'`
 - `schema` (*Any*) — default: `None`
+
+## Effectful (idempotent)
+
+### `T.effectful(tool_or_composite: TComposite | Any, *, key: str | Any, scope: str = session, ttl: float = 0.0) -> TComposite`
+
+Wrap tool(s) as idempotent side-effects with a user-supplied key.
+
+First call with a given key runs the tool and records the result in
+the ambient :class:`EffectCache`; subsequent calls with the same key
+return the cached value without invoking the tool.
+
+An :class:`EffectRecorded` event is emitted on the ambient
+:class:`EventBus` with `source="fresh"` or `source="cache"`.
+
+**Args:**
+
+- **`tool_or_composite`**: The tool to wrap.
+- **`key`**: Either a format string rendered against `args` (e.g.
+  `"user:{user_id}"`) or a callable `(args) -> str`.
+- **`scope`**: Cache partition bucket (`"session"` by default).
+- **`ttl`**: Lifetime in seconds. `0` means "no expiry".
+
+**Parameters:**
+
+- `tool_or_composite` (*TComposite | Any*)
+- `key` (*str | Any*)
+- `scope` (*str*) — default: `'session'`
+- `ttl` (*float*) — default: `0.0`
 
 ## Transform
 

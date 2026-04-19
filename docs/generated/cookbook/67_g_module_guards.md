@@ -21,8 +21,6 @@ How to register lifecycle callbacks with accumulation semantics.
 
 _Source: `67_g_module_guards.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline
 from adk_fluent._guards import (
@@ -495,5 +493,3 @@ assert len(reviewer_specs) == 2
 
 print("All G module guard composition assertions passed!")
 ```
-:::
-::::

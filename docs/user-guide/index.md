@@ -168,6 +168,7 @@ Start with ADK. If you need durability, see [Execution Backends](execution-backe
 caption: Foundations
 maxdepth: 2
 ---
+foundations
 architecture-and-concepts
 builders
 expression-language
@@ -179,6 +180,7 @@ data-flow
 caption: Building agents
 maxdepth: 2
 ---
+building-agents
 prompts
 execution
 callbacks
@@ -193,6 +195,7 @@ context-engineering
 caption: Patterns & control flow
 maxdepth: 2
 ---
+patterns-and-control-flow
 patterns
 visibility
 transfer-control
@@ -204,6 +207,7 @@ memory
 caption: Safety & observability
 maxdepth: 2
 ---
+safety-and-observability
 middleware
 guards
 evaluation
@@ -215,6 +219,7 @@ testing
 caption: Backends & execution
 maxdepth: 2
 ---
+backends-and-execution
 ir-and-backends
 execution-backends
 temporal-guide
@@ -225,6 +230,7 @@ temporal-guide
 caption: Distributed agents
 maxdepth: 2
 ---
+distributed-agents
 a2a
 a2ui
 ```

@@ -6,6 +6,51 @@ adk-fluent provides a fluent API for attaching callbacks to agents. All callback
 **Visual learner?** Open the [Module Lifecycle Interactive Reference](../module-lifecycle-reference.html){target="_blank"} for a swim-lane timeline showing exactly when each callback fires during agent execution.
 :::
 
+## When each callback fires
+
+A single agent turn runs through six ordered phases. Callbacks are hooks into those phases — the table shows exactly where each one lands.
+
+```{mermaid}
+sequenceDiagram
+    autonumber
+    participant U as user input
+    participant A as agent turn
+    participant L as LLM
+    participant T as tool
+    participant S as state
+
+    U->>A: invocation
+    A->>A: before_agent
+    loop until model emits final answer
+        A->>L: before_model
+        L-->>A: response
+        A->>A: after_model
+        alt response contains tool call
+            A->>T: before_tool
+            T-->>A: result
+            A->>A: after_tool
+        end
+    end
+    A->>S: .writes() persists response
+    A->>A: after_agent
+    A-->>U: final response
+```
+
+| Phase | Callback | Receives | Typical use |
+|---|---|---|---|
+| ① agent entry | `before_agent(ctx)` | invocation context | Inject preamble, seed state, short-circuit with a cached answer |
+| ② each LLM call | `before_model(ctx, req)` | outgoing `LlmRequest` | Modify the prompt, add tool hints, block unsafe requests |
+| ③ each LLM reply | `after_model(ctx, resp)` | raw `LlmResponse` | Output validation, redaction, scoring — **this is where guards run** |
+| ④ each tool call | `before_tool(ctx, tool, args)` | tool name + args | Argument rewriting, authz checks, dry-run mode |
+| ⑤ each tool reply | `after_tool(ctx, tool, result)` | tool result | Log, cache, transform the return value |
+| ⑥ agent exit | `after_agent(ctx)` | final state | Audit, post-processing of `state[writes_key]` |
+
+Errors in ② or ④ divert to `on_model_error` / `on_tool_error` instead of continuing.
+
+:::{note} Additive, not overriding
+Every callback slot is a list. `.before_model(a).before_model(b)` runs **both** in registration order. This is different from native ADK, where setting a callback replaces the previous one.
+:::
+
 ## Callback Methods
 
 | Method                | Alias for                 | Description                                                           |

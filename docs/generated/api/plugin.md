@@ -37,6 +37,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-RecordingsPlugin-build)=
 #### `.build() -> RecordingsPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK RecordingsPlugin.
@@ -77,6 +78,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ReplayPlugin-build)=
 #### `.build() -> ReplayPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ReplayPlugin.
@@ -127,6 +129,7 @@ BasePlugin(name: str)
 
 ### Control Flow & Execution
 
+(method-BasePlugin-build)=
 #### `.build() -> BasePlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BasePlugin.
@@ -171,6 +174,7 @@ BigQueryAgentAnalyticsPlugin(project_id: str, dataset_id: str, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-BigQueryAgentAnalyticsPlugin-build)=
 #### `.build() -> BigQueryAgentAnalyticsPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigQueryAgentAnalyticsPlugin.
@@ -213,6 +217,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ContextFilterPlugin-build)=
 #### `.build() -> ContextFilterPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ContextFilterPlugin.
@@ -255,6 +260,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-DebugLoggingPlugin-build)=
 #### `.build() -> DebugLoggingPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DebugLoggingPlugin.
@@ -298,6 +304,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-GlobalInstructionPlugin-build)=
 #### `.build() -> GlobalInstructionPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GlobalInstructionPlugin.
@@ -339,6 +346,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-LoggingPlugin-build)=
 #### `.build() -> LoggingPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoggingPlugin.
@@ -379,6 +387,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-MultimodalToolResultsPlugin-build)=
 #### `.build() -> MultimodalToolResultsPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK MultimodalToolResultsPlugin.
@@ -419,6 +428,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ReflectAndRetryToolPlugin-build)=
 #### `.build() -> ReflectAndRetryToolPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ReflectAndRetryToolPlugin.
@@ -462,6 +472,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-SaveFilesAsArtifactsPlugin-build)=
 #### `.build() -> SaveFilesAsArtifactsPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SaveFilesAsArtifactsPlugin.
@@ -512,6 +523,7 @@ AgentSimulatorPlugin(simulator_engine: AgentSimulatorEngine)
 
 ### Control Flow & Execution
 
+(method-AgentSimulatorPlugin-build)=
 #### `.build() -> AgentSimulatorPlugin` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentSimulatorPlugin.

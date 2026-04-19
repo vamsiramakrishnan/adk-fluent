@@ -14,8 +14,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `69_asyncio_backend.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 from adk_fluent.backends.asyncio_backend import AsyncioBackend
@@ -62,8 +60,6 @@ loop_compiled = backend.compile(loop_ir)
 agent = Agent("solver").instruct("Solve the problem.").engine("asyncio")
 assert agent._config["_engine"] == "asyncio"
 ```
-:::
-::::
 
 ## Equivalence
 

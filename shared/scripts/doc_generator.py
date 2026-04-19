@@ -460,10 +460,19 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
                 )
             )
 
-    # Render grouped methods
-    groups = defaultdict(list)
+    # Render grouped methods. Dedup by (category, name) — the seed can
+    # carry both a forwarded-field binding and an explicit chainable entry
+    # for the same method (e.g. Agent.instruct); keep whichever has the
+    # richer docstring so the page shows the user-facing variant.
+    groups: dict[str, list[ApiMethod]] = defaultdict(list)
+    seen: dict[tuple[str, str], ApiMethod] = {}
     for m in methods:
-        groups[m.category].append(m)
+        key = (m.category, m.name)
+        prev = seen.get(key)
+        if prev is None or len(m.doc or "") > len(prev.doc or ""):
+            seen[key] = m
+    for (category, _name), m in seen.items():
+        groups[category].append(m)
 
     for category in [
         "Core Configuration",
@@ -479,6 +488,11 @@ def gen_api_reference_for_builder(spec: BuilderSpec) -> str:
                 badge_color = (
                     "primary" if "Control Flow" in m.category else ("success" if "Core" in m.category else "info")
                 )
+                # Scoped MyST anchor — prevents duplicate slugs when the same
+                # method name appears on multiple builders in one file (e.g.
+                # Loop/FanOut/Pipeline all have .ask, .build, .after_agent).
+                # Case is preserved so MCPTool vs McpTool stay distinct.
+                lines.append(f"(method-{spec.name}-{m.name})=")
                 lines.append(f"#### `.{m.name}{m.signature}` {{bdg-{badge_color}}}`{m.category}`")
                 lines.append("")
                 if m.doc:
