@@ -1726,16 +1726,23 @@ def generate_docs(
                 generated_stems.add(src_file.stem)
                 md_file = cookbook_out / f"{src_file.stem}.md"
 
-                # Preserve hand-written .md files that have been manually
-                # curated (contain sections like "## Layer" or "## Pattern"
-                # that the auto-generator doesn't produce).  This prevents
-                # `just docs` from overwriting rich, hand-crafted cookbook
-                # docs (e.g. skills/harness recipes 77-79) with the
-                # auto-generated skeleton.
+                # Preserve hand-written .md files that carry the explicit
+                # marker ``<!-- adk-fluent:hand-crafted -->``. The previous
+                # substring heuristic ("## Layer" / "## Pattern" /
+                # "Pathway:") silently locked any file that happened to use
+                # those phrases. Legacy files matching the old heuristic are
+                # still honoured with a deprecation warning so this change
+                # does not clobber existing rich cookbook docs.
                 if md_file.exists():
                     existing = md_file.read_text()
+                    if "<!-- adk-fluent:hand-crafted -->" in existing:
+                        print(f"  Preserved (hand-crafted marker): {md_file}")
+                        continue
                     if "## Layer " in existing or "## Pattern" in existing or "Pathway:" in existing:
-                        print(f"  Preserved (hand-written): {md_file}")
+                        print(
+                            f"  Preserved (legacy heuristic; add "
+                            f"'<!-- adk-fluent:hand-crafted -->' to {md_file}): "
+                        )
                         continue
 
                 md = cookbook_to_markdown(parsed)
