@@ -197,6 +197,10 @@ from ._exceptions import ADKFluentError as ADKFluentError
 from ._exceptions import BuilderError as BuilderError
 from ._exceptions import GuardViolation as GuardViolation
 from ._exceptions import PredicateError as PredicateError
+from ._exceptions import A2UIError as A2UIError
+from ._exceptions import A2UINotInstalled as A2UINotInstalled
+from ._exceptions import A2UISurfaceError as A2UISurfaceError
+from ._exceptions import A2UIBindingError as A2UIBindingError
 from ._guards import G as G
 from ._guards import GComposite as GComposite
 from ._guards import GGuard as GGuard
@@ -211,6 +215,7 @@ from ._helpers import run_one_shot as run_one_shot
 from ._helpers import run_one_shot_async as run_one_shot_async
 from ._helpers import run_stream as run_stream
 from ._helpers import run_events as run_events
+from ._helpers import stream_from_cursor as stream_from_cursor
 from ._helpers import run_inline_test as run_inline_test
 from ._helpers import ChatSession as ChatSession
 from ._helpers import create_session as create_session
@@ -480,6 +485,21 @@ from ._harness import ProcessEvent as ProcessEvent
 from ._harness import TaskEvent as TaskEvent
 from ._harness import CapabilityLoaded as CapabilityLoaded
 from ._harness import ManifoldFinalized as ManifoldFinalized
+from ._harness import StepStarted as StepStarted
+from ._harness import StepCompleted as StepCompleted
+from ._harness import IterationStarted as IterationStarted
+from ._harness import IterationCompleted as IterationCompleted
+from ._harness import BranchStarted as BranchStarted
+from ._harness import BranchCompleted as BranchCompleted
+from ._harness import SubagentStarted as SubagentStarted
+from ._harness import SubagentCompleted as SubagentCompleted
+from ._harness import AttemptFailed as AttemptFailed
+from ._harness import WorkflowLifecyclePlugin as WorkflowLifecyclePlugin
+from ._harness import SignalChanged as SignalChanged
+from ._harness import Interrupted as Interrupted
+from ._harness import GuardFired as GuardFired
+from ._harness import EvalEvent as EvalEvent
+from ._harness import EffectRecorded as EffectRecorded
 from ._harness import EventBus as EventBus
 from ._harness import BudgetMonitor as BudgetMonitor
 from ._harness import BudgetPlugin as BudgetPlugin
@@ -539,6 +559,8 @@ from ._harness import CodingAgentBundle as CodingAgentBundle
 from ._harness import ProjectMemory as ProjectMemory
 from ._harness import MemoryHierarchy as MemoryHierarchy
 from ._harness import CancellationToken as CancellationToken
+from ._harness import AgentToken as AgentToken
+from ._harness import TokenRegistry as TokenRegistry
 from ._harness import TurnSnapshot as TurnSnapshot
 from ._harness import make_cancellation_callback as make_cancellation_callback
 from ._harness import ForkManager as ForkManager
@@ -590,9 +612,13 @@ from ._harness import CompressionStrategy as CompressionStrategy
 from ._harness import EventDispatcher as EventDispatcher
 from ._harness import HarnessRepl as HarnessRepl
 from ._harness import ReplConfig as ReplConfig
+from ._harness import Cursor as Cursor
+from ._harness import EventRecord as EventRecord
 from ._harness import SessionTape as SessionTape
 from ._harness import SessionStore as SessionStore
 from ._harness import SessionSnapshot as SessionSnapshot
+from ._harness import EffectCache as EffectCache
+from ._harness import EffectEntry as EffectEntry
 from ._harness import SessionPlugin as SessionPlugin
 from ._harness import CommandRegistry as CommandRegistry
 from ._harness import CommandSpec as CommandSpec
@@ -621,6 +647,9 @@ from ._harness._dispatcher import EventDispatcher as EventDispatcher
 from ._harness._error_strategy import ErrorStrategy as ErrorStrategy
 from ._harness._error_strategy import make_error_callbacks as make_error_callbacks
 from ._harness._event_bus import EventBus as EventBus
+from ._harness._event_bus import active_bus as active_bus
+from ._harness._event_bus import emit as emit
+from ._harness._event_bus import use_bus as use_bus
 from ._harness._events import HarnessEvent as HarnessEvent
 from ._harness._events import TextChunk as TextChunk
 from ._harness._events import ToolCallStart as ToolCallStart
@@ -639,11 +668,27 @@ from ._harness._events import ProcessEvent as ProcessEvent
 from ._harness._events import TaskEvent as TaskEvent
 from ._harness._events import CapabilityLoaded as CapabilityLoaded
 from ._harness._events import ManifoldFinalized as ManifoldFinalized
+from ._harness._events import StepStarted as StepStarted
+from ._harness._events import StepCompleted as StepCompleted
+from ._harness._events import IterationStarted as IterationStarted
+from ._harness._events import IterationCompleted as IterationCompleted
+from ._harness._events import BranchStarted as BranchStarted
+from ._harness._events import BranchCompleted as BranchCompleted
+from ._harness._events import SubagentStarted as SubagentStarted
+from ._harness._events import SubagentCompleted as SubagentCompleted
+from ._harness._events import AttemptFailed as AttemptFailed
+from ._harness._events import SignalChanged as SignalChanged
+from ._harness._events import Interrupted as Interrupted
+from ._harness._events import GuardFired as GuardFired
+from ._harness._events import EvalEvent as EvalEvent
+from ._harness._events import EffectRecorded as EffectRecorded
 from ._harness._git import GitCheckpointer as GitCheckpointer
 from ._harness._git_tools import git_tools as git_tools
 from ._harness._gitignore import GitignoreMatcher as GitignoreMatcher
 from ._harness._gitignore import load_gitignore as load_gitignore
+from ._harness._interrupt import AgentToken as AgentToken
 from ._harness._interrupt import CancellationToken as CancellationToken
+from ._harness._interrupt import TokenRegistry as TokenRegistry
 from ._harness._interrupt import TurnSnapshot as TurnSnapshot
 from ._harness._interrupt import make_cancellation_callback as make_cancellation_callback
 from ._harness._manifold import CapabilityType as CapabilityType
@@ -690,6 +735,7 @@ from ._harness._tools import make_list_dir as make_list_dir
 from ._harness._tools import workspace_tools as workspace_tools
 from ._harness._web import make_web_fetch as make_web_fetch
 from ._harness._web import web_tools as web_tools
+from ._harness._workflow_events import WorkflowLifecyclePlugin as WorkflowLifecyclePlugin
 from ._hooks import ALL_EVENTS as ALL_EVENTS
 from ._hooks import HookAction as HookAction
 from ._hooks import HookContext as HookContext
@@ -747,18 +793,55 @@ from ._plan_mode._latch import MUTATING_TOOLS as MUTATING_TOOLS
 from ._plan_mode._plugin import PlanModePlugin as PlanModePlugin
 from ._plan_mode._policy import PlanModePolicy as PlanModePolicy
 from ._plan_mode._tools import plan_mode_tools as plan_mode_tools
+from ._reactor import Reactor as Reactor
+from ._reactor import ReactorRule as ReactorRule
+from ._reactor import Signal as Signal
+from ._reactor import SignalPredicate as SignalPredicate
+from ._reactor import computed as computed
+from ._reactor import reaction as reaction
+from ._reactor import track_reads as track_reads
+from ._reactor._predicate import SignalPredicate as SignalPredicate
+from ._reactor._reactor import Reactor as Reactor
+from ._reactor._reactor import ReactorRule as ReactorRule
+from ._reactor._signal import Signal as Signal
+from ._reactor._tracking import computed as computed
+from ._reactor._tracking import current_tracker as current_tracker
+from ._reactor._tracking import reaction as reaction
+from ._reactor._tracking import track_reads as track_reads
 from ._session import Branch as Branch
+from ._session import ChainBackend as ChainBackend
+from ._session import Cursor as Cursor
+from ._session import EffectCache as EffectCache
+from ._session import EffectEntry as EffectEntry
+from ._session import EventRecord as EventRecord
 from ._session import ForkManager as ForkManager
+from ._session import InMemoryBackend as InMemoryBackend
+from ._session import JsonlBackend as JsonlBackend
+from ._session import NullBackend as NullBackend
 from ._session import SessionPlugin as SessionPlugin
 from ._session import SessionSnapshot as SessionSnapshot
 from ._session import SessionStore as SessionStore
 from ._session import SessionTape as SessionTape
+from ._session import TapeBackend as TapeBackend
+from ._session import active_cache as active_cache
+from ._session import use_cache as use_cache
+from ._session._effect_cache import EffectCache as EffectCache
+from ._session._effect_cache import EffectEntry as EffectEntry
+from ._session._effect_cache import active_cache as active_cache
+from ._session._effect_cache import use_cache as use_cache
 from ._session._fork import ForkManager as ForkManager
 from ._session._fork import Branch as Branch
 from ._session._plugin import SessionPlugin as SessionPlugin
 from ._session._snapshot import SessionSnapshot as SessionSnapshot
 from ._session._store import SessionStore as SessionStore
+from ._session._tape import Cursor as Cursor
+from ._session._tape import EventRecord as EventRecord
 from ._session._tape import SessionTape as SessionTape
+from ._session._tape_backend import ChainBackend as ChainBackend
+from ._session._tape_backend import InMemoryBackend as InMemoryBackend
+from ._session._tape_backend import JsonlBackend as JsonlBackend
+from ._session._tape_backend import NullBackend as NullBackend
+from ._session._tape_backend import TapeBackend as TapeBackend
 from ._subagents import FakeSubagentRunner as FakeSubagentRunner
 from ._subagents import SubagentRegistry as SubagentRegistry
 from ._subagents import SubagentResult as SubagentResult
@@ -1059,6 +1142,10 @@ __all__ = [
     "BuilderError",
     "GuardViolation",
     "PredicateError",
+    "A2UIError",
+    "A2UINotInstalled",
+    "A2UISurfaceError",
+    "A2UIBindingError",
     "G",
     "GComposite",
     "GGuard",
@@ -1072,6 +1159,7 @@ __all__ = [
     "run_one_shot_async",
     "run_stream",
     "run_events",
+    "stream_from_cursor",
     "run_inline_test",
     "ChatSession",
     "create_session",
@@ -1265,6 +1353,21 @@ __all__ = [
     "TaskEvent",
     "CapabilityLoaded",
     "ManifoldFinalized",
+    "StepStarted",
+    "StepCompleted",
+    "IterationStarted",
+    "IterationCompleted",
+    "BranchStarted",
+    "BranchCompleted",
+    "SubagentStarted",
+    "SubagentCompleted",
+    "AttemptFailed",
+    "WorkflowLifecyclePlugin",
+    "SignalChanged",
+    "Interrupted",
+    "GuardFired",
+    "EvalEvent",
+    "EffectRecorded",
     "EventBus",
     "ToolPolicy",
     "ToolRule",
@@ -1312,6 +1415,8 @@ __all__ = [
     "ProjectMemory",
     "MemoryHierarchy",
     "CancellationToken",
+    "AgentToken",
+    "TokenRegistry",
     "TurnSnapshot",
     "make_cancellation_callback",
     "ForkManager",
@@ -1361,15 +1466,22 @@ __all__ = [
     "EventDispatcher",
     "HarnessRepl",
     "ReplConfig",
+    "Cursor",
+    "EventRecord",
     "SessionTape",
     "SessionStore",
     "SessionSnapshot",
+    "EffectCache",
+    "EffectEntry",
     "SessionPlugin",
     "CommandRegistry",
     "CommandSpec",
     "SkillSpec",
     "compile_skills_to_static",
     "CodeLanguage",
+    "active_bus",
+    "emit",
+    "use_bus",
     "make_process_tools",
     "Renderer",
     "ALL_EVENTS",
@@ -1377,6 +1489,21 @@ __all__ = [
     "HookAsk",
     "HookCallable",
     "make_permission_callback",
+    "Reactor",
+    "ReactorRule",
+    "Signal",
+    "SignalPredicate",
+    "computed",
+    "reaction",
+    "track_reads",
+    "current_tracker",
+    "ChainBackend",
+    "InMemoryBackend",
+    "JsonlBackend",
+    "NullBackend",
+    "TapeBackend",
+    "active_cache",
+    "use_cache",
     "FakeSubagentRunner",
     "SubagentRegistry",
     "SubagentResult",
@@ -1440,3 +1567,4 @@ __all__ = [
     "DataFlowContract",
     "check_data_flow_contract",
 ]
+
