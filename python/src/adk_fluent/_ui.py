@@ -37,12 +37,61 @@ Usage::
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import contextlib
+import contextvars
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     pass
+
+
+# ---------------------------------------------------------------------------
+# Catalog dispatch scope (contextvar)
+# ---------------------------------------------------------------------------
+#
+# ``UI.with_catalog("flux")`` flips a contextvar that the overloaded factory
+# methods (``UI.button``, ``UI.text_field``, …) read. A contextvar was chosen
+# over a threadlocal or builder attribute for three reasons:
+#   1. Surfaces are built inside nested function calls, not on a single
+#      builder instance — there is nothing mutable to hang state off of.
+#   2. Context managers nest trivially: ``with UI.with_catalog("flux"):``
+#      inside another ``with UI.with_catalog("flux"):`` restores the outer
+#      value on exit via a reset token. No manual stacking.
+#   3. Async-safe: asyncio tasks inherit the parent's contextvar value.
+#
+# ``"basic"`` is the default and maps to the pre-existing generated factories.
+# ``"flux"`` routes to ``_flux_gen.flux_*`` factories and returns dict nodes.
+
+KNOWN_CATALOGS: frozenset[str] = frozenset({"basic", "flux"})
+
+_CURRENT_CATALOG: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "adk_fluent._ui._current_catalog", default="basic"
+)
+
+
+def _active_catalog() -> str:
+    """Return the currently active catalog name (``"basic"`` by default)."""
+    return _CURRENT_CATALOG.get()
+
+
+# ---------------------------------------------------------------------------
+# Theme marker
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class _UIThemeMarker:
+    """Marker emitted by ``UI.theme(name)``.
+
+    When passed as a positional argument to ``UI.surface(...)`` the marker is
+    pulled out and written into ``surface.theme`` as ``{"name": <id>}``. The
+    theme id lives at ``createSurface.theme.name`` in the compiled A2UI
+    message stream.
+    """
+
+    name: str
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +368,20 @@ def _component(
         _checks=_checks,
         _action=_action,
     )
+
+
+def _flux_node_to_component(node: dict[str, Any]) -> UIComponent:
+    """Wrap a ``_flux_gen.flux_*`` dict node as a ``UIComponent``.
+
+    The flux generated factories return plain dicts keyed on ``component`` +
+    flux props. This helper lifts them into the ``UIComponent`` tree so flux
+    nodes compose with basic-catalog components via the ``|`` / ``>>`` / ``+``
+    operators and participate in the standard ``compile_surface`` flatten.
+    """
+    kind = str(node.get("component", ""))
+    comp_id = node.get("id")
+    props = {k: v for k, v in node.items() if k not in ("component", "id")}
+    return _component(kind, id=comp_id, **props)
 
 
 # ---------------------------------------------------------------------------
@@ -1015,23 +1078,544 @@ class UI:
     # --- Surface lifecycle ---
 
     @staticmethod
-    def surface(name: str, root: UIComponent | None = None, **kw: Any) -> UISurface:
+    def surface(name: str, *items: Any, **kw: Any) -> UISurface:
         """Create a named UI surface.
+
+        Accepts positional items in any order: at most one ``UIComponent`` root
+        plus any number of ``UI.theme(...)`` markers. When a theme marker is
+        present its id lives at ``createSurface.theme.name`` in the compiled
+        A2UI message stream.
 
         Args:
             name: Unique surface identifier.
-            root: Root component tree (optional, can set later with ``with_root``).
+            *items: Root component tree and/or theme markers.
             **kw: Additional surface options (catalog, theme, data).
         """
         catalog = kw.pop("catalog", "https://a2ui.org/specification/v0_10/basic_catalog.json")
         theme = kw.pop("theme", None)
         data = kw.pop("data", None)
+
+        root: UIComponent | None = None
+        theme_markers: list[_UIThemeMarker] = []
+        for item in items:
+            if isinstance(item, _UIThemeMarker):
+                theme_markers.append(item)
+            elif isinstance(item, UIComponent):
+                if root is not None:
+                    from adk_fluent._exceptions import A2UIError
+
+                    raise A2UIError(
+                        f"UI.surface({name!r}) received multiple root components; "
+                        "wrap them in UI.column(...) or UI.row(...) instead."
+                    )
+                root = item
+            elif item is None:
+                continue
+            else:
+                from adk_fluent._exceptions import A2UIError
+
+                raise A2UIError(
+                    f"UI.surface({name!r}) received unexpected positional argument {item!r}; "
+                    "expected a UIComponent or UI.theme(...) marker."
+                )
+
         s = UISurface(name=name, root=root, catalog=catalog)
-        if theme:
+        if theme_markers:
+            # Last wins; merge with explicit ``theme=`` kwarg if any.
+            merged = {"name": theme_markers[-1].name}
+            if theme:
+                merged = {**theme, **merged}
+            s = s.with_theme(**merged)
+        elif theme:
             s = s.with_theme(**theme)
         if data:
             s = s.with_data(**data)
         return s
+
+    # --- Theme + catalog scoping ---
+
+    @staticmethod
+    def theme(name: str) -> _UIThemeMarker:
+        """Attach a theme id to a surface.
+
+        Pass as a positional argument to ``UI.surface(name, UI.theme(id), root)``.
+        The id is stored on the surface's ``theme`` attribute and lives at
+        ``createSurface.theme.name`` in the compiled A2UI JSON.
+        """
+        return _UIThemeMarker(name=name)
+
+    @staticmethod
+    def with_catalog(name: str) -> contextlib.AbstractContextManager[str]:
+        """Scope factory dispatch to a named catalog.
+
+        Inside ``with UI.with_catalog("flux"):`` the overloaded factories
+        (``UI.button``, ``UI.text_field``, ``UI.badge``, ``UI.progress``,
+        ``UI.skeleton``, ``UI.markdown``, ``UI.link``, ``UI.banner``,
+        ``UI.card``, ``UI.stack``) dispatch to ``adk_fluent._flux_gen``
+        factories and emit ``FluxX`` dict nodes. Outside the block the default
+        ``"basic"`` catalog (pre-existing generated factories) is used.
+
+        Nesting is supported; exiting an inner block restores the outer scope.
+
+        Args:
+            name: Catalog identifier. Known values: ``"basic"``, ``"flux"``.
+
+        Raises:
+            ValueError: If ``name`` is not a known catalog.
+        """
+        if name not in KNOWN_CATALOGS:
+            raise ValueError(f"Unknown catalog {name!r}. Known catalogs: {sorted(KNOWN_CATALOGS)}")
+
+        @contextlib.contextmanager
+        def _scope() -> Iterator[str]:
+            token = _CURRENT_CATALOG.set(name)
+            try:
+                yield name
+            finally:
+                _CURRENT_CATALOG.reset(token)
+
+        return _scope()
+
+    # --- Catalog-overloaded factories ---
+    #
+    # Each method below is a tight dispatch on the active catalog contextvar:
+    # one ``if _active_catalog() == "flux":`` branch dispatching to
+    # ``_flux_gen`` (returning a FluxX UIComponent) and otherwise a single
+    # fall-through to the existing basic-catalog emitter.
+
+    @staticmethod
+    def button(*args: Any, **kwargs: Any) -> UIComponent:
+        """Clickable button — dispatches on the active catalog.
+
+        Flux: emits a ``FluxButton`` with ``tone`` × ``size`` × ``emphasis``.
+        Basic: falls through to the generated basic-catalog factory with the
+        arguments forwarded verbatim.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_button
+
+            # Accept either positional label or keyword label for flux.
+            label: str | None = None
+            if args:
+                label = args[0] if isinstance(args[0], str) else None
+            label = kwargs.pop("label", label)
+            tone = kwargs.pop("tone", "neutral")
+            size = kwargs.pop("size", "md")
+            emphasis = kwargs.pop("emphasis", "solid")
+            action_raw = kwargs.pop("action", None)
+            act = action_raw if isinstance(action_raw, dict) else ({"event": action_raw} if action_raw else {})
+            acc = kwargs.pop("accessibility", None)
+            if acc is None:
+                acc = {"label": label or ""}
+            comp_id = kwargs.pop("id", None) or "flux_button"
+            extra: dict[str, Any] = {}
+            for k in ("disabled", "leadingIcon", "loading", "trailingIcon"):
+                v = kwargs.pop(k, None)
+                if v is not None:
+                    extra[k] = v
+            if label is not None:
+                extra["label"] = label
+            # Remaining kwargs are unknown in flux mode; forward as-is so
+            # misuse surfaces as a TypeError from flux_button.
+            node = flux_button(
+                id=comp_id,
+                tone=tone,
+                size=size,
+                emphasis=emphasis,
+                action=act,
+                accessibility=acc,
+                **extra,
+                **kwargs,
+            )
+            return _flux_node_to_component(node)
+
+        from adk_fluent._ui_generated import _GeneratedFactories as _GF
+
+        return _GF.button(*args, **kwargs)
+
+    @staticmethod
+    def text_field(*args: Any, **kwargs: Any) -> UIComponent:
+        """Text input — dispatches on the active catalog.
+
+        Flux: emits a ``FluxTextField`` with ``type`` × ``size`` × ``state``.
+        Basic: falls through to the generated basic-catalog factory with the
+        arguments forwarded verbatim.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_text_field
+
+            label_positional = args[0] if args and isinstance(args[0], str) else None
+            label = kwargs.pop("label", label_positional)
+            acc = kwargs.pop("accessibility", None)
+            if acc is None:
+                acc = {"label": label or ""}
+            comp_id = kwargs.pop("id", None) or "flux_text_field"
+            ftype = kwargs.pop("type", "text")
+            size = kwargs.pop("size", "md")
+            state = kwargs.pop("state", "default")
+            extra: dict[str, Any] = {}
+            for k in (
+                "disabled",
+                "error",
+                "helper",
+                "leadingIcon",
+                "maxLength",
+                "placeholder",
+                "readonly",
+                "required",
+                "trailingIcon",
+                "value",
+            ):
+                v = kwargs.pop(k, None)
+                if v is not None:
+                    extra[k] = v
+            # Basic-only kwargs that have no flux analogue — silently ignore.
+            for basic_only in ("variant", "bind", "checks"):
+                kwargs.pop(basic_only, None)
+            node = flux_text_field(
+                id=comp_id,
+                type=ftype,
+                size=size,
+                state=state,
+                accessibility=acc,
+                **extra,
+                **kwargs,
+            )
+            return _flux_node_to_component(node)
+
+        from adk_fluent._ui_generated import _GeneratedFactories as _GF
+
+        return _GF.text_field(*args, **kwargs)
+
+    @staticmethod
+    def badge(
+        label: str,
+        *,
+        tone: str = "neutral",
+        variant: str = "subtle",
+        size: str = "sm",
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Compact status label — dispatches on the active catalog.
+
+        Flux: emits a ``FluxBadge``.
+        Basic: falls back to a basic-catalog ``Text`` (the declared fallback).
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_badge
+
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            node = flux_badge(
+                id=id or "flux_badge",
+                label=label,
+                tone=tone,  # type: ignore[arg-type]
+                variant=variant,  # type: ignore[arg-type]
+                size=size,  # type: ignore[arg-type]
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        return _component("Text", id=id, text=label, variant="caption")
+
+    @staticmethod
+    def progress(
+        *,
+        value: float = 0.0,
+        determinate: bool = True,
+        tone: str = "default",
+        size: str = "md",
+        label: str | None = None,
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Progress indicator — dispatches on the active catalog.
+
+        Flux: emits a ``FluxProgress``.
+        Basic: falls back to a basic-catalog ``Slider`` (the declared fallback).
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_progress
+
+            acc = accessibility if accessibility is not None else {"label": label or "progress"}
+            extra: dict[str, Any] = {}
+            if label is not None:
+                extra["label"] = label
+            node = flux_progress(
+                id=id or "flux_progress",
+                value=value,
+                determinate=determinate,
+                tone=tone,  # type: ignore[arg-type]
+                size=size,  # type: ignore[arg-type]
+                accessibility=acc,
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        return _component(
+            "Slider",
+            id=id,
+            min=0,
+            max=100,
+            value=value,
+            label=label,
+        )
+
+    @staticmethod
+    def skeleton(
+        *,
+        shape: str = "text",
+        size: str = "md",
+        count: int | None = None,
+        width: str | None = None,
+        height: str | None = None,
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Loading placeholder — dispatches on the active catalog.
+
+        Flux: emits a ``FluxSkeleton``.
+        Basic: falls back to a basic-catalog ``Text`` placeholder.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_skeleton
+
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            if count is not None:
+                extra["count"] = count
+            if height is not None:
+                extra["height"] = height
+            if width is not None:
+                extra["width"] = width
+            node = flux_skeleton(
+                id=id or "flux_skeleton",
+                shape=shape,  # type: ignore[arg-type]
+                size=size,  # type: ignore[arg-type]
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        return _component("Text", id=id, text="Loading…", variant="caption")
+
+    @staticmethod
+    def markdown(
+        source: str,
+        *,
+        size: str = "md",
+        proseStyle: str = "default",
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Markdown prose block — dispatches on the active catalog.
+
+        Flux: emits a ``FluxMarkdown``.
+        Basic: falls back to a plain basic-catalog ``Text`` (the declared fallback).
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_markdown
+
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            node = flux_markdown(
+                id=id or "flux_markdown",
+                source=source,
+                size=size,  # type: ignore[arg-type]
+                proseStyle=proseStyle,  # type: ignore[arg-type]
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        return _component("Text", id=id, text=source, variant="body")
+
+    @staticmethod
+    def link(
+        label: str,
+        *,
+        href: str | None = None,
+        action: dict[str, Any] | None = None,
+        tone: str = "default",
+        underline: str = "hover",
+        external: bool | None = None,
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Inline hyperlink — dispatches on the active catalog.
+
+        Flux: emits a ``FluxLink``. Exactly one of ``href`` / ``action`` should
+        be set (enforced by the schema at compile time).
+        Basic: falls back to a basic-catalog ``Text``.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_link
+
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            if action is not None:
+                extra["action"] = action
+            if external is not None:
+                extra["external"] = external
+            if href is not None:
+                extra["href"] = href
+            node = flux_link(
+                id=id or "flux_link",
+                label=label,
+                tone=tone,  # type: ignore[arg-type]
+                underline=underline,  # type: ignore[arg-type]
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        return _component("Text", id=id, text=label, variant="body")
+
+    @staticmethod
+    def banner(
+        *,
+        title: str,
+        message: str,
+        tone: str = "info",
+        action: str | None = None,
+        dismiss: str | None = None,
+        icon: str | None = None,
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Inline banner — dispatches on the active catalog.
+
+        Flux: emits a ``FluxBanner``.
+        Basic: falls back to a basic-catalog ``Row`` of ``Text`` children.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_banner
+
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            if action is not None:
+                extra["action"] = action
+            if dismiss is not None:
+                extra["dismiss"] = dismiss
+            if icon is not None:
+                extra["icon"] = icon
+            node = flux_banner(
+                id=id or "flux_banner",
+                title=title,
+                message=message,
+                tone=tone,  # type: ignore[arg-type]
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        return _component(
+            "Row",
+            id=id,
+            _children=(
+                _component("Text", text=title, variant="h3"),
+                _component("Text", text=message, variant="body"),
+            ),
+        )
+
+    @staticmethod
+    def card(
+        *children: UIComponent,
+        emphasis: str = "subtle",
+        padding: str = "md",
+        header: str | None = None,
+        body: str | None = None,
+        footer: str | None = None,
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+        child: UIComponent | None = None,
+    ) -> UIComponent:
+        """Card container — dispatches on the active catalog.
+
+        Flux: emits a ``FluxCard`` with header / body / footer slots.
+        Basic: falls through to the generated basic-catalog ``Card`` factory.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_card
+
+            # Default body to concatenated text of positional children when not provided.
+            body_text = body
+            if body_text is None:
+                if children and all(isinstance(c, UIComponent) for c in children):
+                    parts: list[str] = []
+                    for c in children:
+                        for key, val in c._props:
+                            if key == "text" and isinstance(val, str):
+                                parts.append(val)
+                    body_text = "\n".join(parts) if parts else ""
+                else:
+                    body_text = ""
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            if footer is not None:
+                extra["footer"] = footer
+            if header is not None:
+                extra["header"] = header
+            node = flux_card(
+                id=id or "flux_card",
+                emphasis=emphasis,  # type: ignore[arg-type]
+                padding=padding,  # type: ignore[arg-type]
+                body=body_text,
+                **extra,
+            )
+            return _flux_node_to_component(node)
+
+        from adk_fluent._ui_generated import _GeneratedFactories as _GF
+
+        # Basic catalog takes a single `child`; use the first positional
+        # component or the explicit `child=` kwarg.
+        chosen_child = child
+        if chosen_child is None and children:
+            chosen_child = children[0] if len(children) == 1 else _component("Column", _children=children)
+        return _GF.card(child=chosen_child, id=id)
+
+    @staticmethod
+    def stack(
+        *children: UIComponent,
+        direction: str = "vertical",
+        gap: str = "2",
+        align: str = "stretch",
+        justify: str = "start",
+        wrap: bool | None = None,
+        accessibility: dict[str, Any] | None = None,
+        id: str | None = None,
+    ) -> UIComponent:
+        """Stack layout primitive — dispatches on the active catalog.
+
+        Flux: emits a ``FluxStack`` with spacing tokens.
+        Basic: falls back to a basic-catalog ``Column`` / ``Row``.
+        """
+        if _active_catalog() == "flux":
+            from adk_fluent._flux_gen import flux_stack
+
+            extra: dict[str, Any] = {}
+            if accessibility is not None:
+                extra["accessibility"] = accessibility
+            if wrap is not None:
+                extra["wrap"] = wrap
+            node = flux_stack(
+                id=id or "flux_stack",
+                direction=direction,  # type: ignore[arg-type]
+                gap=gap,  # type: ignore[arg-type]
+                align=align,  # type: ignore[arg-type]
+                justify=justify,  # type: ignore[arg-type]
+                **extra,
+            )
+            comp = _flux_node_to_component(node)
+            if children:
+                comp = replace(comp, _children=tuple(children))
+            return comp
+
+        kind = "Column" if direction == "vertical" else "Row"
+        return _component(kind, id=id, justify=justify, align=align, _children=tuple(children))
 
     # --- Generic escape hatch ---
 

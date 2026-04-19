@@ -62,6 +62,68 @@ class _SchemaMarker:
         return f"_SchemaMarker({self._schema_cls.__name__})"
 
 
+class _FluxA2UIToolset:
+    """Minimal toolset marker returned by ``T.a2ui(catalog="flux")``.
+
+    Carries flux component factory metadata (description, examples,
+    antiPatterns) loaded from ``catalog/flux/catalog.json`` so the LLM-facing
+    schema advertises the full flux surface without requiring the external
+    ``a2ui-agent`` dependency.
+
+    This is a data-bearing marker, not an ADK Toolset — the ADK-facing
+    integration (mapping each flux factory to a runtime tool) will land
+    alongside the public ``a2ui-agent[flux]`` package. Today the marker is
+    enough for ``T.a2ui(catalog="flux")`` to be discoverable and testable.
+    """
+
+    __slots__ = ("catalog", "components", "llm_metadata", "_schema")
+
+    def __init__(self, *, schema: Any = None) -> None:
+        import json
+        from pathlib import Path
+
+        self.catalog = "flux"
+        self._schema = schema
+
+        catalog_path = Path(__file__).resolve().parent.parent.parent.parent / "catalog/flux/catalog.json"
+        if catalog_path.is_file():
+            try:
+                catalog_data = json.loads(catalog_path.read_text())
+            except (OSError, ValueError):
+                catalog_data = {"components": {}}
+        else:
+            catalog_data = {"components": {}}
+
+        components = catalog_data.get("components", {}) or {}
+        self.components = tuple(sorted(components.keys()))
+        self.llm_metadata = {name: block.get("llm", {}) for name, block in components.items()}
+
+    @property
+    def description(self) -> str:
+        """LLM-facing description enumerating the flux component surface."""
+        parts = [
+            "Flux catalog toolset. Emit A2UI nodes for the following components:",
+        ]
+        for name in self.components:
+            meta = self.llm_metadata.get(name, {})
+            desc = (meta.get("description") or "").strip().splitlines()[0:1]
+            desc_line = desc[0] if desc else ""
+            parts.append(f"- {name}: {desc_line}")
+        return "\n".join(parts)
+
+    def __repr__(self) -> str:
+        return f"_FluxA2UIToolset(components={len(self.components)})"
+
+
+def _build_flux_a2ui_toolset(*, schema: Any = None) -> TComposite:
+    """Build a TComposite wrapping the flux toolset marker.
+
+    Exposed for T.a2ui(catalog="flux"). Does not require the ``a2ui-agent``
+    package because flux factories live in-tree under ``adk_fluent._flux_gen``.
+    """
+    return TComposite([_FluxA2UIToolset(schema=schema)], kind="a2ui_flux")
+
+
 class T:
     """Fluent tool composition. Consistent with P, C, S, M modules.
 
@@ -316,15 +378,32 @@ class T:
     def a2ui(*, catalog: str = "basic", schema: Any = None) -> TComposite:
         """A2UI toolset for LLM-guided UI generation.
 
-        Wraps ``SendA2uiToClientToolset`` from the optional ``a2ui-agent``
-        package. Raises :class:`A2UINotInstalled` when the package is not
-        importable — install with ``pip install a2ui-agent``.
+        Default (``catalog="basic"``): wraps ``SendA2uiToClientToolset`` from
+        the optional ``a2ui-agent`` package. Raises :class:`A2UINotInstalled`
+        when the package is not importable — install with
+        ``pip install a2ui-agent``.
+
+        Flux (``catalog="flux"``): returns a toolset that exposes the flux
+        component factories and injects per-component ``llm`` metadata
+        (description, examples, antiPatterns) loaded from
+        ``catalog/flux/catalog.json`` into the tool schema. The flux path
+        does *not* require ``a2ui-agent``.
 
         Args:
-            catalog: Catalog identifier (default ``"basic"``).
+            catalog: Catalog identifier (``"basic"`` or ``"flux"``).
             schema: Optional catalog schema dict for validation.
+
+        Raises:
+            ValueError: If ``catalog`` is not a known identifier.
         """
         from adk_fluent._exceptions import A2UINotInstalled
+        from adk_fluent._ui import KNOWN_CATALOGS
+
+        if catalog not in KNOWN_CATALOGS:
+            raise ValueError(f"Unknown catalog {catalog!r}. Known catalogs: {sorted(KNOWN_CATALOGS)}")
+
+        if catalog == "flux":
+            return _build_flux_a2ui_toolset(schema=schema)
 
         try:
             from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
