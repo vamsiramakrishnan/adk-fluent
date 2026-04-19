@@ -4,6 +4,36 @@ TypeScript fluent builder API for Google's [Agent Development Kit (ADK)](https:/
 
 Every `.build()` returns a real [`@google/adk`](https://www.npmjs.com/package/@google/adk) object, so anything built with `adk-fluent-ts` is fully compatible with ADK's runtime, deployment, and tooling.
 
+<!-- Package -->
+<p>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="npm" src="https://img.shields.io/npm/v/adk-fluent-ts?logo=npm&logoColor=white&label=npm&color=CB3837"></a>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="npm downloads" src="https://img.shields.io/npm/dm/adk-fluent-ts?logo=npm&logoColor=white&label=downloads%20/month"></a>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="npm total downloads" src="https://img.shields.io/npm/dt/adk-fluent-ts?logo=npm&logoColor=white&label=downloads"></a>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="Node" src="https://img.shields.io/node/v/adk-fluent-ts?logo=node.js&logoColor=white&label=Node"></a>
+  <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white"></a>
+  <a href="https://github.com/vamsiramakrishnan/adk-fluent/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/npm/l/adk-fluent-ts?color=informational"></a>
+</p>
+
+<!-- Bundle & types -->
+<p>
+  <a href="https://bundlephobia.com/package/adk-fluent-ts"><img alt="Bundle size (minzip)" src="https://img.shields.io/bundlephobia/minzip/adk-fluent-ts?label=minzip&logo=webpack&logoColor=white"></a>
+  <a href="https://bundlephobia.com/package/adk-fluent-ts"><img alt="Bundle size (min)" src="https://img.shields.io/bundlephobia/min/adk-fluent-ts?label=minified&logo=webpack&logoColor=white"></a>
+  <a href="https://packagephobia.com/result?p=adk-fluent-ts"><img alt="Install size" src="https://badgen.net/packagephobia/install/adk-fluent-ts"></a>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="Tree-shakeable" src="https://badgen.net/bundlephobia/tree-shaking/adk-fluent-ts"></a>
+  <a href="https://www.npmjs.com/package/adk-fluent-ts"><img alt="TS types" src="https://img.shields.io/npm/types/adk-fluent-ts?logo=typescript&logoColor=white"></a>
+  <a href="https://arethetypeswrong.github.io/?p=adk-fluent-ts"><img alt="Are the types wrong?" src="https://img.shields.io/badge/attw-pass-2EA043?logo=typescript&logoColor=white"></a>
+</p>
+
+<!-- Engineering & ecosystem -->
+<p>
+  <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/ci.yml?branch=master&logo=github&label=CI"></a>
+  <a href="https://vitest.dev"><img alt="Tested with Vitest" src="https://img.shields.io/badge/tested_with-vitest-6E9F18?logo=vitest&logoColor=white"></a>
+  <a href="https://prettier.io"><img alt="Prettier" src="https://img.shields.io/badge/code_style-prettier-F7B93E?logo=prettier&logoColor=black"></a>
+  <a href="https://eslint.org"><img alt="ESLint" src="https://img.shields.io/badge/lint-eslint-4B32C3?logo=eslint&logoColor=white"></a>
+  <a href="https://www.npmjs.com/package/@google/adk"><img alt="peer: @google/adk" src="https://img.shields.io/badge/peer-%40google%2Fadk%20%E2%89%A50.6-4285F4?logo=google&logoColor=white"></a>
+  <a href="https://vamsiramakrishnan.github.io/adk-fluent/"><img alt="Docs" src="https://img.shields.io/badge/docs-latest-E65100?logo=readthedocs&logoColor=white"></a>
+</p>
+
 ## Status
 
 Beta. The TypeScript port tracks the Python API surface feature-by-feature and is regenerated from a shared manifest via `just ts-generate`. The API surface is stable enough to build real agents, but minor breakages may still land before `1.0`.
