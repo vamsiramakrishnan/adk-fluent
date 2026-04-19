@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-04-19
+
+### Added
+
+- **A2UI devex wedge**: `Agent.ui(spec, *, llm_guided=False, validate=True, log=False)` behavior matrix — single flag flips an agent into LLM-guided UI mode and auto-wires `T.a2ui()` + `G.a2ui()` (+ optional `M.a2ui_log()`) with build-time deduplication.
+- **Schema-driven forms**: `UI.form(MyPydanticModel)` (Python) / `UI.form(z.object({...}))` (TS) generate a typed surface from a model — string/int/bool/Literal/EmailStr/HttpUrl/date all map to the right component with the right validation.
+- **Reflective bindings**: `UI.paths(Schema)` returns a typed proxy — `paths.email` yields a two-way `UIBinding` to `/email`, with helpful errors on typos. Mirrored in TS.
+- **A2UI exception hierarchy**: `A2UIError`, `A2UINotInstalled`, `A2UISurfaceError`, `A2UIBindingError` re-exported from the package root in both Python and TS.
+- **Surface integrity validation**: `UISurface.validate()` catches duplicate component IDs, virtual-group roots, two-way bindings against undeclared data keys, and unhandled action events. Same fail-first order in Python and TS. Auto-runs at build time unless opted out via `Agent.ui(..., validate=False)`.
+- **TS Zod v4 support**: `zod ^4.3.6` added as an optional peer dependency for `UI.form`/`UI.paths` schema introspection.
+
+### Changed
+
+- **`T.a2ui()` is now fail-loud**: raises `A2UINotInstalled` when the optional `a2ui-agent` package isn't installed (was a silent no-op that produced confusing downstream failures). `Agent.build()` rethrows as `BuilderError` (Python) / `Error` with descriptive prefix (TS).
+- **`UI.form` overload**: `UI.form(SchemaCls)` is now the preferred path; the legacy `UI.form("title", fields={...})` dict form is preserved for back-compat.
+
 ## [0.14.0] - 2026-04-13
 
 ### Added
