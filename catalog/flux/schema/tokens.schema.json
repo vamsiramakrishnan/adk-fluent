@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adk-fluent.dev/flux/schema/tokens.schema.json",
+  "title": "flux Token Pack",
+  "description": "A flux token pack. Both flux-light.json and flux-dark.json conform to this schema and share identical key sets.",
+  "type": "object",
+  "required": ["$meta", "color", "space", "radius", "shadow", "motion", "typography", "z"],
+  "additionalProperties": false,
+  "properties": {
+    "$meta": {
+      "type": "object",
+      "required": ["id", "scheme", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "id":      { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "scheme":  { "enum": ["light", "dark"] },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "extends": { "type": "string" }
+      }
+    },
+    "color": {
+      "type": "object",
+      "required": ["neutral", "brand", "success", "warning", "danger", "info", "bg", "border", "text", "primary"],
+      "additionalProperties": false,
+      "properties": {
+        "neutral": { "$ref": "#/$defs/scale12" },
+        "brand":   { "$ref": "#/$defs/scale12" },
+        "success": { "$ref": "#/$defs/scale12" },
+        "warning": { "$ref": "#/$defs/scale12" },
+        "danger":  { "$ref": "#/$defs/scale12" },
+        "info":    { "$ref": "#/$defs/scale12" },
+        "bg":      {
+          "type": "object",
+          "required": ["canvas", "subtle", "surface"],
+          "additionalProperties": false,
+          "properties": {
+            "canvas":  { "$ref": "#/$defs/colorValue" },
+            "subtle":  { "$ref": "#/$defs/colorValue" },
+            "surface": { "$ref": "#/$defs/colorValue" }
+          }
+        },
+        "border": {
+          "type": "object",
+          "required": ["default", "focus", "danger"],
+          "additionalProperties": false,
+          "properties": {
+            "default": { "$ref": "#/$defs/colorValue" },
+            "focus":   { "$ref": "#/$defs/colorValue" },
+            "danger":  { "$ref": "#/$defs/colorValue" }
+          }
+        },
+        "text": {
+          "type": "object",
+          "required": ["primary", "muted", "onBrand", "danger", "link"],
+          "additionalProperties": false,
+          "properties": {
+            "primary": { "$ref": "#/$defs/colorValue" },
+            "muted":   { "$ref": "#/$defs/colorValue" },
+            "onBrand": { "$ref": "#/$defs/colorValue" },
+            "danger":  { "$ref": "#/$defs/colorValue" },
+            "link":    { "$ref": "#/$defs/colorValue" }
+          }
+        },
+        "primary": {
+          "type": "object",
+          "required": ["solid", "solidHover", "subtle", "subtleHover"],
+          "additionalProperties": false,
+          "properties": {
+            "solid":       { "$ref": "#/$defs/colorValue" },
+            "solidHover":  { "$ref": "#/$defs/colorValue" },
+            "subtle":      { "$ref": "#/$defs/colorValue" },
+            "subtleHover": { "$ref": "#/$defs/colorValue" }
+          }
+        }
+      }
+    },
+    "space": {
+      "type": "object",
+      "required": ["0", "0_5", "1", "1_5", "2", "3", "4", "5", "6", "8", "10", "12", "16", "20", "24"],
+      "additionalProperties": false,
+      "patternProperties": { "^[0-9]+(_[0-9]+)?$": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?(px|rem)$" } }
+    },
+    "radius": {
+      "type": "object",
+      "required": ["none", "xs", "sm", "md", "lg", "xl", "2xl", "full"],
+      "additionalProperties": false,
+      "patternProperties": { ".*": { "type": "string" } }
+    },
+    "shadow": {
+      "type": "object",
+      "required": ["none", "sm", "md", "lg", "xl", "focus"],
+      "additionalProperties": false,
+      "patternProperties": { ".*": { "type": "string" } }
+    },
+    "motion": {
+      "type": "object",
+      "required": ["duration", "easing"],
+      "additionalProperties": false,
+      "properties": {
+        "duration": {
+          "type": "object",
+          "required": ["fast", "base", "slow"],
+          "additionalProperties": false,
+          "patternProperties": { ".*": { "type": "string", "pattern": "^[0-9]+ms$" } }
+        },
+        "easing": {
+          "type": "object",
+          "required": ["standard", "emphasized", "decelerate"],
+          "additionalProperties": false,
+          "patternProperties": { ".*": { "type": "string" } }
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "required": ["family", "size", "weight", "lineHeight"],
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "type": "object",
+          "required": ["sans", "mono"],
+          "additionalProperties": false,
+          "patternProperties": { ".*": { "type": "string" } }
+        },
+        "size": {
+          "type": "object",
+          "required": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl", "5xl"],
+          "additionalProperties": false,
+          "patternProperties": { ".*": { "type": "string" } }
+        },
+        "weight": {
+          "type": "object",
+          "required": ["regular", "medium", "semibold", "bold"],
+          "additionalProperties": false,
+          "patternProperties": { ".*": { "type": "integer", "minimum": 100, "maximum": 900 } }
+        },
+        "lineHeight": {
+          "type": "object",
+          "required": ["tight", "normal", "relaxed"],
+          "additionalProperties": false,
+          "patternProperties": { ".*": { "type": "number" } }
+        }
+      }
+    },
+    "z": {
+      "type": "object",
+      "required": ["base", "dropdown", "sticky", "overlay", "modal", "toast"],
+      "additionalProperties": false,
+      "patternProperties": { ".*": { "type": "integer" } }
+    }
+  },
+  "$defs": {
+    "colorValue": {
+      "type": "string",
+      "pattern": "^(#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?|rgba?\\(.+\\)|hsla?\\(.+\\))$"
+    },
+    "scale12": {
+      "type": "object",
+      "required": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+      "additionalProperties": false,
+      "patternProperties": { "^(1[0-2]|[1-9])$": { "$ref": "#/$defs/colorValue" } }
+    }
+  }
+}
