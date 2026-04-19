@@ -1,0 +1,114 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "ticketform"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "text",
+          "text": "TicketForm",
+          "variant": "h1"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/title/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "title",
+          "label": "Title",
+          "value": {
+            "path": "/title"
+          },
+          "variant": "shortText"
+        },
+        {
+          "checks": [
+            {
+              "condition": {
+                "args": {
+                  "value": {
+                    "path": "/priority/value"
+                  }
+                },
+                "call": "required",
+                "returnType": "boolean"
+              },
+              "message": "Required check failed"
+            }
+          ],
+          "component": "TextField",
+          "id": "priority",
+          "label": "Priority",
+          "value": {
+            "path": "/priority"
+          },
+          "variant": "shortText"
+        },
+        {
+          "component": "TextField",
+          "id": "description",
+          "label": "Description",
+          "value": {
+            "path": "/description"
+          },
+          "variant": "shortText"
+        },
+        {
+          "component": "CheckBox",
+          "id": "notify",
+          "label": "Notify",
+          "value": {
+            "path": "/notify"
+          }
+        },
+        {
+          "component": "Text",
+          "id": "submit_label",
+          "text": "Submit"
+        },
+        {
+          "action": {
+            "event": {
+              "name": "submit"
+            }
+          },
+          "child": "submit_label",
+          "component": "Button",
+          "id": "submit_btn",
+          "variant": "primary"
+        },
+        {
+          "children": [
+            "text",
+            "title",
+            "priority",
+            "description",
+            "notify",
+            "submit_btn"
+          ],
+          "component": "Column",
+          "id": "root"
+        }
+      ],
+      "surfaceId": "ticketform"
+    },
+    "version": "v0.10"
+  }
+]
