@@ -160,18 +160,24 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
-      - uses: actions/download-artifact@v4
-        with:
-          name: ts-dist
-          path: ts-artifact/
+          cache: "npm"
+          cache-dependency-path: ts/package-lock.json
+      - name: Install dependencies
+        working-directory: ts
+        run: npm ci
+      - name: Build
+        working-directory: ts
+        run: npm run build
+      - name: Stage LICENSE
+        run: cp LICENSE ts/LICENSE
       - name: Publish
         working-directory: ts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::warning::NPM_TOKEN secret not set — skipping npm publish."
-            exit 0
+            echo "::error::NPM_TOKEN secret not set on the 'npm' environment."
+            echo "Attach NPM_TOKEN as a secret on the GitHub environment named 'npm'."
+            exit 1
           fi
-          npm ci
           npm publish --access public
