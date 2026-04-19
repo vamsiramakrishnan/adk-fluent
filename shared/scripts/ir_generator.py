@@ -228,8 +228,11 @@ def gen_full_module(manifest: dict) -> str:
 
     adk_version = manifest.get("adk_version", "unknown")
 
-    # Content hash of inputs for provenance — deterministic, not time-based
-    raw = json.dumps(manifest, sort_keys=True).encode()
+    # Content hash of inputs for provenance — deterministic, not time-based.
+    # Strip scan_timestamp so the hash is stable across scan runs of the same
+    # ADK version (otherwise this header drifts on every ``just scan``).
+    manifest_for_hash = {k: v for k, v in manifest.items() if k != "scan_timestamp"}
+    raw = json.dumps(manifest_for_hash, sort_keys=True).encode()
     manifest_hash = hashlib.sha256(raw).hexdigest()[:12]
 
     header_lines = [
