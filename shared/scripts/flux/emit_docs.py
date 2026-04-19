@@ -140,9 +140,49 @@ def emit(catalog: dict[str, Any], *, root: Path) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
     components = catalog.get("components") or {}
-    for name in sorted(components):
+    sorted_names = sorted(components)
+    slugs: list[tuple[str, str]] = []
+    for name in sorted_names:
         spec = components[name]
-        page_path = out_dir / f"{_camel_to_kebab(name)}.md"
+        slug = _camel_to_kebab(name)
+        page_path = out_dir / f"{slug}.md"
         page_path.write_text(_render_page(spec), encoding="utf-8")
         written.append(page_path)
+        slugs.append((name, slug))
+
+    # Emit a flux landing page that parents the component pages in the
+    # Sphinx toctree. Without this, ``-W`` turns the ``toc.not_included``
+    # warnings into hard errors.
+    index_path = root / "docs" / "flux" / "index.md"
+    index_path.write_text(_render_index(slugs), encoding="utf-8")
+    written.append(index_path)
     return written
+
+
+def _render_index(slugs: list[tuple[str, str]]) -> str:
+    lines: list[str] = [
+        MARKER,
+        "",
+        "# Flux catalog",
+        "",
+        "The **flux** catalog is the reference A2UI bundle shipped with",
+        "adk-fluent. It extends `a2ui/basic@0.10` with ten Phase-1",
+        "components designed for WCAG 2.2 AA, token-driven theming, and a",
+        "basic-catalog fallback so renderers that don't speak flux still",
+        "degrade gracefully.",
+        "",
+        "See `catalog/flux/ARCHITECTURE.md` for the layered contracts",
+        "(tokens → specs → codegen → fluent API → React renderer).",
+        "",
+        "## Components",
+        "",
+        "```{toctree}",
+        "---",
+        "maxdepth: 1",
+        "---",
+    ]
+    for _name, slug in slugs:
+        lines.append(f"components/{slug}")
+    lines.append("```")
+    lines.append("")
+    return "\n".join(lines)

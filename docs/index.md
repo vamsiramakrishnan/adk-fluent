@@ -487,6 +487,14 @@ generated/migration/from-native-adk
 ```{toctree}
 ---
 maxdepth: 2
+caption: Flux catalog
+---
+flux/index
+```
+
+```{toctree}
+---
+maxdepth: 2
 caption: Contributing
 ---
 contributing/index
