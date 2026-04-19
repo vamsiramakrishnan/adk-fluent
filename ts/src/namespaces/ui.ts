@@ -727,18 +727,17 @@ export class UI {
   // ------------------------------------------------------------------
 
   /** Detect a Zod object schema via duck-typing the v4 public `def` surface. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static _isZodObject(
-    value: unknown,
-  ): value is { def: { type: string; shape: Record<string, any> }; shape: Record<string, any> } {
+  private static _isZodObject(value: unknown): value is {
+    def: { type: string; shape: Record<string, unknown> };
+    shape: Record<string, unknown>;
+  } {
     if (!value || typeof value !== "object") return false;
     const v = value as { def?: { type?: string }; shape?: unknown };
     return v.def?.type === "object" && typeof v.shape === "object" && v.shape !== null;
   }
 
   /** Read the `shape` from a Zod object (v4 exposes it on both `.shape` and `.def.shape`). */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static _zodObjectShape(value: unknown): Record<string, any> | null {
+  private static _zodObjectShape(value: unknown): Record<string, unknown> | null {
     if (!value || typeof value !== "object") return null;
     const v = value as {
       shape?: Record<string, unknown>;
