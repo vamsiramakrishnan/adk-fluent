@@ -2,6 +2,11 @@
 // Do not edit by hand — re-run `just ts-generate`.
 
 import { BuilderBase } from "../core/builder-base.js";
+import { A2UIError, A2UINotInstalled } from "../_exceptions.js";
+import { UIAutoSpec, UISchemaSpec, UISurface, UIComponent } from "../namespaces/ui.js";
+import { T, TComposite } from "../namespaces/tools.js";
+import { G, GComposite } from "../namespaces/guards.js";
+import { M } from "../namespaces/middleware.js";
 
 /**
  * Base class for all agents in Agent Development Kit.
@@ -353,10 +358,108 @@ export class Agent extends BuilderBase {
   }
 
   /**
-   * Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go'))).
+   * Attach an A2UI surface (or LLM-guided mode) to this agent.
+   *
+   * Behavior matrix:
+   *
+   * | spec                       | llmGuided | result                                                                              |
+   * | -------------------------- | --------- | ----------------------------------------------------------------------------------- |
+   * | `null` / `undefined`       | `false`   | throws A2UIError("requires a spec or llmGuided: true")                              |
+   * | `null` / `undefined`       | `true`    | promote to `new UIAutoSpec("basic", { fromFlag: true })`; autoTool + autoGuard wired |
+   * | `UIAutoSpec`               | `false`   | keep; only prompt-side schema is wired                                              |
+   * | `UIAutoSpec`               | `true`    | keep; autoTool + autoGuard wired                                                    |
+   * | `UISurface`                | `false`   | keep; auto-validated at build()                                                     |
+   * | `UISurface`                | `true`    | throws A2UIError (incompatible)                                                     |
+   * | `UIComponent`              | `false`   | wrap in `new UISurface("default", spec)`                                            |
+   * | `UIComponent`              | `true`    | throws A2UIError (incompatible)                                                     |
+   * | `UISchemaSpec`             | `false`   | keep                                                                                |
+   * | `UISchemaSpec`             | `true`    | throws A2UIError (incompatible)                                                     |
+   *
+   * Stamps the following private config keys when wiring auto-modes:
+   *   - `_a2uiAutoTool` (boolean): when true, build() should append `T.a2ui()`.
+   *   - `_a2uiAutoGuard` (boolean): when true, build() should append `G.a2ui()`.
+   *   - `_a2uiAutoLog` (boolean): when true and `opts.log === true`, append `M.a2uiLog`.
+   *   - `_a2uiValidate` (boolean): when true and spec is a UISurface, call `spec.validate()`.
+   *
+   * Idempotency: setting `.ui()` twice emits a `console.warn` and overwrites.
    */
-  ui(spec: unknown): this {
-    return this._setConfig("_ui_spec", spec);
+  ui(
+    spec?: UISurface | UIComponent | UIAutoSpec | UISchemaSpec | null,
+    opts?: { llmGuided?: boolean; validate?: boolean; log?: boolean },
+  ): this {
+    const llmGuided = opts?.llmGuided ?? false;
+    const validate = opts?.validate ?? true;
+    const log = opts?.log === true;
+
+    let resolved: UISurface | UIAutoSpec | UISchemaSpec;
+    let autoTool = false;
+    let autoGuard = false;
+
+    if (spec === undefined || spec === null) {
+      if (!llmGuided) {
+        throw new A2UIError("Agent.ui() requires a spec or llmGuided: true");
+      }
+      resolved = new UIAutoSpec("basic", { fromFlag: true });
+      autoTool = true;
+      autoGuard = true;
+    } else if (spec instanceof UIAutoSpec) {
+      resolved = spec;
+      if (llmGuided) {
+        autoTool = true;
+        autoGuard = true;
+      }
+    } else if (spec instanceof UISchemaSpec) {
+      if (llmGuided) {
+        throw new A2UIError(
+          "llmGuided: true is incompatible with a declarative surface; " +
+            "use UI.auto() or omit the spec",
+        );
+      }
+      resolved = spec;
+    } else if (spec instanceof UISurface) {
+      if (llmGuided) {
+        throw new A2UIError(
+          "llmGuided: true is incompatible with a declarative surface; " +
+            "use UI.auto() or omit the spec",
+        );
+      }
+      resolved = spec;
+    } else if (spec instanceof UIComponent) {
+      if (llmGuided) {
+        throw new A2UIError(
+          "llmGuided: true is incompatible with a declarative surface; " +
+            "use UI.auto() or omit the spec",
+        );
+      }
+      resolved = new UISurface("default", spec);
+    } else {
+      throw new A2UIError(
+        `Agent.ui() received an unsupported spec type: ${typeof spec}`,
+      );
+    }
+
+    // Idempotency warning
+    const prior = this._config.get("_ui_spec");
+    if (prior !== undefined && prior !== null) {
+      const priorMode =
+        prior instanceof UIAutoSpec
+          ? "UIAutoSpec"
+          : prior instanceof UISchemaSpec
+            ? "UISchemaSpec"
+            : prior instanceof UISurface
+              ? "UISurface"
+              : "unknown";
+      console.warn(
+        `[Agent.ui] overwriting prior UI spec (was ${priorMode}); only the latest .ui() call wins.`,
+      );
+    }
+
+    let next: this = this._setConfig("_ui_spec", resolved);
+    next = next._setConfig("_a2uiAutoTool", autoTool);
+    next = next._setConfig("_a2uiAutoGuard", autoGuard);
+    if (log) next = next._setConfig("_a2uiAutoLog", true);
+    next = next._setConfig("_a2uiValidate", validate);
+    return next;
   }
 
   /**
@@ -488,9 +591,80 @@ export class Agent extends BuilderBase {
 
   /**
    * LLM-based Agent. Resolve into a native ADK LlmAgent.
+   *
+   * Performs A2UI auto-wiring driven by `.ui()` flags:
+   *   - `_a2uiAutoTool`  → append a deduped `T.a2ui()` tool composite
+   *   - `_a2uiAutoGuard` → append a deduped `G.a2ui()` guard
+   *   - `_a2uiAutoLog`   → append `M.a2uiLog({ level: "info" })` middleware
+   *   - `_a2uiValidate`  → call `surface.validate()` on declarative surfaces
+   *
+   * `T.a2ui()` throws `A2UINotInstalled`; this method catches and rethrows
+   * as a more descriptive Error during build (since the user opted in via
+   * `.ui()`, the missing dependency is now a build-time failure).
    */
   build(): Record<string, unknown> {
-    return this._buildConfig("LlmAgent");
+    let next: this = this;
+
+    const spec = this._config.get("_ui_spec");
+    const autoTool = this._config.get("_a2uiAutoTool") === true;
+    const autoGuard = this._config.get("_a2uiAutoGuard") === true;
+    const autoLog = this._config.get("_a2uiAutoLog") === true;
+    const validate = this._config.get("_a2uiValidate") === true;
+
+    // 1. Validate declarative surface
+    if (validate && spec instanceof UISurface) {
+      spec.validate();
+    }
+
+    // 2. Auto-tool (T.a2ui) — dedup by checking existing TComposite items
+    if (autoTool) {
+      const existingTools = (next._lists.get("tools") ?? []) as unknown[];
+      const hasA2ui = existingTools.some((t) => {
+        if (t instanceof TComposite) {
+          return t.items.some((it) => it.type === "a2ui");
+        }
+        return false;
+      });
+      if (!hasA2ui) {
+        try {
+          const a2uiTool = T.a2ui();
+          next = next._addToList("tools", a2uiTool);
+        } catch (err) {
+          if (err instanceof A2UINotInstalled) {
+            throw new Error(
+              `Agent.build(): cannot auto-wire A2UI tools — ${err.message}`,
+            );
+          }
+          throw err;
+        }
+      }
+    }
+
+    // 3. Auto-guard (G.a2ui) — dedup by guard name
+    if (autoGuard) {
+      const existingCallbacks =
+        (next._callbacks.get("after_model_callback") ?? []) as Array<unknown>;
+      const hasA2uiGuard = existingCallbacks.some((g) => {
+        if (g instanceof GComposite) {
+          return g.guards.some((gs) => gs.name === "a2ui");
+        }
+        return false;
+      });
+      if (!hasA2uiGuard) {
+        const guard = G.a2ui();
+        // Mirror Agent.guard() behavior: register on both before and after model.
+        next = next._addCallback("before_model_callback", guard);
+        next = next._addCallback("after_model_callback", guard);
+      }
+    }
+
+    // 4. Auto-log (M.a2uiLog) — no dedup needed
+    if (autoLog) {
+      const mw = M.a2uiLog({ level: "info" });
+      next = next._addToList("middleware", mw);
+    }
+
+    return next._buildConfig("LlmAgent");
   }
 }
 

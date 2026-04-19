@@ -47,7 +47,13 @@
     "directory": "ts"
   },
   "peerDependencies": {
-    "@google/adk": ">=0.6.0"
+    "@google/adk": ">=0.6.0",
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -61,6 +67,7 @@
     "prettier": "^3.4.0",
     "typedoc": "^0.27.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "zod": "^4.3.6"
   }
 }

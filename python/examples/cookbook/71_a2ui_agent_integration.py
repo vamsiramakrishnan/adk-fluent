@@ -1,83 +1,163 @@
-"""A2UI Agent Integration: Wiring UI to Agents
+"""A2UI Agent Integration: Wiring UI to Agents (the wedge devex)
 
-Demonstrates attaching UI surfaces to agents and cross-namespace integration.
+Demonstrates the ergonomic ``Agent.ui()`` overload introduced in the A2UI
+devex wedge:
 
-Key concepts:
-  - Agent.ui(): attach declarative or LLM-guided UI
-  - UI.auto(): LLM-guided mode
-  - T.a2ui(): A2UI toolset in tool composition
-  - G.a2ui(): guard for LLM-generated UI validation
-  - P.ui_schema(): inject catalog schema into prompt
-  - ui_form_agent(): pattern helper
+- ``.ui(spec)``                — declarative surface (prompt-only, no tool wiring)
+- ``.ui(llm_guided=True)``     — auto-wires ``T.a2ui()`` + ``G.a2ui()`` for you
+- ``.ui(spec, log=True)``      — also auto-wires ``M.a2ui_log()``
+- ``.ui(spec, validate=False)``— skip ``surface.validate()`` at build time
+
+Plus the schema-driven helpers:
+
+- ``UI.form(MyPydanticModel)`` — generate a typed form from a BaseModel
+- ``UI.paths(MyPydanticModel)``— typed two-way binding proxy
 """
 
-from adk_fluent import Agent, T, UI
-from adk_fluent._guards import G
-from adk_fluent._prompt import P
-from adk_fluent._ui import UISurface, _UIAutoSpec
-from adk_fluent.patterns import ui_dashboard_agent, ui_form_agent
+from __future__ import annotations
 
-# --- 1. Agent.ui() with declarative surface ---
+from typing import Literal, Optional
+
+from pydantic import BaseModel
+
+from adk_fluent import (
+    A2UIError,
+    A2UINotInstalled,
+    Agent,
+    BuilderError,
+    G,
+    T,
+    UI,
+    UIBinding,
+    UISurface,
+)
+from adk_fluent._ui import _UIAutoSpec  # internal marker, used only for isinstance check
+
+# ---------------------------------------------------------------------------
+# 1. Declarative surface — old form-dict syntax still works.
+# ---------------------------------------------------------------------------
+
 agent = (
     Agent("support", "gemini-2.5-flash")
     .instruct("Help users.")
     .ui(UI.form("ticket", fields={"issue": "longText", "priority": "text"}))
 )
 assert isinstance(agent._config["_ui_spec"], UISurface)
+assert agent._config["_a2ui_auto_tool"] is False  # prompt-only
+assert agent._config["_a2ui_auto_guard"] is False
+assert agent._config["_a2ui_validate"] is True  # default
 
-# --- 2. Agent.ui() with LLM-guided mode ---
-creative = Agent("creative", "gemini-2.5-flash").instruct("Build UIs.").ui(UI.auto())
-assert isinstance(creative._config["_ui_spec"], _UIAutoSpec)
+# ---------------------------------------------------------------------------
+# 2. Schema-driven form (the wedge headline feature).
+# ---------------------------------------------------------------------------
 
-# --- 3. Agent.ui() with component tree ---
-form_agent = Agent("form", "gemini-2.5-flash").ui(
-    UI.text("Sign Up") >> (UI.text_field("Email") | UI.text_field("Password")) >> UI.button("Submit")
+
+class TicketForm(BaseModel):
+    title: str
+    priority: Literal["low", "med", "high"]
+    description: str | None = None
+    notify: bool = True
+
+
+schema_surface = UI.form(TicketForm)
+assert isinstance(schema_surface, UISurface)
+assert schema_surface.name == "ticketform"
+# Five components: title, priority, description, notify + Text("Title") header + Submit
+# Just sanity check the root has children
+assert schema_surface.root is not None and len(schema_surface.root._children) >= 5
+
+ticket_agent = (
+    Agent("ticket", "gemini-2.5-flash").instruct("Collect ticket info.").ui(schema_surface)
 )
-assert form_agent._config["_ui_spec"] is not None
+assert isinstance(ticket_agent._config["_ui_spec"], UISurface)
 
-# --- 4. T.a2ui() tool composition ---
-tc = T.a2ui()
-assert tc._kind == "a2ui"
+# ---------------------------------------------------------------------------
+# 3. Reflective binding paths — typo-proof field references.
+# ---------------------------------------------------------------------------
 
-composed = T.google_search() | T.a2ui()
-assert len(composed) >= 1
+paths = UI.paths(TicketForm)
+binding = paths.title
+assert isinstance(binding, UIBinding)
+assert binding.path == "/title"
 
-# --- 5. G.a2ui() guard ---
-gc = G.a2ui(max_components=30)
-assert gc is not None
+try:
+    _ = paths.titel  # typo
+except AttributeError as exc:
+    assert "Available fields" in str(exc)
+else:
+    raise AssertionError("UI.paths should reject unknown attributes")
 
-composed_guard = G.pii() | G.a2ui()
-assert composed_guard is not None
+# ---------------------------------------------------------------------------
+# 4. LLM-guided mode — auto-wires T.a2ui() + G.a2ui() at build time.
+#    When 'a2ui-agent' is not installed, .build() raises BuilderError
+#    (chained from A2UINotInstalled). This is the fail-loud contract.
+# ---------------------------------------------------------------------------
 
-# --- 6. P.ui_schema() prompt injection ---
-ps = P.ui_schema()
-assert ps.name == "ui_schema"
-assert len(ps.content) > 0
+creative = Agent("creative", "gemini-2.5-flash").instruct("Build UIs.").ui(llm_guided=True)
+spec = creative._config["_ui_spec"]
+assert isinstance(spec, _UIAutoSpec)
+assert spec._from_flag is True
+assert creative._config["_a2ui_auto_tool"] is True
+assert creative._config["_a2ui_auto_guard"] is True
 
-# Compose with other prompt sections
-full_prompt = P.role("UI designer") + P.ui_schema() + P.task("Build a dashboard")
-assert full_prompt is not None
+try:
+    import a2ui.agent  # type: ignore[import-not-found]  # noqa: F401
 
-# --- 7. .explain() includes UI info ---
-info = agent._explain_json()
-assert "ui" in info
-assert info["ui"]["mode"] == "declarative"
+    creative.build()  # succeeds when the optional dep is present
+except ImportError:
+    try:
+        creative.build()
+    except BuilderError as exc:
+        assert isinstance(exc.__cause__, A2UINotInstalled)
+    else:
+        raise AssertionError("expected BuilderError when a2ui-agent is missing")
 
-# --- 8. Pattern helpers ---
-intake = ui_form_agent(
-    "intake",
-    "gemini-2.5-flash",
-    fields={"name": "text", "email": "email"},
-    instruction="Collect user info.",
+# ---------------------------------------------------------------------------
+# 5. Mixing flags: declarative surface + log=True.
+# ---------------------------------------------------------------------------
+
+logged = (
+    Agent("logged", "gemini-2.5-flash")
+    .instruct("Show a confirm dialog.")
+    .ui(UI.confirm("Delete?"), log=True)
 )
-assert intake._config.get("_ui_spec") is not None
-assert intake._config.get("instruction") == "Collect user info."
+assert logged._config["_a2ui_auto_log"] is True
+assert getattr(logged, "_middlewares", None) is None  # log middleware applies at build
 
-dash = ui_dashboard_agent(
-    "metrics",
-    "gemini-2.5-flash",
-    cards=[{"title": "Users", "bind": "/users"}, {"title": "Revenue", "bind": "/revenue"}],
-)
-assert dash._config.get("_ui_spec") is not None
+# Building wires the M.a2ui_log middleware onto the builder.
+logged.build()
+assert any(getattr(mw, "_hook_name", None) == "after_model_callback" for mw in logged._middlewares)
+
+# ---------------------------------------------------------------------------
+# 6. Incompatible combinations raise A2UIError early.
+# ---------------------------------------------------------------------------
+
+try:
+    Agent("bad", "gemini-2.5-flash").ui(UI.surface("x", UI.text("hi")), llm_guided=True)
+except A2UIError as exc:
+    assert "incompatible" in str(exc)
+else:
+    raise AssertionError("declarative surface + llm_guided=True should raise")
+
+try:
+    Agent("bad", "gemini-2.5-flash").ui()
+except A2UIError as exc:
+    assert "requires a spec or llm_guided=True" in str(exc)
+else:
+    raise AssertionError(".ui() with no args and no flag should raise")
+
+# ---------------------------------------------------------------------------
+# 7. surface.validate() — opt-in static checks.
+# ---------------------------------------------------------------------------
+
+clean = UI.surface("clean", UI.text("Hi"))
+assert clean.validate() is clean  # no-op for clean surfaces
+
+# ---------------------------------------------------------------------------
+# 8. Cross-namespace integration — manual wiring still composes cleanly.
+# ---------------------------------------------------------------------------
+
+guard_chain = G.pii() | G.a2ui()  # G.a2ui works without a2ui-agent
+assert guard_chain is not None
 
 print("All A2UI agent integration assertions passed!")

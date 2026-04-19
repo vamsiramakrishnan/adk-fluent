@@ -316,20 +316,24 @@ class T:
     def a2ui(*, catalog: str = "basic", schema: Any = None) -> TComposite:
         """A2UI toolset for LLM-guided UI generation.
 
-        If ``a2ui-agent`` is installed, wraps ``SendA2uiToClientToolset``.
-        Otherwise returns a no-op marker composite.
+        Wraps ``SendA2uiToClientToolset`` from the optional ``a2ui-agent``
+        package. Raises :class:`A2UINotInstalled` when the package is not
+        importable — install with ``pip install a2ui-agent``.
 
         Args:
             catalog: Catalog identifier (default ``"basic"``).
             schema: Optional catalog schema dict for validation.
         """
+        from adk_fluent._exceptions import A2UINotInstalled
+
         try:
             from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
-
-            return TComposite([SendA2uiToClientToolset()], kind="a2ui")
-        except ImportError:
-            # Lightweight marker — prompt injection handled by .ui()
-            return TComposite([], kind="a2ui")
+        except ImportError as exc:
+            raise A2UINotInstalled(
+                "T.a2ui() requires the 'a2ui-agent' package. "
+                "Install with: pip install a2ui-agent"
+            ) from exc
+        return TComposite([SendA2uiToClientToolset()], kind="a2ui")
 
     # --- Effectful (idempotent) ---
 

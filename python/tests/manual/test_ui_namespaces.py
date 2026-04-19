@@ -15,20 +15,40 @@ from adk_fluent.patterns import ui_dashboard_agent, ui_form_agent
 
 
 class TestTa2ui:
-    """T.a2ui() tool composition."""
+    """T.a2ui() tool composition.
+
+    ``T.a2ui()`` raises :class:`A2UINotInstalled` when the optional
+    ``a2ui-agent`` package is missing (fail-loud per the wedge design),
+    so these tests are gated on the dependency being importable.
+    """
 
     def test_ta2ui_returns_tcomposite(self):
+        pytest.importorskip("a2ui.agent")
         tc = T.a2ui()
         assert isinstance(tc, TComposite)
 
     def test_ta2ui_kind(self):
+        pytest.importorskip("a2ui.agent")
         tc = T.a2ui()
         assert tc._kind == "a2ui"
 
     def test_ta2ui_composable(self):
+        pytest.importorskip("a2ui.agent")
         tc = T.google_search() | T.a2ui()
         assert isinstance(tc, TComposite)
         assert len(tc) >= 1
+
+    def test_ta2ui_raises_when_missing(self):
+        from adk_fluent._exceptions import A2UINotInstalled
+
+        try:
+            import a2ui.agent  # noqa: F401
+
+            pytest.skip("a2ui-agent IS installed; cannot verify the fail-loud path")
+        except ImportError:
+            pass
+        with pytest.raises(A2UINotInstalled, match="pip install a2ui-agent"):
+            T.a2ui()
 
 
 # ======================================================================

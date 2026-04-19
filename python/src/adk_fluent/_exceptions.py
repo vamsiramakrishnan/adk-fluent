@@ -20,6 +20,10 @@ __all__ = [
     "BuilderError",
     "GuardViolation",
     "PredicateError",
+    "A2UIError",
+    "A2UINotInstalled",
+    "A2UISurfaceError",
+    "A2UIBindingError",
 ]
 
 
@@ -106,3 +110,33 @@ class PredicateError(ADKFluentError):
             f"  Hint: Check that your predicate handles missing keys gracefully,\n"
             f"  or use .get() with a default value."
         )
+
+
+class A2UIError(ADKFluentError):
+    """Base for all A2UI errors."""
+
+
+class A2UINotInstalled(A2UIError):
+    """Raised when an A2UI feature requires the optional 'a2ui-agent' package."""
+
+
+class A2UISurfaceError(A2UIError):
+    """Raised when a UISurface fails static validation."""
+
+    def __init__(self, message: str, *, surface_name: str | None = None) -> None:
+        self.surface_name = surface_name
+        super().__init__(message if not surface_name else f"[{surface_name}] {message}")
+
+
+class A2UIBindingError(A2UISurfaceError):
+    """Raised when a UIBinding references an undeclared data path."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        surface_name: str | None = None,
+        path: str | None = None,
+    ) -> None:
+        self.path = path
+        super().__init__(message, surface_name=surface_name)

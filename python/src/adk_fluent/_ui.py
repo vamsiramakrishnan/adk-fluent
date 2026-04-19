@@ -187,12 +187,104 @@ class UISurface:
         """Compile to A2UI protocol messages."""
         return compile_surface(self)
 
+    def validate(self) -> UISurface:
+        """Statically validate the surface. Raises ``A2UISurfaceError`` on the first issue.
+
+        Checks performed (in order, fail-first — matches the TypeScript port):
+
+        1. Component IDs must be unique across the entire tree.
+        2. The root must not be a ``_UIGroup`` — wrap groups in a real container.
+        3. Two-way ``UIBinding`` paths must reference declared keys in
+           ``surface.data`` (skipped when ``surface.data`` is empty — implicit
+           data model is allowed).
+        4. If handlers are registered via ``.on(action, fn)``, every component
+           ``UIAction.event`` name must appear in the handler set.
+
+        Returns ``self`` to enable fluent chaining.
+        """
+        from adk_fluent._exceptions import A2UISurfaceError
+
+        if self.root is None:
+            return self
+
+        # 1. Walk tree: collect IDs, action events, two-way binding paths.
+        seen_ids: set[str] = set()
+        action_events: list[str] = []
+        two_way_paths: list[str] = []
+
+        def _walk(comp: UIComponent) -> None:
+            if isinstance(comp, _UIGroup):
+                for child in comp._children:
+                    _walk(child)
+                return
+            cid = comp._id
+            if cid is not None:
+                if cid in seen_ids:
+                    raise A2UISurfaceError(
+                        f"duplicate component id '{cid}' in surface tree",
+                        surface_name=self.name,
+                    )
+                seen_ids.add(cid)
+            if comp._action is not None:
+                action_events.append(comp._action.event)
+            for binding in comp._bindings:
+                if binding.direction == "two_way":
+                    two_way_paths.append(binding.path)
+            # Component prop UIBindings
+            for _key, value in comp._props:
+                if isinstance(value, UIBinding) and value.direction == "two_way":
+                    two_way_paths.append(value.path)
+            for child in comp._children:
+                _walk(child)
+
+        _walk(self.root)
+
+        # 2. Root must not be a virtual group
+        if isinstance(self.root, _UIGroup):
+            raise A2UISurfaceError(
+                "root must be a real component, not a _UIGroup; wrap it in UI.column(...) or UI.row(...)",
+                surface_name=self.name,
+            )
+
+        # 3. Two-way bindings vs declared data
+        if self.data:
+            from adk_fluent._exceptions import A2UIBindingError
+
+            declared_paths = {f"/{key}" for key, _ in self.data}
+            # Also allow nested paths whose first segment matches a declared key
+            declared_roots = {key for key, _ in self.data}
+            for path in two_way_paths:
+                if path in declared_paths:
+                    continue
+                # Allow nested: /name/first when /name is declared
+                head = path.lstrip("/").split("/", 1)[0]
+                if head in declared_roots:
+                    continue
+                raise A2UIBindingError(
+                    f"two-way binding path '{path}' is not declared in surface.data",
+                    surface_name=self.name,
+                    path=path,
+                )
+
+        # 4. Handlers vs actions
+        if self._handlers:
+            handler_names = {name for name, _ in self._handlers}
+            for event in action_events:
+                if event not in handler_names:
+                    raise A2UISurfaceError(
+                        f"Unhandled action '{event}'; surface only registered: {sorted(handler_names)}",
+                        surface_name=self.name,
+                    )
+
+        return self
+
 
 class _UIAutoSpec:
     """Marker for LLM-guided mode (schema injection, LLM generates UI)."""
 
-    def __init__(self, catalog: str = "basic") -> None:
+    def __init__(self, catalog: str = "basic", *, _from_flag: bool = False) -> None:
         self.catalog = catalog
+        self._from_flag = _from_flag
 
 
 class _UISchemaSpec:
@@ -387,6 +479,492 @@ def compile_surface(surface: UISurface) -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
+# Schema-driven form helpers
+# ---------------------------------------------------------------------------
+
+
+def _is_pydantic_model(annotation: Any) -> bool:
+    """Return True if ``annotation`` is a subclass of ``pydantic.BaseModel``."""
+    try:
+        from pydantic import BaseModel
+    except ImportError:  # pragma: no cover - pydantic is a hard dep
+        return False
+    return isinstance(annotation, type) and issubclass(annotation, BaseModel)
+
+
+def _humanize(name: str) -> str:
+    """``snake_case`` → ``"Snake Case"``."""
+    return name.replace("_", " ").title()
+
+
+def _is_email_annotation(ann: Any) -> bool:
+    """Detect ``pydantic.EmailStr`` (avoids hard import to keep optional).
+
+    Pydantic's ``EmailStr`` is a string subclass; we accept both identity
+    and a name-based fallback to dodge alias rewrites.
+    """
+    try:
+        from pydantic import EmailStr  # type: ignore[import-not-found]
+
+        if ann is EmailStr:
+            return True
+    except ImportError:  # pragma: no cover
+        pass
+    return getattr(ann, "__name__", "") == "EmailStr"
+
+
+def _is_url_annotation(ann: Any) -> bool:
+    """Detect ``pydantic.HttpUrl``."""
+    try:
+        from pydantic import HttpUrl  # type: ignore[import-not-found]
+
+        if ann is HttpUrl:
+            return True
+    except ImportError:  # pragma: no cover
+        pass
+    return getattr(ann, "__name__", "") == "HttpUrl"
+
+
+def _unwrap_optional(annotation: Any) -> tuple[Any, bool]:
+    """If ``annotation`` is ``Optional[X]`` (``X | None``) return (X, True)."""
+    import typing
+
+    origin = typing.get_origin(annotation)
+    if origin is typing.Union or (origin is not None and getattr(origin, "__name__", "") == "UnionType"):
+        args = [a for a in typing.get_args(annotation) if a is not type(None)]
+        if len(args) == 1 and len(typing.get_args(annotation)) > len(args):
+            return args[0], True
+    return annotation, False
+
+
+def _literal_choices(annotation: Any) -> list[Any] | None:
+    """Return Literal choices, or None if ``annotation`` is not a Literal."""
+    import typing
+
+    if typing.get_origin(annotation) is typing.Literal:
+        return list(typing.get_args(annotation))
+    return None
+
+
+def _list_literal_choices(annotation: Any) -> list[Any] | None:
+    """Return Literal choices for ``list[Literal[...]]``-shaped annotations."""
+    import typing
+
+    origin = typing.get_origin(annotation)
+    if origin not in (list, tuple, set, frozenset):
+        return None
+    args = typing.get_args(annotation)
+    if not args:
+        return None
+    inner = args[0]
+    return _literal_choices(inner)
+
+
+def _checks_from_metadata(field_info: Any, *, allow_required: bool) -> tuple[UICheck, ...]:
+    """Translate Pydantic ``FieldInfo`` constraints into ``UICheck`` rules."""
+    from adk_fluent._ui_generated import _GeneratedFactories as _GF
+
+    checks: list[UICheck] = []
+    if allow_required and field_info.is_required():
+        checks.append(_GF.required())
+
+    min_len: int | None = None
+    max_len: int | None = None
+    pattern: str | None = None
+    num_min: float | None = None
+    num_max: float | None = None
+
+    for meta in getattr(field_info, "metadata", ()) or ():
+        meta_cls = type(meta).__name__
+        if meta_cls in ("MinLen", "MinLength"):
+            min_len = getattr(meta, "min_length", getattr(meta, "min_value", None))
+        elif meta_cls in ("MaxLen", "MaxLength"):
+            max_len = getattr(meta, "max_length", getattr(meta, "max_value", None))
+        elif meta_cls in ("Pattern", "_PydanticGeneralMetadata") and getattr(meta, "pattern", None) is not None:
+            pattern = meta.pattern
+        elif meta_cls == "Ge":
+            num_min = meta.ge
+        elif meta_cls == "Gt":
+            num_min = meta.gt
+        elif meta_cls == "Le":
+            num_max = meta.le
+        elif meta_cls == "Lt":
+            num_max = meta.lt
+
+    # Check for Field(min_length=, max_length=, pattern=) – exposed via FieldInfo
+    fi_min = getattr(field_info, "min_length", None)
+    fi_max = getattr(field_info, "max_length", None)
+    fi_pattern = getattr(field_info, "pattern", None)
+    if min_len is None and fi_min is not None:
+        min_len = fi_min
+    if max_len is None and fi_max is not None:
+        max_len = fi_max
+    if pattern is None and fi_pattern is not None:
+        pattern = fi_pattern
+
+    if min_len is not None or max_len is not None:
+        checks.append(_GF.length(min=min_len, max=max_len))
+    if pattern is not None:
+        checks.append(_GF.regex(pattern))
+    if num_min is not None or num_max is not None:
+        checks.append(_GF.numeric(min=num_min, max=num_max))
+
+    return tuple(checks)
+
+
+def _component_for_field(name: str, field_info: Any) -> list[UIComponent]:
+    """Map one Pydantic field → one or more components.
+
+    Returns a list because a description may emit a sibling caption ``Text``.
+    """
+    import warnings
+
+    from adk_fluent._ui_generated import _GeneratedFactories as _GF
+
+    annotation, is_optional = _unwrap_optional(field_info.annotation)
+    label = field_info.title or _humanize(name)
+    binding = UIBinding(path=f"/{name}")
+
+    components: list[UIComponent] = []
+    description = getattr(field_info, "description", None)
+    if description:
+        components.append(_component("Text", text=description, variant="caption"))
+
+    # Literal[...] → ChoicePicker
+    choices = _literal_choices(annotation)
+    if choices is not None:
+        options = [{"label": str(c), "value": c} for c in choices]
+        checks = _checks_from_metadata(field_info, allow_required=not is_optional)
+        components.append(
+            _component(
+                "ChoicePicker",
+                id=name,
+                label=label,
+                options=options,
+                value=None,
+                _bindings=(binding,),
+                _checks=checks,
+            )
+        )
+        return components
+
+    # list[Literal[...]] → multi ChoicePicker
+    multi = _list_literal_choices(annotation)
+    if multi is not None:
+        options = [{"label": str(c), "value": c} for c in multi]
+        checks = _checks_from_metadata(field_info, allow_required=not is_optional)
+        components.append(
+            _component(
+                "ChoicePicker",
+                id=name,
+                label=label,
+                options=options,
+                value=[],
+                _bindings=(binding,),
+                _checks=checks,
+                variant="multi",
+            )
+        )
+        return components
+
+    # bool → CheckBox
+    if annotation is bool:
+        components.append(
+            _component(
+                "CheckBox",
+                id=name,
+                label=label,
+                value=False,
+                _bindings=(binding,),
+            )
+        )
+        return components
+
+    # Numeric → number TextField
+    if annotation in (int, float):
+        checks = _checks_from_metadata(field_info, allow_required=not is_optional)
+        components.append(
+            _component(
+                "TextField",
+                id=name,
+                label=label,
+                variant="number",
+                _bindings=(binding,),
+                _checks=checks,
+            )
+        )
+        return components
+
+    # date / datetime → DateTimeInput
+    import datetime as _dt
+
+    if annotation is _dt.date:
+        components.append(
+            _component(
+                "DateTimeInput",
+                id=name,
+                label=label,
+                enableDate=True,
+                _bindings=(binding,),
+            )
+        )
+        return components
+    if annotation is _dt.datetime:
+        components.append(
+            _component(
+                "DateTimeInput",
+                id=name,
+                label=label,
+                enableDate=True,
+                enableTime=True,
+                _bindings=(binding,),
+            )
+        )
+        return components
+
+    # EmailStr / HttpUrl → TextField + check
+    if _is_email_annotation(annotation):
+        checks = (_GF.email(),) + _checks_from_metadata(field_info, allow_required=not is_optional)
+        components.append(
+            _component(
+                "TextField",
+                id=name,
+                label=label,
+                variant="shortText",
+                _bindings=(binding,),
+                _checks=checks,
+            )
+        )
+        return components
+    if _is_url_annotation(annotation):
+        checks = (_GF.regex(r"^https?://", msg="Must be a URL"),) + _checks_from_metadata(
+            field_info, allow_required=not is_optional
+        )
+        components.append(
+            _component(
+                "TextField",
+                id=name,
+                label=label,
+                variant="shortText",
+                _bindings=(binding,),
+                _checks=checks,
+            )
+        )
+        return components
+
+    # str → shortText TextField
+    if annotation is str:
+        checks = _checks_from_metadata(field_info, allow_required=not is_optional)
+        components.append(
+            _component(
+                "TextField",
+                id=name,
+                label=label,
+                variant="shortText",
+                _bindings=(binding,),
+                _checks=checks,
+            )
+        )
+        return components
+
+    # Fallback
+    warnings.warn(
+        f"UI.form: unsupported annotation {annotation!r} for field {name!r}; "
+        "defaulting to a shortText TextField",
+        RuntimeWarning,
+        stacklevel=4,
+    )
+    checks = _checks_from_metadata(field_info, allow_required=not is_optional)
+    components.append(
+        _component(
+            "TextField",
+            id=name,
+            label=label,
+            variant="shortText",
+            _bindings=(binding,),
+            _checks=checks,
+        )
+    )
+    return components
+
+
+def _form_from_schema(
+    schema: Any,
+    *,
+    title: str | None,
+    submit: str,
+    submit_action: str,
+) -> UISurface:
+    """Build a ``UISurface`` from a Pydantic v2 model class."""
+    if not _is_pydantic_model(schema):  # pragma: no cover - guarded by caller
+        from adk_fluent._exceptions import A2UIError
+
+        raise A2UIError(f"{schema!r} is not a Pydantic BaseModel subclass")
+
+    surface_title = title or schema.__name__
+    children: list[UIComponent] = [_component("Text", text=surface_title, variant="h1")]
+
+    for field_name, field_info in schema.model_fields.items():
+        children.extend(_component_for_field(field_name, field_info))
+
+    btn_label = _component("Text", id="submit_label", text=submit)
+    children.append(
+        _component(
+            "Button",
+            id="submit_btn",
+            variant="primary",
+            _children=(btn_label,),
+            _action=UIAction(event=submit_action),
+        )
+    )
+
+    root = _component("Column", _children=tuple(children))
+    return UISurface(name=surface_title.lower().replace(" ", "_"), root=root)
+
+
+def _form_from_fields(
+    title: str,
+    *,
+    fields: dict[str, str | list[str]],
+    submit: str,
+    submit_action: str,
+) -> UISurface:
+    """Legacy ``UI.form(title, fields=...)`` path (preserved verbatim)."""
+    children: list[UIComponent] = [_component("Text", text=title, variant="h1")]
+
+    for field_name, field_type in fields.items():
+        label = field_name.replace("_", " ").title()
+        if isinstance(field_type, list):
+            options = [{"label": v, "value": v} for v in field_type]
+            children.append(
+                _component(
+                    "ChoicePicker",
+                    id=field_name,
+                    label=label,
+                    options=options,
+                    value=[],
+                )
+            )
+        elif field_type == "email":
+            children.append(
+                _component(
+                    "TextField",
+                    id=field_name,
+                    label=label,
+                    variant="shortText",
+                    _checks=(UICheck(fn="email", message="Invalid email"),),
+                    _bindings=(UIBinding(path=f"/{field_name}"),),
+                )
+            )
+        elif field_type == "longText":
+            children.append(
+                _component(
+                    "TextField",
+                    id=field_name,
+                    label=label,
+                    variant="longText",
+                    _bindings=(UIBinding(path=f"/{field_name}"),),
+                )
+            )
+        elif field_type == "number":
+            children.append(
+                _component(
+                    "TextField",
+                    id=field_name,
+                    label=label,
+                    variant="number",
+                    _bindings=(UIBinding(path=f"/{field_name}"),),
+                )
+            )
+        elif field_type == "checkbox":
+            children.append(
+                _component(
+                    "CheckBox",
+                    id=field_name,
+                    label=label,
+                    value=False,
+                    _bindings=(UIBinding(path=f"/{field_name}"),),
+                )
+            )
+        else:
+            children.append(
+                _component(
+                    "TextField",
+                    id=field_name,
+                    label=label,
+                    variant="shortText",
+                    _bindings=(UIBinding(path=f"/{field_name}"),),
+                )
+            )
+
+    btn_label = _component("Text", id="submit_label", text=submit)
+    children.append(
+        _component(
+            "Button",
+            id="submit_btn",
+            variant="primary",
+            _children=(btn_label,),
+            _action=UIAction(event=submit_action),
+        )
+    )
+
+    root = _component("Column", _children=tuple(children))
+    return UISurface(name=title.lower().replace(" ", "_"), root=root)
+
+
+# ---------------------------------------------------------------------------
+# UI.paths(Schema) reflective binding proxy
+# ---------------------------------------------------------------------------
+
+
+class _UIPaths:
+    """Reflective binding proxy for a Pydantic schema.
+
+    ``UI.paths(Schema).field_name`` → ``UIBinding(path="/field_name")``.
+    Nested ``BaseModel`` annotations return a sub-proxy with the parent
+    field name as the path prefix. Typo'd attributes raise ``AttributeError``
+    listing the available fields.
+    """
+
+    __slots__ = ("_schema", "_prefix", "_field_names")
+
+    def __init__(self, schema: Any, *, _prefix: str = "") -> None:
+        if not _is_pydantic_model(schema):
+            from adk_fluent._exceptions import A2UIError
+
+            raise A2UIError(f"UI.paths expects a Pydantic BaseModel subclass, got {schema!r}")
+        object.__setattr__(self, "_schema", schema)
+        object.__setattr__(self, "_prefix", _prefix.rstrip("/"))
+        object.__setattr__(self, "_field_names", tuple(schema.model_fields.keys()))
+
+    def __getattr__(self, name: str) -> Any:
+        # Dunder fast-path: don't intercept Python internals.
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
+        fields = self._field_names
+        if name not in fields:
+            available = sorted(fields)
+            raise AttributeError(
+                f"{self._schema.__name__!r} has no field {name!r}. "
+                f"Available fields: {available}"
+            )
+        field_info = self._schema.model_fields[name]
+        annotation = field_info.annotation
+        # Unwrap Optional[X]
+        annotation, _ = _unwrap_optional(annotation)
+        path = f"{self._prefix}/{name}"
+        if _is_pydantic_model(annotation):
+            return _UIPaths(annotation, _prefix=path)
+        return UIBinding(path=path)
+
+    def __dir__(self) -> list[str]:
+        return list(self._field_names)
+
+    def __repr__(self) -> str:
+        return f"<UI.paths({self._schema.__name__}, prefix={self._prefix!r})>"
+
+
+# ---------------------------------------------------------------------------
 # The UI class — imports generated factories at bottom of file
 # ---------------------------------------------------------------------------
 
@@ -487,104 +1065,91 @@ class UI:
 
     @staticmethod
     def form(
-        title: str,
+        schema_or_title: Any,
         *,
-        fields: dict[str, str | list[str]],
+        title: str | None = None,
+        fields: dict[str, str | list[str]] | None = None,
         submit: str = "Submit",
         submit_action: str = "submit",
     ) -> UISurface:
-        """Generate a form surface from a field specification.
+        """Generate a form surface — either from a Pydantic model or a field dict.
+
+        Two modes:
+
+        - **Schema mode**: ``UI.form(MyPydanticModel)`` reflects ``model_fields``
+          and emits typed inputs (``str`` → TextField, ``EmailStr`` →
+          TextField+UI.email, ``bool`` → CheckBox, ``int``/``float`` →
+          number TextField, ``Literal[...]`` → ChoicePicker, ``Optional[X]``
+          drops the implicit ``UI.required()`` check, etc.).
+
+        - **Legacy mode**: ``UI.form("Contact", fields={"name": "text", ...})``
+          dispatches to the original behavior — preserved unchanged.
 
         Args:
-            title: Form title.
-            fields: ``{"name": "text", "email": "email", "bio": "longText",
-                       "role": ["Admin", "User", "Guest"]}``.
+            schema_or_title: A ``pydantic.BaseModel`` subclass (schema mode) or
+                a string title (legacy mode).
+            title: Optional override for the surface title (schema mode only).
+            fields: Field specification dict (legacy mode only).
             submit: Submit button label.
             submit_action: Action event name for submit.
+
+        Note:
+            In schema mode, Pydantic field aliases are ignored — the JSON
+            Pointer path is always ``/<field_name>``.
         """
-        children: list[UIComponent] = [_component("Text", text=title, variant="h1")]
+        # Dispatch
+        is_pydantic_class = isinstance(schema_or_title, type)
+        if is_pydantic_class:
+            try:
+                from pydantic import BaseModel
 
-        for field_name, field_type in fields.items():
-            label = field_name.replace("_", " ").title()
-            if isinstance(field_type, list):
-                # Choice picker
-                options = [{"label": v, "value": v} for v in field_type]
-                children.append(
-                    _component(
-                        "ChoicePicker",
-                        id=field_name,
-                        label=label,
-                        options=options,
-                        value=[],
-                    )
-                )
-            elif field_type == "email":
-                children.append(
-                    _component(
-                        "TextField",
-                        id=field_name,
-                        label=label,
-                        variant="shortText",
-                        _checks=(UICheck(fn="email", message="Invalid email"),),
-                        _bindings=(UIBinding(path=f"/{field_name}"),),
-                    )
-                )
-            elif field_type == "longText":
-                children.append(
-                    _component(
-                        "TextField",
-                        id=field_name,
-                        label=label,
-                        variant="longText",
-                        _bindings=(UIBinding(path=f"/{field_name}"),),
-                    )
-                )
-            elif field_type == "number":
-                children.append(
-                    _component(
-                        "TextField",
-                        id=field_name,
-                        label=label,
-                        variant="number",
-                        _bindings=(UIBinding(path=f"/{field_name}"),),
-                    )
-                )
-            elif field_type == "checkbox":
-                children.append(
-                    _component(
-                        "CheckBox",
-                        id=field_name,
-                        label=label,
-                        value=False,
-                        _bindings=(UIBinding(path=f"/{field_name}"),),
-                    )
-                )
-            else:
-                # Default: shortText
-                children.append(
-                    _component(
-                        "TextField",
-                        id=field_name,
-                        label=label,
-                        variant="shortText",
-                        _bindings=(UIBinding(path=f"/{field_name}"),),
-                    )
-                )
+                if not issubclass(schema_or_title, BaseModel):
+                    is_pydantic_class = False
+            except ImportError:  # pragma: no cover - pydantic is a hard dep
+                is_pydantic_class = False
 
-        # Submit button with a Text child for the label
-        btn_label = _component("Text", id="submit_label", text=submit)
-        children.append(
-            _component(
-                "Button",
-                id="submit_btn",
-                variant="primary",
-                _children=(btn_label,),
-                _action=UIAction(event=submit_action),
+        if is_pydantic_class:
+            return _form_from_schema(
+                schema_or_title,
+                title=title,
+                submit=submit,
+                submit_action=submit_action,
             )
+        if isinstance(schema_or_title, str) and fields is not None:
+            return _form_from_fields(
+                schema_or_title,
+                fields=fields,
+                submit=submit,
+                submit_action=submit_action,
+            )
+        from adk_fluent._exceptions import A2UIError
+
+        raise A2UIError(
+            "UI.form expects either a Pydantic model or (title=..., fields=...)"
         )
 
-        root = _component("Column", _children=tuple(children))
-        return UISurface(name=title.lower().replace(" ", "_"), root=root)
+    @staticmethod
+    def paths(schema: Any) -> Any:
+        """Return a typed proxy for declaring two-way ``UIBinding`` paths.
+
+        Reflects ``schema.model_fields`` (Pydantic v2) and exposes attribute
+        access that returns a ``UIBinding`` rooted at ``/<field_name>``.
+        Nested ``BaseModel`` annotations return a sub-proxy whose paths are
+        prefixed with the parent field name. Typos raise ``AttributeError``
+        listing the available fields.
+
+        Example::
+
+            class Profile(BaseModel):
+                email: EmailStr
+                age: int
+
+            paths = UI.paths(Profile)
+            paths.email   # UIBinding(path="/email", direction="two_way")
+            paths.age     # UIBinding(path="/age",   direction="two_way")
+            paths.nope    # AttributeError: ... available: ['age', 'email']
+        """
+        return _UIPaths(schema)
 
     @staticmethod
     def dashboard(

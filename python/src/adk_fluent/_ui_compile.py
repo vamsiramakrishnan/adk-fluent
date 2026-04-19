@@ -130,15 +130,96 @@ def generate_ui_prompt_section(
 # ---------------------------------------------------------------------------
 
 
+def _has_a2ui_toolset(items: list[Any]) -> bool:
+    """Detect whether ``items`` already contains an A2UI toolset.
+
+    Recognises both raw ``SendA2uiToClientToolset`` instances and the
+    sentinel produced by the previous (no-op) ``T.a2ui()`` shim.
+    """
+    try:
+        from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
+    except ImportError:
+        SendA2uiToClientToolset = None  # type: ignore[assignment]
+
+    for item in items:
+        if SendA2uiToClientToolset is not None and isinstance(item, SendA2uiToClientToolset):
+            return True
+        # TComposite-shaped items (kind == "a2ui") may sneak in via direct list use
+        if getattr(item, "_kind", None) == "a2ui":
+            return True
+    return False
+
+
+def _has_a2ui_guard(callbacks: list[Any]) -> bool:
+    """Detect a previously registered ``G.a2ui()`` guard tuple."""
+    return any(
+        isinstance(entry, tuple) and len(entry) == 2 and entry[0] == "guard:a2ui"
+        for entry in callbacks
+    )
+
+
+def _apply_ui_auto_wire(builder: Any, ui_spec: Any) -> None:
+    """Apply ``Agent.ui()`` auto-wire flags to the builder.
+
+    Runs BEFORE callback/list composition in ``_prepare_build_config`` so that
+    appended tools/guards/middleware participate in the normal merge path. The
+    post-merge work (prompt augmentation, before_agent_callback wiring) still
+    happens in :func:`compile_ui_for_agent`.
+    """
+    from adk_fluent._exceptions import A2UINotInstalled, BuilderError
+
+    auto_tool = bool(builder._config.get("_a2ui_auto_tool"))
+    auto_guard = bool(builder._config.get("_a2ui_auto_guard"))
+    auto_log = bool(builder._config.get("_a2ui_auto_log"))
+
+    if auto_tool:
+        existing_tools = list(builder._lists.get("tools", []))
+        if not _has_a2ui_toolset(existing_tools):
+            try:
+                from adk_fluent._tools import T
+
+                tool_chain = T.a2ui()
+            except A2UINotInstalled as exc:
+                raise BuilderError(
+                    builder_name=builder._config.get("name", "<anonymous>"),
+                    builder_type=type(builder).__name__,
+                    field_errors=[str(exc)],
+                    original=exc,
+                ) from exc
+            for item in tool_chain.to_tools():
+                builder._lists.setdefault("tools", []).append(item)
+
+    if auto_guard:
+        existing_after = builder._callbacks.get("after_model_callback", [])
+        if not _has_a2ui_guard(existing_after):
+            from adk_fluent._guards import G
+
+            G.a2ui()._compile_into(builder)
+
+    if auto_log:
+        from adk_fluent._middleware import M
+
+        log_mw = M.a2ui_log(level="info")
+        if getattr(builder, "_middlewares", None) is None:
+            builder._middlewares = []
+        builder._middlewares.extend(log_mw.to_stack())
+
+
 def compile_ui_for_agent(ui_spec: Any, config: dict[str, Any]) -> None:
     """Compile UI spec into agent build config.
 
-    Called from ``_prepare_build_config`` when ``._config["_ui_spec"]`` is set.
+    Called from ``_prepare_build_config`` after callback/list composition.
+    Responsible for the post-merge wiring:
 
-    Mutates ``config`` in place:
-    - Augments ``instruction`` with A2UI prompt section
-    - Adds A2UI tool(s) if available
-    - Wires before_agent callback to emit createSurface
+    - Augments ``instruction`` with the A2UI prompt section.
+    - Wires a ``before_agent_callback`` to emit ``createSurface`` for
+      declarative surfaces.
+
+    Auto-wired tools, guards and middleware (the ``Agent.ui(llm_guided=True,
+    log=True)`` flags) are stamped on the *builder* in
+    :func:`_apply_ui_auto_wire` BEFORE this function runs, so the standard
+    composition path picks them up. ``P.ui_schema()`` is NOT injected here —
+    :func:`generate_ui_prompt_section` already produces equivalent content.
 
     Args:
         ui_spec: One of ``UISurface``, ``_UIAutoSpec``, ``_UISchemaSpec``,
@@ -147,7 +228,9 @@ def compile_ui_for_agent(ui_spec: Any, config: dict[str, Any]) -> None:
     """
     from adk_fluent._ui import UIComponent
 
-    # Normalize spec
+    # Normalize spec — _add_ui_spec already wraps loose UIComponent into a
+    # surface, but be defensive in case compile_ui_for_agent is invoked
+    # directly with a raw component.
     surface: UISurface | None = None
     if isinstance(ui_spec, UISurface):
         surface = ui_spec
@@ -169,34 +252,18 @@ def compile_ui_for_agent(ui_spec: Any, config: dict[str, Any]) -> None:
     else:
         config["instruction"] = prompt_section
 
-    # 2. Tool injection — try to import a2ui-agent package
-    try:
-        from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
-
-        tools = config.get("tools", [])
-        if not isinstance(tools, list):
-            tools = list(tools)
-        tools.append(SendA2uiToClientToolset())
-        config["tools"] = tools
-    except ImportError:
-        # a2ui-agent not installed — use lightweight JSON send approach
-        # The agent can still return A2UI JSON in its response
-        pass
-
-    # 3. Callback wiring — emit createSurface before agent starts
+    # 2. Callback wiring — emit createSurface before agent starts
     if surface is not None:
         messages = compile_surface(surface)
 
         async def _emit_create_surface(callback_context: Any) -> None:
             """Before-agent callback: emit createSurface + updateComponents."""
-            # Store compiled messages in session state for the tool to send
             state = callback_context.state
             state["_a2ui_surface_messages"] = messages
             state["_a2ui_surface_id"] = surface.name  # type: ignore[union-attr]
 
         existing_before = config.get("before_agent_callback")
         if existing_before is not None:
-            # Chain callbacks
             orig = existing_before
 
             async def _chained_before(ctx: Any) -> None:
