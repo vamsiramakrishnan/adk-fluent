@@ -153,9 +153,18 @@ jobs:
         run: python3 -m shared.scripts.release preflight --strict
 
   # ─── stage 2a: python publish path ──────────────────────────────────────
+  # Caller-side permissions cap what the reusable workflow's nested `publish`
+  # job can request. PyPI Trusted Publishing needs id-token: write; PEP 740
+  # attestations need attestations: write. Without these, GitHub rejects the
+  # whole run at startup with "nested job 'publish' is requesting … but is
+  # only allowed …".
   python-pypi:
     needs: [plan]
     if: needs.plan.outputs.publish-pypi == 'true'
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     uses: ./.github/workflows/_publish-python.yml
     with:
       version: ${{ needs.plan.outputs.version }}
@@ -165,6 +174,10 @@ jobs:
   python-testpypi:
     needs: [plan]
     if: needs.plan.outputs.publish-testpypi == 'true'
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     uses: ./.github/workflows/_publish-python.yml
     with:
       version: ${{ needs.plan.outputs.version }}
@@ -175,6 +188,9 @@ jobs:
   ts-npm:
     needs: [plan]
     if: needs.plan.outputs.publish-npm == 'true'
+    permissions:
+      contents: read
+      id-token: write   # npm provenance via sigstore
     uses: ./.github/workflows/_publish-npm.yml
     secrets: inherit
     with:
@@ -185,6 +201,8 @@ jobs:
   ts-npm-dry:
     needs: [plan]
     if: needs.plan.outputs.publish-npm-dry == 'true'
+    permissions:
+      contents: read
     uses: ./.github/workflows/_publish-npm.yml
     with:
       version: ${{ needs.plan.outputs.version }}
