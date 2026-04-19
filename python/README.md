@@ -1861,11 +1861,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Contributing guide](https://vams
 
 ## What's New
 
+- **v0.16.0** -- flux catalog v0.16.0, Token pack system, Authoring DSL
+- **v0.15.0** -- A2UI devex wedge, Schema-driven forms, Reflective bindings
+- **v0.14.0** -- Monorepo restructure, TypeScript package (adk-fluent-ts), Unified hooks foundation
 - **v0.13.2** -- Lazy import loading, `__init__.pyi` stub, Import budget CI test
 - **v0.13.1** -- Namespace composition operator symmetry, Parallel merge conflict detection, E namespace protocol properties
-- **v0.13.0** -- A2UI (Agent-to-UI) integration, A2UI composition patterns, Agent skills
-- **v0.12.1** -- A2A protocol integration, `G` (Guards) module, `E` (Eval) module
-- **v0.11.0** -- `A` module Phase 2+3, Auto-generated API docs, DevEx improvements
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history, or browse it on the [docs site](https://vamsiramakrishnan.github.io/adk-fluent/changelog/).
 

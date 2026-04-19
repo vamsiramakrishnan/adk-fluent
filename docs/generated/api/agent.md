@@ -537,11 +537,11 @@ agent = Agent("agent").tools("...")
 ```
 
 (method-Agent-ui)=
-#### `.ui(spec: Any) -> Self` {bdg-info}`Configuration`
+#### `.ui(spec: Any = None, *, llm_guided: bool = False, validate: bool = True, log: bool = False) -> Self` {bdg-info}`Configuration`
 
-Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go'))).
+Attach A2UI surface for rich UI output. Modes: Declarative (.ui(UI.form(...)) / .ui(UI.surface(...))); LLM-guided (.ui(UI.auto()) or .ui(llm_guided=True)); Component tree (.ui(UI.column(UI.text('Hi'), UI.button('Go', action='go')))). Flags: llm_guided auto-wires T.a2ui()+G.a2ui(); validate runs surface.validate() at build-time; log auto-wires M.a2ui_log().
 
-**See also:** `UI.surface`, `UI.form`, `UI.auto`
+**See also:** `UI.surface`, `UI.form`, `UI.auto`, `UI.paths`, `T.a2ui`, `G.a2ui`
 
 **Example:**
 
@@ -553,8 +553,11 @@ agent = Agent("support", "gemini-2.5-flash").ui(
     UI.form("Contact", fields={"name": "text", "email": "email"})
 ).build()
 
-# LLM-guided mode
-agent = Agent("creative", "gemini-2.5-flash").ui(UI.auto()).build()
+# LLM-guided mode (shorthand)
+agent = Agent("creative", "gemini-2.5-flash").ui(llm_guided=True).build()
+
+# LLM-guided mode (explicit)
+agent = Agent("designer", "gemini-2.5-flash").ui(UI.auto(), llm_guided=True).build()
 ```
 
 ### Callbacks

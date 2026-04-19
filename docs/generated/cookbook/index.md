@@ -1118,17 +1118,20 @@ Usage requires: pip install adk-fluent[temporal]
 
 How to compose agents into a sequential pipeline.
 ```
-```{grid-item-card} A2UI Agent Integration: Wiring UI to Agents
+```{grid-item-card} A2UI Agent Integration: Wiring UI to Agents (the wedge devex)
 
-Demonstrates attaching UI surfaces to agents and cross-namespace integration.
+Demonstrates the ergonomic ``Agent.ui()`` overload introduced in the A2UI
+devex wedge:
 
-Key concepts:
-  - Agent.ui(): attach declarative or LLM-guided UI
-  - UI.auto(): LLM-guided mode
-  - T.a2ui(): A2UI toolset in tool composition
-  - G.a2ui(): guard for LLM-generated UI validation
-  - P.ui_schema(): inject catalog schema into prompt
-  - ui_form_agent(): pattern helper
+- ``.ui(spec)``                — declarative surface (prompt-only, no tool wiring)
+- ``.ui(llm_guided=True)``     — auto-wires ``T.a2ui()`` + ``G.a2ui()`` for you
+- ``.ui(spec, log=True)``      — also auto-wires ``M.a2ui_log()``
+- ``.ui(spec, validate=False)``— skip ``surface.validate()`` at build time
+
+Plus the schema-driven helpers:
+
+- ``UI.form(MyPydanticModel)`` — generate a typed form from a BaseModel
+- ``UI.paths(MyPydanticModel)``— typed two-way binding proxy
 :link: 71_a2ui_agent_integration
 :link-type: doc
 
@@ -1167,16 +1170,19 @@ Key concepts:
 
 How to use operator syntax for composing agents.
 ```
-```{grid-item-card} A2UI LLM-Guided Mode: Let the LLM Design the UI
+```{grid-item-card} A2UI LLM-Guided Mode: Let the Agent Design the UI
 
-Demonstrates LLM-guided UI mode where the agent has full control
-over the A2UI surface via toolset + catalog schema injection.
+Demonstrates LLM-guided UI mode — the agent has full control over the A2UI
+surface via the ``a2ui-agent`` toolset and a catalog schema injected into
+the prompt.
 
-Key concepts:
-  - UI.auto(): LLM-guided mode marker
-  - P.ui_schema(): inject catalog schema into prompt
-  - T.a2ui(): A2UI toolset for LLM-controlled UI
-  - G.a2ui(): guard to validate LLM-generated UI output
+The wedge ergonomics:
+
+- ``Agent.ui(llm_guided=True)``  — auto-wires ``T.a2ui()`` + ``G.a2ui()`` and
+                                    promotes the spec to ``UI.auto()``.
+- ``UI.auto()``                  — explicit form for those who want the marker.
+- ``T.a2ui()``                   — raises ``A2UINotInstalled`` when the
+                                    optional ``a2ui-agent`` package is missing.
 :link: 73_a2ui_llm_guided
 :link-type: doc
 

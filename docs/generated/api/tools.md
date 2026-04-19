@@ -220,13 +220,25 @@ Thin factory over :class:`OpenAPIToolset` builder.
 
 A2UI toolset for LLM-guided UI generation.
 
-If `a2ui-agent` is installed, wraps `SendA2uiToClientToolset`.
-Otherwise returns a no-op marker composite.
+Default (`catalog="basic"`): wraps `SendA2uiToClientToolset` from
+the optional `a2ui-agent` package. Raises :class:`A2UINotInstalled`
+when the package is not importable — install with
+`pip install a2ui-agent`.
+
+Flux (`catalog="flux"`): returns a toolset that exposes the flux
+component factories and injects per-component `llm` metadata
+(description, examples, antiPatterns) loaded from
+`catalog/flux/catalog.json` into the tool schema. The flux path
+does *not* require `a2ui-agent`.
 
 **Args:**
 
-- **`catalog`**: Catalog identifier (default `"basic"`).
+- **`catalog`**: Catalog identifier (`"basic"` or `"flux"`).
 - **`schema`**: Optional catalog schema dict for validation.
+
+**Raises:**
+
+    ValueError: If `catalog` is not a known identifier.
 
 **Parameters:**
 
