@@ -424,8 +424,23 @@ test-visual:
     @echo "Running visual test suite..."
     @cd {{PYTHON_DIR}} && uv run pytest tests/visual/ -v --tb=short -m visual
 
-# --- Visual: legacy alias ---
-visual: visual-py
+# --- Visual: flux renderer regression (Playwright + axe, no API key) ---
+# Runs the flux React renderers against every fixture × every token pack,
+# pixel-compares against shared/visual/goldens/flux/, and runs
+# @axe-core/playwright a11y smoke (critical/serious block; color-contrast
+# warnings are surfaced as annotations — pairings are W1-owned).
+#
+# Usage:
+#   just visual-flux                    # run against existing goldens
+#   just visual-flux --update-snapshots # regenerate goldens
+visual-flux *args:
+    @echo "Running flux visual regression + a11y smoke..."
+    @cd {{TS_DIR}} && npx playwright test \
+        --config=../{{SHARED_DIR}}/visual/specs/playwright.config.ts \
+        {{args}}
+
+# --- Visual: legacy alias (now also runs the flux regression suite) ---
+visual: visual-flux visual-py
 
 # --- Diff against previous ---
 diff:

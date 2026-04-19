@@ -1,0 +1,14 @@
+{
+  "name": "badge-primary-solid",
+  "description": "Solid primary badge.",
+  "node": {
+    "component": "FluxBadge",
+    "id": "badge-new",
+    "label": "New",
+    "tone": "primary",
+    "variant": "solid",
+    "size": "sm",
+    "accessibility": { "label": "New item" }
+  },
+  "slots": {}
+}

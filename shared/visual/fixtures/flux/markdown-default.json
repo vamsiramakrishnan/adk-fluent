@@ -1,0 +1,13 @@
+{
+  "name": "markdown-default",
+  "description": "Markdown with bold, code, and a link.",
+  "node": {
+    "component": "FluxMarkdown",
+    "id": "md-1",
+    "source": "**Tip:** press `Cmd+K` to open the [quick switcher](https://example.com).",
+    "size": "md",
+    "proseStyle": "default",
+    "accessibility": { "label": "Help text" }
+  },
+  "slots": {}
+}

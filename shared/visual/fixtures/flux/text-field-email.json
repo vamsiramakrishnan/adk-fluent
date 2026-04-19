@@ -1,0 +1,15 @@
+{
+  "name": "text-field-email",
+  "description": "Email field with helper text.",
+  "node": {
+    "component": "FluxTextField",
+    "id": "field-email",
+    "type": "email",
+    "size": "md",
+    "state": "default",
+    "placeholder": "you@example.com",
+    "helper": "We'll never share your email.",
+    "accessibility": { "label": "Email address" }
+  },
+  "slots": {}
+}

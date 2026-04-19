@@ -1,0 +1,15 @@
+{
+  "name": "progress-determinate",
+  "description": "Determinate progress at 60%.",
+  "node": {
+    "component": "FluxProgress",
+    "id": "progress-1",
+    "value": 60,
+    "determinate": true,
+    "tone": "default",
+    "size": "md",
+    "label": "Uploading photo",
+    "accessibility": { "label": "Uploading photo" }
+  },
+  "slots": {}
+}
