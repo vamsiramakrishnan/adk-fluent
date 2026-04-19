@@ -1,0 +1,13 @@
+{
+  "name": "card-outline",
+  "description": "Outline card with body text.",
+  "node": {
+    "component": "FluxCard",
+    "id": "card-1",
+    "emphasis": "outline",
+    "padding": "md",
+    "body": "A surface container with a delineated outline. Great for grouping secondary content.",
+    "accessibility": { "label": "Example card" }
+  },
+  "slots": {}
+}

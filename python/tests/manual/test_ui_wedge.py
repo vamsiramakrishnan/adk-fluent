@@ -188,8 +188,7 @@ class TestFormFromSchema:
         assert "required" in check_fns
 
     @pytest.mark.skipif(
-        sys.modules.get("email_validator") is None
-        and not _try_import_email_validator(),
+        sys.modules.get("email_validator") is None and not _try_import_email_validator(),
         reason="pydantic[email] / email-validator not installed",
     )
     def test_email_field_emits_email_check(self) -> None:
@@ -359,12 +358,7 @@ class TestAutoWireDedup:
         # When llm_guided=True is used and a2ui-agent IS installed, both tools
         # should appear. When NOT installed, build raises BuilderError; in that
         # case we just verify pre-build _lists state.
-        ag = (
-            Agent("x", "gemini-2.5-flash")
-            .instruct("hi")
-            .tools(T.google_search())
-            .ui(llm_guided=True)
-        )
+        ag = Agent("x", "gemini-2.5-flash").instruct("hi").tools(T.google_search()).ui(llm_guided=True)
         if _a2ui_installed():
             from a2ui.agent import SendA2uiToClientToolset
 
@@ -382,12 +376,7 @@ class TestAutoWireDedup:
             pytest.skip("requires a2ui-agent for tool dedup verification")
         from a2ui.agent import SendA2uiToClientToolset
 
-        ag = (
-            Agent("x", "gemini-2.5-flash")
-            .instruct("hi")
-            .tools(T.a2ui())
-            .ui(llm_guided=True)
-        )
+        ag = Agent("x", "gemini-2.5-flash").instruct("hi").tools(T.a2ui()).ui(llm_guided=True)
         ag.build()
         a2ui_count = sum(isinstance(t, SendA2uiToClientToolset) for t in ag._lists["tools"])
         assert a2ui_count == 1
@@ -398,12 +387,7 @@ class TestAutoWireDedup:
         from adk_fluent._guards import G
         from adk_fluent._ui_compile import _apply_ui_auto_wire
 
-        ag = (
-            Agent("x", "gemini-2.5-flash")
-            .instruct("hi")
-            .guard(G.a2ui())
-            .ui(llm_guided=True)
-        )
+        ag = Agent("x", "gemini-2.5-flash").instruct("hi").guard(G.a2ui()).ui(llm_guided=True)
         # The full build path raises BuilderError when a2ui-agent is missing.
         # Force the auto-wire pre-step manually to test guard dedup in
         # isolation (disable tool injection so we don't trip the missing
@@ -413,7 +397,5 @@ class TestAutoWireDedup:
         ag._config["_a2ui_auto_tool"] = False
         _apply_ui_auto_wire(ag, ag._config["_ui_spec"])
         cbs = ag._callbacks.get("after_model_callback", [])
-        guard_count = sum(
-            1 for entry in cbs if isinstance(entry, tuple) and entry[0] == "guard:a2ui"
-        )
+        guard_count = sum(1 for entry in cbs if isinstance(entry, tuple) and entry[0] == "guard:a2ui")
         assert guard_count == 1

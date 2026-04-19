@@ -1,0 +1,15 @@
+{
+  "name": "link-default",
+  "description": "Inline link with external affordance.",
+  "node": {
+    "component": "FluxLink",
+    "id": "link-docs",
+    "label": "Read the docs",
+    "href": "https://docs.example.com",
+    "tone": "default",
+    "underline": "hover",
+    "external": true,
+    "accessibility": { "label": "Read the docs" }
+  },
+  "slots": {}
+}

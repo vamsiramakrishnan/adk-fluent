@@ -66,9 +66,7 @@ assert schema_surface.name == "ticketform"
 # Just sanity check the root has children
 assert schema_surface.root is not None and len(schema_surface.root._children) >= 5
 
-ticket_agent = (
-    Agent("ticket", "gemini-2.5-flash").instruct("Collect ticket info.").ui(schema_surface)
-)
+ticket_agent = Agent("ticket", "gemini-2.5-flash").instruct("Collect ticket info.").ui(schema_surface)
 assert isinstance(ticket_agent._config["_ui_spec"], UISurface)
 
 # ---------------------------------------------------------------------------
@@ -116,11 +114,7 @@ except ImportError:
 # 5. Mixing flags: declarative surface + log=True.
 # ---------------------------------------------------------------------------
 
-logged = (
-    Agent("logged", "gemini-2.5-flash")
-    .instruct("Show a confirm dialog.")
-    .ui(UI.confirm("Delete?"), log=True)
-)
+logged = Agent("logged", "gemini-2.5-flash").instruct("Show a confirm dialog.").ui(UI.confirm("Delete?"), log=True)
 assert logged._config["_a2ui_auto_log"] is True
 assert getattr(logged, "_middlewares", None) is None  # log middleware applies at build
 

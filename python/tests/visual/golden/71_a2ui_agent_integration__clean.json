@@ -1,0 +1,23 @@
+[
+  {
+    "createSurface": {
+      "catalogId": "https://a2ui.org/specification/v0_10/basic_catalog.json",
+      "surfaceId": "clean"
+    },
+    "version": "v0.10"
+  },
+  {
+    "updateComponents": {
+      "components": [
+        {
+          "component": "Text",
+          "id": "root",
+          "text": "Hi",
+          "variant": "body"
+        }
+      ],
+      "surfaceId": "clean"
+    },
+    "version": "v0.10"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "name": "banner-info",
+  "description": "Informational banner.",
+  "node": {
+    "component": "FluxBanner",
+    "id": "banner-1",
+    "title": "Heads up",
+    "message": "We're updating the pricing page at 5pm UTC.",
+    "tone": "info",
+    "accessibility": { "label": "Maintenance notice" }
+  },
+  "slots": {}
+}

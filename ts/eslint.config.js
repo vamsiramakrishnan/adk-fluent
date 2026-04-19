@@ -111,6 +111,41 @@ export default [
     },
   },
 
+  // ─── flux React renderer: needs DOM globals for style injection ───────────
+  // Runs in the browser; theme.ts uses document / HTMLStyleElement to inject
+  // the CSS-var <style> block at mount.
+  {
+    files: ["src/flux/renderer/**/*.ts", "src/flux/renderer/**/*.tsx"],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module",
+        ecmaFeatures: { jsx: true },
+      },
+      globals: {
+        ...globals,
+        document: "readonly",
+        window: "readonly",
+        HTMLElement: "readonly",
+        HTMLStyleElement: "readonly",
+        HTMLInputElement: "readonly",
+        HTMLButtonElement: "readonly",
+        HTMLAnchorElement: "readonly",
+      },
+    },
+    plugins: { "@typescript-eslint": tseslint },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
+    },
+  },
+
   // ─── generated builders: only soundness, no style ──────────────────────────
   // These files are owned by `just ts-generate` (shared/scripts/code_ir).
   // Lint must not block CI on stylistic choices baked into the emitter —

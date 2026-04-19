@@ -22,12 +22,25 @@ import importlib
 import inspect
 import json
 import pkgutil
+import re
 import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, get_type_hints
+
+_MEMORY_ADDRESS_RE = re.compile(r" at 0x[0-9a-fA-F]+")
+
+
+def _stable_repr(value: Any) -> str:
+    """``repr`` with CPython memory addresses stripped.
+
+    ``repr(fn)`` returns ``"<function foo at 0x7f12ab34>"``; the hex address
+    changes every process. Stripping it keeps the committed manifest stable
+    across scans so ``just scan seed`` is idempotent.
+    """
+    return _MEMORY_ADDRESS_RE.sub("", repr(value))
 
 # ---------------------------------------------------------------------------
 # CONFIGURATION: Which ADK modules to scan (legacy, kept for reference)
@@ -361,7 +374,7 @@ def _get_default_repr(field_info) -> tuple[str | None, bool]:
         return repr(default), False
     if isinstance(default, int | float | bool):
         return str(default), False
-    return repr(default), False
+    return _stable_repr(default), False
 
 
 def _find_field_origin(cls, field_name: str, mro: list[type]) -> str | None:
@@ -395,7 +408,7 @@ def _scan_init_signature(cls) -> list[InitParam]:
             default = None
             required = True
         else:
-            default = repr(param.default)
+            default = _stable_repr(param.default)
             required = False
 
         params.append(

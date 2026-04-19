@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-04-19
+
+### Added
+
+- **flux catalog v0.16.0** — reference A2UI catalog ten Phase-1 components strong (`FluxBadge`, `FluxBanner`, `FluxButton`, `FluxCard`, `FluxLink`, `FluxMarkdown`, `FluxProgress`, `FluxSkeleton`, `FluxStack`, `FluxTextField`). Every component targets WCAG 2.2 AA, ships a basic-catalog fallback, and extends the A2UI v0.10 schema without forking it. See `catalog/flux/ARCHITECTURE.md` for the contracts.
+- **Token pack system** — Radix-grade tonal scales (1-12) with semantic aliases (`text`, `bg`, `surface`, `border`, `focus`, `danger`, `success`) in `catalog/flux/tokens/{light,dark}.json`. Validated against `shared/schemas/tokens.schema.json` via `test_token_packs.py`; a pack that skips a step fails CI.
+- **Authoring DSL** — TypeScript component specs under `catalog/flux/specs/*.spec.ts` using `defineComponent()` with invariant checks (name prefix, a11y required, examples non-empty, `defaultVariants` references). One spec file per component; CI rejects a spec that omits `examples` or references a variant key that doesn't exist.
+- **Codegen pipeline** — `shared/scripts/flux/build.py` (subcommands: `load | check | emit | py | ts | react | docs | all | clean`) lowers specs + tokens + schemas into JSON catalog, Python `_flux_gen.py`, TypeScript `flux/` bundle, React scaffold renderers, and `docs/flux/components/*.md`. Idempotence contract: two `just flux` runs produce byte-identical output — guarded by `test_pipeline_is_idempotent`.
+- **Fluent integration** — `UI.theme(pack)` attaches a theme pack to a surface; `UI.with_catalog("flux")` (Python) / `UI.withCatalog("flux")` (TS) swaps the component factories for a lexical block. `T.a2ui(catalog="flux")` routes the toolset through the flux registry. Thirteen Python + twelve TS parity tests verify the dispatch.
+- **React renderers + visual goldens** — one `<Flux*>` renderer per component under `ts/src/flux/renderer/`, a `theme.ts` CSS-var injector, and `shared/visual/` with Playwright golden screenshots (light + dark × sm + md + lg) plus axe a11y smoke tests.
+
+### Changed
+
+- **`UI.*` factories are catalog-aware** — when a `with_catalog("flux")` block is active, `UI.button(...)` resolves to `FluxButton`, etc. The basic catalog remains the default; unknown catalogs raise `A2UIError` instead of silently degrading.
+- **`T.a2ui()` accepts `catalog=`** — `T.a2ui(catalog="flux")` returns a flux-scoped toolset; omitting the kwarg preserves basic-catalog behavior unchanged.
+
+### Fixed
+
+- **Generator non-determinism** — `_sort_and_group_imports` used `(not name.isupper(), name.lower())` as its isort key; collisions for siblings like `MCPTool` vs `McpTool` fell back to set iteration order (PYTHONHASHSEED-dependent), making `.pyi` output drift across runs. Added `name` as a case-sensitive tiebreaker so ties sort in ASCII order.
+- **pyi stub trailing newline** — `__init__.pyi` carried a stray trailing blank line that the `end-of-file-fixer` hook stripped on every commit; re-generation then re-added it. Removed the extra `append("")` in the stub emitter.
+- **flux renderer map formatting drift** — the React renderer index emitted quoted keys (`"FluxBadge": FluxBadge`) which prettier unquoted (valid JS identifiers don't need quotes), so each `just flux` run reintroduced a diff. The emitter now writes unquoted keys matching prettier's canonical form.
+
 ## [0.15.0] - 2026-04-19
 
 ### Added

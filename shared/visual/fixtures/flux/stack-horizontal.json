@@ -1,0 +1,36 @@
+{
+  "name": "stack-horizontal",
+  "description": "Horizontal stack of two buttons.",
+  "node": {
+    "component": "FluxStack",
+    "id": "stack-1",
+    "direction": "horizontal",
+    "gap": "4",
+    "align": "center",
+    "justify": "start",
+    "children": ["stack-child-save", "stack-child-cancel"],
+    "accessibility": { "label": "Action row" }
+  },
+  "slots": {
+    "stack-child-save": {
+      "component": "FluxButton",
+      "id": "stack-child-save",
+      "label": "Save",
+      "tone": "primary",
+      "size": "md",
+      "emphasis": "solid",
+      "action": { "event": { "name": "save" } },
+      "accessibility": { "label": "Save" }
+    },
+    "stack-child-cancel": {
+      "component": "FluxButton",
+      "id": "stack-child-cancel",
+      "label": "Cancel",
+      "tone": "neutral",
+      "size": "md",
+      "emphasis": "ghost",
+      "action": { "event": { "name": "cancel" } },
+      "accessibility": { "label": "Cancel" }
+    }
+  }
+}

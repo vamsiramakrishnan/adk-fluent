@@ -1107,14 +1107,12 @@ def _add_ui_spec(builder, spec, *, llm_guided: bool = False, validate: bool = Tr
     elif isinstance(spec, (UISurface, _UISchemaSpec)):
         if llm_guided:
             raise A2UIError(
-                "llm_guided=True is incompatible with a declarative surface; "
-                "use UI.auto() or omit the spec"
+                "llm_guided=True is incompatible with a declarative surface; use UI.auto() or omit the spec"
             )
     elif isinstance(spec, UIComponent):
         if llm_guided:
             raise A2UIError(
-                "llm_guided=True is incompatible with a declarative surface; "
-                "use UI.auto() or omit the spec"
+                "llm_guided=True is incompatible with a declarative surface; use UI.auto() or omit the spec"
             )
         # Wrap loose component in a default surface
         spec = UISurface(name="default", root=spec)

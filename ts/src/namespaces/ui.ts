@@ -10,6 +10,55 @@
  */
 
 import { A2UIError, A2UISurfaceError } from "../_exceptions.js";
+import {
+  fluxBadge,
+  fluxBanner,
+  fluxButton,
+  fluxCard,
+  fluxLink,
+  fluxMarkdown,
+  fluxProgress,
+  fluxSkeleton,
+  fluxStack,
+  fluxTextField,
+  type FluxBadgeArgs,
+  type FluxBannerArgs,
+  type FluxButtonArgs,
+  type FluxCardArgs,
+  type FluxLinkArgs,
+  type FluxMarkdownArgs,
+  type FluxProgressArgs,
+  type FluxSkeletonArgs,
+  type FluxStackArgs,
+  type FluxTextFieldArgs,
+} from "../flux/index.js";
+
+// ---------------------------------------------------------------------------
+// Catalog dispatch
+// ---------------------------------------------------------------------------
+
+/** Known catalog identifiers. Used by UI.withCatalog and T.a2ui. */
+export const KNOWN_CATALOGS = Object.freeze(["basic", "flux"] as const);
+export type CatalogName = (typeof KNOWN_CATALOGS)[number];
+
+// Module-scoped catalog stack: closure-scoped via withCatalog(name, fn).
+// We keep a stack so nested calls restore the right parent on exit.
+let _catalogStack: CatalogName[] = ["basic"];
+
+/** Return the currently-active catalog (top of stack). */
+export function activeCatalog(): CatalogName {
+  return _catalogStack[_catalogStack.length - 1] ?? "basic";
+}
+
+function _pushCatalog(name: CatalogName): void {
+  _catalogStack = [..._catalogStack, name];
+}
+
+function _popCatalog(): void {
+  if (_catalogStack.length > 1) {
+    _catalogStack = _catalogStack.slice(0, -1);
+  }
+}
 
 /** Data binding specification. */
 export interface UIBinding {
@@ -48,6 +97,15 @@ export class UIComponent {
   }
 }
 
+/**
+ * Theme marker — produced by ``UI.theme(name)`` and consumed by
+ * ``UI.surface(...)`` to populate ``UISurface.theme``. Theme markers are
+ * stripped from the surface root so they never appear as components.
+ */
+export class UIThemeMarker {
+  constructor(public readonly name: string) {}
+}
+
 /** A named UI surface (compilation root). */
 export class UISurface {
   constructor(
@@ -56,6 +114,8 @@ export class UISurface {
     public readonly meta: Record<string, unknown> = {},
     public readonly data: Record<string, unknown> = {},
     public readonly handlers: Record<string, unknown> = {},
+    /** Theme attached via ``UI.theme(name)``. Empty object when unset. */
+    public readonly theme: { name?: string } = {},
   ) {}
 
   /**
@@ -190,14 +250,115 @@ export class UI {
   // Surface lifecycle
   // ------------------------------------------------------------------
 
-  /** Create a named UI surface (compilation root). */
-  static surface(name: string, root: UIComponent, meta?: Record<string, unknown>): UISurface {
-    return new UISurface(name, root, meta);
+  /**
+   * Create a named UI surface (compilation root).
+   *
+   * The ``root`` argument may be a plain ``UIComponent`` (standard) or an
+   * array mixing components and ``UIThemeMarker``. Theme markers are lifted
+   * off the root list and attached to ``UISurface.theme`` — never rendered.
+   *
+   * When multiple theme markers are present the last one wins; when multiple
+   * components are present without an explicit root a ``UIError`` is thrown.
+   */
+  static surface(
+    name: string,
+    root: UIComponent | Array<UIComponent | UIThemeMarker>,
+    meta?: Record<string, unknown>,
+  ): UISurface {
+    let theme: { name?: string } = {};
+    let resolved: UIComponent;
+
+    if (Array.isArray(root)) {
+      const comps: UIComponent[] = [];
+      for (const item of root) {
+        if (item instanceof UIThemeMarker) {
+          theme = { name: item.name };
+        } else {
+          comps.push(item);
+        }
+      }
+      if (comps.length > 1) {
+        throw new A2UIError(
+          `UI.surface(${JSON.stringify(name)}) expects a single root component; got ${comps.length}`,
+        );
+      }
+      const [first] = comps;
+      if (!first) {
+        throw new A2UIError(
+          `UI.surface(${JSON.stringify(name)}) needs at least one component root`,
+        );
+      }
+      resolved = first;
+    } else {
+      resolved = root;
+    }
+
+    return new UISurface(name, resolved, meta, {}, {}, theme);
+  }
+
+  /**
+   * Attach a theme id to the enclosing surface.
+   *
+   * Use inline with ``UI.surface``::
+   *
+   *     UI.surface("demo", [UI.theme("flux-dark"), UI.column([...])])
+   *
+   * The compiled surface carries ``createSurface.theme = { name: "<id>" }``.
+   */
+  static theme(name: string): UIThemeMarker {
+    return new UIThemeMarker(name);
+  }
+
+  /**
+   * Scoped catalog dispatch.
+   *
+   * Runs ``fn`` with the given catalog active; all ``UI.button`` / ``.badge``
+   * / ``.card`` / etc. calls inside the callback emit the catalog-specific
+   * components (e.g. ``FluxButton`` when catalog is ``"flux"``). Catalog
+   * state is restored on return (including across thrown errors).
+   *
+   * Nests cleanly. Unknown catalogs throw ``A2UIError``.
+   */
+  static withCatalog<T>(name: CatalogName | string, fn: () => T): T {
+    if (!KNOWN_CATALOGS.includes(name as CatalogName)) {
+      throw new A2UIError(
+        `Unknown catalog ${JSON.stringify(name)}. Known catalogs: ${JSON.stringify([
+          ...KNOWN_CATALOGS,
+        ])}`,
+      );
+    }
+    _pushCatalog(name as CatalogName);
+    try {
+      return fn();
+    } finally {
+      _popCatalog();
+    }
   }
 
   /** Catalog-agnostic component factory (escape hatch). */
   static component(kind: string, opts?: { id?: string; [key: string]: unknown }): UIComponent {
     const { id, ...props } = opts ?? {};
+    return new UIComponent(kind, props, [], id);
+  }
+
+  // ------------------------------------------------------------------
+  // Flux overload dispatch helper
+  // ------------------------------------------------------------------
+
+  /**
+   * Lift a flux factory's dict result into a UIComponent so flux nodes
+   * compose with basic-catalog components via .row() / .column() / .add().
+   */
+  private static _fluxNodeToComponent(
+    node: { component: string; id: string } & object,
+  ): UIComponent {
+    const asRecord = node as unknown as Record<string, unknown>;
+    const kind = String(asRecord.component ?? "");
+    const id = typeof asRecord.id === "string" ? asRecord.id : undefined;
+    const props: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(asRecord)) {
+      if (k !== "component" && k !== "id") props[k] = v;
+    }
     return new UIComponent(kind, props, [], id);
   }
 
@@ -332,8 +493,38 @@ export class UI {
     );
   }
 
-  /** Card container. */
-  static card(child: UIComponent, opts?: { id?: string }): UIComponent {
+  /**
+   * Card container.
+   *
+   * Catalog dispatch:
+   * - **basic** (default): wraps a child component in a ``Card``.
+   * - **flux**: emits a ``FluxCard`` with the given flux args (see
+   *   ``FluxCardArgs``). When called as ``UI.card(component, {...})`` inside
+   *   a flux scope the positional component is ignored and a ``FluxCard``
+   *   is synthesised from the opts.
+   */
+  static card(): UIComponent;
+  static card(child: UIComponent, opts?: { id?: string }): UIComponent;
+  static card(args: FluxCardArgs): UIComponent;
+  static card(childOrArgs?: UIComponent | FluxCardArgs, opts?: { id?: string }): UIComponent {
+    if (activeCatalog() === "flux") {
+      // Flux path: accept FluxCardArgs (with id, emphasis, padding, body, …).
+      const args: FluxCardArgs = {
+        id: "card",
+        emphasis: "subtle",
+        padding: "md",
+        body: "",
+        ...((childOrArgs && !(childOrArgs instanceof UIComponent)
+          ? childOrArgs
+          : {}) as Partial<FluxCardArgs>),
+      };
+      return UI._fluxNodeToComponent(fluxCard(args));
+    }
+    // Basic path: preserve legacy (child, opts) signature.
+    const child = childOrArgs as UIComponent | undefined;
+    if (!child) {
+      throw new A2UIError("UI.card() (basic catalog) requires a child component");
+    }
     return new UIComponent("Card", {}, [child], opts?.id);
   }
 
@@ -366,16 +557,67 @@ export class UI {
   // Input components
   // ------------------------------------------------------------------
 
-  /** Button component. */
+  /**
+   * Button component.
+   *
+   * Catalog dispatch:
+   * - **basic** (default): emits a ``Button`` with a Text child label and
+   *   the standard ``variant`` / ``action`` / ``checks`` options.
+   * - **flux**: emits a ``FluxButton``. Accepts either the legacy
+   *   ``(label, opts)`` call style (label becomes ``args.label``, ``tone``
+   *   defaulted to ``"primary"``) or a full ``FluxButtonArgs`` object.
+   */
   static button(
     label: string,
     opts?: {
       variant?: "default" | "primary" | "borderless";
+      tone?: "neutral" | "primary" | "danger" | "success";
+      size?: "sm" | "md" | "lg";
+      emphasis?: "solid" | "soft" | "outline" | "ghost";
       action?: string | Record<string, unknown>;
       checks?: UICheck[];
+      accessibility?: Record<string, unknown>;
+      id?: string;
+    },
+  ): UIComponent;
+  static button(args: FluxButtonArgs): UIComponent;
+  static button(
+    labelOrArgs: string | FluxButtonArgs,
+    opts?: {
+      variant?: "default" | "primary" | "borderless";
+      tone?: "neutral" | "primary" | "danger" | "success";
+      size?: "sm" | "md" | "lg";
+      emphasis?: "solid" | "soft" | "outline" | "ghost";
+      action?: string | Record<string, unknown>;
+      checks?: UICheck[];
+      accessibility?: Record<string, unknown>;
       id?: string;
     },
   ): UIComponent {
+    if (activeCatalog() === "flux") {
+      if (typeof labelOrArgs === "string") {
+        // Legacy-shaped call: promote to FluxButtonArgs.
+        const label = labelOrArgs;
+        const action = opts?.action;
+        const args: FluxButtonArgs = {
+          id: opts?.id ?? "btn",
+          tone: opts?.tone ?? "primary",
+          size: opts?.size ?? "md",
+          emphasis: opts?.emphasis ?? "solid",
+          action:
+            typeof action === "string"
+              ? { event: action }
+              : ((action ?? {}) as Record<string, unknown>),
+          accessibility: opts?.accessibility ?? { label },
+          label,
+        };
+        return UI._fluxNodeToComponent(fluxButton(args));
+      }
+      return UI._fluxNodeToComponent(fluxButton(labelOrArgs));
+    }
+
+    // Basic path: preserve legacy UIComponent shape.
+    const label = typeof labelOrArgs === "string" ? labelOrArgs : String(labelOrArgs.label ?? "");
     return new UIComponent(
       "Button",
       {
@@ -389,17 +631,68 @@ export class UI {
     );
   }
 
-  /** Text input field. */
+  /**
+   * Text input field.
+   *
+   * Catalog dispatch:
+   * - **basic** (default): emits a ``TextField`` with ``variant``,
+   *   ``bind``, ``checks``, ``value`` — unchanged from prior versions.
+   * - **flux**: emits a ``FluxTextField``. Accepts either the legacy
+   *   ``(label, opts)`` call (label is lifted into ``accessibility.label``)
+   *   or a full ``FluxTextFieldArgs`` object.
+   */
   static textField(
     label: string,
     opts?: {
       value?: string;
       variant?: "shortText" | "longText" | "number" | "obscured";
+      type?: "text" | "email" | "password" | "number" | "search" | "tel" | "url";
+      size?: "sm" | "md" | "lg";
+      state?: "default" | "error" | "success" | "warning";
+      placeholder?: string;
+      helper?: string;
       bind?: UIBinding;
       checks?: UICheck[];
+      accessibility?: Record<string, unknown>;
+      id?: string;
+    },
+  ): UIComponent;
+  static textField(args: FluxTextFieldArgs): UIComponent;
+  static textField(
+    labelOrArgs: string | FluxTextFieldArgs,
+    opts?: {
+      value?: string;
+      variant?: "shortText" | "longText" | "number" | "obscured";
+      type?: "text" | "email" | "password" | "number" | "search" | "tel" | "url";
+      size?: "sm" | "md" | "lg";
+      state?: "default" | "error" | "success" | "warning";
+      placeholder?: string;
+      helper?: string;
+      bind?: UIBinding;
+      checks?: UICheck[];
+      accessibility?: Record<string, unknown>;
       id?: string;
     },
   ): UIComponent {
+    if (activeCatalog() === "flux") {
+      if (typeof labelOrArgs === "string") {
+        const label = labelOrArgs;
+        const args: FluxTextFieldArgs = {
+          id: opts?.id ?? "tf",
+          type: opts?.type ?? "text",
+          size: opts?.size ?? "md",
+          state: opts?.state ?? "default",
+          accessibility: opts?.accessibility ?? { label },
+          ...(opts?.placeholder !== undefined && { placeholder: opts.placeholder }),
+          ...(opts?.helper !== undefined && { helper: opts.helper }),
+          ...(opts?.value !== undefined && { value: opts.value }),
+        };
+        return UI._fluxNodeToComponent(fluxTextField(args));
+      }
+      return UI._fluxNodeToComponent(fluxTextField(labelOrArgs));
+    }
+
+    const label = typeof labelOrArgs === "string" ? labelOrArgs : "";
     return new UIComponent(
       "TextField",
       {
@@ -412,6 +705,166 @@ export class UI {
       [],
       opts?.id,
     );
+  }
+
+  // ------------------------------------------------------------------
+  // Flux-specific factories (only meaningful inside UI.withCatalog("flux"))
+  // ------------------------------------------------------------------
+
+  /**
+   * Flux badge — compact label for status, counts, tags. Not clickable.
+   * Only meaningful inside ``UI.withCatalog("flux", ...)``. Outside a flux
+   * scope, falls back to a plain ``Text`` component with the label so
+   * basic-catalog surfaces render something sensible.
+   */
+  static badge(label: string, opts?: Partial<FluxBadgeArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxBadgeArgs = {
+        id: opts?.id ?? "badge",
+        label,
+        tone: opts?.tone ?? "neutral",
+        variant: opts?.variant ?? "subtle",
+        size: opts?.size ?? "sm",
+        ...(opts?.accessibility && { accessibility: opts.accessibility }),
+      };
+      return UI._fluxNodeToComponent(fluxBadge(args));
+    }
+    // Basic fallback: catalog.json maps FluxBadge → Text.
+    return UI.text(label, { variant: "caption" });
+  }
+
+  /**
+   * Flux progress indicator. Set ``determinate: true`` with a ``value`` in
+   * 0..100 for known ratios; ``determinate: false`` for indeterminate spin.
+   * Outside a flux scope, falls back to the basic ``Slider`` preview.
+   */
+  static progress(opts?: Partial<FluxProgressArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxProgressArgs = {
+        id: opts?.id ?? "progress",
+        value: opts?.value ?? 0,
+        determinate: opts?.determinate ?? true,
+        tone: opts?.tone ?? "default",
+        size: opts?.size ?? "md",
+        accessibility: opts?.accessibility ?? { label: "progress" },
+        ...(opts?.label !== undefined && { label: opts.label }),
+      };
+      return UI._fluxNodeToComponent(fluxProgress(args));
+    }
+    return UI.slider({
+      value: opts?.value ?? 0,
+      min: 0,
+      max: 100,
+      id: opts?.id,
+    });
+  }
+
+  /**
+   * Flux skeleton — loading-state placeholder. ``shape=text`` for paragraph
+   * rows, ``shape=circle`` for avatars, ``shape=rect`` for cards/images.
+   * Outside flux, falls back to a muted Text placeholder.
+   */
+  static skeleton(opts?: Partial<FluxSkeletonArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxSkeletonArgs = {
+        id: opts?.id ?? "skeleton",
+        shape: opts?.shape ?? "text",
+        size: opts?.size ?? "md",
+        ...(opts?.count !== undefined && { count: opts.count }),
+        ...(opts?.height !== undefined && { height: opts.height }),
+        ...(opts?.width !== undefined && { width: opts.width }),
+        ...(opts?.accessibility && { accessibility: opts.accessibility }),
+      };
+      return UI._fluxNodeToComponent(fluxSkeleton(args));
+    }
+    return UI.text("…", { variant: "caption" });
+  }
+
+  /**
+   * Flux markdown — prose block rendered from a Markdown source string.
+   * Outside flux, renders as a plain ``Text`` body with the raw source.
+   */
+  static markdown(source: string, opts?: Partial<FluxMarkdownArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxMarkdownArgs = {
+        id: opts?.id ?? "md",
+        source,
+        size: opts?.size ?? "md",
+        proseStyle: opts?.proseStyle ?? "default",
+        ...(opts?.accessibility && { accessibility: opts.accessibility }),
+      };
+      return UI._fluxNodeToComponent(fluxMarkdown(args));
+    }
+    return UI.text(source, { variant: "body" });
+  }
+
+  /**
+   * Flux link — inline hyperlink. Set ``href`` for navigation *or*
+   * ``action`` for an auth-gated dispatch — never both.
+   * Outside flux, falls back to a plain ``Text`` with the label.
+   */
+  static link(label: string, opts?: Partial<FluxLinkArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxLinkArgs = {
+        id: opts?.id ?? "link",
+        label,
+        tone: opts?.tone ?? "default",
+        underline: opts?.underline ?? "hover",
+        ...(opts?.href !== undefined && { href: opts.href }),
+        ...(opts?.action && { action: opts.action }),
+        ...(opts?.external !== undefined && { external: opts.external }),
+        ...(opts?.accessibility && { accessibility: opts.accessibility }),
+      };
+      return UI._fluxNodeToComponent(fluxLink(args));
+    }
+    return UI.text(label, { variant: "body" });
+  }
+
+  /**
+   * Flux banner — inline notification row. ``info``/``success`` use
+   * ``role=status``; ``warning``/``danger`` use ``role=alert``.
+   * Outside flux, falls back to a simple two-line ``Column``.
+   */
+  static banner(opts: { title: string; message: string } & Partial<FluxBannerArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxBannerArgs = {
+        id: opts.id ?? "banner",
+        title: opts.title,
+        message: opts.message,
+        tone: opts.tone ?? "info",
+        ...(opts.action !== undefined && { action: opts.action }),
+        ...(opts.dismiss !== undefined && { dismiss: opts.dismiss }),
+        ...(opts.icon !== undefined && { icon: opts.icon }),
+        ...(opts.accessibility && { accessibility: opts.accessibility }),
+      };
+      return UI._fluxNodeToComponent(fluxBanner(args));
+    }
+    return UI.column([
+      UI.text(opts.title, { variant: "h3" }),
+      UI.text(opts.message, { variant: "body" }),
+    ]);
+  }
+
+  /**
+   * Flux stack — layout primitive for arranging children with consistent
+   * spacing. Only meaningful inside a flux scope; outside, falls back to
+   * a ``Column`` with no children (callers add children post-hoc via
+   * ``.add(...)``).
+   */
+  static stack(opts?: Partial<FluxStackArgs>): UIComponent {
+    if (activeCatalog() === "flux") {
+      const args: FluxStackArgs = {
+        id: opts?.id ?? "stack",
+        direction: opts?.direction ?? "vertical",
+        gap: opts?.gap ?? "2",
+        align: opts?.align ?? "stretch",
+        justify: opts?.justify ?? "start",
+        ...(opts?.wrap !== undefined && { wrap: opts.wrap }),
+        ...(opts?.accessibility && { accessibility: opts.accessibility }),
+      };
+      return UI._fluxNodeToComponent(fluxStack(args));
+    }
+    return UI.column([]);
   }
 
   /** Checkbox component. */
@@ -676,9 +1129,7 @@ export class UI {
       const root = UI.column([UI.heading(title), ...fieldComponents, submitBtn]);
       return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root);
     }
-    throw new A2UIError(
-      "UI.form expects either a Zod object schema or (title, opts.fields)",
-    );
+    throw new A2UIError("UI.form expects either a Zod object schema or (title, opts.fields)");
   }
 
   /**
@@ -729,18 +1180,22 @@ export class UI {
   // ------------------------------------------------------------------
 
   /** Detect a Zod object schema via duck-typing the v4 public `def` surface. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static _isZodObject(value: unknown): value is { def: { type: string; shape: Record<string, any> }; shape: Record<string, any> } {
+  private static _isZodObject(value: unknown): value is {
+    def: { type: string; shape: Record<string, unknown> };
+    shape: Record<string, unknown>;
+  } {
     if (!value || typeof value !== "object") return false;
     const v = value as { def?: { type?: string }; shape?: unknown };
     return v.def?.type === "object" && typeof v.shape === "object" && v.shape !== null;
   }
 
   /** Read the `shape` from a Zod object (v4 exposes it on both `.shape` and `.def.shape`). */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static _zodObjectShape(value: unknown): Record<string, any> | null {
+  private static _zodObjectShape(value: unknown): Record<string, unknown> | null {
     if (!value || typeof value !== "object") return null;
-    const v = value as { shape?: Record<string, unknown>; def?: { shape?: Record<string, unknown> } };
+    const v = value as {
+      shape?: Record<string, unknown>;
+      def?: { shape?: Record<string, unknown> };
+    };
     return (v.shape ?? v.def?.shape ?? null) as Record<string, unknown> | null;
   }
 
@@ -838,7 +1293,13 @@ export class UI {
             maxLen = cd.length;
           }
           // Inline regex check (.regex(...) appended after a format)
-          if (!regexAdded && cd.check === "string_format" && cd.format === "regex" && cd.pattern instanceof RegExp && !formatHandled) {
+          if (
+            !regexAdded &&
+            cd.check === "string_format" &&
+            cd.format === "regex" &&
+            cd.pattern instanceof RegExp &&
+            !formatHandled
+          ) {
             checks.push(UI.regex((cd.pattern as RegExp).source));
             regexAdded = true;
           }
@@ -895,7 +1356,9 @@ export class UI {
           }),
         );
       } else if (fieldType === "enum" || fieldType === "literal") {
-        const entries = (field as { def: { entries?: Record<string, unknown>; values?: unknown[] } }).def;
+        const entries = (
+          field as { def: { entries?: Record<string, unknown>; values?: unknown[] } }
+        ).def;
         const options: string[] = entries.entries
           ? Object.keys(entries.entries)
           : Array.isArray(entries.values)
@@ -954,18 +1417,13 @@ export class UI {
       action: opts.submitAction,
     });
     const root = UI.column([UI.heading(title), ...fieldComponents, submitBtn]);
-    return new UISurface(
-      title.toLowerCase().replace(/\s+/g, "_"),
-      root,
-      {},
-      data,
-    );
+    return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root, {}, data);
   }
 
   /** Pull `def` off a check (Zod v4 stores it under `_zod.def`). */
   private static _checkDef(c: unknown): Record<string, unknown> | null {
     if (!c || typeof c !== "object") return null;
-    const cz = (c as { _zod?: { def?: Record<string, unknown> }; def?: Record<string, unknown> });
+    const cz = c as { _zod?: { def?: Record<string, unknown> }; def?: Record<string, unknown> };
     return cz._zod?.def ?? cz.def ?? null;
   }
 

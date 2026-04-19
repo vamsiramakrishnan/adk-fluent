@@ -48,16 +48,20 @@ export {
   ComparisonSuite,
 } from "./namespaces/eval.js";
 export type { ECriterion, EPersonaSpec } from "./namespaces/eval.js";
-export { UI, UIComponent, UISurface, UIAutoSpec, UISchemaSpec } from "./namespaces/ui.js";
-export type { UIBinding, UICheck } from "./namespaces/ui.js";
+export {
+  UI,
+  UIComponent,
+  UISurface,
+  UIAutoSpec,
+  UISchemaSpec,
+  UIThemeMarker,
+  KNOWN_CATALOGS,
+  activeCatalog,
+} from "./namespaces/ui.js";
+export type { UIBinding, UICheck, CatalogName } from "./namespaces/ui.js";
 
 // A2UI exceptions
-export {
-  A2UIError,
-  A2UINotInstalled,
-  A2UISurfaceError,
-  A2UIBindingError,
-} from "./_exceptions.js";
+export { A2UIError, A2UINotInstalled, A2UISurfaceError, A2UIBindingError } from "./_exceptions.js";
 
 // H — Harness namespace (build-your-own coding agent)
 export { H } from "./namespaces/harness/H.js";

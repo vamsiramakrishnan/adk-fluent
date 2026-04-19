@@ -1,0 +1,15 @@
+{
+  "name": "button-primary-solid-md",
+  "description": "Primary solid button, medium size.",
+  "node": {
+    "component": "FluxButton",
+    "id": "btn-primary",
+    "label": "Save changes",
+    "tone": "primary",
+    "size": "md",
+    "emphasis": "solid",
+    "action": { "event": { "name": "save" } },
+    "accessibility": { "label": "Save changes" }
+  },
+  "slots": {}
+}

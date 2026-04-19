@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adk-fluent.dev/flux/schema/catalog.schema.json",
+  "title": "flux Catalog",
+  "description": "Top-level flux catalog file emitted by the DSL build.",
+  "type": "object",
+  "required": ["catalogId", "version", "extends", "tokens", "components", "fallbacks"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema":   { "type": "string" },
+    "catalogId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*@[0-9]+(\\.[0-9]+)*$" },
+    "version":   { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "extends": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Upstream catalog identities this catalog refines. MUST include 'a2ui/basic@0.10' for Phase 1."
+    },
+    "tokens": {
+      "type": "object",
+      "required": ["light", "dark"],
+      "additionalProperties": false,
+      "properties": {
+        "light": { "type": "string" },
+        "dark":  { "type": "string" }
+      }
+    },
+    "components": {
+      "type": "object",
+      "description": "Map of component-name to compiled component definition (component.schema.json).",
+      "additionalProperties": { "$ref": "https://adk-fluent.dev/flux/schema/component.schema.json" }
+    },
+    "fallbacks": {
+      "type": "object",
+      "description": "Map of flux-component-name to basic-catalog-component fallback.",
+      "additionalProperties": { "type": "string" }
+    },
+    "functions": {
+      "type": "object",
+      "description": "Optional additional client-side functions. Each must be a valid A2UI function definition. Phase 1 adds none.",
+      "additionalProperties": { "type": "object" }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "button-danger-outline-sm",
+  "description": "Destructive outline button, small size.",
+  "node": {
+    "component": "FluxButton",
+    "id": "btn-danger",
+    "label": "Delete",
+    "tone": "danger",
+    "size": "sm",
+    "emphasis": "outline",
+    "action": { "event": { "name": "confirm_delete" } },
+    "accessibility": { "label": "Delete item" }
+  },
+  "slots": {}
+}

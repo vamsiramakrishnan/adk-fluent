@@ -1,0 +1,13 @@
+{
+  "name": "skeleton-text",
+  "description": "Three-line text skeleton.",
+  "node": {
+    "component": "FluxSkeleton",
+    "id": "skeleton-1",
+    "shape": "text",
+    "size": "md",
+    "count": 3,
+    "accessibility": { "label": "Loading content" }
+  },
+  "slots": {}
+}
