@@ -61,28 +61,40 @@ def _slugify(heading: str) -> str:
 
 
 def _collect_headings(text: str) -> list[str]:
-    """Return every anchor available in the file.
+    """Return one anchor string per heading or explicit anchor declaration.
 
-    Two anchor sources:
+    Anchor sources:
 
       * Markdown headings (``## Foo Bar``) → ``foo-bar`` (slugified).
       * MyST explicit anchors (``(builder-Agent)=`` on its own line) →
-        ``builder-agent`` **and** the raw case-preserving form. Both are
-        kept because upstream generators may emit mixed-case links for
-        historical reasons; lowering case makes the validator tolerant
-        of either convention.
+        ``builder-Agent`` (case preserved).
+
+    If a heading is immediately preceded by an explicit anchor (ignoring
+    blank lines), only the explicit anchor is emitted — the explicit
+    anchor is the canonical link target and supersedes the auto-slug.
+    This lets generators scope colliding method headings (``.ask`` on
+    Loop/FanOut/Pipeline) with anchors like ``(method-loop-ask)=``
+    without the validator flagging the auto-slug collision.
     """
     out: list[str] = []
+    pending_anchor = False
     for line in text.splitlines():
+        stripped = line.strip()
         m = HEADING_RE.match(line)
         if m:
-            out.append(_slugify(m.group(2)))
+            if not pending_anchor:
+                out.append(_slugify(m.group(2)))
+            pending_anchor = False
             continue
         a = EXPLICIT_ANCHOR_RE.match(line)
         if a:
-            name = a.group("name")
-            out.append(name)
-            out.append(name.lower())
+            out.append(a.group("name"))
+            pending_anchor = True
+            continue
+        if stripped == "":
+            # blank line between anchor and heading — keep pending
+            continue
+        pending_anchor = False
     return out
 
 
@@ -90,16 +102,98 @@ def _find_md_files(root: Path) -> list[Path]:
     return sorted(root.rglob("*.md"))
 
 
-def validate_tree(root: Path) -> list[Finding]:
+def _extract_python_fences(text: str) -> list[tuple[int, str]]:
+    """Yield (start_line, body) tuples for every ```python fenced block."""
+    out: list[tuple[int, str]] = []
+    in_fence = False
+    fence_start = 0
+    buf: list[str] = []
+    for i, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if not in_fence:
+            if stripped.startswith("```python") or stripped.startswith("```py"):
+                in_fence = True
+                fence_start = i
+                buf = []
+        else:
+            if stripped.startswith("```"):
+                out.append((fence_start, "\n".join(buf)))
+                in_fence = False
+            else:
+                buf.append(line)
+    return out
+
+
+_SIGNATURE_ONLY_RE = re.compile(r"^[A-Z][A-Za-z0-9_]*\([^)]*:\s")
+
+
+def _check_python_syntax(code: str) -> str | None:
+    """Return error message if the block has a syntax error, else None.
+
+    We deliberately ignore blocks that look like REPL transcripts (``>>> ``),
+    partial method bodies (leading indentation with no def/class), signature
+    documentation (``ClassName(arg: type)``), or shell commands.  The goal
+    is to catch typo-level breakage, not to execute code.
+    """
+    if not code.strip():
+        return None
+    first = code.lstrip().splitlines()[0].strip()
+    if first.startswith((">>> ", "$ ", "# ")):
+        return None
+    if code.lstrip().startswith((" ", "\t")) and "def " not in code and "class " not in code:
+        return None
+    # Single-line signature documentation (``BaseAgent(name: str) -> None``).
+    if "\n" not in code.strip() and _SIGNATURE_ONLY_RE.match(first):
+        return None
+    # Allow top-level ``await``/``async for`` inside fenced samples (common in docs).
+    try:
+        compile(code, "<fence>", "exec", flags=0x2000)  # PyCF_ALLOW_TOP_LEVEL_AWAIT
+    except SyntaxError as exc:
+        return f"line {exc.lineno}: {exc.msg}"
+    return None
+
+
+def validate_tree(root: Path, *, check_code_fences: bool = False) -> list[Finding]:
     findings: list[Finding] = []
     files = _find_md_files(root)
     known = {p.resolve() for p in files}
 
+    # Directories that are excluded from the Sphinx build (see conf.py
+    # exclude_patterns) — we skip code-fence checks there because design
+    # notes and historical specs routinely contain illustrative pseudocode.
+    code_fence_skip_parts = {"plans", "other_specs", "architecture", "superpowers"}
+
+    # Generic section-heading slugs that recur once per builder in API
+    # pages (agent.md, tool.md, workflow.md). They are never link targets
+    # — every builder has an explicit ``(builder-<name>)=`` anchor above
+    # it — so their collisions are benign and should not be reported.
+    ignored_duplicate_slugs = {
+        "constructor",
+        "callbacks",
+        "configuration",
+        "core-configuration",
+        "control-flow-execution",
+        "forwarded-fields",
+        "composition-operators",
+        "state-transforms",
+    }
+
     for md in files:
         text = md.read_text()
         headings = _collect_headings(text)
+        headings_lower = {h.lower() for h in headings}
 
-        dupes = {h for h in headings if headings.count(h) > 1}
+        if check_code_fences and not code_fence_skip_parts.intersection(md.parts):
+            for start, body in _extract_python_fences(text):
+                err = _check_python_syntax(body)
+                if err:
+                    findings.append(Finding(md, start, "bad-python", err))
+
+        dupes = {
+            h
+            for h in headings
+            if headings.count(h) > 1 and h != "" and h not in ignored_duplicate_slugs
+        }
         for dup in sorted(dupes):
             findings.append(
                 Finding(md, 0, "duplicate-anchor", f"heading slug '{dup}' appears more than once")
@@ -113,7 +207,7 @@ def validate_tree(root: Path) -> list[Finding]:
                     continue
                 if target.startswith("#"):
                     anchor = target.lstrip("#")
-                    if anchor and anchor not in headings and anchor.lower() not in headings:
+                    if anchor and anchor.lower() not in headings_lower:
                         findings.append(
                             Finding(md, lineno, "missing-anchor", f"in-page anchor '#{anchor}' not found")
                         )
@@ -139,8 +233,8 @@ def validate_tree(root: Path) -> list[Finding]:
                     continue
 
                 if anchor and resolved.suffix == ".md" and resolved.exists():
-                    target_headings = _collect_headings(resolved.read_text())
-                    if anchor not in target_headings and anchor.lower() not in target_headings:
+                    target_lower = {h.lower() for h in _collect_headings(resolved.read_text())}
+                    if anchor.lower() not in target_lower:
                         findings.append(
                             Finding(
                                 md,
@@ -203,6 +297,11 @@ def main() -> int:
         default="docs/_generated/doc_ir.json",
         help="Path to DocIR JSON (set to empty string to skip DocIR cross-check)",
     )
+    parser.add_argument(
+        "--check-code-fences",
+        action="store_true",
+        help="Also compile every ```python fenced block to catch syntax errors",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -210,7 +309,7 @@ def main() -> int:
         print(f"docs_validator: root {root} is not a directory", file=sys.stderr)
         return 2
 
-    findings = validate_tree(root)
+    findings = validate_tree(root, check_code_fences=args.check_code_fences)
     if args.doc_ir:
         findings.extend(validate_against_doc_ir(Path(args.doc_ir).resolve(), root))
 

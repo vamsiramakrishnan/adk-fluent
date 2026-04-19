@@ -16,8 +16,6 @@ How to attach tools to an agent using the fluent API.
 
 _Source: `71_a2ui_agent_integration.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, T, UI
 from adk_fluent._guards import G
@@ -90,8 +88,6 @@ assert dash._config.get("_ui_spec") is not None
 
 print("All A2UI agent integration assertions passed!")
 ```
-:::
-::::
 
 :::{seealso}
 API reference: [Agent](../api/agent.md#builder-Agent)

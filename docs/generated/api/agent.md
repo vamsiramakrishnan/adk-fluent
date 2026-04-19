@@ -39,6 +39,7 @@ BaseAgent(name: str)
 
 ### Core Configuration
 
+(method-BaseAgent-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -50,6 +51,7 @@ BaseAgent(name: str)
 agent = BaseAgent("agent").describe("...")
 ```
 
+(method-BaseAgent-sub_agent)=
 #### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -62,6 +64,7 @@ agent = BaseAgent("agent").sub_agent("...")
 
 ### Callbacks
 
+(method-BaseAgent-after_agent)=
 #### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
@@ -76,6 +79,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = BaseAgent("agent").after_agent(my_callback_fn)
 ```
 
+(method-BaseAgent-after_agent_if)=
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
@@ -86,6 +90,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 agent = BaseAgent("agent").after_agent_if(condition, my_callback_fn)
 ```
 
+(method-BaseAgent-before_agent)=
 #### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
@@ -100,6 +105,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = BaseAgent("agent").before_agent(my_callback_fn)
 ```
 
+(method-BaseAgent-before_agent_if)=
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
@@ -112,6 +118,7 @@ agent = BaseAgent("agent").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-BaseAgent-build)=
 #### `.build() -> BaseAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseAgent.
@@ -163,6 +170,7 @@ Agent(name: str)
 
 ### Core Configuration
 
+(method-Agent-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -174,6 +182,7 @@ Agent(name: str)
 agent = Agent("agent").describe("...")
 ```
 
+(method-Agent-global_instruct)=
 #### `.global_instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `global_instruction`
@@ -185,17 +194,7 @@ agent = Agent("agent").describe("...")
 agent = Agent("agent").global_instruct("...")
 ```
 
-#### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
-
-- **Maps to:** `instruction`
-- Set the `instruction` field.
-
-**Example:**
-
-```python
-agent = Agent("agent").instruct("You are a helpful assistant.")
-```
-
+(method-Agent-instruct)=
 #### `.instruct(value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self` {bdg-success}`Core Configuration`
 
 Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead).
@@ -206,6 +205,7 @@ Set the main instruction / system prompt — what the LLM is told to do. Accepts
 agent = Agent("agent").instruct("You are a helpful assistant.")
 ```
 
+(method-Agent-static)=
 #### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `static_instruction`
@@ -217,6 +217,7 @@ agent = Agent("agent").instruct("You are a helpful assistant.")
 agent = Agent("agent").static("You are a helpful assistant.")
 ```
 
+(method-Agent-sub_agent)=
 #### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -227,6 +228,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 agent = Agent("agent").sub_agent("...")
 ```
 
+(method-Agent-tool)=
 #### `.tool(fn_or_tool: Any, *, require_confirmation: bool = False) -> Self` {bdg-success}`Core Configuration`
 
 Add a single tool (appends). Wraps plain callables in FunctionTool when require_confirmation=True.
@@ -245,6 +247,7 @@ agent = Agent("helper").tool(search).build()
 
 ### Configuration
 
+(method-Agent-agent_tool)=
 #### `.agent_tool(agent: Any) -> Self` {bdg-info}`Configuration`
 
 Wrap another agent as a callable AgentTool and add it to this agent's tools. The parent LLM invokes the child like any other tool, stays in control, and receives the response. Compare with .sub_agent() which fully transfers control to the child.
@@ -263,6 +266,7 @@ coordinator = (
 )
 ```
 
+(method-Agent-artifact_schema)=
 #### `.artifact_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach an ArtifactSchema declaring artifact dependencies.
@@ -275,6 +279,7 @@ Attach an ArtifactSchema declaring artifact dependencies.
 Agent("researcher").artifact_schema(ResearchArtifacts)
 ```
 
+(method-Agent-artifacts)=
 #### `.artifacts(*transforms: Any) -> Self` {bdg-info}`Configuration`
 
 Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this agent completes.
@@ -287,6 +292,7 @@ Attach artifact operations (A.publish, A.snapshot, etc.) that fire after this ag
 Agent("writer").artifacts(A.publish("report.md", from_key="output"))
 ```
 
+(method-Agent-callback_schema)=
 #### `.callback_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach a CallbackSchema declaring callback state dependencies.
@@ -297,6 +303,7 @@ Attach a CallbackSchema declaring callback state dependencies.
 agent = Agent("agent").callback_schema(my_callback_fn)
 ```
 
+(method-Agent-context)=
 #### `.context(spec: Any) -> Self` {bdg-info}`Configuration`
 
 Declare what conversation context this agent should see. Accepts a C module transform (C.none(), C.user_only(), C.from_state(), etc.).
@@ -317,6 +324,7 @@ agent = (
 )
 ```
 
+(method-Agent-eval)=
 #### `.eval(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` {bdg-info}`Configuration`
 
 Inline evaluation. Run a single eval case against this agent. Returns an EvalSuite ready to .run().
@@ -335,6 +343,7 @@ assert report.ok
 report = await agent.eval("query", criteria=E.semantic_match()).run()
 ```
 
+(method-Agent-eval_suite)=
 #### `.eval_suite() -> Any` {bdg-info}`Configuration`
 
 Create an evaluation suite builder for this agent. Returns an EvalSuite bound to this agent.
@@ -354,6 +363,7 @@ report = await (
 )
 ```
 
+(method-Agent-guard)=
 #### `.guard(value: Any) -> Self` {bdg-info}`Configuration`
 
 Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned.
@@ -372,6 +382,7 @@ agent = Agent("safe", "gemini-2.5-flash").guard(G.pii("redact") | G.budget(5000)
 agent = Agent("safe", "gemini-2.5-flash").guard(my_guard_fn)
 ```
 
+(method-Agent-hide)=
 #### `.hide() -> Self` {bdg-info}`Configuration`
 
 Force this agent's events to be internal (override topology inference).
@@ -385,6 +396,7 @@ Force this agent's events to be internal (override topology inference).
 agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
 ```
 
+(method-Agent-memory)=
 #### `.memory(mode: str = 'preload') -> Self` {bdg-info}`Configuration`
 
 Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'.
@@ -397,6 +409,7 @@ Add memory tools to this agent. Modes: 'preload', 'on_demand', 'both'.
 agent = Agent("assistant", "gemini-2.5-flash").memory("preload").build()
 ```
 
+(method-Agent-memory_auto_save)=
 #### `.memory_auto_save() -> Self` {bdg-info}`Configuration`
 
 Auto-save session to memory after each agent run.
@@ -407,6 +420,7 @@ Auto-save session to memory after each agent run.
 agent = Agent("agent").memory_auto_save("...")
 ```
 
+(method-Agent-no_peers)=
 #### `.no_peers() -> Self` {bdg-info}`Configuration`
 
 Prevent this agent from transferring to sibling agents. The agent can still return to its parent.
@@ -424,6 +438,7 @@ focused = (
 )
 ```
 
+(method-Agent-prompt_schema)=
 #### `.prompt_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach a PromptSchema declaring prompt state dependencies.
@@ -434,6 +449,7 @@ Attach a PromptSchema declaring prompt state dependencies.
 agent = Agent("agent").prompt_schema("...")
 ```
 
+(method-Agent-publish)=
 #### `.publish(*, port: int = 8000, host: str = '0.0.0.0') -> Any` {bdg-info}`Configuration`
 
 Publish this agent as an A2A server (returns Starlette app). Shorthand for `A2AServer(self).port(port).host(host).build()`.
@@ -444,6 +460,7 @@ Publish this agent as an A2A server (returns Starlette app). Shorthand for `A2AS
 agent = Agent("agent").publish("...")
 ```
 
+(method-Agent-show)=
 #### `.show() -> Self` {bdg-info}`Configuration`
 
 Force this agent's events to be user-facing (override topology inference).
@@ -457,6 +474,7 @@ Force this agent's events to be user-facing (override topology inference).
 agent = Agent("logger").model("m").instruct("Log progress.").show()
 ```
 
+(method-Agent-skill)=
 #### `.skill(skill_id: str, name: str, *, description: str = '', tags: list[str] | None = None, examples: list[str] | None = None, input_modes: list[str] | None = None, output_modes: list[str] | None = None) -> Self` {bdg-info}`Configuration`
 
 Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by `A2AServer` during card generation. They have no effect on local agent execution. If no skills are declared, `A2AServer` auto-infers them from the agent's tools and sub-agents.
@@ -467,6 +485,7 @@ Declare an A2A skill for this agent's AgentCard. Skills are metadata consumed by
 agent = Agent("agent").skill("...")
 ```
 
+(method-Agent-stay)=
 #### `.stay() -> Self` {bdg-info}`Configuration`
 
 Prevent transfer to parent only (can still transfer to sibling peers). Equivalent to .disallow_transfer_to_parent(True). Use for agents in peer-to-peer handoff chains where the coordinator should not regain control mid-sequence.
@@ -484,6 +503,7 @@ specialist = (
 )
 ```
 
+(method-Agent-to_ir)=
 #### `.to_ir() -> Any` {bdg-info}`Configuration`
 
 Convert this Agent builder to an AgentNode IR node.
@@ -494,6 +514,7 @@ Convert this Agent builder to an AgentNode IR node.
 agent = Agent("agent").to_ir("...")
 ```
 
+(method-Agent-tool_schema)=
 #### `.tool_schema(schema: type) -> Self` {bdg-info}`Configuration`
 
 Attach a ToolSchema declaring tool state dependencies.
@@ -504,6 +525,7 @@ Attach a ToolSchema declaring tool state dependencies.
 agent = Agent("agent").tool_schema("...")
 ```
 
+(method-Agent-tools)=
 #### `.tools(value: Any) -> Self` {bdg-info}`Configuration`
 
 Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single tool/toolset.
@@ -514,6 +536,7 @@ Set tools. Accepts a list, a TComposite chain (T.fn(x) | T.fn(y)), or a single t
 agent = Agent("agent").tools("...")
 ```
 
+(method-Agent-ui)=
 #### `.ui(spec: Any) -> Self` {bdg-info}`Configuration`
 
 Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go'))).
@@ -536,6 +559,7 @@ agent = Agent("creative", "gemini-2.5-flash").ui(UI.auto()).build()
 
 ### Callbacks
 
+(method-Agent-after_agent)=
 #### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
@@ -550,6 +574,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").after_agent(my_callback_fn)
 ```
 
+(method-Agent-after_agent_if)=
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
@@ -560,6 +585,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 agent = Agent("agent").after_agent_if(condition, my_callback_fn)
 ```
 
+(method-Agent-after_model)=
 #### `.after_model(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_model_callback`.
@@ -574,6 +600,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").after_model(my_callback_fn)
 ```
 
+(method-Agent-after_model_if)=
 #### `.after_model_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_model_callback` only if `condition` is `True`.
@@ -584,6 +611,7 @@ Append callback to `after_model_callback` only if `condition` is `True`.
 agent = Agent("agent").after_model_if(condition, my_callback_fn)
 ```
 
+(method-Agent-after_tool)=
 #### `.after_tool(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_tool_callback`.
@@ -598,6 +626,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").after_tool(my_callback_fn)
 ```
 
+(method-Agent-after_tool_if)=
 #### `.after_tool_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_tool_callback` only if `condition` is `True`.
@@ -608,6 +637,7 @@ Append callback to `after_tool_callback` only if `condition` is `True`.
 agent = Agent("agent").after_tool_if(condition, my_callback_fn)
 ```
 
+(method-Agent-before_agent)=
 #### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
@@ -622,6 +652,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").before_agent(my_callback_fn)
 ```
 
+(method-Agent-before_agent_if)=
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
@@ -632,6 +663,7 @@ Append callback to `before_agent_callback` only if `condition` is `True`.
 agent = Agent("agent").before_agent_if(condition, my_callback_fn)
 ```
 
+(method-Agent-before_model)=
 #### `.before_model(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_model_callback`.
@@ -646,6 +678,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").before_model(my_callback_fn)
 ```
 
+(method-Agent-before_model_if)=
 #### `.before_model_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_model_callback` only if `condition` is `True`.
@@ -656,6 +689,7 @@ Append callback to `before_model_callback` only if `condition` is `True`.
 agent = Agent("agent").before_model_if(condition, my_callback_fn)
 ```
 
+(method-Agent-before_tool)=
 #### `.before_tool(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_tool_callback`.
@@ -670,6 +704,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").before_tool(my_callback_fn)
 ```
 
+(method-Agent-before_tool_if)=
 #### `.before_tool_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_tool_callback` only if `condition` is `True`.
@@ -680,6 +715,7 @@ Append callback to `before_tool_callback` only if `condition` is `True`.
 agent = Agent("agent").before_tool_if(condition, my_callback_fn)
 ```
 
+(method-Agent-on_model_error)=
 #### `.on_model_error(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `on_model_error_callback`.
@@ -694,6 +730,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").on_model_error(my_callback_fn)
 ```
 
+(method-Agent-on_model_error_if)=
 #### `.on_model_error_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `on_model_error_callback` only if `condition` is `True`.
@@ -704,6 +741,7 @@ Append callback to `on_model_error_callback` only if `condition` is `True`.
 agent = Agent("agent").on_model_error_if(condition, my_callback_fn)
 ```
 
+(method-Agent-on_tool_error)=
 #### `.on_tool_error(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `on_tool_error_callback`.
@@ -718,6 +756,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 agent = Agent("agent").on_tool_error(my_callback_fn)
 ```
 
+(method-Agent-on_tool_error_if)=
 #### `.on_tool_error_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `on_tool_error_callback` only if `condition` is `True`.
@@ -730,6 +769,7 @@ agent = Agent("agent").on_tool_error_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-Agent-ask)=
 #### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot SYNC execution (blocking). Builds agent, sends prompt, returns response text. Raises RuntimeError inside async event loops (Jupyter, FastAPI) — use .ask_async() instead.
@@ -743,6 +783,7 @@ reply = Agent("qa", "gemini-2.5-flash").instruct("Answer questions.").ask("What 
 print(reply)
 ```
 
+(method-Agent-ask_async)=
 #### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts.
@@ -753,6 +794,7 @@ One-shot ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAP
 agent = Agent("agent").ask_async("...")
 ```
 
+(method-Agent-build)=
 #### `.build() -> LlmAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LlmAgent.
@@ -763,6 +805,7 @@ Resolve into a native ADK LlmAgent.
 agent = Agent("agent").build("...")
 ```
 
+(method-Agent-events)=
 #### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
@@ -773,6 +816,7 @@ Stream raw ADK Event objects. Yields every event including state deltas and func
 agent = Agent("agent").events("...")
 ```
 
+(method-Agent-isolate)=
 #### `.isolate() -> Self` {bdg-primary}`Control Flow & Execution`
 
 Prevent this agent from transferring to parent or peers. Sets both disallow_transfer_to_parent and disallow_transfer_to_peers to True. Use for specialist agents that should complete their task and return.
@@ -792,6 +836,7 @@ specialist = (
 )
 ```
 
+(method-Agent-map)=
 #### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch SYNC execution (blocking). Run agent against multiple prompts with bounded concurrency. Raises RuntimeError inside async event loops — use .map_async() instead.
@@ -802,6 +847,7 @@ Batch SYNC execution (blocking). Run agent against multiple prompts with bounded
 agent = Agent("agent").map("...")
 ```
 
+(method-Agent-map_async)=
 #### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, and other async contexts.
@@ -812,6 +858,7 @@ Batch ASYNC execution (non-blocking, use with await). Safe in Jupyter, FastAPI, 
 agent = Agent("agent").map_async("...")
 ```
 
+(method-Agent-session)=
 #### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
 
 Create an interactive multi-turn chat session. Returns an async context manager — use with `async with agent.session() as chat:`. The agent is auto-built.
@@ -822,6 +869,7 @@ Create an interactive multi-turn chat session. Returns an async context manager 
 agent = Agent("agent").session("...")
 ```
 
+(method-Agent-stream)=
 #### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
 
 ASYNC streaming execution. Yields response text chunks as they arrive. Use with `async for chunk in agent.stream(prompt):`.
@@ -835,6 +883,7 @@ async for chunk in Agent("writer", "gemini-2.5-flash").instruct("Write a poem.")
     print(chunk, end="")
 ```
 
+(method-Agent-test)=
 #### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Run a smoke test. Calls .ask() internally, asserts output matches condition.
@@ -896,6 +945,7 @@ RemoteA2aAgent(name: str)
 
 ### Core Configuration
 
+(method-RemoteA2aAgent-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -907,6 +957,7 @@ RemoteA2aAgent(name: str)
 remotea2aagent = RemoteA2aAgent("remotea2aagent").describe("...")
 ```
 
+(method-RemoteA2aAgent-sub_agent)=
 #### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -919,6 +970,7 @@ remotea2aagent = RemoteA2aAgent("remotea2aagent").sub_agent("...")
 
 ### Callbacks
 
+(method-RemoteA2aAgent-after_agent)=
 #### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
@@ -933,6 +985,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 remotea2aagent = RemoteA2aAgent("remotea2aagent").after_agent(my_callback_fn)
 ```
 
+(method-RemoteA2aAgent-after_agent_if)=
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
@@ -943,6 +996,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 remotea2aagent = RemoteA2aAgent("remotea2aagent").after_agent_if(condition, my_callback_fn)
 ```
 
+(method-RemoteA2aAgent-before_agent)=
 #### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
@@ -957,6 +1011,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 remotea2aagent = RemoteA2aAgent("remotea2aagent").before_agent(my_callback_fn)
 ```
 
+(method-RemoteA2aAgent-before_agent_if)=
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
@@ -969,6 +1024,7 @@ remotea2aagent = RemoteA2aAgent("remotea2aagent").before_agent_if(condition, my_
 
 ### Control Flow & Execution
 
+(method-RemoteA2aAgent-build)=
 #### `.build() -> RemoteA2aAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK RemoteA2aAgent.

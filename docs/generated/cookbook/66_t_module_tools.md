@@ -20,8 +20,6 @@ How to attach tools to an agent using the fluent API.
 
 _Source: `66_t_module_tools.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent._tools import T, TComposite
 
@@ -445,8 +443,6 @@ assert len(ir_full.tools) >= 4
 
 print("All T module assertions passed!")
 ```
-:::
-::::
 
 :::{seealso}
 API reference: [FunctionTool](../api/tool.md#builder-FunctionTool)

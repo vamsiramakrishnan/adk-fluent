@@ -270,6 +270,15 @@ check-docs: doc-ir
     @echo "Strict docs validation..."
     @{{PY}} {{SHARED_DIR}}/scripts/docs_validator.py --root docs --strict
 
+# --- One-shot composite: full docs regeneration + validation pipeline ---
+docs-check-all: docs doc-ir validate-docs
+    @echo "Docs pipeline green."
+
+# --- Lint every ```python fence in hand-written user-guide docs ---
+check-code-fences: doc-ir
+    @echo "Checking python code fences..."
+    @{{PY}} {{SHARED_DIR}}/scripts/docs_validator.py --root docs --check-code-fences --strict
+
 # --- Agent Skills reference generation ---
 skills: _require-manifest _require-seed
     @echo "Generating agent skill references..."

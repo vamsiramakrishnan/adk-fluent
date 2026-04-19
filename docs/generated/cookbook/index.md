@@ -1285,6 +1285,24 @@ Usage requires: pip install adk-fluent[dbos]
 
 How to compose agents into a sequential pipeline.
 ```
+```{grid-item-card} A2UI Dynamic: LLM-Driven UI Generation
+
+Demonstrates the core A2UI value proposition: the LLM itself designs
+interactive UI surfaces based on user intent. .ui(UI.auto()) handles
+everything — it attaches the SendA2uiToClientToolset which injects
+the full A2UI JSON Schema at LLM request time and gives the LLM a
+send_a2ui_json_to_client tool.
+
+Key concepts:
+  - .ui(UI.auto()): one-line A2UI setup (schema + toolset)
+  - SendA2uiToClientToolset injects schema via process_llm_request
+  - The LLM generates valid A2UI JSON — no Python UI construction
+  - Domain tools provide data, the LLM designs the presentation
+:link: 77_a2ui_dynamic
+:link-type: doc
+
+How to attach tools to an agent using the fluent API.
+```
 ```{grid-item-card} Skill-Based Agents -- Composable Skills from SKILL.md Files
 
 Skills are the 100x multiplier for agent development. Instead of writing
@@ -1385,6 +1403,24 @@ Run: uv run pytest examples/cookbook/79_coding_agent_harness.py -v
 
 How to attach tools to an agent using the fluent API.
 ```
+```{grid-item-card} Signals + Reactor — reactive state over the durable tape.
+
+Shows the three reactive primitives added in Phase F / Phase G / auto-tracking:
+
+1. :class:`Signal` — typed state cell with version tracking. Mutations
+   emit :class:`SignalChanged` on the ambient :class:`EventBus` (which
+   in turn lands on the :class:`SessionTape`).
+2. :class:`Reactor` — cursor-following scheduler. Registered rules fire
+   when their :class:`SignalPredicate` matches a change on the tape.
+3. ``computed(name, fn)`` — derived signal that auto-tracks reads of
+   other signals and re-runs on any dep change.
+
+Run: ``uv run pytest examples/cookbook/80_reactor_basic.py -v``
+:link: 80_reactor_basic
+:link-type: doc
+
+How to manage interactive sessions with agents.
+```
 ````
 
 ```{toctree}
@@ -1392,10 +1428,12 @@ How to attach tools to an agent using the fluent API.
 
 75_prefect_backend
 76_dbos_backend
+77_a2ui_dynamic
 77_skill_based_agents
 78_collaboration_mechanisms
 78_harness_and_skills
 79_coding_agent_harness
+80_reactor_basic
 ```
 
 ```{toctree}

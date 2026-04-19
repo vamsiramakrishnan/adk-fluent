@@ -64,6 +64,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-A2aAgentExecutorConfig-build)=
 #### `.build() -> A2aAgentExecutorConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK A2aAgentExecutorConfig.
@@ -117,6 +118,7 @@ AgentConfig(root: RootModelRootType)
 
 ### Control Flow & Execution
 
+(method-AgentConfig-build)=
 #### `.build() -> AgentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentConfig.
@@ -160,6 +162,7 @@ BaseAgentConfig(name: str)
 
 ### Core Configuration
 
+(method-BaseAgentConfig-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -171,6 +174,7 @@ BaseAgentConfig(name: str)
 config = BaseAgentConfig("config").describe("...")
 ```
 
+(method-BaseAgentConfig-sub_agent)=
 #### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -183,6 +187,7 @@ config = BaseAgentConfig("config").sub_agent("...")
 
 ### Configuration
 
+(method-BaseAgentConfig-after_agent_callback)=
 #### `.after_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_agent_callbacks` (lazy — built at .build() time).
@@ -193,6 +198,7 @@ Append to `after_agent_callbacks` (lazy — built at .build() time).
 config = BaseAgentConfig("config").after_agent_callback(my_callback_fn)
 ```
 
+(method-BaseAgentConfig-before_agent_callback)=
 #### `.before_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_agent_callbacks` (lazy — built at .build() time).
@@ -205,6 +211,7 @@ config = BaseAgentConfig("config").before_agent_callback(my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-BaseAgentConfig-build)=
 #### `.build() -> BaseAgentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseAgentConfig.
@@ -248,6 +255,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-AgentRefConfig-build)=
 #### `.build() -> AgentRefConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentRefConfig.
@@ -299,6 +307,7 @@ ArgumentConfig(value: Any)
 
 ### Control Flow & Execution
 
+(method-ArgumentConfig-build)=
 #### `.build() -> ArgumentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ArgumentConfig.
@@ -350,6 +359,7 @@ CodeConfig(name: str)
 
 ### Configuration
 
+(method-CodeConfig-arg)=
 #### `.arg(value: ArgumentConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `args` (lazy — built at .build() time).
@@ -362,6 +372,7 @@ config = CodeConfig("config").arg("...")
 
 ### Control Flow & Execution
 
+(method-CodeConfig-build)=
 #### `.build() -> CodeConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK CodeConfig.
@@ -402,6 +413,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ContextCacheConfig-build)=
 #### `.build() -> ContextCacheConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ContextCacheConfig.
@@ -456,6 +468,7 @@ LlmAgentConfig(name: str, instruction: str)
 
 ### Core Configuration
 
+(method-LlmAgentConfig-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -467,6 +480,7 @@ LlmAgentConfig(name: str, instruction: str)
 config = LlmAgentConfig("config").describe("...")
 ```
 
+(method-LlmAgentConfig-history)=
 #### `.history(value: Literal['default', 'none']) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `include_contents`
@@ -478,6 +492,7 @@ config = LlmAgentConfig("config").describe("...")
 config = LlmAgentConfig("config").history("none")
 ```
 
+(method-LlmAgentConfig-instruct)=
 #### `.instruct(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `instruction`
@@ -489,6 +504,7 @@ config = LlmAgentConfig("config").history("none")
 config = LlmAgentConfig("config").instruct("You are a helpful assistant.")
 ```
 
+(method-LlmAgentConfig-outputs)=
 #### `.outputs(value: str | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `output_key`
@@ -500,6 +516,7 @@ config = LlmAgentConfig("config").instruct("You are a helpful assistant.")
 config = LlmAgentConfig("config").outputs("result_key")
 ```
 
+(method-LlmAgentConfig-static)=
 #### `.static(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `static_instruction`
@@ -511,6 +528,7 @@ config = LlmAgentConfig("config").outputs("result_key")
 config = LlmAgentConfig("config").static("You are a helpful assistant.")
 ```
 
+(method-LlmAgentConfig-sub_agent)=
 #### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -521,6 +539,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 config = LlmAgentConfig("config").sub_agent("...")
 ```
 
+(method-LlmAgentConfig-tool)=
 #### `.tool(value: ToolConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `tools` (lazy — built at .build() time).
@@ -533,6 +552,7 @@ config = LlmAgentConfig("config").tool(my_function)
 
 ### Configuration
 
+(method-LlmAgentConfig-after_agent_callback)=
 #### `.after_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_agent_callbacks` (lazy — built at .build() time).
@@ -543,6 +563,7 @@ Append to `after_agent_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").after_agent_callback(my_callback_fn)
 ```
 
+(method-LlmAgentConfig-after_model_callback)=
 #### `.after_model_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_model_callbacks` (lazy — built at .build() time).
@@ -553,6 +574,7 @@ Append to `after_model_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").after_model_callback(my_callback_fn)
 ```
 
+(method-LlmAgentConfig-after_tool_callback)=
 #### `.after_tool_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_tool_callbacks` (lazy — built at .build() time).
@@ -563,6 +585,7 @@ Append to `after_tool_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").after_tool_callback(my_callback_fn)
 ```
 
+(method-LlmAgentConfig-before_agent_callback)=
 #### `.before_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_agent_callbacks` (lazy — built at .build() time).
@@ -573,6 +596,7 @@ Append to `before_agent_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").before_agent_callback(my_callback_fn)
 ```
 
+(method-LlmAgentConfig-before_model_callback)=
 #### `.before_model_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_model_callbacks` (lazy — built at .build() time).
@@ -583,6 +607,7 @@ Append to `before_model_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").before_model_callback(my_callback_fn)
 ```
 
+(method-LlmAgentConfig-before_tool_callback)=
 #### `.before_tool_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_tool_callbacks` (lazy — built at .build() time).
@@ -593,6 +618,7 @@ Append to `before_tool_callbacks` (lazy — built at .build() time).
 config = LlmAgentConfig("config").before_tool_callback(my_callback_fn)
 ```
 
+(method-LlmAgentConfig-include_history)=
 #### `.include_history(value: Literal['default', 'none']) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `include_contents`
@@ -604,6 +630,7 @@ config = LlmAgentConfig("config").before_tool_callback(my_callback_fn)
 config = LlmAgentConfig("config").include_history("none")
 ```
 
+(method-LlmAgentConfig-static_instruct)=
 #### `.static_instruct(value: Content | str | File | Part | list[str | File | Part] | None) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `static_instruction`
@@ -617,6 +644,7 @@ config = LlmAgentConfig("config").static_instruct("...")
 
 ### Control Flow & Execution
 
+(method-LlmAgentConfig-build)=
 #### `.build() -> LlmAgentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LlmAgentConfig.
@@ -683,6 +711,7 @@ LoopAgentConfig(name: str)
 
 ### Core Configuration
 
+(method-LoopAgentConfig-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -694,6 +723,7 @@ LoopAgentConfig(name: str)
 config = LoopAgentConfig("config").describe("...")
 ```
 
+(method-LoopAgentConfig-sub_agent)=
 #### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -706,6 +736,7 @@ config = LoopAgentConfig("config").sub_agent("...")
 
 ### Configuration
 
+(method-LoopAgentConfig-after_agent_callback)=
 #### `.after_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_agent_callbacks` (lazy — built at .build() time).
@@ -716,6 +747,7 @@ Append to `after_agent_callbacks` (lazy — built at .build() time).
 config = LoopAgentConfig("config").after_agent_callback(my_callback_fn)
 ```
 
+(method-LoopAgentConfig-before_agent_callback)=
 #### `.before_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_agent_callbacks` (lazy — built at .build() time).
@@ -728,6 +760,7 @@ config = LoopAgentConfig("config").before_agent_callback(my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-LoopAgentConfig-build)=
 #### `.build() -> LoopAgentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoopAgentConfig.
@@ -783,6 +816,7 @@ ParallelAgentConfig(name: str)
 
 ### Core Configuration
 
+(method-ParallelAgentConfig-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -794,6 +828,7 @@ ParallelAgentConfig(name: str)
 config = ParallelAgentConfig("config").describe("...")
 ```
 
+(method-ParallelAgentConfig-sub_agent)=
 #### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -806,6 +841,7 @@ config = ParallelAgentConfig("config").sub_agent("...")
 
 ### Configuration
 
+(method-ParallelAgentConfig-after_agent_callback)=
 #### `.after_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_agent_callbacks` (lazy — built at .build() time).
@@ -816,6 +852,7 @@ Append to `after_agent_callbacks` (lazy — built at .build() time).
 config = ParallelAgentConfig("config").after_agent_callback(my_callback_fn)
 ```
 
+(method-ParallelAgentConfig-before_agent_callback)=
 #### `.before_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_agent_callbacks` (lazy — built at .build() time).
@@ -828,6 +865,7 @@ config = ParallelAgentConfig("config").before_agent_callback(my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-ParallelAgentConfig-build)=
 #### `.build() -> ParallelAgentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ParallelAgentConfig.
@@ -872,6 +910,7 @@ result = (
 
 ### Configuration
 
+(method-RunConfig-input_audio_transcribe)=
 #### `.input_audio_transcribe(value: AudioTranscriptionConfig | None) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `input_audio_transcription`
@@ -883,6 +922,7 @@ result = (
 config = RunConfig("config").input_audio_transcribe("...")
 ```
 
+(method-RunConfig-output_audio_transcribe)=
 #### `.output_audio_transcribe(value: AudioTranscriptionConfig | None) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `output_audio_transcription`
@@ -896,6 +936,7 @@ config = RunConfig("config").output_audio_transcribe("...")
 
 ### Control Flow & Execution
 
+(method-RunConfig-build)=
 #### `.build() -> RunConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK RunConfig.
@@ -950,6 +991,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ToolThreadPoolConfig-build)=
 #### `.build() -> ToolThreadPoolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ToolThreadPoolConfig.
@@ -1001,6 +1043,7 @@ SequentialAgentConfig(name: str)
 
 ### Core Configuration
 
+(method-SequentialAgentConfig-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -1012,6 +1055,7 @@ SequentialAgentConfig(name: str)
 config = SequentialAgentConfig("config").describe("...")
 ```
 
+(method-SequentialAgentConfig-sub_agent)=
 #### `.sub_agent(value: AgentRefConfig) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -1024,6 +1068,7 @@ config = SequentialAgentConfig("config").sub_agent("...")
 
 ### Configuration
 
+(method-SequentialAgentConfig-after_agent_callback)=
 #### `.after_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `after_agent_callbacks` (lazy — built at .build() time).
@@ -1034,6 +1079,7 @@ Append to `after_agent_callbacks` (lazy — built at .build() time).
 config = SequentialAgentConfig("config").after_agent_callback(my_callback_fn)
 ```
 
+(method-SequentialAgentConfig-before_agent_callback)=
 #### `.before_agent_callback(value: CodeConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `before_agent_callbacks` (lazy — built at .build() time).
@@ -1046,6 +1092,7 @@ config = SequentialAgentConfig("config").before_agent_callback(my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-SequentialAgentConfig-build)=
 #### `.build() -> SequentialAgentConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SequentialAgentConfig.
@@ -1100,6 +1147,7 @@ EventsCompactionConfig(compaction_interval: int, overlap_size: int)
 
 ### Control Flow & Execution
 
+(method-EventsCompactionConfig-build)=
 #### `.build() -> EventsCompactionConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK EventsCompactionConfig.
@@ -1142,6 +1190,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ResumabilityConfig-build)=
 #### `.build() -> ResumabilityConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ResumabilityConfig.
@@ -1192,6 +1241,7 @@ FeatureConfig(stage: FeatureStage)
 
 ### Control Flow & Execution
 
+(method-FeatureConfig-build)=
 #### `.build() -> FeatureConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK FeatureConfig.
@@ -1232,6 +1282,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-AudioCacheConfig-build)=
 #### `.build() -> AudioCacheConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AudioCacheConfig.
@@ -1275,6 +1326,7 @@ result = (
 
 ### Configuration
 
+(method-SimplePromptOptimizerConfig-model_configure)=
 #### `.model_configure(value: GenerateContentConfig) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `model_configuration`
@@ -1288,6 +1340,7 @@ config = SimplePromptOptimizerConfig("config").model_configure("...")
 
 ### Control Flow & Execution
 
+(method-SimplePromptOptimizerConfig-build)=
 #### `.build() -> SimplePromptOptimizerConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SimplePromptOptimizerConfig.
@@ -1330,6 +1383,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BigQueryLoggerConfig-build)=
 #### `.build() -> BigQueryLoggerConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigQueryLoggerConfig.
@@ -1386,6 +1440,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-RetryConfig-build)=
 #### `.build() -> RetryConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK RetryConfig.
@@ -1429,6 +1484,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-GetSessionConfig-build)=
 #### `.build() -> GetSessionConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GetSessionConfig.
@@ -1470,6 +1526,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BaseGoogleCredentialsConfig-build)=
 #### `.build() -> BaseGoogleCredentialsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseGoogleCredentialsConfig.
@@ -1515,6 +1572,7 @@ result = (
 
 ### Configuration
 
+(method-AgentSimulatorConfig-simulation_model_configure)=
 #### `.simulation_model_configure(value: GenerateContentConfig) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `simulation_model_configuration`
@@ -1526,6 +1584,7 @@ result = (
 config = AgentSimulatorConfig("config").simulation_model_configure("...")
 ```
 
+(method-AgentSimulatorConfig-tool_simulation_config)=
 #### `.tool_simulation_config(value: ToolSimulationConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `tool_simulation_configs` (lazy — built at .build() time).
@@ -1538,6 +1597,7 @@ config = AgentSimulatorConfig("config").tool_simulation_config("...")
 
 ### Control Flow & Execution
 
+(method-AgentSimulatorConfig-build)=
 #### `.build() -> AgentSimulatorConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentSimulatorConfig.
@@ -1581,6 +1641,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-InjectionConfig-build)=
 #### `.build() -> InjectionConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InjectionConfig.
@@ -1637,6 +1698,7 @@ ToolSimulationConfig(tool_name: str)
 
 ### Configuration
 
+(method-ToolSimulationConfig-injection_config)=
 #### `.injection_config(value: InjectionConfig) -> Self` {bdg-info}`Configuration`
 
 Append to `injection_configs` (lazy — built at .build() time).
@@ -1649,6 +1711,7 @@ config = ToolSimulationConfig("config").injection_config("...")
 
 ### Control Flow & Execution
 
+(method-ToolSimulationConfig-build)=
 #### `.build() -> ToolSimulationConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ToolSimulationConfig.
@@ -1701,6 +1764,7 @@ AgentToolConfig(agent: AgentRefConfig)
 
 ### Configuration
 
+(method-AgentToolConfig-skip_summarizate)=
 #### `.skip_summarizate(value: bool) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `skip_summarization`
@@ -1714,6 +1778,7 @@ config = AgentToolConfig("config").skip_summarizate("...")
 
 ### Control Flow & Execution
 
+(method-AgentToolConfig-build)=
 #### `.build() -> AgentToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentToolConfig.
@@ -1754,6 +1819,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BigQueryCredentialsConfig-build)=
 #### `.build() -> BigQueryCredentialsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigQueryCredentialsConfig.
@@ -1799,6 +1865,7 @@ result = (
 
 ### Configuration
 
+(method-BigQueryToolConfig-locate)=
 #### `.locate(value: str | None) -> Self` {bdg-info}`Configuration`
 
 - **Maps to:** `location`
@@ -1812,6 +1879,7 @@ config = BigQueryToolConfig("config").locate("...")
 
 ### Control Flow & Execution
 
+(method-BigQueryToolConfig-build)=
 #### `.build() -> BigQueryToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigQueryToolConfig.
@@ -1857,6 +1925,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BigtableCredentialsConfig-build)=
 #### `.build() -> BigtableCredentialsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BigtableCredentialsConfig.
@@ -1901,6 +1970,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-DataAgentToolConfig-build)=
 #### `.build() -> DataAgentToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DataAgentToolConfig.
@@ -1941,6 +2011,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-DataAgentCredentialsConfig-build)=
 #### `.build() -> DataAgentCredentialsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DataAgentCredentialsConfig.
@@ -1995,6 +2066,7 @@ ExampleToolConfig(examples: list[Example] | str)
 
 ### Control Flow & Execution
 
+(method-ExampleToolConfig-build)=
 #### `.build() -> ExampleToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ExampleToolConfig.
@@ -2027,6 +2099,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-McpToolsetConfig-build)=
 #### `.build() -> McpToolsetConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK McpToolsetConfig.
@@ -2075,6 +2148,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-PubSubToolConfig-build)=
 #### `.build() -> PubSubToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PubSubToolConfig.
@@ -2115,6 +2189,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-PubSubCredentialsConfig-build)=
 #### `.build() -> PubSubCredentialsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PubSubCredentialsConfig.
@@ -2159,6 +2234,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-SpannerCredentialsConfig-build)=
 #### `.build() -> SpannerCredentialsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SpannerCredentialsConfig.
@@ -2203,6 +2279,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-BaseToolConfig-build)=
 #### `.build() -> BaseToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseToolConfig.
@@ -2235,6 +2312,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-ToolArgsConfig-build)=
 #### `.build() -> ToolArgsConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ToolArgsConfig.
@@ -2277,6 +2355,7 @@ ToolConfig(name: str)
 
 ### Control Flow & Execution
 
+(method-ToolConfig-build)=
 #### `.build() -> ToolConfig` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ToolConfig.

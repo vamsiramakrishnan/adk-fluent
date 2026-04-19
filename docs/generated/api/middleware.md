@@ -30,6 +30,7 @@ Fluent middleware composition. Consistent with P, C, S modules.
 | `M.fallback_model(model='gemini-2.0-flash')`                                                   | `MComposite` | Auto-downgrade to fallback model on primary model failure             |
 | `M.dedup(window=10)`                                                                           | `MComposite` | Suppress duplicate model calls within a sliding window                |
 | `M.sample(rate, mw)`                                                                           | `MComposite` | Probabilistic middleware — fires inner middleware only N% of the time |
+| `M.rate_limit(rate, time_period=1.0)`                                                          | `MComposite` | Token-bucket rate limiter for model calls (via `aiolimiter`)          |
 | `M.trace(exporter=None)`                                                                       | `MComposite` | OpenTelemetry span export (no-op if opentelemetry not installed)      |
 | `M.metrics(collector=None)`                                                                    | `MComposite` | Metrics collection (no-op if no collector provided)                   |
 | `M.a2a_retry(max_attempts=3, backoff=2.0, agents=None, on_retry=None)`                         | `MComposite` | A2A-specific retry middleware for remote agent failures               |
@@ -218,10 +219,41 @@ Suppress duplicate model calls within a sliding window.
 
 Probabilistic middleware — fires inner middleware only N% of the time.
 
+:::{note}
+this is *sampling*, not rate limiting. For a real token-bucket
+rate ceiling on model calls, use :meth:`rate_limit` instead.
+::
+
 **Parameters:**
 
 - `rate` (*float*)
 - `mw` (*MComposite | Any*)
+
+### `M.rate_limit(rate: float, *, time_period: float = 1.0) -> MComposite`
+
+Token-bucket rate limiter for model calls (via `aiolimiter`).
+
+Blocks in `before_model` until a token is available from a leaky
+bucket of capacity `rate` refilled over `time_period` seconds.
+Use this for enforcing a true throughput ceiling (e.g., "≤ 10 model
+calls per second"). Contrast with :meth:`sample`, which is
+probabilistic dropping — not a real limiter.
+
+**Args:**
+
+- **`rate`**: Maximum number of calls allowed per `time_period` seconds.
+- **`time_period`**: Window size in seconds (default 1.0).
+
+Requires `pip install adk-fluent[ratelimit]`.
+
+Usage:
+    pipeline.middleware(M.rate_limit(10))                  # 10/sec
+    pipeline.middleware(M.rate_limit(60, time_period=60))  # 60/min
+
+**Parameters:**
+
+- `rate` (*float*)
+- `time_period` (*float*) — default: `1.0`
 
 ### `M.trace(exporter: Any = None) -> MComposite`
 

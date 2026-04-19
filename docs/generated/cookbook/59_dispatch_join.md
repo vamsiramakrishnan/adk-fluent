@@ -28,8 +28,6 @@ How to register lifecycle callbacks with accumulation semantics.
 
 _Source: `59_dispatch_join.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, dispatch, join
 from adk_fluent._primitive_builders import BackgroundTask, _JoinBuilder
@@ -99,8 +97,6 @@ progress_pipeline = (
     >> join()
 )
 ```
-:::
-::::
 
 ## Equivalence
 

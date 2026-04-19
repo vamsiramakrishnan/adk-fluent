@@ -21,8 +21,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `75_prefect_backend.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 from adk_fluent.backends.prefect_backend import PrefectBackend, PrefectRunnable
@@ -111,5 +109,3 @@ for node in loop_plan:
 
 print("\nAll assertions passed!")
 ```
-:::
-::::

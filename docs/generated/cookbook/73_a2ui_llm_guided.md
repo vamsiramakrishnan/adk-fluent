@@ -15,8 +15,6 @@ How to attach tools to an agent using the fluent API.
 
 _Source: `73_a2ui_llm_guided.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, T
 from adk_fluent._guards import G
@@ -56,5 +54,3 @@ assert len(schema_section.content) > 0
 
 print("All A2UI LLM-guided assertions passed!")
 ```
-:::
-::::

@@ -51,6 +51,7 @@ BaseArtifactService(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-BaseArtifactService-build)=
 #### `.build() -> BaseArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseArtifactService.
@@ -93,6 +94,7 @@ FileArtifactService(root_dir: Path | str)
 
 ### Control Flow & Execution
 
+(method-FileArtifactService-build)=
 #### `.build() -> FileArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK FileArtifactService.
@@ -136,6 +138,7 @@ GcsArtifactService(bucket_name: str, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-GcsArtifactService-build)=
 #### `.build() -> GcsArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK GcsArtifactService.
@@ -168,6 +171,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-InMemoryArtifactService-build)=
 #### `.build() -> InMemoryArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemoryArtifactService.
@@ -218,6 +222,7 @@ PerAgentDatabaseSessionService(agents_root: Path | str)
 
 ### Control Flow & Execution
 
+(method-PerAgentDatabaseSessionService-build)=
 #### `.build() -> PerAgentDatabaseSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PerAgentDatabaseSessionService.
@@ -269,6 +274,7 @@ BaseMemoryService(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-BaseMemoryService-build)=
 #### `.build() -> BaseMemoryService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseMemoryService.
@@ -301,6 +307,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-InMemoryMemoryService-build)=
 #### `.build() -> InMemoryMemoryService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemoryMemoryService.
@@ -333,6 +340,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-VertexAiMemoryBankService-build)=
 #### `.build() -> VertexAiMemoryBankService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiMemoryBankService.
@@ -376,6 +384,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-VertexAiRagMemoryService-build)=
 #### `.build() -> VertexAiRagMemoryService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiRagMemoryService.
@@ -429,6 +438,7 @@ BaseSessionService(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-BaseSessionService-build)=
 #### `.build() -> BaseSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseSessionService.
@@ -472,6 +482,7 @@ DatabaseSessionService(db_url: str, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-DatabaseSessionService-build)=
 #### `.build() -> DatabaseSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK DatabaseSessionService.
@@ -504,6 +515,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-InMemorySessionService-build)=
 #### `.build() -> InMemorySessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK InMemorySessionService.
@@ -546,6 +558,7 @@ SqliteSessionService(db_path: str)
 
 ### Control Flow & Execution
 
+(method-SqliteSessionService-build)=
 #### `.build() -> SqliteSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SqliteSessionService.
@@ -578,6 +591,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-VertexAiSessionService-build)=
 #### `.build() -> VertexAiSessionService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiSessionService.
@@ -631,6 +645,7 @@ ForwardingArtifactService(tool_context: ToolContext)
 
 ### Control Flow & Execution
 
+(method-ForwardingArtifactService-build)=
 #### `.build() -> ForwardingArtifactService` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ForwardingArtifactService.

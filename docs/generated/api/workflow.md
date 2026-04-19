@@ -39,6 +39,7 @@ Loop(name: str)
 
 ### Core Configuration
 
+(method-Loop-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -50,6 +51,7 @@ Loop(name: str)
 loop = Loop("loop").describe("...")
 ```
 
+(method-Loop-sub_agent)=
 #### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -62,6 +64,7 @@ loop = Loop("loop").sub_agent("...")
 
 ### Configuration
 
+(method-Loop-eval)=
 #### `.eval(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` {bdg-info}`Configuration`
 
 Inline evaluation. Run a single eval case against this loop.
@@ -72,6 +75,7 @@ Inline evaluation. Run a single eval case against this loop.
 loop = Loop("loop").eval("...")
 ```
 
+(method-Loop-eval_suite)=
 #### `.eval_suite() -> Any` {bdg-info}`Configuration`
 
 Create an evaluation suite builder for this loop.
@@ -82,6 +86,7 @@ Create an evaluation suite builder for this loop.
 loop = Loop("loop").eval_suite("...")
 ```
 
+(method-Loop-to_ir)=
 #### `.to_ir() -> Any` {bdg-info}`Configuration`
 
 Convert this Loop builder to a LoopNode IR node.
@@ -94,6 +99,7 @@ loop = Loop("loop").to_ir("...")
 
 ### Callbacks
 
+(method-Loop-after_agent)=
 #### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
@@ -108,6 +114,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 loop = Loop("loop").after_agent(my_callback_fn)
 ```
 
+(method-Loop-after_agent_if)=
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
@@ -118,6 +125,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 loop = Loop("loop").after_agent_if(condition, my_callback_fn)
 ```
 
+(method-Loop-before_agent)=
 #### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
@@ -132,6 +140,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 loop = Loop("loop").before_agent(my_callback_fn)
 ```
 
+(method-Loop-before_agent_if)=
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
@@ -144,6 +153,7 @@ loop = Loop("loop").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-Loop-ask)=
 #### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot SYNC execution (blocking). Builds loop, sends prompt, returns response text.
@@ -154,6 +164,7 @@ One-shot SYNC execution (blocking). Builds loop, sends prompt, returns response 
 loop = Loop("loop").ask("...")
 ```
 
+(method-Loop-ask_async)=
 #### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot ASYNC execution (non-blocking, use with await).
@@ -164,6 +175,7 @@ One-shot ASYNC execution (non-blocking, use with await).
 loop = Loop("loop").ask_async("...")
 ```
 
+(method-Loop-build)=
 #### `.build() -> LoopAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK LoopAgent.
@@ -174,6 +186,7 @@ Resolve into a native ADK LoopAgent.
 loop = Loop("loop").build("...")
 ```
 
+(method-Loop-events)=
 #### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
@@ -184,6 +197,7 @@ Stream raw ADK Event objects. Yields every event including state deltas and func
 loop = Loop("loop").events("...")
 ```
 
+(method-Loop-map)=
 #### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch SYNC execution (blocking). Run loop against multiple prompts with bounded concurrency.
@@ -194,6 +208,7 @@ Batch SYNC execution (blocking). Run loop against multiple prompts with bounded 
 loop = Loop("loop").map("...")
 ```
 
+(method-Loop-map_async)=
 #### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch ASYNC execution (non-blocking, use with await).
@@ -204,6 +219,7 @@ Batch ASYNC execution (non-blocking, use with await).
 loop = Loop("loop").map_async("...")
 ```
 
+(method-Loop-session)=
 #### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
 
 Create an interactive multi-turn chat session. Returns an async context manager.
@@ -214,6 +230,7 @@ Create an interactive multi-turn chat session. Returns an async context manager.
 loop = Loop("loop").session("...")
 ```
 
+(method-Loop-step)=
 #### `.step(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -224,6 +241,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 loop = Loop("loop").step("...")
 ```
 
+(method-Loop-stream)=
 #### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
 
 ASYNC streaming execution. Yields response text chunks as they arrive.
@@ -234,6 +252,7 @@ ASYNC streaming execution. Yields response text chunks as they arrive.
 loop = Loop("loop").stream("...")
 ```
 
+(method-Loop-test)=
 #### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Run a smoke test. Calls .ask() internally, asserts output matches condition.
@@ -286,6 +305,7 @@ FanOut(name: str)
 
 ### Core Configuration
 
+(method-FanOut-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -297,6 +317,7 @@ FanOut(name: str)
 fanout = FanOut("fanout").describe("...")
 ```
 
+(method-FanOut-sub_agent)=
 #### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -309,6 +330,7 @@ fanout = FanOut("fanout").sub_agent("...")
 
 ### Configuration
 
+(method-FanOut-eval)=
 #### `.eval(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` {bdg-info}`Configuration`
 
 Inline evaluation. Run a single eval case against this fan-out.
@@ -319,6 +341,7 @@ Inline evaluation. Run a single eval case against this fan-out.
 fanout = FanOut("fanout").eval("...")
 ```
 
+(method-FanOut-eval_suite)=
 #### `.eval_suite() -> Any` {bdg-info}`Configuration`
 
 Create an evaluation suite builder for this fan-out.
@@ -329,6 +352,7 @@ Create an evaluation suite builder for this fan-out.
 fanout = FanOut("fanout").eval_suite("...")
 ```
 
+(method-FanOut-to_ir)=
 #### `.to_ir() -> Any` {bdg-info}`Configuration`
 
 Convert this FanOut builder to a ParallelNode IR node.
@@ -341,6 +365,7 @@ fanout = FanOut("fanout").to_ir("...")
 
 ### Callbacks
 
+(method-FanOut-after_agent)=
 #### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
@@ -355,6 +380,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 fanout = FanOut("fanout").after_agent(my_callback_fn)
 ```
 
+(method-FanOut-after_agent_if)=
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
@@ -365,6 +391,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 fanout = FanOut("fanout").after_agent_if(condition, my_callback_fn)
 ```
 
+(method-FanOut-before_agent)=
 #### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
@@ -379,6 +406,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 fanout = FanOut("fanout").before_agent(my_callback_fn)
 ```
 
+(method-FanOut-before_agent_if)=
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
@@ -391,6 +419,7 @@ fanout = FanOut("fanout").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-FanOut-ask)=
 #### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot SYNC execution (blocking). Builds fan-out, sends prompt, returns response text.
@@ -401,6 +430,7 @@ One-shot SYNC execution (blocking). Builds fan-out, sends prompt, returns respon
 fanout = FanOut("fanout").ask("...")
 ```
 
+(method-FanOut-ask_async)=
 #### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot ASYNC execution (non-blocking, use with await).
@@ -411,6 +441,7 @@ One-shot ASYNC execution (non-blocking, use with await).
 fanout = FanOut("fanout").ask_async("...")
 ```
 
+(method-FanOut-branch)=
 #### `.branch(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -421,6 +452,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 fanout = FanOut("fanout").branch("...")
 ```
 
+(method-FanOut-build)=
 #### `.build() -> ParallelAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK ParallelAgent.
@@ -431,6 +463,7 @@ Resolve into a native ADK ParallelAgent.
 fanout = FanOut("fanout").build("...")
 ```
 
+(method-FanOut-events)=
 #### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
@@ -441,6 +474,7 @@ Stream raw ADK Event objects. Yields every event including state deltas and func
 fanout = FanOut("fanout").events("...")
 ```
 
+(method-FanOut-map)=
 #### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch SYNC execution (blocking). Run fan-out against multiple prompts with bounded concurrency.
@@ -451,6 +485,7 @@ Batch SYNC execution (blocking). Run fan-out against multiple prompts with bound
 fanout = FanOut("fanout").map("...")
 ```
 
+(method-FanOut-map_async)=
 #### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch ASYNC execution (non-blocking, use with await).
@@ -461,6 +496,7 @@ Batch ASYNC execution (non-blocking, use with await).
 fanout = FanOut("fanout").map_async("...")
 ```
 
+(method-FanOut-session)=
 #### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
 
 Create an interactive multi-turn chat session. Returns an async context manager.
@@ -471,6 +507,7 @@ Create an interactive multi-turn chat session. Returns an async context manager.
 fanout = FanOut("fanout").session("...")
 ```
 
+(method-FanOut-step)=
 #### `.step(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Alias for .branch() — consistent API across workflow builders.
@@ -481,6 +518,7 @@ Alias for .branch() — consistent API across workflow builders.
 fanout = FanOut("fanout").step("...")
 ```
 
+(method-FanOut-stream)=
 #### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
 
 ASYNC streaming execution. Yields response text chunks as they arrive.
@@ -491,6 +529,7 @@ ASYNC streaming execution. Yields response text chunks as they arrive.
 fanout = FanOut("fanout").stream("...")
 ```
 
+(method-FanOut-test)=
 #### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Run a smoke test. Calls .ask() internally, asserts output matches condition.
@@ -542,6 +581,7 @@ Pipeline(name: str)
 
 ### Core Configuration
 
+(method-Pipeline-describe)=
 #### `.describe(value: str) -> Self` {bdg-success}`Core Configuration`
 
 - **Maps to:** `description`
@@ -553,6 +593,7 @@ Pipeline(name: str)
 pipeline = Pipeline("pipeline").describe("...")
 ```
 
+(method-Pipeline-sub_agent)=
 #### `.sub_agent(value: BaseAgent) -> Self` {bdg-success}`Core Configuration`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -565,6 +606,7 @@ pipeline = Pipeline("pipeline").sub_agent("...")
 
 ### Configuration
 
+(method-Pipeline-eval)=
 #### `.eval(prompt: str, *, expect: str | None = None, criteria: Any | None = None) -> Any` {bdg-info}`Configuration`
 
 Inline evaluation. Run a single eval case against this pipeline.
@@ -575,6 +617,7 @@ Inline evaluation. Run a single eval case against this pipeline.
 pipeline = Pipeline("pipeline").eval("...")
 ```
 
+(method-Pipeline-eval_suite)=
 #### `.eval_suite() -> Any` {bdg-info}`Configuration`
 
 Create an evaluation suite builder for this pipeline.
@@ -585,6 +628,7 @@ Create an evaluation suite builder for this pipeline.
 pipeline = Pipeline("pipeline").eval_suite("...")
 ```
 
+(method-Pipeline-to_ir)=
 #### `.to_ir() -> Any` {bdg-info}`Configuration`
 
 Convert this Pipeline builder to a SequenceNode IR node.
@@ -597,6 +641,7 @@ pipeline = Pipeline("pipeline").to_ir("...")
 
 ### Callbacks
 
+(method-Pipeline-after_agent)=
 #### `.after_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `after_agent_callback`.
@@ -611,6 +656,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 pipeline = Pipeline("pipeline").after_agent(my_callback_fn)
 ```
 
+(method-Pipeline-after_agent_if)=
 #### `.after_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `after_agent_callback` only if `condition` is `True`.
@@ -621,6 +667,7 @@ Append callback to `after_agent_callback` only if `condition` is `True`.
 pipeline = Pipeline("pipeline").after_agent_if(condition, my_callback_fn)
 ```
 
+(method-Pipeline-before_agent)=
 #### `.before_agent(*fns: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback(s) to `before_agent_callback`.
@@ -635,6 +682,7 @@ Multiple calls accumulate. Each invocation appends to the callback list rather t
 pipeline = Pipeline("pipeline").before_agent(my_callback_fn)
 ```
 
+(method-Pipeline-before_agent_if)=
 #### `.before_agent_if(condition: bool, fn: Callable) -> Self` {bdg-info}`Callbacks`
 
 Append callback to `before_agent_callback` only if `condition` is `True`.
@@ -647,6 +695,7 @@ pipeline = Pipeline("pipeline").before_agent_if(condition, my_callback_fn)
 
 ### Control Flow & Execution
 
+(method-Pipeline-ask)=
 #### `.ask(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot SYNC execution (blocking). Builds pipeline, sends prompt, returns response text.
@@ -657,6 +706,7 @@ One-shot SYNC execution (blocking). Builds pipeline, sends prompt, returns respo
 pipeline = Pipeline("pipeline").ask("...")
 ```
 
+(method-Pipeline-ask_async)=
 #### `.ask_async(prompt: str) -> str` {bdg-primary}`Control Flow & Execution`
 
 One-shot ASYNC execution (non-blocking, use with await).
@@ -667,6 +717,7 @@ One-shot ASYNC execution (non-blocking, use with await).
 pipeline = Pipeline("pipeline").ask_async("...")
 ```
 
+(method-Pipeline-build)=
 #### `.build() -> SequentialAgent` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK SequentialAgent.
@@ -677,6 +728,7 @@ Resolve into a native ADK SequentialAgent.
 pipeline = Pipeline("pipeline").build("...")
 ```
 
+(method-Pipeline-events)=
 #### `.events(prompt: str) -> AsyncIterator[Any]` {bdg-primary}`Control Flow & Execution`
 
 Stream raw ADK Event objects. Yields every event including state deltas and function calls.
@@ -687,6 +739,7 @@ Stream raw ADK Event objects. Yields every event including state deltas and func
 pipeline = Pipeline("pipeline").events("...")
 ```
 
+(method-Pipeline-map)=
 #### `.map(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch SYNC execution (blocking). Run pipeline against multiple prompts with bounded concurrency.
@@ -697,6 +750,7 @@ Batch SYNC execution (blocking). Run pipeline against multiple prompts with boun
 pipeline = Pipeline("pipeline").map("...")
 ```
 
+(method-Pipeline-map_async)=
 #### `.map_async(prompts: list[str], *, concurrency: int = 5) -> list[str]` {bdg-primary}`Control Flow & Execution`
 
 Batch ASYNC execution (non-blocking, use with await).
@@ -707,6 +761,7 @@ Batch ASYNC execution (non-blocking, use with await).
 pipeline = Pipeline("pipeline").map_async("...")
 ```
 
+(method-Pipeline-session)=
 #### `.session() -> Any` {bdg-primary}`Control Flow & Execution`
 
 Create an interactive multi-turn chat session. Returns an async context manager.
@@ -717,6 +772,7 @@ Create an interactive multi-turn chat session. Returns an async context manager.
 pipeline = Pipeline("pipeline").session("...")
 ```
 
+(method-Pipeline-step)=
 #### `.step(value: BaseAgent) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Append to `sub_agents` (lazy — built at .build() time).
@@ -727,6 +783,7 @@ Append to `sub_agents` (lazy — built at .build() time).
 pipeline = Pipeline("pipeline").step("...")
 ```
 
+(method-Pipeline-stream)=
 #### `.stream(prompt: str) -> AsyncIterator[str]` {bdg-primary}`Control Flow & Execution`
 
 ASYNC streaming execution. Yields response text chunks as they arrive.
@@ -737,6 +794,7 @@ ASYNC streaming execution. Yields response text chunks as they arrive.
 pipeline = Pipeline("pipeline").stream("...")
 ```
 
+(method-Pipeline-test)=
 #### `.test(prompt: str, *, contains: str | None = None, matches: str | None = None, equals: str | None = None) -> Self` {bdg-primary}`Control Flow & Execution`
 
 Run a smoke test. Calls .ask() internally, asserts output matches condition.

@@ -20,8 +20,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `64_middleware_schema.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from typing import Annotated
 
@@ -268,5 +266,3 @@ assert callable(getattr(inner, "after_model", None))
 
 print("All MiddlewareSchema and contract checking assertions passed!")
 ```
-:::
-::::

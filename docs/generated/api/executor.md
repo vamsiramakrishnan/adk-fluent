@@ -41,6 +41,7 @@ A2aAgentExecutor(runner: Runner | Callable[..., Runner | Awaitable[Runner]])
 
 ### Control Flow & Execution
 
+(method-A2aAgentExecutor-build)=
 #### `.build() -> A2aAgentExecutor` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK A2aAgentExecutor.
@@ -82,6 +83,7 @@ result = (
 
 ### Configuration
 
+(method-AgentEngineSandboxCodeExecutor-code_block_delimiter)=
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
 Append to `code_block_delimiters` (lazy — built at .build() time).
@@ -94,6 +96,7 @@ agentenginesandboxcodeexecutor = AgentEngineSandboxCodeExecutor("agentenginesand
 
 ### Control Flow & Execution
 
+(method-AgentEngineSandboxCodeExecutor-build)=
 #### `.build() -> AgentEngineSandboxCodeExecutor` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK AgentEngineSandboxCodeExecutor.
@@ -140,6 +143,7 @@ result = (
 
 ### Configuration
 
+(method-BaseCodeExecutor-code_block_delimiter)=
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
 Append to `code_block_delimiters` (lazy — built at .build() time).
@@ -152,6 +156,7 @@ basecodeexecutor = BaseCodeExecutor("basecodeexecutor").code_block_delimiter("..
 
 ### Control Flow & Execution
 
+(method-BaseCodeExecutor-build)=
 #### `.build() -> BaseCodeExecutor` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BaseCodeExecutor.
@@ -197,6 +202,7 @@ result = (
 
 ### Configuration
 
+(method-BuiltInCodeExecutor-code_block_delimiter)=
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
 Append to `code_block_delimiters` (lazy — built at .build() time).
@@ -209,6 +215,7 @@ builtincodeexecutor = BuiltInCodeExecutor("builtincodeexecutor").code_block_deli
 
 ### Control Flow & Execution
 
+(method-BuiltInCodeExecutor-build)=
 #### `.build() -> BuiltInCodeExecutor` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BuiltInCodeExecutor.
@@ -254,6 +261,7 @@ result = (
 
 ### Configuration
 
+(method-UnsafeLocalCodeExecutor-code_block_delimiter)=
 #### `.code_block_delimiter(value: tuple[str, str]) -> Self` {bdg-info}`Configuration`
 
 Append to `code_block_delimiters` (lazy — built at .build() time).
@@ -266,6 +274,7 @@ unsafelocalcodeexecutor = UnsafeLocalCodeExecutor("unsafelocalcodeexecutor").cod
 
 ### Control Flow & Execution
 
+(method-UnsafeLocalCodeExecutor-build)=
 #### `.build() -> UnsafeLocalCodeExecutor` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK UnsafeLocalCodeExecutor.
@@ -310,6 +319,7 @@ result = (
 
 ### Control Flow & Execution
 
+(method-VertexAiCodeExecutor-build)=
 #### `.build() -> VertexAiCodeExecutor` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK VertexAiCodeExecutor.

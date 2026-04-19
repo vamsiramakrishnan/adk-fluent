@@ -18,8 +18,6 @@ How to run agents in parallel using FanOut.
 
 _Source: `63_trace_context_topology.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent.middleware import (
     DispatchDirective,
@@ -215,5 +213,3 @@ assert scoped.to_stack()[0].agents == "classifier"
 
 print("All TraceContext and topology hook assertions passed!")
 ```
-:::
-::::

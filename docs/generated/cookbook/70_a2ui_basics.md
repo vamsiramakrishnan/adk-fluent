@@ -16,8 +16,6 @@ How to use operator syntax for composing agents.
 
 _Source: `70_a2ui_basics.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent._ui import (
     UI,
@@ -115,5 +113,3 @@ assert isinstance(wizard, UISurface)
 
 print("All A2UI basics assertions passed!")
 ```
-:::
-::::

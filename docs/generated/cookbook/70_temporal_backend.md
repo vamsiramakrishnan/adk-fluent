@@ -22,8 +22,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `70_temporal_backend.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, Loop
 from adk_fluent.backends.temporal import TemporalBackend, TemporalRunnable
@@ -95,8 +93,6 @@ agent = Agent("solver").instruct("Solve.").engine("temporal", task_queue="my-que
 assert agent._config["_engine"] == "temporal"
 assert agent._config["_engine_kwargs"]["task_queue"] == "my-queue"
 ```
-:::
-::::
 
 ## Equivalence
 

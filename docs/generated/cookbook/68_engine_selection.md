@@ -14,8 +14,6 @@ How to configure agents for production runtime.
 
 _Source: `68_engine_selection.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, Pipeline, FanOut, configure, reset_config
 from adk_fluent import EngineCapabilities, CompilationResult
@@ -58,8 +56,6 @@ adk_caps = adk_compiled.capabilities
 asyncio_caps = asyncio_compiled.capabilities
 temporal_caps = temporal_compiled.capabilities
 ```
-:::
-::::
 
 ## Equivalence
 

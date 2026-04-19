@@ -41,47 +41,11 @@ Autocomplete works out of the box — the package is written in TypeScript, so h
 :::
 ::::
 
-## IDE Setup
-
-**VS Code** -- install the [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) extension (included in the Python extension pack). Autocomplete and type checking work out of the box.
-
-**PyCharm** -- works automatically. The `.pyi` stubs are bundled in the package and PyCharm discovers them on install.
-
-**Neovim (LSP)** -- use [pyright](https://github.com/microsoft/pyright) as your language server. Stubs are picked up automatically.
-
-:::{tip} AI Coding Agents
-adk-fluent ships pre-configured rules for Claude Code, Cursor, Copilot, Windsurf, Cline, and Zed. See [Editor & AI Agent Setup](editor-setup/index.md) for details.
-:::
-
-## Discover the API
-
-The builder pattern catches mistakes **at definition time**, not runtime:
-
-```python
-from adk_fluent import Agent
-
-agent = Agent("demo")
-agent.  # <- autocomplete shows: .model(), .instruct(), .tool(), .build(), ...
-
-# Typos are caught immediately:
-agent.instuction("oops")  # -> AttributeError: 'instuction' is not a recognized field.
-                          #    Did you mean: 'instruction'?
-
-# Inspect any builder's current state:
-print(agent.model("gemini-2.5-flash").instruct("Help.").explain())
-# Agent: demo
-#   Config fields: model, instruction
-
-# See everything available:
-print(dir(agent))  # All methods including forwarded ADK fields
-```
-
-:::{admonition} Why this matters
-:class: important
-In native ADK, `LlmAgent(instuction="...")` silently ignores the misspelled keyword. The agent runs with no instruction and you debug for an hour wondering why it produces garbage. adk-fluent raises immediately.
-:::
-
 ## Your First Agent
+
+:::{warning} Inside FastAPI / Jupyter / any running event loop?
+The synchronous `.ask()` and `.map()` methods **raise RuntimeError** when called inside an already-running event loop. Use `.ask_async()` and `.map_async()` (both awaitable) instead. See the [Execution](user-guide/execution.md) chapter for the full async surface.
+:::
 
 ::::{tab-set}
 :::{tab-item} Python

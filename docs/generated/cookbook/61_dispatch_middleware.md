@@ -19,8 +19,6 @@ How to compose agents into a sequential pipeline.
 
 _Source: `61_dispatch_middleware.py`_
 
-::::{tab-set}
-:::{tab-item} adk-fluent
 ```python
 from adk_fluent import Agent, dispatch, get_execution_mode, join
 from adk_fluent._primitive_builders import BackgroundTask
@@ -131,5 +129,3 @@ assert gem2 is get_execution_mode
 
 print("All dispatch middleware assertions passed!")
 ```
-:::
-::::

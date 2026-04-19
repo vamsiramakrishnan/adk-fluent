@@ -39,6 +39,7 @@ BasePlanner(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-BasePlanner-build)=
 #### `.build() -> BasePlanner` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BasePlanner.
@@ -81,6 +82,7 @@ BuiltInPlanner(thinking_config: types.ThinkingConfig)
 
 ### Control Flow & Execution
 
+(method-BuiltInPlanner-build)=
 #### `.build() -> BuiltInPlanner` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK BuiltInPlanner.
@@ -124,6 +126,7 @@ PlanReActPlanner(args: Any, kwargs: Any)
 
 ### Control Flow & Execution
 
+(method-PlanReActPlanner-build)=
 #### `.build() -> PlanReActPlanner` {bdg-primary}`Control Flow & Execution`
 
 Resolve into a native ADK PlanReActPlanner.
