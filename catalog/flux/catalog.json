@@ -9,6 +9,421 @@
     "dark": "./tokens/flux-dark.json"
   },
   "components": {
+    "FluxBadge": {
+      "name": "FluxBadge",
+      "extends": "Text",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxBadge"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tone": {
+            "default": "neutral",
+            "type": "string",
+            "enum": [
+              "neutral",
+              "primary",
+              "success",
+              "warning",
+              "danger"
+            ]
+          },
+          "variant": {
+            "default": "subtle",
+            "type": "string",
+            "enum": [
+              "subtle",
+              "solid"
+            ]
+          },
+          "size": {
+            "default": "sm",
+            "type": "string",
+            "enum": [
+              "xs",
+              "sm",
+              "md"
+            ]
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "label",
+          "tone",
+          "variant",
+          "size"
+        ],
+        "additionalProperties": false
+      },
+      "tokens": [
+        "color.bg.subtle",
+        "color.primary.subtle",
+        "color.primary.solid",
+        "color.success.subtle",
+        "color.success.solid",
+        "color.warning.3",
+        "color.warning.9",
+        "color.danger.subtle",
+        "color.danger.solid",
+        "color.text.primary",
+        "color.text.muted",
+        "color.text.onBrand",
+        "space.0_5",
+        "space.1",
+        "space.1_5",
+        "space.2",
+        "radius.sm",
+        "radius.full",
+        "typography.size.xs",
+        "typography.size.sm",
+        "typography.weight.medium"
+      ],
+      "variants": {
+        "tone": {
+          "neutral": {
+            "backgroundColor": "$color.bg.subtle",
+            "color": "$color.text.muted"
+          },
+          "primary": {
+            "backgroundColor": "$color.primary.subtle",
+            "color": "$color.text.primary"
+          },
+          "success": {
+            "backgroundColor": "$color.success.subtle",
+            "color": "$color.success.solid"
+          },
+          "warning": {
+            "backgroundColor": "$color.warning.3",
+            "color": "$color.warning.9"
+          },
+          "danger": {
+            "backgroundColor": "$color.danger.subtle",
+            "color": "$color.danger.solid"
+          }
+        },
+        "variant": {
+          "subtle": {
+            "borderRadius": "$radius.sm",
+            "fontWeight": "$typography.weight.medium"
+          },
+          "solid": {
+            "borderRadius": "$radius.full",
+            "fontWeight": "$typography.weight.medium"
+          }
+        },
+        "size": {
+          "xs": {
+            "paddingBlock": "$space.0_5",
+            "paddingInline": "$space.1",
+            "fontSize": "$typography.size.xs"
+          },
+          "sm": {
+            "paddingBlock": "$space.0_5",
+            "paddingInline": "$space.1_5",
+            "fontSize": "$typography.size.xs"
+          },
+          "md": {
+            "paddingBlock": "$space.1",
+            "paddingInline": "$space.2",
+            "fontSize": "$typography.size.sm"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "tone": "primary",
+          "variant": "solid",
+          "style": {
+            "backgroundColor": "$color.primary.solid",
+            "color": "$color.text.onBrand"
+          }
+        },
+        {
+          "tone": "success",
+          "variant": "solid",
+          "style": {
+            "backgroundColor": "$color.success.solid",
+            "color": "$color.text.onBrand"
+          }
+        },
+        {
+          "tone": "danger",
+          "variant": "solid",
+          "style": {
+            "backgroundColor": "$color.danger.solid",
+            "color": "$color.text.onBrand"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "tone": "neutral",
+        "variant": "subtle",
+        "size": "sm"
+      },
+      "accessibility": {
+        "label": "optional",
+        "role": "status"
+      },
+      "llm": {
+        "description": "Compact label for status, counts, or tags. Not clickable — if the affordance needs to trigger an action, use a small button instead. Tones align with the rest of the catalog (neutral/primary/success/warning/danger).",
+        "tags": [
+          "label",
+          "status",
+          "count",
+          "tag"
+        ],
+        "examples": [
+          {
+            "code": "UI.badge(\"New\", tone=\"primary\", variant=\"solid\")",
+            "caption": "Solid primary tag for highlighted items."
+          },
+          {
+            "code": "UI.badge(\"Live\", tone=\"success\", size=\"md\")",
+            "caption": "Subtle success label in the larger size."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.badge(\"Click me\", action=\"open\")",
+            "reason": "Badges are not interactive. Use UI.button with size=sm for a clickable chip."
+          },
+          {
+            "code": "UI.badge(\"Download the Q3 2024 revenue and expenses report here\", tone=\"primary\")",
+            "reason": "Badge copy must be short (ideally ≤3 words). Long copy belongs in Text, not a badge."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 12,
+          "depth": 6
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxBadge.tsx",
+        "fallback": {
+          "component": "Text",
+          "map": {
+            "label": "text"
+          },
+          "notes": "Basic renderers drop tone + variant + size styling; the badge collapses to a short plain-text run."
+        }
+      }
+    },
+    "FluxBanner": {
+      "name": "FluxBanner",
+      "extends": "Row",
+      "category": "compound",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxBanner"
+          },
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "tone": {
+            "default": "info",
+            "type": "string",
+            "enum": [
+              "info",
+              "success",
+              "warning",
+              "danger"
+            ]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "dismiss": {
+            "type": "string"
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "title",
+          "message",
+          "tone"
+        ],
+        "additionalProperties": false
+      },
+      "slots": {
+        "icon": {
+          "kind": "Icon",
+          "required": false
+        },
+        "action": {
+          "kind": "FluxButton",
+          "required": false,
+          "max": 1
+        },
+        "dismiss": {
+          "kind": "FluxButton",
+          "required": false,
+          "max": 1
+        }
+      },
+      "tokens": [
+        "color.info.3",
+        "color.info.11",
+        "color.success.subtle",
+        "color.success.solid",
+        "color.warning.3",
+        "color.warning.9",
+        "color.danger.subtle",
+        "color.danger.solid",
+        "space.2",
+        "space.3",
+        "space.4",
+        "radius.md",
+        "shadow.sm"
+      ],
+      "variants": {
+        "tone": {
+          "info": {
+            "backgroundColor": "$color.info.3",
+            "color": "$color.info.11",
+            "borderRadius": "$radius.md",
+            "paddingBlock": "$space.3",
+            "paddingInline": "$space.4"
+          },
+          "success": {
+            "backgroundColor": "$color.success.subtle",
+            "color": "$color.success.solid",
+            "borderRadius": "$radius.md",
+            "paddingBlock": "$space.3",
+            "paddingInline": "$space.4"
+          },
+          "warning": {
+            "backgroundColor": "$color.warning.3",
+            "color": "$color.warning.9",
+            "borderRadius": "$radius.md",
+            "paddingBlock": "$space.3",
+            "paddingInline": "$space.4"
+          },
+          "danger": {
+            "backgroundColor": "$color.danger.subtle",
+            "color": "$color.danger.solid",
+            "borderRadius": "$radius.md",
+            "paddingBlock": "$space.3",
+            "paddingInline": "$space.4"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "tone": "danger",
+          "style": {
+            "paddingBlock": "$space.2",
+            "paddingInline": "$space.3",
+            "boxShadow": "$shadow.sm"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "tone": "info"
+      },
+      "accessibility": {
+        "label": "optional",
+        "role": "status"
+      },
+      "llm": {
+        "description": "An inline notification row for surface-level messages. Pick tone by urgency: info/success render with role=status (polite); warning/danger render with role=alert (assertive). Attach an optional `action` button for recovery flows and a `dismiss` button for transient messages.",
+        "tags": [
+          "notification",
+          "status",
+          "alert",
+          "inline"
+        ],
+        "examples": [
+          {
+            "code": "UI.banner(\"Heads up\", \"We're updating the pricing page at 5pm UTC.\", tone=\"info\")",
+            "caption": "Informational banner."
+          },
+          {
+            "code": "UI.banner(\"Payment failed\", \"Your card was declined.\", tone=\"danger\", action=retry_btn, dismiss=close_btn)",
+            "caption": "Danger banner with retry + dismiss controls."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.column([UI.banner(...), UI.banner(...), UI.banner(...), UI.banner(...)])",
+            "reason": "Stacking more than three banners on one surface drowns the signal. Use a list + counters instead."
+          },
+          {
+            "code": "UI.banner(\"Saved!\", \"Your changes were saved.\", tone=\"danger\")",
+            "reason": "tone=danger signals an error. Use tone=success for confirmations."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 3,
+          "depth": 4
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxBanner.tsx",
+        "fallback": {
+          "component": "Row",
+          "map": {
+            "title": "child",
+            "message": "child"
+          },
+          "notes": "Basic renderers drop tone + role + icon slot; the row stays but reads as plain text with no urgency affordance."
+        }
+      }
+    },
     "FluxButton": {
       "name": "FluxButton",
       "extends": "Button",
@@ -324,9 +739,1426 @@
           "notes": "Basic renderers lose size + emphasis + tone=success; degrades to primary or default variant only. Labels are wrapped in a generated Text child at compile time."
         }
       }
+    },
+    "FluxCard": {
+      "name": "FluxCard",
+      "extends": "Column",
+      "category": "compound",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxCard"
+          },
+          "id": {
+            "type": "string"
+          },
+          "emphasis": {
+            "default": "subtle",
+            "type": "string",
+            "enum": [
+              "subtle",
+              "outline",
+              "elevated"
+            ]
+          },
+          "padding": {
+            "default": "md",
+            "type": "string",
+            "enum": [
+              "sm",
+              "md",
+              "lg"
+            ]
+          },
+          "header": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "footer": {
+            "type": "string"
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "emphasis",
+          "padding",
+          "body"
+        ],
+        "additionalProperties": false
+      },
+      "slots": {
+        "header": {
+          "kind": [
+            "Text",
+            "Row"
+          ],
+          "required": false
+        },
+        "body": {
+          "kind": [
+            "Text",
+            "Column",
+            "Row"
+          ],
+          "required": true
+        },
+        "footer": {
+          "kind": [
+            "Text",
+            "Row"
+          ],
+          "required": false
+        }
+      },
+      "tokens": [
+        "color.bg.surface",
+        "color.bg.subtle",
+        "color.border.default",
+        "space.3",
+        "space.4",
+        "space.6",
+        "radius.md",
+        "radius.lg",
+        "radius.xl",
+        "shadow.sm",
+        "shadow.md"
+      ],
+      "variants": {
+        "emphasis": {
+          "subtle": {
+            "backgroundColor": "$color.bg.subtle",
+            "borderWidth": "0px",
+            "boxShadow": "none",
+            "borderRadius": "$radius.md"
+          },
+          "outline": {
+            "backgroundColor": "$color.bg.surface",
+            "borderWidth": "1px",
+            "borderColor": "$color.border.default",
+            "boxShadow": "none",
+            "borderRadius": "$radius.md"
+          },
+          "elevated": {
+            "backgroundColor": "$color.bg.surface",
+            "borderWidth": "0px",
+            "boxShadow": "$shadow.md",
+            "borderRadius": "$radius.lg"
+          }
+        },
+        "padding": {
+          "sm": {
+            "paddingBlock": "$space.3",
+            "paddingInline": "$space.3"
+          },
+          "md": {
+            "paddingBlock": "$space.4",
+            "paddingInline": "$space.4"
+          },
+          "lg": {
+            "paddingBlock": "$space.6",
+            "paddingInline": "$space.6"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "emphasis": "outline",
+          "padding": "lg",
+          "style": {
+            "borderRadius": "$radius.xl",
+            "boxShadow": "$shadow.sm"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "emphasis": "subtle",
+        "padding": "md"
+      },
+      "accessibility": {
+        "label": "optional",
+        "role": "region"
+      },
+      "llm": {
+        "description": "A surface container with optional header, required body, and optional footer. Pick `emphasis=subtle` for secondary content, `outline` for delineated groups, `elevated` for prominent callouts. Children are referenced by id — never inline them.",
+        "tags": [
+          "layout",
+          "container",
+          "surface"
+        ],
+        "examples": [
+          {
+            "code": "UI.card(body=\"card_body_text\")",
+            "caption": "Simple card with body content."
+          },
+          {
+            "code": "UI.card(emphasis=\"outline\", padding=\"lg\", header=\"card_title\", body=\"card_body\", footer=\"card_action_row\")",
+            "caption": "Outline card with header + body + footer action row."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.card(body=other_card_id)",
+            "reason": "Cards inside cards creates visual noise. Use a Stack or FluxStack for grouping within a single card."
+          }
+        ],
+        "budget": {
+          "children": 3,
+          "siblings": 6,
+          "depth": 5
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxCard.tsx",
+        "fallback": {
+          "component": "Column",
+          "map": {
+            "header": "child",
+            "body": "child",
+            "footer": "child"
+          },
+          "notes": "Basic renderers drop emphasis + padding tokens; the column stacks its slot children top-to-bottom with no surface styling."
+        }
+      }
+    },
+    "FluxLink": {
+      "name": "FluxLink",
+      "extends": "Text",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxLink"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "href": {
+            "type": "string"
+          },
+          "action": {
+            "type": "object",
+            "properties": {
+              "event": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "context": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "event"
+            ],
+            "additionalProperties": false
+          },
+          "tone": {
+            "default": "default",
+            "type": "string",
+            "enum": [
+              "default",
+              "muted",
+              "danger"
+            ]
+          },
+          "underline": {
+            "default": "hover",
+            "type": "string",
+            "enum": [
+              "always",
+              "hover",
+              "never"
+            ]
+          },
+          "external": {
+            "type": "boolean"
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "label",
+          "tone",
+          "underline"
+        ],
+        "additionalProperties": false
+      },
+      "tokens": [
+        "color.text.link",
+        "color.text.muted",
+        "color.text.danger",
+        "color.primary.solidHover",
+        "color.danger.solidHover",
+        "space.0_5",
+        "typography.weight.medium",
+        "motion.duration.fast",
+        "motion.easing.standard"
+      ],
+      "variants": {
+        "tone": {
+          "default": {
+            "color": "$color.text.link",
+            "hoverColor": "$color.primary.solidHover",
+            "fontWeight": "$typography.weight.medium"
+          },
+          "muted": {
+            "color": "$color.text.muted",
+            "hoverColor": "$color.text.link",
+            "fontWeight": "$typography.weight.medium"
+          },
+          "danger": {
+            "color": "$color.text.danger",
+            "hoverColor": "$color.danger.solidHover",
+            "fontWeight": "$typography.weight.medium"
+          }
+        },
+        "underline": {
+          "always": {
+            "textDecoration": "underline",
+            "textUnderlineOffset": "$space.0_5"
+          },
+          "hover": {
+            "textDecoration": "none",
+            "textUnderlineOffset": "$space.0_5"
+          },
+          "never": {
+            "textDecoration": "none"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "underline": "hover",
+          "style": {
+            "transitionDuration": "$motion.duration.fast",
+            "transitionTimingFunction": "$motion.easing.standard"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "tone": "default",
+        "underline": "hover"
+      },
+      "accessibility": {
+        "label": "optional",
+        "role": "link",
+        "keyboard": [
+          {
+            "key": "Enter",
+            "action": "activate"
+          }
+        ]
+      },
+      "llm": {
+        "description": "An inline hyperlink. Set `href` for navigation *or* `action` for an auth-gated / custom dispatch — never both. Use `external=True` for off-surface URLs so the renderer adds the external-link affordance and `rel=noopener`.",
+        "tags": [
+          "navigation",
+          "inline",
+          "link"
+        ],
+        "examples": [
+          {
+            "code": "UI.link(\"Pricing\", href=\"/pricing\")",
+            "caption": "Internal navigation."
+          },
+          {
+            "code": "UI.link(\"Read the docs\", href=\"https://docs.example.com\", external=True)",
+            "caption": "External link with external-icon affordance."
+          },
+          {
+            "code": "UI.link(\"Sign in to continue\", action=\"open_auth_modal\", tone=\"default\")",
+            "caption": "Action-based link that triggers a server event instead of navigating."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.link(\"Buy\", href=\"/checkout\", action=\"buy\")",
+            "reason": "A link has exactly one destination. Pick either `href` (navigate) or `action` (dispatch)."
+          },
+          {
+            "code": "UI.link(\"Click here\", href=\"\")",
+            "reason": "Empty `href` renders a broken anchor. Use `action` when there is no URL."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 12,
+          "depth": 6
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxLink.tsx",
+        "fallback": {
+          "component": "Text",
+          "map": {
+            "label": "text"
+          },
+          "notes": "Basic catalog has no Link component; renderers degrade to inline Text with the label visible and the destination lost. The fluent guard warns when a FluxLink falls back to basic."
+        }
+      }
+    },
+    "FluxMarkdown": {
+      "name": "FluxMarkdown",
+      "extends": "Text",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxMarkdown"
+          },
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "size": {
+            "default": "md",
+            "type": "string",
+            "enum": [
+              "sm",
+              "md",
+              "lg"
+            ]
+          },
+          "proseStyle": {
+            "default": "default",
+            "type": "string",
+            "enum": [
+              "compact",
+              "default",
+              "spacious"
+            ]
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "source",
+          "size",
+          "proseStyle"
+        ],
+        "additionalProperties": false
+      },
+      "tokens": [
+        "color.text.primary",
+        "space.2",
+        "space.3",
+        "space.4",
+        "typography.size.sm",
+        "typography.size.md",
+        "typography.size.lg",
+        "typography.family.sans",
+        "typography.lineHeight.normal",
+        "typography.lineHeight.relaxed"
+      ],
+      "variants": {
+        "size": {
+          "sm": {
+            "fontSize": "$typography.size.sm",
+            "fontFamily": "$typography.family.sans",
+            "color": "$color.text.primary"
+          },
+          "md": {
+            "fontSize": "$typography.size.md",
+            "fontFamily": "$typography.family.sans",
+            "color": "$color.text.primary"
+          },
+          "lg": {
+            "fontSize": "$typography.size.lg",
+            "fontFamily": "$typography.family.sans",
+            "color": "$color.text.primary"
+          }
+        },
+        "proseStyle": {
+          "compact": {
+            "lineHeight": "$typography.lineHeight.normal",
+            "paragraphSpacing": "$space.2",
+            "headingSpacing": "$space.3"
+          },
+          "default": {
+            "lineHeight": "$typography.lineHeight.normal",
+            "paragraphSpacing": "$space.3",
+            "headingSpacing": "$space.4"
+          },
+          "spacious": {
+            "lineHeight": "$typography.lineHeight.relaxed",
+            "paragraphSpacing": "$space.4",
+            "headingSpacing": "$space.4"
+          }
+        }
+      },
+      "defaultVariants": {
+        "size": "md",
+        "proseStyle": "default"
+      },
+      "accessibility": {
+        "label": "optional"
+      },
+      "llm": {
+        "description": "Renders a Markdown source string as a prose block. The renderer sanitises HTML. Use `proseStyle=compact` for dense copy (tooltips, help), `default` for body text, `spacious` for long-form articles. Reach for plain `UI.text` for one-line labels — Markdown is overhead you don't need.",
+        "tags": [
+          "text",
+          "prose",
+          "markdown",
+          "escape-hatch"
+        ],
+        "examples": [
+          {
+            "code": "UI.markdown(\"**Tip:** press Cmd+K to open the quick-switcher.\")",
+            "caption": "Short inline help with bold + code formatting."
+          },
+          {
+            "code": "UI.markdown(help_article, proseStyle=\"spacious\", size=\"md\")",
+            "caption": "Full documentation snippet rendered spaciously."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.markdown(\"<script>alert('xss')</script>\")",
+            "reason": "Raw HTML (especially scripts) must be stripped by the renderer. Don't rely on Markdown to pass HTML through; it won't."
+          },
+          {
+            "code": "UI.markdown(\"Email\")   # one-line label",
+            "reason": "Use UI.text for single-word labels. Markdown adds a parsing step with no payoff."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 6,
+          "depth": 6
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxMarkdown.tsx",
+        "fallback": {
+          "component": "Text",
+          "map": {
+            "source": "text"
+          },
+          "notes": "Basic renderers lose markdown formatting; raw source is shown as plain text."
+        }
+      }
+    },
+    "FluxProgress": {
+      "name": "FluxProgress",
+      "extends": "Slider",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxProgress"
+          },
+          "id": {
+            "type": "string"
+          },
+          "value": {
+            "default": 0,
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "label": {
+            "type": "string"
+          },
+          "determinate": {
+            "default": true,
+            "type": "boolean"
+          },
+          "tone": {
+            "default": "default",
+            "type": "string",
+            "enum": [
+              "default",
+              "success",
+              "warning",
+              "danger"
+            ]
+          },
+          "size": {
+            "default": "md",
+            "type": "string",
+            "enum": [
+              "sm",
+              "md",
+              "lg"
+            ]
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "value",
+          "determinate",
+          "tone",
+          "size",
+          "accessibility"
+        ],
+        "additionalProperties": false
+      },
+      "tokens": [
+        "color.bg.subtle",
+        "color.primary.solid",
+        "color.success.solid",
+        "color.warning.7",
+        "color.danger.solid",
+        "space.1",
+        "space.1_5",
+        "space.2",
+        "radius.full",
+        "motion.duration.slow",
+        "motion.easing.emphasized"
+      ],
+      "variants": {
+        "tone": {
+          "default": {
+            "backgroundColor": "$color.bg.subtle",
+            "fillColor": "$color.primary.solid"
+          },
+          "success": {
+            "backgroundColor": "$color.bg.subtle",
+            "fillColor": "$color.success.solid"
+          },
+          "warning": {
+            "backgroundColor": "$color.bg.subtle",
+            "fillColor": "$color.warning.7"
+          },
+          "danger": {
+            "backgroundColor": "$color.bg.subtle",
+            "fillColor": "$color.danger.solid"
+          }
+        },
+        "size": {
+          "sm": {
+            "height": "$space.1",
+            "borderRadius": "$radius.full"
+          },
+          "md": {
+            "height": "$space.1_5",
+            "borderRadius": "$radius.full"
+          },
+          "lg": {
+            "height": "$space.2",
+            "borderRadius": "$radius.full"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "tone": "default",
+          "style": {
+            "transitionDuration": "$motion.duration.slow",
+            "transitionTimingFunction": "$motion.easing.emphasized"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "tone": "default",
+        "size": "md"
+      },
+      "accessibility": {
+        "label": "required",
+        "role": "progressbar"
+      },
+      "llm": {
+        "description": "A progress indicator. Set `determinate=True` with a `value` in 0..100 when you know the ratio; set `determinate=False` for unknown-duration waits (the renderer animates a shimmer). Always provide `accessibility.label` — assistive tech needs context ('Uploading photo', not just 'progress').",
+        "tags": [
+          "progress",
+          "loading",
+          "indicator"
+        ],
+        "examples": [
+          {
+            "code": "UI.progress(value=60, label=\"Uploading\", tone=\"default\")",
+            "caption": "Determinate progress at 60%."
+          },
+          {
+            "code": "UI.progress(determinate=False, label=\"Preparing report\", tone=\"default\")",
+            "caption": "Indeterminate shimmer for unknown-duration waits."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.progress(value=40)   # no accessibility.label",
+            "reason": "accessibility.label is required. Screen readers announce progress without any cue of what's progressing."
+          },
+          {
+            "code": "UI.progress(value=150)",
+            "reason": "value must be in 0..100. Pass determinate=False for unknown-bounded progress."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 4,
+          "depth": 6
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxProgress.tsx",
+        "fallback": {
+          "component": "Slider",
+          "map": {
+            "value": "value"
+          },
+          "notes": "Basic renderers speak Slider — indeterminate mode and tone coloring are lost; the bar renders as a static slider pinned to `value`."
+        }
+      }
+    },
+    "FluxSkeleton": {
+      "name": "FluxSkeleton",
+      "extends": "Text",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxSkeleton"
+          },
+          "id": {
+            "type": "string"
+          },
+          "shape": {
+            "default": "text",
+            "type": "string",
+            "enum": [
+              "text",
+              "circle",
+              "rect"
+            ]
+          },
+          "size": {
+            "default": "md",
+            "type": "string",
+            "enum": [
+              "xs",
+              "sm",
+              "md",
+              "lg",
+              "xl"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "width": {
+            "type": "string"
+          },
+          "height": {
+            "type": "string"
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "shape",
+          "size"
+        ],
+        "additionalProperties": false
+      },
+      "tokens": [
+        "color.bg.subtle",
+        "space.2",
+        "space.3",
+        "space.4",
+        "space.5",
+        "space.6",
+        "space.8",
+        "space.12",
+        "radius.sm",
+        "radius.md",
+        "radius.full",
+        "motion.duration.slow",
+        "motion.easing.emphasized"
+      ],
+      "variants": {
+        "shape": {
+          "text": {
+            "backgroundColor": "$color.bg.subtle",
+            "borderRadius": "$radius.sm",
+            "animationDuration": "$motion.duration.slow",
+            "animationTimingFunction": "$motion.easing.emphasized"
+          },
+          "circle": {
+            "backgroundColor": "$color.bg.subtle",
+            "borderRadius": "$radius.full",
+            "animationDuration": "$motion.duration.slow",
+            "animationTimingFunction": "$motion.easing.emphasized"
+          },
+          "rect": {
+            "backgroundColor": "$color.bg.subtle",
+            "borderRadius": "$radius.md",
+            "animationDuration": "$motion.duration.slow",
+            "animationTimingFunction": "$motion.easing.emphasized"
+          }
+        },
+        "size": {
+          "xs": {
+            "height": "$space.2"
+          },
+          "sm": {
+            "height": "$space.3"
+          },
+          "md": {
+            "height": "$space.4"
+          },
+          "lg": {
+            "height": "$space.6"
+          },
+          "xl": {
+            "height": "$space.12"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "shape": "circle",
+          "size": "xl",
+          "style": {
+            "width": "$space.12",
+            "height": "$space.12"
+          }
+        },
+        {
+          "shape": "circle",
+          "size": "lg",
+          "style": {
+            "width": "$space.8",
+            "height": "$space.8"
+          }
+        },
+        {
+          "shape": "circle",
+          "size": "md",
+          "style": {
+            "width": "$space.5",
+            "height": "$space.5"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "shape": "text",
+        "size": "md"
+      },
+      "accessibility": {
+        "label": "optional",
+        "role": "presentation"
+      },
+      "llm": {
+        "description": "Loading-state placeholder. Use `shape=text` for paragraph rows (combine with `count` to stack multiple lines), `shape=circle` for avatar placeholders, `shape=rect` for card/image placeholders. Always resolve to real content once data arrives — skeletons are transient.",
+        "tags": [
+          "loading",
+          "placeholder",
+          "shimmer"
+        ],
+        "examples": [
+          {
+            "code": "UI.skeleton(shape=\"text\", size=\"md\", count=3)",
+            "caption": "Three-line text placeholder."
+          },
+          {
+            "code": "UI.skeleton(shape=\"circle\", size=\"lg\")",
+            "caption": "Avatar placeholder."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.column([UI.skeleton(shape=\"text\")])   # never replaced with real content",
+            "reason": "Skeletons are loading states. Leaving one in place permanently confuses users; gate it on `is_loading` and swap in the real content when ready."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 20,
+          "depth": 6
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxSkeleton.tsx",
+        "fallback": {
+          "component": "Text",
+          "map": {},
+          "notes": "Basic renderers have no shimmer primitive; the node degrades to an empty Text run. Users will see nothing — plan accordingly."
+        }
+      }
+    },
+    "FluxStack": {
+      "name": "FluxStack",
+      "extends": "Column",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxStack"
+          },
+          "id": {
+            "type": "string"
+          },
+          "direction": {
+            "default": "vertical",
+            "type": "string",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "gap": {
+            "default": "3",
+            "type": "string",
+            "enum": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "6",
+              "8"
+            ]
+          },
+          "align": {
+            "default": "stretch",
+            "type": "string",
+            "enum": [
+              "start",
+              "center",
+              "end",
+              "stretch"
+            ]
+          },
+          "justify": {
+            "default": "start",
+            "type": "string",
+            "enum": [
+              "start",
+              "center",
+              "end",
+              "between",
+              "around"
+            ]
+          },
+          "wrap": {
+            "type": "boolean"
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "direction",
+          "gap",
+          "align",
+          "justify"
+        ],
+        "additionalProperties": false
+      },
+      "tokens": [
+        "space.1",
+        "space.2",
+        "space.3",
+        "space.4",
+        "space.6",
+        "space.8"
+      ],
+      "variants": {
+        "direction": {
+          "vertical": {
+            "flexDirection": "column"
+          },
+          "horizontal": {
+            "flexDirection": "row"
+          }
+        },
+        "gap": {
+          "1": {
+            "gap": "$space.1"
+          },
+          "2": {
+            "gap": "$space.2"
+          },
+          "3": {
+            "gap": "$space.3"
+          },
+          "4": {
+            "gap": "$space.4"
+          },
+          "6": {
+            "gap": "$space.6"
+          },
+          "8": {
+            "gap": "$space.8"
+          }
+        },
+        "align": {
+          "start": {
+            "alignItems": "flex-start"
+          },
+          "center": {
+            "alignItems": "center"
+          },
+          "end": {
+            "alignItems": "flex-end"
+          },
+          "stretch": {
+            "alignItems": "stretch"
+          }
+        },
+        "justify": {
+          "start": {
+            "justifyContent": "flex-start"
+          },
+          "center": {
+            "justifyContent": "center"
+          },
+          "end": {
+            "justifyContent": "flex-end"
+          },
+          "between": {
+            "justifyContent": "space-between"
+          },
+          "around": {
+            "justifyContent": "space-around"
+          }
+        }
+      },
+      "defaultVariants": {
+        "direction": "vertical",
+        "gap": "3",
+        "align": "stretch",
+        "justify": "start"
+      },
+      "accessibility": {
+        "label": "optional"
+      },
+      "llm": {
+        "description": "Layout primitive for arranging children with consistent spacing. Pick `direction=horizontal` for toolbars / button rows and `vertical` for forms / lists. `gap` picks a step on the 4-px spacing grid. Children pass through — Stack has no slots.",
+        "tags": [
+          "layout",
+          "flex",
+          "primitive"
+        ],
+        "examples": [
+          {
+            "code": "UI.stack(direction=\"horizontal\", gap=\"4\", align=\"center\", children=[save_btn, cancel_btn])",
+            "caption": "Horizontal button row with 16px gap."
+          },
+          {
+            "code": "UI.stack(direction=\"vertical\", gap=\"2\", align=\"center\", children=[title, subtitle])",
+            "caption": "Vertically centered title stack."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.stack(children=[single_child])",
+            "reason": "Stack is for ≥2 children. A single child needs no wrapper — pass the component directly."
+          },
+          {
+            "code": "UI.stack(children=[UI.stack(children=[UI.stack(children=[UI.stack(children=[...])])])])",
+            "reason": "More than four nested stacks is a layout smell. Flatten or extract a Card / Column."
+          }
+        ],
+        "budget": {
+          "children": 20,
+          "siblings": 12,
+          "depth": 8
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxStack.tsx",
+        "fallback": {
+          "component": "Column",
+          "map": {
+            "direction": "direction",
+            "gap": "gap"
+          },
+          "notes": "Basic renderers only speak Column/Row — horizontal stacks degrade to a vertically stacked Column; gap/align/justify are dropped."
+        }
+      }
+    },
+    "FluxTextField": {
+      "name": "FluxTextField",
+      "extends": "TextField",
+      "category": "primitive",
+      "jsonSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "const": "FluxTextField"
+          },
+          "id": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "type": {
+            "default": "text",
+            "type": "string",
+            "enum": [
+              "text",
+              "email",
+              "password",
+              "number",
+              "search",
+              "tel",
+              "url"
+            ]
+          },
+          "size": {
+            "default": "md",
+            "type": "string",
+            "enum": [
+              "sm",
+              "md",
+              "lg"
+            ]
+          },
+          "state": {
+            "default": "default",
+            "type": "string",
+            "enum": [
+              "default",
+              "error",
+              "success",
+              "warning"
+            ]
+          },
+          "disabled": {
+            "type": "boolean"
+          },
+          "readonly": {
+            "type": "boolean"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "maxLength": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "helper": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false
+          },
+          "leadingIcon": {
+            "type": "string"
+          },
+          "trailingIcon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "component",
+          "id",
+          "type",
+          "size",
+          "state",
+          "accessibility"
+        ],
+        "additionalProperties": false
+      },
+      "slots": {
+        "leadingIcon": {
+          "kind": "Icon",
+          "required": false
+        },
+        "trailingIcon": {
+          "kind": "Icon",
+          "required": false
+        },
+        "helper": {
+          "kind": "Text",
+          "required": false
+        }
+      },
+      "tokens": [
+        "color.bg.surface",
+        "color.border.default",
+        "color.border.danger",
+        "color.success.solid",
+        "color.warning.7",
+        "color.text.primary",
+        "color.text.danger",
+        "space.2",
+        "space.3",
+        "space.4",
+        "radius.md",
+        "radius.lg",
+        "typography.size.sm",
+        "typography.size.md",
+        "typography.size.lg"
+      ],
+      "variants": {
+        "size": {
+          "sm": {
+            "paddingBlock": "$space.2",
+            "paddingInline": "$space.3",
+            "fontSize": "$typography.size.sm",
+            "borderRadius": "$radius.md"
+          },
+          "md": {
+            "paddingBlock": "$space.2",
+            "paddingInline": "$space.3",
+            "fontSize": "$typography.size.md",
+            "borderRadius": "$radius.md"
+          },
+          "lg": {
+            "paddingBlock": "$space.3",
+            "paddingInline": "$space.4",
+            "fontSize": "$typography.size.lg",
+            "borderRadius": "$radius.lg"
+          }
+        },
+        "state": {
+          "default": {
+            "backgroundColor": "$color.bg.surface",
+            "borderColor": "$color.border.default",
+            "color": "$color.text.primary"
+          },
+          "error": {
+            "backgroundColor": "$color.bg.surface",
+            "borderColor": "$color.border.danger",
+            "color": "$color.text.primary"
+          },
+          "success": {
+            "backgroundColor": "$color.bg.surface",
+            "borderColor": "$color.success.solid",
+            "color": "$color.text.primary"
+          },
+          "warning": {
+            "backgroundColor": "$color.bg.surface",
+            "borderColor": "$color.warning.7",
+            "color": "$color.text.primary"
+          }
+        }
+      },
+      "compoundVariants": [
+        {
+          "state": "error",
+          "size": "lg",
+          "style": {
+            "fontSize": "$typography.size.lg",
+            "color": "$color.text.danger"
+          }
+        }
+      ],
+      "defaultVariants": {
+        "size": "md",
+        "state": "default"
+      },
+      "accessibility": {
+        "label": "required",
+        "role": "textbox",
+        "keyboard": [
+          {
+            "key": "Tab",
+            "action": "focus"
+          },
+          {
+            "key": "Enter",
+            "action": "submit"
+          }
+        ]
+      },
+      "llm": {
+        "description": "A single-line text input. Use `type` to pick the semantic kind (email, password, number, …); use `state` to surface validation status. Always set `accessibility.label` — screen readers need it even when a visible placeholder exists.",
+        "tags": [
+          "interactive",
+          "form",
+          "input",
+          "validation"
+        ],
+        "examples": [
+          {
+            "code": "UI.text_field(\"email\", type=\"email\", placeholder=\"you@example.com\")",
+            "caption": "Basic email field with placeholder."
+          },
+          {
+            "code": "UI.text_field(\"password\", type=\"password\", helper=\"At least 12 characters.\")",
+            "caption": "Password field with helper text."
+          },
+          {
+            "code": "UI.text_field(\"age\", type=\"number\", state=\"error\", error=\"Must be 18+\")",
+            "caption": "Numeric field surfacing a validation error."
+          }
+        ],
+        "antiPatterns": [
+          {
+            "code": "UI.text_field(\"email\")   # no accessibility.label",
+            "reason": "accessibility.label is required — placeholders are not a11y labels."
+          },
+          {
+            "code": "UI.text_field(\"token\", type=\"password\")   # masking a non-secret",
+            "reason": "type=password hides input; reserve it for actual credentials, not long IDs the user may need to paste."
+          }
+        ],
+        "budget": {
+          "children": 0,
+          "siblings": 8,
+          "depth": 6
+        }
+      },
+      "renderer": {
+        "react": "./renderers/react/FluxTextField.tsx",
+        "fallback": {
+          "component": "TextField",
+          "map": {
+            "value": "value",
+            "placeholder": "placeholder"
+          },
+          "notes": "Basic renderers drop size / state / helper / icons — only the raw input with a placeholder survives."
+        }
+      }
     }
   },
   "fallbacks": {
-    "FluxButton": "Button"
+    "FluxBadge": "Text",
+    "FluxBanner": "Row",
+    "FluxButton": "Button",
+    "FluxCard": "Column",
+    "FluxLink": "Text",
+    "FluxMarkdown": "Text",
+    "FluxProgress": "Slider",
+    "FluxSkeleton": "Text",
+    "FluxStack": "Column",
+    "FluxTextField": "TextField"
   }
 }

@@ -18,6 +18,69 @@ from typing import Any, Literal
 FLUX_CATALOG_PATH: Path = Path(__file__).resolve().parents[3] / "catalog/flux/catalog.json"
 
 
+def flux_badge(
+    *,
+    id: str,
+    label: str,
+    tone: Literal["neutral", "primary", "success", "warning", "danger"],
+    variant: Literal["subtle", "solid"],
+    size: Literal["xs", "sm", "md"],
+    accessibility: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Compact label for status, counts, or tags. Not clickable — if the affordance needs to trigger an action, use a small but
+
+    Emits a ``FluxBadge`` node. See
+    ``catalog/flux/catalog.json#/components/FluxBadge``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxBadge",
+        "id": id,
+        "label": label,
+        "tone": tone,
+        "variant": variant,
+        "size": size,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    return node
+
+
+def flux_banner(
+    *,
+    id: str,
+    title: str,
+    message: str,
+    tone: Literal["info", "success", "warning", "danger"],
+    accessibility: dict[str, Any] | None = None,
+    action: str | None = None,
+    dismiss: str | None = None,
+    icon: str | None = None,
+) -> dict[str, Any]:
+    """An inline notification row for surface-level messages. Pick tone by urgency: info/success render with role=status (polit
+
+    Emits a ``FluxBanner`` node. See
+    ``catalog/flux/catalog.json#/components/FluxBanner``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxBanner",
+        "id": id,
+        "title": title,
+        "message": message,
+        "tone": tone,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    if action is not None:
+        node["action"] = action
+    if dismiss is not None:
+        node["dismiss"] = dismiss
+    if icon is not None:
+        node["icon"] = icon
+    return node
+
+
 def flux_button(
     *,
     id: str,
@@ -57,4 +120,246 @@ def flux_button(
         node["loading"] = loading
     if trailingIcon is not None:
         node["trailingIcon"] = trailingIcon
+    return node
+
+
+def flux_card(
+    *,
+    id: str,
+    emphasis: Literal["subtle", "outline", "elevated"],
+    padding: Literal["sm", "md", "lg"],
+    body: str,
+    accessibility: dict[str, Any] | None = None,
+    footer: str | None = None,
+    header: str | None = None,
+) -> dict[str, Any]:
+    """A surface container with optional header, required body, and optional footer. Pick `emphasis=subtle` for secondary conte
+
+    Emits a ``FluxCard`` node. See
+    ``catalog/flux/catalog.json#/components/FluxCard``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxCard",
+        "id": id,
+        "emphasis": emphasis,
+        "padding": padding,
+        "body": body,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    if footer is not None:
+        node["footer"] = footer
+    if header is not None:
+        node["header"] = header
+    return node
+
+
+def flux_link(
+    *,
+    id: str,
+    label: str,
+    tone: Literal["default", "muted", "danger"],
+    underline: Literal["always", "hover", "never"],
+    accessibility: dict[str, Any] | None = None,
+    action: dict[str, Any] | None = None,
+    external: bool | None = None,
+    href: str | None = None,
+) -> dict[str, Any]:
+    """An inline hyperlink. Set `href` for navigation *or* `action` for an auth-gated / custom dispatch — never both. Use `exte
+
+    Emits a ``FluxLink`` node. See
+    ``catalog/flux/catalog.json#/components/FluxLink``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxLink",
+        "id": id,
+        "label": label,
+        "tone": tone,
+        "underline": underline,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    if action is not None:
+        node["action"] = action
+    if external is not None:
+        node["external"] = external
+    if href is not None:
+        node["href"] = href
+    return node
+
+
+def flux_markdown(
+    *,
+    id: str,
+    source: str,
+    size: Literal["sm", "md", "lg"],
+    proseStyle: Literal["compact", "default", "spacious"],
+    accessibility: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Renders a Markdown source string as a prose block. The renderer sanitises HTML. Use `proseStyle=compact` for dense copy
+
+    Emits a ``FluxMarkdown`` node. See
+    ``catalog/flux/catalog.json#/components/FluxMarkdown``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxMarkdown",
+        "id": id,
+        "source": source,
+        "size": size,
+        "proseStyle": proseStyle,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    return node
+
+
+def flux_progress(
+    *,
+    id: str,
+    value: float,
+    determinate: bool,
+    tone: Literal["default", "success", "warning", "danger"],
+    size: Literal["sm", "md", "lg"],
+    accessibility: dict[str, Any],
+    label: str | None = None,
+) -> dict[str, Any]:
+    """A progress indicator. Set `determinate=True` with a `value` in 0..100 when you know the ratio; set `determinate=False` f
+
+    Emits a ``FluxProgress`` node. See
+    ``catalog/flux/catalog.json#/components/FluxProgress``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxProgress",
+        "id": id,
+        "value": value,
+        "determinate": determinate,
+        "tone": tone,
+        "size": size,
+        "accessibility": accessibility,
+    }
+    if label is not None:
+        node["label"] = label
+    return node
+
+
+def flux_skeleton(
+    *,
+    id: str,
+    shape: Literal["text", "circle", "rect"],
+    size: Literal["xs", "sm", "md", "lg", "xl"],
+    accessibility: dict[str, Any] | None = None,
+    count: int | None = None,
+    height: str | None = None,
+    width: str | None = None,
+) -> dict[str, Any]:
+    """Loading-state placeholder. Use `shape=text` for paragraph rows (combine with `count` to stack multiple lines), `shape=ci
+
+    Emits a ``FluxSkeleton`` node. See
+    ``catalog/flux/catalog.json#/components/FluxSkeleton``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxSkeleton",
+        "id": id,
+        "shape": shape,
+        "size": size,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    if count is not None:
+        node["count"] = count
+    if height is not None:
+        node["height"] = height
+    if width is not None:
+        node["width"] = width
+    return node
+
+
+def flux_stack(
+    *,
+    id: str,
+    direction: Literal["vertical", "horizontal"],
+    gap: Literal["1", "2", "3", "4", "6", "8"],
+    align: Literal["start", "center", "end", "stretch"],
+    justify: Literal["start", "center", "end", "between", "around"],
+    accessibility: dict[str, Any] | None = None,
+    wrap: bool | None = None,
+) -> dict[str, Any]:
+    """Layout primitive for arranging children with consistent spacing. Pick `direction=horizontal` for toolbars / button rows
+
+    Emits a ``FluxStack`` node. See
+    ``catalog/flux/catalog.json#/components/FluxStack``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxStack",
+        "id": id,
+        "direction": direction,
+        "gap": gap,
+        "align": align,
+        "justify": justify,
+    }
+    if accessibility is not None:
+        node["accessibility"] = accessibility
+    if wrap is not None:
+        node["wrap"] = wrap
+    return node
+
+
+def flux_text_field(
+    *,
+    id: str,
+    type: Literal["text", "email", "password", "number", "search", "tel", "url"],
+    size: Literal["sm", "md", "lg"],
+    state: Literal["default", "error", "success", "warning"],
+    accessibility: dict[str, Any],
+    disabled: bool | None = None,
+    error: str | None = None,
+    helper: str | None = None,
+    leadingIcon: str | None = None,
+    maxLength: int | None = None,
+    placeholder: str | None = None,
+    readonly: bool | None = None,
+    required: bool | None = None,
+    trailingIcon: str | None = None,
+    value: str | None = None,
+) -> dict[str, Any]:
+    """A single-line text input. Use `type` to pick the semantic kind (email, password, number, …); use `state` to surface vali
+
+    Emits a ``FluxTextField`` node. See
+    ``catalog/flux/catalog.json#/components/FluxTextField``
+    for the full schema and renderer contract.
+    """
+    node: dict[str, Any] = {
+        "component": "FluxTextField",
+        "id": id,
+        "type": type,
+        "size": size,
+        "state": state,
+        "accessibility": accessibility,
+    }
+    if disabled is not None:
+        node["disabled"] = disabled
+    if error is not None:
+        node["error"] = error
+    if helper is not None:
+        node["helper"] = helper
+    if leadingIcon is not None:
+        node["leadingIcon"] = leadingIcon
+    if maxLength is not None:
+        node["maxLength"] = maxLength
+    if placeholder is not None:
+        node["placeholder"] = placeholder
+    if readonly is not None:
+        node["readonly"] = readonly
+    if required is not None:
+        node["required"] = required
+    if trailingIcon is not None:
+        node["trailingIcon"] = trailingIcon
+    if value is not None:
+        node["value"] = value
     return node

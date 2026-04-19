@@ -1,12 +1,17 @@
-"""W2 pipeline canary — loader round-trip + end-to-end idempotence.
+"""W2 + W3 pipeline canary — loader round-trip, 10-component emit, idempotence.
 
-Two tests:
+Tests:
 
   * ``test_button_spec_roundtrips`` — runs ``shared/scripts/flux/loader.py``
     on ``Button.spec.ts`` and asserts the resulting dict carries the
     expected shape (name, extends, variants keys, slots keys,
     ``renderer.fallback.component`` == ``"Button"``). This guards the
     Zod-to-JSON-Schema bridge in ``_loader.ts``.
+
+  * ``test_catalog_has_phase_one_components`` — loads the emitted
+    ``catalog.json`` and asserts the full Phase-1 roster (10 components,
+    10 fallbacks) landed. Added by W3 so future specs that regress
+    someone's component (e.g. a rename) fail loudly.
 
   * ``test_pipeline_is_idempotent`` — invokes ``just flux`` twice via
     subprocess and asserts ``git status --short`` reports no new diff
@@ -36,7 +41,26 @@ SHARED_SCRIPTS = REPO_ROOT / "shared" / "scripts"
 LOADER_PATH = SHARED_SCRIPTS / "flux" / "loader.py"
 SPECS_DIR = REPO_ROOT / "catalog" / "flux" / "specs"
 BUTTON_SPEC = SPECS_DIR / "Button.spec.ts"
+CATALOG_JSON = REPO_ROOT / "catalog" / "flux" / "catalog.json"
 TS_WORKSPACE = REPO_ROOT / "ts"
+
+# Phase-1 roster (see ARCHITECTURE.md §13). Must line up with the spec files
+# under ``catalog/flux/specs/``. Order is alphabetical for readability only —
+# assertions use set comparison.
+PHASE_ONE_COMPONENTS: frozenset[str] = frozenset(
+    {
+        "FluxBadge",
+        "FluxBanner",
+        "FluxButton",
+        "FluxCard",
+        "FluxLink",
+        "FluxMarkdown",
+        "FluxProgress",
+        "FluxSkeleton",
+        "FluxStack",
+        "FluxTextField",
+    }
+)
 
 
 # --- Import the loader module without name-collision tricks ----------------
@@ -117,6 +141,42 @@ def test_button_spec_roundtrips() -> None:
     fallback = renderer.get("fallback") or {}
     assert fallback.get("component") == "Button", (
         "fallback.component must be the basic-catalog 'Button' (degrade contract)"
+    )
+
+
+def test_catalog_has_phase_one_components() -> None:
+    """The emitted catalog.json must carry all ten Phase-1 components + fallbacks.
+
+    This test does NOT run the pipeline — it only reads the on-disk
+    artifact, so it is safe to run in environments without Node. Keeps
+    W3's contract honest even when the loader test is skipped.
+    """
+    assert CATALOG_JSON.is_file(), (
+        f"catalog.json must exist at {CATALOG_JSON}. Run `just flux` to regenerate."
+    )
+    with CATALOG_JSON.open("r", encoding="utf-8") as fh:
+        import json
+
+        catalog = json.load(fh)
+
+    # --- Top-level catalog metadata ---
+    assert catalog.get("catalogId") == "flux/components@1"
+    assert "a2ui/basic@0.10" in (catalog.get("extends") or [])
+
+    # --- Components + fallbacks ---
+    components = catalog.get("components") or {}
+    fallbacks = catalog.get("fallbacks") or {}
+    got = frozenset(components.keys())
+    assert got == PHASE_ONE_COMPONENTS, (
+        f"catalog.components must equal the Phase-1 roster.\n"
+        f"  expected: {sorted(PHASE_ONE_COMPONENTS)}\n"
+        f"  got:      {sorted(got)}"
+    )
+    # Every component has a matching fallback entry keyed by the same name.
+    assert frozenset(fallbacks.keys()) == PHASE_ONE_COMPONENTS, (
+        f"catalog.fallbacks must mirror catalog.components keys.\n"
+        f"  missing:  {sorted(PHASE_ONE_COMPONENTS - frozenset(fallbacks.keys()))}\n"
+        f"  extra:    {sorted(frozenset(fallbacks.keys()) - PHASE_ONE_COMPONENTS)}"
     )
 
 
