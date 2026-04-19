@@ -283,7 +283,7 @@ Ten components chosen because they (a) cover the 80% of agent surfaces and
 |---------------|-------------|----------------------------------------|
 | FluxButton    | Button      | Reference — tone × size × emphasis     |
 | FluxTextField | TextField   | Accessibility required; validation     |
-| FluxLink      | Link        | Destination vs. action distinction     |
+| FluxLink      | Text        | Destination vs. action distinction (basic catalog has no Link; degrades to Text) |
 | FluxBanner    | Row         | Tone-driven layout; dismissible slot   |
 | FluxCard      | Column      | Header/body/footer slot composition    |
 | FluxStack     | Column/Row  | Spacing tokens; direction variant      |
