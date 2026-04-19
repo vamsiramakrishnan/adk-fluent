@@ -52,12 +52,7 @@ export { UI, UIComponent, UISurface, UIAutoSpec, UISchemaSpec } from "./namespac
 export type { UIBinding, UICheck } from "./namespaces/ui.js";
 
 // A2UI exceptions
-export {
-  A2UIError,
-  A2UINotInstalled,
-  A2UISurfaceError,
-  A2UIBindingError,
-} from "./_exceptions.js";
+export { A2UIError, A2UINotInstalled, A2UISurfaceError, A2UIBindingError } from "./_exceptions.js";
 
 // H — Harness namespace (build-your-own coding agent)
 export { H } from "./namespaces/harness/H.js";

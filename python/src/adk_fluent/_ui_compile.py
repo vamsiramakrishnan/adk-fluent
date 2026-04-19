@@ -152,10 +152,7 @@ def _has_a2ui_toolset(items: list[Any]) -> bool:
 
 def _has_a2ui_guard(callbacks: list[Any]) -> bool:
     """Detect a previously registered ``G.a2ui()`` guard tuple."""
-    return any(
-        isinstance(entry, tuple) and len(entry) == 2 and entry[0] == "guard:a2ui"
-        for entry in callbacks
-    )
+    return any(isinstance(entry, tuple) and len(entry) == 2 and entry[0] == "guard:a2ui" for entry in callbacks)
 
 
 def _apply_ui_auto_wire(builder: Any, ui_spec: Any) -> None:

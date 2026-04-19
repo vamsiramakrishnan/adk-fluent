@@ -676,9 +676,7 @@ export class UI {
       const root = UI.column([UI.heading(title), ...fieldComponents, submitBtn]);
       return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root);
     }
-    throw new A2UIError(
-      "UI.form expects either a Zod object schema or (title, opts.fields)",
-    );
+    throw new A2UIError("UI.form expects either a Zod object schema or (title, opts.fields)");
   }
 
   /**
@@ -730,7 +728,9 @@ export class UI {
 
   /** Detect a Zod object schema via duck-typing the v4 public `def` surface. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static _isZodObject(value: unknown): value is { def: { type: string; shape: Record<string, any> }; shape: Record<string, any> } {
+  private static _isZodObject(
+    value: unknown,
+  ): value is { def: { type: string; shape: Record<string, any> }; shape: Record<string, any> } {
     if (!value || typeof value !== "object") return false;
     const v = value as { def?: { type?: string }; shape?: unknown };
     return v.def?.type === "object" && typeof v.shape === "object" && v.shape !== null;
@@ -740,7 +740,10 @@ export class UI {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static _zodObjectShape(value: unknown): Record<string, any> | null {
     if (!value || typeof value !== "object") return null;
-    const v = value as { shape?: Record<string, unknown>; def?: { shape?: Record<string, unknown> } };
+    const v = value as {
+      shape?: Record<string, unknown>;
+      def?: { shape?: Record<string, unknown> };
+    };
     return (v.shape ?? v.def?.shape ?? null) as Record<string, unknown> | null;
   }
 
@@ -838,7 +841,13 @@ export class UI {
             maxLen = cd.length;
           }
           // Inline regex check (.regex(...) appended after a format)
-          if (!regexAdded && cd.check === "string_format" && cd.format === "regex" && cd.pattern instanceof RegExp && !formatHandled) {
+          if (
+            !regexAdded &&
+            cd.check === "string_format" &&
+            cd.format === "regex" &&
+            cd.pattern instanceof RegExp &&
+            !formatHandled
+          ) {
             checks.push(UI.regex((cd.pattern as RegExp).source));
             regexAdded = true;
           }
@@ -895,7 +904,9 @@ export class UI {
           }),
         );
       } else if (fieldType === "enum" || fieldType === "literal") {
-        const entries = (field as { def: { entries?: Record<string, unknown>; values?: unknown[] } }).def;
+        const entries = (
+          field as { def: { entries?: Record<string, unknown>; values?: unknown[] } }
+        ).def;
         const options: string[] = entries.entries
           ? Object.keys(entries.entries)
           : Array.isArray(entries.values)
@@ -954,18 +965,13 @@ export class UI {
       action: opts.submitAction,
     });
     const root = UI.column([UI.heading(title), ...fieldComponents, submitBtn]);
-    return new UISurface(
-      title.toLowerCase().replace(/\s+/g, "_"),
-      root,
-      {},
-      data,
-    );
+    return new UISurface(title.toLowerCase().replace(/\s+/g, "_"), root, {}, data);
   }
 
   /** Pull `def` off a check (Zod v4 stores it under `_zod.def`). */
   private static _checkDef(c: unknown): Record<string, unknown> | null {
     if (!c || typeof c !== "object") return null;
-    const cz = (c as { _zod?: { def?: Record<string, unknown> }; def?: Record<string, unknown> });
+    const cz = c as { _zod?: { def?: Record<string, unknown> }; def?: Record<string, unknown> };
     return cz._zod?.def ?? cz.def ?? null;
   }
 

@@ -58,11 +58,7 @@ assert guided._config["_a2ui_auto_tool"] is True
 #    the prompt but no toolset / guard is auto-wired.
 # ---------------------------------------------------------------------------
 
-prompt_only = (
-    Agent("scribe", "gemini-2.5-flash")
-    .instruct("Describe UIs textually.")
-    .ui(UI.auto())
-)
+prompt_only = Agent("scribe", "gemini-2.5-flash").instruct("Describe UIs textually.").ui(UI.auto())
 assert prompt_only._config["_a2ui_auto_tool"] is False
 assert prompt_only._config["_a2ui_auto_guard"] is False
 

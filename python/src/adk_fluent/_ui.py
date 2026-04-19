@@ -769,8 +769,7 @@ def _component_for_field(name: str, field_info: Any) -> list[UIComponent]:
 
     # Fallback
     warnings.warn(
-        f"UI.form: unsupported annotation {annotation!r} for field {name!r}; "
-        "defaulting to a shortText TextField",
+        f"UI.form: unsupported annotation {annotation!r} for field {name!r}; defaulting to a shortText TextField",
         RuntimeWarning,
         stacklevel=4,
     )
@@ -944,10 +943,7 @@ class _UIPaths:
         fields = self._field_names
         if name not in fields:
             available = sorted(fields)
-            raise AttributeError(
-                f"{self._schema.__name__!r} has no field {name!r}. "
-                f"Available fields: {available}"
-            )
+            raise AttributeError(f"{self._schema.__name__!r} has no field {name!r}. Available fields: {available}")
         field_info = self._schema.model_fields[name]
         annotation = field_info.annotation
         # Unwrap Optional[X]
@@ -1124,9 +1120,7 @@ class UI:
             )
         from adk_fluent._exceptions import A2UIError
 
-        raise A2UIError(
-            "UI.form expects either a Pydantic model or (title=..., fields=...)"
-        )
+        raise A2UIError("UI.form expects either a Pydantic model or (title=..., fields=...)")
 
     @staticmethod
     def paths(schema: Any) -> Any:

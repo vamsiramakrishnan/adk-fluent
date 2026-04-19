@@ -330,8 +330,7 @@ class T:
             from a2ui.agent import SendA2uiToClientToolset  # type: ignore[import-not-found]
         except ImportError as exc:
             raise A2UINotInstalled(
-                "T.a2ui() requires the 'a2ui-agent' package. "
-                "Install with: pip install a2ui-agent"
+                "T.a2ui() requires the 'a2ui-agent' package. Install with: pip install a2ui-agent"
             ) from exc
         return TComposite([SendA2uiToClientToolset()], kind="a2ui")
 

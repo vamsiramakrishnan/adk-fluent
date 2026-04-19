@@ -160,8 +160,7 @@ export class T {
    */
   static a2ui(_opts?: { catalog?: string }): TComposite {
     throw new A2UINotInstalled(
-      "T.a2ui() requires the 'a2ui-agent' package. " +
-        "Install with: npm install a2ui-agent",
+      "T.a2ui() requires the 'a2ui-agent' package. " + "Install with: npm install a2ui-agent",
     );
   }
 
