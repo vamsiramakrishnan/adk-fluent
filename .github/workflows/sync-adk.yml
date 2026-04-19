@@ -101,7 +101,7 @@ jobs:
       - name: Archive manifest
         run: cp manifest.json manifest.previous.json
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: generated-code
           retention-days: 14
