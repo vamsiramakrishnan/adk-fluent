@@ -205,6 +205,7 @@ jobs:
     if: needs.plan.outputs.publish-npm-dry == 'true'
     permissions:
       contents: read
+      id-token: write   # validated at parse time even when if-gated off
     uses: ./.github/workflows/_publish-npm.yml
     with:
       version: ${{ needs.plan.outputs.version }}
