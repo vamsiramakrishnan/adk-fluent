@@ -1,34 +1,56 @@
 name: Release
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Release publishing pipeline. Runs on:
-#   - Pushed tags `v*`           → publish to PyPI (prod)
-#   - Manual workflow_dispatch   → publish to TestPyPI (dry run)
+# Release orchestrator. Bumps are the signal: edit ``VERSION`` on master and
+# CI takes it the rest of the way — publish, tag, draft release notes.
 #
-# Stages:
-#   1. version-check  — assert tag matches python/_version.py
-#   2. python-build   — build wheel + sdist
-#   3. ts-build       — build npm dist
-#   4. publish-pypi   — Trusted Publishing to PyPI
-#   5. publish-npm    — npm publish (gated on NPM_TOKEN secret)
+# Triggers
+# --------
+#   push · master   (paths: VERSION)   → auto-release to PyPI + npm
+#   workflow_dispatch                  → manual dry-run / targeted republish
 #
-# Both publishes are independent — npm can be skipped if NPM_TOKEN unset.
+#   Dispatch targets:
+#     all           → PyPI + npm            (same as a master VERSION bump)
+#     dry-run       → TestPyPI + npm pack   (end-to-end rehearsal, no prod writes)
+#     pypi          → PyPI only
+#     testpypi      → TestPyPI only
+#     npm           → npm only
+#     npm-dry-run   → npm pack only
+#
+# Tags are artifacts of a successful release, not triggers. After publish
+# jobs succeed, ``tag-release`` creates and pushes ``v<VERSION>`` and the
+# GitHub Release with built wheels, sdist, and npm tarball attached.
+#
+# Idempotency: if ``v<VERSION>`` already exists on origin the run short-
+# circuits (skip=true). Re-pushing the same VERSION is safe.
+#
+# Secrets
+# -------
+# - PyPI: Trusted Publishing (no token — environment ``pypi`` / ``testpypi``).
+# - npm:  NPM_TOKEN attached to the GitHub environment named ``npm``.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
-    tags: ["v*"]
+    branches: [master]
+    paths:
+      - VERSION
+      - python/src/adk_fluent/_version.py
+      - ts/package.json
   workflow_dispatch:
     inputs:
       target:
         description: Publishing target
         required: true
-        default: testpypi
+        default: dry-run
         type: choice
         options:
-          - testpypi
+          - all
+          - dry-run
           - pypi
+          - testpypi
           - npm
+          - npm-dry-run
 
 concurrency:
   group: release-${{ github.ref }}
@@ -37,141 +59,211 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  UV_VERSION: "0.8.17"
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
-  version-check:
-    if: startsWith(github.ref, 'refs/tags/v')
+  # ─── stage 1: decide whether to release and which target to hit ────────
+  plan:
+    name: plan
     runs-on: ubuntu-latest
+    outputs:
+      skip:                 ${{ steps.resolve.outputs.skip }}
+      version:              ${{ steps.resolve.outputs.version }}
+      publish-pypi:         ${{ steps.resolve.outputs.publish-pypi }}
+      publish-testpypi:     ${{ steps.resolve.outputs.publish-testpypi }}
+      publish-npm:          ${{ steps.resolve.outputs.publish-npm }}
+      publish-npm-dry:      ${{ steps.resolve.outputs.publish-npm-dry }}
+      tag-on-success:       ${{ steps.resolve.outputs.tag-on-success }}
     steps:
       - uses: actions/checkout@v6
-      - name: Verify tag matches python + ts versions
+        with:
+          # Fetch enough history to diff VERSION against the previous commit.
+          fetch-depth: 2
+
+      - name: Resolve release plan
+        id: resolve
         run: |
-          TAG="${GITHUB_REF#refs/tags/v}"
-          PY_VERSION=$(python3 -c "exec(open('python/src/adk_fluent/_version.py').read()); print(__version__)")
-          TS_VERSION=$(python3 -c "import json; print(json.load(open('ts/package.json'))['version'])")
-          if [ "$TAG" != "$PY_VERSION" ]; then
-            echo "::error::Tag v$TAG does not match python/src/adk_fluent/_version.py ($PY_VERSION)"
-            exit 1
-          fi
-          if [ "$TAG" != "$TS_VERSION" ]; then
-            echo "::error::Tag v$TAG does not match ts/package.json ($TS_VERSION)"
-            exit 1
-          fi
-          echo "Version check passed: v$TAG == python $PY_VERSION == ts $TS_VERSION"
+          set -euo pipefail
 
-  python-build:
-    needs: [version-check]
-    if: |
-      always() &&
-      (needs.version-check.result == 'success' || needs.version-check.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-python-env
-        with:
-          uv-version: ${{ env.UV_VERSION }}
-      - name: Generate code
-        run: just scan seed generate
-      - name: Build wheel + sdist
-        working-directory: python
-        run: uv build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: python-dist
-          path: python/dist/
-          retention-days: 30
+          VERSION=$(python3 -m shared.scripts.release version)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-  ts-build:
-    needs: [version-check]
-    if: |
-      always() &&
-      (needs.version-check.result == 'success' || needs.version-check.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-ts-env
-      - name: Build
-        working-directory: ts
-        run: npm run build
-      - name: Pack tarball
-        working-directory: ts
-        run: |
-          mkdir -p dist-pack
-          npm pack --pack-destination dist-pack
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ts-dist
-          path: |
-            ts/dist/
-            ts/dist-pack/
-          retention-days: 30
+          TAG="v${VERSION}"
 
-  publish-pypi:
-    needs: [python-build]
-    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.target == 'pypi'
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/adk-fluent
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
-
-  publish-testpypi:
-    needs: [python-build]
-    if: github.event.inputs.target == 'testpypi'
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/adk-fluent
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true
-
-  publish-npm:
-    needs: [ts-build]
-    if: |
-      (startsWith(github.ref, 'refs/tags/v') || github.event.inputs.target == 'npm')
-    runs-on: ubuntu-latest
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/adk-fluent-ts
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-      - uses: actions/download-artifact@v4
-        with:
-          name: ts-dist
-          path: ts-artifact/
-      - name: Publish
-        working-directory: ts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::warning::NPM_TOKEN secret not set — skipping npm publish."
+          # ── Idempotency: if the tag already exists on origin, skip. ──
+          if git ls-remote --tags origin "$TAG" | grep -q "refs/tags/${TAG}"; then
+            echo "::notice::$TAG already published on origin — nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "publish-pypi=false"     >> "$GITHUB_OUTPUT"
+            echo "publish-testpypi=false" >> "$GITHUB_OUTPUT"
+            echo "publish-npm=false"      >> "$GITHUB_OUTPUT"
+            echo "publish-npm-dry=false"  >> "$GITHUB_OUTPUT"
+            echo "tag-on-success=false"   >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          npm ci
-          npm publish --access public
+
+          # ── Resolve target ──
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TARGET="${{ github.event.inputs.target }}"
+          else
+            # push to master — only act if VERSION actually changed.
+            if git rev-parse HEAD~1 >/dev/null 2>&1; then
+              PREV=$(git show HEAD~1:VERSION 2>/dev/null | tr -d '[:space:]' || true)
+            else
+              PREV=""
+            fi
+            if [ "$PREV" = "$VERSION" ]; then
+              echo "::notice::VERSION unchanged vs HEAD~1 ($PREV) — skip."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "publish-pypi=false"     >> "$GITHUB_OUTPUT"
+              echo "publish-testpypi=false" >> "$GITHUB_OUTPUT"
+              echo "publish-npm=false"      >> "$GITHUB_OUTPUT"
+              echo "publish-npm-dry=false"  >> "$GITHUB_OUTPUT"
+              echo "tag-on-success=false"   >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            TARGET="all"
+          fi
+
+          echo "::notice::Release target=$TARGET  version=$VERSION"
+
+          want_pypi=false
+          want_testpypi=false
+          want_npm=false
+          want_npm_dry=false
+          want_tag=false
+
+          case "$TARGET" in
+            all)         want_pypi=true; want_npm=true;       want_tag=true ;;
+            dry-run)     want_testpypi=true; want_npm_dry=true ;;
+            pypi)        want_pypi=true;                       want_tag=true ;;
+            testpypi)    want_testpypi=true ;;
+            npm)         want_npm=true;                        want_tag=true ;;
+            npm-dry-run) want_npm_dry=true ;;
+            *) echo "::error::unknown target: $TARGET"; exit 1 ;;
+          esac
+
+          echo "skip=false"                      >> "$GITHUB_OUTPUT"
+          echo "publish-pypi=$want_pypi"         >> "$GITHUB_OUTPUT"
+          echo "publish-testpypi=$want_testpypi" >> "$GITHUB_OUTPUT"
+          echo "publish-npm=$want_npm"           >> "$GITHUB_OUTPUT"
+          echo "publish-npm-dry=$want_npm_dry"   >> "$GITHUB_OUTPUT"
+          echo "tag-on-success=$want_tag"        >> "$GITHUB_OUTPUT"
+
+      - name: Strict preflight (versions, changelog, tag free)
+        if: steps.resolve.outputs.skip == 'false'
+        run: python3 -m shared.scripts.release preflight --strict
+
+  # ─── stage 2a: python publish path ──────────────────────────────────────
+  python-pypi:
+    needs: [plan]
+    if: needs.plan.outputs.publish-pypi == 'true'
+    uses: ./.github/workflows/_publish-python.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: pypi
+      run-preflight: true
+
+  python-testpypi:
+    needs: [plan]
+    if: needs.plan.outputs.publish-testpypi == 'true'
+    uses: ./.github/workflows/_publish-python.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: testpypi
+      run-preflight: true
+
+  # ─── stage 2b: npm publish path ─────────────────────────────────────────
+  ts-npm:
+    needs: [plan]
+    if: needs.plan.outputs.publish-npm == 'true'
+    uses: ./.github/workflows/_publish-npm.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: npm
+      run-preflight: true
+
+  ts-npm-dry:
+    needs: [plan]
+    if: needs.plan.outputs.publish-npm-dry == 'true'
+    uses: ./.github/workflows/_publish-npm.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: npm-dry-run
+      run-preflight: true
+
+  # ─── stage 3: tag + GitHub Release (only on a real publish) ─────────────
+  tag-release:
+    needs: [plan, python-pypi, ts-npm]
+    # Run only if we actually published to both prod registries. GitHub
+    # evaluates the condition against job results; a skipped dependency
+    # still satisfies `needs` so we explicitly require success.
+    if: >-
+      always() &&
+      needs.plan.outputs.tag-on-success == 'true' &&
+      needs.plan.outputs.skip == 'false' &&
+      needs.python-pypi.result == 'success' &&
+      needs.ts-npm.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Need full history so we can reference the commit that bumped VERSION.
+          fetch-depth: 0
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-dist-${{ needs.plan.outputs.version }}"
+          path: release-assets/
+
+      - name: Collect artifacts for the GitHub Release
+        run: |
+          mkdir -p upload
+          cp release-assets/python-dist-${{ needs.plan.outputs.version }}/*.whl    upload/
+          cp release-assets/python-dist-${{ needs.plan.outputs.version }}/*.tar.gz upload/
+          cp release-assets/ts-dist-${{ needs.plan.outputs.version }}/dist-pack/*.tgz upload/
+          ls -la upload/
+
+      - name: Extract changelog section
+        id: changelog
+        run: |
+          VERSION=${{ needs.plan.outputs.version }}
+          python3 - <<'PY' > release-notes.md
+          import re, pathlib, os
+          text = pathlib.Path("CHANGELOG.md").read_text()
+          version = "${{ needs.plan.outputs.version }}"
+          m = re.search(
+              rf"^## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n## \[|\Z)",
+              text, flags=re.M | re.S,
+          )
+          print((m.group(1).strip() if m else "See CHANGELOG.md.").rstrip())
+          PY
+          echo "path=release-notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create + push tag
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::notice::$TAG already exists locally — pushing anyway."
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+          fi
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.plan.outputs.version }}
+          name: v${{ needs.plan.outputs.version }}
+          body_path: ${{ steps.changelog.outputs.path }}
+          files: upload/*
+          fail_on_unmatched_files: true

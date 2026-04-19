@@ -1,0 +1,144 @@
+# ============================================================================
+# RELEASE ENGINEERING · adk-fluent
+# ============================================================================
+#
+# Single source of truth:  VERSION  (repo root, plain semver)
+# Consumers (kept in sync automatically):
+#   python/src/adk_fluent/_version.py
+#   ts/package.json
+#
+# Canonical flow — "bump, commit, push"
+# -------------------------------------
+#   1. just rel-prepare minor         → bump + sync + promote changelog + commit
+#   2. git push origin master         → CI takes over
+#
+# CI (.github/workflows/release.yml) watches VERSION on master. On a bump it:
+#   - builds Python + TS
+#   - publishes to PyPI (Trusted Publishing) and npm (provenance)
+#   - creates + pushes v<VERSION> tag
+#   - drafts the GitHub Release with artifacts attached
+#
+# No manual tagging. No `gh` CLI. The commit that changes VERSION is the
+# release signal.
+#
+# Commands
+# --------
+#   just rel-version              → print canonical version
+#   just rel-status               → show versions + changelog state
+#   just rel-sync [X.Y.Z]         → propagate VERSION → py + ts consumers
+#   just rel-bump LEVEL           → bump patch|minor|major (edits all files)
+#   just rel-preflight            → readiness checks (versions, changelog, tag free, tree clean)
+#   just rel-preflight-strict     → same but warnings become failures (CI-grade)
+#   just rel-prepare LEVEL        → bump + sync + promote changelog + commit
+#   just rel-dry-run              → TestPyPI + npm pack rehearsal (CI workflow_dispatch)
+#   just rel-tag                  → emergency escape hatch — force-create the tag manually
+#   just rel-publish-python       → manual local build + `uv publish` (last-resort)
+#   just rel-publish-npm          → manual local build + `npm publish` (last-resort)
+#
+# Backward-compat aliases:
+#   just version, just bump LEVEL, just release LEVEL, just release-tag
+#
+# Dry-run flow
+# ------------
+#   1. just rel-bump patch
+#   2. just rel-preflight
+#   3. just rel-dry-run          # dispatches CI with target=dry-run
+#   4. inspect run → TestPyPI install works, npm pack listing is correct
+#   5. revert bump if needed; push when happy
+#
+# ============================================================================
+
+_REL := PYTOOL + " python -m shared.scripts.release"
+
+# --- Read-only ---
+rel-version:
+    @{{_REL}} version
+
+rel-status:
+    @{{_REL}} status
+
+# --- Sync / bump ---
+rel-sync version="":
+    @{{_REL}} sync {{version}}
+
+rel-bump level:
+    @{{_REL}} bump {{level}}
+
+# --- Preflight ---
+rel-preflight:
+    @{{_REL}} preflight
+
+rel-preflight-strict:
+    @{{_REL}} preflight --strict
+
+# --- Prepare: bump + sync + promote changelog + commit ---
+rel-prepare level:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    {{_REL}} bump {{level}}
+    NEW_VERSION=$({{_REL}} version)
+    {{_REL}} changelog-promote || echo "  (no [Unreleased] entries to promote — skipping)"
+    git add VERSION python/src/adk_fluent/_version.py ts/package.json CHANGELOG.md
+    git commit -m "release: v${NEW_VERSION}"
+    echo ""
+    echo "Committed release: v${NEW_VERSION}"
+    echo "Next:  git push origin master   (CI will publish + tag)"
+
+# --- Emergency: force-tag locally. Only needed if CI can't reach origin. ---
+rel-tag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "NOTE: master pushes auto-tag via CI. Use this only as an escape hatch."
+    VERSION=$({{_REL}} version)
+    TAG="v${VERSION}"
+    if git rev-parse "$TAG" >/dev/null 2>&1; then
+        echo "ERROR: tag $TAG already exists locally"; exit 1
+    fi
+    {{_REL}} preflight --strict
+    git tag -a "$TAG" -m "Release $TAG"
+    git push origin "$TAG"
+    echo ""
+    echo "Pushed $TAG manually."
+
+# --- Dispatch a dry-run via GitHub Actions (requires gh CLI) ---
+rel-dry-run:
+    @command -v gh >/dev/null 2>&1 || (echo "ERROR: gh CLI not installed"; exit 1)
+    gh workflow run release.yml -f target=dry-run
+    @echo "Dispatched dry-run. Watch with: gh run watch"
+
+# --- Local publish escape hatches (prefer CI; last-resort only) ---
+rel-publish-python:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Prefer the CI workflow. Continuing in 3s..."; sleep 3
+    {{_REL}} preflight --strict
+    cd {{PYTHON_DIR}} && uv build && uv publish
+
+rel-publish-npm:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Prefer the CI workflow. Continuing in 3s..."; sleep 3
+    {{_REL}} preflight --strict
+    cp LICENSE {{TS_DIR}}/LICENSE
+    cd {{TS_DIR}} && npm ci && npm run build && npm publish --access public
+
+# ----------------------------------------------------------------------------
+# Backward-compat aliases — old names keep working but forward to rel-*.
+# ----------------------------------------------------------------------------
+
+alias version       := rel-version
+alias bump          := rel-bump
+alias release-tag   := rel-tag
+
+# Legacy `just release LEVEL` — preserved for muscle memory.
+# Users should migrate to `just rel-prepare LEVEL`.
+release level="patch":
+    @echo "DEPRECATED: 'just release' → use 'just rel-prepare {{level}}' instead"
+    @just rel-prepare {{level}}
+
+# Legacy `just publish-test` / `just publish` — forward to rel-publish-python.
+publish-test:
+    @echo "DEPRECATED: use 'gh workflow run release.yml -f target=testpypi' (CI-based)"
+    @exit 1
+
+alias publish := rel-publish-python
