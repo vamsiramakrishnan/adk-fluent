@@ -1,0 +1,142 @@
+name: Publish · npm
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable: builds + publishes the TypeScript package.
+#
+# Stages (deliberately symmetric with _publish-python.yml):
+#   1. build   — npm ci → npm run build → npm pack → upload artifact
+#   2. inspect — `npm pack --dry-run` listing, verify tarball has dist/ + LICENSE
+#   3. publish — npm publish --access public --provenance (id-token: write)
+#
+# Inputs:
+#   version        — expected semver; build fails if ts/package.json differs
+#   target         — "npm" (prod) | "npm-dry-run" (pack only, no publish)
+#   run-preflight  — gate on `python -m shared.scripts.release preflight --strict`
+#
+# Secrets: NPM_TOKEN must be attached to the GitHub environment named `npm`.
+# Provenance requires the workflow to run from a public repo on a tag.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+        description: "npm | npm-dry-run"
+      run-preflight:
+        required: false
+        type: boolean
+        default: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: ts/package-lock.json
+
+      - name: Preflight (strict)
+        if: inputs.run-preflight
+        run: python3 -m shared.scripts.release preflight --strict
+
+      - name: Assert version matches input
+        run: |
+          ACTUAL=$(python3 -m shared.scripts.release version)
+          if [ "$ACTUAL" != "${{ inputs.version }}" ]; then
+            echo "::error::VERSION is $ACTUAL but workflow expects ${{ inputs.version }}"
+            exit 1
+          fi
+
+      - name: Install + build
+        working-directory: ts
+        run: |
+          npm ci
+          npm run build
+
+      - name: Stage LICENSE in ts/
+        run: cp LICENSE ts/LICENSE
+
+      - name: Inspect tarball contents (dry-run)
+        working-directory: ts
+        run: |
+          npm pack --dry-run 2>&1 | tee pack-listing.txt
+          grep -q 'dist/index.js' pack-listing.txt  || { echo "::error::tarball missing dist/index.js"; exit 1; }
+          grep -q 'LICENSE'        pack-listing.txt  || { echo "::error::tarball missing LICENSE"; exit 1; }
+
+      - name: Pack tarball
+        working-directory: ts
+        run: |
+          mkdir -p dist-pack
+          npm pack --pack-destination dist-pack
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ts-dist-${{ inputs.version }}
+          path: |
+            ts/dist/
+            ts/dist-pack/
+            ts/LICENSE
+          retention-days: 30
+
+  publish:
+    name: publish · ${{ inputs.target }}
+    needs: [build]
+    if: inputs.target == 'npm'
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/adk-fluent-ts
+    permissions:
+      id-token: write   # npm provenance via sigstore
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: ts/package-lock.json
+
+      - name: Restore built artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ts-dist-${{ inputs.version }}
+          path: ts-artifact/
+
+      - name: Merge artifact into ts/
+        run: |
+          cp -a ts-artifact/dist ts/dist
+          cp    ts-artifact/LICENSE ts/LICENSE
+
+      - name: Install production dependencies
+        working-directory: ts
+        run: npm ci
+
+      - name: Publish with provenance
+        working-directory: ts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN not set on the 'npm' environment."
+            echo "Attach the token at: Settings → Environments → npm → Environment secrets."
+            exit 1
+          fi
+          npm publish --access public --provenance

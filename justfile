@@ -2,6 +2,11 @@
 # ADK-FLUENT DEVELOPMENT WORKFLOW
 # ============================================================================
 #
+# Top-level modules
+# -----------------
+#   core recipes       — this file (setup, generate, lint, test, docs, ts-*)
+#   justfile.release   — release engineering (rel-* recipes, imported below)
+#
 #   just setup      → First-time setup: install deps + pre-commit hooks
 #   just all        → Full pipeline: scan → seed → generate → docs
 #   just scan       → Introspect installed ADK, produce manifest.json
@@ -22,11 +27,13 @@
 #   just preflight  → Run pre-commit hooks (mirrors CI lint exactly)
 #   just ci         → Full local CI: preflight + check-gen + test
 #
-#   --- RELEASE ENGINEERING ---
-#   just version    → Show current version
-#   just bump patch → Bump version in _version.py
-#   just release    → Full preflight: bump → test → build → next steps
-#   just release-tag → Create + push tag → triggers CI publish + docs
+#   --- RELEASE ENGINEERING (see justfile.release) ---
+#   just rel-status          → Show version + changelog state
+#   just rel-bump LEVEL      → Bump patch|minor|major (writes VERSION + consumers)
+#   just rel-preflight       → Pre-release readiness checks
+#   just rel-prepare LEVEL   → bump + sync + promote changelog + commit
+#   just rel-dry-run         → Trigger TestPyPI + npm pack rehearsal via CI
+#   just rel-tag             → Tag + push → triggers publish
 #
 #   --- 100x DX COMMANDS ---
 #   just watch      → Auto-run generate+test on changes
@@ -44,6 +51,10 @@
 #   `just generate` formats its own output as part of the generation pipeline.
 #   See .gitattributes for the full generated file list.
 #
+
+# Release engineering recipes (rel-*) live in justfile.release.
+# They use the PYTOOL / PYTHON_DIR / TS_DIR variables defined below.
+import 'justfile.release'
 
 # --- First-time setup ---
 setup:
@@ -448,121 +459,10 @@ archive:
     @echo "Archived {{MANIFEST}} -> {{PREV_MANIFEST}}"
 
 # --- Package build (Python) ---
+# Prefer CI for publishing; see rel-* recipes in justfile.release.
 build: all
     @echo "Building Python package..."
     @cd {{PYTHON_DIR}} && uv build
-
-# --- Publish to TestPyPI ---
-publish-test: build
-    @echo "Publishing to TestPyPI..."
-    @cd {{PYTHON_DIR}} && uv publish --index testpypi
-
-# --- Publish to PyPI ---
-publish: build
-    @echo "Publishing to PyPI..."
-    @cd {{PYTHON_DIR}} && uv publish
-
-# ============================================================================
-# RELEASE ENGINEERING
-# ============================================================================
-#
-#   just bump patch|minor|major   → Bump version in _version.py
-#   just release                  → Full release preflight (bump → test → build → tag)
-#   just release-tag              → Create and push git tag from _version.py
-#   just version                  → Show current version
-#
-
-VERSION_FILE  := PYTHON_DIR / "src/adk_fluent/_version.py"
-
-# Show the current version from _version.py
-version:
-    @python3 -c "exec(open('{{VERSION_FILE}}').read()); print(__version__)"
-
-# Bump the version in _version.py. Usage: just bump patch|minor|major
-bump level:
-    #!/usr/bin/env python3
-    import re, sys
-    from pathlib import Path
-
-    level = "{{level}}"
-    if level not in ("patch", "minor", "major"):
-        print(f"ERROR: invalid level '{level}'. Use: just bump patch|minor|major")
-        sys.exit(1)
-
-    vf = Path("{{VERSION_FILE}}")
-    text = vf.read_text()
-    m = re.search(r'__version__\s*=\s*"(\d+)\.(\d+)\.(\d+)"', text)
-    if not m:
-        print("ERROR: could not parse version from _version.py")
-        sys.exit(1)
-
-    major, minor, patch = int(m.group(1)), int(m.group(2)), int(m.group(3))
-    if level == "major":
-        major, minor, patch = major + 1, 0, 0
-    elif level == "minor":
-        major, minor, patch = major, minor + 1, 0
-    else:
-        patch += 1
-
-    new_version = f"{major}.{minor}.{patch}"
-    vf.write_text(f'"""Single source of truth for adk-fluent version."""\n\n__version__ = "{new_version}"\n')
-    print(f"Bumped: {m.group(1)}.{m.group(2)}.{m.group(3)} → {new_version}")
-    print(f"  _version.py updated (docs/conf.py auto-syncs at build time)")
-
-# Create and push a git tag from _version.py
-release-tag:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    VERSION=$(python3 -c "exec(open('{{VERSION_FILE}}').read()); print(__version__)")
-    echo "Tagging v${VERSION}..."
-    if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
-        echo "ERROR: Tag v${VERSION} already exists"
-        exit 1
-    fi
-    git tag "v${VERSION}"
-    git push origin "v${VERSION}"
-    echo "✓ Tag v${VERSION} pushed — CI will publish to PyPI and rebuild docs"
-
-# Full release preflight: bump, run tests, build, and show next steps
-release level="patch": (bump level)
-    #!/usr/bin/env bash
-    set -euo pipefail
-    VERSION=$(python3 -c "exec(open('{{VERSION_FILE}}').read()); print(__version__)")
-    echo ""
-    echo "Running release preflight for v${VERSION}..."
-    echo ""
-
-    echo "── Running tests ──"
-    cd {{PYTHON_DIR}} && uv run pytest tests/ -x -q --tb=short
-
-    echo ""
-    echo "── Running typecheck ──"
-    cd {{PYTHON_DIR}} && uv run pyright src/adk_fluent/*.pyi --pythonversion 3.12 2>/dev/null || true
-
-    echo ""
-    echo "── Building package ──"
-    cd {{PYTHON_DIR}} && uv build
-
-    echo ""
-    echo "════════════════════════════════════════════════════════════"
-    echo "  Release v${VERSION} ready!"
-    echo ""
-    echo "  Next steps:"
-    echo "    1. Update CHANGELOG.md (move [Unreleased] → [${VERSION}])"
-    echo "    2. git add -A && git commit -m 'release: v${VERSION}'"
-    echo "    3. git push origin master"
-    echo "    4. just release-tag      ← triggers PyPI publish + docs"
-    echo ""
-    echo "  What happens automatically:"
-    echo "    ✓ CI validates tag matches _version.py"
-    echo "    ✓ CI publishes to PyPI via Trusted Publishing"
-    echo "    ✓ docs/conf.py auto-syncs version at build time"
-    echo "    ✓ Announcement banner updates automatically"
-    echo "    ✓ getting-started.md version note updates automatically"
-    echo "    ✓ Versioned docs deploy to /v${VERSION}/"
-    echo "    ✓ Version switcher dropdown updates"
-    echo "    ✓ Release drafter creates GitHub Release draft"
-    echo "════════════════════════════════════════════════════════════"
 
 # --- Clean ---
 clean:
@@ -620,14 +520,15 @@ help:
     @echo "  just diff           Show changes since last scan (JSON)"
     @echo "  just diff-md        Generate API diff as docs/generated/api-diff.md"
     @echo "  just build          Build pip package"
-    @echo "  just publish        Publish to PyPI"
     @echo "  just clean          Remove generated files"
     @echo ""
-    @echo "Release Engineering:"
-    @echo "  just version        Show current version"
-    @echo "  just bump LEVEL     Bump version (patch|minor|major)"
-    @echo "  just release LEVEL  Full preflight: bump + test + build"
-    @echo "  just release-tag    Create and push git tag → triggers PyPI + docs"
+    @echo "Release Engineering (see 'just --list' for all rel-* recipes):"
+    @echo "  just rel-status           Show VERSION + changelog state"
+    @echo "  just rel-bump LEVEL       Bump patch|minor|major (writes VERSION + consumers)"
+    @echo "  just rel-preflight        Pre-release readiness checks"
+    @echo "  just rel-prepare LEVEL    bump + sync + promote changelog + commit"
+    @echo "  just rel-dry-run          TestPyPI + npm pack rehearsal (via CI)"
+    @echo "  just rel-tag              Tag + push → triggers publish"
     @echo ""
     @echo "Workflow: just setup -> just all -> just ci -> commit"
     @echo ""
