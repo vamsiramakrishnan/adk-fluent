@@ -1067,14 +1067,76 @@ async def run_events(builder, prompt: str, *, tape=None):
 # ---------------------------------------------------------------------------
 
 
-def _add_ui_spec(builder, spec):
-    """Attach A2UI surface/config to the agent.
+def _add_ui_spec(builder, spec, *, llm_guided: bool = False, validate: bool = True, log: bool = False):
+    """Attach A2UI surface/config to the agent and stamp auto-wire flags.
 
     Accepts:
-      - UISurface: declarative surface definition
-      - UIComponent: wrapped in a default surface
-      - _UIAutoSpec: LLM-guided mode (schema injection)
-      - _UISchemaSpec: schema-only prompt injection
+      - ``None`` + ``llm_guided=True``: auto-promote to ``UI.auto()`` with
+        auto-tool + auto-guard wiring.
+      - ``UISurface``: declarative surface definition (prompt-only).
+      - ``UIComponent``: wrapped in a default surface.
+      - ``_UIAutoSpec``: LLM-guided mode (schema injection); ``llm_guided=True``
+        flips on auto-tool + auto-guard wiring.
+      - ``_UISchemaSpec``: schema-only prompt injection.
+
+    The actual wiring (tools, guards, callbacks, instruction) happens later in
+    :func:`adk_fluent._ui_compile.compile_ui_for_agent`. This function is
+    responsible only for spec normalization and flag stamping.
     """
+    import warnings
+
+    from adk_fluent._exceptions import A2UIError
+    from adk_fluent._ui import UIComponent, UISurface, _UIAutoSpec, _UISchemaSpec
+
+    # Normalize spec / behavior matrix
+    auto_tool = False
+    auto_guard = False
+
+    if spec is None:
+        if not llm_guided:
+            raise A2UIError("Agent.ui() requires a spec or llm_guided=True")
+        # Promote to a flag-driven auto spec
+        spec = _UIAutoSpec(catalog="basic", _from_flag=True)
+        auto_tool = True
+        auto_guard = True
+    elif isinstance(spec, _UIAutoSpec):
+        if llm_guided:
+            auto_tool = True
+            auto_guard = True
+        # else: prompt-only injection
+    elif isinstance(spec, (UISurface, _UISchemaSpec)):
+        if llm_guided:
+            raise A2UIError(
+                "llm_guided=True is incompatible with a declarative surface; "
+                "use UI.auto() or omit the spec"
+            )
+    elif isinstance(spec, UIComponent):
+        if llm_guided:
+            raise A2UIError(
+                "llm_guided=True is incompatible with a declarative surface; "
+                "use UI.auto() or omit the spec"
+            )
+        # Wrap loose component in a default surface
+        spec = UISurface(name="default", root=spec)
+    else:
+        raise A2UIError(
+            f"Agent.ui() received unsupported spec type {type(spec).__name__}; "
+            "expected UISurface, UIComponent, UI.auto(), UI.schema(), or None+llm_guided=True"
+        )
+
+    # Idempotency warning when overwriting a prior spec
+    prior = builder._config.get("_ui_spec")
+    if prior is not None:
+        prior_mode = "declarative" if isinstance(prior, UISurface) else type(prior).__name__
+        warnings.warn(
+            f"Agent.ui() called twice on the same builder; replacing the prior {prior_mode} spec",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+
     builder._config["_ui_spec"] = spec
+    builder._config["_a2ui_auto_tool"] = auto_tool
+    builder._config["_a2ui_auto_guard"] = auto_guard
+    builder._config["_a2ui_auto_log"] = bool(log)
+    builder._config["_a2ui_validate"] = bool(validate)
     return builder

@@ -1859,6 +1859,18 @@ class BuilderBase:
         if self._config.get("_auto_wire"):
             self.auto_wire()
 
+        # UI auto-wire: stamp tools/guards/middleware onto the builder BEFORE
+        # callback/list composition runs. Validation of the surface also
+        # happens here so failures surface before _run_build_contracts().
+        ui_spec = self._config.get("_ui_spec")
+        if ui_spec is not None:
+            from adk_fluent._ui import UISurface
+            from adk_fluent._ui_compile import _apply_ui_auto_wire
+
+            if self._config.get("_a2ui_validate", True) and isinstance(ui_spec, UISurface):
+                ui_spec.validate()
+            _apply_ui_auto_wire(self, ui_spec)
+
         # Run IR-first contract checking (appendix_f Q1, Q3)
         self._run_build_contracts()
 

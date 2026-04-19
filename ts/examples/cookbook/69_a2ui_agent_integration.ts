@@ -1,97 +1,60 @@
 /**
  * 69 — A2UI Agent Integration: Wiring UI to Agents
  *
- * Demonstrates attaching UI surfaces to agents and cross-namespace integration.
- *
- * Cookbook covers:
- *   - Agent.ui() with declarative surface
- *   - Agent.ui() with LLM-guided mode (UI.auto)
- *   - T.a2ui() toolset for LLM-controlled UI
- *   - G.a2ui() guard for LLM-generated UI validation
- *   - P.uiSchema() inject catalog schema into prompt
- *   - S.toUi() / S.fromUi() state bridging
+ * Demonstrates the new schema-driven UI surface (Zod) plus the
+ * declarative-vs-LLM-guided behavior matrix on `Agent.ui()`.
  */
 import assert from "node:assert/strict";
+import { z } from "zod";
 import {
   Agent,
-  UI,
-  UISurface,
-  T,
   G,
+  GComposite,
   P,
   S,
-  TComposite,
-  GComposite,
   STransform,
+  UI,
+  UIAutoSpec,
+  UISurface,
 } from "../../src/index.js";
 
 const MODEL = "gemini-2.5-flash";
 
-// --- 1. Agent.ui() with declarative surface ---
-const formSurface = UI.form("ticket", {
-  fields: [{ label: "Issue", type: "longText" }, { label: "Priority" }],
+// --- 1. Schema-driven form: UI.form(z.object(...)) ---
+const Ticket = z.object({
+  title: z.string(),
+  email: z.string().email(),
+  priority: z.enum(["low", "medium", "high"]),
 });
-const agent = new Agent("support", MODEL).instruct("Help users.").ui(formSurface);
-assert.equal(agent.inspect()._ui_spec, formSurface);
+const ticketSurface = UI.form(Ticket, { title: "Ticket", submitAction: "submit_ticket" });
+assert.ok(ticketSurface instanceof UISurface);
 
-// --- 2. Agent.ui() with LLM-guided mode ---
-const auto = UI.auto();
-const creative = new Agent("creative", MODEL).instruct("Build UIs.").ui(auto);
-assert.equal(creative.inspect()._ui_spec, auto);
-assert.equal((auto as { type: string }).type, "a2ui_auto");
+// --- 2. UI.paths(Schema) for reflective binding ---
+const paths = UI.paths<{ title: { path: string }; email: { path: string } }>(Ticket);
+assert.equal(paths.email.path, "/email");
 
-// --- 3. Agent.ui() with component tree ---
-const formAgent = new Agent("form", MODEL).ui(
-  UI.surface(
-    "signup",
-    UI.column([
-      UI.text("Sign Up"),
-      UI.row([UI.textField("Email"), UI.textField("Password")]),
-      UI.button("Submit"),
-    ]),
-  ),
-);
-assert.ok(formAgent.inspect()._ui_spec != null);
+// --- 3. Declarative .ui(surface) ---
+const declarative = new Agent("support", MODEL).instruct("Help users.").ui(ticketSurface);
+assert.equal(declarative.inspect()._ui_spec, ticketSurface);
 
-// --- 4. T.a2ui() tool composition ---
-const tc = T.a2ui();
-assert.ok(tc instanceof TComposite);
-assert.equal(tc.items[0].type, "a2ui");
+// --- 4. LLM-guided via the flag (no spec needed) ---
+const guided = new Agent("creative", MODEL)
+  .instruct("Build UIs.")
+  .ui(undefined, { llmGuided: true });
+const guidedSpec = guided.inspect()._ui_spec;
+assert.ok(guidedSpec instanceof UIAutoSpec);
+assert.equal((guidedSpec as UIAutoSpec).fromFlag, true);
+assert.equal(guided.inspect()._a2uiAutoTool, true);
+assert.equal(guided.inspect()._a2uiAutoGuard, true);
 
-// Compose with other tools
-const composed = T.googleSearch().pipe(T.a2ui());
-assert.ok(composed instanceof TComposite);
-assert.ok(composed.items.length >= 2);
-
-// --- 5. G.a2ui() guard ---
-const gc = G.a2ui({ maxComponents: 30 });
-assert.ok(gc instanceof GComposite);
-
-// Compose with other guards
+// --- 5. Cross-namespace: G.a2ui still composes with other guards ---
 const composedGuard = G.pii().pipe(G.a2ui());
 assert.ok(composedGuard instanceof GComposite);
 
-// --- 6. P.uiSchema() prompt injection ---
+// --- 6. P.uiSchema() and S.toUi() bridges still work ---
 const ps = P.uiSchema();
 assert.equal(ps.section, "UI Schema");
-assert.equal(ps.meta.uiSchema, true);
-
-// Compose with other prompt sections
-const fullPrompt = P.role("UI designer").add(P.uiSchema()).add(P.task("Build a dashboard"));
-assert.ok(fullPrompt instanceof Object);
-
-// --- 7. S.toUi() / S.fromUi() state bridging ---
-const toUi = S.toUi("total", "count");
+const toUi = S.toUi("total");
 assert.ok(toUi instanceof STransform);
-assert.match(toUi.name, /toUi/);
 
-const fromUi = S.fromUi("name", "email");
-assert.ok(fromUi instanceof STransform);
-assert.match(fromUi.name, /fromUi/);
-
-// --- 8. Build strips _ui_spec from the ADK object ---
-const built = agent.build() as Record<string, unknown>;
-assert.equal(built._ui_spec, undefined);
-assert.equal(built.name, "support");
-
-export { agent, creative, formAgent, toUi, fromUi };
+export { ticketSurface, declarative, guided };

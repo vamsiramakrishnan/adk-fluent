@@ -9,10 +9,10 @@
  *   - text / button / textField / image / row / column factories
  *   - data binding via UI.bind() + validation checks (UI.required, UI.email)
  *   - attaching a surface to an Agent via .ui() — stored in `_ui_spec`
- *   - LLM-guided mode via UI.auto()
+ *   - LLM-guided mode via UI.auto() (returns a UIAutoSpec instance)
  */
 import assert from "node:assert/strict";
-import { Agent, UI, UIComponent, UISurface } from "../../src/index.js";
+import { Agent, UI, UIAutoSpec, UIComponent, UISurface } from "../../src/index.js";
 
 const MODEL = "gemini-2.5-flash";
 
@@ -64,8 +64,10 @@ assert.equal(built._ui_spec, undefined);
 assert.equal(built.name, "login_helper");
 
 // LLM-guided mode: agent picks the UI dynamically from a catalog.
+// UI.auto() now returns a UIAutoSpec instance.
 const auto = UI.auto({ catalog: "basic" });
-assert.equal((auto as { type: string }).type, "a2ui_auto");
+assert.ok(auto instanceof UIAutoSpec);
+assert.equal(auto.catalog, "basic");
 const autoAgent = new Agent("ui_auto", MODEL).instruct("Render a UI.").ui(auto);
 assert.equal(autoAgent.inspect()._ui_spec, auto);
 

@@ -14,14 +14,14 @@
  *   - P.uiSchema() for lightweight component docs in prompt
  */
 import assert from "node:assert/strict";
-import { Agent, UI, UISurface, P } from "../../src/index.js";
+import { Agent, UI, UIAutoSpec, UISurface, P } from "../../src/index.js";
 
 const MODEL = "gemini-2.5-flash";
 
-// --- 1. UI.auto() is the LLM-guided mode marker ---
+// --- 1. UI.auto() is the LLM-guided mode marker (UIAutoSpec instance) ---
 const auto = UI.auto();
-assert.equal((auto as { type: string }).type, "a2ui_auto");
-assert.equal((auto as { catalog: string }).catalog, "basic");
+assert.ok(auto instanceof UIAutoSpec);
+assert.equal(auto.catalog, "basic");
 
 // --- 2. Agent with .ui(UI.auto()) + domain tools ---
 function getData(query: string): string {
@@ -59,7 +59,7 @@ assert.ok(schemaSection.meta.catalog === "basic");
 
 // --- 5. UI.auto() with custom catalog ---
 const extendedAuto = UI.auto({ catalog: "extended" });
-assert.equal((extendedAuto as { catalog: string }).catalog, "extended");
+assert.equal(extendedAuto.catalog, "extended");
 
 // Build strips _ui_spec from the ADK object
 assert.equal((built as Record<string, unknown>)._ui_spec, undefined);

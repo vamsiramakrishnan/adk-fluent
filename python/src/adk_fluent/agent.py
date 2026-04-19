@@ -479,11 +479,41 @@ class Agent(BuilderBase):
 
         return _add_tools(self, value)
 
-    def ui(self, spec: Any) -> Self:
-        """Attach A2UI surface for rich UI output. Declarative: .ui(UI.form(...)). LLM-guided: .ui(UI.auto()). Component tree: .ui(UI.column(UI.text('Hi'), UI.button('Go', action='go')))."""
+    def ui(
+        self,
+        spec: Any = None,
+        *,
+        llm_guided: bool = False,
+        validate: bool = True,
+        log: bool = False,
+    ) -> Self:
+        """Attach A2UI surface for rich UI output.
+
+        Modes:
+
+        - Declarative: ``.ui(UI.form(...))`` or ``.ui(UI.surface(...))``.
+        - LLM-guided: ``.ui(UI.auto())`` or ``.ui(llm_guided=True)``.
+        - Component tree: ``.ui(UI.column(UI.text('Hi'), UI.button('Go', action='go')))``.
+
+        Args:
+            spec: A ``UISurface``, ``UIComponent``, ``UI.auto()`` marker, or
+                ``UI.schema()`` marker. Required unless ``llm_guided=True``.
+            llm_guided: When True (and ``spec`` is None or ``UI.auto()``),
+                auto-wires ``T.a2ui()`` and ``G.a2ui()`` so the LLM can
+                generate UI directly. Incompatible with declarative specs.
+            validate: When True (default), runs ``surface.validate()`` at
+                build-time on declarative ``UISurface`` specs.
+            log: When True, auto-wires ``M.a2ui_log(level="info")`` to log
+                A2UI surface operations.
+
+        Note:
+            ``P.ui_schema()`` content is already injected into the agent's
+            instruction by the UI compiler — you do not need to add it
+            manually when calling ``.ui(...)``.
+        """
         from adk_fluent._helpers import _add_ui_spec
 
-        return _add_ui_spec(self, spec)
+        return _add_ui_spec(self, spec, llm_guided=llm_guided, validate=validate, log=log)
 
     def guard(self, value: Any) -> Self:
         """Add an output validation guard. Accepts a G composite (G.pii() | G.length(max=500)) or a plain callable. Guards run as after_model callbacks and validate/transform the LLM response before it is returned."""

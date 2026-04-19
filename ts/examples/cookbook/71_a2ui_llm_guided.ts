@@ -1,54 +1,37 @@
 /**
- * 71 — A2UI LLM-Guided Mode: Let the LLM Design the UI
+ * 71 — A2UI LLM-Guided Mode: let the LLM design the UI.
  *
- * Demonstrates LLM-guided UI mode where the agent has full control
- * over the A2UI surface via toolset and catalog schema injection.
- *
- * Cookbook covers:
- *   - UI.auto() for LLM-guided mode
- *   - P.uiSchema() inject catalog schema into prompt
- *   - T.a2ui() toolset for LLM-controlled UI
- *   - G.a2ui() guard to validate LLM-generated UI output
- *   - Full namespace symphony combining all four
+ * The new ergonomic shape: pass `llmGuided: true` and the agent self-wires
+ * the prompt schema. (The `T.a2ui()` toolset throws A2UINotInstalled
+ * because the `a2ui-agent` JS package is not yet published — auto-tooling
+ * is a no-op at build time once the package ships.)
  */
 import assert from "node:assert/strict";
-import { Agent, UI, T, G, P, TComposite, GComposite } from "../../src/index.js";
+import { Agent, P, UI, UIAutoSpec } from "../../src/index.js";
 
 const MODEL = "gemini-2.5-flash";
 
-// --- 1. Basic LLM-guided agent ---
-const autoAgent = new Agent("creative", MODEL).instruct("Build beautiful UIs.").ui(UI.auto());
-const autoSpec = autoAgent.inspect()._ui_spec as { type: string; catalog: string };
-assert.equal(autoSpec.type, "a2ui_auto");
+// --- 1. Shortest path: omit spec, set the flag ---
+const auto = new Agent("creative", MODEL)
+  .instruct("Build beautiful UIs.")
+  .ui(undefined, { llmGuided: true });
+const autoSpec = auto.inspect()._ui_spec as UIAutoSpec;
+assert.ok(autoSpec instanceof UIAutoSpec);
 assert.equal(autoSpec.catalog, "basic");
+assert.equal(autoSpec.fromFlag, true);
 
-// --- 2. LLM-guided with catalog schema in prompt ---
-const guided = new Agent("designer", MODEL)
+// --- 2. Equivalent: pass UI.auto() explicitly + flag (auto-wires tools) ---
+const explicit = new Agent("designer", MODEL)
   .instruct(P.role("UI designer").add(P.uiSchema()).add(P.task("Build a dashboard")))
+  .ui(UI.auto({ catalog: "extended" }), { llmGuided: true });
+const explicitSpec = explicit.inspect()._ui_spec as UIAutoSpec;
+assert.equal(explicitSpec.catalog, "extended");
+assert.equal(explicit.inspect()._a2uiAutoGuard, true);
+
+// --- 3. Prompt-only: UI.auto() without llmGuided does NOT auto-wire tools ---
+const promptOnly = new Agent("noisy", MODEL)
+  .instruct("Mention available components only.")
   .ui(UI.auto());
-assert.ok(guided.inspect()._ui_spec != null);
+assert.equal(promptOnly.inspect()._a2uiAutoTool, false);
 
-// --- 3. Full namespace symphony ---
-const fullAgent = new Agent("support", MODEL)
-  .instruct(P.role("Support agent").add(P.uiSchema()).add(P.task("Help customers")))
-  .tools(T.googleSearch().pipe(T.a2ui()))
-  .guard(G.pii().pipe(G.a2ui({ maxComponents: 30 })))
-  .ui(UI.auto());
-assert.ok(fullAgent.inspect()._ui_spec != null);
-
-// --- 4. UI.auto() with custom catalog ---
-const custom = UI.auto({ catalog: "extended" });
-assert.equal((custom as { catalog: string }).catalog, "extended");
-
-// --- 5. P.uiSchema() produces schema metadata ---
-const schemaSection = P.uiSchema();
-assert.equal(schemaSection.section, "UI Schema");
-assert.equal(schemaSection.meta.uiSchema, true);
-assert.equal(schemaSection.meta.catalog, "basic");
-
-// --- 6. P.uiSchema() with options ---
-const customSchema = P.uiSchema({ catalog: "extended", examples: false });
-assert.equal(customSchema.meta.catalog, "extended");
-assert.equal(customSchema.meta.examples, false);
-
-export { autoAgent, guided, fullAgent };
+export { auto, explicit, promptOnly };

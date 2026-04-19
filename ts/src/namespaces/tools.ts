@@ -10,6 +10,7 @@
  */
 
 import type { ToolFn } from "../core/types.js";
+import { A2UINotInstalled } from "../_exceptions.js";
 
 /** Descriptor for a single tool in the composite. */
 export interface ToolSpec {
@@ -151,14 +152,17 @@ export class T {
     ]);
   }
 
-  /** A2UI toolset. */
-  static a2ui(opts?: { catalog?: string }): TComposite {
-    return new TComposite([
-      {
-        type: "a2ui",
-        catalog: opts?.catalog ?? "basic",
-      },
-    ]);
+  /**
+   * A2UI toolset — exposes UI generation/binding tools to the LLM.
+   *
+   * Requires the `a2ui-agent` JS package, which is not yet published.
+   * Throws `A2UINotInstalled` until the package ships.
+   */
+  static a2ui(_opts?: { catalog?: string }): TComposite {
+    throw new A2UINotInstalled(
+      "T.a2ui() requires the 'a2ui-agent' package. " +
+        "Install with: npm install a2ui-agent",
+    );
   }
 
   /**
