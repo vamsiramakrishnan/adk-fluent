@@ -7,6 +7,20 @@
 #   python/src/adk_fluent/_version.py
 #   ts/package.json
 #
+# Canonical flow — "bump, commit, push"
+# -------------------------------------
+#   1. just rel-prepare minor         → bump + sync + promote changelog + commit
+#   2. git push origin master         → CI takes over
+#
+# CI (.github/workflows/release.yml) watches VERSION on master. On a bump it:
+#   - builds Python + TS
+#   - publishes to PyPI (Trusted Publishing) and npm (provenance)
+#   - creates + pushes v<VERSION> tag
+#   - drafts the GitHub Release with artifacts attached
+#
+# No manual tagging. No `gh` CLI. The commit that changes VERSION is the
+# release signal.
+#
 # Commands
 # --------
 #   just rel-version              → print canonical version
@@ -16,27 +30,21 @@
 #   just rel-preflight            → readiness checks (versions, changelog, tag free, tree clean)
 #   just rel-preflight-strict     → same but warnings become failures (CI-grade)
 #   just rel-prepare LEVEL        → bump + sync + promote changelog + commit
-#   just rel-dry-run              → TestPyPI + npm pack rehearsal (triggers CI workflow_dispatch)
-#   just rel-tag                  → create + push v$VERSION tag → triggers publish
+#   just rel-dry-run              → TestPyPI + npm pack rehearsal (CI workflow_dispatch)
+#   just rel-tag                  → emergency escape hatch — force-create the tag manually
 #   just rel-publish-python       → manual local build + `uv publish` (last-resort)
 #   just rel-publish-npm          → manual local build + `npm publish` (last-resort)
 #
 # Backward-compat aliases:
 #   just version, just bump LEVEL, just release LEVEL, just release-tag
 #
-# Normal flow
-# -----------
-#   1. just rel-prepare minor       → bumps + commits "release: v0.15.0"
-#   2. review diff, push to master
-#   3. just rel-tag                 → tags v0.15.0, pushes, CI publishes
-#
 # Dry-run flow
 # ------------
 #   1. just rel-bump patch
 #   2. just rel-preflight
-#   3. gh workflow run release.yml -f target=dry-run   # OR: just rel-dry-run
+#   3. just rel-dry-run          # dispatches CI with target=dry-run
 #   4. inspect run → TestPyPI install works, npm pack listing is correct
-#   5. revert bump if needed; tag when happy
+#   5. revert bump if needed; push when happy
 #
 # ============================================================================
 
@@ -74,23 +82,23 @@ rel-prepare level:
     git commit -m "release: v${NEW_VERSION}"
     echo ""
     echo "Committed release: v${NEW_VERSION}"
-    echo "Next:  git push && just rel-tag"
+    echo "Next:  git push origin master   (CI will publish + tag)"
 
-# --- Tag + push (triggers publish workflow) ---
+# --- Emergency: force-tag locally. Only needed if CI can't reach origin. ---
 rel-tag:
     #!/usr/bin/env bash
     set -euo pipefail
+    echo "NOTE: master pushes auto-tag via CI. Use this only as an escape hatch."
     VERSION=$({{_REL}} version)
     TAG="v${VERSION}"
     if git rev-parse "$TAG" >/dev/null 2>&1; then
         echo "ERROR: tag $TAG already exists locally"; exit 1
     fi
-    # Preflight guards against a dirty tree / stale consumers
     {{_REL}} preflight --strict
     git tag -a "$TAG" -m "Release $TAG"
     git push origin "$TAG"
     echo ""
-    echo "✓ Pushed $TAG — the release workflow will publish to PyPI + npm."
+    echo "Pushed $TAG manually."
 
 # --- Dispatch a dry-run via GitHub Actions (requires gh CLI) ---
 rel-dry-run:
@@ -102,14 +110,14 @@ rel-dry-run:
 rel-publish-python:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "⚠️  Prefer the CI workflow. Continuing in 3s..."; sleep 3
+    echo "Prefer the CI workflow. Continuing in 3s..."; sleep 3
     {{_REL}} preflight --strict
     cd {{PYTHON_DIR}} && uv build && uv publish
 
 rel-publish-npm:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "⚠️  Prefer the CI workflow. Continuing in 3s..."; sleep 3
+    echo "Prefer the CI workflow. Continuing in 3s..."; sleep 3
     {{_REL}} preflight --strict
     cp LICENSE {{TS_DIR}}/LICENSE
     cd {{TS_DIR}} && npm ci && npm run build && npm publish --access public
