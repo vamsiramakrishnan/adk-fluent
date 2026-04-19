@@ -186,7 +186,7 @@ jobs:
           name: generated-code
 
       - name: Create PR
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           title: "chore: sync with google-adk ${{ needs.scan-and-generate.outputs.adk_version }}"
           branch: auto/sync-adk-${{ needs.scan-and-generate.outputs.adk_version }}
