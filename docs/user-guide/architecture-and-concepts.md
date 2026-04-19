@@ -135,3 +135,11 @@ The `>>` operator should respect this:
 ## Context Engineering: The Five Operations
 
 Context engineering is not just overflow handling. It is the *continuous discipline* of assembling the smallest, highest-signal token set that maximizes an agent's likelihood of producing the desired outcome.
+
+| Operation    | What it does                                     | v1 Coverage                   | Gap                                                           |
+| ------------ | ------------------------------------------------ | ----------------------------- | ------------------------------------------------------------- |
+| **SELECT**   | Choose which information enters context          | Partial (event filters)       | No relevance scoring, no recency decay, no semantic retrieval |
+| **COMPRESS** | Reduce token footprint without losing meaning    | Good (summarization, rolling) | No reversible compaction, no dedup, no projection             |
+| **WRITE**    | Produce context artifacts for future consumption | Minimal (C.capture to state)  | No scratchpads, no structured extraction, no note-taking      |
+| **BUDGET**   | Token-aware assembly with priority tiers         | None                          | Entirely missing                                              |
+| **PROTECT**  | Guard context quality and safety                 | None                          | No freshness, no redaction, no validation                     |
