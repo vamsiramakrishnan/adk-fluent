@@ -250,6 +250,16 @@ llms: _require-manifest _require-seed
     @echo "Generating llms.txt and editor rules..."
     @{{PY}} {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
 
+# --- Lint rendered docs for broken links / missing anchors (non-blocking) ---
+validate-docs:
+    @echo "Validating docs/ for broken internal references..."
+    @{{PY}} {{SHARED_DIR}}/scripts/docs_validator.py --root docs
+
+# --- Same as validate-docs, but exit non-zero on any finding (for CI) ---
+check-docs:
+    @echo "Strict docs validation..."
+    @{{PY}} {{SHARED_DIR}}/scripts/docs_validator.py --root docs --strict
+
 # --- Agent Skills reference generation ---
 skills: _require-manifest _require-seed
     @echo "Generating agent skill references..."
