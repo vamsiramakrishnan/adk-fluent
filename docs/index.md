@@ -102,7 +102,41 @@ hide-toc: true
 </div>
 ```
 
-## Before / After
+## Your first agent — three lines
+
+::::{tab-set}
+:::{tab-item} adk-fluent — Python
+:sync: python
+
+```python
+from adk_fluent import Agent
+
+answer = Agent("helper", "gemini-2.5-flash").ask("Say hello.")
+```
+:::
+:::{tab-item} adk-fluent — TypeScript
+:sync: ts
+
+```ts
+import { Agent } from "adk-fluent-ts";
+
+const answer = await new Agent("helper", "gemini-2.5-flash").ask("Say hello.");
+```
+:::
+:::{tab-item} Native ADK
+```python
+# See the "22 lines" tab below for the native equivalent of the pipeline sample.
+```
+:::
+::::
+
+That is the complete code. When you are ready to compose multiple agents in
+parallel or in sequence, scroll to *Pipeline flex* below.
+
+## Pipeline flex — when you need more
+
+This is the same fluent API at scale. Skim it now, come back after the
+getting-started page.
 
 ::::{tab-set}
 :::{tab-item} adk-fluent — Python

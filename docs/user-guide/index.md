@@ -165,16 +165,20 @@ Start with ADK. If you need durability, see [Execution Backends](execution-backe
 
 ```{toctree}
 ---
+caption: Foundations
 maxdepth: 2
-hidden: true
 ---
 architecture-and-concepts
-typescript
-best-practices
-comparison
 builders
 expression-language
 data-flow
+```
+
+```{toctree}
+---
+caption: Building agents
+maxdepth: 2
+---
 prompts
 execution
 callbacks
@@ -182,19 +186,54 @@ presets
 state-transforms
 structured-data
 context-engineering
+```
+
+```{toctree}
+---
+caption: Patterns & control flow
+maxdepth: 2
+---
 patterns
 visibility
 transfer-control
 memory
-ir-and-backends
-execution-backends
-temporal-guide
+```
+
+```{toctree}
+---
+caption: Safety & observability
+maxdepth: 2
+---
 middleware
 guards
 evaluation
 testing
+```
+
+```{toctree}
+---
+caption: Backends & execution
+maxdepth: 2
+---
+ir-and-backends
+execution-backends
+temporal-guide
+```
+
+```{toctree}
+---
+caption: Distributed agents
+maxdepth: 2
+---
 a2a
 a2ui
+```
+
+```{toctree}
+---
+caption: Harness (hooks, permissions, reactor)
+maxdepth: 2
+---
 skills
 harness
 hooks
@@ -208,6 +247,17 @@ compression
 budget
 usage
 fs
+```
+
+```{toctree}
+---
+caption: Reference
+maxdepth: 2
+hidden: true
+---
+typescript
+best-practices
+comparison
 error-reference
 adk-samples/index
 ```

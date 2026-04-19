@@ -1,5 +1,7 @@
 # Gemini CLI / Claude Code Clone -- Production Coding Agent Harness
 
+<!-- adk-fluent:hand-crafted -->
+
 :::{tip} What you'll learn
 How to build a fully-functional autonomous coding runtime using adk-fluent's harness primitives -- the **Harness Path**. This is the proof that the same framework that builds single-purpose agents can build a Claude-Code-class system. Covers all 5 layers and all 4 foundation primitives.
 :::

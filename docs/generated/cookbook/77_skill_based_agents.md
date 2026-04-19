@@ -1,5 +1,7 @@
 # Skill-Based Agents -- Composable Skills from SKILL.md Files
 
+<!-- adk-fluent:hand-crafted -->
+
 :::{tip} What you'll learn
 How to declare agent topologies in YAML, load them as `Skill()` builders, compose them with operators, inject tools, and discover skills via `SkillRegistry`. This is the **Skills Path** -- one of adk-fluent's [three development pathways](../../user-guide/index.md#three-pathways).
 :::

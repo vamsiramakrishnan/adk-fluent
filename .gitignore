@@ -8,6 +8,7 @@ node_modules/
 .adk/
 .pip-cache/
 docs/_build/
+docs/_generated/
 manifest.json
 manifest.previous.json
 .hypothesis/

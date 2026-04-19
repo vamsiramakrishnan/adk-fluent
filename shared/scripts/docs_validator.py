@@ -27,8 +27,14 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+_THIS_DIR = Path(__file__).resolve().parent
+if str(_THIS_DIR) not in sys.path:
+    sys.path.insert(0, str(_THIS_DIR))
+
 LINK_RE = re.compile(r"(?<!\!)\[[^\]]+\]\(([^)\s]+?)(?:\s+\"[^\"]*\")?\)")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
+# MyST explicit anchors: `(anchor-name)=` on its own line.
+EXPLICIT_ANCHOR_RE = re.compile(r"^\((?P<name>[A-Za-z0-9_\-.:]+)\)=\s*$")
 
 
 @dataclass(frozen=True)
@@ -55,11 +61,28 @@ def _slugify(heading: str) -> str:
 
 
 def _collect_headings(text: str) -> list[str]:
+    """Return every anchor available in the file.
+
+    Two anchor sources:
+
+      * Markdown headings (``## Foo Bar``) → ``foo-bar`` (slugified).
+      * MyST explicit anchors (``(builder-Agent)=`` on its own line) →
+        ``builder-agent`` **and** the raw case-preserving form. Both are
+        kept because upstream generators may emit mixed-case links for
+        historical reasons; lowering case makes the validator tolerant
+        of either convention.
+    """
     out: list[str] = []
     for line in text.splitlines():
         m = HEADING_RE.match(line)
         if m:
             out.append(_slugify(m.group(2)))
+            continue
+        a = EXPLICIT_ANCHOR_RE.match(line)
+        if a:
+            name = a.group("name")
+            out.append(name)
+            out.append(name.lower())
     return out
 
 
@@ -90,7 +113,7 @@ def validate_tree(root: Path) -> list[Finding]:
                     continue
                 if target.startswith("#"):
                     anchor = target.lstrip("#")
-                    if anchor and anchor not in headings:
+                    if anchor and anchor not in headings and anchor.lower() not in headings:
                         findings.append(
                             Finding(md, lineno, "missing-anchor", f"in-page anchor '#{anchor}' not found")
                         )
@@ -117,7 +140,7 @@ def validate_tree(root: Path) -> list[Finding]:
 
                 if anchor and resolved.suffix == ".md" and resolved.exists():
                     target_headings = _collect_headings(resolved.read_text())
-                    if anchor not in target_headings:
+                    if anchor not in target_headings and anchor.lower() not in target_headings:
                         findings.append(
                             Finding(
                                 md,
@@ -130,10 +153,56 @@ def validate_tree(root: Path) -> list[Finding]:
     return findings
 
 
+def validate_against_doc_ir(doc_ir_path: Path, docs_root: Path) -> list[Finding]:
+    """Check that every builder in DocIR has a rendered page with its anchor.
+
+    Returns structured findings. Does not import generator internals — only
+    reads the JSON snapshot produced by ``doc_ir.py``.
+    """
+    if not doc_ir_path.exists():
+        return [Finding(doc_ir_path, 0, "doc-ir-missing", "DocIR snapshot not built; run 'just doc-ir'")]
+
+    from doc_ir import DocIR  # local import to keep validator cheap without DocIR
+
+    ir = DocIR.read_json(doc_ir_path)
+    findings: list[Finding] = []
+    generated_root = docs_root / "generated"
+
+    for builder in ir.builders:
+        target = generated_root / "api" / f"{builder.module}.md"
+        if not target.exists():
+            findings.append(
+                Finding(target, 0, "doc-ir-missing-page", f"no rendered page for builder {builder.name}")
+            )
+            continue
+        text = target.read_text()
+        if f"(builder-{builder.name})=" not in text and f"(builder-{builder.name.lower()})=" not in text:
+            findings.append(
+                Finding(target, 0, "doc-ir-missing-anchor", f"builder {builder.name} has no explicit anchor in {target.name}")
+            )
+
+    expected_ns = {n.symbol for n in ir.namespaces}
+    ns_index = generated_root / "namespaces" / "index.md"
+    if ns_index.exists():
+        ns_text = ns_index.read_text()
+        for symbol in expected_ns:
+            if f"`{symbol}`" not in ns_text and f"`{symbol}." not in ns_text and f"#{symbol}" not in ns_text:
+                findings.append(
+                    Finding(ns_index, 0, "doc-ir-namespace-missing", f"namespace {symbol} not referenced in namespaces/index.md")
+                )
+
+    return findings
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
     parser.add_argument("--root", default="docs", help="Docs root to scan (default: docs)")
     parser.add_argument("--strict", action="store_true", help="Exit 1 when any finding is reported")
+    parser.add_argument(
+        "--doc-ir",
+        default="docs/_generated/doc_ir.json",
+        help="Path to DocIR JSON (set to empty string to skip DocIR cross-check)",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -142,6 +211,9 @@ def main() -> int:
         return 2
 
     findings = validate_tree(root)
+    if args.doc_ir:
+        findings.extend(validate_against_doc_ir(Path(args.doc_ir).resolve(), root))
+
     for f in findings:
         print(f.format())
 

@@ -1,5 +1,7 @@
 # Skill-Powered Harness -- Building a CodAct Coding Agent
 
+<!-- adk-fluent:hand-crafted -->
+
 :::{tip} What you'll learn
 How to combine the **Skills Path** and **Harness Path** -- loading domain expertise from SKILL.md files into autonomous agents with sandboxed workspace tools, permission policies, and context engineering. This recipe bridges two of adk-fluent's [three development pathways](../../user-guide/index.md#three-pathways).
 :::
