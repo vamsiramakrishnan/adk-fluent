@@ -455,7 +455,6 @@ def generate_all(
         for name in lazy_map:
             pyi_lines.append(f'    "{name}",')
         pyi_lines.append("]")
-        pyi_lines.append("")
 
         init_pyi_path = output_path / "__init__.pyi"
         _write_file(init_pyi_path, "\n".join(pyi_lines) + "\n")

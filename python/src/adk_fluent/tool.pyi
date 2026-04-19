@@ -94,8 +94,8 @@ from google.adk.tools.long_running_tool import (
     LongRunningFunctionTool as _ADK_LongRunningFunctionTool,
 )
 from google.adk.tools.mcp_tool.mcp_tool import (
-    McpTool as _ADK_McpTool,
     MCPTool as _ADK_MCPTool,
+    McpTool as _ADK_McpTool,
     ProgressCallbackFactory,
 )
 from google.adk.tools.mcp_tool.mcp_toolset import (

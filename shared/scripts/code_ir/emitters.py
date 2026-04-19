@@ -109,9 +109,13 @@ def _sort_and_group_imports(raw_lines: list[str]) -> list[str]:
                 plain_imports[group].append(stripped)
 
     # Phase 2: rebuild merged import lines
-    # Sort names to match ruff/isort convention: ALL_CAPS first, then case-insensitive
-    def _isort_name_key(name: str) -> tuple[bool, str]:
-        return (not name.isupper(), name.lower())
+    # Sort names to match ruff/isort convention: ALL_CAPS first, then
+    # case-insensitive. The third key breaks ties when two names lower-case
+    # to the same string (e.g. ``MCPTool`` vs ``McpTool``) so that set
+    # iteration order — which is PYTHONHASHSEED-dependent — cannot make the
+    # output non-deterministic across runs.
+    def _isort_name_key(name: str) -> tuple[bool, str, str]:
+        return (not name.isupper(), name.lower(), name)
 
     groups: dict[int, list[str]] = {0: [], 1: [], 2: [], 3: []}
     for (group, module), names in from_imports.items():
