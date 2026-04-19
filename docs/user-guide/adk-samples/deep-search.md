@@ -295,7 +295,7 @@ class EscalationChecker(BaseAgent):
 
 import datetime
 
-from adk_fluent import Agent, until
+from adk_fluent import Agent, C, until
 from dotenv import load_dotenv
 from google.adk.planners import BuiltInPlanner
 from google.adk.tools import google_search
@@ -371,7 +371,7 @@ enhanced_search = (
 
 report_composer = (
     Agent("report_composer_with_citations", MODEL)
-    .history("none")
+    .context(C.none())
     .describe("Composes the final cited report.")
     .instruct(REPORT_COMPOSER_PROMPT)
     .writes("final_cited_report")
@@ -504,7 +504,7 @@ report_composer = LlmAgent(
 # Fluent
 report_composer = (
     Agent("report_composer_with_citations", MODEL)
-    .history("none")
+    .context(C.none())
     ...
 )
 ```

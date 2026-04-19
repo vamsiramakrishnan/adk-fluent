@@ -9,9 +9,13 @@ By the end, you'll understand the builder pattern, the expression operators,
 and when to use each.
 
 :::{note} Python and TypeScript — click a tab once
-Most code samples on this page come with a **Python** / **TypeScript** tab. Click either — every other synced tab across the docs follows your choice, and the preference sticks as you navigate. The conceptual content is the same in both languages; only the operator syntax differs (Python uses `>>` / `|` / `*` / `//` / `@`, TypeScript uses `.then()` / `.parallel()` / `.times()` / `.fallback()` / `.outputAs()`).
-
-If you picked **TypeScript**, also read the {doc}`user-guide/typescript` landing page for install, imports, and the full operator-mapping reference. Both packages are regenerated from the same `shared/manifest.json` in [`shared/`](https://github.com/vamsiramakrishnan/adk-fluent/tree/master/shared), so the API surface stays in sync by construction.
+Most samples ship with a **Python** / **TypeScript** tab. Click
+either — your choice syncs across every tab on the site and
+sticks as you navigate. The semantics are identical; only the
+operator syntax differs (Python uses `>>` / `|` / `*` / `//` /
+`@`; TypeScript uses `.then()` / `.parallel()` / `.times()` /
+`.fallback()` / `.outputAs()`). If you picked TypeScript, also
+see the {doc}`user-guide/typescript` landing page.
 :::
 
 ## Install
@@ -43,10 +47,6 @@ Autocomplete works out of the box — the package is written in TypeScript, so h
 
 ## Your First Agent
 
-:::{warning} Inside FastAPI / Jupyter / any running event loop?
-The synchronous `.ask()` and `.map()` methods **raise RuntimeError** when called inside an already-running event loop. Use `.ask_async()` and `.map_async()` (both awaitable) instead. See the [Execution](user-guide/execution.md) chapter for the full async surface.
-:::
-
 ::::{tab-set}
 :::{tab-item} Python
 :sync: python
@@ -55,6 +55,10 @@ The synchronous `.ask()` and `.map()` methods **raise RuntimeError** when called
 from adk_fluent import Agent
 
 agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
+# Returns a real google.adk.agents.llm_agent.LlmAgent — not a wrapper.
+
+print(agent.ask("Hello, who are you?"))
+# => Hi! I'm a helpful assistant. How can I help you today?
 ```
 :::
 :::{tab-item} TypeScript
@@ -66,11 +70,24 @@ import { Agent } from "adk-fluent-ts";
 const agent = new Agent("helper", "gemini-2.5-flash")
   .instruct("You are a helpful assistant.")
   .build();
+// Returns a real @google/adk LlmAgent — not a wrapper.
+
+console.log(await agent.ask("Hello, who are you?"));
+// => Hi! I'm a helpful assistant. How can I help you today?
 ```
 :::
 ::::
 
-That's it. `agent` is a real native ADK `LlmAgent` object — use it with `adk web`, `adk run`, or pass it to any ADK API. The TypeScript build returns an `@google/adk` `LlmAgent`; the Python build returns a `google.adk.agents.llm_agent.LlmAgent`. Same semantics, same field names, different runtime.
+That's a full agent. `agent` is a real native ADK `LlmAgent` — it
+works with `adk web`, `adk run`, `adk deploy`, or any ADK API.
+
+:::{warning} Jupyter, FastAPI, or any running event loop?
+Python's `.ask()` and `.map()` are **sync and blocking** — they
+raise `RuntimeError` inside an already-running event loop. Use
+`await agent.ask_async(...)` and `await agent.map_async(...)`
+instead. See [Execution](user-guide/execution.md) for the full
+async surface. (TypeScript is async-only; no equivalent footgun.)
+:::
 
 ## Your First Pipeline
 
@@ -452,26 +469,27 @@ pipeline.doctor()
 
 See [Error Reference](user-guide/error-reference.md) for every error type with fix-it examples.
 
-## Async Environments (Jupyter, FastAPI)
+## Async environments (Jupyter, FastAPI)
 
-:::{warning}
-`.ask()` and `.map()` are **sync** methods. They will raise `RuntimeError` if called inside an async event loop (Jupyter notebooks, FastAPI endpoints, etc.).
+The warning earlier covers the one-line case: use `ask_async()`
+instead of `ask()`. The same rule applies to every sync method.
+Here are the three patterns you'll actually use:
 
-Use the async variants instead:
 ```python
-# In Jupyter or FastAPI:
+# One-shot
 result = await agent.ask_async("What is the capital of France?")
 
-# Streaming:
+# Streaming — yields text chunks as they arrive
 async for chunk in agent.stream("Tell me a story"):
     print(chunk, end="")
 
-# Multi-turn conversation:
+# Multi-turn conversation in a persisted session
 async with agent.session() as chat:
     print(await chat.send("Hi"))
     print(await chat.send("Tell me more"))
 ```
-:::
+
+See [Execution](user-guide/execution.md) for the full async surface.
 
 ## Choose Your Path
 

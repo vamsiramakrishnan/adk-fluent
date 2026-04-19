@@ -103,6 +103,45 @@ const focusedAgent = new Agent("analyst", "gemini-2.5-flash")
 :::
 ::::
 
+## Which `C.*` do I want?
+
+Pick the **first** branch that matches. Most agents only need one.
+
+```{mermaid}
+flowchart TD
+    start[What does the agent need to see?] --> q1{Is this a utility /<br/>classifier /<br/>pure function?}
+    q1 -->|yes| none[C.none<br/>instruction only]
+    q1 -->|no| q2{Does it need specific<br/>state keys, not history?}
+    q2 -->|yes| state[C.from_state k1, k2<br/>or .reads k1, k2<br/>same + no history]
+    q2 -->|no| q3{Only the user's turns,<br/>not other agents?}
+    q3 -->|yes| user[C.user_only]
+    q3 -->|no| q4{Long session —<br/>only recent turns matter?}
+    q4 -->|yes| win[C.window n=5]
+    q4 -->|no| q5{Need output from<br/>specific sibling agents?}
+    q5 -->|yes| agents[C.from_agents writer<br/>or C.exclude_agents researcher]
+    q5 -->|no| def[leave blank<br/>C.default]
+
+    classDef q fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    classDef a fill:#fff3e0,stroke:#e65100,color:#bf360c
+    class start,q1,q2,q3,q4,q5 q
+    class none,state,user,win,agents,def a
+```
+
+| I want… | Use | Suppresses history? |
+|---|---|---|
+| Instruction only, zero history | `C.none()` | yes |
+| State keys only, no history | `.reads("k")` *or* `C.none() + C.from_state("k")` | yes |
+| State keys + history (pass-through) | `C.from_state("k")` | no |
+| Last N turns | `C.window(n=5)` | yes |
+| User turns only | `C.user_only()` | yes |
+| Specific siblings' output | `C.from_agents("writer")` | yes |
+| Drop one noisy agent | `C.exclude_agents("researcher")` | no |
+| Default behaviour | omit `.context()` | no |
+
+:::{tip} `.reads()` is the shortcut
+`.reads("topic", "style")` is equivalent to `.context(C.none() + C.from_state("topic", "style"))`. Reach for it whenever a pipeline step only needs named state and shouldn't be polluted by prior turns.
+:::
+
 ## The Problem
 
 In multi-agent pipelines, every agent shares the same conversation session. Without context engineering, each agent sees the full history -- including irrelevant turns, other agents' internal reasoning, and tool-call noise. This wastes token budget and degrades output quality.

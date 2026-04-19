@@ -80,7 +80,7 @@ AI coding agents benefit from understanding which [development pathway](../user-
 | **Skills** | SKILL.md format, topology expressions, `.inject()` | `/scaffold-project` skill, `/dev-guide` skill |
 | **Harness** | H namespace, 5-layer architecture, safety patterns | `/architect-agents` skill, `/deploy-agent` skill |
 
-The rules files cover all three pathways. The [Agent Skills](#agent-skills) provide deeper procedural guidance for each.
+The rules files cover all three pathways. The [Agent Skills](agent-skills.md) provide deeper procedural guidance for each.
 
 ```{toctree}
 ---

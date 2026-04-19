@@ -204,6 +204,7 @@ the reason text.
 After a deny, subsequent hooks for the same event are **not** called. Deny is
 terminal.
 
+(modify)=
 ### `modify(tool_input=new_args)`
 
 Only meaningful for `pre_tool_use`. The plugin mutates the ADK

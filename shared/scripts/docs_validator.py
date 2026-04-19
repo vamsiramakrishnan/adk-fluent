@@ -78,8 +78,19 @@ def _collect_headings(text: str) -> list[str]:
     """
     out: list[str] = []
     pending_anchor = False
+    in_fence = False
     for line in text.splitlines():
         stripped = line.strip()
+        # Track fenced code blocks (``` or ~~~, optionally with a language or
+        # MyST ``{mermaid}``-style directive). Lines inside a fence never
+        # contribute headings — a comment like ``# foo`` inside ```python``` is
+        # code, not markdown.
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_fence = not in_fence
+            pending_anchor = False
+            continue
+        if in_fence:
+            continue
         m = HEADING_RE.match(line)
         if m:
             if not pending_anchor:
@@ -176,18 +187,53 @@ def validate_tree(root: Path, *, check_code_fences: bool = False) -> list[Findin
         "forwarded-fields",
         "composition-operators",
         "state-transforms",
+        # Generic sub-section headers that recur inside narrative pages
+        # (comparison matrices, error catalogs, side-by-side examples).
+        # They are never used as link targets — local per-entry anchors
+        # live above them where needed.
+        "fluent",
+        "native",
+        "native-adk-equivalent",
+        "equivalent-to",
+        "fix",
+        "common-causes",
+        "adk-fluent",
+        "langgraph",
+        "same-pipeline-definition-just-add-engine",
+        "declarative-surface",
+        "llm-guided-mode",
+        "approvalmemory",
+        "permissiondecision",
+        # Plan-doc skeleton headings — these files are excluded from
+        # the Sphinx build but live under ``docs/plans/`` for history.
+        "mechanism",
+        "problem",
+        "solution",
+        "generated-code",
+        "implementation",
+        "verification",
     }
+
+    plan_tree_parts = {"plans", "other_specs"}
 
     for md in files:
         text = md.read_text()
         headings = _collect_headings(text)
         headings_lower = {h.lower() for h in headings}
+        in_plan_tree = bool(plan_tree_parts.intersection(md.parts))
 
         if check_code_fences and not code_fence_skip_parts.intersection(md.parts):
             for start, body in _extract_python_fences(text):
                 err = _check_python_syntax(body)
                 if err:
                     findings.append(Finding(md, start, "bad-python", err))
+
+        # Plan/spec docs live under docs/plans/ and docs/other_specs/ and
+        # are excluded from the Sphinx build. Their internal link hygiene
+        # is not part of the published site, so we skip duplicate-anchor
+        # and dangling-link reporting for them.
+        if in_plan_tree:
+            continue
 
         dupes = {
             h

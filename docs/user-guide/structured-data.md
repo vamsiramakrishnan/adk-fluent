@@ -2,6 +2,38 @@
 
 Agents that return free-form text are fine for chat, but production pipelines need predictable data. A classifier must emit a category string that a router can branch on. An extraction step must produce a JSON object that a downstream formatter can render. adk-fluent provides three complementary mechanisms for structured data flow: storing output in session state, enforcing typed output schemas, and declaring input schemas for tool-invoked agents.
 
+## Which one do I need?
+
+Three methods, three different jobs. They compose — most production agents use two of them together.
+
+```{mermaid}
+flowchart LR
+    in[incoming call] -->|.accepts Schema<br/>validates tool args| agent((agent))
+    agent -->|.returns Schema<br/>JSON constraint<br/>on the LLM| out[response]
+    out -->|.writes key<br/>persist to state| state[(state)]
+
+    classDef in fill:#e3f2fd,stroke:#1565c0,color:#0d47a1
+    classDef agent fill:#fff3e0,stroke:#e65100,color:#bf360c
+    classDef state fill:#f3e5f5,stroke:#6a1b9a,color:#4a148c
+    class in,out in
+    class agent agent
+    class state state
+```
+
+| Method | What it does | Runtime effect | Typical use |
+|---|---|---|---|
+| `.writes(key)` | Stores the agent's response in `state[key]` after it runs. | Side effect after response. Response itself unchanged. | Feeding output into downstream `{key}` templates. |
+| `.returns(Schema)` | Constrains the LLM to emit JSON matching a Pydantic model. | Hard constraint on LLM output format. | Machine-readable responses; classifiers, extractors. |
+| `.accepts(Schema)` | Validates the tool-call arguments when this agent is invoked as an `agent_tool`. | Input validation at tool invocation. | Agents consumed by other agents via `.agent_tool()`. |
+
+:::{tip} Rule of thumb
+If a downstream step reads it, **`.writes()`**. If the shape matters, **`.returns()`**. If a parent agent calls it like a tool, **`.accepts()`**. You can stack all three.
+:::
+
+:::{warning} `.returns()` disables tools
+Structured-output mode and tool use are mutually exclusive in ADK. If you need both, split them: an extractor with `.returns()` followed by a worker with `.tool()`s reading the extracted state.
+:::
+
 ## Storing Output in State: `.writes(key)`
 
 `.writes(key)` is an alias for ADK's `output_key`. When an agent finishes, its response text is written to session state under the given key. Other agents can then read that value through template variable substitution in their instructions.

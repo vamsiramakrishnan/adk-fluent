@@ -17,6 +17,35 @@ Claude Agent SDK ships the same split: a permission mode called
 the model flip in and out of planning. adk-fluent unifies them so you
 can wire the whole thing up in one line.
 
+## Latch state machine
+
+Three states, two transitions the LLM drives, one reset you control.
+
+```{mermaid}
+stateDiagram-v2
+    [*] --> off
+    off --> planning: enter_plan_mode()
+    planning --> executing: exit_plan_mode(plan)
+    executing --> planning: enter_plan_mode()
+    planning --> off: latch.reset()
+    executing --> off: latch.reset()
+
+    note right of planning
+        Mutating tools denied.
+        Read-only tools allowed.
+    end note
+    note right of executing
+        Base policy restored.
+        Plan text retained on latch.
+    end note
+```
+
+| State | Mutating tools | Read-only tools | Who drove the transition |
+|---|---|---|---|
+| `off` | base policy | base policy | initial / `reset()` |
+| `planning` | denied | allowed | LLM called `enter_plan_mode` |
+| `executing` | base policy | base policy | LLM called `exit_plan_mode(plan)` |
+
 ## The five pieces
 
 | Type | Role | Mutable? |

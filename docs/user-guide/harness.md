@@ -141,7 +141,7 @@ agent = (
 )
 ```
 
-For dynamic capability discovery (the manifold pattern), see [Manifold Guide](manifold.md).
+For dynamic capability discovery, combine `H.capabilities()` with a runtime registry — see the tools factories below.
 
 ## Layer 2: Tools
 
