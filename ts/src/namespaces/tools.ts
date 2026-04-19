@@ -9,8 +9,13 @@
  *   agent.tools(T.googleSearch().pipe(T.fn(calculator)))
  */
 
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
 import type { ToolFn } from "../core/types.js";
-import { A2UINotInstalled } from "../_exceptions.js";
+import { A2UIError, A2UINotInstalled } from "../_exceptions.js";
+import { KNOWN_CATALOGS, type CatalogName } from "./ui.js";
 
 /** Descriptor for a single tool in the composite. */
 export interface ToolSpec {
@@ -155,10 +160,27 @@ export class T {
   /**
    * A2UI toolset — exposes UI generation/binding tools to the LLM.
    *
-   * Requires the `a2ui-agent` JS package, which is not yet published.
-   * Throws `A2UINotInstalled` until the package ships.
+   * Catalog dispatch:
+   * - **basic** (default): requires the ``a2ui-agent`` JS package, which
+   *   is not yet published — throws ``A2UINotInstalled`` today.
+   * - **flux**: returns an in-tree toolset that advertises the flux
+   *   component surface (FluxButton, FluxBadge, FluxCard, …) with
+   *   per-component ``llm`` metadata loaded from
+   *   ``catalog/flux/catalog.json``. Does *not* require ``a2ui-agent``.
+   *
+   * Unknown catalog names throw ``A2UIError``.
    */
-  static a2ui(_opts?: { catalog?: string }): TComposite {
+  static a2ui(opts?: { catalog?: CatalogName | string }): TComposite {
+    const catalog = opts?.catalog ?? "basic";
+    if (!KNOWN_CATALOGS.includes(catalog as CatalogName)) {
+      throw new A2UIError(
+        `Unknown catalog ${JSON.stringify(catalog)}. ` +
+          `Known catalogs: ${JSON.stringify([...KNOWN_CATALOGS])}`,
+      );
+    }
+    if (catalog === "flux") {
+      return _buildFluxA2UIToolset();
+    }
     throw new A2UINotInstalled(
       "T.a2ui() requires the 'a2ui-agent' package. " + "Install with: npm install a2ui-agent",
     );
@@ -238,4 +260,86 @@ export class T {
       items.map((t) => ({ ...t, preTransform: opts.pre, postTransform: opts.post })),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Flux A2UI toolset — in-tree, no external package dependency
+// ---------------------------------------------------------------------------
+
+/**
+ * Toolset descriptor emitted by ``T.a2ui({ catalog: "flux" })``.
+ *
+ * Advertises the flux component surface via a stable shape tests can
+ * inspect: ``components`` (sorted flux component names), ``description``
+ * (human-readable enumeration), ``llmMetadata`` (per-component
+ * ``description`` / ``tags`` / ``examples`` / ``antiPatterns``).
+ *
+ * This is a data-bearing marker — the ADK-facing runtime integration
+ * ships alongside the public ``a2ui-agent[flux]`` package later. Today
+ * the marker is enough for ``T.a2ui({ catalog: "flux" })`` to be
+ * discoverable and testable.
+ */
+export interface FluxA2UIToolsetSpec {
+  type: "a2ui_flux";
+  catalog: "flux";
+  components: readonly string[];
+  description: string;
+  llmMetadata: Record<string, Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
+function _loadFluxCatalog(): Record<string, unknown> {
+  // Walk up from this module until we find catalog/flux/catalog.json.
+  const here = dirname(fileURLToPath(import.meta.url));
+  // Handle both source layout (ts/src/namespaces) and dist layout
+  // (ts/dist/namespaces) — both should reach catalog/flux/catalog.json via
+  // relative upward walk since the catalog lives at repo root.
+  const candidates = [
+    resolve(here, "../../../catalog/flux/catalog.json"),
+    resolve(here, "../../../../catalog/flux/catalog.json"),
+    resolve(here, "../../../../../catalog/flux/catalog.json"),
+  ];
+  for (const path of candidates) {
+    if (existsSync(path)) {
+      try {
+        return JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
+      } catch {
+        // Fall through to the next candidate if one is corrupt.
+      }
+    }
+  }
+  return {};
+}
+
+function _buildFluxA2UIToolset(): TComposite {
+  const catalog = _loadFluxCatalog();
+  const componentsRaw = (catalog.components ?? {}) as Record<
+    string,
+    { llm?: Record<string, unknown> }
+  >;
+  const names = Object.keys(componentsRaw).sort();
+  const llmMetadata: Record<string, Record<string, unknown>> = {};
+  for (const name of names) {
+    llmMetadata[name] = (componentsRaw[name]?.llm ?? {}) as Record<string, unknown>;
+  }
+
+  const lines: string[] = [
+    "A2UI flux catalog toolset — advertises the flux component surface.",
+    "",
+    "Components:",
+  ];
+  for (const name of names) {
+    const meta = llmMetadata[name] ?? {};
+    const desc = typeof meta.description === "string" ? meta.description.split("\n")[0] : "";
+    lines.push(`  - ${name}${desc ? `: ${desc}` : ""}`);
+  }
+
+  const spec: FluxA2UIToolsetSpec = {
+    type: "a2ui_flux",
+    catalog: "flux",
+    components: Object.freeze(names),
+    description: lines.join("\n"),
+    llmMetadata,
+  };
+  return new TComposite([spec]);
 }
