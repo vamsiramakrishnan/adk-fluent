@@ -103,7 +103,7 @@ COOKBOOK_DIR   := PYTHON_DIR / "examples/cookbook"
 GENERATED_PY  := PYTHON_DIR / "src/adk_fluent/agent.py" + " " + PYTHON_DIR / "src/adk_fluent/config.py" + " " + PYTHON_DIR / "src/adk_fluent/executor.py" + " " + PYTHON_DIR / "src/adk_fluent/planner.py" + " " + PYTHON_DIR / "src/adk_fluent/plugin.py" + " " + PYTHON_DIR / "src/adk_fluent/runtime.py" + " " + PYTHON_DIR / "src/adk_fluent/service.py" + " " + PYTHON_DIR / "src/adk_fluent/tool.py" + " " + PYTHON_DIR / "src/adk_fluent/workflow.py" + " " + PYTHON_DIR / "src/adk_fluent/_ir_generated.py"
 
 # --- Full pipeline ---
-all: scan seed generate a2ui docs skills docs-build
+all: scan seed generate a2ui flux docs skills docs-build
     @echo "\nPipeline complete. Generated code in {{OUTPUT_DIR}}/ and docs in {{DOC_DIR}}/"
 
 # --- A2UI pipeline ---
@@ -225,7 +225,7 @@ preflight:
     @{{PYTOOL}} pre-commit run --all-files --show-diff-on-failure
 
 # --- Local CI: full pipeline matching GitHub Actions ---
-ci: preflight check-gen test
+ci: preflight check-gen flux-check test
     @echo "\nLocal CI passed. Safe to push."
 
 # --- Type checking ---
@@ -552,6 +552,52 @@ _require-a2ui-manifest:
 [private]
 _require-a2ui-seed:
     @test -f {{A2UI_SEED}} || (echo "ERROR: {{A2UI_SEED}} not found. Run 'just a2ui-seed' first." && exit 1)
+
+# ============================================================================
+# FLUX CATALOG (catalog/flux/ — reference A2UI catalog)
+# ============================================================================
+#
+# The flux codegen pipeline is implemented in ``shared/scripts/flux/``.
+# One Python entry point drives every stage::
+#
+#     just flux          → full emission: load → check → catalog.json → py → ts → react → docs
+#     just flux-check    → validation gate (load + check). Idempotence check also
+#                          asserts `just flux` leaves the tree byte-identical.
+#     just flux-clean    → remove every generated artifact we own, preserving
+#                          renderers whose first line is ``// flux:scaffold-user``.
+#
+# Outputs::
+#     catalog/flux/catalog.json
+#     python/src/adk_fluent/_flux_gen.py
+#     ts/src/flux/index.ts
+#     ts/src/flux/renderer/{types,index}.ts + one <Name>.tsx per component
+#     docs/flux/components/<kebab-name>.md per component
+
+# --- Full flux pipeline (all stages, deterministic) ---
+flux:
+    @echo "Building flux catalog..."
+    @{{PY}} -m shared.scripts.flux all
+
+# --- Flux validation gate (CI: load + check + idempotence assertion) ---
+flux-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "Running flux validation gate..."
+    {{PY}} -m shared.scripts.flux check
+    echo "Re-running 'just flux' to verify idempotence..."
+    just flux >/dev/null
+    if git diff --quiet -- catalog/flux/catalog.json {{OUTPUT_DIR}}/_flux_gen.py {{TS_DIR}}/src/flux docs/flux; then
+        echo "flux pipeline is idempotent."
+    else
+        echo "ERROR: 'just flux' is not idempotent. Commit the drift or fix the emitter."
+        git diff --stat -- catalog/flux/catalog.json {{OUTPUT_DIR}}/_flux_gen.py {{TS_DIR}}/src/flux docs/flux
+        exit 1
+    fi
+
+# --- Remove flux-generated artifacts (preserves user-marked renderers) ---
+flux-clean:
+    @echo "Cleaning flux-generated files..."
+    @{{PY}} -m shared.scripts.flux clean
 
 # ============================================================================
 # TYPESCRIPT (ts/ package)
