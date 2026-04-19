@@ -1,18 +1,31 @@
 name: Release
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Release publishing pipeline. Runs on:
-#   - Pushed tags `v*`           → publish to PyPI (prod)
-#   - Manual workflow_dispatch   → publish to TestPyPI (dry run)
+# Release orchestrator. Thin dispatcher over two reusable workflows:
 #
-# Stages:
-#   1. version-check  — assert tag matches python/_version.py
-#   2. python-build   — build wheel + sdist
-#   3. ts-build       — build npm dist
-#   4. publish-pypi   — Trusted Publishing to PyPI
-#   5. publish-npm    — npm publish (gated on NPM_TOKEN secret)
+#   _publish-python.yml  — builds + publishes the Python package
+#   _publish-npm.yml     — builds + publishes the TypeScript package
 #
-# Both publishes are independent — npm can be skipped if NPM_TOKEN unset.
+# Both reusable workflows have the same shape: build → inspect → publish.
+# This file just picks the target(s) and feeds them the canonical version.
+#
+# Triggers
+# --------
+# - Tag push (v*): production release to PyPI + npm.
+# - workflow_dispatch: picks a subset for dry-run / backfill.
+#
+#   Dispatch targets:
+#     all           → PyPI + npm            (what a tag push does)
+#     dry-run       → TestPyPI + npm pack   (end-to-end rehearsal, no prod writes)
+#     pypi          → PyPI only
+#     testpypi      → TestPyPI only
+#     npm           → npm only
+#     npm-dry-run   → npm pack only
+#
+# Secrets
+# -------
+# - PyPI: Trusted Publishing (`id-token: write` + project on pypi.org + testpypi.org).
+# - npm:  NPM_TOKEN attached to the GitHub environment named `npm`.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -23,12 +36,15 @@ on:
       target:
         description: Publishing target
         required: true
-        default: testpypi
+        default: dry-run
         type: choice
         options:
-          - testpypi
+          - all
+          - dry-run
           - pypi
+          - testpypi
           - npm
+          - npm-dry-run
 
 concurrency:
   group: release-${{ github.ref }}
@@ -37,141 +53,138 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  UV_VERSION: "0.8.17"
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
-  version-check:
-    if: startsWith(github.ref, 'refs/tags/v')
+  # ─── stage 1: resolve what to do ────────────────────────────────────────
+  plan:
+    name: plan
     runs-on: ubuntu-latest
+    outputs:
+      version:        ${{ steps.resolve.outputs.version }}
+      publish-pypi:   ${{ steps.resolve.outputs.publish-pypi }}
+      publish-testpypi: ${{ steps.resolve.outputs.publish-testpypi }}
+      publish-npm:    ${{ steps.resolve.outputs.publish-npm }}
+      publish-npm-dry: ${{ steps.resolve.outputs.publish-npm-dry }}
+      create-release: ${{ steps.resolve.outputs.create-release }}
     steps:
       - uses: actions/checkout@v6
-      - name: Verify tag matches python + ts versions
+
+      - name: Resolve release plan
+        id: resolve
         run: |
-          TAG="${GITHUB_REF#refs/tags/v}"
-          PY_VERSION=$(python3 -c "exec(open('python/src/adk_fluent/_version.py').read()); print(__version__)")
-          TS_VERSION=$(python3 -c "import json; print(json.load(open('ts/package.json'))['version'])")
-          if [ "$TAG" != "$PY_VERSION" ]; then
-            echo "::error::Tag v$TAG does not match python/src/adk_fluent/_version.py ($PY_VERSION)"
-            exit 1
+          set -euo pipefail
+
+          VERSION=$(python3 -m shared.scripts.release version)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/v}"
+            if [ "$TAG" != "$VERSION" ]; then
+              echo "::error::Tag v$TAG does not match VERSION file ($VERSION). Run: just rel-sync"
+              exit 1
+            fi
+            TARGET="all"
+          else
+            TARGET="${{ github.event.inputs.target }}"
           fi
-          if [ "$TAG" != "$TS_VERSION" ]; then
-            echo "::error::Tag v$TAG does not match ts/package.json ($TS_VERSION)"
-            exit 1
-          fi
-          echo "Version check passed: v$TAG == python $PY_VERSION == ts $TS_VERSION"
 
-  python-build:
-    needs: [version-check]
-    if: |
-      always() &&
-      (needs.version-check.result == 'success' || needs.version-check.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-python-env
-        with:
-          uv-version: ${{ env.UV_VERSION }}
-      - name: Generate code
-        run: just scan seed generate
-      - name: Build wheel + sdist
-        working-directory: python
-        run: uv build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: python-dist
-          path: python/dist/
-          retention-days: 30
+          echo "Release target: $TARGET (version $VERSION)"
 
-  ts-build:
-    needs: [version-check]
-    if: |
-      always() &&
-      (needs.version-check.result == 'success' || needs.version-check.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-ts-env
-      - name: Build
-        working-directory: ts
-        run: npm run build
-      - name: Pack tarball
-        working-directory: ts
-        run: |
-          mkdir -p dist-pack
-          npm pack --pack-destination dist-pack
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ts-dist
-          path: |
-            ts/dist/
-            ts/dist-pack/
-          retention-days: 30
+          want_pypi=false
+          want_testpypi=false
+          want_npm=false
+          want_npm_dry=false
+          want_release=false
 
-  publish-pypi:
-    needs: [python-build]
-    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.target == 'pypi'
+          case "$TARGET" in
+            all)         want_pypi=true; want_npm=true;       want_release=true ;;
+            dry-run)     want_testpypi=true; want_npm_dry=true ;;
+            pypi)        want_pypi=true ;;
+            testpypi)    want_testpypi=true ;;
+            npm)         want_npm=true ;;
+            npm-dry-run) want_npm_dry=true ;;
+            *) echo "::error::unknown target: $TARGET"; exit 1 ;;
+          esac
+
+          echo "publish-pypi=$want_pypi"         >> "$GITHUB_OUTPUT"
+          echo "publish-testpypi=$want_testpypi" >> "$GITHUB_OUTPUT"
+          echo "publish-npm=$want_npm"           >> "$GITHUB_OUTPUT"
+          echo "publish-npm-dry=$want_npm_dry"   >> "$GITHUB_OUTPUT"
+          echo "create-release=$want_release"    >> "$GITHUB_OUTPUT"
+
+      - name: Preflight (strict)
+        run: python3 -m shared.scripts.release preflight --strict
+
+  # ─── stage 2a: python publish path ──────────────────────────────────────
+  python-pypi:
+    needs: [plan]
+    if: needs.plan.outputs.publish-pypi == 'true'
+    uses: ./.github/workflows/_publish-python.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: pypi
+      run-preflight: true
+
+  python-testpypi:
+    needs: [plan]
+    if: needs.plan.outputs.publish-testpypi == 'true'
+    uses: ./.github/workflows/_publish-python.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: testpypi
+      run-preflight: true
+
+  # ─── stage 2b: npm publish path ─────────────────────────────────────────
+  ts-npm:
+    needs: [plan]
+    if: needs.plan.outputs.publish-npm == 'true'
+    uses: ./.github/workflows/_publish-npm.yml
+    secrets: inherit
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: npm
+      run-preflight: true
+
+  ts-npm-dry:
+    needs: [plan]
+    if: needs.plan.outputs.publish-npm-dry == 'true'
+    uses: ./.github/workflows/_publish-npm.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+      target: npm-dry-run
+      run-preflight: true
+
+  # ─── stage 3: publish release artifacts (tag push only) ─────────────────
+  github-release:
+    needs: [plan, python-pypi, ts-npm]
+    if: needs.plan.outputs.create-release == 'true'
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/adk-fluent
     permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
-
-  publish-testpypi:
-    needs: [python-build]
-    if: github.event.inputs.target == 'testpypi'
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/adk-fluent
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: python-dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true
-
-  publish-npm:
-    needs: [ts-build]
-    if: |
-      (startsWith(github.ref, 'refs/tags/v') || github.event.inputs.target == 'npm')
-    runs-on: ubuntu-latest
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/adk-fluent-ts
+      contents: write
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
+
       - uses: actions/download-artifact@v4
         with:
-          name: ts-dist
-          path: ts-artifact/
-      - name: Publish
-        working-directory: ts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          name: python-dist-${{ needs.plan.outputs.version }}
+          path: release-assets/python/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ts-dist-${{ needs.plan.outputs.version }}
+          path: release-assets/ts/
+
+      - name: Collect artifacts
         run: |
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::warning::NPM_TOKEN secret not set — skipping npm publish."
-            exit 0
-          fi
-          npm ci
-          npm publish --access public
+          mkdir -p upload
+          cp release-assets/python/*.whl release-assets/python/*.tar.gz upload/
+          cp release-assets/ts/dist-pack/*.tgz upload/
+          ls -la upload/
+
+      - name: Create / update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.plan.outputs.version }}
+          name: v${{ needs.plan.outputs.version }}
+          generate_release_notes: true
+          files: upload/*
+          fail_on_unmatched_files: true

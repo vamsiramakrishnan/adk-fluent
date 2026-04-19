@@ -1,0 +1,108 @@
+name: Publish · Python
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable: builds + publishes the Python package.
+#
+# Stages (deliberately symmetric with _publish-npm.yml):
+#   1. build   — run codegen → uv build → upload artifact
+#   2. inspect — list artifact contents, run `twine check` for metadata sanity
+#   3. publish — Trusted Publishing (pypi | testpypi) with attestations
+#
+# Inputs:
+#   version       — expected semver string; build fails if python/_version.py differs
+#   target        — "pypi" (prod) | "testpypi" (dry run)
+#   run-preflight — gate the job on `python -m shared.scripts.release preflight --strict`
+#
+# Secrets: none. Uses PyPI Trusted Publishing via `id-token: write`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+        description: "pypi | testpypi"
+      run-preflight:
+        required: false
+        type: boolean
+        default: true
+
+env:
+  UV_VERSION: "0.8.17"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-python-env
+        with:
+          uv-version: ${{ env.UV_VERSION }}
+
+      - name: Preflight (strict)
+        if: inputs.run-preflight
+        run: uv run --project python python -m shared.scripts.release preflight --strict
+
+      - name: Assert version matches input
+        run: |
+          ACTUAL=$(uv run --project python python -m shared.scripts.release version)
+          if [ "$ACTUAL" != "${{ inputs.version }}" ]; then
+            echo "::error::VERSION is $ACTUAL but workflow expects ${{ inputs.version }}"
+            exit 1
+          fi
+
+      - name: Generate code
+        run: just scan seed generate
+
+      - name: Build wheel + sdist
+        working-directory: python
+        run: uv build
+
+      - name: Inspect artifacts
+        working-directory: python
+        run: |
+          ls -la dist/
+          uv run --no-project --with twine twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-dist-${{ inputs.version }}
+          path: python/dist/
+          retention-days: 30
+
+  publish:
+    name: publish · ${{ inputs.target }}
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.target }}
+      url: >-
+        ${{ inputs.target == 'pypi'
+            && 'https://pypi.org/p/adk-fluent'
+            || 'https://test.pypi.org/p/adk-fluent' }}
+    permissions:
+      id-token: write   # Trusted Publishing
+      attestations: write  # PEP 740 provenance
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist-${{ inputs.version }}
+          path: dist/
+      - name: Publish to ${{ inputs.target }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: >-
+            ${{ inputs.target == 'testpypi'
+                && 'https://test.pypi.org/legacy/'
+                || '' }}
+          skip-existing: true
+          attestations: true

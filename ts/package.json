@@ -8,6 +8,11 @@
   "bin": {
     "adk-fluent": "dist/cli/visualize.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
