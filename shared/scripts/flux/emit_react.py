@@ -135,7 +135,7 @@ def _index_ts(component_names: list[str]) -> str:
     lines.append("")
     lines.append("export const renderers: Record<string, FluxRenderer> = {")
     for name in component_names:
-        lines.append(f'  "{name}": {name},')
+        lines.append(f"  {name}: {name},")
     lines.append("};")
     lines.append("")
     lines.append('export * from "./types.js";')
