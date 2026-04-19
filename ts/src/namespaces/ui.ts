@@ -277,17 +277,18 @@ export class UI {
           comps.push(item);
         }
       }
-      if (comps.length === 0) {
-        throw new A2UIError(
-          `UI.surface(${JSON.stringify(name)}) needs at least one component root`,
-        );
-      }
       if (comps.length > 1) {
         throw new A2UIError(
           `UI.surface(${JSON.stringify(name)}) expects a single root component; got ${comps.length}`,
         );
       }
-      resolved = comps[0]!;
+      const [first] = comps;
+      if (!first) {
+        throw new A2UIError(
+          `UI.surface(${JSON.stringify(name)}) needs at least one component root`,
+        );
+      }
+      resolved = first;
     } else {
       resolved = root;
     }

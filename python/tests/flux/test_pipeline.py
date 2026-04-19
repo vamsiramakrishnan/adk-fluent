@@ -86,9 +86,7 @@ def _import_loader() -> ModuleType:
 def _node_env_available() -> bool:
     if shutil.which("npx") is None:
         return False
-    if not (TS_WORKSPACE / "node_modules").is_dir():
-        return False
-    return True
+    return (TS_WORKSPACE / "node_modules").is_dir()
 
 
 requires_node = pytest.mark.skipif(
