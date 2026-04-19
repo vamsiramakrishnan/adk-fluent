@@ -12,12 +12,26 @@ hide-toc: true
   </p>
 
   <div class="badges">
-    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/v/adk-fluent?color=E65100&style=flat-square" alt="PyPI version"></a>
-    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/dm/adk-fluent?color=F57C00&style=flat-square" alt="Downloads"></a>
-    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/pyversions/adk-fluent?color=FFB74D&style=flat-square" alt="Python versions"></a>
+    <!-- Packages -->
+    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/v/adk-fluent?logo=pypi&logoColor=white&label=PyPI&color=E65100&style=flat-square" alt="PyPI version"></a>
+    <a href="https://www.npmjs.com/package/adk-fluent-ts"><img src="https://img.shields.io/npm/v/adk-fluent-ts?logo=npm&logoColor=white&label=npm&color=CB3837&style=flat-square" alt="npm version"></a>
+    <a href="https://pypi.org/project/adk-fluent/"><img src="https://img.shields.io/pypi/pyversions/adk-fluent?logo=python&logoColor=white&label=Python&color=FFB74D&style=flat-square" alt="Python versions"></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white&style=flat-square" alt="TypeScript"></a>
     <a href="https://github.com/vamsiramakrishnan/adk-fluent/blob/master/LICENSE"><img src="https://img.shields.io/github/license/vamsiramakrishnan/adk-fluent?color=424242&style=flat-square" alt="License"></a>
-    <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions"><img src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/ci.yml?style=flat-square&label=CI" alt="CI status"></a>
-    <a href="https://vamsiramakrishnan.github.io/adk-fluent/"><img src="https://img.shields.io/badge/docs-latest-E65100?style=flat-square" alt="Docs"></a>
+    <!-- Reach -->
+    <a href="https://pepy.tech/project/adk-fluent"><img src="https://static.pepy.tech/badge/adk-fluent/month" alt="Downloads / month"></a>
+    <a href="https://www.npmjs.com/package/adk-fluent-ts"><img src="https://img.shields.io/npm/dm/adk-fluent-ts?logo=npm&logoColor=white&label=npm%20/month&style=flat-square" alt="npm downloads / month"></a>
+    <!-- Engineering -->
+    <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/ci.yml?branch=master&logo=github&label=CI&style=flat-square" alt="CI status"></a>
+    <a href="https://codecov.io/gh/vamsiramakrishnan/adk-fluent"><img src="https://img.shields.io/codecov/c/github/vamsiramakrishnan/adk-fluent?logo=codecov&logoColor=white&style=flat-square" alt="Coverage"></a>
+    <a href="https://github.com/vamsiramakrishnan/adk-fluent/actions/workflows/codeql.yml"><img src="https://img.shields.io/github/actions/workflow/status/vamsiramakrishnan/adk-fluent/codeql.yml?label=CodeQL&logo=github&style=flat-square" alt="CodeQL"></a>
+    <a href="https://securityscorecards.dev/viewer/?uri=github.com/vamsiramakrishnan/adk-fluent"><img src="https://api.securityscorecards.dev/projects/github.com/vamsiramakrishnan/adk-fluent/badge" alt="OpenSSF Scorecard"></a>
+    <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff"></a>
+    <a href="https://prettier.io"><img src="https://img.shields.io/badge/code_style-prettier-F7B93E?logo=prettier&logoColor=black&style=flat-square" alt="Prettier"></a>
+    <!-- Docs & community -->
+    <a href="https://vamsiramakrishnan.github.io/adk-fluent/"><img src="https://img.shields.io/badge/docs-latest-E65100?logo=readthedocs&logoColor=white&style=flat-square" alt="Docs"></a>
+    <a href="https://deepwiki.com/vamsiramakrishnan/adk-fluent"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+    <a href="https://github.com/vamsiramakrishnan/adk-fluent/stargazers"><img src="https://img.shields.io/github/stars/vamsiramakrishnan/adk-fluent?style=social" alt="GitHub stars"></a>
   </div>
 
   <!-- Architecture flow diagram -->
