@@ -25,9 +25,9 @@
       "properties": {
         "neutral": { "$ref": "#/$defs/scale12" },
         "brand":   { "$ref": "#/$defs/scale12" },
-        "success": { "$ref": "#/$defs/scale12" },
+        "success": { "$ref": "#/$defs/tonalWithAliases" },
         "warning": { "$ref": "#/$defs/scale12" },
-        "danger":  { "$ref": "#/$defs/scale12" },
+        "danger":  { "$ref": "#/$defs/tonalWithAliases" },
         "info":    { "$ref": "#/$defs/scale12" },
         "bg":      {
           "type": "object",
@@ -159,6 +159,32 @@
       "required": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
       "additionalProperties": false,
       "patternProperties": { "^(1[0-2]|[1-9])$": { "$ref": "#/$defs/colorValue" } }
+    },
+    "tonalWithAliases": {
+      "type": "object",
+      "required": [
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+        "solid", "solidHover", "subtle", "subtleHover"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "1":  { "$ref": "#/$defs/colorValue" },
+        "2":  { "$ref": "#/$defs/colorValue" },
+        "3":  { "$ref": "#/$defs/colorValue" },
+        "4":  { "$ref": "#/$defs/colorValue" },
+        "5":  { "$ref": "#/$defs/colorValue" },
+        "6":  { "$ref": "#/$defs/colorValue" },
+        "7":  { "$ref": "#/$defs/colorValue" },
+        "8":  { "$ref": "#/$defs/colorValue" },
+        "9":  { "$ref": "#/$defs/colorValue" },
+        "10": { "$ref": "#/$defs/colorValue" },
+        "11": { "$ref": "#/$defs/colorValue" },
+        "12": { "$ref": "#/$defs/colorValue" },
+        "solid":       { "$ref": "#/$defs/colorValue" },
+        "solidHover":  { "$ref": "#/$defs/colorValue" },
+        "subtle":      { "$ref": "#/$defs/colorValue" },
+        "subtleHover": { "$ref": "#/$defs/colorValue" }
+      }
     }
   }
 }
