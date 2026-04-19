@@ -12,12 +12,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, mergeStyles, renderSlot, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Size = "sm" | "md" | "lg";
 type State = "default" | "error" | "success" | "warning";
@@ -66,10 +61,7 @@ const STATE_STYLE: Record<State, CSSProperties> = {
   },
 };
 
-const FluxTextField: FluxRenderer = (
-  node: FluxNode,
-  ctx: FluxRenderContext,
-): FluxElement => {
+const FluxTextField: FluxRenderer = (node: FluxNode, ctx: FluxRenderContext): FluxElement => {
   const size = (node.size as Size) ?? "md";
   const state = (node.state as State) ?? "default";
   const a11y = (node.accessibility as { label?: string; description?: string }) ?? {};
@@ -152,8 +144,8 @@ const FluxTextField: FluxRenderer = (
   );
 
   const helper =
-    helperSlot
-    ?? (typeof node.helper === "string" && node.helper.length > 0
+    helperSlot ??
+    (typeof node.helper === "string" && node.helper.length > 0
       ? React.createElement(
           "span",
           {

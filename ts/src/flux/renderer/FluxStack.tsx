@@ -8,12 +8,7 @@
 import * as React from "react";
 import type { CSSProperties, ReactElement } from "react";
 import { asFluxElement, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Direction = "vertical" | "horizontal";
 type Gap = "1" | "2" | "3" | "4" | "6" | "8";
@@ -40,19 +35,14 @@ const JUSTIFY_MAP: Record<Justify, CSSProperties["justifyContent"]> = {
   around: "space-around",
 };
 
-const FluxStack: FluxRenderer = (
-  node: FluxNode,
-  ctx: FluxRenderContext,
-): FluxElement => {
+const FluxStack: FluxRenderer = (node: FluxNode, ctx: FluxRenderContext): FluxElement => {
   const direction = (node.direction as Direction) ?? "vertical";
   const gap = (node.gap as Gap) ?? "3";
   const align = (node.align as Align) ?? "stretch";
   const justify = (node.justify as Justify) ?? "start";
   const wrap = Boolean(node.wrap);
   const a11y = (node.accessibility as { label?: string }) ?? {};
-  const childIds = Array.isArray(node.children)
-    ? (node.children as unknown[])
-    : [];
+  const childIds = Array.isArray(node.children) ? (node.children as unknown[]) : [];
 
   const style: CSSProperties = {
     display: "flex",

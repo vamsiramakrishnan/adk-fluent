@@ -21,12 +21,7 @@
 import * as React from "react";
 import type { ReactElement } from "react";
 
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 import FluxBadge from "./FluxBadge.js";
 import FluxBanner from "./FluxBanner.js";
@@ -123,10 +118,7 @@ export function buildFluxRenderContext(
  * value is a ``React.ReactElement`` — callers that only have the
  * generated ``FluxElement`` type can safely narrow via ``as``.
  */
-export function renderFluxSurface(
-  node: FluxNode,
-  ctx: FluxRenderContext,
-): ReactElement {
+export function renderFluxSurface(node: FluxNode, ctx: FluxRenderContext): ReactElement {
   const renderer = ctx.renderers[node.component];
   if (renderer) {
     return renderer(node, ctx) as unknown as ReactElement;

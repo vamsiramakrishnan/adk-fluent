@@ -16,16 +16,16 @@ import FluxStack from "./FluxStack.js";
 import FluxTextField from "./FluxTextField.js";
 
 export const renderers: Record<string, FluxRenderer> = {
-  "FluxBadge": FluxBadge,
-  "FluxBanner": FluxBanner,
-  "FluxButton": FluxButton,
-  "FluxCard": FluxCard,
-  "FluxLink": FluxLink,
-  "FluxMarkdown": FluxMarkdown,
-  "FluxProgress": FluxProgress,
-  "FluxSkeleton": FluxSkeleton,
-  "FluxStack": FluxStack,
-  "FluxTextField": FluxTextField,
+  FluxBadge: FluxBadge,
+  FluxBanner: FluxBanner,
+  FluxButton: FluxButton,
+  FluxCard: FluxCard,
+  FluxLink: FluxLink,
+  FluxMarkdown: FluxMarkdown,
+  FluxProgress: FluxProgress,
+  FluxSkeleton: FluxSkeleton,
+  FluxStack: FluxStack,
+  FluxTextField: FluxTextField,
 };
 
 export * from "./types.js";

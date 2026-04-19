@@ -15,12 +15,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, mergeStyles, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Tone = "default" | "muted" | "danger";
 type Underline = "always" | "hover" | "never";
@@ -71,18 +66,13 @@ const ExternalIcon: React.FC = () => {
   );
 };
 
-const FluxLink: FluxRenderer = (
-  node: FluxNode,
-  _ctx: FluxRenderContext,
-): FluxElement => {
+const FluxLink: FluxRenderer = (node: FluxNode, _ctx: FluxRenderContext): FluxElement => {
   const tone = (node.tone as Tone) ?? "default";
   const underline = (node.underline as Underline) ?? "hover";
   const label = typeof node.label === "string" ? node.label : "";
   const a11y = (node.accessibility as { label?: string }) ?? {};
   const href = typeof node.href === "string" && node.href.length > 0 ? node.href : undefined;
-  const action = typeof node.action === "object" && node.action !== null
-    ? node.action
-    : undefined;
+  const action = typeof node.action === "object" && node.action !== null ? node.action : undefined;
   const external = Boolean(node.external);
 
   const style = mergeStyles(
@@ -106,9 +96,7 @@ const FluxLink: FluxRenderer = (
 
   const children = [
     label,
-    external
-      ? React.createElement(ExternalIcon, { key: `${node.id}-ext` })
-      : null,
+    external ? React.createElement(ExternalIcon, { key: `${node.id}-ext` }) : null,
   ];
 
   const dataProps = {

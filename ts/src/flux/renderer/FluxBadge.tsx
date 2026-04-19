@@ -10,12 +10,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, mergeStyles, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Tone = "neutral" | "primary" | "success" | "warning" | "danger";
 type Variant = "subtle" | "solid";
@@ -84,10 +79,7 @@ function compoundSolid(tone: Tone): CSSProperties | undefined {
   }
 }
 
-const FluxBadge: FluxRenderer = (
-  node: FluxNode,
-  _ctx: FluxRenderContext,
-): FluxElement => {
+const FluxBadge: FluxRenderer = (node: FluxNode, _ctx: FluxRenderContext): FluxElement => {
   const tone = (node.tone as Tone) ?? "neutral";
   const variant = (node.variant as Variant) ?? "subtle";
   const size = (node.size as Size) ?? "sm";
@@ -99,8 +91,7 @@ const FluxBadge: FluxRenderer = (
     alignItems: "center",
     fontFamily: tokenVar("typography.family.sans"),
     fontWeight: tokenVar("typography.weight.medium"),
-    borderRadius:
-      variant === "solid" ? tokenVar("radius.full") : tokenVar("radius.sm"),
+    borderRadius: variant === "solid" ? tokenVar("radius.full") : tokenVar("radius.sm"),
     whiteSpace: "nowrap",
   };
 

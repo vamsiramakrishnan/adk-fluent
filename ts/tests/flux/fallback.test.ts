@@ -15,11 +15,7 @@ import { describe, expect, it } from "vitest";
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-} from "../../src/flux/renderer/types.js";
+import type { FluxElement, FluxNode, FluxRenderContext } from "../../src/flux/renderer/types.js";
 import { renderFluxSurface } from "../../src/flux/renderer/surface.js";
 
 function BasicText(props: { text: string }): React.ReactElement {

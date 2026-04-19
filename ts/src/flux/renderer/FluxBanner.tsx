@@ -13,12 +13,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, mergeStyles, renderSlot, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Tone = "info" | "success" | "warning" | "danger";
 
@@ -48,10 +43,7 @@ const TONE_ROLE: Record<Tone, "status" | "alert"> = {
   danger: "alert",
 };
 
-const FluxBanner: FluxRenderer = (
-  node: FluxNode,
-  ctx: FluxRenderContext,
-): FluxElement => {
+const FluxBanner: FluxRenderer = (node: FluxNode, ctx: FluxRenderContext): FluxElement => {
   const tone = (node.tone as Tone) ?? "info";
   const title = typeof node.title === "string" ? node.title : "";
   const message = typeof node.message === "string" ? node.message : "";

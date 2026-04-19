@@ -15,12 +15,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Tone = "default" | "success" | "warning" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -49,17 +44,14 @@ const SHIMMER_KEYFRAMES = `
 }
 `;
 
-const FluxProgress: FluxRenderer = (
-  node: FluxNode,
-  _ctx: FluxRenderContext,
-): FluxElement => {
+const FluxProgress: FluxRenderer = (node: FluxNode, _ctx: FluxRenderContext): FluxElement => {
   const tone = (node.tone as Tone) ?? "default";
   const size = (node.size as Size) ?? "md";
   const determinate = node.determinate !== false; // default true
   const rawValue = typeof node.value === "number" ? node.value : 0;
   const value = Math.max(0, Math.min(100, rawValue));
   const a11y = (node.accessibility as { label?: string }) ?? {};
-  const label = typeof node.label === "string" ? node.label : a11y.label ?? "Progress";
+  const label = typeof node.label === "string" ? node.label : (a11y.label ?? "Progress");
 
   const height = SIZE_HEIGHT[size];
   const fill = TONE_FILL[tone];
@@ -130,13 +122,7 @@ const FluxProgress: FluxRenderer = (
 #${node.id}::-moz-progress-bar { background-color: ${fill}; border-radius: ${tokenVar("radius.full")}; }
 `,
     );
-    const wrapper = React.createElement(
-      "div",
-      { style: containerStyle },
-      labelEl,
-      injected,
-      bar,
-    );
+    const wrapper = React.createElement("div", { style: containerStyle }, labelEl, injected, bar);
     return asFluxElement(wrapper);
   }
 
@@ -169,12 +155,7 @@ const FluxProgress: FluxRenderer = (
     React.createElement("div", { style: shimmerFill }),
   );
 
-  const wrapper = React.createElement(
-    "div",
-    { style: containerStyle },
-    labelEl,
-    track,
-  );
+  const wrapper = React.createElement("div", { style: containerStyle }, labelEl, track);
   return asFluxElement(wrapper);
 };
 

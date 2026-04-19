@@ -71,9 +71,7 @@ export function renderTokenPack(pack: TokenPack, packId?: string): string {
   const decls: Array<[string, string]> = [];
   flatten(pack, "", decls);
   const body = decls.map(([name, value]) => `  ${name}: ${value};`).join("\n");
-  const selector = packId
-    ? `[data-flux-theme="${packId}"]`
-    : ":root";
+  const selector = packId ? `[data-flux-theme="${packId}"]` : ":root";
   return `${selector} {\n${body}\n}\n`;
 }
 

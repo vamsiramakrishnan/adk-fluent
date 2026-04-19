@@ -123,9 +123,7 @@ def test_button_spec_roundtrips() -> None:
 
     # --- Variants: tone/size/emphasis with the documented keys ---
     variants = spec.get("variants") or {}
-    assert set(variants.keys()) == {"tone", "size", "emphasis"}, (
-        "variants map must contain exactly tone/size/emphasis"
-    )
+    assert set(variants.keys()) == {"tone", "size", "emphasis"}, "variants map must contain exactly tone/size/emphasis"
     assert set(variants["tone"].keys()) >= {"neutral", "primary", "danger", "success"}
     assert set(variants["size"].keys()) >= {"sm", "md", "lg"}
     assert set(variants["emphasis"].keys()) >= {"solid", "soft", "outline", "ghost"}
@@ -151,9 +149,7 @@ def test_catalog_has_phase_one_components() -> None:
     artifact, so it is safe to run in environments without Node. Keeps
     W3's contract honest even when the loader test is skipped.
     """
-    assert CATALOG_JSON.is_file(), (
-        f"catalog.json must exist at {CATALOG_JSON}. Run `just flux` to regenerate."
-    )
+    assert CATALOG_JSON.is_file(), f"catalog.json must exist at {CATALOG_JSON}. Run `just flux` to regenerate."
     with CATALOG_JSON.open("r", encoding="utf-8") as fh:
         import json
 
@@ -204,18 +200,14 @@ def test_pipeline_is_idempotent(tmp_path: Path) -> None:  # noqa: ARG001  (tmp_p
     # status here — the tree may legitimately have uncommitted work the
     # developer hasn't addressed yet.
     first = _run(["just", "flux"])
-    assert first.returncode == 0, (
-        f"first `just flux` failed:\nstdout:\n{first.stdout}\nstderr:\n{first.stderr}"
-    )
+    assert first.returncode == 0, f"first `just flux` failed:\nstdout:\n{first.stdout}\nstderr:\n{first.stderr}"
 
     # Snapshot git status so we can diff against it.
     before = _run(["git", "status", "--short", "--untracked-files=all"])
     assert before.returncode == 0, before.stderr
 
     second = _run(["just", "flux"])
-    assert second.returncode == 0, (
-        f"second `just flux` failed:\nstdout:\n{second.stdout}\nstderr:\n{second.stderr}"
-    )
+    assert second.returncode == 0, f"second `just flux` failed:\nstdout:\n{second.stdout}\nstderr:\n{second.stderr}"
 
     after = _run(["git", "status", "--short", "--untracked-files=all"])
     assert after.returncode == 0, after.stderr

@@ -16,12 +16,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, mergeStyles, renderSlot, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Tone = "neutral" | "primary" | "danger" | "success";
 type Size = "sm" | "md" | "lg";
@@ -132,10 +127,7 @@ const Spinner: React.FC<{ size: number }> = ({ size }) => {
   });
 };
 
-const FluxButton: FluxRenderer = (
-  node: FluxNode,
-  ctx: FluxRenderContext,
-): FluxElement => {
+const FluxButton: FluxRenderer = (node: FluxNode, ctx: FluxRenderContext): FluxElement => {
   const tone = (node.tone as Tone) ?? "neutral";
   const size = (node.size as Size) ?? "md";
   const emphasis = (node.emphasis as Emphasis) ?? "solid";
@@ -193,11 +185,7 @@ const FluxButton: FluxRenderer = (
       },
     },
     loading ? React.createElement(Spinner, { size: spinnerSize }) : leading,
-    React.createElement(
-      "span",
-      { style: { whiteSpace: "nowrap" } },
-      label,
-    ),
+    React.createElement("span", { style: { whiteSpace: "nowrap" } }, label),
     loading ? null : trailing,
   );
 

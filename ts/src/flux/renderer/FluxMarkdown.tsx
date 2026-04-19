@@ -13,12 +13,7 @@
 import * as React from "react";
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 import { asFluxElement, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Size = "sm" | "md" | "lg";
 type ProseStyle = "compact" | "default" | "spacious";
@@ -81,13 +76,9 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
         ),
       );
     } else if (match[3] !== undefined) {
-      nodes.push(
-        React.createElement("strong", { key, style: { fontWeight: 600 } }, match[4]),
-      );
+      nodes.push(React.createElement("strong", { key, style: { fontWeight: 600 } }, match[4]));
     } else if (match[5] !== undefined) {
-      nodes.push(
-        React.createElement("em", { key, style: { fontStyle: "italic" } }, match[6]),
-      );
+      nodes.push(React.createElement("em", { key, style: { fontStyle: "italic" } }, match[6]));
     } else if (match[7] !== undefined) {
       nodes.push(
         React.createElement(
@@ -161,7 +152,12 @@ function renderBlocks(source: string, style: CSSProperties): ReactElement[] {
             style: {
               marginBlockStart: style.marginBlockStart,
               marginBlockEnd: style.marginBlockEnd,
-              fontSize: level === 1 ? tokenVar("typography.size.2xl") : level === 2 ? tokenVar("typography.size.xl") : tokenVar("typography.size.lg"),
+              fontSize:
+                level === 1
+                  ? tokenVar("typography.size.2xl")
+                  : level === 2
+                    ? tokenVar("typography.size.xl")
+                    : tokenVar("typography.size.lg"),
               fontWeight: 600,
               lineHeight: style.lineHeight,
             },
@@ -175,7 +171,12 @@ function renderBlocks(source: string, style: CSSProperties): ReactElement[] {
     }
     // Paragraph — accumulate until a blank line.
     const buf: string[] = [];
-    while (i < lines.length && lines[i]!.trim() !== "" && !lines[i]!.trim().startsWith("```") && !/^#{1,3}\s+/.test(lines[i]!)) {
+    while (
+      i < lines.length &&
+      lines[i]!.trim() !== "" &&
+      !lines[i]!.trim().startsWith("```") &&
+      !/^#{1,3}\s+/.test(lines[i]!)
+    ) {
       buf.push(lines[i]!);
       i += 1;
     }
@@ -202,10 +203,7 @@ function renderBlocks(source: string, style: CSSProperties): ReactElement[] {
   return blocks;
 }
 
-const FluxMarkdown: FluxRenderer = (
-  node: FluxNode,
-  _ctx: FluxRenderContext,
-): FluxElement => {
+const FluxMarkdown: FluxRenderer = (node: FluxNode, _ctx: FluxRenderContext): FluxElement => {
   const size = (node.size as Size) ?? "md";
   const proseStyle = (node.proseStyle as ProseStyle) ?? "default";
   const source = typeof node.source === "string" ? node.source : "";

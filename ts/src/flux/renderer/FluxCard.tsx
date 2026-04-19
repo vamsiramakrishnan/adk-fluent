@@ -9,12 +9,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, mergeStyles, renderSlot, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Emphasis = "subtle" | "outline" | "elevated";
 type Padding = "sm" | "md" | "lg";
@@ -59,10 +54,7 @@ const PADDING_STYLE: Record<Padding, CSSProperties> = {
   },
 };
 
-const FluxCard: FluxRenderer = (
-  node: FluxNode,
-  ctx: FluxRenderContext,
-): FluxElement => {
+const FluxCard: FluxRenderer = (node: FluxNode, ctx: FluxRenderContext): FluxElement => {
   const emphasis = (node.emphasis as Emphasis) ?? "subtle";
   const padding = (node.padding as Padding) ?? "md";
   const a11y = (node.accessibility as { label?: string }) ?? {};
@@ -83,8 +75,9 @@ const FluxCard: FluxRenderer = (
   );
 
   const header = renderSlot(node.header, ctx, node.id, "header");
-  const body = renderSlot(node.body, ctx, node.id, "body")
-    ?? (typeof node.body === "string"
+  const body =
+    renderSlot(node.body, ctx, node.id, "body") ??
+    (typeof node.body === "string"
       ? React.createElement(
           "span",
           {

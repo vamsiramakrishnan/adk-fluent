@@ -11,12 +11,7 @@
 import * as React from "react";
 import type { CSSProperties } from "react";
 import { asFluxElement, tokenVar } from "./_shared.js";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 type Shape = "text" | "circle" | "rect";
 type Size = "xs" | "sm" | "md" | "lg" | "xl";
@@ -53,15 +48,10 @@ function radius(shape: Shape): string {
   }
 }
 
-const FluxSkeleton: FluxRenderer = (
-  node: FluxNode,
-  _ctx: FluxRenderContext,
-): FluxElement => {
+const FluxSkeleton: FluxRenderer = (node: FluxNode, _ctx: FluxRenderContext): FluxElement => {
   const shape = (node.shape as Shape) ?? "text";
   const size = (node.size as Size) ?? "md";
-  const count = typeof node.count === "number" && node.count > 0
-    ? Math.floor(node.count)
-    : 1;
+  const count = typeof node.count === "number" && node.count > 0 ? Math.floor(node.count) : 1;
   const widthOverride = typeof node.width === "string" ? node.width : undefined;
   const heightOverride = typeof node.height === "string" ? node.height : undefined;
 
@@ -80,9 +70,9 @@ const FluxSkeleton: FluxRenderer = (
     animationIterationCount: "infinite",
     height: heightOverride ?? circleDim ?? SIZE_HEIGHT[size],
     width:
-      widthOverride
-      ?? circleDim
-      ?? (shape === "text" ? "100%" : shape === "rect" ? "100%" : undefined),
+      widthOverride ??
+      circleDim ??
+      (shape === "text" ? "100%" : shape === "rect" ? "100%" : undefined),
   };
 
   const items: React.ReactElement[] = [];
@@ -92,10 +82,7 @@ const FluxSkeleton: FluxRenderer = (
         key: `${node.id}-${i}`,
         style: {
           ...base,
-          width:
-            shape === "text" && i === count - 1 && count > 1
-              ? "70%"
-              : base.width,
+          width: shape === "text" && i === count - 1 && count > 1 ? "70%" : base.width,
         },
       }),
     );

@@ -55,11 +55,9 @@ function makeBaseSpec(overrides: Partial<ComponentSpec> = {}): ComponentSpec {
 
 describe("defineComponent invariants", () => {
   it("rejects a name without the 'Flux' prefix", () => {
-    expect(() =>
-      defineComponent(
-        makeBaseSpec({ name: "Button" }),
-      ),
-    ).toThrowError(/must start with "Flux"/);
+    expect(() => defineComponent(makeBaseSpec({ name: "Button" }))).toThrowError(
+      /must start with "Flux"/,
+    );
   });
 
   it("rejects an interactive extend with accessibility.label !== 'required'", () => {

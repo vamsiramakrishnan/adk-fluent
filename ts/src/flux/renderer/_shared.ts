@@ -9,12 +9,7 @@
 
 import * as React from "react";
 import type { CSSProperties, ReactElement, ReactNode } from "react";
-import type {
-  FluxElement,
-  FluxNode,
-  FluxRenderContext,
-  FluxRenderer,
-} from "./types.js";
+import type { FluxElement, FluxNode, FluxRenderContext, FluxRenderer } from "./types.js";
 
 /**
  * Cast a React element to the structural FluxElement interface. The
@@ -70,9 +65,7 @@ export function resolveValue(value: unknown): unknown {
  * React expects (React already uses camelCase — so this is largely a
  * token-resolution pass with type narrowing).
  */
-export function resolveStyle(
-  style: Record<string, unknown> | undefined,
-): CSSProperties {
+export function resolveStyle(style: Record<string, unknown> | undefined): CSSProperties {
   const out: Record<string, unknown> = {};
   if (!style) return out as CSSProperties;
   for (const [key, value] of Object.entries(style)) {
@@ -85,9 +78,7 @@ export function resolveStyle(
  * Merge an ordered list of style dicts. Later entries win. Undefined
  * values are treated as "don't set".
  */
-export function mergeStyles(
-  ...styles: Array<CSSProperties | undefined>
-): CSSProperties {
+export function mergeStyles(...styles: Array<CSSProperties | undefined>): CSSProperties {
   const out: Record<string, unknown> = {};
   for (const block of styles) {
     if (!block) continue;
@@ -109,17 +100,15 @@ export function renderSlot(
   // Surface-level lookup not modelled in ctx — the visual runner passes a
   // ``__slots`` sidecar via ctx.renderers' closure. The fixture runner
   // attaches a ``FLUX_SLOT_REGISTRY`` map on ctx with slot nodes keyed by id.
-  const registry = (ctx as unknown as { slots?: Record<string, FluxNode> })
-    .slots;
+  const registry = (ctx as unknown as { slots?: Record<string, FluxNode> }).slots;
   if (!registry) return null;
   const child = registry[slotId];
   if (!child) return null;
   const renderer = ctx.renderers[child.component] as FluxRenderer | undefined;
   const rendered = renderer ? renderer(child, ctx) : ctx.fallback(child);
-  return React.cloneElement(
-    rendered as unknown as ReactElement,
-    { key: `${parentId}-${slotName}` },
-  );
+  return React.cloneElement(rendered as unknown as ReactElement, {
+    key: `${parentId}-${slotName}`,
+  });
 }
 
 /** Return the first non-nullish value. */
