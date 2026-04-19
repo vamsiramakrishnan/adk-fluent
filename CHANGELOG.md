@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Generator non-determinism** — `_sort_and_group_imports` used `(not name.isupper(), name.lower())` as its isort key; collisions for siblings like `MCPTool` vs `McpTool` fell back to set iteration order (PYTHONHASHSEED-dependent), making `.pyi` output drift across runs. Added `name` as a case-sensitive tiebreaker so ties sort in ASCII order.
 - **pyi stub trailing newline** — `__init__.pyi` carried a stray trailing blank line that the `end-of-file-fixer` hook stripped on every commit; re-generation then re-added it. Removed the extra `append("")` in the stub emitter.
 - **flux renderer map formatting drift** — the React renderer index emitted quoted keys (`"FluxBadge": FluxBadge`) which prettier unquoted (valid JS identifiers don't need quotes), so each `just flux` run reintroduced a diff. The emitter now writes unquoted keys matching prettier's canonical form.
+- **Version drift blocked release** — `VERSION` stayed at `0.15.0` while `python/src/adk_fluent/_version.py` and `ts/package.json` advanced to `0.16.0`, failing `release preflight --strict` and skipping PyPI + npm publishes for the 0.16.0 cut. Re-synced all three files to `0.16.0` so the release workflow can fire cleanly.
+
+### Documentation
+
+- **README badges refresh** — grouped badge block (Release, Reach, Engineering, Ecosystem, Community, Social) across `README.template.md`, `README.md`, and `python/README.md`. Adds npm + Node + TypeScript + Bundlephobia + Packagephobia + Codecov + CodeQL + OpenSSF Scorecard + Ruff + Prettier + DeepWiki + Codespaces + Gitpod alongside the existing PyPI signals. Footer gains a dark/light star-history chart and a contrib.rocks contributor ribbon.
 
 ## [0.15.0] - 2026-04-19
 
