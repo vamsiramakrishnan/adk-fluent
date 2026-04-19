@@ -58,6 +58,8 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write       # PyPI Trusted Publishing + npm provenance
+  attestations: write   # PEP 740 Python attestations
 
 jobs:
   # ─── stage 1: decide whether to release and which target to hit ────────
