@@ -405,7 +405,7 @@ export class LlmAgentConfig extends BuilderBase {
   }
 
   /**
-   * Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored.
+   * Session state key where the agent's response text is stored. Prefer ``.writes(key)`` — the idiomatic alias on BuilderBase.
    */
   outputKey(value: string | undefined): this {
     return this._setConfig("output_key", value);

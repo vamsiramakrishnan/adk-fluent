@@ -601,7 +601,7 @@ class LlmAgentConfig(BuilderBase):
         return self
 
     def output_key(self, value: str | None) -> Self:
-        """Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."""
+        """Session state key where the agent's response text is stored. Prefer ``.writes(key)`` — the idiomatic alias on BuilderBase."""
         self = self._maybe_fork_for_mutation()
         self._config["output_key"] = value
         return self

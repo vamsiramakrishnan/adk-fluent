@@ -142,6 +142,7 @@ from ._artifact_schema import Produces as Produces
 from ._artifacts import A as A
 from ._artifacts import ATransform as ATransform
 from ._base import BuilderBase as BuilderBase
+from ._base import RunNamespace as RunNamespace
 from ._base import fluent as fluent
 from ._callback_schema import CallbackSchema as CallbackSchema
 from ._composite import Composite as Composite
@@ -1097,6 +1098,7 @@ __all__ = [
     "A",
     "ATransform",
     "BuilderBase",
+    "RunNamespace",
     "fluent",
     "CallbackSchema",
     "Composite",

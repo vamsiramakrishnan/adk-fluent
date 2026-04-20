@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import asyncio as _asyncio
 import itertools
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from typing import Any, Self
 
 __all__ = [
     "BuilderBase",
+    "RunNamespace",
     "fluent",
 ]
 
@@ -548,6 +549,119 @@ def _attr_is_close(a: str, b: str) -> bool:
             si += 1
             li += 1
     return diffs <= 1
+
+
+class RunNamespace:
+    """Execution façade accessed via :attr:`BuilderBase.run`.
+
+    Holds the eight ways of running a builder (one-shot sync/async, streaming
+    text, raw events, interactive session, batch sync/async, inline smoke
+    test) under one namespace so ``agent.run.ask(...)`` replaces eight
+    top-level verbs on every builder.
+
+    Instances are cheap — one per attribute access. They carry only a
+    reference to the underlying builder and dispatch to the same helpers
+    the legacy top-level methods used.
+    """
+
+    __slots__ = ("_builder",)
+
+    def __init__(self, builder: BuilderBase) -> None:
+        self._builder = builder
+
+    def __call__(self, prompt: str) -> str:
+        """Shorthand: ``agent.run("hi")`` is ``agent.run.ask("hi")``."""
+        return self.ask(prompt)
+
+    def __repr__(self) -> str:
+        name = self._builder._config.get("name") if hasattr(self._builder, "_config") else None
+        label = name or type(self._builder).__name__
+        return f"<RunNamespace for {label}>"
+
+    def ask(self, prompt: str) -> str:
+        """One-shot SYNC execution (blocking). Builds, prompts, returns text.
+
+        Raises ``RuntimeError`` inside async event loops (Jupyter, FastAPI);
+        use :meth:`ask_async` there instead.
+        """
+        from adk_fluent._helpers import run_one_shot
+
+        return run_one_shot(self._builder, prompt)
+
+    async def ask_async(self, prompt: str) -> str:
+        """One-shot ASYNC execution (non-blocking, use with ``await``)."""
+        from adk_fluent._helpers import run_one_shot_async
+
+        return await run_one_shot_async(self._builder, prompt)
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        """ASYNC streaming execution. Yields response text chunks.
+
+        Use with ``async for chunk in agent.run.stream(prompt): ...``.
+        """
+        from adk_fluent._helpers import run_stream
+
+        async for chunk in run_stream(self._builder, prompt):
+            yield chunk
+
+    async def events(self, prompt: str) -> AsyncIterator[Any]:
+        """Stream raw ADK :class:`Event` objects.
+
+        Yields every event including state deltas and function calls.
+        """
+        from adk_fluent._helpers import run_events
+
+        async for chunk in run_events(self._builder, prompt):
+            yield chunk
+
+    def session(self) -> Any:
+        """Create an interactive multi-turn chat session.
+
+        Returns an async context manager — use with
+        ``async with agent.run.session() as chat: ...``. The agent is
+        auto-built.
+        """
+        from adk_fluent._helpers import create_session
+
+        return create_session(self._builder)
+
+    def map(self, prompts: list[str], *, concurrency: int = 5) -> list[str]:
+        """Batch SYNC execution with bounded concurrency.
+
+        Raises ``RuntimeError`` inside async event loops; use
+        :meth:`map_async` there instead.
+        """
+        from adk_fluent._helpers import run_map
+
+        return run_map(self._builder, prompts, concurrency=concurrency)
+
+    async def map_async(
+        self, prompts: list[str], *, concurrency: int = 5
+    ) -> list[str]:
+        """Batch ASYNC execution with bounded concurrency."""
+        from adk_fluent._helpers import run_map_async
+
+        return await run_map_async(self._builder, prompts, concurrency=concurrency)
+
+    def test(
+        self,
+        prompt: str,
+        *,
+        contains: str | None = None,
+        matches: str | None = None,
+        equals: str | None = None,
+    ) -> BuilderBase:
+        """Run an inline smoke test against the builder.
+
+        Calls :meth:`ask` under the hood, asserts the output matches one of
+        ``contains`` / ``matches`` / ``equals``. Returns the underlying
+        builder so it chains with further configuration.
+        """
+        from adk_fluent._helpers import run_inline_test
+
+        return run_inline_test(
+            self._builder, prompt, contains=contains, matches=matches, equals=equals
+        )
 
 
 class BuilderBase:
@@ -3348,6 +3462,32 @@ class BuilderBase:
                 self._callbacks[cb_field].append(fn)
 
         return self
+
+    # ------------------------------------------------------------------
+    # Unified execution: .run.*
+    # ------------------------------------------------------------------
+
+    @property
+    def run(self) -> RunNamespace:
+        """Execution façade. One namespace for every way of running a builder.
+
+        Collapses ``.ask()`` / ``.ask_async()`` / ``.stream()`` / ``.events()``
+        / ``.session()`` / ``.map()`` / ``.map_async()`` / ``.test()`` into
+        one cohesive surface:
+
+        * ``agent.run("hi")`` — sync one-shot, same as ``agent.run.ask("hi")``
+        * ``await agent.run.ask_async("hi")`` — async one-shot
+        * ``async for chunk in agent.run.stream("hi"): ...``
+        * ``async for event in agent.run.events("hi"): ...``
+        * ``async with agent.run.session() as chat: ...``
+        * ``agent.run.map(["a", "b"])`` / ``await agent.run.map_async(...)``
+        * ``agent.run.test("hi", contains="foo")``
+
+        Every variant auto-builds the builder once per call and returns a
+        native Python primitive (``str`` / ``list[str]`` / async iterator),
+        so callers never touch the underlying ADK runner directly.
+        """
+        return RunNamespace(self)
 
     # ------------------------------------------------------------------
     # Unified introspection: .show(mode=)
