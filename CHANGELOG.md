@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-04-20
+
+### Changed
+
+- **Release flow** — cut this version through `just rel-prepare patch` rather than hand-editing `VERSION`/`_version.py`/`package.json` and writing the changelog section manually. The recipe bumps all three version files, promotes `[Unreleased]` to a dated section, and stages a single `release: v<version>` commit, keeping the master `push · VERSION` trigger on a consistent shape.
+
 ## [0.16.1] - 2026-04-20
 
 ### Changed
