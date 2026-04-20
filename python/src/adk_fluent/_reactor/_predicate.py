@@ -118,14 +118,25 @@ class SignalPredicate:
         )
 
     def debounce(self, ms: float) -> SignalPredicate:
-        """Only fire after ``ms`` of quiet time since the last match."""
-        self._debounce_ms = ms
-        return self
+        """Only fire after ``ms`` of quiet time since the last match.
+
+        Returns a fresh predicate so the original remains immutable —
+        composable with ``&`` / ``|`` / ``~`` without state leakage.
+        """
+        new = SignalPredicate(self._match, self._deps)
+        new._debounce_ms = ms
+        new._throttle_ms = self._throttle_ms
+        return new
 
     def throttle(self, ms: float) -> SignalPredicate:
-        """Fire at most once every ``ms`` milliseconds."""
-        self._throttle_ms = ms
-        return self
+        """Fire at most once every ``ms`` milliseconds.
+
+        Returns a fresh predicate — see :meth:`debounce` for rationale.
+        """
+        new = SignalPredicate(self._match, self._deps)
+        new._debounce_ms = self._debounce_ms
+        new._throttle_ms = ms
+        return new
 
     # ------------------------------------------------------------------
     # Evaluation

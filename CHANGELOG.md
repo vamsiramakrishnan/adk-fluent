@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`R` namespace — reactors native to the fluent builder** (Python + TypeScript parity). Signals and rules are now first-class builder concerns, matching the weight of `S` / `C` / `M`. The 100x move is a registry-backed facade that turns signals into name-addressed cells and predicates into name-addressed factories, plus `Builder.on(predicate, handler?, opts?)` for declarative rule attachment and `R.compile(builders, {bus})` for tree-walking compilation across `Pipeline` / `FanOut` / `Loop`:
+
+    ```python
+    # before — hand-built sequence of four distinct objects
+    bus  = EventBus()
+    temp = Signal("temp", 72).attach(bus)
+    r    = Reactor()
+    r.when(temp.rising.where(lambda v: v > 90), handler, priority=10)
+    r.start()
+
+    # after — name-addressed, declarative, composable
+    temp   = R.signal("temp", 72)
+    cooler = (Agent("cooler", "gemini-2.5-flash")
+              .instruct("Plan a cool-down.")
+              .on(R.rising("temp").where(lambda v: v > 90),
+                  handler, priority=10))
+    reactor = R.compile([cooler], bus=bus); reactor.start()
+    ```
+
+  Both ports ship with an end-to-end cookbook example (`81_reactor_native.py` / `.ts`) and 21 tests apiece (`test_reactor_namespace.py` / `reactor-namespace.test.ts`).
+
+- **`SignalRegistry`** — thread-safe (Python) / async-safe (TS) name→signal map backing the `R` facade. One per session. Exposes `.signal(name, initial)`, `.get(name)`, `.has(name)`, `.names()`, `.rule(...)`, `.attach(bus)`, `.clear()`. `R.scope()` returns a fresh isolated registry for tests and multi-tenant workflows.
+- **`RuleSpec`** — frozen declarative rule record (`{predicate, handler, name, priority, preemptive}`) stored on builders via `.on()` and materialised into live `ReactorRule` instances by `R.compile()`. Stored as `builder._reactor_rules` (read-only view).
+- **`ReactorPlugin`** — owns the reactor's lifecycle as an ADK `BasePlugin`. `on_session_start` starts the reactor, `on_session_end` stops it. Drop-in replacement for manual `reactor.start()/stop()` calls.
+- **`R.computed(name, fn)`** — derived signal with auto-tracked dependencies. Reads via `Signal.get()` inside `fn` are transparently subscribed; the computed signal recomputes when any dep changes. Exported as `computed` at the package root in TS.
+
+### Changed
+
+- **`SignalPredicate.debounce(ms)` / `.throttle(ms)` are now immutable** (Python + TS). Previously both methods mutated `self` and returned `self` — calling `base.debounce(50)` silently rewrote every other user of `base`. They now return a fresh `SignalPredicate` with the updated window and leave the receiver untouched. This is a quiet correctness fix: any code that chained `.debounce()/.throttle()` onto a throw-away predicate continues to work; code that intentionally shared a base predicate now gets the correct isolation.
+- **Harness re-exports** — `R`, `SignalRegistry`, `RuleSpec`, `ReactorPlugin`, `computed`, `make_rule_spec` / `makeRuleSpec` are now exported from the top-level package in both Python (`from adk_fluent import R, SignalRegistry, ...`) and TypeScript (`import { R, SignalRegistry, ... } from "adk-fluent-ts"`).
+
+### Documentation
+
+- **`CLAUDE.md` + `ts/CLAUDE.md` regenerated** — the auto-generated reactor section in `shared/scripts/llms_generator.py` (`_TS_HARNESS_PACKAGES`) now documents the `R` namespace, `Builder.on()`, the `SignalRegistry` / `RuleSpec` / `ReactorPlugin` trio, and the debounce/throttle immutability fix. The same text flows through `just llms` to `docs/llms.txt`, `docs/llms-ts.txt`, `.clinerules/adk-fluent.md`, `.cursor/rules/adk-fluent.mdc`, `.github/instructions/adk-fluent.instructions.md`, and `.windsurfrules`.
+
 ## [0.16.2] - 2026-04-20
 
 ### Changed

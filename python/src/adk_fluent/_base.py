@@ -2394,6 +2394,64 @@ class BuilderBase:
             name = self._config.get("name", "?")
             raise BuilderError(name, self.__class__.__name__, [str(exc)], exc) from exc
 
+    def on(
+        self,
+        predicate,
+        handler=None,
+        *,
+        name: str = "",
+        priority: int = 0,
+        preemptive: bool = False,
+    ) -> Self:
+        """Attach a reactor rule. Fires ``handler`` when ``predicate`` matches.
+
+        ``predicate`` may be a :class:`SignalPredicate` (e.g. from
+        ``R.rising("temp")``) or a bare :class:`Signal`; a bare signal
+        is promoted to its ``.changed`` predicate. If ``handler`` is
+        omitted, the builder itself becomes the handler — on fire, the
+        agent is invoked with the change payload as input.
+
+        Rules are stored on the builder and materialized by
+        :meth:`R.compile` into :class:`ReactorRule` entries on a
+        session-scoped :class:`Reactor`. ``priority`` and ``preemptive``
+        map directly onto the reactor's scheduling semantics.
+
+        Example::
+
+            Agent("cooler").on(
+                R.rising("temp").where(lambda v, _: v > 90),
+                priority=10,
+                preemptive=True,
+            )
+        """
+        from adk_fluent._reactor._namespace import RuleSpec
+        from adk_fluent._reactor._predicate import SignalPredicate
+        from adk_fluent._reactor._signal import Signal
+
+        target = self._maybe_fork_for_mutation()
+        if isinstance(predicate, Signal):
+            predicate = predicate.changed
+        if not isinstance(predicate, SignalPredicate):
+            raise TypeError(
+                ".on() expects a SignalPredicate or Signal, got "
+                f"{type(predicate).__name__}. Use R.rising('name'), "
+                f"R.changed('name'), or Signal.changed/.rising/.falling."
+            )
+
+        resolved_handler = handler if handler is not None else _builder_handler(target)
+
+        spec = RuleSpec(
+            predicate=predicate,
+            handler=resolved_handler,
+            name=name or target._config.get("name", ""),
+            priority=priority,
+            preemptive=preemptive,
+        )
+        if getattr(target, "_reactor_rules", None) is None:
+            target._reactor_rules = []
+        target._reactor_rules.append(spec)
+        return target
+
     def middleware(self, mw) -> Self:
         """Attach a middleware to this builder.
 
@@ -3280,3 +3338,25 @@ class BuilderBase:
         """All events reach client with visibility metadata. Client filters."""
         self._config["_visibility_policy"] = "annotate"
         return self
+
+
+def _builder_handler(builder):
+    """Default handler for ``builder.on(pred)`` without an explicit handler.
+
+    Calls ``builder.ask_async`` with a short prompt derived from the
+    :class:`_Change` payload. Errors never propagate — the reactor's
+    handler isolation owns failure policy.
+    """
+
+    async def _handler(change):
+        value = getattr(change, "value", change)
+        signal_name = getattr(change, "signal_name", "signal")
+        ask = getattr(builder, "ask_async", None)
+        if ask is None:
+            return None
+        try:
+            return await ask(f"{signal_name} changed to {value!r}")
+        except Exception:
+            return None
+
+    return _handler
