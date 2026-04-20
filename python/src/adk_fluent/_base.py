@@ -589,6 +589,7 @@ class BuilderBase:
     _config: dict[str, Any]
     _callbacks: dict[str, list[Callable]]
     _lists: dict[str, list]
+    _reactor_rules: list  # lazily initialized in .on()
 
     def _init_storage(self, name: str, **config_extras: Any) -> None:
         """Canonical storage initialization. Called by codegen __init__ and PrimitiveBuilderBase.

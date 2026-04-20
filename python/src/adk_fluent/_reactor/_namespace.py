@@ -43,7 +43,7 @@ from __future__ import annotations
 import contextlib
 import threading
 from collections.abc import Awaitable, Callable, Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from adk_fluent._reactor._predicate import SignalPredicate
