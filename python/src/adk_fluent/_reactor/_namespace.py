@@ -154,10 +154,7 @@ class SignalRegistry:
         try:
             return self._signals[name]
         except KeyError as exc:
-            raise KeyError(
-                f"Signal {name!r} is not registered. "
-                f"Create it with R.signal({name!r}, ...) first."
-            ) from exc
+            raise KeyError(f"Signal {name!r} is not registered. Create it with R.signal({name!r}, ...) first.") from exc
 
     def has(self, name: str) -> bool:
         return name in self._signals
