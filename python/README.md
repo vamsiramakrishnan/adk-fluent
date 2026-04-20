@@ -183,14 +183,16 @@ See the [Editor & AI Agent Setup](https://vamsiramakrishnan.github.io/adk-fluent
 from adk_fluent import Agent
 
 agent = Agent("demo")
-agent.  # <- autocomplete shows: .model(), .instruct(), .tool(), .build(), ...
+agent.  # <- autocomplete shows: .model(), .instruct(), .tool(), .run, ...
 
 # Typos are caught at definition time, not runtime:
 agent.instuction("oops")  # -> AttributeError: 'instuction' is not a recognized field.
                           #    Did you mean: 'instruction'?
 
-# Inspect any builder's current state:
-print(agent.model("gemini-2.5-flash").instruct("Help.").explain())
+# Inspect any builder's current state — one verb, many views:
+print(agent.model("gemini-2.5-flash").instruct("Help.").show())        # rich tree
+print(agent.show("plain"))                                              # plain dump
+print(agent.show("mermaid"))                                            # topology
 # Agent: demo
 #   Config fields: model, instruction
 
@@ -205,11 +207,11 @@ from adk_fluent import Agent
 
 # Create an agent and get a response -- no Runner, no Session, no boilerplate
 agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.")
-print(agent.ask("What is the capital of France?"))
+print(agent.run("What is the capital of France?"))
 # => The capital of France is Paris.
 ```
 
-`.ask()` handles Runner, Session, and cleanup internally. One line to define, one line to run. See the [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) for credentials setup and more examples.
+`agent.run(...)` auto-builds the agent and handles Runner, Session, and cleanup internally. One line to define, one line to run. The full execution surface lives under `agent.run.*`: `.run.ask`, `.run.ask_async`, `.run.stream`, `.run.events`, `.run.session`, `.run.map`, `.run.map_async`, `.run.test`. See the [Getting Started guide](https://vamsiramakrishnan.github.io/adk-fluent/getting-started/) for credentials setup and more examples.
 
 **Try without an API key** — verify the library works using `.mock()`:
 
@@ -217,7 +219,7 @@ print(agent.ask("What is the capital of France?"))
 from adk_fluent import Agent
 
 agent = Agent("demo", "gemini-2.5-flash").instruct("You are helpful.").mock(["Hello! How can I help?"])
-print(agent.ask("Hi"))
+print(agent.run("Hi"))
 # => Hello! How can I help?
 ```
 
@@ -859,7 +861,7 @@ Operators work with `Agent`, `Pipeline`, `FanOut`, `Loop` builders, callables, a
 ```python
 # {topic} resolves from session state at runtime, not at definition time
 agent = Agent("writer", "gemini-2.5-flash").instruct("Write about {topic}.")
-agent.ask("hello")  # {topic} appears literally if not in state
+agent.run("hello")  # {topic} appears literally if not in state
 ```
 
 Use `.writes("topic")` on a prior agent, or pass initial state via `.session()`.

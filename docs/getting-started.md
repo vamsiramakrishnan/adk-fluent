@@ -54,12 +54,17 @@ Autocomplete works out of the box — the package is written in TypeScript, so h
 ```python
 from adk_fluent import Agent
 
-agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.").build()
-# Returns a real google.adk.agents.llm_agent.LlmAgent — not a wrapper.
+agent = Agent("helper", "gemini-2.5-flash").instruct("You are a helpful assistant.")
 
-print(agent.ask("Hello, who are you?"))
+print(agent.run("Hello, who are you?"))
 # => Hi! I'm a helpful assistant. How can I help you today?
 ```
+
+`agent.run(prompt)` auto-builds the agent and runs it in one line. The full
+execution surface lives on `agent.run.*` (`.run.ask`, `.run.ask_async`,
+`.run.stream`, `.run.events`, `.run.session`, `.run.map`, `.run.map_async`,
+`.run.test`). Call `.build()` explicitly when you need the native ADK
+`LlmAgent` object — for `adk web`, `adk run`, or `adk deploy`.
 :::
 :::{tab-item} TypeScript
 :sync: ts
@@ -78,13 +83,13 @@ console.log(await agent.ask("Hello, who are you?"));
 :::
 ::::
 
-That's a full agent. `agent` is a real native ADK `LlmAgent` — it
+That's a full agent. Every `.build()` returns a real native ADK `LlmAgent` — it
 works with `adk web`, `adk run`, `adk deploy`, or any ADK API.
 
 :::{warning} Jupyter, FastAPI, or any running event loop?
-Python's `.ask()` and `.map()` are **sync and blocking** — they
+Python's `.run.ask()` and `.run.map()` are **sync and blocking** — they
 raise `RuntimeError` inside an already-running event loop. Use
-`await agent.ask_async(...)` and `await agent.map_async(...)`
+`await agent.run.ask_async(...)` and `await agent.run.map_async(...)`
 instead. See [Execution](user-guide/execution.md) for the full
 async surface. (TypeScript is async-only; no equivalent footgun.)
 :::
@@ -415,22 +420,22 @@ agent = (
 )
 
 # Runs instantly, no API call, no cost
-print(agent.ask("Hi there"))
+print(agent.run("Hi there"))
 # => Hello! I'm here to help.
 ```
 
 This is how all 68 cookbook examples run in CI — every example uses `.mock()` so tests pass without credentials. Use `.mock()` during development, remove it when you're ready for real LLM calls.
 
-:::{tip} `.test()` — inline smoke tests
-For quick validation, chain `.test()` directly:
+:::{tip} `.run.test()` — inline smoke tests
+For quick validation, chain `.run.test()` directly:
 ```python
-agent.test("What's 2+2?", contains="4")  # passes silently or raises AssertionError
+agent.run.test("What's 2+2?", contains="4")  # passes silently or raises AssertionError
 ```
 :::
 
 ## See What the LLM Sees
 
-One of the most powerful debugging tools: `.llm_anatomy()` shows the exact prompt, context, and tools the LLM receives.
+One of the most powerful debugging tools: `.show("llm")` prints the exact prompt, context, and tools the LLM receives.
 
 ```python
 from adk_fluent import Agent, C
@@ -442,7 +447,7 @@ agent = (
     .writes("intent")
 )
 
-agent.llm_anatomy()
+agent.show("llm")
 # System prompt:  Classify the customer's intent.
 # Context:        none (C.none() — current turn only)
 # Output key:     intent
@@ -457,34 +462,34 @@ This prevents the #1 debugging nightmare: "why is my agent producing garbage?" T
 # Catch config errors before runtime
 agent = Agent("x", "gemini-2.5-flash").instruct("Help.").validate()
 
-# See what the builder has configured
-agent.explain()
-
-# Generate a visual topology diagram
-pipeline.to_mermaid()
-
-# Full diagnostic report
-pipeline.doctor()
+# One verb, many views — see what the builder has configured:
+agent.show()             # rich tree (default)
+agent.show("plain")      # plain-text state dump
+agent.show("doctor")     # diagnostic report
+agent.show("data_flow")  # five-concern data snapshot
+agent.show("mermaid")    # topology diagram
+pipeline.show("mermaid")
+pipeline.show("doctor")  # full diagnostic report
 ```
 
 See [Error Reference](user-guide/error-reference.md) for every error type with fix-it examples.
 
 ## Async environments (Jupyter, FastAPI)
 
-The warning earlier covers the one-line case: use `ask_async()`
-instead of `ask()`. The same rule applies to every sync method.
+The warning earlier covers the one-line case: use `.run.ask_async()`
+instead of `.run.ask()`. The same rule applies to every sync method.
 Here are the three patterns you'll actually use:
 
 ```python
 # One-shot
-result = await agent.ask_async("What is the capital of France?")
+result = await agent.run.ask_async("What is the capital of France?")
 
 # Streaming — yields text chunks as they arrive
-async for chunk in agent.stream("Tell me a story"):
+async for chunk in agent.run.stream("Tell me a story"):
     print(chunk, end="")
 
 # Multi-turn conversation in a persisted session
-async with agent.session() as chat:
+async with agent.run.session() as chat:
     print(await chat.send("Hi"))
     print(await chat.send("Tell me more"))
 ```
