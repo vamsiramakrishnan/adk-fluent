@@ -236,6 +236,20 @@ class UISurface:
         """Compile to A2UI protocol messages."""
         return compile_surface(self)
 
+    def __rshift__(self, other: Any) -> Any:
+        """``UISurface >> builder`` → ``builder.ui(self)``.
+
+        Parallels the other namespace composites' attach grammar.  When
+        ``other`` is not a builder, returns ``NotImplemented`` so Python
+        falls back to its regular dispatch (``UIComponent >> UIComponent``
+        still means "column layout").
+        """
+        from adk_fluent._base import BuilderBase
+
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
+        return other.ui(self)
+
     def validate(self) -> UISurface:
         """Statically validate the surface. Raises ``A2UISurfaceError`` on the first issue.
 
@@ -335,12 +349,28 @@ class _UIAutoSpec:
         self.catalog = catalog
         self._from_flag = _from_flag
 
+    def __rshift__(self, other: Any) -> Any:
+        """``UI.auto() >> builder`` → ``builder.ui(self)``."""
+        from adk_fluent._base import BuilderBase
+
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
+        return other.ui(self)
+
 
 class _UISchemaSpec:
     """Marker for schema-only prompt injection."""
 
     def __init__(self, catalog_uri: str | None = None) -> None:
         self.catalog_uri = catalog_uri
+
+    def __rshift__(self, other: Any) -> Any:
+        """``UI.schema() >> builder`` → ``builder.ui(self)``."""
+        from adk_fluent._base import BuilderBase
+
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
+        return other.ui(self)
 
 
 # ---------------------------------------------------------------------------

@@ -122,15 +122,33 @@ class ECriterion:
 class EComposite(Composite, kind="eval"):
     """Composable evaluation criteria. The result of any ``E.xxx()`` call.
 
-    Supports ``|`` for composition::
+    Supports ``|`` for composition and ``>>`` for attaching to a builder::
 
-        E.trajectory() | E.response_match() | E.safety()
+        criteria = E.trajectory() | E.response_match() | E.safety()
+
+        # Build an EvalSuite bound to ``agent`` with these criteria:
+        suite = criteria >> agent
+        suite.case("Hello?", expect="Hi").run()
     """
 
     _child_repr = "metric_name"
 
     def __init__(self, criteria: list[ECriterion] | None = None) -> None:
         super().__init__(criteria)
+
+    def __rshift__(self, other: Any) -> Any:
+        """``EComposite >> builder`` → ``builder.eval_suite().criteria(self)``.
+
+        Unlike other composites which return a modified builder, eval
+        attachment returns an :class:`EvalSuite` bound to the builder with
+        the composed criteria pre-applied — because evaluation itself is a
+        terminal operation, not a builder-configuration step.
+        """
+        from adk_fluent._base import BuilderBase
+
+        if not isinstance(other, BuilderBase):
+            return NotImplemented
+        return other.eval_suite().criteria(self)
 
     def to_criteria_dict(self) -> dict[str, Any]:
         """Flatten to ADK-compatible ``EvalConfig.criteria`` dict."""
