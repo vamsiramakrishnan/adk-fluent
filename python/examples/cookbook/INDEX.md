@@ -80,7 +80,7 @@ Production-grade architectures combining many features.
 | 48  | [Architecture Documentation](48_visualization.py)      | `to_mermaid()`, `.explain()`, diagrams                   |
 | 49  | [Context Engineering](49_context_engineering.py)       | `C.none()`, `C.from_state()`, `C.window()`               |
 | 50  | [Capture & Route](50_capture_and_route.py)             | `S.capture` + `Route` pattern                            |
-| 51  | [Visibility Policies](51_visibility_policies.py)       | `.show()`, `.hide()`, visibility inference               |
+| 51  | [Visibility Policies](51_visibility_policies.py)       | `.reveal()`, `.hide()`, visibility inference             |
 | 52  | [Contract Checking](52_contract_checking.py)           | Cross-channel data flow verification                     |
 | 53  | [Structured Schemas](53_structured_schemas.py)         | Pydantic schemas in multi-agent pipelines                |
 | 54  | [Transfer Control](54_transfer_control.py)             | `.stay()`, `.no_peers()`, `.isolate()`                   |
@@ -134,7 +134,7 @@ ______________________________________________________________________
 | #   | Example             | Key Methods                                                 |
 | --- | ------------------- | ----------------------------------------------------------- |
 | 49  | Context Engineering | `C.none()`, `C.from_state()`, `C.window()`, `C.user_only()` |
-| 51  | Visibility Policies | `.show()`, `.hide()`                                        |
+| 51  | Visibility Policies | `.reveal()`, `.hide()`                                      |
 | 54  | Transfer Control    | `.stay()`, `.no_peers()`, `.isolate()`                      |
 
 ### Callbacks & Guardrails

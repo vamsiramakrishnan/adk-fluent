@@ -479,12 +479,12 @@ class TestPluginOnEventCallback:
 # ======================================================================
 
 
-class TestShowHideOverrides:
-    def test_show_sets_visibility_override(self):
+class TestRevealHideOverrides:
+    def test_reveal_sets_visibility_override(self):
         from adk_fluent.agent import Agent
 
         a = Agent("writer")
-        a.show()
+        a.reveal()
         assert a._config.get("_visibility_override") == "user"
 
     def test_hide_sets_visibility_override(self):
@@ -494,11 +494,11 @@ class TestShowHideOverrides:
         a.hide()
         assert a._config.get("_visibility_override") == "internal"
 
-    def test_show_returns_self(self):
+    def test_reveal_returns_self(self):
         from adk_fluent.agent import Agent
 
         a = Agent("writer")
-        result = a.show()
+        result = a.reveal()
         assert result is a
 
     def test_hide_returns_self(self):

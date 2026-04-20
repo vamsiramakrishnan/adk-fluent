@@ -63,7 +63,7 @@ prod_pipeline = (
 prod_pipeline.filtered()
 
 # Per-agent overrides: force an intermediate agent to be visible
-compliance_agent = Agent("compliance").model(MODEL).instruct("Review.").show()
+compliance_agent = Agent("compliance").model(MODEL).instruct("Review.").reveal()
 cleanup_agent = Agent("cleanup").model(MODEL).instruct("Clean up.").hide()
 
 # --- ASSERT ---

@@ -472,14 +472,14 @@ class Agent(BuilderBase):
 
         return _context_with_guard(self, spec)
 
-    def show(self) -> Self:
-        """Force this agent's events to be user-facing (override topology inference)."""
+    def reveal(self) -> Self:
+        """Force this agent's events to be user-facing (override topology inference). Pair with .hide() for the inverse."""
         from adk_fluent._helpers import _show_agent
 
         return _show_agent(self)
 
     def hide(self) -> Self:
-        """Force this agent's events to be internal (override topology inference)."""
+        """Force this agent's events to be internal (override topology inference). Pair with .reveal() for the inverse."""
         from adk_fluent._helpers import _hide_agent
 
         return _hide_agent(self)

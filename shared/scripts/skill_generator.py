@@ -144,7 +144,7 @@ def generate_api_surface(specs: list[BuilderSpec]) -> str:
         "no_peers": "Transfer control",
         "memory": "Memory",
         "memory_auto_save": "Memory",
-        "show": "Visibility",
+        "reveal": "Visibility",
         "hide": "Visibility",
         "transparent": "Visibility",
         "filtered": "Visibility",

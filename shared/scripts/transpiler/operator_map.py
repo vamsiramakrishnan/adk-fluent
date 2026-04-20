@@ -60,7 +60,7 @@ METHOD_NAME_MAP: dict[str, str] = {
     "stay": "stay",
     "no_peers": "noPeers",
     # Visibility
-    "show": "show",
+    "reveal": "reveal",
     "hide": "hide",
     "transparent": "transparent",
     # Configuration

@@ -1581,6 +1581,11 @@ class BuilderBase:
     ) -> str | dict:
         """Return a multi-line summary of this builder's state.
 
+        .. deprecated:: 0.18.0
+            Use :meth:`show` instead: ``agent.show("default")`` for the
+            default rich tree, or ``agent.show("json")`` for a structured
+            dict. ``explain()`` is a thin shim and will be removed in 0.19.
+
         Parameters
         ----------
         format:
@@ -1763,7 +1768,12 @@ class BuilderBase:
         webbrowser.open(self._docs_url_for(docs_url))
 
     def inspect(self) -> str:
-        """Return a detailed view of this builder's full config values."""
+        """Return a detailed view of this builder's full config values.
+
+        .. deprecated:: 0.18.0
+            Use ``agent.show("plain")`` instead. ``inspect()`` is kept
+            as a thin shim and will be removed in 0.19.
+        """
         cls_name = self.__class__.__name__
         name = self._config.get("name", "?")
         lines = [f"{cls_name}: {name}"]
@@ -2947,6 +2957,10 @@ class BuilderBase:
     ) -> str:
         """Generate a Mermaid graph visualization of this builder's IR tree.
 
+        .. deprecated:: 0.18.0
+            Use ``agent.show("mermaid")`` instead. This method is kept
+            as a thin shim and will be removed in 0.19.
+
         Args:
             show_contracts: Include produces/consumes type annotations.
             show_data_flow: Include dotted edges showing state key flow.
@@ -2989,9 +3003,14 @@ class BuilderBase:
     def diagnose(self):
         """Return a structured Diagnosis of this builder's IR.
 
+        .. deprecated:: 0.18.0
+            Use ``agent.show("diagnose")`` instead. This method is kept
+            as a thin shim and will be removed in 0.19.
+
         Returns a ``Diagnosis`` dataclass with ``agents``, ``data_flow``,
         ``issues``, and ``topology`` fields.  Use ``.ok`` to check if
-        there are no errors.  Use ``.doctor()`` for a formatted report.
+        there are no errors.  Use ``agent.show("doctor")`` for a
+        formatted report.
 
         Raises NotImplementedError if this builder doesn't support IR.
         """
@@ -3001,6 +3020,10 @@ class BuilderBase:
 
     def doctor(self) -> str:
         """Print a formatted diagnostic report and return the report text.
+
+        .. deprecated:: 0.18.0
+            Use ``agent.show("doctor")`` instead. This method is kept
+            as a thin shim and will be removed in 0.19.
 
         Combines agent summaries, data flow analysis, contract issues,
         and Mermaid topology into a single readable report.
@@ -3015,6 +3038,10 @@ class BuilderBase:
 
     def data_flow(self):
         """Show all five data-flow concerns at once for this builder.
+
+        .. deprecated:: 0.18.0
+            Use ``agent.show("data_flow")`` instead. This method is kept
+            as a thin shim and will be removed in 0.19.
 
         Returns a ``DataFlow`` snapshot showing exactly what this agent
         is configured for across all five orthogonal concerns:
@@ -3175,6 +3202,10 @@ class BuilderBase:
     def llm_anatomy(self) -> str:
         """Show exactly what will be sent to the LLM for this agent.
 
+        .. deprecated:: 0.18.0
+            Use ``agent.show("llm")`` instead. This method is kept as a
+            thin shim and will be removed in 0.19.
+
         Returns a formatted string showing each component in the order
         it is assembled for the LLM call:
 
@@ -3317,6 +3348,71 @@ class BuilderBase:
                 self._callbacks[cb_field].append(fn)
 
         return self
+
+    # ------------------------------------------------------------------
+    # Unified introspection: .show(mode=)
+    # ------------------------------------------------------------------
+
+    def show(self, mode: str = "default", **kwargs: Any) -> Any:
+        """One verb for every way of looking at a builder.
+
+        Collapses ``.explain()`` / ``.inspect()`` / ``.doctor()`` /
+        ``.diagnose()`` / ``.data_flow()`` / ``.llm_anatomy()`` /
+        ``.to_mermaid()`` / ``.to_sequence_diagram()`` / ``.to_dict()`` /
+        ``.to_yaml()`` into a single dispatcher keyed by ``mode``.
+
+        Args:
+            mode: Render mode. One of:
+
+                * ``"default"`` / ``"rich"`` / ``"text"`` — rich tree summary
+                * ``"plain"`` — plain-text state dump
+                * ``"doctor"`` — formatted diagnostic report
+                * ``"diagnose"`` — structured :class:`Diagnosis` dataclass
+                * ``"data_flow"`` — :class:`DataFlow` snapshot
+                * ``"llm"`` / ``"anatomy"`` — LLM call anatomy string
+                * ``"mermaid"`` — Mermaid topology diagram
+                * ``"sequence"`` — Mermaid sequence diagram
+                * ``"json"`` / ``"dict"`` — serializable dict
+                * ``"yaml"`` — YAML string (requires ``pyyaml``)
+
+            **kwargs: Forwarded to the underlying renderer (e.g.
+                ``format="json"`` for default mode, ``show_contracts=`` for
+                Mermaid).
+
+        Returns:
+            Varies by mode. Strings for rendered modes, structured
+            dataclasses for ``"diagnose"`` and ``"data_flow"``, a dict for
+            ``"json"``.
+
+        Raises:
+            ValueError: If ``mode`` is not recognized.
+        """
+        mode = mode.lower()
+        if mode in ("default", "rich", "text", "explain"):
+            return self.explain(**kwargs)
+        if mode in ("plain", "inspect"):
+            return self.inspect()
+        if mode == "doctor":
+            return self.doctor()
+        if mode == "diagnose":
+            return self.diagnose()
+        if mode in ("data_flow", "dataflow", "flow"):
+            return self.data_flow()
+        if mode in ("llm", "llm_anatomy", "anatomy"):
+            return self.llm_anatomy()
+        if mode == "mermaid":
+            return self.to_mermaid(**kwargs)
+        if mode == "sequence":
+            return self.to_sequence_diagram(**kwargs)
+        if mode in ("json", "dict"):
+            return self.to_dict()
+        if mode == "yaml":
+            return self.to_yaml()
+        raise ValueError(
+            f"Unknown show() mode: {mode!r}. Available modes: "
+            "default, plain, doctor, diagnose, data_flow, llm, mermaid, "
+            "sequence, json, yaml."
+        )
 
     # ------------------------------------------------------------------
     # Pipeline-level visibility policies

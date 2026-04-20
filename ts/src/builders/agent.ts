@@ -487,13 +487,15 @@ export class Agent extends BuilderBase {
 
   /**
    * Force this agent's events to be user-facing (override topology inference).
+   * Pair with .hide() for the inverse.
    */
-  show(): this {
-    return this._setConfig("_visibility", "show");
+  reveal(): this {
+    return this._setConfig("_visibility", "reveal");
   }
 
   /**
    * Force this agent's events to be internal (override topology inference).
+   * Pair with .reveal() for the inverse.
    */
   hide(): this {
     return this._setConfig("_visibility", "hide");

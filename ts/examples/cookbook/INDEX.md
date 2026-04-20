@@ -85,7 +85,7 @@ Reusable patterns and the coding-agent harness.
 | 45  | [Customer Support Triage](45_customer_support_triage.ts) | `S.capture`, `Route`, `gate` for support routing           |
 | 46  | [Visualization Diagram](46_visualization_diagram.ts)     | Mermaid diagram generation from topologies                 |
 | 47  | [Full Algebra](47_full_algebra.ts)                       | All operators combined in one example                      |
-| 48  | [Visibility](48_visibility.ts)                           | `.show()`, `.hide()`, `.transparent()`, `.filtered()`      |
+| 48  | [Visibility](48_visibility.ts)                           | `.reveal()`, `.hide()`, `.transparent()`, `.filtered()`    |
 | 49  | [Native Hook](49_native_hook.ts)                         | `.native(fn)` escape hatch for raw ADK access              |
 | 50  | [Introspection](50_introspection.ts)                     | `.inspect()`, `.dataFlow()`, `.llmAnatomy()`               |
 | 51  | [Describe Metadata](51_describe_metadata.ts)             | `.describe()` for transfer routing metadata                |

@@ -3,7 +3,7 @@
  *
  * Mirrors `python/examples/cookbook/51_visibility_policies.py`.
  *
- * The TS API exposes per-agent visibility overrides via `.show()` and
+ * The TS API exposes per-agent visibility overrides via `.reveal()` and
  * `.hide()`. They set the private `_visibility` config key which is
  * stripped from `.build()` output but visible via `.inspect()`.
  *
@@ -30,7 +30,7 @@ const factChecker = new Agent("fact_checker", MODEL)
 const compliance = new Agent("compliance", MODEL)
   .instruct("Review for brand guidelines and tone: {checked_draft}")
   .writes("compliance_report")
-  .show(); // force-visible for debugging
+  .reveal(); // force-visible for debugging
 
 const publisher = new Agent("publisher", MODEL)
   .instruct("Produce the final published version.")
@@ -50,7 +50,7 @@ assert.equal(contentPipeline.subAgents.length, 4);
 // dict does not carry it. Inspect each builder directly.
 assert.equal(drafter.inspect()._visibility, "hide");
 assert.equal(factChecker.inspect()._visibility, "hide");
-assert.equal(compliance.inspect()._visibility, "show");
+assert.equal(compliance.inspect()._visibility, "reveal");
 
 // Publisher does not set visibility — default is undefined (terminal
 // agents are user-facing under the topology inference rules).

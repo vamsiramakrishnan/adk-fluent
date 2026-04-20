@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-04-20T17:22:30.059334+00:00"
+generated_at = "2026-04-20T18:25:32.003940+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -30,7 +30,7 @@ for top-level agents — only for agents that serve as tools.
    - ``.accepts(Model)`` → tool-mode input validation (same as this, HAS runtime effect)
    - ``.consumes(Model)`` → contract annotation (NO runtime effect)
 """
-output_key = "Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."
+output_key = "Session state key where the agent's response text is stored. Prefer ``.writes(key)`` — the idiomatic alias on BuilderBase."
 output_schema = """Force the LLM to respond with structured JSON matching a Pydantic model.
 
 When set, the agent replies **only** with JSON data conforming to
@@ -418,28 +418,28 @@ agent = (
 see_also = ["C", "Agent.memory"]
 
 [[builders.Agent.extras]]
-name = "show"
+name = "reveal"
 signature = "(self) -> Self"
-doc = "Force this agent's events to be user-facing (override topology inference)."
+doc = "Force this agent's events to be user-facing (override topology inference). Pair with .hide() for the inverse."
 behavior = "runtime_helper_ctx"
 helper_func = "_show_agent"
 example = '''
 # Force intermediate agent output to be visible to users
-agent = Agent("logger").model("m").instruct("Log progress.").show()
+agent = Agent("logger").model("m").instruct("Log progress.").reveal()
 '''
 see_also = ["Agent.hide"]
 
 [[builders.Agent.extras]]
 name = "hide"
 signature = "(self) -> Self"
-doc = "Force this agent's events to be internal (override topology inference)."
+doc = "Force this agent's events to be internal (override topology inference). Pair with .reveal() for the inverse."
 behavior = "runtime_helper_ctx"
 helper_func = "_hide_agent"
 example = '''
 # Suppress terminal agent output from user view
 agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
 '''
-see_also = ["Agent.show"]
+see_also = ["Agent.reveal"]
 
 [[builders.Agent.extras]]
 name = "memory"

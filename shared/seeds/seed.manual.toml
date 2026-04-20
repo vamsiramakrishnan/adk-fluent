@@ -253,28 +253,28 @@ agent = (
 see_also = ["C", "Agent.memory"]
 
 [[builders.Agent.extras]]
-name = "show"
+name = "reveal"
 signature = "(self) -> Self"
-doc = "Force this agent's events to be user-facing (override topology inference)."
+doc = "Force this agent's events to be user-facing (override topology inference). Pair with .hide() for the inverse."
 behavior = "runtime_helper_ctx"
 helper_func = "_show_agent"
 example = '''
 # Force intermediate agent output to be visible to users
-agent = Agent("logger").model("m").instruct("Log progress.").show()
+agent = Agent("logger").model("m").instruct("Log progress.").reveal()
 '''
 see_also = ["Agent.hide"]
 
 [[builders.Agent.extras]]
 name = "hide"
 signature = "(self) -> Self"
-doc = "Force this agent's events to be internal (override topology inference)."
+doc = "Force this agent's events to be internal (override topology inference). Pair with .reveal() for the inverse."
 behavior = "runtime_helper_ctx"
 helper_func = "_hide_agent"
 example = '''
 # Suppress terminal agent output from user view
 agent = Agent("cleanup").model("m").instruct("Clean up.").hide()
 '''
-see_also = ["Agent.show"]
+see_also = ["Agent.reveal"]
 
 [[builders.Agent.extras]]
 name = "memory"
