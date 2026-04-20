@@ -26,19 +26,15 @@ class TestOutputsAlias:
         assert agent._config["instruction"] == "Classify the input."
 
 
-class TestHistoryAlias:
-    """Tests for .history() alias for include_contents."""
+class TestContextNone:
+    """Tests for C.none() — the canonical way to suppress history."""
 
-    def test_history_sets_include_contents(self):
-        """history() is an alias for include_contents."""
-        agent = Agent("a").history("none")
-        assert agent._config["include_contents"] == "none"
+    def test_context_none_sets_include_contents(self):
+        from adk_fluent import C
 
-    def test_history_returns_self(self):
-        """history() returns self for chaining."""
-        agent = Agent("a")
-        result = agent.history("none")
-        assert result is agent
+        agent = Agent("a").context(C.none())
+        spec = agent._config["_context_spec"]
+        assert spec.include_contents == "none"
 
 
 class TestDelegateMethod:

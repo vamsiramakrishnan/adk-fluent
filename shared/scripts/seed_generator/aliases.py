@@ -15,20 +15,14 @@ _FIELD_ALIAS_TABLE = {
     "instruction": "instruct",
     "description": "describe",
     "global_instruction": "global_instruct",
-    "output_key": "outputs",
-    "include_contents": "history",
     "static_instruction": "static",
 }
 
 # Additional aliases that map to the same field as an existing alias.
-_EXTRA_ALIASES = {
-    "include_history": "include_contents",
-}
+_EXTRA_ALIASES: dict[str, str] = {}
 
 # Semantic overrides from _FIELD_ALIAS_TABLE that cannot be derived morphologically.
 SEMANTIC_OVERRIDES = {
-    "outputs": "output_key",
-    "history": "include_contents",
     "static": "static_instruction",
 }
 

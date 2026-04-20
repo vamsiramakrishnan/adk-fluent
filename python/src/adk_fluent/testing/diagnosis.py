@@ -9,7 +9,7 @@ Usage::
     from adk_fluent import Agent, S
 
     pipeline = (
-        Agent("writer").instruct("Write.").outputs("draft")
+        Agent("writer").instruct("Write.").writes("draft")
         >> S.rename(draft="input")
         >> Agent("reviewer").instruct("Review the {input}.")
     )

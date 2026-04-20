@@ -114,58 +114,31 @@ class TestRouteOperators:
 
 
 # ---------------------------------------------------------------------------
-# 3. Deprecated aliases emit warnings
+# 3. Removed deprecated shims (0.18.0)
 # ---------------------------------------------------------------------------
 
 
-class TestDeprecatedAliases:
-    def test_save_as_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").save_as("key")
-            assert any("save_as" in str(x.message) and "writes" in str(x.message) for x in w)
+class TestRemovedAliases:
+    """Verify that the 0.18.0 removal sticks — these methods MUST NOT come back."""
 
-    def test_outputs_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").outputs("key")
-            assert any("outputs" in str(x.message) and "writes" in str(x.message) for x in w)
-
-    def test_output_key_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").output_key("key")
-            assert any("output_key" in str(x.message) and "writes" in str(x.message) for x in w)
-
-    def test_guardrail_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").guardrail(lambda *a: None)
-            assert any("guardrail" in str(x.message) and "guard" in str(x.message) for x in w)
-
-    def test_delegate_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").delegate(Agent("b"))
-            assert any("delegate" in str(x.message) and "agent_tool" in str(x.message) for x in w)
-
-    def test_retry_if_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").retry_if(lambda s: False)
-            assert any("retry_if" in str(x.message) and "loop_while" in str(x.message) for x in w)
-
-    def test_inject_context_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").inject_context(lambda ctx: "text")
-            assert any("inject_context" in str(x.message) and "prepend" in str(x.message) for x in w)
-
-    def test_static_instruct_warns(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("a").static_instruct("always do this")
-            assert any("static_instruct" in str(x.message) and "static" in str(x.message) for x in w)
+    @pytest.mark.parametrize(
+        "method,successor",
+        [
+            ("save_as", "writes"),
+            ("outputs", "writes"),
+            ("guardrail", "guard"),
+            ("delegate", "agent_tool"),
+            ("retry_if", "loop_while"),
+            ("inject_context", "prepend"),
+            ("history", "context"),
+            ("include_history", "context"),
+        ],
+    )
+    def test_removed_method_raises(self, method: str, successor: str) -> None:
+        agent = Agent("a")
+        assert not hasattr(agent, method), (
+            f"Agent.{method}() was removed in 0.18.0 — use .{successor}() instead"
+        )
 
 
 # ---------------------------------------------------------------------------

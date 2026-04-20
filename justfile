@@ -260,6 +260,8 @@ docs: _require-manifest _require-seed
 llms: _require-manifest _require-seed
     @echo "Generating llms.txt and editor rules..."
     @{{PY}} {{LLMS_GEN}} {{MANIFEST}} {{SEED}}
+    @echo "Generating TS llms context (ts/CLAUDE.md, docs/llms-ts.txt)..."
+    @{{PY}} {{LLMS_GEN}} {{MANIFEST}} {{SEED}} --ts
 
 # --- Build DocIR JSON snapshot (typed intermediate representation) ---
 doc-ir: _require-manifest _require-seed

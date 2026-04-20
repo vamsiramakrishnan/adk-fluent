@@ -1,52 +1,37 @@
-"""Tests for API Surface v2: deprecations, new methods, and prelude exports."""
+"""Tests for API Surface v2: removed zombies, new methods, and prelude exports."""
 
 import warnings
+
+import pytest
 
 from adk_fluent import Agent
 
 # ======================================================================
-# 1. Deprecation warning tests
+# 1. Removed zombies (0.18.0) — verify they stay gone
 # ======================================================================
 
 
-class TestDeprecationWarnings:
-    """Deprecated methods emit DeprecationWarning with the correct replacement."""
+class TestRemovedZombies:
+    """Deprecation shims removed in 0.18.0 must NOT come back."""
 
-    def test_outputs_emits_deprecation(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("test").outputs("result")
-        assert len(w) == 1
-        assert issubclass(w[0].category, DeprecationWarning)
-        assert ".outputs()" in str(w[0].message)
-        assert ".writes()" in str(w[0].message)
-
-    def test_history_emits_deprecation(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("test").history("none")
-        assert len(w) == 1
-        assert issubclass(w[0].category, DeprecationWarning)
-        assert ".history()" in str(w[0].message)
-        assert ".context()" in str(w[0].message)
-
-    def test_include_history_emits_deprecation(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("test").include_history("default")
-        assert len(w) == 1
-        assert issubclass(w[0].category, DeprecationWarning)
-        assert ".include_history()" in str(w[0].message)
-        assert ".context()" in str(w[0].message)
-
-    def test_static_instruct_emits_deprecation(self):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            Agent("test").static_instruct("You are a bot.")
-        assert len(w) == 1
-        assert issubclass(w[0].category, DeprecationWarning)
-        assert ".static_instruct()" in str(w[0].message)
-        assert ".static()" in str(w[0].message)
+    @pytest.mark.parametrize(
+        "method,successor",
+        [
+            ("outputs", "writes"),
+            ("save_as", "writes"),
+            ("history", "context"),
+            ("include_history", "context"),
+            ("guardrail", "guard"),
+            ("delegate", "agent_tool"),
+            ("retry_if", "loop_while"),
+            ("inject_context", "prepend"),
+        ],
+    )
+    def test_zombie_method_not_present(self, method: str, successor: str) -> None:
+        agent = Agent("test")
+        assert not hasattr(agent, method), (
+            f"Agent.{method}() was removed in 0.18.0 — use .{successor}() instead"
+        )
 
 
 # ======================================================================
@@ -237,51 +222,3 @@ class TestPrelude:
             assert hasattr(prelude, name), f"{name} listed in __all__ but not importable"
 
 
-# ======================================================================
-# 4. Backward compatibility: deprecated methods still set correct config
-# ======================================================================
-
-
-class TestBackwardCompatibility:
-    """Deprecated methods must still set the right config values."""
-
-    def test_outputs_sets_output_key(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            agent = Agent("test").outputs("result")
-        assert agent._config["output_key"] == "result"
-
-    def test_history_sets_include_contents(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            agent = Agent("test").history("none")
-        assert agent._config["include_contents"] == "none"
-
-    def test_include_history_sets_include_contents(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            agent = Agent("test").include_history("default")
-        assert agent._config["include_contents"] == "default"
-
-    def test_static_instruct_sets_static_instruction(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            agent = Agent("test").static_instruct("System prompt.")
-        assert agent._config["static_instruction"] == "System prompt."
-
-    def test_deprecated_methods_are_chainable(self):
-        """Deprecated methods still return self for chaining."""
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            agent = Agent("test")
-            result = agent.outputs("key")
-            assert result is agent
-
-            result = agent.history("none")
-            assert result is agent
-
-            result = agent.include_history("default")
-            assert result is agent
-
-            result = agent.static_instruct("static text")
-            assert result is agent

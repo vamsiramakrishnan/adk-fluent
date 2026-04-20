@@ -469,10 +469,7 @@ class LlmAgentConfig(BuilderBase):
 
     _ALIASES: dict[str, str] = {
         "describe": "description",
-        "history": "include_contents",
-        "include_history": "include_contents",
         "instruct": "instruction",
-        "outputs": "output_key",
         "static": "static_instruction",
         "static_instruct": "static_instruction",
     }
@@ -488,28 +485,10 @@ class LlmAgentConfig(BuilderBase):
         self._config["description"] = value
         return self
 
-    def history(self, value: Literal["default", "none"]) -> Self:
-        """Optional. LlmAgent.include_contents."""
-        self = self._maybe_fork_for_mutation()
-        self._config["include_contents"] = value
-        return self
-
-    def include_history(self, value: Literal["default", "none"]) -> Self:
-        """Optional. LlmAgent.include_contents."""
-        self = self._maybe_fork_for_mutation()
-        self._config["include_contents"] = value
-        return self
-
     def instruct(self, value: str) -> Self:
         """Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content."""
         self = self._maybe_fork_for_mutation()
         self._config["instruction"] = value
-        return self
-
-    def outputs(self, value: str | None) -> Self:
-        """Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."""
-        self = self._maybe_fork_for_mutation()
-        self._config["output_key"] = value
         return self
 
     def static(self, value: Content | str | File | Part | list[str | File | Part] | None) -> Self:
@@ -619,6 +598,18 @@ class LlmAgentConfig(BuilderBase):
         """
         self = self._maybe_fork_for_mutation()
         self._config["output_schema"] = value
+        return self
+
+    def output_key(self, value: str | None) -> Self:
+        """Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."""
+        self = self._maybe_fork_for_mutation()
+        self._config["output_key"] = value
+        return self
+
+    def include_contents(self, value: Literal["default", "none"]) -> Self:
+        """Optional. LlmAgent.include_contents."""
+        self = self._maybe_fork_for_mutation()
+        self._config["include_contents"] = value
         return self
 
     def tools(self, value: list[ToolConfig] | None) -> Self:

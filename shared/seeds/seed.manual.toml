@@ -53,7 +53,7 @@ for top-level agents — only for agents that serve as tools.
    - ``.accepts(Model)`` → tool-mode input validation (same as this, HAS runtime effect)
    - ``.consumes(Model)`` → contract annotation (NO runtime effect)
 """
-output_key = "Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored."
+output_key = "Session state key where the agent's response text is stored. Prefer ``.writes(key)`` — the idiomatic alias on BuilderBase."
 disallow_transfer_to_parent = "Prevent this agent from transferring control back to its parent. Also forces an auto-handoff back to parent on the next turn. Equivalent to ``.stay()``. See also ``.isolate()``."
 disallow_transfer_to_peers = "Prevent this agent from transferring control to sibling agents. Equivalent to ``.no_peers()``. See also ``.isolate()``."
 
@@ -79,20 +79,17 @@ optional_constructor_args = ["model"]
 # New aliases added via merge into auto-generated aliases
 [builders.Agent.manual_aliases]
 
-# Deprecated aliases — still work but emit DeprecationWarning
+# Deprecated aliases were removed in 0.18.0. The successors are:
+#   .writes(key)    replaces  .output_key() / .outputs() / .save_as()
+#   .returns(M)     replaces  .output_schema(M)
+#   .accepts(M)     replaces  .input_schema(M)
+#   .context(C.xx)  replaces  .history() / .include_history()
+#   .static(v)      replaces  .static_instruct(v)
+#   .loop_while(p)  replaces  .retry_if(p)
+#   .prepend(fn)    replaces  .inject_context(fn)
+#   .guard(g)       replaces  .guardrail(g)
+#   .agent_tool(a)  replaces  .delegate(a)
 [builders.Agent.deprecated_aliases]
-save_as = { field = "output_key", use = "writes" }
-outputs = { field = "output_key", use = "writes" }
-output_key = { field = "output_key", use = "writes" }
-output_schema = { field = "output_schema", use = "returns" }
-input_schema = { field = "input_schema", use = "accepts" }
-history = { field = "include_contents", use = "context" }
-include_history = { field = "include_contents", use = "context" }
-static_instruct = { field = "static_instruction", use = "static" }
-retry_if = { field = "_retry_if", use = "loop_while" }
-inject_context = { field = "_inject_context", use = "prepend" }
-guardrail = { field = "_guardrail", use = "guard" }
-delegate = { field = "_delegate", use = "agent_tool", doc = "Deprecated: wraps an agent as a callable tool. Use .agent_tool() instead." }
 
 # ---------------------------------------------------------------------------
 # AGENT EXTRAS (Phase 1)

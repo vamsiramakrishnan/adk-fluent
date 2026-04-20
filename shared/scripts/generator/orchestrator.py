@@ -258,7 +258,10 @@ def generate_all(
     # Modules whose TS counterpart is hand-written (extends the BuilderBase
     # API with workflow-only methods like ``step``/``branch`` plus the
     # ``registerWorkflow`` calls that break the circular import in builder-base).
-    _TS_SKIP_MODULES = {"workflow"}
+    # ``agent`` is hand-written because the TS emitter does not yet handle
+    # ``runtime_helper`` extras (e.g. ``Agent.ui()``); regenerating would
+    # drop the custom ``.ui()`` method and its A2UI auto-wiring logic.
+    _TS_SKIP_MODULES = {"workflow", "agent"}
 
     if emit_typescript_files:
         ts_path = Path(ts_output_dir)  # type: ignore[arg-type]
@@ -352,6 +355,28 @@ def generate_all(
                         lazy_map[name] = (module_name, name)
                         break
                 seen_names.add(name)
+
+        # Named-word aliases for the single-letter namespace classes.
+        # Every single-letter namespace (S, C, P, G, M, T, A, E, R, H, UI) has
+        # a named-word alias that resolves to the same class. These must be
+        # applied last so they override any name collision (e.g. ``Middleware``
+        # Protocol from ``.middleware`` is shadowed by ``M`` the namespace).
+        _NAMED_ALIASES: list[tuple[str, str, str]] = [
+            ("State", "._transforms", "S"),
+            ("Context", "._context", "C"),
+            ("Prompt", "._prompt", "P"),
+            ("Guard", "._guards", "G"),
+            ("Middleware", "._middleware", "M"),
+            ("Tool", "._tools", "T"),
+            ("Artifact", "._artifacts", "A"),
+            ("Eval", "._eval", "E"),
+            ("Reactive", "._reactor", "R"),
+            ("Harness", "._harness", "H"),
+            ("Ui", ".prelude", "UI"),
+        ]
+        for alias, mod, attr in _NAMED_ALIASES:
+            lazy_map[alias] = (mod, attr)
+            seen_names.add(alias)
 
         # Emit __all__
         init_lines.append("__all__ = [")

@@ -361,7 +361,7 @@ def check_state_schema_contracts(
                                 f"produced by any upstream agent"
                             ),
                             "hint": (
-                                f"Add .outputs('{field.name}') to an "
+                                f"Add .writes('{field.name}') to an "
                                 f"upstream agent or use S.capture() / "
                                 f"S.set() to provide this key."
                             ),

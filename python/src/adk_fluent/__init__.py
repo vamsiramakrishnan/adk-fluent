@@ -627,14 +627,11 @@ __all__ = [
     "ContractIssue",
     "DataFlowContract",
     "check_data_flow_contract",
-    # Named-word aliases for the single-letter namespaces (same objects).
     "State",
     "Context",
     "Prompt",
     "Guard",
-    "Middleware",
     "Tool",
-    "Artifact",
     "Eval",
     "Reactive",
     "Harness",
@@ -862,7 +859,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "run_map": ("._helpers", "run_map"),
     "run_map_async": ("._helpers", "run_map_async"),
     "StateKey": ("._helpers", "StateKey"),
-    "Artifact": ("._helpers", "Artifact"),
+    "Artifact": ("._artifacts", "A"),
     "TransformNode": ("._ir", "TransformNode"),
     "TapNode": ("._ir", "TapNode"),
     "FallbackNode": ("._ir", "FallbackNode"),
@@ -971,7 +968,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TraceContext": (".middleware", "TraceContext"),
     "DispatchDirective": (".middleware", "DispatchDirective"),
     "LoopDirective": (".middleware", "LoopDirective"),
-    "Middleware": (".middleware", "Middleware"),
+    "Middleware": ("._middleware", "M"),
     "TopologyHooks": (".middleware", "TopologyHooks"),
     "RetryMiddleware": (".middleware", "RetryMiddleware"),
     "RateLimitMiddleware": (".middleware", "RateLimitMiddleware"),
@@ -1267,21 +1264,11 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ContractIssue": (".testing", "ContractIssue"),
     "DataFlowContract": (".testing", "DataFlowContract"),
     "check_data_flow_contract": (".testing", "check_data_flow_contract"),
-    # ------------------------------------------------------------------
-    # Named-word aliases for the single-letter namespaces.
-    # Import whichever reads better for you:
-    #     from adk_fluent import S, C, P, G, M, T, A, E, R, H, UI
-    #     from adk_fluent import State, Context, Prompt, Guard, Middleware, \
-    #                            Tool, Artifact, Eval, Reactive, Harness, Ui
-    # Both point at the same objects — choose terseness or clarity per file.
-    # ------------------------------------------------------------------
     "State": ("._transforms", "S"),
     "Context": ("._context", "C"),
     "Prompt": ("._prompt", "P"),
     "Guard": ("._guards", "G"),
-    "Middleware": ("._middleware", "M"),
     "Tool": ("._tools", "T"),
-    "Artifact": ("._artifacts", "A"),
     "Eval": ("._eval", "E"),
     "Reactive": ("._reactor", "R"),
     "Harness": ("._harness", "H"),

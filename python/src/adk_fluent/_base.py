@@ -2115,7 +2115,7 @@ class BuilderBase:
         Uses ADK's native escalate mechanism via an internal checkpoint agent.
 
         Usage:
-            (writer >> reviewer.outputs("quality")).loop_until(
+            (writer >> reviewer.writes("quality")).loop_until(
                 lambda s: s.get("quality") == "good", max_iterations=5
             )
         """
@@ -2677,8 +2677,6 @@ class BuilderBase:
         conversation history (``include_contents="default"``). The
         contract checker will flag this as a potential data-loss issue
         if a downstream agent reads state that no upstream agent writes.
-
-        Equivalent to ``.save_as(key)``.
 
         Args:
             key: The state key name to store the response text in.

@@ -880,6 +880,43 @@ full cookbook::
     A @ Schema       # Structured output: constrain A's response to a Pydantic model.
                      # Equivalent to A.returns(Schema).
 
+## Namespace composites attach via the same grammar
+
+Every namespace composite attaches itself to a builder through one grammar:
+``Composite >> Builder``. The left-hand composite dispatches to the builder's
+corresponding setter, so a full agent configuration reads as one sentence::
+
+    agent = (
+        C.window(n=5)                                # context
+        >> P.role("analyst") + P.task("crunch")      # instruction
+        >> T.fn(search) | T.fn(fetch)                # tools
+        >> G.pii() | G.length(max=500)               # guards
+        >> M.retry(max_attempts=3) | M.log()         # middleware
+        >> Agent("worker", "gemini-2.5-flash")
+    )
+
+  CTransform  >> Builder  →  Builder.context(transform)
+  PTransform  >> Builder  →  Builder.instruct(transform)
+  TComposite  >> Builder  →  Builder.tools(composite)
+  GComposite  >> Builder  →  Builder.guard(composite)
+  MComposite  >> Builder  →  Builder.middleware(composite)
+  AComposite  >> Builder  →  Builder.artifacts(composite)
+
+### Named-word aliases
+
+Every single-letter namespace has a named-word alias that resolves to the
+same class. Pick whichever reads better — they are ``is`` identical::
+
+    from adk_fluent import S, C, P, T, G, M, A, E, R, H, UI
+    from adk_fluent import (
+        State, Context, Prompt, Tool, Guard,
+        Middleware, Artifact, Eval, Reactive, Harness, Ui,
+    )
+
+    # equivalent
+    C.window(n=5) >> agent
+    Context.window(n=5) >> agent
+
 ## Expression primitives
 
 Function-level primitives for use with expression operators:

@@ -963,6 +963,43 @@ _EXPRESSION_PRIMITIVES = """
     A @ Schema       # Structured output: constrain A's response to a Pydantic model.
                      # Equivalent to A.returns(Schema).
 
+## Namespace composites attach via the same grammar
+
+Every namespace composite attaches itself to a builder through one grammar:
+``Composite >> Builder``. The left-hand composite dispatches to the builder's
+corresponding setter, so a full agent configuration reads as one sentence::
+
+    agent = (
+        C.window(n=5)                                # context
+        >> P.role("analyst") + P.task("crunch")      # instruction
+        >> T.fn(search) | T.fn(fetch)                # tools
+        >> G.pii() | G.length(max=500)               # guards
+        >> M.retry(max_attempts=3) | M.log()         # middleware
+        >> Agent("worker", "gemini-2.5-flash")
+    )
+
+  CTransform  >> Builder  →  Builder.context(transform)
+  PTransform  >> Builder  →  Builder.instruct(transform)
+  TComposite  >> Builder  →  Builder.tools(composite)
+  GComposite  >> Builder  →  Builder.guard(composite)
+  MComposite  >> Builder  →  Builder.middleware(composite)
+  AComposite  >> Builder  →  Builder.artifacts(composite)
+
+### Named-word aliases
+
+Every single-letter namespace has a named-word alias that resolves to the
+same class. Pick whichever reads better — they are ``is`` identical::
+
+    from adk_fluent import S, C, P, T, G, M, A, E, R, H, UI
+    from adk_fluent import (
+        State, Context, Prompt, Tool, Guard,
+        Middleware, Artifact, Eval, Reactive, Harness, Ui,
+    )
+
+    # equivalent
+    C.window(n=5) >> agent
+    Context.window(n=5) >> agent
+
 ## Expression primitives
 
 Function-level primitives for use with expression operators:
@@ -1269,6 +1306,43 @@ JavaScript has no operator overloading, so adk-fluent-ts uses method calls:
 
 Sub-builders passed to workflow builders are auto-built — do not call
 ``.build()`` on individual steps.
+
+## Namespace composites: ``.attachTo(builder)``
+
+Python uses ``Composite >> Builder`` to attach a namespace composite to a
+builder. TypeScript cannot overload ``>>``, so every composite exposes an
+``.attachTo(builder)`` method that performs the same dispatch::
+
+    let a = new Agent("worker", "gemini-2.5-flash");
+    a = C.window(5).attachTo(a);                          // builder.context
+    a = P.role("analyst").add(P.task("crunch")).attachTo(a); // builder.instruct
+    a = T.fn(search).attachTo(a);                         // builder.tools
+    a = G.length({ max: 500 }).attachTo(a);               // builder.guard
+    a = M.retry({ maxAttempts: 3 }).pipe(M.log()).attachTo(a); // builder.middleware
+
+  CTransform.attachTo(b)  →  b.context(this)
+  PTransform.attachTo(b)  →  b.instruct(this)
+  TComposite.attachTo(b)  →  b.tools(this)
+  GComposite.attachTo(b)  →  b.guard(this)
+  MComposite.attachTo(b)  →  b.middleware(this)
+  AComposite.attachTo(b)  →  b.artifacts(this)
+
+### Named-word aliases
+
+Every single-letter namespace has a named-word alias that resolves to the
+same class. Pick whichever reads better. Note: ``S`` has NO ``State`` alias
+in TS because ``State`` is already an exported type alias for
+``Record<string, unknown>`` — use ``S`` directly there. Everything else::
+
+    import { C, P, T, G, M, A, E, R, H, UI } from "adk-fluent-ts";
+    import {
+      Context, Prompt, Tool, Guard, Middleware,
+      Artifact, Eval, Reactive, Harness, Ui,
+    } from "adk-fluent-ts";
+
+    // equivalent
+    C.window(5).attachTo(agent);
+    Context.window(5).attachTo(agent);
 """
 
 _TS_EXAMPLE = """\

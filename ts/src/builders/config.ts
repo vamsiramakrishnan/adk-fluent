@@ -279,31 +279,10 @@ export class LlmAgentConfig extends BuilderBase {
   }
 
   /**
-   * Optional. LlmAgent.include_contents.
-   */
-  history(value: unknown): this {
-    return this._setConfig("include_contents", value);
-  }
-
-  /**
-   * Optional. LlmAgent.include_contents.
-   */
-  includeHistory(value: unknown): this {
-    return this._setConfig("include_contents", value);
-  }
-
-  /**
    * Required. LlmAgent.instruction. Dynamic instructions with placeholder support. Behavior: if static_instruction is None, goes to system_instruction; if static_instruction is set, goes to user content after static content.
    */
   instruct(value: string): this {
     return this._setConfig("instruction", value);
-  }
-
-  /**
-   * Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored.
-   */
-  outputs(value: string | undefined): this {
-    return this._setConfig("output_key", value);
   }
 
   /**
@@ -423,6 +402,20 @@ export class LlmAgentConfig extends BuilderBase {
    */
   outputSchema(value: unknown | undefined): this {
     return this._setConfig("output_schema", value);
+  }
+
+  /**
+   * Deprecated: use ``.writes(key)`` instead. Session state key where the agent's response text is stored.
+   */
+  outputKey(value: string | undefined): this {
+    return this._setConfig("output_key", value);
+  }
+
+  /**
+   * Optional. LlmAgent.include_contents.
+   */
+  includeContents(value: unknown): this {
+    return this._setConfig("include_contents", value);
   }
 
   /**

@@ -793,13 +793,23 @@ from ._plan_mode._latch import MUTATING_TOOLS as MUTATING_TOOLS
 from ._plan_mode._plugin import PlanModePlugin as PlanModePlugin
 from ._plan_mode._policy import PlanModePolicy as PlanModePolicy
 from ._plan_mode._tools import plan_mode_tools as plan_mode_tools
+from ._reactor import R as R
 from ._reactor import Reactor as Reactor
+from ._reactor import ReactorPlugin as ReactorPlugin
 from ._reactor import ReactorRule as ReactorRule
+from ._reactor import RuleSpec as RuleSpec
 from ._reactor import Signal as Signal
 from ._reactor import SignalPredicate as SignalPredicate
+from ._reactor import SignalRegistry as SignalRegistry
 from ._reactor import computed as computed
+from ._reactor import default_registry as default_registry
 from ._reactor import reaction as reaction
 from ._reactor import track_reads as track_reads
+from ._reactor._namespace import R as R
+from ._reactor._namespace import SignalRegistry as SignalRegistry
+from ._reactor._namespace import RuleSpec as RuleSpec
+from ._reactor._namespace import default_registry as default_registry
+from ._reactor._plugin import ReactorPlugin as ReactorPlugin
 from ._reactor._predicate import SignalPredicate as SignalPredicate
 from ._reactor._reactor import Reactor as Reactor
 from ._reactor._reactor import ReactorRule as ReactorRule
@@ -1489,11 +1499,16 @@ __all__ = [
     "HookAsk",
     "HookCallable",
     "make_permission_callback",
+    "R",
     "Reactor",
+    "ReactorPlugin",
     "ReactorRule",
+    "RuleSpec",
     "Signal",
     "SignalPredicate",
+    "SignalRegistry",
     "computed",
+    "default_registry",
     "reaction",
     "track_reads",
     "current_tracker",
@@ -1566,4 +1581,13 @@ __all__ = [
     "ContractIssue",
     "DataFlowContract",
     "check_data_flow_contract",
+    "State",
+    "Context",
+    "Prompt",
+    "Guard",
+    "Tool",
+    "Eval",
+    "Reactive",
+    "Harness",
+    "Ui",
 ]

@@ -11,14 +11,14 @@ Concern         Method(s)           Runtime?  What it controls
                 ``.context()``                in its prompt window.
 
 **INPUT**       ``.accepts()``      YES       What structured data the agent
-                ``.input_schema()``           ACCEPTS when used as a tool.
+                                              ACCEPTS when used as a tool.
 
 **OUTPUT**      ``.returns()``      YES       What SHAPE the LLM's response
                 ``.output()``                 takes (plain text vs structured
                 ``@ Model``                   JSON matching a Pydantic model).
 
 **STORAGE**     ``.writes()``       YES       Where the agent's text response
-                ``.save_as()``                is STORED in session state.
+                                              is STORED in session state.
 
 **CONTRACT**    ``.produces()``     NO        Annotation for the data-flow
                 ``.consumes()``               contract CHECKER. No runtime
@@ -48,10 +48,11 @@ Common confusion patterns
    ``.writes(key)`` controls WHERE the response is STORED.
    You can use both, either, or neither.
 
-2. **``.returns()`` vs ``.output_schema()``** — Nearly identical.
+2. **``.returns()`` vs the raw ``output_schema`` field** — Nearly identical.
    ``.returns(Model)`` / ``.output(Model)`` sets ``_output_schema``
    → LLM constraint + ``.ask()`` parsing.
-   ``.output_schema(Model)`` sets ``output_schema`` → LLM constraint only.
+   ``.output_schema(Model)`` sets the raw ADK ``output_schema`` field
+   → LLM constraint only (no ``.ask()`` parsing).
    **Prefer ``.returns()`` or ``@ Model``** for the common case.
 
 3. **``.produces()`` vs ``.writes()``** — Different layers.
@@ -681,7 +682,7 @@ INTERPLAY_GUIDE = """
 ║  Context        .reads() / .context()  What the agent SEES         ║
 ║  Input          .accepts()             Tool-mode INPUT validation  ║
 ║  Output         .returns() / @ Model   Response SHAPE (text/JSON)  ║
-║  Storage        .writes() / .save_as() Where response is STORED    ║
+║  Storage        .writes(key)          Where response is STORED    ║
 ║  Contract       .produces()/.consumes() Checker ANNOTATIONS only   ║
 ║                                                                    ║
 ╠══════════════════════════════════════════════════════════════════════╣

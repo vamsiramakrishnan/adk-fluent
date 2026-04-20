@@ -260,7 +260,7 @@ def _check_sequence_contracts(
                                 f"Template variable '{{{var}}}' in instruction is not produced by any upstream agent"
                             ),
                             "hint": (
-                                f"Add .outputs('{var}') to an upstream agent, or use "
+                                f"Add .writes('{var}') to an upstream agent, or use "
                                 f"S.capture('{var}') to capture user input into state. "
                                 f"If this variable is optional, use '{{{var}?}}' syntax."
                             ),
@@ -336,7 +336,7 @@ def _check_sequence_contracts(
                     "level": "error",
                     "agent": _scoped(child_name),
                     "message": (f"RouteNode reads key '{route_key}' from state but no upstream agent produces it"),
-                    "hint": (f"Add .outputs('{route_key}') to an upstream agent so the route key is available."),
+                    "hint": (f"Add .writes('{route_key}') to an upstream agent so the route key is available."),
                 }
             )
 
@@ -373,7 +373,7 @@ def _check_sequence_contracts(
                             f"'{succ_name}' uses {succ_ctx_desc} — output is "
                             f"lost because '{succ_name}' reads only from state"
                         ),
-                        "hint": f"Add .outputs('<key>') to '{child_name}' so its output reaches '{succ_name}' via state.",
+                        "hint": f"Add .writes('<key>') to '{child_name}' so its output reaches '{succ_name}' via state.",
                     }
                 )
             elif succ_kind == "user_only":
@@ -387,7 +387,7 @@ def _check_sequence_contracts(
                             f"lost because only user messages are included"
                         ),
                         "hint": (
-                            f"Add .outputs('<key>') to '{child_name}' so its output "
+                            f"Add .writes('<key>') to '{child_name}' so its output "
                             f"reaches '{succ_name}' via state, or change "
                             f"'{succ_name}' to use C.from_agents('{child_name}')."
                         ),
@@ -407,7 +407,7 @@ def _check_sequence_contracts(
                             ),
                             "hint": (
                                 f"Add '{child_name}' to the C.from_agents() list, or "
-                                f"add .outputs('<key>') to '{child_name}'."
+                                f"add .writes('<key>') to '{child_name}'."
                             ),
                         }
                     )
@@ -422,7 +422,7 @@ def _check_sequence_contracts(
                             f"lost through both state and conversation channels"
                         ),
                         "hint": (
-                            f"Add .outputs('<key>') to '{child_name}' so its output "
+                            f"Add .writes('<key>') to '{child_name}' so its output "
                             f"reaches '{succ_name}' via state, or change "
                             f"'{succ_name}' to include conversation history."
                         ),
@@ -457,7 +457,7 @@ def _check_sequence_contracts(
                     f"output reaches downstream only via conversation history"
                 ),
                 "hint": (
-                    f"Add .outputs('<key>') to '{child_name}' if downstream "
+                    f"Add .writes('<key>') to '{child_name}' if downstream "
                     f"agents need structured access to its output via state."
                 ),
             }
@@ -577,7 +577,7 @@ def _check_sequence_contracts(
                         "agent": _scoped(child_name),
                         "message": (f"Transform '{child_name}' reads key '{key}' but no upstream agent produces it"),
                         "hint": (
-                            f"Add .outputs('{key}') to an upstream agent, or "
+                            f"Add .writes('{key}') to an upstream agent, or "
                             f"ensure the key is in state before this transform runs."
                         ),
                     }
@@ -645,7 +645,7 @@ def _check_sequence_contracts(
                             "agent": _scoped(child_name),
                             "message": (f"{label} reads key '{key}' but it is not produced by any upstream agent"),
                             "hint": (
-                                f"Add .outputs('{key}') to an upstream agent "
+                                f"Add .writes('{key}') to an upstream agent "
                                 f"or use S.set() / S.capture() to provide this key."
                             ),
                         }
@@ -663,7 +663,7 @@ def _check_sequence_contracts(
                             "level": "warning",
                             "agent": _scoped(child_name),
                             "message": (f"Predicate reads key '{key}' but it is not produced by any upstream agent"),
-                            "hint": (f"Add .outputs('{key}') to an upstream agent or use S.set() to provide this key."),
+                            "hint": (f"Add .writes('{key}') to an upstream agent or use S.set() to provide this key."),
                         }
                     )
 
@@ -678,7 +678,7 @@ def _check_sequence_contracts(
                         "level": "warning",
                         "agent": _scoped(child_name),
                         "message": (f"Gate predicate reads key '{key}' but it is not produced by any upstream agent"),
-                        "hint": (f"Add .outputs('{key}') to an upstream agent or use S.set() to provide this key."),
+                        "hint": (f"Add .writes('{key}') to an upstream agent or use S.set() to provide this key."),
                     }
                 )
 

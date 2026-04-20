@@ -37,6 +37,43 @@ JavaScript has no operator overloading, so adk-fluent-ts uses method calls:
 
 Sub-builders passed to workflow builders are auto-built — do not call
 ``.build()`` on individual steps.
+
+## Namespace composites: ``.attachTo(builder)``
+
+Python uses ``Composite >> Builder`` to attach a namespace composite to a
+builder. TypeScript cannot overload ``>>``, so every composite exposes an
+``.attachTo(builder)`` method that performs the same dispatch::
+
+    let a = new Agent("worker", "gemini-2.5-flash");
+    a = C.window(5).attachTo(a);                          // builder.context
+    a = P.role("analyst").add(P.task("crunch")).attachTo(a); // builder.instruct
+    a = T.fn(search).attachTo(a);                         // builder.tools
+    a = G.length({ max: 500 }).attachTo(a);               // builder.guard
+    a = M.retry({ maxAttempts: 3 }).pipe(M.log()).attachTo(a); // builder.middleware
+
+  CTransform.attachTo(b)  →  b.context(this)
+  PTransform.attachTo(b)  →  b.instruct(this)
+  TComposite.attachTo(b)  →  b.tools(this)
+  GComposite.attachTo(b)  →  b.guard(this)
+  MComposite.attachTo(b)  →  b.middleware(this)
+  AComposite.attachTo(b)  →  b.artifacts(this)
+
+### Named-word aliases
+
+Every single-letter namespace has a named-word alias that resolves to the
+same class. Pick whichever reads better. Note: ``S`` has NO ``State`` alias
+in TS because ``State`` is already an exported type alias for
+``Record<string, unknown>`` — use ``S`` directly there. Everything else::
+
+    import { C, P, T, G, M, A, E, R, H, UI } from "adk-fluent-ts";
+    import {
+      Context, Prompt, Tool, Guard, Middleware,
+      Artifact, Eval, Reactive, Harness, Ui,
+    } from "adk-fluent-ts";
+
+    // equivalent
+    C.window(5).attachTo(agent);
+    Context.window(5).attachTo(agent);
 ## Example (TypeScript)
 
     import { Agent, Pipeline } from "adk-fluent-ts";

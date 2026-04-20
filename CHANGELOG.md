@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed (BREAKING)
+
+- **Deprecated alias methods removed from `Agent` / `BuilderBase`** (Python + TypeScript parity). The eight shims below emitted `DeprecationWarning` since 0.13.0 and are now gone entirely — calling them raises `AttributeError`. Each has a 1:1 successor that has been documented and exercised in the test suite since the deprecation landed:
+
+  | Removed             | Use instead       | Applies to  |
+  | ------------------- | ----------------- | ----------- |
+  | `.outputs(key)`     | `.writes(key)`    | Py + TS     |
+  | `.save_as(key)`     | `.writes(key)`    | Py          |
+  | `.guardrail(fn)`    | `.guard(fn)`      | Py          |
+  | `.delegate(agent)`  | `.agent_tool(agent)` | Py       |
+  | `.retry_if(pred)`   | `.loop_while(pred)` | Py        |
+  | `.inject_context(fn)` | `.prepend(fn)`  | Py          |
+  | `.history(v)`       | `.context(C.none())` for "none", `.context(...)` otherwise | Py + TS |
+  | `.include_history(v)` | `.context(...)` | Py + TS     |
+
+  If you have been ignoring deprecation warnings, run your test suite after upgrading — every call site needs a one-line rewrite. The source-of-truth for TS builders (`config.ts`, `agent.ts`) has also been regenerated from the trimmed seed and the codegen pipeline no longer derives morphological deprecated-aliases from seed fields (only explicit `[builders.*.deprecated_aliases]` entries become shims).
+
 ### Added
 
 - **Unified operator grammar across namespaces** (Python + TypeScript parity). Every namespace composite — `CTransform`, `PTransform`, `TComposite`, `GComposite`, `MComposite`, `AComposite` — now attaches itself to a builder through the same grammar: `Composite >> Builder` in Python, `Composite.attachTo(builder)` in TypeScript. Before this change, each namespace picked its own attachment story (some used `.instruct()`, some `.guard()`, some nothing at all); now the direction is uniform and composition reads as one sentence:

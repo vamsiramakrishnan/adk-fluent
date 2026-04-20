@@ -35,7 +35,7 @@ class Route:
         analyzer.writes("text") >> Route("text").contains("urgent", escalation).otherwise(standard)
 
         # Threshold
-        scorer.outputs("score") >> Route("score").gt(0.8, premium).otherwise(basic)
+        scorer.writes("score") >> Route("score").gt(0.8, premium).otherwise(basic)
 
         # Complex multi-key predicates
         Route().when(lambda s: s["ok"] == "yes" and float(s["score"]) > 0.8, premium).otherwise(standard)
