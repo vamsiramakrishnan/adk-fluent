@@ -76,9 +76,7 @@ def test_compile_walks_composite_builders() -> None:
     R.signal("a", 0)
     R.signal("b", 0)
 
-    pipeline = Pipeline("flow").step(
-        Agent("x").on(R.changed("a"), lambda c: None)
-    )
+    pipeline = Pipeline("flow").step(Agent("x").on(R.changed("a"), lambda c: None))
     fanout = (
         FanOut("parallel")
         .branch(Agent("y").on(R.changed("a"), lambda c: None))
@@ -122,9 +120,9 @@ async def test_end_to_end_declarative_reactor() -> None:
     task = asyncio.create_task(reactor.run())
     await asyncio.sleep(0.05)
 
-    temp.set(80)   # rising but below 90 — no fire
-    temp.set(95)   # rising above 90 — fires
-    temp.set(92)   # falling — no fire
+    temp.set(80)  # rising but below 90 — no fire
+    temp.set(95)  # rising above 90 — fires
+    temp.set(92)  # falling — no fire
     await asyncio.sleep(0.1)
 
     reactor.stop()
