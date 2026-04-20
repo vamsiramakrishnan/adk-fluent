@@ -366,24 +366,19 @@ def generate_all(
                 seen_names.add(name)
 
         # Named-word aliases for the single-letter namespace classes.
-        # Every single-letter namespace (S, C, P, G, M, T, A, E, R, H, UI) has
-        # a named-word alias that resolves to the same class. These must be
-        # applied last so they override any name collision (e.g. ``Middleware``
-        # Protocol from ``.middleware`` is shadowed by ``M`` the namespace).
-        _NAMED_ALIASES: list[tuple[str, str, str]] = [
-            ("State", "._transforms", "S"),
-            ("Context", "._context", "C"),
-            ("Prompt", "._prompt", "P"),
-            ("Guard", "._guards", "G"),
-            ("Middleware", "._middleware", "M"),
-            ("Tool", "._tools", "T"),
-            ("Artifact", "._artifacts", "A"),
-            ("Eval", "._eval", "E"),
-            ("Reactive", "._reactor", "R"),
-            ("Harness", "._harness", "H"),
-            ("Ui", ".prelude", "UI"),
-        ]
-        for alias, mod, attr in _NAMED_ALIASES:
+        # Sourced from the merged seed's ``[named_aliases]`` section (first-class
+        # codegen data). They are applied last so they override any name
+        # collision (e.g. ``Middleware`` Protocol from ``.middleware`` is
+        # intentionally shadowed by ``M`` the namespace).
+        named_aliases = seed.get("named_aliases", {})
+        if not named_aliases:
+            raise RuntimeError(
+                "seed.toml is missing the [named_aliases] section. "
+                "Run `just seed` to regenerate from seed.manual.toml."
+            )
+        for alias, entry in named_aliases.items():
+            mod = entry["module"]
+            attr = entry["target"]
             lazy_map[alias] = (mod, attr)
             seen_names.add(alias)
 

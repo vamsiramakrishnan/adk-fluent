@@ -70,6 +70,14 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
         existing_fd.update(manual_field_docs)
         auto["field_docs"] = existing_fd
 
+    # Step 2c: Propagate named_aliases straight through — these are manual-only
+    # (never auto-generated), so last-write-wins gives the manual file priority.
+    manual_named_aliases = manual.get("named_aliases", {})
+    if manual_named_aliases:
+        existing_na = auto.get("named_aliases", {})
+        existing_na.update(manual_named_aliases)
+        auto["named_aliases"] = existing_na
+
     # Step 3: Merge manual config into matching builders
     manual_builders = manual.get("builders", {})
     for builder_name, manual_config in manual_builders.items():
@@ -119,6 +127,9 @@ def merge_manual_seed(auto_toml: str, manual_path: str) -> str:
     # Promote top-level field_docs into global_config for re-emit
     if "field_docs" in auto:
         global_config["field_docs"] = auto["field_docs"]
+    # Promote top-level named_aliases so the emitter can round-trip them.
+    if "named_aliases" in auto:
+        global_config["named_aliases"] = auto["named_aliases"]
     adk_version = auto.get("meta", {}).get("adk_version", "unknown")
 
     return emit_seed_toml(builders_list, global_config, adk_version=adk_version)

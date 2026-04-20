@@ -68,6 +68,32 @@ ParallelAgent = "FanOut"
 LoopAgent = "Loop"
 
 # ---------------------------------------------------------------------------
+# NAMED-WORD ALIASES (top-level package exports)
+# ---------------------------------------------------------------------------
+# Every single-letter namespace class has a named-word alias that resolves to
+# the same class (e.g. ``State is S``). These must be declared here — not
+# discovered by file scanning — because the alias name would otherwise shadow
+# a legitimate export. For example ``Middleware`` from ``._middleware`` is a
+# Protocol that the alias intentionally shadows at the top level.
+#
+# Schema: each entry is ``{ module = ".<submodule>", target = "<name>" }``.
+# The orchestrator resolves these into the lazy import map after all other
+# exports have been registered, so collisions always resolve in favour of
+# the alias.
+[named_aliases]
+State      = { module = "._transforms", target = "S" }
+Context    = { module = "._context",    target = "C" }
+Prompt     = { module = "._prompt",     target = "P" }
+Guard      = { module = "._guards",     target = "G" }
+Middleware = { module = "._middleware", target = "M" }
+Tool       = { module = "._tools",      target = "T" }
+Artifact   = { module = "._artifacts",  target = "A" }
+Eval       = { module = "._eval",       target = "E" }
+Reactive   = { module = "._reactor",    target = "R" }
+Harness    = { module = "._harness",    target = "H" }
+Ui         = { module = ".prelude",     target = "UI" }
+
+# ---------------------------------------------------------------------------
 # OPTIONAL CONSTRUCTOR ARGS
 # ---------------------------------------------------------------------------
 # These add optional positional params to __init__:

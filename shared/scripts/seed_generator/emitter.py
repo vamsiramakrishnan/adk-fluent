@@ -64,6 +64,19 @@ def emit_seed_toml(
             lines.append(f"{field_name} = {_quote_toml_string(doc_str)}")
         lines.append("")
 
+    # Named-word aliases (manifest-first; consumed by the orchestrator when
+    # assembling the top-level package lazy-import map).
+    named_aliases = global_config.get("named_aliases", {})
+    if named_aliases:
+        lines.append("[named_aliases]")
+        for alias_name, entry in sorted(named_aliases.items()):
+            module = entry.get("module", "")
+            target = entry.get("target", "")
+            lines.append(
+                f'{alias_name} = {{ module = "{module}", target = "{target}" }}'
+            )
+        lines.append("")
+
     # Builder sections
     for builder in builders:
         name = builder["name"]

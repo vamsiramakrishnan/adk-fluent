@@ -1,7 +1,7 @@
 [meta]
 adk_package = "google-adk"
 adk_version = "1.25.0"
-generated_at = "2026-04-20T18:35:00.897022+00:00"
+generated_at = "2026-04-20T18:51:24.590764+00:00"
 min_python = "3.11"
 output_package = "adk_fluent"
 output_dir = "src/adk_fluent"
@@ -50,6 +50,19 @@ is active.
    - ``.produces(Model)`` → contract annotation (NO runtime effect)
 """
 static_instruction = "Set cached instruction. When set, ``.instruct()`` text moves from system to user content, enabling context caching. Use for large, stable prompt sections that rarely change."
+
+[named_aliases]
+Artifact = { module = "._artifacts", target = "A" }
+Context = { module = "._context", target = "C" }
+Eval = { module = "._eval", target = "E" }
+Guard = { module = "._guards", target = "G" }
+Harness = { module = "._harness", target = "H" }
+Middleware = { module = "._middleware", target = "M" }
+Prompt = { module = "._prompt", target = "P" }
+Reactive = { module = "._reactor", target = "R" }
+State = { module = "._transforms", target = "S" }
+Tool = { module = "._tools", target = "T" }
+Ui = { module = ".prelude", target = "UI" }
 
 [builders.A2aAgentExecutor]
 source_class = "google.adk.a2a.executor.a2a_agent_executor.A2aAgentExecutor"
