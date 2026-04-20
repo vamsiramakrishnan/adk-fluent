@@ -43,22 +43,22 @@ flowchart LR
 :sync: python
 
 ```python
-C.window(3) + C.from_state("topic")    # union: both applied
-C.window(5) | C.template("{history}")   # pipe: output → input
+C.window(3) | C.from_state("topic")    # union: both applied
+C.window(5) >> C.template("{history}")  # pipe: output → input
 ```
 :::
 :::{tab-item} TypeScript
 :sync: ts
 
 ```ts
-C.window(3).add(C.fromState("topic"));    // union: both applied
+C.window(3).union(C.fromState("topic"));   // union: both applied
 C.window(5).pipe(C.template("{history}")); // pipe: output → input
 ```
 :::
 ::::
 
 :::{note} TypeScript naming
-TypeScript uses camelCase: `C.fromState`, `C.userOnly`, `C.fromAgents`, `C.excludeAgents`. The `+` operator from Python becomes `.add()` and `|` becomes `.pipe()`.
+TypeScript uses camelCase: `C.fromState`, `C.userOnly`, `C.fromAgents`, `C.excludeAgents`. The `|` union operator from Python becomes `.union()` in TypeScript, and `>>` becomes `.pipe()`.
 :::
 
 ## Quick Start
@@ -76,7 +76,7 @@ clean_agent = Agent("processor").context(C.none()).instruct("Process input.").bu
 # Only see last 3 turn-pairs + state keys
 focused_agent = (
     Agent("analyst")
-    .context(C.window(n=3) + C.from_state("topic"))
+    .context(C.window(n=3) | C.from_state("topic"))
     .instruct("Analyze {topic}.")
     .build()
 )
@@ -130,7 +130,7 @@ flowchart TD
 | I want… | Use | Suppresses history? |
 |---|---|---|
 | Instruction only, zero history | `C.none()` | yes |
-| State keys only, no history | `.reads("k")` *or* `C.none() + C.from_state("k")` | yes |
+| State keys only, no history | `.reads("k")` *or* `C.none() \| C.from_state("k")` | yes |
 | State keys + history (pass-through) | `C.from_state("k")` | no |
 | Last N turns | `C.window(n=5)` | yes |
 | User turns only | `C.user_only()` | yes |
@@ -139,7 +139,7 @@ flowchart TD
 | Default behaviour | omit `.context()` | no |
 
 :::{tip} `.reads()` is the shortcut
-`.reads("topic", "style")` is equivalent to `.context(C.none() + C.from_state("topic", "style"))`. Reach for it whenever a pipeline step only needs named state and shouldn't be polluted by prior turns.
+`.reads("topic", "style")` is equivalent to `.context(C.none() | C.from_state("topic", "style"))`. Reach for it whenever a pipeline step only needs named state and shouldn't be polluted by prior turns.
 :::
 
 ## The Problem
@@ -264,7 +264,7 @@ agent = (
 # Inject state, suppress history (common pipeline pattern)
 agent = (
     Agent("writer")
-    .context(C.none() + C.from_state("topic", "style"))
+    .context(C.none() | C.from_state("topic", "style"))
     .instruct("Write about {topic} in {style} style.")
     .build()
 )
@@ -484,7 +484,7 @@ Primitives compose with two operators:
 
 ```python
 # Window + state keys: agent sees last 3 turns AND the topic from state
-ctx = C.window(n=3) + C.from_state("topic", "style")
+ctx = C.window(n=3) | C.from_state("topic", "style")
 
 agent = Agent("analyst").context(ctx).instruct("Analyze {topic}.").build()
 ```
@@ -535,7 +535,7 @@ You can chain multiple unions:
 :sync: python
 
 ```python
-ctx = C.window(n=3) + C.from_state("topic") + C.budget(max_tokens=4000)
+ctx = C.window(n=3) | C.from_state("topic") | C.budget(max_tokens=4000)
 ```
 :::
 :::{tab-item} TypeScript
@@ -572,7 +572,7 @@ Context flow through a pipeline:
        │                                    writes: state["intent"]
        ▼
   handler ────── C.from_state("user_message", "intent")
-              + C.user_only() ───────────── sees: user msg + intent
+              | C.user_only() ───────────── sees: user msg + intent
                                                  + user history
 ```
 
@@ -593,7 +593,7 @@ pipeline = (
     >> Agent("handler")
         .model("gemini-2.5-flash")
         .instruct("Help the user.")
-        .context(C.from_state("user_message", "intent") + C.user_only())
+        .context(C.from_state("user_message", "intent") | C.user_only())
 )
 ```
 :::
@@ -663,12 +663,12 @@ Context transforms fall into two categories:
 
 ### Composing: suppression wins
 
-When composing with `+`, the result inherits `include_contents="none"` if **any** component suppresses. This makes composition intuitive:
+When composing with `|`, the result inherits `include_contents="none"` if **any** component suppresses. This makes composition intuitive:
 
 ```python
-C.window(n=3) + C.from_state("topic")   # → "none" (window suppresses)
-C.from_state("x") + C.template("...")    # → "default" (both neutral)
-C.none() + C.from_state("key")           # → "none" (none suppresses)
+C.window(n=3) | C.from_state("topic")   # → "none" (window suppresses)
+C.from_state("x") | C.template("...")    # → "default" (both neutral)
+C.none() | C.from_state("key")           # → "none" (none suppresses)
 ```
 
 ### Unreferenced state is NOT sent

@@ -197,13 +197,12 @@ adk-fluent provides three orthogonal composition namespaces for declarative agen
 
 ### Composition operators
 
-All three modules support composition, but with different operators:
+All three modules use one grammar: `|` = union/combine, `>>` = pipe/chain.
 
-| Operator | P (Prompt)       | C (Context)      | S (State)          |
-| -------- | ---------------- | ---------------- | ------------------ |
-| `+`      | Union (merge)    | Union (merge)    | Combine (run both) |
-| `\|`     | Pipe (transform) | Pipe (transform) | —                  |
-| `>>`     | —                | —                | Chain (sequential) |
+| Operator | P (Prompt)            | C (Context)           | S (State)                           |
+| -------- | --------------------- | --------------------- | ----------------------------------- |
+| `\|`     | Union (merge sections) | Union (merge specs)   | Combine (both run, deltas merge)    |
+| `>>`     | Pipe (post-process)    | Pipe (post-process)   | Chain (sequential, pipe output)     |
 
 ::::{tab-set}
 :::{tab-item} Python
@@ -211,10 +210,10 @@ All three modules support composition, but with different operators:
 
 ```python
 # P: compose prompt sections
-prompt = P.role("Expert coder") + P.task("Review code") + P.constraint("Be brief")
+prompt = P.role("Expert coder") | P.task("Review code") | P.constraint("Be brief")
 
 # C: compose context specs
-context = C.window(n=3) + C.from_state("topic")
+context = C.window(n=3) | C.from_state("topic")
 
 # S: chain state transforms
 transform = S.pick("a", "b") >> S.rename(a="x") >> S.default(y=1)
@@ -224,11 +223,11 @@ transform = S.pick("a", "b") >> S.rename(a="x") >> S.default(y=1)
 :sync: ts
 
 ```ts
-// P: compose prompt sections (use .add() instead of +)
-const prompt = P.role("Expert coder").add(P.task("Review code")).add(P.constraint("Be brief"));
+// P: compose prompt sections (use .union() instead of |)
+const prompt = P.role("Expert coder").union(P.task("Review code")).union(P.constraint("Be brief"));
 
-// C: compose context specs (use .add() instead of +)
-const context = C.window(3).add(C.fromState("topic"));
+// C: compose context specs (use .union() instead of |)
+const context = C.window(3).union(C.fromState("topic"));
 
 // S: chain state transforms (use .pipe() instead of >>)
 const transform = S.pick("a", "b").pipe(S.rename({ a: "x" })).pipe(S.default_({ y: 1 }));

@@ -193,7 +193,7 @@ _AGENT_METHODS = """
   .model(str)                  — set LLM model
   .instruct(str | PTransform)  — set the main instruction / system prompt. This is what
                                  the LLM is told to do. Accepts plain text, a callable,
-                                 or a P module composition (P.role() + P.task() + ...).
+                                 or a P module composition (P.role() | P.task() | ...).
   .describe(str)               — set agent description (metadata for transfer routing
                                  and topology — NOT sent to the LLM as instruction)
   .static(str)                 — set cached instruction. When set, .instruct() text moves
@@ -365,7 +365,8 @@ _NAMESPACE_MODULES = """
 
 ### S — State transforms
 
-Used with `>>` operator. Compose with `>>` (chain) or `+` (combine).
+Used with `>>` operator. Compose with `>>` (pipe: feed output into next) or
+`|` (combine: both transforms run on original state, deltas merge).
 
   S.pick(*keys)                — keep only named keys
   S.drop(*keys)                — remove named keys
@@ -393,7 +394,8 @@ Used with `>>` operator. Compose with `>>` (chain) or `+` (combine).
 
 ### C — Context engineering
 
-Used with `.context()`. Compose with `+` (union) or `|` (pipe).
+Used with `.context()`. Compose with `|` (union: merge transforms) or `>>` (pipe:
+post-process compiled output through a transform).
 
   C.none()                     — suppress all history
   C.default()                  — default ADK behavior
@@ -429,7 +431,8 @@ Used with `.context()`. Compose with `+` (union) or `|` (pipe).
 
 ### P — Prompt composition
 
-Used with `.instruct()`. Compose with `+` (union) or `|` (pipe).
+Used with `.instruct()`. Compose with `|` (union: merge sections) or `>>` (pipe:
+post-process compiled output through a transform).
 Section order: role → context → task → constraint → format → example.
 
   P.role(text)                 — agent persona

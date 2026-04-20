@@ -695,19 +695,19 @@ class TestSyntheticEvent:
 
 
 class TestPhaseBComposition:
-    def test_select_plus_recent(self):
-        result = C.select(author="user") + C.recent(half_life=5)
+    def test_select_union_recent(self):
+        result = C.select(author="user") | C.recent(half_life=5)
         assert isinstance(result, CComposite)
         assert len(result.blocks) == 2
 
     def test_window_pipe_redact(self):
-        result = C.window(n=3) | C.redact(r"\d+")
+        result = C.window(n=3) >> C.redact(r"\d+")
         assert isinstance(result, CPipe)
 
     def test_composite_provider_runs_all_blocks(self):
         events = [_MockEvent("user", "hello")]
         ctx = _MockCtx(events=events, state={"topic": "AI"})
-        composite = C.from_state("topic") + C.user_only()
+        composite = C.from_state("topic") | C.user_only()
         result = _run(composite.instruction_provider(ctx))
         assert "[topic]: AI" in result
         assert "[user]: hello" in result
@@ -715,7 +715,7 @@ class TestPhaseBComposition:
     def test_pipe_provider_chains(self):
         events = [_MockEvent("user", "My SSN is 123-45-6789")]
         ctx = _MockCtx(events=events)
-        piped = C.user_only() | C.redact(r"\d{3}-\d{2}-\d{4}")
+        piped = C.user_only() >> C.redact(r"\d{3}-\d{2}-\d{4}")
         result = _run(piped.instruction_provider(ctx))
         # SSN should be redacted from user_only output
         assert "123-45-6789" not in result
@@ -723,12 +723,12 @@ class TestPhaseBComposition:
 
     def test_pipe_with_empty_source(self):
         ctx = _MockCtx(events=[])
-        piped = C.user_only() | C.redact(r"\d+")
+        piped = C.user_only() >> C.redact(r"\d+")
         result = _run(piped.instruction_provider(ctx))
         assert result == ""
 
     def test_three_way_composition(self):
-        result = C.select(author="user") + C.recent() + C.from_state("key")
+        result = C.select(author="user") | C.recent() | C.from_state("key")
         assert isinstance(result, CComposite)
         assert len(result.blocks) == 3
 
@@ -738,7 +738,7 @@ class TestPhaseBComposition:
         assert callable(compiled["instruction"])
 
     def test_compile_composite(self):
-        composite = C.from_state("topic") + C.user_only()
+        composite = C.from_state("topic") | C.user_only()
         compiled = _compile_context_spec("Review.", composite)
         assert compiled["include_contents"] == "none"
         assert callable(compiled["instruction"])

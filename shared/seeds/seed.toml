@@ -407,7 +407,7 @@ helper_func = "run_events"
 [[builders.Agent.extras]]
 name = "instruct"
 signature = "(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self"
-doc = "Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead)."
+doc = "Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() | P.task()). Raises TypeError if passed a CTransform (use .context() instead)."
 behavior = "runtime_helper"
 helper_func = "_instruct_with_guard"
 

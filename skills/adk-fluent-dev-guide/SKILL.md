@@ -90,9 +90,9 @@ agent = (
     Agent("researcher", "gemini-2.5-flash")
     .instruct(
         P.role("Senior researcher")
-        + P.task("Research the given topic thoroughly")
-        + P.constraint("Cite sources", "Be factual")
-        + P.format("Return findings as bullet points")
+        | P.task("Research the given topic thoroughly")
+        | P.constraint("Cite sources", "Be factual")
+        | P.format("Return findings as bullet points")
     )
     .tool(search)
     .writes("findings")

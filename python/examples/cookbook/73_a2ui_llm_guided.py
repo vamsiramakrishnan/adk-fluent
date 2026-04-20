@@ -47,7 +47,7 @@ assert auto_agent._config["_a2ui_auto_guard"] is True
 
 guided = (
     Agent("designer", "gemini-2.5-flash")
-    .instruct(P.role("UI designer") + P.task("Build a dashboard"))
+    .instruct(P.role("UI designer") | P.task("Build a dashboard"))
     .ui(UI.auto(catalog="basic"), llm_guided=True)
 )
 assert isinstance(guided._config["_ui_spec"], _UIAutoSpec)
@@ -78,7 +78,7 @@ assert custom._from_flag is False  # only flag-promoted specs set this True
 if _a2ui_installed():
     full_agent = (
         Agent("support", "gemini-2.5-flash")
-        .instruct(P.role("Support agent") + P.task("Help customers"))
+        .instruct(P.role("Support agent") | P.task("Help customers"))
         .tools(T.google_search() | T.a2ui())
         .guard(G.pii() | G.a2ui(max_components=30))
         .ui(UI.auto(), llm_guided=True)  # auto-wire dedups against existing T.a2ui/G.a2ui

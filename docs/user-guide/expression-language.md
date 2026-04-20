@@ -612,7 +612,7 @@ from adk_fluent import Agent, C, G, M, P, T
 
 (
     C.window(n=5)                                    # context
-    >> P.role("analyst") + P.task("crunch numbers")  # instruction
+    >> P.role("analyst") | P.task("crunch numbers")  # instruction
     >> T.fn(search) | T.fn(fetch)                    # tools
     >> G.pii() | G.length(max=500)                   # guards
     >> M.retry(max_attempts=3) | M.log()             # middleware

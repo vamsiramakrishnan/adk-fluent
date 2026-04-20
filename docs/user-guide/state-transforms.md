@@ -28,16 +28,16 @@ flowchart TB
 :sync: python
 
 ```python
-S.drop() >> S.merge()         # chain: run in sequence
-S.default() + S.rename()      # combine: apply to same state
+S.drop() >> S.merge()         # chain: pipe output into next
+S.default() | S.rename()      # combine: both run on original state, deltas merge
 ```
 :::
 :::{tab-item} TypeScript
 :sync: ts
 
 ```ts
-S.drop().pipe(S.merge_(["a", "b"], "c"));     // chain: run in sequence
-S.default_({ k: 1 }).add(S.rename({ a: "b" })); // combine: apply to same state
+S.drop().pipe(S.merge_(["a", "b"], "c"));       // chain: pipe output into next
+S.default_({ k: 1 }).union(S.rename({ a: "b" })); // combine: deltas merge
 ```
 :::
 ::::
@@ -356,7 +356,7 @@ const pipeline = agent.then(cleanup).then(writer);
 
 ```python
 # Apply multiple transforms to the same state at once
-setup = S.default(confidence=0.0) + S.rename(research="input")
+setup = S.default(confidence=0.0) | S.rename(research="input")
 pipeline = agent >> setup >> writer
 ```
 :::

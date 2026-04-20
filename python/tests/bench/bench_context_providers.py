@@ -3,7 +3,7 @@
 Providers like ``C.window(n)``, ``C.user_only()``, ``C.from_agents(...)``
 all begin with ``events = list(ctx.session.events)`` plus an O(N) scan.
 Wave 2 caches a per-session ``SessionEventIndex`` so a composite like
-``C.none() + C.from_state('x') + C.window(5)`` only materializes and
+``C.none() | C.from_state('x') | C.window(5)`` only materializes and
 scans the event list once per turn instead of once per provider.
 """
 

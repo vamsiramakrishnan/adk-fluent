@@ -172,7 +172,7 @@ agent.guard(
 my_agent/
 ├── agent.py          # root_agent = Agent(...).build()
 ├── tools.py          # Tool functions
-├── prompts.py        # Prompt compositions (P.role() + ...)
+├── prompts.py        # Prompt compositions (P.role() | ...)
 ├── schemas.py        # Pydantic models for .returns()/.accepts()
 ├── requirements.txt  # Dependencies (include adk-fluent)
 └── tests/
@@ -194,8 +194,8 @@ root_agent = (
     Agent("assistant", "gemini-2.5-flash")
     .instruct(
         P.role("Helpful assistant")
-        + P.task("Answer questions using available tools")
-        + P.constraint("Always cite sources")
+        | P.task("Answer questions using available tools")
+        | P.constraint("Always cite sources")
     )
     .tool(search)
     .tool(fetch_data)

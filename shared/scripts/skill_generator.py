@@ -433,7 +433,7 @@ def generate_namespace_methods() -> str:
             lines.append(f"## {letter} — {description}")
             lines.append("")
             if methods:
-                lines.append("Compose with: `+` (union/merge) or `|` (pipe/chain)")
+                lines.append("Compose with: `|` (union/merge) or `>>` (pipe/chain)")
                 lines.append("")
                 lines.append("| Method | Signature | Description |")
                 lines.append("|---|---|---|")

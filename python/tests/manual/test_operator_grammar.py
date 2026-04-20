@@ -43,7 +43,7 @@ class TestCompositeAttach:
         assert agent._config.get("_context_spec") is spec
 
     def test_prompt_transform_attaches(self) -> None:
-        prompt = P.role("analyst") + P.task("crunch numbers")
+        prompt = P.role("analyst") | P.task("crunch numbers")
         agent = prompt >> Agent("e").model("gemini-2.5-flash")
         assert isinstance(agent, Agent)
         # instruction is set on the builder

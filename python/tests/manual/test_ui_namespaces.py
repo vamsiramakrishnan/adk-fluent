@@ -106,7 +106,7 @@ class TestPuiSchema:
         assert ps.name == "ui_schema"
 
     def test_pui_schema_composable(self):
-        composed = P.role("UI designer") + P.ui_schema() + P.task("Build a form")
+        composed = P.role("UI designer") | P.ui_schema() | P.task("Build a form")
         assert composed is not None
 
 

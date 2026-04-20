@@ -689,21 +689,21 @@ class TestFitCascade:
 
 
 class TestPhaseCComposition:
-    def test_summarize_plus_relevant(self):
-        result = C.summarize() + C.relevant(query="test")
+    def test_summarize_union_relevant(self):
+        result = C.summarize() | C.relevant(query="test")
         assert isinstance(result, CComposite)
         assert len(result.blocks) == 2
 
     def test_window_pipe_summarize(self):
-        result = C.window(n=3) | C.summarize()
+        result = C.window(n=3) >> C.summarize()
         assert isinstance(result, CPipe)
 
     def test_select_pipe_relevant(self):
-        result = C.select(author="user") | C.relevant(query="test")
+        result = C.select(author="user") >> C.relevant(query="test")
         assert isinstance(result, CPipe)
 
-    def test_from_state_plus_extract(self):
-        result = C.from_state("topic") + C.extract(schema={"topic": "str"})
+    def test_from_state_union_extract(self):
+        result = C.from_state("topic") | C.extract(schema={"topic": "str"})
         assert isinstance(result, CComposite)
 
     def test_all_phase_c_are_ctransform(self):
@@ -740,7 +740,7 @@ class TestPhaseCComposition:
         assert callable(compiled["instruction"])
 
     def test_compile_composite_phase_c(self):
-        composite = C.summarize() + C.extract(key="data")
+        composite = C.summarize() | C.extract(key="data")
         compiled = _compile_context_spec("Process.", composite)
         assert compiled["include_contents"] == "none"
         assert callable(compiled["instruction"])

@@ -147,13 +147,13 @@ def test_chain_opaque_reads():
 
 
 # ======================================================================
-# Combine operator + between STransforms
+# Combine operator | between STransforms
 # ======================================================================
 
 
 def test_combine_two_deltas():
-    """+ merges two StateDelta transforms."""
-    combined = S.set(a=1) + S.set(b=2)
+    """| merges two StateDelta transforms."""
+    combined = S.set(a=1) | S.set(b=2)
     assert isinstance(combined, STransform)
     result = combined({})
     assert isinstance(result, StateDelta)
@@ -161,24 +161,24 @@ def test_combine_two_deltas():
 
 
 def test_combine_delta_overlap():
-    """+ with overlapping keys: second wins."""
-    combined = S.set(a=1) + S.set(a=99, b=2)
+    """| with overlapping keys: second wins."""
+    combined = S.set(a=1) | S.set(a=99, b=2)
     result = combined({})
     assert result.updates == {"a": 99, "b": 2}
 
 
 def test_combine_defaults():
-    """+ combines default transforms."""
-    combined = S.default(a=1) + S.default(b=2)
+    """| combines default transforms."""
+    combined = S.default(a=1) | S.default(b=2)
     result = combined({})
     assert result.updates == {"a": 1, "b": 2}
 
 
 def test_combine_metadata_merges():
-    """+ merges reads and writes metadata."""
+    """| merges reads and writes metadata."""
     t1 = S.set(a=1)  # reads={}, writes={"a"}
     t2 = S.set(b=2)  # reads={}, writes={"b"}
-    combined = t1 + t2
+    combined = t1 | t2
     assert combined._writes_keys == frozenset({"a", "b"})
 
 
@@ -211,8 +211,8 @@ def test_identity_chain_right():
 
 
 def test_identity_combine():
-    """S.identity() + transform == transform behavior."""
-    t = S.identity() + S.set(a=1)
+    """S.identity() | transform == transform behavior."""
+    t = S.identity() | S.set(a=1)
     result = t({})
     assert result.updates == {"a": 1}
 
@@ -310,7 +310,7 @@ def test_chain_repr():
 
 def test_combine_repr():
     """Combined STransform has descriptive name."""
-    t = S.set(a=1) + S.set(b=2)
+    t = S.set(a=1) | S.set(b=2)
     assert "and" in t.__name__
 
 
@@ -367,10 +367,10 @@ def test_composed_stransform_in_pipeline():
 
 
 def test_combined_stransform_in_pipeline():
-    """Combined STransform (via +) works in pipeline."""
+    """Combined STransform (via |) works in pipeline."""
     from adk_fluent.agent import Agent
 
-    defaults = S.default(language="en") + S.default(tone="formal")
+    defaults = S.default(language="en") | S.default(tone="formal")
     a1 = Agent("writer", "gemini-2.0-flash")
     pipeline = a1 >> defaults
     assert pipeline is not None

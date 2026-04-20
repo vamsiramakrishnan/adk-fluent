@@ -2,7 +2,7 @@
 
 Context providers (``_context_providers.py``) rebuild ``list(ctx.session.events)``
 and rescan it once per provider invocation. A compiled agent commonly has
-3–6 providers running per turn (e.g. ``C.none() + C.from_state('topic') +
+3–6 providers running per turn (e.g. ``C.none() | C.from_state('topic') |
 C.window(5)``), which means the event list is materialized and scanned
 several times on every LLM call for the same underlying session.
 

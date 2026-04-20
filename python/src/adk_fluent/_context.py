@@ -7,15 +7,15 @@ these descriptors into the two ADK knobs: ``include_contents`` and
 ``instruction`` (as an async InstructionProvider).
 
 Composition operators:
-    +  union  (CComposite)
-    |  pipe   (CPipe)
-    >> chain  (alias for |, namespace consistency)
+    |  union  (CComposite) — the one composition operator for C
+    >> pipe   (CPipe)       — source transform piped through another
+                              (expressed via ``a >> b`` between transforms)
 
 Usage:
     from adk_fluent._context import C
 
     Agent("writer")
-        .context(C.window(n=3) + C.from_state("topic"))
+        .context(C.window(n=3) | C.from_state("topic"))
         .instruct("Write about {topic}.")
 
     Agent("reviewer")
@@ -130,13 +130,9 @@ class CTransform:
     instruction_provider: Callable | None = None
     _kind: str = "base"
 
-    def __add__(self, other: CTransform) -> CComposite:
-        """Union: combine two transforms via +."""
+    def __or__(self, other: CTransform) -> CComposite:
+        """Union: ``a | b`` combines two transforms into one CComposite."""
         return CComposite(blocks=(*self._as_list(), *other._as_list()))
-
-    def __or__(self, other: CTransform) -> CPipe:
-        """Pipe: source | transform."""
-        return CPipe(source=self, transform=other)
 
     def __rshift__(self, other: Any) -> Any:
         """Chain or attach: ``self >> other``.
@@ -149,7 +145,7 @@ class CTransform:
 
         if isinstance(other, BuilderBase):
             return other.context(self)
-        return self.__or__(other)
+        return CPipe(source=self, transform=other)
 
     def _as_list(self) -> tuple[CTransform, ...]:
         """Flatten for composite building. Overridden by CComposite."""
@@ -287,7 +283,7 @@ class CFromState(CTransform):
     agent's prompt without suppressing conversation history.  If you also
     want to suppress history, compose explicitly::
 
-        C.none() + C.from_state("key")   # inject state, no history
+        C.none() | C.from_state("key")   # inject state, no history
         C.from_state("key")              # inject state, keep history
 
     The convenience method ``.reads()`` composes ``C.none()`` for you
@@ -773,7 +769,7 @@ class CWriteNotes(CTransform):
 class CRolling(CTransform):
     """Rolling window with optional summarization of older turns.
 
-    Equivalent to: ``C.window(n=n) + C.summarize(scope="before_window")``
+    Equivalent to: ``C.window(n=n) | C.summarize(scope="before_window")``
     when ``summarize=True``, or just ``C.window(n=n)`` otherwise.
     """
 
@@ -883,7 +879,7 @@ class CPipelineAware(CTransform):
     - But NOT the raw text of intermediate agents (noise, duplication)
 
     ``C.pipeline_aware(*keys)`` is shorthand for
-    ``C.user_only() + C.from_state(*keys)`` — it gives the agent
+    ``C.user_only() | C.from_state(*keys)`` — it gives the agent
     exactly the user message plus named state values.
 
     Usage::
@@ -1209,7 +1205,7 @@ class C:
         message plus structured data from upstream agents, but should
         NOT see raw intermediate agent conversation history.
 
-        Equivalent to ``C.user_only() + C.from_state(*keys)`` but
+        Equivalent to ``C.user_only() | C.from_state(*keys)`` but
         with clearer intent and better contract checker support.
 
         Example::
@@ -1253,7 +1249,7 @@ class C:
         Usage::
 
             Agent("renderer").context(C.with_ui("dashboard"))
-            Agent("updater").context(C.from_state("total") + C.with_ui())
+            Agent("updater").context(C.from_state("total") | C.with_ui())
         """
         key_pattern = f"_a2ui_data_{surface_id}" if surface_id else "_a2ui_data_"
 

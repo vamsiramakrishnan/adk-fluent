@@ -56,7 +56,7 @@ composed_guard = G.pii() | G.a2ui()
 ps = P.ui_schema()
 
 # Compose with other prompt sections
-full_prompt = P.role("UI designer") + P.ui_schema() + P.task("Build a dashboard")
+full_prompt = P.role("UI designer") | P.ui_schema() | P.task("Build a dashboard")
 
 # --- 7. .explain() includes UI info ---
 info = agent._explain_json()

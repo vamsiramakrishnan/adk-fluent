@@ -100,7 +100,7 @@ root_agent = (
             "You are a smart assistant that creates interactive UIs. "
             "Analyze user intent and respond with BOTH text AND a rich A2UI surface."
         )
-        + P.constraint(
+        | P.constraint(
             "Use domain tools to get real data first",
             "Then use send_a2ui_json_to_client to send a beautiful UI",
             "Forms for data collection (TextField, ChoicePicker, CheckBox)",

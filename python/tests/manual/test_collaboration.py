@@ -156,7 +156,7 @@ class TestSharedThread:
         assert callable(st.instruction_provider)
 
     def test_shared_thread_composable(self):
-        combined = C.shared_thread() + C.from_state("topic")
+        combined = C.shared_thread() | C.from_state("topic")
         assert combined is not None
 
     def test_shared_thread_on_agent(self):

@@ -31,12 +31,12 @@ Usage::
         >> Agent("writer").instruct("Write report.")
     )
 
-    # NEW: Compose transforms with + and >>
+    # Compose transforms with >> (chain) and | (combine)
     cleanup = S.pick("findings") >> S.rename(findings="input") >> S.default(confidence=0.5)
     pipeline = Agent("researcher").writes("findings") >> cleanup >> Agent("writer")
 
-    # NEW: Combine transforms with +
-    defaults = S.default(language="en") + S.default(confidence=0.5)
+    # Combine transforms with | — both run on the original state, results merge
+    defaults = S.default(language="en") | S.default(confidence=0.5)
     pipeline = Agent("researcher") >> defaults >> Agent("writer")
 """
 
@@ -149,7 +149,7 @@ class STransform:
         cleanup = S.pick("a", "b") >> S.rename(a="x")
 
         # Combine: both run on original state, deltas merge
-        defaults = S.default(a=1) + S.default(b=2)
+        defaults = S.default(a=1) | S.default(b=2)
 
         # Interop with Agent builders via >>
         pipeline = Agent("a").writes("out") >> S.pick("out") >> Agent("b")
@@ -240,20 +240,20 @@ class STransform:
         return NotImplemented
 
     # ------------------------------------------------------------------
-    # Composition: + (combine)
+    # Composition: ``|`` (combine, run both on original state, merge)
     # ------------------------------------------------------------------
 
-    def __or__(self, other: Any) -> Any:
-        """Pipe: alias for ``>>`` (chain). Provided for namespace consistency."""
-        return self.__rshift__(other)
-
-    def __add__(self, other: Any) -> STransform:
-        """Combine: ``self + other``.
+    def __or__(self, other: Any) -> STransform:
+        """Combine: ``self | other``.
 
         Both transforms run on the original state. Results merge:
         - StateDelta + StateDelta → merged StateDelta (second wins on conflicts)
         - StateReplacement + StateReplacement → merged StateReplacement
         - Mixed → second result type wins
+
+        This is the ONE namespace-consistent composition operator for S
+        (``P``, ``C``, ``G``, ``M``, ``T``, ``A`` all use ``|`` too).
+        Chain-sequential composition is available via ``>>``.
         """
         if isinstance(other, STransform):
             return _combine_transforms(self, other)
@@ -375,8 +375,8 @@ class S:
         # Chain with >>
         cleanup = S.pick("a") >> S.rename(a="x") >> S.default(y=1)
 
-        # Combine with +
-        defaults = S.default(a=1) + S.set(b=2)
+        # Combine with |
+        defaults = S.default(a=1) | S.set(b=2)
 
         # Use in pipelines
         pipeline = Agent("a") >> cleanup >> Agent("b")

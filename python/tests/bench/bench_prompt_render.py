@@ -19,30 +19,30 @@ def main() -> None:
 
     # Small composition (3 sections).
     def build_small() -> object:
-        return P.role("assistant") + P.task("answer") + P.format("json")
+        return P.role("assistant") | P.task("answer") | P.format("json")
 
     # Medium composition (6 sections).
     def build_medium() -> object:
         return (
             P.role("senior engineer")
-            + P.context("you are reviewing a PR")
-            + P.task("identify bugs and suggest fixes")
-            + P.constraint("be concise", "cite line numbers")
-            + P.format("markdown bullet list")
-            + P.example(input="ex1 in", output="ex1 out")
+            | P.context("you are reviewing a PR")
+            | P.task("identify bugs and suggest fixes")
+            | P.constraint("be concise", "cite line numbers")
+            | P.format("markdown bullet list")
+            | P.example(input="ex1 in", output="ex1 out")
         )
 
     # Large composition (10 sections with reorder/without).
     def build_large() -> object:
         return (
             P.role("support agent")
-            + P.context("handle tier-1 tickets")
-            + P.task("triage and respond")
-            + P.constraint("stay polite", "escalate if unclear")
-            + P.format("json with fields: intent, response")
-            + P.example(input="q1", output="a1")
-            + P.example(input="q2", output="a2")
-        ) | P.without("example")
+            | P.context("handle tier-1 tickets")
+            | P.task("triage and respond")
+            | P.constraint("stay polite", "escalate if unclear")
+            | P.format("json with fields: intent, response")
+            | P.example(input="q1", output="a1")
+            | P.example(input="q2", output="a2")
+        ) >> P.without("example")
 
     bench("build P[3]", build_small, iters=50_000)
     bench("build P[6]", build_medium, iters=50_000)

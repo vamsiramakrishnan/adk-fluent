@@ -1166,7 +1166,7 @@ writer   = Agent("writer").instruct(base_prompt + Prompt().task("Write documenta
 | `.format(text)`        | Desired output format                         |
 | `.example(text)`       | Few-shot examples (multiple calls accumulate) |
 | `.section(name, text)` | Custom named section                          |
-| `.merge(other)` / `+`  | Combine two Prompts                           |
+| `.merge(other)` / `\|` | Combine two Prompts                           |
 | `.build()` / `str()`   | Compile to instruction string                 |
 
 #### Static Instructions & Context Caching

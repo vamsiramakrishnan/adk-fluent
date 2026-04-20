@@ -143,13 +143,13 @@ class TestCoreSections:
 
 
 # ======================================================================
-# Composition: + operator (PComposite)
+# Composition: | operator (PComposite)
 # ======================================================================
 
 
 class TestComposition:
-    def test_add_creates_composite(self):
-        result = P.role("R") + P.task("T")
+    def test_union_creates_composite(self):
+        result = P.role("R") | P.task("T")
         assert isinstance(result, PComposite)
         assert len(result.blocks) == 2
 
@@ -157,19 +157,19 @@ class TestComposition:
         a = P.role("R")
         b = P.task("T")
         c = P.constraint("C")
-        result = (a + b) + c
+        result = (a | b) | c
         assert isinstance(result, PComposite)
         assert len(result.blocks) == 3
 
     def test_composite_preserves_all_sections(self):
-        result = P.role("Reviewer.") + P.task("Review code.") + P.constraint("Be concise.")
+        result = P.role("Reviewer.") | P.task("Review code.") | P.constraint("Be concise.")
         text = str(result)
         assert "Reviewer." in text
         assert "Task:\nReview code." in text
         assert "Constraints:\nBe concise." in text
 
     def test_section_order_is_fixed(self):
-        result = P.example("example first") + P.role("role second") + P.task("task third")
+        result = P.example("example first") | P.role("role second") | P.task("task third")
         text = str(result)
         role_pos = text.index("role second")
         task_pos = text.index("task third")
@@ -177,45 +177,45 @@ class TestComposition:
         assert role_pos < task_pos < example_pos
 
     def test_same_kind_merges(self):
-        result = P.constraint("Rule 1.") + P.constraint("Rule 2.") + P.constraint("Rule 3.")
+        result = P.constraint("Rule 1.") | P.constraint("Rule 2.") | P.constraint("Rule 3.")
         text = str(result)
         assert "Constraints:\nRule 1.\nRule 2.\nRule 3." in text
 
     def test_multiple_examples_merge(self):
-        result = P.example("Q: 2+2 A: 4") + P.example("Q: 3+3 A: 6")
+        result = P.example("Q: 2+2 A: 4") | P.example("Q: 3+3 A: 6")
         text = str(result)
         assert "Examples:\nQ: 2+2 A: 4\nQ: 3+3 A: 6" in text
 
     def test_reuse_base_prompt(self):
-        base = P.role("You are a senior engineer.") + P.constraint("Be precise.")
-        reviewer = base + P.task("Review code.")
-        writer = base + P.task("Write documentation.")
+        base = P.role("You are a senior engineer.") | P.constraint("Be precise.")
+        reviewer = base | P.task("Review code.")
+        writer = base | P.task("Write documentation.")
         assert "Review code." in str(reviewer)
         assert "Write documentation." in str(writer)
         assert "Review" not in str(writer)
         assert "documentation" not in str(reviewer)
 
     def test_custom_sections_after_standard(self):
-        result = P.role("Helper.") + P.section("style", "Be formal.")
+        result = P.role("Helper.") | P.section("style", "Be formal.")
         text = str(result)
         assert text.index("Helper") < text.index("Style")
 
 
 # ======================================================================
-# Composition: | operator (PPipe)
+# Composition: >> operator (PPipe)
 # ======================================================================
 
 
 class TestPipe:
     def test_pipe_creates_ppipe(self):
-        result = P.role("R") | P.compress(max_tokens=100)
+        result = P.role("R") >> P.compress(max_tokens=100)
         assert isinstance(result, PPipe)
         assert isinstance(result.source, PRole)
         assert isinstance(result.transform, PCompress)
 
     def test_pipe_static_passthrough(self):
-        source = P.role("Reviewer.") + P.task("Review.")
-        result = source | P.compress(max_tokens=100)
+        source = P.role("Reviewer.") | P.task("Review.")
+        result = source >> P.compress(max_tokens=100)
         text = str(result)
         assert "Reviewer." in text
         assert "Review." in text
@@ -228,17 +228,17 @@ class TestPipe:
 
 class TestConditional:
     def test_when_with_true_callable(self):
-        result = P.role("Helper") + P.when(lambda s: True, P.context("Extra info."))
+        result = P.role("Helper") | P.when(lambda s: True, P.context("Extra info."))
         text = result.build(state={"anything": True})
         assert "Extra info." in text
 
     def test_when_with_false_callable(self):
-        result = P.role("Helper") + P.when(lambda s: False, P.context("Hidden."))
+        result = P.role("Helper") | P.when(lambda s: False, P.context("Hidden."))
         text = result.build()
         assert "Hidden." not in text
 
     def test_when_with_state_key_string(self):
-        result = P.role("Helper") + P.when("verbose", P.context("Detailed info."))
+        result = P.role("Helper") | P.when("verbose", P.context("Detailed info."))
         text = result.build(state={"verbose": True})
         assert "Detailed info." in text
         text = result.build(state={"verbose": False})
@@ -247,14 +247,14 @@ class TestConditional:
         assert "Detailed info." not in text
 
     def test_when_exception_in_predicate(self):
-        result = P.role("Helper") + P.when(lambda s: 1 / 0, P.context("Error."))
+        result = P.role("Helper") | P.when(lambda s: 1 / 0, P.context("Error."))
         text = result.build()
         assert "Error." not in text
 
 
 class TestFromState:
     def test_from_state_renders_keys(self):
-        result = P.role("Helper") + P.from_state("name", "plan")
+        result = P.role("Helper") | P.from_state("name", "plan")
         text = result.build(state={"name": "Alice", "plan": "pro"})
         assert "name: Alice" in text
         assert "plan: pro" in text
@@ -321,7 +321,7 @@ class TestStructuralTransforms:
 
 class TestSugar:
     def test_scaffolded(self):
-        inner = P.role("Helper") + P.task("Do stuff.")
+        inner = P.role("Helper") | P.task("Do stuff.")
         result = P.scaffolded(inner, preamble="SAFETY FIRST", postamble="STAY SAFE")
         text = str(result)
         assert "SAFETY FIRST" in text
@@ -329,7 +329,7 @@ class TestSugar:
         assert "STAY SAFE" in text
 
     def test_versioned_builds_inner(self):
-        inner = P.role("Helper") + P.task("Do stuff.")
+        inner = P.role("Helper") | P.task("Do stuff.")
         result = P.versioned(inner, tag="v1.0")
         text = str(result)
         assert "Helper" in text
@@ -352,13 +352,13 @@ class TestFingerprint:
         assert a.fingerprint() != b.fingerprint()
 
     def test_composite_fingerprint(self):
-        a = P.role("R") + P.task("T")
-        b = P.role("R") + P.task("T")
+        a = P.role("R") | P.task("T")
+        b = P.role("R") | P.task("T")
         assert a.fingerprint() == b.fingerprint()
 
     def test_different_composite_fingerprint(self):
-        a = P.role("R") + P.task("T1")
-        b = P.role("R") + P.task("T2")
+        a = P.role("R") | P.task("T1")
+        b = P.role("R") | P.task("T2")
         assert a.fingerprint() != b.fingerprint()
 
     def test_versioned_fingerprint(self):
@@ -448,14 +448,14 @@ class TestRepr:
         assert "PRole" in repr(P.role("hello"))
 
     def test_pcomposite_repr(self):
-        result = P.role("R") + P.task("T")
+        result = P.role("R") | P.task("T")
         r = repr(result)
         assert "PComposite" in r
         assert "role" in r
         assert "task" in r
 
     def test_ppipe_repr(self):
-        result = P.role("R") | P.compress()
+        result = P.role("R") >> P.compress()
         r = repr(result)
         assert "PPipe" in r
 
@@ -467,7 +467,7 @@ class TestRepr:
 
 class TestAgentIntegration:
     def test_instruct_accepts_ptransform(self):
-        prompt = P.role("Helper.") + P.task("Answer questions.")
+        prompt = P.role("Helper.") | P.task("Answer questions.")
         agent = Agent("test").model("gemini-2.5-flash").instruct(prompt).build()
         assert "Helper." in agent.instruction
         assert "Answer questions." in agent.instruction
@@ -489,7 +489,7 @@ class TestAgentIntegration:
 
 class TestIRIntegration:
     def test_prompt_spec_preserved_in_ir(self):
-        prompt = P.role("Reviewer") + P.task("Review code.")
+        prompt = P.role("Reviewer") | P.task("Review code.")
         ir = Agent("r").model("gemini-2.5-flash").instruct(prompt).to_ir()
         assert ir.prompt_spec is not None
         assert isinstance(ir.prompt_spec, PComposite)
@@ -513,7 +513,7 @@ class TestDynamicCompilation:
     def test_static_prompt_returns_string(self):
         from adk_fluent._prompt import _compile_prompt_spec
 
-        prompt = P.role("Helper") + P.task("Do stuff.")
+        prompt = P.role("Helper") | P.task("Do stuff.")
         result = _compile_prompt_spec(prompt)
         assert isinstance(result, str)
         assert "Helper" in result
@@ -521,14 +521,14 @@ class TestDynamicCompilation:
     def test_dynamic_prompt_returns_callable(self):
         from adk_fluent._prompt import _compile_prompt_spec
 
-        prompt = P.role("Helper") + P.when("verbose", P.context("Extra."))
+        prompt = P.role("Helper") | P.when("verbose", P.context("Extra."))
         result = _compile_prompt_spec(prompt)
         assert callable(result)
 
     def test_from_state_returns_callable(self):
         from adk_fluent._prompt import _compile_prompt_spec
 
-        prompt = P.role("Helper") + P.from_state("name")
+        prompt = P.role("Helper") | P.from_state("name")
         result = _compile_prompt_spec(prompt)
         assert callable(result)
 

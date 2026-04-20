@@ -142,7 +142,7 @@ def test_context_description_none():
 def test_context_description_composite():
     from adk_fluent._context import CFromState, CWindow
 
-    composite = CWindow(n=3) + CFromState(keys=("topic",))
+    composite = CWindow(n=3) | CFromState(keys=("topic",))
     desc = _context_description(composite)
     assert "window" in desc
     assert "from_state" in desc

@@ -62,7 +62,7 @@ from adk_fluent._prompt import P
 
 agent = (
     Agent("creative", "gemini-2.5-pro")
-    .instruct(P.role("UI designer") + P.ui_schema() + P.task("Build a dashboard"))
+    .instruct(P.role("UI designer") | P.ui_schema() | P.task("Build a dashboard"))
     .tools(T.google_search() | T.a2ui())
     .ui(UI.auto())
 )
@@ -202,7 +202,7 @@ agent.guard(G.pii() | G.a2ui(max_components=30))
 from adk_fluent._prompt import P
 
 # Inject A2UI catalog schema into the prompt
-agent.instruct(P.role("UI designer") + P.ui_schema() + P.task("Build a form"))
+agent.instruct(P.role("UI designer") | P.ui_schema() | P.task("Build a form"))
 ```
 
 ### S.to_ui() / S.from_ui() -- State Bridges

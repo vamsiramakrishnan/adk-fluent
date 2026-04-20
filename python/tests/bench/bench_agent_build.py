@@ -86,7 +86,7 @@ def main() -> None:
     def build_loaded() -> object:
         return (
             Agent("loaded", "gemini-2.5-flash")
-            .instruct(P.role("assistant") + P.task("search") + P.format("json"))
+            .instruct(P.role("assistant") | P.task("search") | P.format("json"))
             .tool(tool_fn)
             .tool(tool_fn)
             .before_model(before_model)

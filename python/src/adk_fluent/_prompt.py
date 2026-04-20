@@ -6,9 +6,8 @@ transform. At build-time, ``_compile_prompt_spec`` lowers these descriptors
 into instruction strings or async InstructionProvider callables.
 
 Composition operators:
-    +  union  (PComposite) — merge sections
-    |  pipe   (PPipe)      — post-process compiled output
-    >> chain  (alias for |, namespace consistency)
+    |  union  (PComposite) — the one composition operator; merge sections
+    >> pipe   (PPipe)      — post-process compiled output through a transform
 
 Usage:
     from adk_fluent import P
@@ -16,16 +15,16 @@ Usage:
     Agent("writer")
         .instruct(
             P.role("You are a senior code reviewer.")
-            + P.task("Review the code for bugs.")
-            + P.constraint("Be concise. Max 5 bullet points.")
-            + P.format("Return markdown with ## sections.")
-            + P.example(input="x=eval(input())", output="Critical: eval() on user input")
+            | P.task("Review the code for bugs.")
+            | P.constraint("Be concise. Max 5 bullet points.")
+            | P.format("Return markdown with ## sections.")
+            | P.example(input="x=eval(input())", output="Critical: eval() on user input")
         )
 
     # Reuse base prompt across agents
-    base = P.role("Senior engineer.") + P.constraint("Be precise.")
-    reviewer = Agent("r").instruct(base + P.task("Review code."))
-    writer   = Agent("w").instruct(base + P.task("Write docs."))
+    base = P.role("Senior engineer.") | P.constraint("Be precise.")
+    reviewer = Agent("r").instruct(base | P.task("Review code."))
+    writer   = Agent("w").instruct(base | P.task("Write docs."))
 """
 
 from __future__ import annotations
@@ -109,13 +108,9 @@ class PTransform:
 
     _kind: str = "base"
 
-    def __add__(self, other: PTransform) -> PComposite:
-        """Union: combine two transforms via +."""
+    def __or__(self, other: PTransform) -> PComposite:
+        """Union: ``a | b`` combines two transforms into one PComposite."""
         return PComposite(blocks=(*self._as_list(), *other._as_list()))
-
-    def __or__(self, other: PTransform) -> PPipe:
-        """Pipe: source | transform."""
-        return PPipe(source=self, transform=other)
 
     def __rshift__(self, other: Any) -> Any:
         """Chain or attach: ``self >> other``.
@@ -128,7 +123,7 @@ class PTransform:
 
         if isinstance(other, BuilderBase):
             return other.instruct(self)
-        return self.__or__(other)
+        return PPipe(source=self, transform=other)
 
     def _as_list(self) -> tuple[PTransform, ...]:
         """Flatten for composite building. Overridden by PComposite."""
@@ -502,9 +497,9 @@ class P:
     Usage:
         Agent("writer").instruct(
             P.role("You are a senior code reviewer.")
-            + P.task("Review the code for bugs.")
-            + P.constraint("Be concise. Max 5 bullet points.")
-            + P.format("Return markdown with ## sections.")
+            | P.task("Review the code for bugs.")
+            | P.constraint("Be concise. Max 5 bullet points.")
+            | P.format("Return markdown with ## sections.")
         )
     """
 
@@ -630,7 +625,7 @@ class P:
 
         Use with ``.instruct()`` to give the LLM knowledge of the A2UI protocol::
 
-            agent.instruct(P.role("UI Designer") + P.ui_schema() + P.task("Build a dashboard"))
+            agent.instruct(P.role("UI Designer") | P.ui_schema() | P.task("Build a dashboard"))
 
         Args:
             catalog: Catalog to document (default ``"basic"``).

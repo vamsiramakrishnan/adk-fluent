@@ -2766,7 +2766,7 @@ class BuilderBase:
             # window suppresses history; state values are injected alongside
 
             # Equivalent low-level composition:
-            Agent("writer").context(C.none() + C.from_state("topic"))
+            Agent("writer").context(C.none() | C.from_state("topic"))
         """
         self = self._maybe_fork_for_mutation()
         from adk_fluent._context import C
@@ -2776,10 +2776,10 @@ class BuilderBase:
             # Explicitly suppress history — the common pipeline case.
             # C.from_state() itself is neutral (include_contents="default"),
             # so we compose C.none() to get the suppression behavior.
-            new_spec = C.none() + new_spec
+            new_spec = C.none() | new_spec
         existing = self._config.get("_context_spec")
         if existing is not None:
-            self._config["_context_spec"] = existing + new_spec
+            self._config["_context_spec"] = existing | new_spec
         else:
             self._config["_context_spec"] = new_spec
         return self

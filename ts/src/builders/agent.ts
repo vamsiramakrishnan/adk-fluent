@@ -472,7 +472,7 @@ export class Agent extends BuilderBase {
   }
 
   /**
-   * Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead).
+   * Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role().union(P.task())). Raises TypeError if passed a CTransform (use .context() instead).
    */
   instruct(value: unknown): this {
     return this._setConfig("instruction", value);

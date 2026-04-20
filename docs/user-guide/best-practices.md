@@ -221,10 +221,10 @@ pipeline = (
     >> S.transform("raw_text", lambda text: text[:2000].strip()) # Clean it up
     >> S.rename(raw_text="clean_context")
     >> Agent("qa_bot")
-    .context(C.from_state("clean_context") + C.user_only()) # Hide previous assistant messages
+    .context(C.from_state("clean_context") | C.user_only()) # Hide previous assistant messages
     .instruct(
-        P.system("You are a QA bot.") +
-        P.guidelines("Only answer using the provided context. If you don't know, say so.") +
+        P.system("You are a QA bot.") |
+        P.guidelines("Only answer using the provided context. If you don't know, say so.") |
         P.text("Context: {clean_context}")
     )
 )

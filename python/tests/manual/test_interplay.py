@@ -66,7 +66,7 @@ class TestFullPipeline:
 
         builder = (
             Agent("test")
-            .instruct(P.role("analyst") + P.task("analyze data"))
+            .instruct(P.role("analyst") | P.task("analyze data"))
             .context(C.window(n=10))
             .tools(T.mock("search", returns="ok") | T.fn(lambda: "x"))
             .guard(G.json() | G.length(max=1000))

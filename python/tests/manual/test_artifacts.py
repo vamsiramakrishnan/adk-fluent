@@ -764,12 +764,12 @@ class TestForLlm:
         result = A.for_llm("report.md", scope="user")
         assert result._scope == "user"
 
-    def test_for_llm_composes_with_c_plus(self):
-        """A.for_llm() can be combined with C blocks via +."""
+    def test_for_llm_composes_with_c_union(self):
+        """A.for_llm() can be combined with C blocks via |."""
         from adk_fluent import A, C
         from adk_fluent._context import CTransform
 
-        combined = C.from_state("topic") + A.for_llm("report.md")
+        combined = C.from_state("topic") | A.for_llm("report.md")
         assert isinstance(combined, CTransform)
 
 

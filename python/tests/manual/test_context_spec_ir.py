@@ -49,7 +49,7 @@ def test_context_spec_from_agents_preserved():
 def test_context_spec_composite_preserved():
     from adk_fluent import Agent, C
 
-    ir = Agent("a").context(C.window(n=3) + C.from_state("topic")).to_ir()
+    ir = Agent("a").context(C.window(n=3) | C.from_state("topic")).to_ir()
     assert ir.context_spec is not None
     # Composite wraps multiple blocks
     assert type(ir.context_spec).__name__ == "CComposite"

@@ -99,8 +99,8 @@ root_agent = (
     Agent("assistant", "gemini-2.5-flash")
     .instruct(
         P.role("Helpful research assistant")
-        + P.task("Answer questions using available tools")
-        + P.constraint("Always cite sources", "Be concise")
+        | P.task("Answer questions using available tools")
+        | P.constraint("Always cite sources", "Be concise")
     )
     .tool(search)
     .guard(G.length(max=2000))
@@ -126,7 +126,7 @@ root_agent = (
         Agent("writer", "gemini-2.5-flash")
         .instruct(
             P.task("Write a summary based on {findings}")
-            + P.constraint("Be concise", "Use bullet points")
+            | P.constraint("Be concise", "Use bullet points")
         )
         .reads("findings")
     )
@@ -340,8 +340,8 @@ root_agent = (
     Agent("rag", "gemini-2.5-flash")
     .instruct(
         P.role("Knowledge assistant")
-        + P.task("Answer questions using the retrieval tool")
-        + P.constraint("Only answer based on retrieved content", "Say 'I don't know' if unsure")
+        | P.task("Answer questions using the retrieval tool")
+        | P.constraint("Only answer based on retrieved content", "Say 'I don't know' if unsure")
     )
     .tool(retrieve_documents)
     .context(C.window(n=3))

@@ -85,38 +85,38 @@ class TestCTransformProtocol:
 
 
 class TestComposition:
-    def test_add_creates_composite(self):
+    def test_union_creates_composite(self):
         a = C.none()
         b = C.default()
-        result = a + b
+        result = a | b
         assert isinstance(result, CComposite)
 
     def test_composite_has_both_blocks(self):
         a = C.none()
         b = C.default()
-        result = a + b
+        result = a | b
         assert len(result.blocks) == 2
         assert result.blocks[0] is a
         assert result.blocks[1] is b
 
-    def test_add_flattens_composites(self):
+    def test_union_flattens_composites(self):
         a = C.none()
         b = C.default()
         c = C.user_only()
-        result = (a + b) + c
+        result = (a | b) | c
         assert isinstance(result, CComposite)
         assert len(result.blocks) == 3
 
     def test_pipe_creates_cpipe(self):
         a = C.window(n=3)
         b = C.from_state("key")
-        result = a | b
+        result = a >> b
         assert isinstance(result, CPipe)
 
     def test_pipe_has_source_and_transform(self):
         a = C.window(n=3)
         b = C.from_state("key")
-        result = a | b
+        result = a >> b
         assert result.source is a
         assert result.transform is b
 

@@ -134,12 +134,12 @@ class TestCNotes:
         spec = C.notes("x")
         assert spec.include_contents == "default"
 
-    def test_notes_compose_with_plus(self):
-        combined = C.notes("obs") + C.from_state("intent")
+    def test_notes_compose_with_union(self):
+        combined = C.notes("obs") | C.from_state("intent")
         assert hasattr(combined, "blocks")
 
     def test_notes_compose_with_pipe(self):
-        piped = C.notes("obs") | C.relevant(query="test")
+        piped = C.notes("obs") >> C.relevant(query="test")
         assert hasattr(piped, "source")
         assert hasattr(piped, "transform")
 
@@ -314,7 +314,7 @@ class TestCRolling:
         assert "q1" in result
 
     def test_rolling_compose(self):
-        combined = C.rolling(3) + C.from_state("intent")
+        combined = C.rolling(3) | C.from_state("intent")
         assert hasattr(combined, "blocks")
 
 
@@ -485,8 +485,8 @@ class TestCompileContextSpec:
         assert compiled["include_contents"] == "none"
         assert callable(compiled["instruction"])
 
-    def test_notes_plus_state(self):
-        combined = C.notes("obs") + C.from_state("intent")
+    def test_notes_union_state(self):
+        combined = C.notes("obs") | C.from_state("intent")
         compiled = _compile_context_spec("Handle.", combined)
         # Both CNotes and CFromState are neutral → composite is "default"
         assert compiled["include_contents"] == "default"

@@ -55,7 +55,7 @@ from adk_fluent import Agent, P, C
 
 agent = (
     Agent("analyst", "gemini-2.5-flash")
-    .instruct(P.role("Data analyst") + P.task("Analyze data"))
+    .instruct(P.role("Data analyst") | P.task("Analyze data"))
     .context(C.window(n=5))
     .writes("analysis")
     .tool(search_fn)

@@ -223,7 +223,7 @@ def test_t_composite_opaque():
 
 def test_p_composite_flattens():
     """PComposite should flatten its children via _as_list()."""
-    spec = P.role("helper") + P.task("do things")
+    spec = P.role("helper") | P.task("do things")
     assert isinstance(spec, PComposite)
     items = spec._as_list()
     assert len(items) == 2
@@ -232,7 +232,7 @@ def test_p_composite_flattens():
 
 def test_c_composite_flattens():
     """CComposite should flatten its children via _as_list()."""
-    spec = C.window(n=5) + C.from_state("topic")
+    spec = C.window(n=5) | C.from_state("topic")
     assert isinstance(spec, CComposite)
     items = spec._as_list()
     assert len(items) == 2
@@ -321,7 +321,7 @@ def test_fingerprint_works_across_namespaces():
 def test_fingerprint_composite_differs_from_leaf():
     """Composites should fingerprint differently from their leaves."""
     leaf = P.role("helper")
-    composite = P.role("helper") + P.task("do things")
+    composite = P.role("helper") | P.task("do things")
     assert fingerprint_spec(leaf) != fingerprint_spec(composite)
 
 

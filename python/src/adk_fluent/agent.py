@@ -461,7 +461,7 @@ class Agent(BuilderBase):
             yield chunk
 
     def instruct(self, value: str | Callable[[ReadonlyContext], str | Awaitable[str]]) -> Self:
-        """Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() + P.task()). Raises TypeError if passed a CTransform (use .context() instead)."""
+        """Set the main instruction / system prompt — what the LLM is told to do. Accepts plain text, a callable, or a P module composition (P.role() | P.task()). Raises TypeError if passed a CTransform (use .context() instead)."""
         from adk_fluent._helpers import _instruct_with_guard
 
         return _instruct_with_guard(self, value)

@@ -31,16 +31,17 @@ T (tools)    155  Plain class        Mutable list      |             to_tools() 
 | Callable wrapper | S | Wraps a closure, called directly at runtime |
 | Mutable list accumulator | M, T | Appends items to a list, flattened at build-time |
 
-**2. Composition operator meanings diverge**
+**2. Composition operator meanings (unified in Phase 8)**
 
 | Operator | S | C | P | A | M | T |
 |----------|---|---|---|---|---|---|
-| `>>` | Chain (sequential) | — | — | Chain | — | — |
-| `+` | Combine (parallel merge) | Union | Union | — | — | — |
-| `\|` | — | Pipe | Pipe | — | Chain | Chain |
+| `>>` | Chain (pipe output into next) | Pipe (post-process) | Pipe (post-process) | Chain | — | — |
+| `\|` | Combine (both run, deltas merge) | Union (merge specs) | Union (merge sections) | — | Chain | Chain |
 
-Users must remember: `>>` chains S transforms but `|` chains M middleware.
-`+` merges S transforms in parallel but unions C/P blocks.
+Post-Phase 8 grammar: `|` is the sole union/combine operator across all
+namespaces that support composition. `>>` is the sole pipe/chain operator.
+The legacy `+` operator has been removed. Users no longer need to remember
+two different operators per namespace.
 
 **3. Terminal protocol fragmented**
 
@@ -122,17 +123,16 @@ Concrete changes to align the six modules:
 |--------|:-:|:-:|:-:|:-:|:-:|:-:|--------|
 | Add `_kind` discriminator | Add | Has | Has | Has | Add | Add | Low |
 | Add `_as_list()` flattening | Add | Has | Has | Has | Add | Add | Low |
-| Standardize compose operators | Keep `>>` `+` | Keep `+` `\|` | Keep `+` `\|` | Keep `>>` | Keep `\|` | Keep `\|` | None |
+| Standardize compose operators | Use `>>` `\|` | Use `>>` `\|` | Use `>>` `\|` | Use `>>` | Use `\|` | Use `\|` | Done (Phase 8) |
 | Add `_reads_keys`/`_writes_keys` | Has | Add | Add | Has | Add | Add | Medium |
 | Add fingerprinting | Add | Add | Has | Add | — | — | Medium |
 | Uniform error handling | Add | Audit | Audit | Add | Add | Add | Medium |
 
-**Rationale for keeping operator divergence**: S and A operate on
-*sequential data flow* (state transforms chain left-to-right), so `>>`
-is correct. C, P operate on *declarative composition* (sections union),
-so `+` is correct. M, T are *flat collections* with no ordering
-semantics, so `|` is correct. The operators are semantically accurate;
-forcing uniformity would harm readability.
+**Phase 8 resolution**: the legacy `+` operator was dropped. `|` now
+expresses union/combine across every namespace that supports it, and
+`>>` expresses pipe/chain. One grammar, one mental model: `|` = merge,
+`>>` = feed output into next. Named-method aliases (`.union()`,
+`.pipe()`) round out the TypeScript story.
 
 ### What Should Change
 
@@ -508,8 +508,8 @@ class TestSPickProtocol:
         composed = S.pick("a") >> S.rename(a="b")
         assert isinstance(composed, STransform)
 
-    def test_composition_add(self):
-        composed = S.pick("a") + S.set(b=1)
+    def test_composition_union(self):
+        composed = S.pick("a") | S.set(b=1)
         assert isinstance(composed, STransform)
 
 
@@ -682,7 +682,7 @@ def test_context_spec_survives_build():
     agent = (
         Agent("test", "gemini-2.5-flash")
         .instruct("Do things.")
-        .context(C.window(n=3) + C.from_state("topic"))
+        .context(C.window(n=3) | C.from_state("topic"))
         .build()
     )
     assert agent.include_contents == "none"
@@ -691,7 +691,7 @@ def test_context_spec_survives_build():
 def test_prompt_spec_survives_build():
     agent = (
         Agent("test", "gemini-2.5-flash")
-        .instruct(P.role("Expert.") + P.task("Analyze."))
+        .instruct(P.role("Expert.") | P.task("Analyze."))
         .build()
     )
     assert "Expert" in agent.instruction

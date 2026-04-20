@@ -189,26 +189,26 @@ class TestCWhenExceptionSafe:
 
 
 class TestCWhenComposition:
-    def test_when_plus_window_creates_composite(self):
-        t = C.when("verbose", C.from_state("topic")) + C.from_state("name")
+    def test_when_union_window_creates_composite(self):
+        t = C.when("verbose", C.from_state("topic")) | C.from_state("name")
         assert isinstance(t, CComposite)
 
     def test_composite_includes_conditional_when_true(self):
-        t = C.when("verbose", C.from_state("topic")) + C.from_state("name")
+        t = C.when("verbose", C.from_state("topic")) | C.from_state("name")
         ctx = _MockCtx(state={"verbose": True, "topic": "AI", "name": "Alice"})
         result = _run(t.instruction_provider(ctx))
         assert "AI" in result
         assert "Alice" in result
 
     def test_composite_excludes_conditional_when_false(self):
-        t = C.when("verbose", C.from_state("topic")) + C.from_state("name")
+        t = C.when("verbose", C.from_state("topic")) | C.from_state("name")
         ctx = _MockCtx(state={"verbose": False, "topic": "AI", "name": "Alice"})
         result = _run(t.instruction_provider(ctx))
         assert "AI" not in result
         assert "Alice" in result
 
     def test_multiple_when_blocks(self):
-        t = C.when("a", C.from_state("x")) + C.when("b", C.from_state("y"))
+        t = C.when("a", C.from_state("x")) | C.when("b", C.from_state("y"))
         # Both true
         ctx = _MockCtx(state={"a": True, "b": True, "x": "X", "y": "Y"})
         result = _run(t.instruction_provider(ctx))

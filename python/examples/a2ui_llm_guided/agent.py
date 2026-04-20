@@ -31,14 +31,14 @@ auto_agent = Agent("creative", "gemini-2.5-flash").instruct("Build beautiful UIs
 # --- 2. LLM-guided with catalog schema in prompt ---
 guided = (
     Agent("designer", "gemini-2.5-flash")
-    .instruct(P.role("UI designer") + P.ui_schema() + P.task("Build a dashboard"))
+    .instruct(P.role("UI designer") | P.ui_schema() | P.task("Build a dashboard"))
     .ui(UI.auto())
 )
 
 # --- 3. Full namespace symphony ---
 full_agent = (
     Agent("support", "gemini-2.5-flash")
-    .instruct(P.role("Support agent") + P.ui_schema() + P.task("Help customers"))
+    .instruct(P.role("Support agent") | P.ui_schema() | P.task("Help customers"))
     .tools(T.google_search() | T.a2ui())
     .guard(G.pii() | G.a2ui(max_components=30))
     .ui(UI.auto())

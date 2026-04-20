@@ -76,7 +76,7 @@ flowchart TD
 | Agent should see specific other agents | `C.from_agents("agent_a", "agent_b")` | Multi-agent workflows where you want selective visibility |
 | Default ADK behavior | Don't call `.context()` | Agent sees full conversation history |
 
-See [Context Engineering](user-guide/context-engineering.md) for composition rules (`+` for union, `|` for pipe).
+See [Context Engineering](user-guide/context-engineering.md) for composition rules (`|` for union, `>>` for pipe).
 
 ## Choosing a Data Flow Strategy
 
